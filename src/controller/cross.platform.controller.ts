@@ -14,3 +14,4 @@ class CrossPlatformController {
   }
 
 }
+export default CrossPlatformController;

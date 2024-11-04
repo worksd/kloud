@@ -5,9 +5,9 @@ import { useEffect } from "react";
 
 export default function SplashScreen({ screen }: { screen: KloudScreen }) {
   useEffect(() => {
-    if (window.navigate && screen) {
+    if (window.KloudEvent && screen) {
       console.log('Navigating to:', screen, window);
-      window.navigate(screen);
+      window.KloudEvent.navigate(screen);
     } else {
       console.warn(`window or screen is undefined. Screen value: ${screen}`);
     }

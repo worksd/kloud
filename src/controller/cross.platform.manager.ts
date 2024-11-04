@@ -1,5 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 
+import CrossPlatformController from "@/controller/cross.platform.controller";
+
 class CrossPlatformManager {
   private _crossPlatformController: CrossPlatformController;
 

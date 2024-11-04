@@ -11,8 +11,6 @@ export async function middleware(request: NextRequest) {
   const response = await api.auth.token({});
   const userStatus = response.status;
 
-  console.log(userStatus);
-
   if (url.endsWith('/home')) {
     if (userStatus == UserStatus.Ready) {
       return NextResponse.next()

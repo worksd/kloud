@@ -61,7 +61,7 @@ export abstract class EndpointClient {
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken.value}`
     }
-    console.log(accessToken?.value)
+    console.log('Access Token ' + accessToken?.value)
     return headers;
   }
 
@@ -80,7 +80,6 @@ export abstract class EndpointClient {
     };
     try {
       if (method.toUpperCase() === 'POST') {
-        console.log('gogo')
         const response = await fetch(url, {
             method: 'POST',
             headers: _headers,

@@ -4,37 +4,47 @@ import { cookies } from "next/headers";
 import { LoginForm } from "@/app/login/login.form";
 import { redirect } from "next/navigation";
 import { UserStatus } from "@/entities/user/user.status";
+import { ExceptionResponseCode, GuinnessErrorCase } from "@/app/guinnessErrorCase";
 
 export default function Login(props: any) {
-
   return (
     <>
-      <div>Hello Login</div>
       <LoginForm login={login}/>
-
     </>
-      );
+  );
 }
 
-async function login() {
+async function login(email: string, password: string): Promise<LoginActionResult> {
   'use server';
   try {
-    const loginResponse = await api.auth.email({
-      email: 'dongho1222@unist.ac.kr',
-      password: 'gusgh0705!',
+    console.log(`email: ${email} password: ${password}`);
+    const res = await api.auth.email({
+      email: email,
+      password: password,
       type: UserType.Default,
-    })
+    });
+    if (!res.user) {
+      return {
+        errorMessage: (res as unknown as GuinnessErrorCase).message
+      }
+    }
     const nextCookies = cookies();
-    nextCookies.set('accessToken', loginResponse.accessToken)
-    nextCookies.set('userId', `${loginResponse.user.id}`)
-
-    if (loginResponse.user.status == UserStatus.Ready) {
-      redirect('/home')
+    nextCookies.set('accessToken', res.accessToken);
+    nextCookies.set('userId', `${res.user.id}`);
+    console.log(res.user.status);
+    return {
+      userStatus: res.user.status
     }
-    else if (loginResponse.user.status == UserStatus.New) {
-      redirect('/onboarding')
+  } catch
+    (e) {
+    console.log(e)
+    return {
+      errorMessage: ExceptionResponseCode.UNKNOWN_ERROR
     }
-  } catch (e) {
-    console.log(e);
   }
+}
+
+export interface LoginActionResult {
+  errorMessage?: string,
+  userStatus?: UserStatus,
 }

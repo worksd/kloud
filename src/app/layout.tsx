@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+
       >
         {children}
       </body>
@@ -40,8 +40,7 @@ declare global {
     navigateMain: () => void;
   }
   interface Window {
-    Android: Record<string, (data?: string) => void>;
-    iOS: Record<string, (data?: string) => void>;
+    KloudEvent: Record<string, (data?: string) => void>;
     navigate: (screen: KloudScreen, data ?: string) => void;
 
 

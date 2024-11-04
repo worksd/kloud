@@ -1,9 +1,4 @@
-import { cookies } from "next/headers";
-import { api } from "@/app/api.client";
-import { redirect } from "next/navigation";
-
-export default async function Profile(props: any) {
-
+export default function Loading() {
   return (
     <div style={{
       backgroundColor: 'black',
@@ -14,7 +9,7 @@ export default async function Profile(props: any) {
       alignItems: 'center',
       flexDirection: 'column'
     }}>
-      <h1>Hello Profile</h1>
+      <h1>Loading...</h1>
     </div>
   );
 }
