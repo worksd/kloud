@@ -1,57 +1,67 @@
 'use client';
-import { FormEventHandler, useState } from "react";
-import { toast } from "react-toastify";
-import { LoginActionResult } from "@/app/login/page";
-import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import React, { FormEventHandler, useState } from "react";
+import { createPortal, useFormState } from "react-dom";
+import { UserStatus } from "@/entities/user/user.status";
+import { KloudScreen } from "@/shared/kloud.screen";
+import { loginAction } from "@/app/login/login.action";
+import PopupDialog, { PopupType } from "@/app/components/PopupDialog";
 
-export const LoginForm = ({login}: { login: (email: string, password: string) => Promise<LoginActionResult> }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorText, setErrorText] = useState("");
+export const LoginForm = () => {
+  const [actionState, formAction] = useFormState(loginAction, {
+    sequence: 0,
+    errorMessage: '',
+    userStatus: undefined,
+    accessToken: ''
+  });
+  const [clientSequence, setClientSequence] = useState(0);
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault(); // 폼 기본 제출 동작 방지
-    const res = await login(email, password); // 이메일과 비밀번호 전달
-    console.log(res)
-    if (res.userStatus) {
-      toast.success(res.userStatus);
-
-    } else if (res.errorMessage) {
-      toast.error(res.errorMessage);
-      setErrorText(res.errorMessage);
+    if (typeof window !== 'undefined') {
+      if (actionState.userStatus) {
+        if (actionState.userStatus == UserStatus.New) {
+          window.KloudEvent.navigate(KloudScreen.Onboard);
+        }
+        else if (actionState.userStatus == UserStatus.Ready) {
+          window.KloudEvent.navigate(KloudScreen.Main);
+        }
+      }
     }
-
+    setClientSequence((prev) => prev + 1);
   };
 
-
   return (
-    <form className="flex flex-col" onSubmit={handleSubmit}>
+    <form className={'flex flex-col'} action={formAction} onSubmit={handleSubmit}>
       <label htmlFor="email">이메일</label>
-      <input
-        className="text-black"
-        type="text"
-        id="email"
-        name="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <label className="mt-2" htmlFor="password">
+      <input className={'text-black'} type="email" id="email" name="email" />
+      <label className={'mt-2'} htmlFor="password">
         비밀번호
       </label>
-      <input
-        className="text-black"
-        type="password"
-        id="password"
-        name="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button className="mt-8 bg-white text-black py-1 active:scale-95" type="submit">
+      <input className={'text-black'} type="password" id="password" name="password" />
+
+      <button className={'mt-8 bg-white text-black py-1 active:scale-95'} type="submit">
         로그인하기
       </button>
-      <div>
-        {errorText}
-      </div>
+
+      {clientSequence && clientSequence === actionState.sequence
+        ? createPortal(
+          <PopupDialog
+            popupType={actionState.userStatus ? PopupType.ERROR : actionState.userStatus ? PopupType.INFO : PopupType.WARNING}
+            message={actionState.errorMessage || ''}
+            buttonText={actionState.userStatus ? '시작하기' : '닫기'}
+            onClose={() => {
+
+            }}
+          />,
+          document.body,
+        )
+        : null}
     </form>
   );
 };
+
+export interface LoginActionResult {
+  sequence: number;
+  errorMessage?: string,
+  userStatus?: UserStatus,
+  accessToken?: string,
+}

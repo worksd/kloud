@@ -1,5 +1,5 @@
 export enum KloudScreen {
-  Main = 'Main',
-  Onboard = 'Onboard',
-  Login = 'Login',
+  Main = 'main',
+  Onboard = 'onboarding',
+  Login = 'login',
 }
