@@ -22,7 +22,30 @@ export const LoginForm = () => {
           window.KloudEvent.navigate(KloudScreen.Onboard);
         }
         else if (actionState.userStatus == UserStatus.Ready) {
-          window.KloudEvent.navigate(KloudScreen.Main);
+          window.KloudEvent.navigateMain(`[{
+            label: "Home",
+            labelSize: 16,
+            labelColor: "#FF5733",
+            iconUrl: "https://example.com/icons/home.png",
+            iconSize: 24,
+            url: "https://example.com/home"
+          },
+            {
+              label: "Profile",
+              labelSize: 14,
+              labelColor: "#33FF57",
+              iconUrl: "https://example.com/icons/profile.png",
+              iconSize: 20,
+              url: "https://example.com/profile"
+            },
+            {
+              label: "Settings",
+              labelSize: 12,
+              labelColor: "#3357FF",
+              iconUrl: "https://example.com/icons/settings.png",
+              iconSize: 18,
+              url: "https://example.com/settings"
+            }]`)
         }
       }
     }

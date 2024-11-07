@@ -2,6 +2,7 @@ import { ClientOptions } from "@/app/api.client";
 import { Endpoint } from "./endpoint";
 import { pick } from "@/app/pick";
 import { cookies } from "next/headers";
+import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 
 type QueryParams = Record<string, any> | URLSearchParams;
 
@@ -38,8 +39,8 @@ export abstract class EndpointClient {
   protected endpointBuilder<
     Parameter extends Record<string, any>,
     Response extends Record<string, any>
-  >(endpoint: Endpoint<Parameter, Response>) {
-    return (args: Parameter): Promise<Response> => {
+  >(endpoint: Endpoint<Parameter, Response | GuinnessErrorCase>) {
+    return (args: Parameter): Promise<Response | GuinnessErrorCase> => {
       const path =
         typeof endpoint.path === "string"
           ? endpoint.path
@@ -72,31 +73,25 @@ export abstract class EndpointClient {
                                         body,
                                         headers = {},
                                       }: RequestParameters): Promise<ResponseBody> {
+
     const url = `${this.baseUrl}${path}`;
     const _headers: Record<string, string> = {
       ...this.authAsHeaders(),
       ...this.defaultHeaders,
       ...headers,
     };
-    try {
-      if (method.toUpperCase() === 'POST') {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: _headers,
-            body: JSON.stringify(body),
-          });
-        return (await response.json())
-      } else {
-        const queryUrl = url + `${convertFromJsonToQuery(query)}`
-        console.log(queryUrl)
-        const response = await fetch(queryUrl, {headers: _headers,
-          });
-        return await response.json();
-      }
+    const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
+    const options = body && Object.keys(body).length > 0 ? {
+      method: method,
+      headers: _headers,
+      body: JSON.stringify(body),
+    } : {
+      method: method,
+      headers: _headers
+    };
 
+    const response = await fetch(fullUrl, options);
+    return response.json();
 
-    } catch (error: any) {
-      throw error;
-    }
   }
 }

@@ -19,7 +19,9 @@ interface PopupProps {
 const PopupDialog = ({ popupType, title, message, buttonText, onClose }: PopupProps) => {
   const [isClosed, setIsClosed] = useState(false);
   const handleClickClose = () => {
-    onClose && onClose();
+    if (onClose) {
+      onClose();
+    }
     setIsClosed(true);
   };
 

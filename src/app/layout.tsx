@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { BootInfo } from "@/app/onboarding/onboard.form";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -37,12 +38,15 @@ export default function RootLayout({
 
 declare global {
   interface CustomEventMap {
-    navigateMain: () => void;
+    onSplashStarted: () => void;
   }
+
   interface Window {
     KloudEvent: Record<string, (data?: string) => void>;
     navigate: (screen: KloudScreen, data ?: string) => void;
-
+    navigateMain: () => void;
+    sendBootInfo: (bootInfo: string) => void;
+    onSplashStarted: () => void;
 
     // adds definition to Document, but you can do the same with HTMLElement
     addEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;

@@ -2,6 +2,7 @@ import { Endpoint } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
 import { UserResponse } from "@/entities/user/user.response";
 import { UserStatus } from "@/entities/user/user.status";
+import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 
 export type GetAuthTokenParameter = object
 export type GetAuthTokenResponse = {

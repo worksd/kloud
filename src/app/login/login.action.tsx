@@ -5,32 +5,36 @@ import { ExceptionResponseCode, GuinnessErrorCase } from "@/app/guinnessErrorCas
 import { cookies } from "next/headers";
 import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import { LoginActionResult } from "@/app/login/login.form";
+import { z } from "zod";
 
 export const loginAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
 
   try {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const getValidatedString = (data: unknown): string =>
+      z.string().safeParse(data)?.data ?? '';
+
+    const email = getValidatedString(formData.get('email'));
+    const password = getValidatedString(formData.get('password'));
     const res = await api.auth.email({
       email: email,
       password: password,
       type: UserType.Default,
     });
-    console.log(`email: ${email} password: ${password} res = ${JSON.stringify(res)}`);
-    if (!res.user) {
-      const errorMessage = (res as unknown as GuinnessErrorCase).message
+    if ('user' in res) {
+      const nextCookies = cookies();
+      nextCookies.set(accessTokenKey, res.accessToken);
+      nextCookies.set(userIdKey, `${res.user.id}`);
       return {
         sequence: prev.sequence + 1,
-        errorMessage
+        accessToken: res.accessToken,
+        userStatus: res.user.status
       }
     }
-    const nextCookies = cookies();
-    nextCookies.set(accessTokenKey, res.accessToken);
-    nextCookies.set(userIdKey, `${res.user.id}`);
-    return {
-      sequence: prev.sequence + 1,
-      accessToken: res.accessToken,
-      userStatus: res.user.status
+    else {
+      return {
+        sequence: prev.sequence + 1,
+        errorMessage: res.message
+      }
     }
   } catch
     (e) {
