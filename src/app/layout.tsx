@@ -1,8 +1,8 @@
+import { StyledComponentsRegistry } from "@/libs/StyledComponentsRegistery";
+import { KloudScreen } from "@/shared/kloud.screen";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { BootInfo } from "@/app/onboarding/onboard.form";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,10 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-
-      >
-        {children}
+      <body>
+        <StyledComponentsRegistry>
+          {children}
+        </StyledComponentsRegistry>
       </body>
     </html>
   );
