@@ -16,5 +16,7 @@ export type SimpleResponse = {
   success: boolean
 }
 
+export type NoParameter = {}
+
 export * as Auth from './auth.endpoint'
 export * as User from './user.endpoint'
