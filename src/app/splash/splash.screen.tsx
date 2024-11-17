@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
+import Logo from "../../../public/assets/rawgraphy.svg"
 
 export const SplashScreen = () => {
   useEffect(() => {
@@ -54,7 +55,7 @@ export const SplashScreen = () => {
         flexDirection: "column",
       }}
     >
-      <h1>Hello Splash</h1>
+      <Logo/>
     </div>
   );
 };
