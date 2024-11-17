@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
-import Logo from "../../../public/assets/rawgraphy.svg"
+import Logo from "../../../public/assets/logo_white.svg"
 
 export const SplashScreen = () => {
   useEffect(() => {
