@@ -55,11 +55,19 @@ export const LoginForm = () => {
   return (
     <form className={'flex flex-col'} action={formAction} onSubmit={handleSubmit}>
       <label htmlFor="email">이메일</label>
-      <input className={'text-black'} type="email" id="email" name="email" />
+      <input
+        className="text-black border border-gray-300 rounded-md p-2"
+        type="email"
+        id="email"
+        name="email"
+        placeholder='이메일을 입력해주세요'
+      />
       <label className={'mt-2'} htmlFor="password">
         비밀번호
       </label>
-      <input className={'text-black'} type="password" id="password" name="password" />
+      <input className="text-black border border-gray-300 rounded-md p-2" type="password" id="password"
+             name="password"
+      placeholder='비밀번호를 입력해주세요'/>
 
       <button className={'mt-8 bg-white text-black py-1 active:scale-95'} type="submit">
         로그인하기
