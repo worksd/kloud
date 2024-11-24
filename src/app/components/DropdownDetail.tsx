@@ -17,7 +17,7 @@ const DropdownDetails = ({ title, children }: DropdownDetailsProps) => {
     return (
         <div className="flex flex-col gap-y-4">
             <div onClick={toggleDropdown} className="flex justify-between">
-                <p className="text-black text-sm font-medium font-['Pretendard']">{title}</p>
+                <p className="text-black text-sm font-semibold font-['Pretendard']">{title}</p>
                 
                 <div className={`w-6 h-6 ${isExpanded ? "" : "rotate-180"}`}>
                     <Image src={Chevron} alt="펼치기 화살표" />

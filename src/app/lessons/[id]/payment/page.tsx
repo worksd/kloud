@@ -3,6 +3,15 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import DynamicLessonPaymentContent from "./dynamicContent";
 
+function SellerInfoItem ({label, value}: {label: string; value: string;}) {
+    return <div className="self-stretch justify-start items-start inline-flex">
+    <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">{label}</div>
+    <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
+        {value}
+    </div>
+</div>
+}
+
 export default function LessonPaymentPage({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
     const dummyData = {
         id: 3,
@@ -71,8 +80,8 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
     return (
         <div className="w-full h-screen bg-white px-6 flex flex-col pb-20 box-border overflow-auto">
             {/* 백 헤더 (컴포넌트로 따로 빼네야 함) */}
-            <div className="flex justify-between items-center h-14 relative">
-                <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 relative overflow-hidden">
+            <div className="flex justify-between items-center">
+                <div className="flex h-14 justify-center items-center">
                     <svg
                         width={24}
                         height={24}
@@ -90,8 +99,6 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
                         />
                     </svg>
                 </div>
-                <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-black"> </p>
-                <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 overflow-hidden" />
             </div>
 
             <div className="flex flex-col gap-y-16">
@@ -111,8 +118,8 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
                 </div>
 
                 {/* 결제 수단 */}
-                <div className="flex flex-col">
-                    <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-left text-black">결제 수단</p>
+                <div className="flex flex-col gap-y-4">
+                    <p className="text-base font-bold text-left text-black">결제 수단</p>
                     <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 w-[350px] h-[52px] relative gap-2 pl-4 pr-2 py-2 rounded-lg border border-black">
                         <svg
                             width={24}
@@ -166,40 +173,11 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
                 <div className="flex flex-col gap-y-5">
                     {/* 판매자 정보 */}
                     <DropdownDetails title="판매자 정보">
-                        <div className="self-stretch justify-start items-start inline-flex">
-                            <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">상호</div>
-                            <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
-                                입점사명
-                            </div>
-                        </div>
-                        <div className="self-stretch justify-start items-start inline-flex">
-                            <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">사업자번호</div>
-                            <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
-                                입점사명
-                            </div>
-                        </div>
-                        <div className="self-stretch justify-start items-start inline-flex">
-                            <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">
-                                통신판매업 신고번호
-                            </div>
-                            <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
-                                입점사명
-                            </div>
-                        </div>
-                        <div className="self-stretch justify-start items-start inline-flex">
-                            <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">대표자명</div>
-                            <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
-                                입점사명
-                            </div>
-                        </div>
-                        <div className="self-stretch justify-start items-start inline-flex">
-                            <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">
-                                사업자소재지
-                            </div>
-                            <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
-                                입점사명
-                            </div>
-                        </div>
+                        <SellerInfoItem label="상호" value="입점사명"/>
+                        <SellerInfoItem label="사업자번호" value="입점사명"/>
+                        <SellerInfoItem label="통신판매업 신고번호" value="입점사명"/>
+                        <SellerInfoItem label="대표자명" value="입점사명"/>
+                        <SellerInfoItem label="사업자소재지" value="입점사명"/>
                     </DropdownDetails>
 
                     {/* 환불 안내 */}
