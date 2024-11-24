@@ -29,7 +29,7 @@ export default function DynamicLessonPaymentContent({ data }: { data: any }) {
     }, [data]);
 
     return (
-        <button className="flex justify-center items-center w-full h-14 rounded-lg bg-black" onClick={handlePayment}>
+        <button className="left flex justify-center items-center w-full h-14 rounded-lg bg-black" onClick={handlePayment}>
             <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-center text-white">
                 {new Intl.NumberFormat("ko-KR").format(data.price)}원 결제하기
             </p>
