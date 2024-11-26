@@ -1,7 +1,7 @@
 import DropdownDetails from "@/app/components/DropdownDetail";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import DynamicLessonPaymentContent from "./dynamicContent";
+import PaymentButton from "./payment.button";
 
 function SellerInfoItem ({label, value}: {label: string; value: string;}) {
     return <div className="self-stretch justify-start items-start inline-flex">
@@ -197,7 +197,7 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
             </div>
 
             <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-                <DynamicLessonPaymentContent data={dummyData} />
+                <PaymentButton data={dummyData} />
             </div>
         </div>
     );

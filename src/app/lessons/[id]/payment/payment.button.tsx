@@ -1,10 +1,15 @@
 "use client";
 
-import { useCallback } from "react";
+import LoadSpinner from "@/app/components/LoadSpinner";
 import PortOne, { PaymentRequest } from "@portone/browser-sdk/v2";
+import { useCallback, useState } from "react";
 
-export default function DynamicLessonPaymentContent({ data }: { data: any }) {
+export default function PaymentButton({ data }: { data: any }) {
+    const [loading, setLoading] = useState(false);
+
     const handlePayment = useCallback(async () => {
+        setLoading(true);
+
         const info: PaymentRequest = {
             storeId: process.env.NEXT_PUBLIC_PORTONE_SOTRE_ID!,
             channelKey:
@@ -25,14 +30,19 @@ export default function DynamicLessonPaymentContent({ data }: { data: any }) {
         };
 
         const response = await PortOne.requestPayment(info);
-        console.log(response)
+        console.log(response);
+        setLoading(false)
     }, [data]);
 
     return (
         <button className="left flex justify-center items-center w-full h-14 rounded-lg bg-black" onClick={handlePayment}>
-            <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-center text-white">
-                {new Intl.NumberFormat("ko-KR").format(data.price)}원 결제하기
-            </p>
+            {loading ? (
+                <LoadSpinner  />
+            ) : (
+                <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-center text-white">
+                    {new Intl.NumberFormat("ko-KR").format(data.price)}원 결제하기
+                </p>
+            )}
         </button>
     );
 }
