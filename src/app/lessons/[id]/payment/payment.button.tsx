@@ -1,0 +1,48 @@
+"use client";
+
+import LoadSpinner from "@/app/components/LoadSpinner";
+import PortOne, { PaymentRequest } from "@portone/browser-sdk/v2";
+import { useCallback, useState } from "react";
+
+export default function PaymentButton({ data }: { data: any }) {
+    const [loading, setLoading] = useState(false);
+
+    const handlePayment = useCallback(async () => {
+        setLoading(true);
+
+        const info: PaymentRequest = {
+            storeId: process.env.NEXT_PUBLIC_PORTONE_SOTRE_ID!,
+            channelKey:
+                process.env.NODE_ENV !== "development"
+                    ? process.env.NEXT_PUBLIC_TEST_PORTONE_CHANNEL_KEY!
+                    : process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+            paymentId: `${data.id}-${crypto.randomUUID()}`,
+            orderName: data.title,
+            totalAmount: data.price,
+            currency: "CURRENCY_KRW",
+            payMethod: "CARD",
+            redirectUrl: `${window.location.origin}/lessons/${data.id}/payment`,
+            customer: {
+                customerId: "data.user.id",
+                fullName: "profile.name",
+                email: "cc@naver.com",
+            },
+        };
+
+        const response = await PortOne.requestPayment(info);
+        console.log(response);
+        setLoading(false)
+    }, [data]);
+
+    return (
+        <button className="left flex justify-center items-center w-full h-14 rounded-lg bg-black" onClick={handlePayment}>
+            {loading ? (
+                <LoadSpinner  />
+            ) : (
+                <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-center text-white">
+                    {new Intl.NumberFormat("ko-KR").format(data.price)}원 결제하기
+                </p>
+            )}
+        </button>
+    );
+}

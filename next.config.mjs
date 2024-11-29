@@ -7,6 +7,10 @@ const nextConfig = {
         hostname: 'picsum.photos',
         pathname: '/**',
       },
+      {
+        protocol: "https",
+        hostname: "guinness.s3.ap-northeast-2.amazonaws.com",
+      },
     ],
   }
 };
