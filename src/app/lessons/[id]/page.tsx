@@ -1,10 +1,10 @@
-import { CommonSubmitButton, HeaderBlurButton } from "@/app/components/buttons";
+import { CommonSubmitButton } from "@/app/components/buttons";
 import Image from "next/image";
 import Link from "next/link";
 import Calendar from "../../../../public/assets/calendar.svg";
-import LeftArrow from "../../../../public/assets/left-arrow.svg";
+
+import { HeaderInDetail } from "@/app/components/headers";
 import Location from "../../../../public/assets/location.svg";
-import ShareArrow from "../../../../public/assets/share-arrow.svg";
 import TimeCircle from "../../../../public/assets/time-circle.svg";
 import Users from "../../../../public/assets/users.svg";
 import LessonInfoLabel from "./payment/lesson.info.label";
@@ -103,17 +103,7 @@ export default async function LessonDetail({ params }: { params: { id: string } 
     return (
         <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
             {/* 헤더 */}
-            <div className="w-full h-14 px-6 justify-between items-center inline-flex fixed top-0 left-0 z-10">
-                <HeaderBlurButton>
-                    <Image src={LeftArrow} alt="back icon" />
-                </HeaderBlurButton>
-
-                <HeaderBlurButton>
-                    <div className="w-6 h-6 pl-[2.50px] pr-[2.52px] py-[2.10px] justify-center items-center flex">
-                        <Image src={ShareArrow} alt="share icon" />
-                    </div>
-                </HeaderBlurButton>
-            </div>
+            <HeaderInDetail title={"asasasssssssssssssssssssssssssssssssssssssss"}/>
 
             {/* 수업 썸네일 */}
             <div
