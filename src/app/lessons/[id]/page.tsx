@@ -44,7 +44,7 @@ function calculateDDays(input: string): string {
 }
 
 export default async function LessonDetail({ params }: { params: { id: string } }) {
-    // const data = await fetch("");
+    // const data = await api.lesson.get({id: Number(params.id)});
 
     // TODO: 데이터 연결시켜야 함.
     const data = {

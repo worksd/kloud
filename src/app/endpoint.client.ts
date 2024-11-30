@@ -1,8 +1,8 @@
 import { ClientOptions } from "@/app/api.client";
-import { Endpoint } from "./endpoint";
+import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
 import { cookies } from "next/headers";
-import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { Endpoint } from "./endpoint";
 
 type QueryParams = Record<string, any> | URLSearchParams;
 

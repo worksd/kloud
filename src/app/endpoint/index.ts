@@ -18,3 +18,4 @@ export type SimpleResponse = {
 
 export * as Auth from './auth.endpoint'
 export * as User from './user.endpoint'
+export * as Lesson from './lesson.endpoint'
