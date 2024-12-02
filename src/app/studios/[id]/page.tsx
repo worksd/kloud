@@ -33,22 +33,23 @@ export default function StudioDetail() {
             before:block
             before:bg-gradient-to-b
             before:from-transparent
-            before:from-70%
+            before:from-[65%]
             before:to-white
             before:to-100%
             before:z-[2]"
-            />
+            >
 
-            {/* 프로필 영역 */}
-            <div className="w-full pl-6 box-border items-center gap-3 inline-flex">
-                <Image className="relative rounded-[30px] border border-[#f7f8f9]" src={thum} width={60} height={60} alt=" 스튜디오" />
+                {/* 프로필 영역 */}
+                <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-2 z-20">
+                    <Image className="relative rounded-[30px] border border-[#f7f8f9]" src={thum} width={60} height={60} alt=" 스튜디오" />
 
-                <div className="flex-col justify-center items-start gap-2 inline-flex">
-                    <div className="text-[#131517] text-xl font-bold leading-normal">원밀리언 댄스 스튜디오</div>
+                    <div className="flex-col justify-center items-start gap-2 inline-flex">
+                        <div className="text-[#131517] text-xl font-bold leading-normal">원밀리언 댄스 스튜디오</div>
 
-                    <button className="px-2.5 py-1 bg-black rounded-[999px] justify-center items-center gap-2.5 inline-flex">
-                        <div className="text-center text-white text-sm font-medium leading-tight">팔로우</div>
-                    </button>
+                        <button className="px-2.5 py-1 bg-black rounded-[999px] justify-center items-center gap-2.5 inline-flex">
+                            <div className="text-center text-white text-sm font-medium leading-tight">팔로우</div>
+                        </button>
+                    </div>
                 </div>
             </div>
 
