@@ -4,6 +4,7 @@ import Link from "next/link";
 import Calendar from "../../../../public/assets/calendar.svg";
 
 import { HeaderInDetail } from "@/app/components/headers";
+import { calculateDDays } from "@/utils";
 import { Metadata } from "next";
 import Location from "../../../../public/assets/location.svg";
 import TimeCircle from "../../../../public/assets/time-circle.svg";
@@ -93,20 +94,6 @@ function formatDateTime(input: string): { time: string; date: string } {
     const date = `${year}.${month.toString().padStart(2, "0")}.${day.toString().padStart(2, "0")} (${dayOfWeek})`;
 
     return { time, date };
-}
-
-function calculateDDays(input: string): string {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const [datePart] = input.split(" ");
-    const [year, month, day] = datePart.split(".").map(Number);
-    const targetDate = new Date(year, month - 1, day);
-
-    const diffInMs = targetDate.getTime() - today.getTime();
-    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-
-    return diffInDays > 0 ? `D-${diffInDays}` : diffInDays === 0 ? "D-Day" : `D+${Math.abs(diffInDays)}`;
 }
 
 export default async function LessonDetail({ params }: Props) {
