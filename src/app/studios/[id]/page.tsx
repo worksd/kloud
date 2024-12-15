@@ -1,7 +1,7 @@
 import { api } from "@/app/api.client";
 import SnsButton from "@/app/components/buttons/SnsButton";
 import { HeaderInDetail } from "@/app/components/headers";
-import { calculateDDays, extractNumber } from "@/utils";
+import { extractNumber } from "@/utils";
 import Image from "next/image";
 
 import Instagram from "../../../../public/assets/instagram-colored.svg";
@@ -11,6 +11,9 @@ import EmailMark from "../../../../public/assets/email.svg";
 import KakaoMark from "../../../../public/assets/kakao-gray.svg";
 import LocationMark from "../../../../public/assets/location.svg";
 import PhoneMark from "../../../../public/assets/phone.svg";
+import StudioContact from "./studio.contact";
+import Divider from "./studio.divider";
+import LessonCardInStudio from "./studio.lesson";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -117,9 +120,7 @@ export default async function StudioDetail({ params }: Props) {
                     </div>
                 </div> */}
 
-                <div className="w-full">
-                    <div className="h-3 relative bg-[#f7f8f9]" />
-                </div>
+                <Divider />
             </div>
 
             {/* 더보기 영역 */}
@@ -130,27 +131,7 @@ export default async function StudioDetail({ params }: Props) {
                     <div className="h-[660px] w-full flex-col justify-start items-start gap-5 inline-flex">
                         <div className="self-stretch justify-start items-center gap-x-[calc(100%/42.75)] gap-y-5 inline-flex flex-wrap">
                             {res.lessons.splice(0, 4).map((data) => (
-                                <div key={data.id} className="flex-col justify-start items-start gap-2 inline-flex w-[calc(100%/2.0479)]">
-                                    <div className="w-full aspect-[0.75/1] rounded-2xl overflow-hidden relative">
-                                        <Image
-                                            src={data.thumbnailUrl}
-                                            alt={data.title}
-                                            width={167}
-                                            height={222}
-                                            className="w-full h-full justify-start items-center inline-flex"
-                                        />
-
-                                        <div className="h-6 px-2 py-1 bg-black/60 rounded-xl justify-center items-center gap-2.5 inline-flex absolute bottom-[10px] right-3">
-                                            <div className="text-white text-xs font-medium leading-none">
-                                                {calculateDDays(data.startTime)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="px-1 flex-col justify-start items-start gap-1 flex">
-                                        <div className="self-stretch text-black text-sm font-bold leading-tight">{data.title}</div>
-                                        <div className="self-stretch text-[#86898c] text-xs font-medium leading-none">{data.startTime}</div>
-                                    </div>
-                                </div>
+                                <LessonCardInStudio key={data.id} {...data} />
                             ))}
                         </div>
 
@@ -161,27 +142,16 @@ export default async function StudioDetail({ params }: Props) {
                 </div>
             )}
 
-            <div className="w-full">
-                <div className="h-3 relative bg-[#f7f8f9]" />
-            </div>
+            <Divider />
 
             <div className="w-full flex-col justify-start items-start gap-5 inline-flex pt-10">
                 <div className="self-stretch h-7 px-6 justify-center items-center gap-2.5 inline-flex">
                     <div className="grow shrink basis-0 text-[#131517] text-base font-medium leading-snug">Contact</div>
                 </div>
                 <div className="self-stretch px-6 justify-start items-center gap-5 inline-flex">
-                    <div className="grow shrink basis-0 h-[89px] bg-[#f7f8f9] rounded-2xl flex-col justify-center items-center gap-2 inline-flex">
-                        <Image src={EmailMark} alt="contact by email" className="w-8 h-8 relative" />
-                        <div className="self-stretch text-center text-[#505356] text-xs font-medium leading-none">이메일</div>
-                    </div>
-                    <div className="grow shrink basis-0 h-[89px] bg-[#f7f8f9] rounded-2xl flex-col justify-center items-center gap-2 inline-flex">
-                        <Image src={PhoneMark} alt="contact by phone" className="w-8 h-8 relative" />
-                        <div className="self-stretch text-center text-[#505356] text-xs font-medium leading-none">전화</div>
-                    </div>
-                    <div className="grow shrink basis-0 h-[89px] bg-[#f7f8f9] rounded-2xl flex-col justify-center items-center gap-2 inline-flex">
-                        <Image src={KakaoMark} alt="contact by kakao" className="w-8 h-8 relative" />
-                        <div className="self-stretch text-center text-[#505356] text-xs font-medium leading-none">카카오톡</div>
-                    </div>
+                    <StudioContact imgPath={EmailMark} text="이메일"/>
+                    <StudioContact imgPath={PhoneMark} text="전화"/>
+                    <StudioContact imgPath={KakaoMark} text="카카오톡"/>
                 </div>
             </div>
         </div>

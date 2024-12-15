@@ -13,19 +13,19 @@ export type GetStudioResponse = {
     phone: string;
     youtubeUrl?: string;
     instagramAddress?: string;
-    lessons: [
-        {
-            id: number;
-            thumbnailUrl: string;
-            title: string;
-            startTime: string;
-            studio: {
-                id: number;
-                name: string;
-                profileImageUrl: string;
-            };
-        }
-    ];
+    lessons: StudioLessonData[];
+};
+
+export type StudioLessonData = {
+    id: number;
+    thumbnailUrl: string;
+    title: string;
+    startTime: string;
+    studio: {
+        id: number;
+        name: string;
+        profileImageUrl: string;
+    };
 };
 
 export const GetStudio: Endpoint<GetStudioParameter, GetStudioResponse> = {
