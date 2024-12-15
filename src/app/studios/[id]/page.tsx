@@ -3,6 +3,10 @@ import SnsButton from "@/app/components/buttons/SnsButton";
 import { HeaderInDetail } from "@/app/components/headers";
 import { calculateDDays, extractNumber } from "@/utils";
 import Image from "next/image";
+
+import Instagram from "../../../../public/assets/instagram-colored.svg";
+import Youtube from "../../../../public/assets/youtube-colored.svg";
+
 import EmailMark from "../../../../public/assets/email.svg";
 import KakaoMark from "../../../../public/assets/kakao-gray.svg";
 import LocationMark from "../../../../public/assets/location.svg";
@@ -22,6 +26,8 @@ export default async function StudioDetail({params}: Props) {
     }
 
     const [address, _] = res.address.split('/');
+
+    console.log(res)
 
     return (
         <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
@@ -53,7 +59,7 @@ export default async function StudioDetail({params}: Props) {
             >
 
                 {/* 프로필 영역 */}
-                <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-2 z-20">
+                <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
                     <Image className="w-[60px] h-[60px] relative rounded-[30px] border border-[#f7f8f9]" src={res.profileImageUrl} width={60} height={60} alt=" 스튜디오" />
 
                     <div className="flex-col justify-center items-start gap-2 inline-flex">
@@ -67,7 +73,7 @@ export default async function StudioDetail({params}: Props) {
             </div>
 
             {/* 상세 영역 */}
-            <div className="w-full flex flex-col justify-start items-start gap-5">
+            <div className="w-full flex flex-col justify-start items-start gap-5 pt-3">
                 <div className="self-stretch px-6 py-0.5 box-border justify-between items-center flex">
                     <div className="justify-start items-center gap-1 flex">
                         <Image src={LocationMark} alt="장소" width={20} height={20} />
@@ -80,10 +86,8 @@ export default async function StudioDetail({params}: Props) {
                 </div>
 
                 <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">
-                    <SnsButton />
-                    <SnsButton />
-                    <SnsButton />
-                    <SnsButton />
+                    {res.instagramAddress && <SnsButton link={res.instagramAddress} logoPath={Instagram} alt="instagram"/>} 
+                    {res.youtubeUrl && <SnsButton link={res.youtubeUrl} logoPath={Youtube} alt="youtube"/>} 
                 </div>
 
                 <div className="w-full h-px relative bg-[#f7f8f9]" />
