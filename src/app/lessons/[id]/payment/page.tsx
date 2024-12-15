@@ -120,7 +120,7 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
                 {/* 결제 수단 */}
                 <div className="flex flex-col gap-y-4">
                     <p className="text-base font-bold text-left text-black">결제 수단</p>
-                    <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 w-[350px] h-[52px] relative gap-2 pl-4 pr-2 py-2 rounded-lg border border-black">
+                    <div className="w-full flex justify-start items-center flex-grow-0 flex-shrink-0 h-[52px] relative gap-2 pl-4 pr-2 py-2 rounded-lg border border-black">
                         <svg
                             width={24}
                             height={24}

@@ -12,8 +12,11 @@ export class ApiClient extends EndpointClient {
   readonly user = {
     get: this.endpointBuilder(API.User.GetUser)
   }
+  
+  readonly lesson = {
+    get: this.endpointBuilder(API.Lesson.GetLesson),
+  }
 }
-
 
 export interface ClientOptions {
   baseUrl?: string;

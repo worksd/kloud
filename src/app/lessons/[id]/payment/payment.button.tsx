@@ -1,5 +1,6 @@
 "use client";
 
+import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import LoadSpinner from "@/app/components/LoadSpinner";
 import PortOne, { PaymentRequest } from "@portone/browser-sdk/v2";
 import { useCallback, useState } from "react";
@@ -31,18 +32,18 @@ export default function PaymentButton({ data }: { data: any }) {
 
         const response = await PortOne.requestPayment(info);
         console.log(response);
-        setLoading(false)
+        setLoading(false);
     }, [data]);
 
     return (
-        <button className="left flex justify-center items-center w-full h-14 rounded-lg bg-black" onClick={handlePayment}>
+        <CommonSubmitButton originProps={{ onClick: handlePayment }}>
             {loading ? (
-                <LoadSpinner  />
+                <LoadSpinner />
             ) : (
                 <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-center text-white">
                     {new Intl.NumberFormat("ko-KR").format(data.price)}원 결제하기
                 </p>
             )}
-        </button>
+        </CommonSubmitButton>
     );
 }
