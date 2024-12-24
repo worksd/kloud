@@ -41,12 +41,14 @@ declare global {
 
   interface Window {
     KloudEvent: Record<string, (data?: string) => void>;
-    navigate: (screen: KloudScreen, data ?: string) => void;
+    push: (screen: KloudScreen, data?: string) => void;
+    replace: (screen: KloudScreen, data?: string) => void;
+    clearAndPush: (screen: KloudScreen, data?: string) => void;
+    back: () => void;
     navigateMain: () => void;
     sendBootInfo: (bootInfo: string) => void;
     onSplashStarted: () => void;
 
-    // adds definition to Document, but you can do the same with HTMLElement
     addEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;
     dispatchEvent<K extends keyof CustomEventMap>(ev: CustomEventMap[K]): void;
     removeEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;

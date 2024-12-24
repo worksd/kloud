@@ -1,13 +1,14 @@
 'use client';
 import AppleLoginButton from "@/app/login/apple.login.button";
 import GoogleLoginButton from "@/app/login/google.login.button";
-import { useRouter } from "next/navigation"; // Updated import
+import { useRouter } from "next/navigation";
+import { KloudScreen } from "@/shared/kloud.screen"; // Updated import
 
 export default function LoginButtonForm() {
   const router = useRouter();
 
   const handleRedirect = () => {
-    router.push('/login/email'); // Corrected push method
+    window.KloudEvent.push(KloudScreen.LoginEmail)
   };
 
   return (

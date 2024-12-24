@@ -13,8 +13,10 @@ export const loginAction = async (prev: LoginActionResult, formData: FormData): 
     const getValidatedString = (data: unknown): string =>
       z.string().safeParse(data)?.data ?? '';
 
-    const email = getValidatedString(formData.get('email'));
-    const password = getValidatedString(formData.get('password'));
+    // const email = getValidatedString(formData.get('email'));
+    // const password = getValidatedString(formData.get('password'));
+    const email = 'dongho123@unist.ac.kr'
+    const password = 'gusgh0705!'
     const res = await api.auth.email({
       email: email,
       password: password,
