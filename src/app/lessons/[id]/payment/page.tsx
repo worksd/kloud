@@ -137,9 +137,9 @@ export default function LessonPaymentPage({ searchParams }: { searchParams: { [k
                                 />
                             </g>
                             <defs>
-                                <clippath id="clip0_2251_9815">
-                                    <rect width={24} height={24} rx={12} fill="white" />
-                                </clippath>
+                                {/*<clippath id="clip0_2251_9815">*/}
+                                {/*    <rect width={24} height={24} rx={12} fill="white" />*/}
+                                {/*</clippath>*/}
                             </defs>
                         </svg>
                         <p className="flex-grow w-[294px] text-sm font-medium text-left text-black">신용카드</p>

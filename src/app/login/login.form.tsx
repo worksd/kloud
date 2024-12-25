@@ -6,6 +6,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { loginAction } from "@/app/login/login.action";
 import PopupDialog, { PopupType } from "@/app/components/PopupDialog";
 import { useRouter } from "next/navigation";
+import { isMobile } from "react-device-detect";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -21,16 +22,28 @@ export const LoginForm = () => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     if (actionState.userStatus) {
       if (actionState.userStatus == UserStatus.New) {
-        window.KloudEvent.clearAndPush(KloudScreen.Onboard);
+        if (isMobile) {
+          window.KloudEvent.clearAndPush(KloudScreen.Onboard);
+        } else {
+          router.push(KloudScreen.Onboard);
+        }
       } else if (actionState.userStatus == UserStatus.Ready) {
-        window.KloudEvent.clearAndPush(KloudScreen.Main)
+        if (isMobile) {
+          window.KloudEvent.clearAndPush(KloudScreen.Main)
+        } else {
+          router.push(KloudScreen.Home);
+        }
       }
     }
     setClientSequence((prev) => prev + 1);
   };
 
   const handleClickSignUp = () => {
-    window.KloudEvent.push(KloudScreen.SignUp)
+    if (isMobile) {
+      window.KloudEvent.push(KloudScreen.SignUp)
+    } else {
+      router.push(KloudScreen.SignUp);
+    }
   }
 
   return (

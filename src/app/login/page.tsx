@@ -2,6 +2,7 @@ import Logo from "../../../public/assets/logo_black.svg"
 import LoginButtonForm from "@/app/login/login.button.form";
 
 export default function Login(props: any) {
+  console.log(props)
   return (
     <section className="w-screen min-h-screen bg-white flex flex-col items-center"
              style={{paddingTop: "100px"}}>

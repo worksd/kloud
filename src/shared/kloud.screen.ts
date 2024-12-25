@@ -4,4 +4,5 @@ export enum KloudScreen {
   Login = '/login',
   LoginEmail = '/login/email',
   SignUp = '/signUp',
+  Home = "/home",
 }

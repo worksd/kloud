@@ -3,12 +3,17 @@ import AppleLoginButton from "@/app/login/apple.login.button";
 import GoogleLoginButton from "@/app/login/google.login.button";
 import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen"; // Updated import
+import { isMobile } from 'react-device-detect';
 
 export default function LoginButtonForm() {
   const router = useRouter();
 
   const handleRedirect = () => {
-    window.KloudEvent.push(KloudScreen.LoginEmail)
+    if (isMobile) {
+      window.KloudEvent.push(KloudScreen.LoginEmail)
+    } else {
+      router.push(KloudScreen.LoginEmail)
+    }
   };
 
   return (

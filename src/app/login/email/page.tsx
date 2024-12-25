@@ -3,11 +3,19 @@ import Logo from "../../../../public/assets/logo_black.svg";
 import { LoginForm } from "@/app/login/login.form";
 import ArrowLeftIcon from "../../../../public/assets/ic_back_arrow.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
+import { isMobile } from "react-device-detect";
+import { useRouter } from "next/navigation";
 
 export default function EmailLogin(props: any) {
 
+  const router = useRouter()
+
   const handleBack = () => {
-    window.KloudEvent.back()
+    if (isMobile) {
+      window.KloudEvent.back()
+    } else {
+      router.back()
+    }
   };
 
   return (

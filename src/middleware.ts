@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   const baseUrl = new URL('/', url).origin;
   const userAgent = request.headers.get('user-agent') || 'unknown';
   const response = await api.auth.token({});
-  const userStatus = response.status;
+  // const userStatus = response.status;
 
   // if (url.endsWith('/home')) {
   //   if (userStatus == UserStatus.Ready) {
