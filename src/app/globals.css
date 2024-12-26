@@ -25,3 +25,24 @@ body {
     text-wrap: balance;
   }
 }
+
+@layer components {
+  .headline-200 {
+    @apply text-black text-left font-sans text-[24px] font-medium
+  }
+  .title-100 {
+    @apply text-black text-left font-sans text-[16px] font-bold
+  }
+  .body-200 {
+    @apply text-black text-left font-sans text-[12px] font-normal
+  }
+  .body-400 {
+    @apply text-black text-left font-sans text-[14px] font-bold
+  }
+  .full-width-button {
+    @apply flex items-center justify-center bg-black text-white text-lg font-semibold rounded-lg h-14 shadow-lg w-full mb-[40px] max-w-[320px]
+  }
+  .text-gray-500 {
+    @apply text-[#86898c]
+  }
+}
