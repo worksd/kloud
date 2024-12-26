@@ -1,5 +1,6 @@
 import Logo from "../../../public/assets/logo_black.svg"
 import { UpcomingLessons } from "@/app/home/upcoming.lessons";
+import { NewNotifications } from "@/app/home/new.notifications";
 
 export default function Home(props: any) {
 
@@ -12,6 +13,8 @@ export default function Home(props: any) {
       <div className="w-screen p-4">
         <Logo/>
       </div>
+
+      <NewNotifications />
 
       <UpcomingLessons lessons={[
         {

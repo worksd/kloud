@@ -46,3 +46,50 @@ body {
     @apply text-[#86898c]
   }
 }
+
+/* 슬라이드 공통 css */
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: left;
+  border-top-right-radius: 12px;
+  border-top-left-radius: 12px;
+
+  /* Center slide text vertically */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.swiper-pagination {
+  width: 164px !important;
+  background-color: rgba(232, 193, 142, 0.64) !important;
+  border-radius: 8px;
+  padding: 5px 20px;
+}
+
+.swiper-horizontal > .swiper-pagination-bullets,
+.swiper-pagination-bullets.swiper-pagination-horizontal {
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+.swiper-pagination-bullet-active {
+  background-color: rgb(117, 84, 40) !important;
+  width: 64px !important;
+  border-radius: 4px !important;
+}
+
+.swiper-pagination-bullet {
+  background-color: rbg(189, 135, 63) !important;
+}
