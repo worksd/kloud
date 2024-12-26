@@ -5,6 +5,8 @@ import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { loginAction } from "@/app/login/login.action";
 import PopupDialog, { PopupType } from "@/app/components/PopupDialog";
+import { useRouter } from "next/navigation";
+import { isMobile } from "react-device-detect";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -15,55 +17,58 @@ export const LoginForm = () => {
   });
   const [clientSequence, setClientSequence] = useState(0);
 
+  const router = useRouter();
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
-    if (typeof window !== 'undefined') {
-      if (actionState.userStatus) {
-        if (actionState.userStatus == UserStatus.New) {
-          window.KloudEvent.navigate(KloudScreen.Onboard);
+    if (actionState.userStatus) {
+      if (actionState.userStatus == UserStatus.New) {
+        if (isMobile) {
+          window.KloudEvent.clearAndPush(KloudScreen.Onboard);
+        } else {
+          router.push(KloudScreen.Onboard);
         }
-        else if (actionState.userStatus == UserStatus.Ready) {
-          window.KloudEvent.navigateMain(`[{
-            label: "Home",
-            labelSize: 16,
-            labelColor: "#FF5733",
-            iconUrl: "https://example.com/icons/home.png",
-            iconSize: 24,
-            url: "https://example.com/home"
-          },
-            {
-              label: "Profile",
-              labelSize: 14,
-              labelColor: "#33FF57",
-              iconUrl: "https://example.com/icons/profile.png",
-              iconSize: 20,
-              url: "https://example.com/profile"
-            },
-            {
-              label: "Settings",
-              labelSize: 12,
-              labelColor: "#3357FF",
-              iconUrl: "https://example.com/icons/settings.png",
-              iconSize: 18,
-              url: "https://example.com/settings"
-            }]`)
+      } else if (actionState.userStatus == UserStatus.Ready) {
+        if (isMobile) {
+          window.KloudEvent.clearAndPush(KloudScreen.Main)
+        } else {
+          router.push(KloudScreen.Home);
         }
       }
     }
     setClientSequence((prev) => prev + 1);
   };
 
-  return (
-    <form className={'flex flex-col'} action={formAction} onSubmit={handleSubmit}>
-      <label htmlFor="email">이메일</label>
-      <input className={'text-black'} type="email" id="email" name="email" />
-      <label className={'mt-2'} htmlFor="password">
-        비밀번호
-      </label>
-      <input className={'text-black'} type="password" id="password" name="password" />
+  const handleClickSignUp = () => {
+    if (isMobile) {
+      window.KloudEvent.push(KloudScreen.SignUp)
+    } else {
+      router.push(KloudScreen.SignUp);
+    }
+  }
 
-      <button className={'mt-8 bg-white text-black py-1 active:scale-95'} type="submit">
-        로그인하기
+  return (
+    <form className="flex flex-col p-6" action={formAction} onSubmit={handleSubmit}>
+      <label className="mb-2 text-[14px] font-[Pretendard] font-medium text-black"
+             htmlFor="email">Email</label>
+      <input
+        className="text-[14px] font-medium leading-[142.857%] text-gray-400 border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
+        type="email"
+        id="email"
+        name="email"
+        placeholder='이메일을 입력해주세요'
+      />
+      <label className="mb-2 mt-5 text-sm font-medium text-gray-700" htmlFor="password">Password</label>
+      <input className="text-[14px] font-medium leading-[142.857%] text-gray-400 border border-gray-300 focus:border-black focus:outline-none rounded-md p-4 mb-[20px]" type="password" id="password"
+             name="password"
+             placeholder='비밀번호를 입력해주세요'/>
+
+      <button
+        className="flex items-center justify-center bg-black text-white text-lg font-semibold rounded-lg h-14 shadow-lg w-full mb-[40px]">
+        Continue
       </button>
+      <div className="text-[14px] font-medium leading-[142.857%] text-gray-500 text-center font-pretendard" onClick={handleClickSignUp}>
+        Don&#39;t have an account yet? Sign Up
+      </div>
 
       {clientSequence && clientSequence === actionState.sequence
         ? createPortal(

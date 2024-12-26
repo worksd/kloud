@@ -3,42 +3,35 @@
 import { useEffect } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
+import Logo from "../../../public/assets/logo_white.svg"
 
 export const SplashScreen = () => {
   useEffect(() => {
 
     try {
-      const res = {
-        status: UserStatus.Ready // 동적으로 상태를 가져오도록 변경 가능
-      };
-      const routeScreen = !res.status
-        ? KloudScreen.Login
-        : res.status === UserStatus.New
-          ? KloudScreen.Onboard
-          : res.status === UserStatus.Ready
-            ? KloudScreen.Main
-            : '';
-      const bottomMenuList = getBottomMenuList();
-      const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
-        route: routeScreen,
-      });
+      setTimeout(() => {
+        const res = {
+          status: undefined
+        };
+        const route = !res.status
+          ? KloudScreen.Login
+          : res.status === UserStatus.New
+            ? KloudScreen.Onboard
+            : res.status === UserStatus.Ready
+              ? KloudScreen.Main
+              : '';
+        const bottomMenuList = getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: KloudScreen.Main,
+        });
 
-      window.KloudEvent.sendBootInfo(bootInfo);
+        window.KloudEvent.sendBootInfo(bootInfo);
+        window.KloudEvent.clearAndPush(route);
+      }, 1000)
     } catch (error) {
       console.log(error);
     }
-
-
-    // const handlePageStarted = async () => {
-    //
-    //
-    // console.log("add event");
-    // window.addEventListener("onSplashStarted", handlePageStarted);
-    //
-    // return () => {
-    //   console.log("remove event");
-    //   window.removeEventListener("onSplashStarted", handlePageStarted);
 
   }, []);
 
@@ -54,7 +47,7 @@ export const SplashScreen = () => {
         flexDirection: "column",
       }}
     >
-      <h1>Hello Splash</h1>
+      <Logo/>
     </div>
   );
 };
@@ -67,7 +60,21 @@ export function getBottomMenuList() {
       labelColor: "#FF5733",
       iconUrl: "https://example.com/icons/home.png",
       iconSize: 24,
-      url: "home",
+      page: {
+        route: "/home",
+        initialColor: "#000000"
+      },
+    },
+    {
+      label: "Notifications",
+      labelSize: 12,
+      labelColor: "#3357FF",
+      iconUrl: "https://example.com/icons/settings.png",
+      iconSize: 18,
+      page: {
+        route: "/notifications",
+        initialColor: "#000000"
+      },
     },
     {
       label: "Profile",
@@ -75,15 +82,10 @@ export function getBottomMenuList() {
       labelColor: "#33FF57",
       iconUrl: "https://example.com/icons/profile.png",
       iconSize: 20,
-      url: "profile",
-    },
-    {
-      label: "Settings",
-      labelSize: 12,
-      labelColor: "#3357FF",
-      iconUrl: "https://example.com/icons/settings.png",
-      iconSize: 18,
-      url: "settings",
+      page: {
+        route: "/profile",
+        initialColor: "#000000"
+      },
     },
   ];
 }

@@ -1,15 +1,16 @@
-import { LoginForm } from "@/app/login/login.form";
+import Logo from "../../../public/assets/logo_black.svg"
+import LoginButtonForm from "@/app/login/login.button.form";
 
 export default function Login(props: any) {
+  console.log(props)
   return (
-    <section className={'w-screen min-h-screen p-12 bg-black text-white flex flex-col justify-center items-center'}>
-      <header className={'flex'}>
-        <h1 className={'text-4xl font-bold flex justify-center items-center'}>로그인</h1>
-      </header>
+    <section className="w-screen min-h-screen bg-white flex flex-col items-center"
+             style={{paddingTop: "100px"}}>
+      <Logo/>
+      <div className="mt-auto justify-center items-center w-full px-8 max-w-sm mb-8">
+        <LoginButtonForm/>
+      </div>
 
-      <main className={'mt-8'}>
-        <LoginForm />
-      </main>
     </section>
   );
 }
