@@ -1,4 +1,4 @@
-import { Endpoint } from "@/app/endpoint/index";
+import { Endpoint, NoParameter } from "@/app/endpoint/index";
 
 export type GetStudioParameter = {
     id: number;
@@ -32,3 +32,12 @@ export const GetStudio: Endpoint<GetStudioParameter, GetStudioResponse> = {
     method: "get",
     path: (e) => `/studios/${e.id}`,
 };
+
+export type GetStudioListResponse = {
+    studios: GetStudioResponse[]
+}
+
+export const ListStudio: Endpoint<NoParameter, GetStudioListResponse> = {
+    method: 'get',
+    path: `/studios`
+}

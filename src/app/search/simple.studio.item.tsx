@@ -1,7 +1,8 @@
 import { Poster } from "@/app/components/Poster";
 import { Studio } from "@/entities/studio/studio";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
-export const SearchStudioItems = ({studios}: {studios: Studio[]}) => {
+export const SearchStudioItems = ({studios}: {studios: GetStudioResponse[]}) => {
   return (
     <ul className="flex flex-col space-y-4 p-2">
       {studios.map((item) => (
@@ -11,7 +12,7 @@ export const SearchStudioItems = ({studios}: {studios: Studio[]}) => {
   )
 }
 
-const SearchStudioItem = ({item} : {item: Studio}) => {
+const SearchStudioItem = ({item} : {item: GetStudioResponse}) => {
   return (
     <div className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
       {/* 프로필 이미지 및 정보 */}
@@ -22,8 +23,8 @@ const SearchStudioItem = ({item} : {item: Studio}) => {
         </div>
         {/* 텍스트 정보 */}
         <div>
-          <div className="text-lg font-bold text-black">에스파이어 서울</div>
-          <div className="text-sm text-gray-500">서울 마포구</div>
+          <div className="text-lg font-bold text-black">{item.name}</div>
+          <div className="text-sm text-gray-500">{item.address}</div>
         </div>
       </div>
       {/* 팔로우 버튼 */}

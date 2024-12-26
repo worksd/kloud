@@ -12,6 +12,8 @@ export type Endpoint<
   headers?: Record<string, string>;
 };
 
+export type NoParameter = object
+
 export type SimpleResponse = {
   success: boolean
 }
