@@ -5,19 +5,16 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
 import Logo from "../../../public/assets/logo_white.svg"
 
-export const SplashScreen = () => {
+export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
   useEffect(() => {
-
     try {
       setTimeout(() => {
-        const res = {
-          status: undefined
-        };
-        const route = !res.status
+        console.log('splash screen = ' + status);
+        const route = !status
           ? KloudScreen.Login
-          : res.status === UserStatus.New
+          : status === UserStatus.New
             ? KloudScreen.Onboard
-            : res.status === UserStatus.Ready
+            : status === UserStatus.Ready
               ? KloudScreen.Main
               : '';
         const bottomMenuList = getBottomMenuList();
@@ -33,7 +30,7 @@ export const SplashScreen = () => {
       console.log(error);
     }
 
-  }, []);
+  }, [status]);
 
   return (
     <div

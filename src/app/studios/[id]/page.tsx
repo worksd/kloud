@@ -2,7 +2,6 @@ import { api } from "@/app/api.client";
 import SnsButton from "@/app/components/buttons/SnsButton";
 import { HeaderInDetail } from "@/app/components/headers";
 import { extractNumber } from "@/utils";
-import Image from "next/image";
 
 import Instagram from "../../../../public/assets/instagram-colored.svg";
 import Youtube from "../../../../public/assets/youtube-colored.svg";
@@ -60,13 +59,13 @@ export default async function StudioDetail({ params }: Props) {
             >
                 {/* 프로필 영역 */}
                 <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
-                    <Image
-                        className="w-[60px] h-[60px] relative rounded-[30px] border border-[#f7f8f9]"
-                        src={res.profileImageUrl}
-                        width={60}
-                        height={60}
-                        alt=" 스튜디오"
-                    />
+                    {/*<Image*/}
+                    {/*    className="w-[60px] h-[60px] relative rounded-[30px] border border-[#f7f8f9]"*/}
+                    {/*    src={res.profileImageUrl}*/}
+                    {/*    width={60}*/}
+                    {/*    height={60}*/}
+                    {/*    alt=" 스튜디오"*/}
+                    {/*/>*/}
 
                     <div className="flex-col justify-center items-start gap-2 inline-flex">
                         <div className="text-[#131517] text-xl font-bold leading-normal">{res.name}</div>
@@ -82,7 +81,7 @@ export default async function StudioDetail({ params }: Props) {
             <div className="w-full flex flex-col justify-start items-start gap-5 pt-3">
                 <div className="self-stretch px-6 py-0.5 box-border justify-between items-center flex">
                     <div className="justify-start items-center gap-1 flex">
-                        <Image src={LocationMark} alt="장소" width={20} height={20} />
+                        {/*<Image src={LocationMark} alt="장소" width={20} height={20} />*/}
 
                         <div className="text-center text-[#505356] text-sm font-medium underline leading-tight">{address}</div>
                     </div>
@@ -149,9 +148,9 @@ export default async function StudioDetail({ params }: Props) {
                     <div className="grow shrink basis-0 text-[#131517] text-base font-medium leading-snug">Contact</div>
                 </div>
                 <div className="self-stretch px-6 justify-start items-center gap-5 inline-flex">
-                    <StudioContact imgPath={EmailMark} text="이메일"/>
-                    <StudioContact imgPath={PhoneMark} text="전화"/>
-                    <StudioContact imgPath={KakaoMark} text="카카오톡"/>
+                    {/*<StudioContact imgPath={EmailMark} text="이메일"/>*/}
+                    {/*<StudioContact imgPath={PhoneMark} text="전화"/>*/}
+                    {/*<StudioContact imgPath={KakaoMark} text="카카오톡"/>*/}
                 </div>
             </div>
         </div>
