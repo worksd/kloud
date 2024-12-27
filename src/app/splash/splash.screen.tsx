@@ -52,36 +52,47 @@ export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
 export function getBottomMenuList() {
   return [
     {
-      label: "Home",
+      label: "홈",
       labelSize: 16,
       labelColor: "#FF5733",
-      iconUrl: "https://example.com/icons/home.png",
+      iconUrl: "https://picsum.photos/250/250",
       iconSize: 24,
       page: {
         route: "/home",
-        initialColor: "#000000"
+        initialColor: "#FFFFFF"
       },
     },
     {
-      label: "Notifications",
+      label: "검색",
       labelSize: 12,
       labelColor: "#3357FF",
-      iconUrl: "https://example.com/icons/settings.png",
+      iconUrl: "https://picsum.photos/250/250",
       iconSize: 18,
       page: {
-        route: "/notifications",
-        initialColor: "#000000"
+        route: "/search",
+        initialColor: "#FFFFFF"
       },
     },
     {
-      label: "Profile",
+      label: "알림",
       labelSize: 14,
       labelColor: "#33FF57",
-      iconUrl: "https://example.com/icons/profile.png",
+      iconUrl: "https://picsum.photos/250/250",
       iconSize: 20,
       page: {
-        route: "/profile",
-        initialColor: "#000000"
+        route: "/notifications",
+        initialColor: "#FFFFFF"
+      },
+    },
+    {
+      label: "마이페이지",
+      labelSize: 14,
+      labelColor: "#33FF57",
+      iconUrl: "https://picsum.photos/250/250",
+      iconSize: 20,
+      page: {
+        route: "/setting",
+        initialColor: "#FFFFFF"
       },
     },
   ];

@@ -46,6 +46,7 @@ declare global {
     clearAndPush: (screen: KloudScreen, data?: string) => void;
     back: () => void;
     navigateMain: () => void;
+    setToken: (token: string) => void;
     sendBootInfo: (bootInfo: string) => void;
     onSplashStarted: () => void;
 

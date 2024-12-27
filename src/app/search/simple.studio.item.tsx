@@ -1,20 +1,31 @@
-import { Poster } from "@/app/components/Poster";
-import { Studio } from "@/entities/studio/studio";
+'use client'
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { useRouter } from "next/navigation";
+import { isMobile } from "react-device-detect";
+import { KloudScreen } from "@/shared/kloud.screen";
 
-export const SearchStudioItems = ({studios}: {studios: GetStudioResponse[]}) => {
+export const SearchStudioItems = ({studios}: { studios: GetStudioResponse[] }) => {
   return (
     <ul className="flex flex-col space-y-4 p-2">
       {studios.map((item) => (
-        <SearchStudioItem key={item.id} item={item} />
+        <SearchStudioItem key={item.id} item={item}/>
       ))}
     </ul>
   )
 }
 
-const SearchStudioItem = ({item} : {item: GetStudioResponse}) => {
+const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
+
+  const router = useRouter();
+  const handleOnClick = () => {
+    if (isMobile) {
+      window.KloudEvent.push(KloudScreen.StudioDetail(item.id))
+    } else {
+      router.push(KloudScreen.StudioDetail(item.id))
+    }
+  }
   return (
-    <div className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md">
+    <div className="flex items-center justify-between w-full max-w-md p-4 bg-white rounded-lg shadow-md" onClick={handleOnClick}>
       {/* 프로필 이미지 및 정보 */}
       <div className="flex items-center space-x-4">
         {/* 프로필 이미지 */}

@@ -1,9 +1,15 @@
+"use client"
+
 import Image from "next/image";
+import { isMobile } from "react-device-detect";
+import { KloudScreen } from "@/shared/kloud.screen";
+import { useRouter } from "next/navigation";
 
 export const Poster = ({
-                         posterUrl, studioLogoUrl, dDay, title, description
+                         id, posterUrl, studioLogoUrl, dDay, title, description
                        }:
                          {
+                           id: number,
                            posterUrl: string,
                            studioLogoUrl: string,
                            dDay: string,
@@ -11,9 +17,20 @@ export const Poster = ({
                            description: string,
                          }
 ) => {
+  const router = useRouter();
+  const handleOnClick = () => {
+    if (isMobile) {
+      window.KloudEvent.push(KloudScreen.LessonDetail(id))
+    } else {
+      router.push(KloudScreen.LessonDetail(id))
+    }
+  }
 
   return (
-    <div className="flex flex-col">
+    <div
+      className="flex flex-col"
+      onClick={handleOnClick}
+    >
       <div style={{width: '167px', height: '222px', position: 'relative'}}>
         <Image
           src="https://picsum.photos/250/250"
