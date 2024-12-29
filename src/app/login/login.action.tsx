@@ -13,15 +13,14 @@ export const loginAction = async (prev: LoginActionResult, formData: FormData): 
     const getValidatedString = (data: unknown): string =>
       z.string().safeParse(data)?.data ?? '';
 
-    // const email = getValidatedString(formData.get('email'));
-    // const password = getValidatedString(formData.get('password'));
-    const email = 'dongho123@unist.ac.kr'
-    const password = 'gusgh0705!'
+    const email = getValidatedString(formData.get('email'));
+    const password = getValidatedString(formData.get('password'));
     const res = await api.auth.email({
       email: email,
       password: password,
       type: UserType.Default,
     });
+    console.log('응답을 받았어!' + JSON.stringify(res))
     if ('user' in res) {
       const nextCookies = cookies();
       nextCookies.set(accessTokenKey, res.accessToken);
@@ -33,13 +32,14 @@ export const loginAction = async (prev: LoginActionResult, formData: FormData): 
       }
     }
     else {
+      console.log('error return 가즈아!')
       return {
         sequence: prev.sequence + 1,
+        errorCode: res.code,
         errorMessage: res.message
       }
     }
-  } catch
-    (e) {
+  } catch (e) {
     console.log(e)
     return {
       sequence: prev.sequence + 1,
