@@ -43,7 +43,8 @@ export const SignupForm = () => {
   }, [actionState]);
 
   return (
-    <form className="flex flex-col p-6" action={formAction}>
+    <form className="flex flex-col p-6 h-screen justify-between" action={formAction}>
+      <div className="flex flex-col">
       <label className="mb-2 text-[14px] font-[Pretendard] font-medium text-black"
              htmlFor="email">Email</label>
       <input
@@ -70,12 +71,18 @@ export const SignupForm = () => {
         {passwordErrorMessage}
       </div>
 
-      <button
-        disabled={!isFormValid}
-        className={`flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full mb-[40px] ${
-          isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
-        Continue
-      </button>
+      </div>
+
+      <div>
+        <button
+          disabled={!isFormValid}
+          className={`flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full mb-[40px] ${
+            isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
+          Continue
+        </button>
+
+      </div>
+
 
     </form>
   );
