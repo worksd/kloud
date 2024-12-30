@@ -1,8 +1,9 @@
 'use server'
 import { cookies } from "next/headers";
+import { accessTokenKey } from "@/shared/cookies.key";
 
 export const clearToken =  async () => {
   const cookieStore = cookies()
-  cookieStore.delete('accessToken')
-  console.log(cookieStore.get('accessToken') + 'fuck!')
+  cookieStore.delete(accessTokenKey)
+  console.log(cookieStore.get(accessTokenKey)?.value + 'fuck!')
 }

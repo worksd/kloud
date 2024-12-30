@@ -2,20 +2,23 @@
 import React, { FormEventHandler, useEffect, useState } from "react";
 import { createPortal, useFormState } from "react-dom";
 import { UserStatus } from "@/entities/user/user.status";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { loginAction } from "@/app/login/login.action";
 import { useRouter } from "next/navigation";
-import { isMobile } from "react-device-detect";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import loginAction from "@/app/login/login.action";
+import { KloudScreen } from "@/shared/kloud.screen";
+import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
-    sequence: -1,
+    sequence: 0,
     errorCode: '',
     errorMessage: '',
+    userId: -1,
     userStatus: undefined,
     accessToken: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sequence, setClientSequence] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,45 +28,63 @@ export const LoginForm = () => {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("actionState 변경 감지:", actionState);
-    setPasswordErrorMessage('');
-    setEmailErrorMessage('');
+    if (actionState.sequence > 0) {
+      console.log("actionState 변경 감지:", actionState);
+      setPasswordErrorMessage('');
+      setEmailErrorMessage('');
 
-    if (actionState.userStatus) {
-      if (actionState.userStatus === UserStatus.New) {
-        if (isMobile) {
-          window.KloudEvent.clearAndPush(KloudScreen.Onboard);
-        } else {
-          router.push(KloudScreen.Onboard);
+      if (actionState.userStatus && actionState.accessToken) {
+        // 로그인 성공 시 쿠키 설정
+        document.cookie = `${accessTokenKey}=${actionState.accessToken}; path=/; max-age=3600`;
+        document.cookie = `${userIdKey}=${actionState.userId}; path=/; max-age=3600`;
+
+        // 이후 라우팅 처리
+        if (actionState.userStatus === UserStatus.New) {
+          if (window.KloudEvent) {
+            window.KloudEvent.clearAndPush(KloudScreen.Onboard);
+          } else {
+            router.push(KloudScreen.Onboard);
+          }
+        } else if (actionState.userStatus === UserStatus.Ready) {
+          if (window.KloudEvent) {
+            window.KloudEvent.clearAndPush(KloudScreen.Main);
+          } else {
+            router.push(KloudScreen.Home);
+          }
         }
-      } else if (actionState.userStatus === UserStatus.Ready) {
-        if (isMobile) {
-          window.KloudEvent.clearAndPush(KloudScreen.Main);
-        } else {
-          router.push(KloudScreen.Home);
+      } else if (actionState.errorMessage) {
+        if (actionState.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
+          setPasswordErrorMessage(actionState.errorMessage);
+        } else if (actionState.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
+          setEmailErrorMessage(actionState.errorMessage);
         }
-      }
-    } else if (actionState.errorMessage) {
-      if (actionState.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
-        setPasswordErrorMessage(actionState.errorMessage);
-      } else if (actionState.errorCode == ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
-        setEmailErrorMessage(actionState.errorMessage);
       }
     }
   }, [actionState]);
 
   const handleClickSignUp = () => {
-    if (isMobile) {
+    if (window.KloudEvent) {
       window.KloudEvent.push(KloudScreen.SignUp)
     } else {
       router.push(KloudScreen.SignUp);
     }
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    setIsSubmitting(true);
+  };
+
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
-    <form className="flex flex-col p-6" action={formAction}>
+    <form 
+      className="flex flex-col p-6" 
+      action={async (formData) => {
+        await formAction(formData);
+        setIsSubmitting(false);
+      }}
+      onSubmit={handleSubmit}
+    >
       <label className="mb-2 text-[14px] font-[Pretendard] font-medium text-black"
              htmlFor="email">Email</label>
       <input
@@ -97,10 +118,6 @@ export const LoginForm = () => {
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
         Continue
       </button>
-      <div className="text-[14px] font-medium leading-[142.857%] text-gray-500 text-center font-pretendard"
-           onClick={handleClickSignUp}>
-        Don&#39;t have an account yet? Sign Up
-      </div>
 
     </form>
   );
@@ -110,6 +127,7 @@ export interface LoginActionResult {
   sequence: number,
   errorCode?: string,
   errorMessage?: string,
+  userId?: number,
   userStatus?: UserStatus,
   accessToken?: string,
 }

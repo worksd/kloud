@@ -18,7 +18,7 @@ const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
 
   const router = useRouter();
   const handleOnClick = () => {
-    if (isMobile) {
+    if (window) {
       window.KloudEvent.push(KloudScreen.StudioDetail(item.id))
     } else {
       router.push(KloudScreen.StudioDetail(item.id))

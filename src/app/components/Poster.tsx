@@ -19,7 +19,7 @@ export const Poster = ({
 ) => {
   const router = useRouter();
   const handleOnClick = () => {
-    if (isMobile) {
+    if (window) {
       window.KloudEvent.push(KloudScreen.LessonDetail(id))
     } else {
       router.push(KloudScreen.LessonDetail(id))

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { BootInfo } from "@/app/onboarding/onboard.form";
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,9 +40,9 @@ declare global {
 
   interface Window {
     KloudEvent: Record<string, (data?: string) => void>;
-    push: (screen: KloudScreen, data?: string) => void;
-    replace: (screen: KloudScreen, data?: string) => void;
-    clearAndPush: (screen: KloudScreen, data?: string) => void;
+    push: (screen: string, data?: string) => void;
+    replace: (screen: string, data?: string) => void;
+    clearAndPush: (screen: string, data?: string) => void;
     back: () => void;
     navigateMain: () => void;
     setToken: (token: string) => void;

@@ -1,9 +1,9 @@
 'use client';
-// 메뉴 아이템 컴포넌트
-// 메뉴 아이템 컴포넌트
+
 import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { clearToken } from "@/app/setting/clear.token.action";
+import { isMobile } from "react-device-detect";
 
 export const MenuItem = ({ label, path }: { label: string; path: string }) => {
 
@@ -11,10 +11,14 @@ export const MenuItem = ({ label, path }: { label: string; path: string }) => {
   const handleClick = async() => {
     if (path == "/logout") {
       await clearToken();
-      window.KloudEvent.setToken('');
-      window.KloudEvent.clearAndPush(KloudScreen.Login)
+      if (window.KloudEvent) {
+        window.KloudEvent.setToken('');
+        window.KloudEvent.clearAndPush(KloudScreen.Login)
+      } else {
+        router.push("login");
+      }
     } else {
-      router.push(path);
+
     }
   };
 

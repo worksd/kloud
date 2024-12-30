@@ -2,7 +2,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { onboardAction } from "@/app/onboarding/onboard.action";
-import { router } from "next/client";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import { isMobile } from "react-device-detect";
@@ -34,7 +33,7 @@ export const OnboardForm = () => {
   };
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
+    const {name, checked} = e.target;
 
     // 개별 체크박스 상태 업데이트
     const updatedCheckboxes = {
@@ -62,7 +61,7 @@ export const OnboardForm = () => {
     console.log(actionState);
 
     if (actionState.success) {
-      if (isMobile) {
+      if (window) {
         window.KloudEvent.clearAndPush(KloudScreen.Main);
       } else {
         router.push(KloudScreen.Home);
@@ -142,7 +141,7 @@ export const OnboardForm = () => {
             </div>
           </main>
 
-          <div className="py-4" >
+          <div className="py-4">
             <button
               className={`w-full py-3 rounded-lg text-lg ${
                 allChecked ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'

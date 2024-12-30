@@ -7,7 +7,7 @@ import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import { LoginActionResult } from "@/app/login/login.form";
 import { z } from "zod";
 
-export const loginAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
+const loginAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
 
   try {
     const getValidatedString = (data: unknown): string =>
@@ -20,16 +20,33 @@ export const loginAction = async (prev: LoginActionResult, formData: FormData): 
       password: password,
       type: UserType.Default,
     });
-    console.log('응답을 받았어!' + JSON.stringify(res))
+
     if ('user' in res) {
-      const nextCookies = cookies();
-      nextCookies.set(accessTokenKey, res.accessToken);
-      nextCookies.set(userIdKey, `${res.user.id}`);
-      return {
-        sequence: prev.sequence + 1,
+      const nextCookies = cookies()
+      // nextCookies.set(accessTokenKey, res.accessToken, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV === 'production',
+      //   sameSite: 'lax'
+      // });
+      // nextCookies.set(userIdKey, `${res.user.id}`, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV === 'production',
+      //   sameSite: 'lax'
+      // });
+      
+      console.log('설정된 액세스 토큰:', res.accessToken);
+      console.log('사용자 상태:', res.user.status);
+      const result: LoginActionResult = {
+        sequence: (prev?.sequence ?? 0) + 1,
         accessToken: res.accessToken,
-        userStatus: res.user.status
-      }
+        userStatus: res.user.status,
+        userId: res.user.id,
+        errorCode: '',
+        errorMessage: ''
+      };
+
+      console.log('로그인 성공 결과:', result); // 디버깅용 로그
+      return result;
     }
     else {
       console.log('error return 가즈아!')
@@ -47,3 +64,5 @@ export const loginAction = async (prev: LoginActionResult, formData: FormData): 
     }
   }
 }
+
+export default loginAction

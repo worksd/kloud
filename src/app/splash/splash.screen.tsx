@@ -9,7 +9,6 @@ export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
   useEffect(() => {
     try {
       setTimeout(() => {
-        console.log('splash screen = ' + status);
         const route = !status
           ? KloudScreen.Login
           : status === UserStatus.New
