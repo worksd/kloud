@@ -12,7 +12,8 @@ export class ApiClient extends EndpointClient {
   }
 
   readonly user = {
-    get: this.endpointBuilder(API.User.GetUser)
+    get: this.endpointBuilder(API.User.GetUser),
+    update: this.endpointBuilder(API.User.UpdateUser)
   }
   
   readonly lesson = {

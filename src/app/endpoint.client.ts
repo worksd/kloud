@@ -82,14 +82,14 @@ export abstract class EndpointClient {
     };
     const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
     const options = body && Object.keys(body).length > 0 ? {
-      method: method,
+      method: method.toUpperCase(),
       headers: _headers,
       body: JSON.stringify(body),
     } : {
-      method: method,
+      method: method.toUpperCase(),
       headers: _headers
     };
-
+    console.log(method + ' ' + url);
     const response = await fetch(fullUrl, options);
     return response.json();
 
