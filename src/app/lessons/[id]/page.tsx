@@ -1,15 +1,11 @@
 import { CommonSubmitButton } from "@/app/components/buttons";
 import Image from "next/image";
 import Link from "next/link";
-import Calendar from "../../../../public/assets/calendar.svg";
 
 import { HeaderInDetail } from "@/app/components/headers";
-import { calculateDDays } from "@/utils";
 import { Metadata } from "next";
-import Location from "../../../../public/assets/location.svg";
-import TimeCircle from "../../../../public/assets/time-circle.svg";
-import Users from "../../../../public/assets/users.svg";
-import LessonInfoLabel from "./payment/lesson.info.label";
+
+import LessonInfoSection from "./lesson.info.section";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -212,23 +208,7 @@ export default async function LessonDetail({ params }: Props) {
                     </div>
 
                     {/* 상세 */}
-                    <div className="self-stretch h-[161px] flex-col justify-start items-start flex">
-                        <div className="self-stretch h-px px-6 flex-col justify-start items-start gap-2.5 flex">
-                            <div className="h-px relative bg-[#f7f8f9]" />
-                        </div>
-
-                        <div className="self-stretch h-40 px-6 py-5 flex-col justify-start items-start gap-4 flex">
-                            <div className="self-stretch h-[120px] flex-col justify-start items-start gap-2 flex">
-                                <LessonInfoLabel iconPath={Location} text={data.studio.name} subText={data.room.name} />
-
-                                <LessonInfoLabel iconPath={Calendar} text={startTime.date} subText={calculateDDays(data.startTime)} />
-
-                                <LessonInfoLabel iconPath={TimeCircle} text={startTime.time} subText={`${data.duration}분`} />
-
-                                <LessonInfoLabel iconPath={Users} text={data.currentStudentCount + ""} subText={data.room.maxNumber + ""} />
-                            </div>
-                        </div>
-                    </div>
+                    <LessonInfoSection />
                 </div>
 
                 {/* 강사 */}
