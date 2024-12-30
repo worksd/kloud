@@ -1,9 +1,16 @@
+import { SignupForm } from "@/app/signUp/signup.form";
+import TopToolbar from "@/app/components/TopToolbar";
+
+
 export default function SignUp(props: any) {
 
-
   return (
-    <>
-      <div>Hello Sign Up</div>
-    </>
-  );
+    <div className="h-screen w-screen bg-white">
+      <TopToolbar title="가입하기"/>
+      <SignupForm/>
+    </div>
+
+  )
+
 }
+

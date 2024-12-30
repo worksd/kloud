@@ -35,3 +35,15 @@ export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthEmailRespon
   path: '/auth/sign-in',
   bodyParams: ['email', 'password', 'type'],
 }
+
+export type PostAuthEmailSignUpParameter = {
+  email: string,
+  password: string,
+  type: UserType,
+}
+
+export const PostSignUpEmail: Endpoint<PostAuthEmailSignUpParameter, PostAuthEmailResponse> = {
+  method: 'post',
+  path: '/auth/sign-up',
+  bodyParams: ['email', 'password', 'type'],
+}
