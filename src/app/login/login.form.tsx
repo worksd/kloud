@@ -119,6 +119,10 @@ export const LoginForm = () => {
         Continue
       </button>
 
+      <div className="text-black" onClick={handleClickSignUp}>
+        이메일이 아직 없으신가요? 회원가입을 해주세요
+      </div>
+
     </form>
   );
 };

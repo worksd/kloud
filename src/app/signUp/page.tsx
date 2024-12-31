@@ -6,7 +6,6 @@ export default function SignUp(props: any) {
 
   return (
     <div className="h-screen w-screen bg-white">
-      <TopToolbar title="가입하기"/>
       <SignupForm/>
     </div>
 
