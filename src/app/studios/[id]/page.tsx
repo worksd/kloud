@@ -24,7 +24,7 @@ export default async function StudioDetail({ params }: Props) {
     const res = await api.studio.get({ id: extractNumber(id) });
     if ("code" in res) {
         console.error(res.message);
-        return <>에러~</>;
+        return <div className="text-black">에러~</div>;
     }
 
     const [address, _] = res.address.split("/");

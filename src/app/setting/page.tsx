@@ -5,6 +5,7 @@ import { api } from "@/app/api.client";
 import { redirect } from "next/navigation";
 
 export default async function Setting(){
+  console.log(cookies().get(userIdKey)?.value)
   const user = await api.user.get({
     id: Number(cookies().get(userIdKey)?.value)
   })

@@ -35,8 +35,8 @@ export const LoginForm = () => {
 
       if (actionState.userStatus && actionState.accessToken) {
         // 로그인 성공 시 쿠키 설정
-        document.cookie = `${accessTokenKey}=${actionState.accessToken}; path=/; max-age=3600`;
-        document.cookie = `${userIdKey}=${actionState.userId}; path=/; max-age=3600`;
+        document.cookie = `${accessTokenKey}=${actionState.accessToken};path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = `${userIdKey}=${actionState.userId};path=/; max-age=2592000; SameSite=Lax`;
 
         // 이후 라우팅 처리
         if (actionState.userStatus === UserStatus.New) {

@@ -23,29 +23,16 @@ const loginAction = async (prev: LoginActionResult, formData: FormData): Promise
 
     if ('user' in res) {
       const nextCookies = cookies()
-      // nextCookies.set(accessTokenKey, res.accessToken, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === 'production',
-      //   sameSite: 'lax'
-      // });
-      // nextCookies.set(userIdKey, `${res.user.id}`, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === 'production',
-      //   sameSite: 'lax'
-      // });
-      
-      console.log('설정된 액세스 토큰:', res.accessToken);
-      console.log('사용자 상태:', res.user.status);
+      // nextCookies.set(accessTokenKey, res.accessToken)
+      // nextCookies.set(userIdKey, `${res.user.id}`)
       const result: LoginActionResult = {
-        sequence: (prev?.sequence ?? 0) + 1,
+        sequence: prev?.sequence + 1,
         accessToken: res.accessToken,
         userStatus: res.user.status,
         userId: res.user.id,
-        errorCode: '',
-        errorMessage: ''
       };
 
-      console.log('로그인 성공 결과:', result); // 디버깅용 로그
+      console.log('로그인 성공 결과:', result);
       return result;
     }
     else {

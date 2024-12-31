@@ -1,17 +1,18 @@
 'use client';
+
+import { useRouter } from "next/navigation";
+import { KloudScreen } from "@/shared/kloud.screen";
 import AppleLoginButton from "@/app/login/apple.login.button";
 import GoogleLoginButton from "@/app/login/google.login.button";
-import { useRouter } from "next/navigation";
-import { KloudScreen } from "@/shared/kloud.screen"; // Updated import
 
 export default function LoginButtonForm() {
   const router = useRouter();
 
   const handleRedirect = () => {
     if (window.KloudEvent) {
-      window.KloudEvent.push(KloudScreen.LoginEmail)
+      window.KloudEvent.push(KloudScreen.LoginEmail);
     } else {
-      router.push(KloudScreen.LoginEmail)
+      router.push(KloudScreen.LoginEmail);
     }
   };
 
