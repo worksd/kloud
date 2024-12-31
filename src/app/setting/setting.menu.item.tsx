@@ -11,6 +11,7 @@ export const MenuItem = ({ label, path }: { label: string; path: string }) => {
   const handleClick = async() => {
     if (path == "/logout") {
       await clearToken();
+      document.cookie = '';
       if (window.KloudEvent) {
         window.KloudEvent.setToken('');
         window.KloudEvent.clearAndPush(KloudScreen.Login)
