@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
   //     return NextResponse.next();
   //   }
   // }
+  return NextResponse.next()
 }
 
 // See "Matching Paths" below to learn more
