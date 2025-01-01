@@ -78,7 +78,7 @@ export default async function LessonDetail({ params }: Props) {
                     <div className="self-stretch h-[58px] px-6 flex-col justify-start items-start gap-2.5 flex">
                         <div className="self-stretch justify-between items-start inline-flex">
                             <Image
-                                className="relative rounded-[20px] border border-[#f7f8f9] co"
+                                className="relative rounded-[20px] border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
                                 src={data.studio.profileImageUrl}
                                 alt={`${data.studio.name} 스튜디오`}
                                 width={24}
@@ -127,7 +127,7 @@ export default async function LessonDetail({ params }: Props) {
             <div className="left-0 w-full h-fit fixed bottom-2 px-6">
                 {true && (
                     <Link href={`/lessons/${id}/payment`}>
-                        <CommonSubmitButton>30,000원 결제</CommonSubmitButton>
+                        <CommonSubmitButton>수강권 결제하기</CommonSubmitButton>
                     </Link>
                 )}
             </div>
