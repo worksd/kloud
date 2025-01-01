@@ -5,6 +5,8 @@ import Link from "next/link";
 import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
 
+import { api } from "@/app/api.client";
+import { redirect } from "next/navigation";
 import LessonInfoSection from "./lesson.info.section";
 
 type Props = {
@@ -13,143 +15,31 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    // const data = await api.lesson.get({id: Number(params.id)});
-
-    // TODO: 데이터 연결시켜야 함.
-    const data = {
-        id: 3,
-        code: "00008-241110-0001",
-        title: "트릭스 팝핀 초급반",
-        thumbnailUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-        startTime: "2024.12.02 19:30",
-        duration: 60,
-        type: "Regular",
-        level: "Advanced",
-        artist: {
-            id: 3,
-            name: "서종렬",
-            nickName: "Trix",
-            profileImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-            phone: "01072705880",
-            instagramAddress: "@t_goddoro",
-        },
-        studio: {
-            id: 3,
-            name: "저스터절크 이대점",
-            address: "서울 중구 필동2가 82-1",
-            profileImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-            coverImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-            phone: "01072705880",
-            youtubeUrl: "https://www.youtube.com/embed/asdflk",
-            instagramAddress: "@t_goddoro",
-            lessons: [
-                {
-                    id: 3,
-                    thumbnailUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-                    title: "트릭스 팝핀 초급반",
-                    startTime: "2022.03.03 19:30",
-                    studio: {
-                        id: 3,
-                        name: "저스터절크 이대점",
-                        profileImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-                    },
-                },
-            ],
-        },
-        currentStudentCount: 14,
-        room: {
-            id: 3,
-            maxNumber: 30,
-            name: "저스터절크 이대점",
-        },
-        ticket: {
-            id: 3,
-        },
-    };
+    const data = await api.lesson.get({ id: Number((await params).id) });
+    if ("id" in data) {
+        //pass
+    } else {
+        redirect("/home");
+    }
 
     return {
         title: data.title,
     };
 }
 
-function formatDateTime(input: string): { time: string; date: string } {
-    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-
-    const [datePart, timePart] = input.split(" ");
-    const [year, month, day] = datePart.split(".").map(Number);
-    const [hour, minute] = timePart.split(":").map(Number);
-
-    const dateObj = new Date(year, month - 1, day, hour, minute);
-
-    const hours = dateObj.getHours();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const formattedHour = hours % 12 || 12;
-    const time = `${ampm} ${formattedHour}:${minute.toString().padStart(2, "0")}`;
-
-    const dayOfWeek = daysOfWeek[dateObj.getDay()];
-    const date = `${year}.${month.toString().padStart(2, "0")}.${day.toString().padStart(2, "0")} (${dayOfWeek})`;
-
-    return { time, date };
-}
-
 export default async function LessonDetail({ params }: Props) {
-    const lessonId = (await params).id;
+    const id = Number((await params).id);
 
-    // const data = await api.lesson.get({id: Number(params.id)});
+    const data = await api.lesson.get({ id });
+    console.log(data);
 
-    // TODO: 데이터 연결시켜야 함.
-    const data = {
-        id: 3,
-        code: "00008-241110-0001",
-        title: "트릭스 팝핀 초급반",
-        thumbnailUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-        startTime: "2024.12.02 19:30",
-        duration: 60,
-        type: "Regular",
-        level: "Advanced",
-        artist: {
-            id: 3,
-            name: "서종렬",
-            nickName: "Trix",
-            profileImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-            phone: "01072705880",
-            instagramAddress: "@t_goddoro",
-        },
-        studio: {
-            id: 3,
-            name: "저스터절크 이대점",
-            address: "서울 중구 필동2가 82-1",
-            profileImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-            coverImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-            phone: "01072705880",
-            youtubeUrl: "https://www.youtube.com/embed/asdflk",
-            instagramAddress: "@t_goddoro",
-            lessons: [
-                {
-                    id: 3,
-                    thumbnailUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-                    title: "트릭스 팝핀 초급반",
-                    startTime: "2022.03.03 19:30",
-                    studio: {
-                        id: 3,
-                        name: "저스터절크 이대점",
-                        profileImageUrl: "https://guinness.s3.ap-northeast-2.amazonaws.com/profile/1728490679606",
-                    },
-                },
-            ],
-        },
-        currentStudentCount: 14,
-        room: {
-            id: 3,
-            maxNumber: 30,
-            name: "저스터절크 이대점",
-        },
-        ticket: {
-            id: 3,
-        },
-    };
+    if ("id" in data) {
+        //pass
+    } else {
+        redirect("/home");
+    }
 
-    const startTime = formatDateTime(data.startTime);
+    console.log(data);
 
     return (
         <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
@@ -187,7 +77,7 @@ export default async function LessonDetail({ params }: Props) {
                     <div className="self-stretch h-[58px] px-6 flex-col justify-start items-start gap-2.5 flex">
                         <div className="self-stretch justify-between items-start inline-flex">
                             <Image
-                                className="relative rounded-[20px] border border-[#f7f8f9]"
+                                className="relative rounded-[20px] border border-[#f7f8f9] co"
                                 src={data.studio.profileImageUrl}
                                 alt={`${data.studio.name} 스튜디오`}
                                 width={24}
@@ -208,7 +98,7 @@ export default async function LessonDetail({ params }: Props) {
                     </div>
 
                     {/* 상세 */}
-                    <LessonInfoSection />
+                    <LessonInfoSection data={data}/>
                 </div>
 
                 {/* 강사 */}
@@ -235,7 +125,7 @@ export default async function LessonDetail({ params }: Props) {
             {/* 결제 페이지 이동 버튼 */}
             <div className="left-0 w-full h-fit fixed bottom-2 px-6">
                 {true && (
-                    <Link href={`/lessons/${lessonId}/payment`}>
+                    <Link href={`/lessons/${id}/payment`}>
                         <CommonSubmitButton>30,000원 결제</CommonSubmitButton>
                     </Link>
                 )}
