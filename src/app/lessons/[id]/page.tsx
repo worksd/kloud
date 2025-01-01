@@ -6,6 +6,7 @@ import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
 
 import { api } from "@/app/api.client";
+import { LessonTypesDisplay } from "@/entities/lesson/lesson";
 import { redirect } from "next/navigation";
 import LessonInfoSection from "./lesson.info.section";
 
@@ -88,7 +89,7 @@ export default async function LessonDetail({ params }: Props) {
                                     <div className="text-white text-xs font-medium leading-none">{data.level}</div>
                                 </div>
                                 <div className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
-                                    <div className="text-[#86898c] text-xs font-medium leading-none">{data.type}</div>
+                                    <div className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[data.type]}</div>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +99,7 @@ export default async function LessonDetail({ params }: Props) {
                     </div>
 
                     {/* 상세 */}
-                    <LessonInfoSection data={data}/>
+                    <LessonInfoSection data={data} />
                 </div>
 
                 {/* 강사 */}

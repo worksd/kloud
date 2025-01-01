@@ -1,4 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
+import { LessonLevels, LessonTypes } from "@/entities/lesson/lesson";
 
 export type GetLessonParameter = {
     id: number;
@@ -11,8 +12,8 @@ export type GetLessonResponse = {
     thumbnailUrl: string;
     startTime: string;
     duration: number;
-    type: string;
-    level: string;
+    type: LessonTypes;
+    level: LessonLevels;
     artist: {
         id: number;
         name: string;
