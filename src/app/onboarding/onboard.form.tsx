@@ -1,10 +1,11 @@
 'use client';
-import { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import { isMobile } from "react-device-detect";
+import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 
 export const OnboardForm = () => {
   const router = useRouter();
@@ -31,6 +32,10 @@ export const OnboardForm = () => {
     }
     setIsNameSubmitted(true); // 이름 제출 완료
   };
+
+  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+  }
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
     const {name, checked} = e.target;
@@ -69,90 +74,120 @@ export const OnboardForm = () => {
     }
   }, [actionState]);
 
-  return (
-    <form className="flex flex-col h-screen bg-white px-6" action={formAction}>
-      {/* 이름 입력 필드 */}
-      <div className="flex flex-col space-y-2">
-        <label className="flex items-center text-sm font-medium text-gray-800">
-          Name <span className="text-red-500 ml-1">필수</span>
-        </label>
+  const onClickBack = () => {
+    if (window.KloudEvent) {
+      window.KloudEvent.back()
+    }
+  }
 
+  return (
+    <form className="flex flex-col h-screen bg-white" action={formAction}>
+      <div className="relative flex items-center justify-center h-[56px]">
+        <div className="absolute top-4 left-4">
+          <button className="flex items-center justify-center text-black rounded-full" onClick={onClickBack}>
+            <ArrowLeftIcon className="w-6 h-6"/>
+          </button>
+        </div>
+        <h1 className="text-[16px] font-bold text-black">가입하기</h1>
+      </div>
+      <div className="flex flex-col p-4">
+        <div className="flex items-center gap-1 mb-2">
+          <label className="text-[14px] font-medium text-black">이름</label>
+          <span className="text-[10px] font-normal text-[#E55B5B]">필수</span>
+        </div>
         <input
-          type="text"
+          className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
           id="name"
           name="name"
+          onChange={onNameChange}
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Please enter your Name"
-          className="w-full border border-gray-300 rounded-md p-2 text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"/>
+          placeholder='이름(본명)을 입력해주세요'
+        />
       </div>
-
-      {!isNameSubmitted && (
-        <button
-          className="mt-4 bg-blue-500 text-white py-2 rounded-lg"
-          onClick={handleNameSubmit}
-        >
-          이름 제출
-        </button>
-      )}
 
       {/* 약관 동의 부분: 이름 제출 후 렌더링 */}
       {isNameSubmitted && (
-        <>
-          <header className="flex items-center gap-2 py-4">
-            <button className="text-lg text-black">←</button>
-            <h1 className="text-lg text-black font-semibold">서비스를 위해 동의해 주세요!</h1>
+        <div className="p-6">
+          <header className="flex items-center gap-2">
+            <h1 className="text-lg text-black font-semibold text-[24px]">서비스를 위해 동의해 주세요!</h1>
           </header>
 
-          <main className="flex-1 space-y-4">
+          <main className="flex-1 space-y-4 mt-12">
             <div className="flex items-center justify-between border-b pb-4">
-              <span className="text-lg text-black font-medium">모두 동의하기</span>
+              <span className="text-lg text-black font-bold">모두 동의하기</span>
               <input
                 type="checkbox"
                 name="all"
                 checked={checkboxes.all}
                 onChange={handleCheckboxChange}
-                className="w-5 h-5 accent-gray-400"
+                className="w-5 h-5 accent-black"
               />
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">[필수] 서비스 이용약관</span>
+                <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+                  <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}>[필수] 서비스 이용약관</span>
+                  <RightArrow isChecked={checkboxes.terms} />
+                </div>
                 <input
                   type="checkbox"
                   name="terms"
                   checked={checkboxes.terms}
                   onChange={handleCheckboxChange}
-                  className="w-5 h-5 accent-gray-400"
+                  className="w-5 h-5 accent-black"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">[필수] 개인정보 수집 및 이용동의</span>
+                <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+                  <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}>[필수] 개인정보 수집 및 이용동의</span>
+                  <RightArrow isChecked={checkboxes.privacy}/>
+                </div>
                 <input
                   type="checkbox"
                   name="privacy"
                   checked={checkboxes.privacy}
                   onChange={handleCheckboxChange}
-                  className="w-5 h-5 accent-gray-400"
+                  className="w-5 h-5 accent-black"
                 />
               </div>
             </div>
           </main>
-
-          <div className="py-4">
-            <button
-              className={`w-full py-3 rounded-lg text-lg ${
-                allChecked ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-500'
-              }`}
-              disabled={!allChecked} // 모든 체크박스 체크 여부에 따라 활성화/비활성화
-            >
-              시작하기
-            </button>
-          </div>
-        </>
+        </div>
       )}
+
+      {/* 다음으로 버튼 - 화면 맨 아래 고정 */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white">
+        <button
+          type="submit"
+          onClick={handleNameSubmit}
+          disabled={name.length < 2 || !checkboxes.all}
+          className={`flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
+            name.length < 2 || !checkboxes.all ? "bg-[#BCBFC2] text-white" : "bg-black text-white"
+          }`}
+        >
+          다음으로
+        </button>
+      </div>
     </form>
   );
 };
+
+const RightArrow = ({ isChecked }: { isChecked: boolean }) => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M9 18L15 12L9 6"
+      stroke={isChecked ? "#000000" : "#BCBFC2"}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
