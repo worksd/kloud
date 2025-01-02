@@ -77,14 +77,15 @@ export const LoginForm = () => {
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
-    <form 
-      className="flex flex-col p-6" 
+    <form
+      className="flex flex-col p-6"
       action={async (formData) => {
         await formAction(formData);
         setIsSubmitting(false);
       }}
       onSubmit={handleSubmit}
     >
+
       <label className="mb-2 text-[14px] font-[Pretendard] font-medium text-black"
              htmlFor="email">Email</label>
       <input

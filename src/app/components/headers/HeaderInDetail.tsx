@@ -33,12 +33,19 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
         };
     }, []);
 
+    const onClickBackArrow = () => {
+      if (window.KloudEvent) {
+        window.KloudEvent.back()
+      }
+    }
+
     return (
         <div
             ref={headerRef}
             className={`w-full h-14 px-6 justify-between items-center inline-flex fixed top-0 left-0 z-10 transition-colors ${
                 isScrolled ? "bg-white/50 backdrop-blur-[20px]" : "bg-transparent"
             }`}>
+          <div className="text-black" onClick={onClickBackArrow}>뒤로가기</div>
             <HeaderBlurButton isBlur={isScrolled}>
                 <Image src={LeftArrow} alt="back icon" />
             </HeaderBlurButton>

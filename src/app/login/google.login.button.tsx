@@ -2,11 +2,13 @@ import GoogleLogo from "../../../public/assets/logo_google.svg";
 
 const GoogleLoginButton = () => {
   return (
-    <button className="flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-12 shadow-lg w-full">
-      <span className="mr-2">
+    <button className="relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full border border-gray-200">
+      <span className="absolute left-4">
         <GoogleLogo/>
       </span>
-      Continue with Google
+      <span className="flex-1 text-center text-[16px]">
+        Google로 시작하기
+      </span>
     </button>
   );
 };

@@ -7,7 +7,7 @@ export default function Login(props: any) {
     <section className="w-screen min-h-screen bg-white flex flex-col items-center"
              style={{paddingTop: "100px"}}>
       <Logo/>
-      <div className="mt-auto justify-center items-center w-full px-8 max-w-sm mb-8">
+      <div className="mt-auto justify-center items-center w-full max-w-sm mb-8">
         <LoginButtonForm/>
       </div>
 
