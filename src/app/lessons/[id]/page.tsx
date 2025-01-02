@@ -6,6 +6,7 @@ import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
 
 import { api } from "@/app/api.client";
+import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { LessonTypesDisplay } from "@/entities/lesson/lesson";
 import { redirect } from "next/navigation";
 import LessonInfoSection from "./lesson.info.section";
@@ -17,30 +18,22 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const data = await api.lesson.get({ id: Number((await params).id) });
-    if ("id" in data) {
-        //pass
-    } else {
+    if (isGuinnessErrorCase(data)) {
         redirect("/home");
+    } else {
+        return {
+            title: data.title,
+        };
     }
-
-    return {
-        title: data.title,
-    };
 }
 
 export default async function LessonDetail({ params }: Props) {
     const id = Number((await params).id);
 
     const data = await api.lesson.get({ id });
-    console.log(data);
-
-    if ("id" in data) {
-        //pass
-    } else {
+    if (isGuinnessErrorCase(data)) {
         redirect("/home");
     }
-
-    console.log(data);
 
     return (
         <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
