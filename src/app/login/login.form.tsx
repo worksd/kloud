@@ -7,6 +7,8 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import loginAction from "@/app/login/login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
+import ShowPasswordIcon from "../../../public/assets/show-password.svg"
+import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -20,6 +22,7 @@ export const LoginForm = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sequence, setClientSequence] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
@@ -74,6 +77,18 @@ export const LoginForm = () => {
     setIsSubmitting(true);
   };
 
+  const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    setPasswordErrorMessage('');
+    setEmailErrorMessage('');
+  }
+
+  const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    setEmailErrorMessage('');
+    setPasswordErrorMessage('');
+  }
+
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
@@ -86,30 +101,42 @@ export const LoginForm = () => {
       onSubmit={handleSubmit}
     >
 
-      <label className="mb-2 text-[14px] font-[Pretendard] font-medium text-black"
-             htmlFor="email">Email</label>
+      <label className="mb-2 text-[14px] font-[Pretendard] font-normal text-black">이메일</label>
       <input
-        className="text-[14px] font-medium leading-[142.857%] text-gray-400 border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
+        className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
         type="email"
         id="email"
         name="email"
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={onEmailChange}
         value={email}
         placeholder='이메일을 입력해주세요'
       />
-      <div className="text-[#E55B5B]">
+      <div className="text-[#E55B5B] mb-5 text-[12px]">
         {emailErrorMessage}
       </div>
-      <label className="mb-2 mt-5 text-sm font-medium text-gray-700" htmlFor="password">Password</label>
-      <input
-        className="text-[14px] font-medium leading-[142.857%] text-gray-400 border border-gray-300 focus:border-black focus:outline-none rounded-md p-4 mb-[20px]"
-        type="password" id="password"
-        name="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder='비밀번호를 입력해주세요'/>
+      <div className="flex items-center gap-2 mb-2">
+        <label className="text-[14px] font-normal text-black">비밀번호</label>
+      </div>
+      <div className="relative mb-2">
+        <input
+          className="w-full text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-[8px] p-4"
+          type={showPassword ? "text" : "password"}
+          id="password"
+          name="password"
+          value={password}
+          onChange={onPasswordChange}
+          placeholder='비밀번호를 입력해주세요'
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-4 top-1/2 transform -translate-y-1/2"
+        >
+          {showPassword ? <HidePasswordIcon/> : <ShowPasswordIcon/>}
+        </button>
+      </div>
 
-      <div className="text-[#E55B5B]">
+      <div className="text-[#E55B5B] text-[12px] mb-3">
         {passwordErrorMessage}
       </div>
 
@@ -120,8 +147,9 @@ export const LoginForm = () => {
         Continue
       </button>
 
-      <div className="text-black" onClick={handleClickSignUp}>
-        이메일이 아직 없으신가요? 회원가입을 해주세요
+      <div className="flex items-center justify-center" onClick={handleClickSignUp}>
+        <span className="text-[#86898C] text-[14px]">아직 회원이 아니신가요?</span>
+        <span className="text-black ml-1 font-medium cursor-pointer text-[14px]">회원가입하기</span>
       </div>
 
     </form>

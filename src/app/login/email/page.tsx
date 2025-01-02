@@ -1,6 +1,6 @@
 "use client"
 import Logo from "../../../../public/assets/logo_black.svg";
-import ArrowLeftIcon from "../../../../public/assets/ic_back_arrow.svg"
+import ArrowLeftIcon from "../../../../public/assets/left-arrow.svg"
 import { isMobile } from "react-device-detect";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@/app/login/login.form";
