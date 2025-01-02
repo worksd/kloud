@@ -19,7 +19,7 @@ export default function LoginButtonForm() {
 
   return (
     <section className="flex flex-col items-center justify-center">
-      <div className="space-y-4 w-full">
+      <div className="space-y-2 w-full p-2">
         <AppleLoginButton/>
         <GoogleLoginButton/>
         <KakaoLoginButton/>

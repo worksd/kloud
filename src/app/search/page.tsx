@@ -3,17 +3,20 @@ import { SearchStudioItems } from "@/app/search/simple.studio.item";
 import { api } from "@/app/api.client";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { UserStatus } from "@/entities/user/user.status";
+import { TopToolbar } from "@/shared/top.toolbar";
 
 export default async function Search() {
 
   const res = await getStudioList()
 
   return (
-    <div className="bg-white w-screen min-h-screen">
-      <div className="w-screen p-4 headline-200">
-        검색
+    <div className="fixed inset-0 bg-white flex flex-col">
+      <div className="sticky top-0 z-10 bg-white">
+        <TopToolbar title="검색"/>
       </div>
-      <SearchStudioItems studios={res.studios ?? []}/>
+      <div className="flex-1 overflow-y-auto">
+        <SearchStudioItems studios={res.studios ?? []}/>
+      </div>
     </div>
   )
 }

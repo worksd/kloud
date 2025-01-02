@@ -3,18 +3,13 @@ import { TopToolbar } from "@/shared/top.toolbar";
 
 export default function Notification(props: any) {
   return (
-    <div style={{
-      backgroundColor: 'white',
-      color: 'white',
-      height: '100vh',
-      display: 'flex',
-      background: 'white',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'column'
-    }}>
-      <TopToolbar title="공지"/>
-      <NotificationForm/>
+    <div className="fixed inset-0 bg-white flex flex-col">
+      <div className="sticky top-0 z-10 bg-white">
+        <TopToolbar title="알림"/>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <NotificationForm/>
+      </div>
     </div>
   );
 }

@@ -5,62 +5,57 @@ import { NewNotifications } from "@/app/home/new.notifications";
 export default function Home(props: any) {
 
   const notifications = [];
-  const upcomingLessons = [];
-
-
+  const upcomingLessons = [
+    {
+      id: 0,
+      title: '새믈1',
+      date: 'asdf',
+      studio: {
+        id: 0,
+        logoUrl: '',
+        name: '',
+      },
+      posterUrl: ''
+    },
+    {
+      id: 0,
+      title: '새믈1',
+      date: 'asdf',
+      studio: {
+        id: 0,
+        logoUrl: '',
+        name: '',
+      },
+      posterUrl: ''
+    },
+    {
+      id: 0,
+      title: '새믈1',
+      date: 'asdf',
+      studio: {
+        id: 0,
+        logoUrl: '',
+        name: '',
+      },
+      posterUrl: ''
+    },
+  ];
   return (
-    <div className="w-screen min-h-screen bg-white flex flex-col">
-      <div className="w-screen p-4">
-        <Logo/>
+    <div className="fixed inset-0 bg-white flex flex-col">
+      <div className="p-4">
+        <div className="w-[105px]">
+          <Logo className="scale-[0.7] origin-left"/>
+        </div>
       </div>
-
-      <NewNotifications />
-
-      <UpcomingLessons lessons={[
-        {
-          id: 0,
-          title: '새믈1',
-          date: 'asdf',
-          studio: {
-            id: 0,
-            logoUrl: '',
-            name: '',
-          },
-          posterUrl: ''
-        },
-        {
-          id: 0,
-          title: '새믈1',
-          date: 'asdf',
-          studio: {
-            id: 0,
-            logoUrl: '',
-            name: '',
-          },
-          posterUrl: ''
-        },
-        {
-          id: 0,
-          title: '새믈1',
-          date: 'asdf',
-          studio: {
-            id: 0,
-            logoUrl: '',
-            name: '',
-          },
-          posterUrl: ''
-        },
-      ]}/>
-
-      {/*<div className="flex flex-1 flex-col items-center justify-center space-y-[24px]">*/}
-      {/*  <div className="headline-200">*/}
-      {/*    관심있는 스튜디오를 찾아 추가해보세요!*/}
-      {/*  </div>*/}
-
-      {/*  <div className="full-width-button">*/}
-      {/*    스튜디오 둘러보기*/}
-      {/*  </div>*/}
-      {/*</div>*/}
+      <NewNotifications/>
+      <div>
+        <div className="headline-200 text-left p-2">
+          Upcoming
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <UpcomingLessons lessons={upcomingLessons}/>
+        </div>
+      </div>
     </div>
   );
 }
