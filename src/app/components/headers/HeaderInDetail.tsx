@@ -43,33 +43,32 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
         }
     };
 
-    const onClickShare = () => {};
-
     return (
-        <div
-            ref={headerRef}
-            className={`w-full h-14 px-6 justify-between items-center inline-flex fixed top-0 left-0 z-10 transition-colors ${
-                isScrolled ? "bg-white" : "bg-transparent"
+      <div
+        ref={headerRef}
+        className={`w-full h-14 px-6 fixed top-0 left-0 z-10 transition-colors grid grid-cols-3 items-center ${
+          isScrolled ? "bg-white" : "bg-transparent"
+        }`}
+      >
+          {/* 왼쪽 버튼 */}
+          <div className="justify-self-start">
+              <HeaderBlurButton isBlur={isScrolled} originProps={{onClick: onClickBack}}>
+                  <LeftArrow alt="back icon"/>
+              </HeaderBlurButton>
+          </div>
+
+          {/* 가운데 타이틀 */}
+          <div
+            className={`truncate text-center text-black text-base font-bold font-['Pretendard'] leading-snug transition ${
+              isScrolled ? "opacity-100" : "opacity-0"
             }`}
-        >
-            <HeaderBlurButton isBlur={isScrolled} originProps={{ onClick: onClickBack }}>
-                <LeftArrow alt="back icon" />
-            </HeaderBlurButton>
+          >
+              {title}
+          </div>
 
-            <div
-                className={`px-5 box-border truncate text-center text-black text-base font-bold font-['Pretendard'] leading-snug transition ${
-                    isScrolled ? "opacity-100" : "opacity-0"
-                }`}
-            >
-                {title}
-            </div>
-
-            <HeaderBlurButton isBlur={isScrolled} originProps={{ onClick: onClickShare }}>
-                <div className="w-6 h-6 pl-[2.50px] pr-[2.52px] py-[2.10px] justify-center items-center flex">
-                    <ShareArrow alt="share icon" />
-                </div>
-            </HeaderBlurButton>
-        </div>
+          {/* 오른쪽 빈 공간 (균형을 위해) */}
+          <div></div>
+      </div>
     );
 };
 

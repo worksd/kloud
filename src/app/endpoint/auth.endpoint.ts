@@ -1,6 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
-import { UserResponse } from "@/entities/user/user.response";
 import { UserStatus } from "@/entities/user/user.status";
 import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 
@@ -28,6 +27,12 @@ export type PostAuthEmailParameter = {
 export type PostAuthEmailResponse = {
   accessToken: string,
   user: UserResponse,
+}
+
+export type UserResponse = {
+  id: number;
+  email: string;
+  status: UserStatus;
 }
 
 export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthEmailResponse> = {

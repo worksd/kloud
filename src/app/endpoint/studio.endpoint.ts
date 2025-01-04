@@ -1,6 +1,6 @@
 import { Endpoint, NoParameter } from "@/app/endpoint/index";
 
-export type GetStudioParameter = {
+export type IdParameter = {
     id: number;
 };
 
@@ -13,12 +13,14 @@ export type GetStudioResponse = {
     phone: string;
     youtubeUrl?: string;
     instagramAddress?: string;
-    lessons: StudioLessonData[];
+    lessons: LessonResponse[];
+    follow?: StudioFollowResponse;
 };
 
-export type StudioLessonData = {
+export type LessonResponse = {
     id: number;
     thumbnailUrl: string;
+    description: string;
     title: string;
     startTime: string;
     studio: {
@@ -28,7 +30,11 @@ export type StudioLessonData = {
     };
 };
 
-export const GetStudio: Endpoint<GetStudioParameter, GetStudioResponse> = {
+export type StudioFollowResponse = {
+    id: number;
+}
+
+export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
     method: "get",
     path: (e) => `/studios/${e.id}`,
 };
@@ -37,7 +43,7 @@ export type GetStudioListResponse = {
     studios: GetStudioResponse[]
 }
 
-export const ListStudio: Endpoint<NoParameter, GetStudioListResponse> = {
+export const ListStudios: Endpoint<NoParameter, GetStudioListResponse> = {
     method: 'get',
     path: `/studios`
 }

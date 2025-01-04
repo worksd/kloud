@@ -38,8 +38,7 @@ export const Poster = ({
           fill
           style={{
             objectFit: 'cover',
-            border: '16px solid black', // 원하는 색상과 크기
-            borderRadius: '8px',        // 둥근 모서리(선택 사항)
+            borderRadius: '4px',        // 둥근 모서리(선택 사항)
           }}
         />
       </div>

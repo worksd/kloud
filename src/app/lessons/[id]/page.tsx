@@ -18,7 +18,9 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const data = await api.lesson.get({ id: Number((await params).id) });
     if (isGuinnessErrorCase(data)) {
-        redirect("/home");
+        return {
+            title: 'no data'
+        }
     } else {
         return {
             title: data.title,
@@ -31,7 +33,9 @@ export default async function LessonDetail({ params }: Props) {
 
     const data = await api.lesson.get({ id });
     if (isGuinnessErrorCase(data)) {
-        redirect("/home");
+       return (
+         <div>{data.code} {data.message}</div>
+       )
     }
 
     return (

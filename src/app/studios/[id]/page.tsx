@@ -5,39 +5,33 @@ import { extractNumber } from "@/utils";
 
 import Instagram from "../../../../public/assets/instagram-colored.svg";
 import Youtube from "../../../../public/assets/youtube-colored.svg";
-
-import EmailMark from "../../../../public/assets/email.svg";
-import KakaoMark from "../../../../public/assets/kakao-gray.svg";
-import LocationMark from "../../../../public/assets/location.svg";
-import PhoneMark from "../../../../public/assets/phone.svg";
-import StudioContact from "./studio.contact";
 import Divider from "./studio.divider";
 import LessonCardInStudio from "./studio.lesson";
 
-type Props = {
-    params: Promise<{ id: string }>;
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+export type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function StudioDetail({ params }: Props) {
-    const id = (await params).id;
-    const res = await api.studio.get({ id: extractNumber(id) });
-    if ("code" in res) {
-        console.error(res.message);
-        return <div className="text-black">에러~</div>;
-    }
+export default async function StudioDetail({params}: Props) {
+  const id = (await params).id;
+  const res = await api.studio.get({id: extractNumber(id)});
+  if ("code" in res) {
+    console.error(res.message);
+    return <div className="text-black">에러~</div>;
+  }
 
-    const [address, _] = res.address.split("/");
+  const [address, _] = res.address.split("/");
 
-    return (
-        <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
-            {/* 헤더 */}
-            <HeaderInDetail title={res.name} />
+  return (
+    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
+      {/* 헤더 */}
+      <HeaderInDetail title={res.name}/>
 
-            {/* 수업 썸네일 */}
-            <div
-                style={{ backgroundImage: `url(${res.coverImageUrl ?? res.profileImageUrl})` }}
-                className="
+      {/* 수업 썸네일 */}
+      <div
+        style={{backgroundImage: `url(${res.coverImageUrl ?? res.profileImageUrl})`}}
+        className="
             w-full
             relative
             aspect-[1/1]
@@ -56,47 +50,47 @@ export default async function StudioDetail({ params }: Props) {
             before:to-white
             before:to-100%
             before:z-[2]"
-            >
-                {/* 프로필 영역 */}
-                <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
-                    {/*<Image*/}
-                    {/*    className="w-[60px] h-[60px] relative rounded-[30px] border border-[#f7f8f9]"*/}
-                    {/*    src={res.profileImageUrl}*/}
-                    {/*    width={60}*/}
-                    {/*    height={60}*/}
-                    {/*    alt=" 스튜디오"*/}
-                    {/*/>*/}
+      >
+        {/* 프로필 영역 */}
+        <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
+          {/*<Image*/}
+          {/*    className="w-[60px] h-[60px] relative rounded-[30px] border border-[#f7f8f9]"*/}
+          {/*    src={res.profileImageUrl}*/}
+          {/*    width={60}*/}
+          {/*    height={60}*/}
+          {/*    alt=" 스튜디오"*/}
+          {/*/>*/}
 
-                    <div className="flex-col justify-center items-start gap-2 inline-flex">
-                        <div className="text-[#131517] text-xl font-bold leading-normal">{res.name}</div>
+          <div className="flex-col justify-center items-start gap-2 inline-flex">
+            <div className="text-[#131517] text-xl font-bold leading-normal">{res.name}</div>
 
-                        <button className="px-2.5 py-1 bg-black rounded-[999px] justify-center items-center gap-2.5 inline-flex">
-                            <div className="text-center text-white text-sm font-medium leading-tight">팔로우</div>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <button className="px-2.5 py-1 bg-black rounded-[999px] justify-center items-center gap-2.5 inline-flex">
+              <div className="text-center text-white text-sm font-medium leading-tight">팔로우</div>
+            </button>
+          </div>
+        </div>
+      </div>
 
-            {/* 상세 영역 */}
-            <div className="w-full flex flex-col justify-start items-start gap-5 pt-3">
-                <div className="self-stretch px-6 py-0.5 box-border justify-between items-center flex">
-                    <div className="justify-start items-center gap-1 flex">
-                        {/*<Image src={LocationMark} alt="장소" width={20} height={20} />*/}
+      {/* 상세 영역 */}
+      <div className="w-full flex flex-col justify-start items-start gap-5 pt-3">
+        <div className="self-stretch px-6 py-0.5 box-border justify-between items-center flex">
+          <div className="justify-start items-center gap-1 flex">
+            {/*<Image src={LocationMark} alt="장소" width={20} height={20} />*/}
 
-                        <div className="text-center text-[#505356] text-sm font-medium underline leading-tight">{address}</div>
-                    </div>
-                    <div className="text-center text-black text-sm font-medium leading-tight">길 찾기</div>
-                </div>
+            <div className="text-center text-[#505356] text-sm font-medium underline leading-tight">{address}</div>
+          </div>
+          <div className="text-center text-black text-sm font-medium leading-tight">길 찾기</div>
+        </div>
 
-                <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">
-                    {res.instagramAddress && <SnsButton link={res.instagramAddress} logoPath={Instagram} alt="instagram" />}
-                    {res.youtubeUrl && <SnsButton link={res.youtubeUrl} logoPath={Youtube} alt="youtube" />}
-                </div>
+        <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">
+          {res.instagramAddress && <SnsButton link={res.instagramAddress} logoPath={Instagram} alt="instagram"/>}
+          {res.youtubeUrl && <SnsButton link={res.youtubeUrl} logoPath={Youtube} alt="youtube"/>}
+        </div>
 
-                <div className="w-full h-px relative bg-[#f7f8f9]" />
+        <div className="w-full h-px relative bg-[#f7f8f9]"/>
 
-                {/* 공지 */}
-                {/* <div className="self-stretch px-6 justify-start items-start gap-2 inline-flex">
+        {/* 공지 */}
+        {/* <div className="self-stretch px-6 justify-start items-start gap-2 inline-flex">
                     <div className="w-[342px] px-5 py-4 bg-[#f7f8f9] rounded-2xl flex-col justify-start items-start gap-2 inline-flex">
                         <div className="self-stretch h-6 justify-between items-center inline-flex">
                             <div className="justify-start items-center gap-2 flex">
@@ -119,40 +113,24 @@ export default async function StudioDetail({ params }: Props) {
                     </div>
                 </div> */}
 
-                <Divider />
+        <Divider/>
+      </div>
+
+      {/* 더보기 영역 */}
+      {res.lessons.length > 0 && (
+        <div className="px-6 w-full box-border pb-8">
+          <p className="text-black text-2xl font-medium leading-7 pt-10 pb-5">Hot</p>
+
+          <div className="h-[660px] w-full flex-col justify-start items-start gap-5 inline-flex">
+            <div
+              className="self-stretch justify-start items-center gap-x-[calc(100%/42.75)] gap-y-5 inline-flex flex-wrap">
+              {res.lessons.splice(0, 4).map((data) => (
+                <LessonCardInStudio key={data.id} {...data} />
+              ))}
             </div>
-
-            {/* 더보기 영역 */}
-            {res.lessons.length > 0 && (
-                <div className="px-6 w-full box-border pb-8">
-                    <p className="text-black text-2xl font-medium leading-7 pt-10 pb-5">Hot</p>
-
-                    <div className="h-[660px] w-full flex-col justify-start items-start gap-5 inline-flex">
-                        <div className="self-stretch justify-start items-center gap-x-[calc(100%/42.75)] gap-y-5 inline-flex flex-wrap">
-                            {res.lessons.splice(0, 4).map((data) => (
-                                <LessonCardInStudio key={data.id} {...data} />
-                            ))}
-                        </div>
-
-                        <button className="self-stretch h-14 px-4 rounded-lg border border-[#bcbfc2] justify-center items-center inline-flex">
-                            <div className="text-center text-black text-base font-bold leading-snug">더보기</div>
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <Divider />
-
-            <div className="w-full flex-col justify-start items-start gap-5 inline-flex pt-10">
-                <div className="self-stretch h-7 px-6 justify-center items-center gap-2.5 inline-flex">
-                    <div className="grow shrink basis-0 text-[#131517] text-base font-medium leading-snug">Contact</div>
-                </div>
-                <div className="self-stretch px-6 justify-start items-center gap-5 inline-flex">
-                    {/*<StudioContact imgPath={EmailMark} text="이메일"/>*/}
-                    {/*<StudioContact imgPath={PhoneMark} text="전화"/>*/}
-                    {/*<StudioContact imgPath={KakaoMark} text="카카오톡"/>*/}
-                </div>
-            </div>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }
