@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export enum ExceptionResponseCode {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   BAD_REQUEST = 'BAD_REQUEST',
@@ -40,6 +42,16 @@ export type GuinnessErrorCase = {
   code: ExceptionResponseCode,
   message: string
 }
+
+export const GuinnessErrorCaseScheme = z.object({
+  code: z.enum(Object.values(ExceptionResponseCode) as [string, ...string[]]),
+  message: z.string(),
+});
+
+export const isGuinnessErrorCase = (value: unknown): value is GuinnessErrorCase => {
+  const result = GuinnessErrorCaseScheme.safeParse(value);
+  return result.success;
+};
 
 export type ExceptionResponseCodeType = {
   [key: string]: string; // or specify the specific keys and their types
