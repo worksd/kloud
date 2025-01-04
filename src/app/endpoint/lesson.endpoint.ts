@@ -51,9 +51,11 @@ export type GetLessonResponse = {
         maxNumber: number;
         name: string;
     };
-    ticket: {
-        id: number;
-    };
+    ticket?: GetLessonTicketResponse;
+};
+
+export type GetLessonTicketResponse = {
+    id: number;
 };
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {

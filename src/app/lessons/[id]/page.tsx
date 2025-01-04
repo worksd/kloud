@@ -1,6 +1,4 @@
-import { CommonSubmitButton } from "@/app/components/buttons";
 import Image from "next/image";
-import Link from "next/link";
 
 import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
@@ -10,6 +8,7 @@ import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { LessonTypesDisplay } from "@/entities/lesson/lesson";
 import { redirect } from "next/navigation";
 import LessonInfoSection from "./lesson.info.section";
+import LessonPaymentButton from "./lesson.payment.button";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -118,11 +117,7 @@ export default async function LessonDetail({ params }: Props) {
 
             {/* 결제 페이지 이동 버튼 */}
             <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-                {true && (
-                    <Link href={`/lessons/${id}/payment`}>
-                        <CommonSubmitButton>수강권 결제하기</CommonSubmitButton>
-                    </Link>
-                )}
+                <LessonPaymentButton id={id} ticketData={data.ticket} />
             </div>
         </div>
     );
