@@ -1,9 +1,17 @@
+'use client';
 import Image from "next/image"
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export const TicketItem = () => {
 
+  const onClickTicket = () => {
+    if (window.KloudEvent) {
+      window.KloudEvent.push(KloudScreen.TicketDetail(0))
+    }
+  }
+
   return (
-    <div className="bg-white">
+    <div className="bg-white" onClick={onClickTicket}>
       {/* 상단 날짜와 상태 */}
       <div className="flex justify-between items-center px-6">
         <span className="text-[#86898C] text-lg text-[14px] font-semibold">2024. 10. 03 (금)</span>

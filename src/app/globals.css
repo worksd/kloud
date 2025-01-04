@@ -93,3 +93,31 @@ body {
 .swiper-pagination-bullet {
   background-color: rbg(189, 135, 63) !important;
 }
+
+
+.marquee-container {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: flex;
+  animation: marquee 10s linear infinite;
+  padding-left: 100%;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-100%, 0);
+  }
+}
+
+/* 선택사항: hover시 애니메이션 일시정지 */
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
