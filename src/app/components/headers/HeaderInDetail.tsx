@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import LeftArrow from "../../../../public/assets/left-arrow.svg";
 import ShareArrow from "../../../../public/assets/share-arrow.svg";
@@ -33,32 +33,40 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
         };
     }, []);
 
-    const onClickBackArrow = () => {
-      if (window.KloudEvent) {
-        window.KloudEvent.back()
-      }
-    }
+    // 버튼 이벤트들
+    const router = useRouter();
+    const onClickBack = () => {
+        if (window.KloudEvent) {
+            window.KloudEvent.back();
+        } else {
+            router.back();
+        }
+    };
+
+    const onClickShare = () => {};
 
     return (
         <div
             ref={headerRef}
             className={`w-full h-14 px-6 justify-between items-center inline-flex fixed top-0 left-0 z-10 transition-colors ${
-                isScrolled ? "bg-white/50 backdrop-blur-[20px]" : "bg-transparent"
-            }`}>
-          <div className="text-black" onClick={onClickBackArrow}>뒤로가기</div>
-            <HeaderBlurButton isBlur={isScrolled}>
-                <Image src={LeftArrow} alt="back icon" />
+                isScrolled ? "bg-white" : "bg-transparent"
+            }`}
+        >
+            <HeaderBlurButton isBlur={isScrolled} originProps={{ onClick: onClickBack }}>
+                <LeftArrow alt="back icon" />
             </HeaderBlurButton>
 
-            <div className={`px-5 box-border truncate text-center text-black text-base font-bold font-['Pretendard'] leading-snug transition ${
+            <div
+                className={`px-5 box-border truncate text-center text-black text-base font-bold font-['Pretendard'] leading-snug transition ${
                     isScrolled ? "opacity-100" : "opacity-0"
-                }`}>
+                }`}
+            >
                 {title}
             </div>
 
-            <HeaderBlurButton isBlur={isScrolled}>
+            <HeaderBlurButton isBlur={isScrolled} originProps={{ onClick: onClickShare }}>
                 <div className="w-6 h-6 pl-[2.50px] pr-[2.52px] py-[2.10px] justify-center items-center flex">
-                    <Image src={ShareArrow} alt="share icon" />
+                    <ShareArrow alt="share icon" />
                 </div>
             </HeaderBlurButton>
         </div>

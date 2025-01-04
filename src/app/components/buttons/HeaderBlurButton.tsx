@@ -10,9 +10,10 @@ interface IProps {
 
 const HeaderBlurButton = ({ children, isBlur = false, originProps }: IProps) => (
     <button
-        className={`w-8 h-8 transition-colors rounded-full justify-center items-center flex flex-none ${isBlur ? "" : "bg-white/50 backdrop-blur-[20px]"}`}
+        className={`w-8 h-8 transition-colors rounded-full justify-center items-center flex flex-none ${
+            isBlur ? "" : "bg-white/50 backdrop-blur-[20px]"
+        }`}
         {...originProps}
-        onClick={() => console.log("asdas")}
     >
         {children}
     </button>
