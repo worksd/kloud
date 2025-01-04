@@ -44,7 +44,7 @@ declare global {
     replace: (screen: string, data?: string) => void;
     clearAndPush: (screen: string, data?: string) => void;
     back: () => void;
-    navigateMain: () => void;
+    navigateMain: (bootInfo: string) => void;
     setToken: (token: string) => void;
     sendBootInfo: (bootInfo: string) => void;
     onSplashStarted: () => void;

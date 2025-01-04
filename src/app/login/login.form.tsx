@@ -9,6 +9,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
+import { getBottomMenuList } from "@/app/splash/splash.screen";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -50,7 +51,12 @@ export const LoginForm = () => {
           }
         } else if (actionState.userStatus === UserStatus.Ready) {
           if (window.KloudEvent) {
-            window.KloudEvent.clearAndPush(KloudScreen.Main);
+            const bottomMenuList = getBottomMenuList();
+            const bootInfo = JSON.stringify({
+              bottomMenuList: bottomMenuList,
+              route: KloudScreen.Main,
+            });
+            window.KloudEvent.navigateMain(bootInfo)
           } else {
             router.push(KloudScreen.Home);
           }

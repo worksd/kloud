@@ -31,9 +31,5 @@ export default async function Setting(){
       </div>
     );
   }
-  else {
-    redirect('/login/email')
-  }
-
 };
 

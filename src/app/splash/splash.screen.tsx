@@ -22,8 +22,11 @@ export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
           route: KloudScreen.Main,
         });
 
-        window.KloudEvent.sendBootInfo(bootInfo);
-        window.KloudEvent.clearAndPush(route);
+        if (route == KloudScreen.Main) {
+          window.KloudEvent.navigateMain(bootInfo)
+        } else {
+          window.KloudEvent.clearAndPush(route);
+        }
       }, 1000)
     } catch (error) {
       console.log(error);

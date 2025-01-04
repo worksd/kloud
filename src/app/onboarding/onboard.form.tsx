@@ -4,7 +4,6 @@ import { useFormState } from "react-dom";
 import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
-import { isMobile } from "react-device-detect";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 
 export const OnboardForm = () => {
@@ -67,7 +66,7 @@ export const OnboardForm = () => {
 
     if (actionState.success) {
       if (window) {
-        window.KloudEvent.clearAndPush(KloudScreen.Main);
+        window.KloudEvent.navigateMain();
       } else {
         router.push(KloudScreen.Home);
       }
@@ -162,9 +161,15 @@ export const OnboardForm = () => {
         <button
           type="submit"
           onClick={handleNameSubmit}
-          disabled={name.length < 2 || !checkboxes.all}
+          disabled={
+            (!isNameSubmitted && name.length < 2) ||
+            (isNameSubmitted && (name.length < 2 || !checkboxes.all))
+          }
           className={`flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
-            name.length < 2 || !checkboxes.all ? "bg-[#BCBFC2] text-white" : "bg-black text-white"
+            (!isNameSubmitted && name.length < 2) ||
+            (isNameSubmitted && (name.length < 2 || !checkboxes.all))
+              ? "bg-[#BCBFC2] text-white"
+              : "bg-black text-white"
           }`}
         >
           다음으로
@@ -174,7 +179,7 @@ export const OnboardForm = () => {
   );
 };
 
-const RightArrow = ({ isChecked }: { isChecked: boolean }) => (
+const RightArrow = ({isChecked}: { isChecked: boolean }) => (
   <svg
     width="24"
     height="24"

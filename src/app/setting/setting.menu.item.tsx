@@ -26,7 +26,6 @@ export const MenuItem = ({ label, path }: { label: string; path: string }) => {
 
       // 모바일 앱 처리
       if (window.KloudEvent) {
-        window.KloudEvent.clearToken();
         window.KloudEvent.clearAndPush(KloudScreen.Login);
       } else {
         // 웹 브라우저 처리
