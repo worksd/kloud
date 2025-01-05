@@ -4,9 +4,16 @@ import Image from "next/image";
 import { isMobile } from "react-device-detect";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
+import { Thumbnail } from "@/app/components/Thumbnail";
 
 export const Poster = ({
-                         id, posterUrl, studioLogoUrl, dDay, title, description
+                         id,
+                         posterUrl,
+                         studioLogoUrl,
+                         dDay,
+                         title,
+                         description,
+                         width = 167 // 기본값 167 설정
                        }:
                          {
                            id: number,
@@ -15,6 +22,7 @@ export const Poster = ({
                            dDay: string,
                            title: string,
                            description: string,
+                           width?: number // optional로 설정
                          }
 ) => {
   const router = useRouter();
@@ -28,21 +36,10 @@ export const Poster = ({
 
   return (
     <div
-      className="flex flex-col"
+      className="flex flex-col active:scale-[0.98] transition-transform duration-150 select-none [-webkit-touch-callout:none]"
       onClick={handleOnClick}
     >
-      <div style={{width: '167px', height: '222px', position: 'relative'}}>
-        <Image
-          src="https://picsum.photos/250/250"
-          alt="dd"
-          fill
-          draggable={false}
-          style={{
-            objectFit: 'cover',
-            borderRadius: '4px',        // 둥근 모서리(선택 사항)
-          }}
-        />
-      </div>
+      <Thumbnail width={width}/>
 
       <div className="body-400 mt-2">
         트릭스 힙합 클래스

@@ -31,9 +31,10 @@ export default async function StudioDetail({ params }: Props) {
         </div>
 
         <div className="flex flex-col gap-4">  {/* gap-4로 간격 설정 */}
-          {Array.from({length: 5}).map((_, index) => (
+          {tickets.map((item, index) => (
             <TicketItem
-              key={index}
+              key={item.id}
+            item={item}
             />
           ))}
         </div>

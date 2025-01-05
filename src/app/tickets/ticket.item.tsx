@@ -1,8 +1,11 @@
 'use client';
 import Image from "next/image"
 import { KloudScreen } from "@/shared/kloud.screen";
+import { Poster } from "@/app/components/Poster";
+import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { Thumbnail } from "@/app/components/Thumbnail";
 
-export const TicketItem = () => {
+export const TicketItem = ({item} : {item: TicketResponse}) => {
 
   const onClickTicket = () => {
     if (window.KloudEvent) {
@@ -21,17 +24,7 @@ export const TicketItem = () => {
       {/* 메인 컨텐츠 */}
       <div className="flex gap-3 px-6 mb-3">
         {/* 이미지 */}
-        <div style={{width: '84px', height: '120px', position: 'relative'}}>
-          <Image
-            src="https://picsum.photos/250/250"
-            alt="수업 썸네일"
-            fill
-            style={{
-              objectFit: 'cover',
-              borderRadius: '4px',
-            }}
-          />
-        </div>
+        <Thumbnail width={84}/>
 
         {/* 텍스트 정보 */}
         <div className="flex flex-col justify-center">
