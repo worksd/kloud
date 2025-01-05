@@ -22,12 +22,10 @@ export const signUpAction = async (prev: SignUpActionResult, formData: FormData)
     });
     console.log('응답을 받았어!' + JSON.stringify(res))
     if ('user' in res) {
-      const nextCookies = cookies();
-      nextCookies.set(accessTokenKey, res.accessToken);
-      nextCookies.set(userIdKey, `${res.user.id}`);
       return {
         sequence: prev.sequence + 1,
         accessToken: res.accessToken,
+        userId: res.user.id,
       }
     }
     else {

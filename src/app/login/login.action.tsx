@@ -22,9 +22,6 @@ const loginAction = async (prev: LoginActionResult, formData: FormData): Promise
     });
 
     if ('user' in res) {
-      const nextCookies = cookies()
-      // nextCookies.set(accessTokenKey, res.accessToken)
-      // nextCookies.set(userIdKey, `${res.user.id}`)
       const result: LoginActionResult = {
         sequence: prev?.sequence + 1,
         accessToken: res.accessToken,

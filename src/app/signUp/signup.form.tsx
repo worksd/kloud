@@ -11,12 +11,14 @@ import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import CheckIcon from "../../../public/assets/check.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
+import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 
 export const SignupForm = () => {
   const [actionState, formAction] = useFormState(signUpAction, {
     sequence: -1,
     errorCode: '',
     errorMessage: '',
+    userId: -1,
     accessToken: undefined
   });
 
@@ -36,6 +38,8 @@ export const SignupForm = () => {
 
     if (actionState.accessToken && !actionState.errorCode) {
       if (window.KloudEvent) {
+        document.cookie = `${accessTokenKey}=${actionState.accessToken};path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = `${userIdKey}=${actionState.userId};path=/; max-age=2592000; SameSite=Lax`;
         window.KloudEvent.clearAndPush(KloudScreen.Onboard);
       } else {
         router.push(KloudScreen.Onboard);
@@ -164,6 +168,7 @@ export const SignupForm = () => {
 
 export interface SignUpActionResult {
   sequence: number,
+  userId?: number,
   errorCode?: string,
   errorMessage?: string,
   accessToken?: string,

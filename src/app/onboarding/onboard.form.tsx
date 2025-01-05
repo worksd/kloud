@@ -5,6 +5,7 @@ import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
+import { getBottomMenuList } from "@/app/splash/splash.screen";
 
 export const OnboardForm = () => {
   const router = useRouter();
@@ -65,8 +66,13 @@ export const OnboardForm = () => {
     console.log(actionState);
 
     if (actionState.success) {
-      if (window) {
-        window.KloudEvent.navigateMain();
+      if (window.KloudEvent) {
+        const bottomMenuList = getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: KloudScreen.Main,
+        });
+        window.KloudEvent.navigateMain(bootInfo);
       } else {
         router.push(KloudScreen.Home);
       }
