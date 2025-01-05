@@ -17,7 +17,7 @@ export default async function Home(props: any) {
       </div>
       <NewNotifications/>
       <div>
-        <div className="headline-200 text-left p-2">
+        <div className="headline-200 text-left p-4">
           Upcoming
         </div>
         <div className="flex-1 overflow-y-auto">

@@ -46,11 +46,11 @@ export const NewNotifications = () => {
       <div className="p-4">
         <div className="text-[24px] font-normal text-black">New</div>
       </div>
-      <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory ml-4">
+      <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory">
         {newItems.map((item) => (
           <div
             key={item.id}
-            className="min-w-[calc(100vw-32px)] snap-start mx-4 first:ml-4 last:mr-4"
+            className="min-w-[calc(100vw-32px)] snap-start pl-4"
           >
             <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8">
               <div className="flex items-center justify-between">

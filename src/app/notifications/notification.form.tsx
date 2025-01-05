@@ -57,7 +57,7 @@ export default function NotificationForm() {
       </div>
 
       {/* 알림/공지 리스트 */}
-      <div className="flex flex-col">
+      <div className="flex flex-col overflow-y-auto">
         {notifications
           .filter(item =>
             activeTab === '알림' ? item.type === 'NOTIFICATION' : item.type === 'NOTICE'

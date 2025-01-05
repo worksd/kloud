@@ -1,12 +1,9 @@
 import Image from "next/image";
-
 import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
-
 import { api } from "@/app/api.client";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { LessonTypesDisplay } from "@/entities/lesson/lesson";
-import { redirect } from "next/navigation";
 import LessonInfoSection from "./lesson.info.section";
 import LessonPaymentButton from "./lesson.payment.button";
 

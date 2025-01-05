@@ -7,7 +7,7 @@ export default function Notification(props: any) {
       <div className="sticky top-0 z-10 bg-white">
         <TopToolbar title="알림"/>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1">
         <NotificationForm/>
       </div>
     </div>

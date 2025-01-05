@@ -19,7 +19,11 @@ export default function EmailLogin(props: any) {
 
   return (
     <section className="min-h-screen bg-white flex flex-col justify-center">
-
+      <div className="absolute top-4 left-4">
+        <button className="flex items-center justify-center text-black rounded-full" onClick={handleBack}>
+          <ArrowLeftIcon className="w-6 h-6" />
+        </button>
+      </div>
       <Logo className="mb-[60px] mx-auto" />
       <LoginForm />
     </section>
