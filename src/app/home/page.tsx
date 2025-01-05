@@ -1,13 +1,9 @@
 import Logo from "../../../public/assets/logo_black.svg"
 import { UpcomingLessons } from "@/app/home/upcoming.lessons";
-import { NewNotifications } from "@/app/home/new.notifications";
+import { NotificationList } from "@/app/home/notification.list";
 import { mockLessons } from "@/app/home/mock.lessons";
 
 export default async function Home(props: any) {
-
-  const notifications = [];
-
-
   return (
     <div className="w-full min-h-screen bg-white flex flex-col">
       <div className="p-4">
@@ -15,7 +11,7 @@ export default async function Home(props: any) {
           <Logo className="scale-[0.7] origin-left"/>
         </div>
       </div>
-      <NewNotifications/>
+      <NotificationList title="New"/>
       <div>
         <div className="headline-200 text-left p-4">
           Upcoming

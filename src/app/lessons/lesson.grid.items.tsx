@@ -1,8 +1,9 @@
 import { LessonResponse } from "@/app/endpoint/studio.endpoint";
 import { Poster } from "@/app/components/Poster";
+import { formatDateTime } from "@/app/lessons/[id]/lesson.info.section";
 
 export const LessonGridItems = ({lessons} : {lessons: LessonResponse[]}) => {
-
+  console.log(lessons);
   return (
     <div className="grid grid-cols-2 gap-4">
       {lessons.map((lesson) => (
@@ -10,10 +11,9 @@ export const LessonGridItems = ({lessons} : {lessons: LessonResponse[]}) => {
           key={lesson.id}
           id={lesson.id}
           posterUrl={lesson.thumbnailUrl}
-          studioLogoUrl={"https://picsum.photos/250/250"}
+          studioLogoUrl={lesson.studio ? lesson.studio.profileImageUrl : ''}
           title={lesson.title}
-          description={lesson.startTime}
-          dDay={lesson.startTime}
+          startTime={lesson.startTime}
         />
       ))}
     </div>

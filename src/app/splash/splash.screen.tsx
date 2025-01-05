@@ -35,7 +35,7 @@ export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
   }, [status]);
 
   return (
-    <div>
+    <div className="bg-black">
     </div>
   );
 };

@@ -1,7 +1,6 @@
 "use client";
-import { Swiper, SwiperSlide } from "swiper/react";
 
-export const NewNotifications = () => {
+export const NotificationList = ({title}: {title: string}) => {
   const newItems = [
     {
       id: 1,
@@ -44,7 +43,9 @@ export const NewNotifications = () => {
   return (
     <section className="sticky top-0 bg-white z-10">
       <div className="p-4">
-        <div className="text-[24px] font-normal text-black">New</div>
+        {title.length > 0 && (
+          <div className="text-[24px] font-normal text-black">{title}</div>
+        )}
       </div>
       <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
         {newItems.map((item) => (

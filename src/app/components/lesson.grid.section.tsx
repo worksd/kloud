@@ -15,9 +15,9 @@ export const LessonGridSection = ({title, lessons} : {title: string, lessons: Le
   return (
     <div className="px-6 pb-8">
       {/* 헤더 */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-5">
         <div className="text-[24px] text-black font-bold">{title}</div>
-        <button className="text-[#86898C] flex items-center" onClick={onClickMore}>
+        <button className="text-[#86898C] flex items-center font-normal" onClick={onClickMore}>
           더보기
           <RightArrowIcon/>
         </button>
