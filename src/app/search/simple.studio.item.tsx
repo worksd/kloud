@@ -3,14 +3,28 @@ import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { useRouter } from "next/navigation";
 import { isMobile } from "react-device-detect";
 import { KloudScreen } from "@/shared/kloud.screen";
+import RightArrowIcon from "../../../public/assets/right-arrow.svg";
 
 export const SearchStudioItems = ({studios}: { studios: GetStudioResponse[] }) => {
+  const onClickMore = () => {
+    console.log('hello')
+  }
+
   return (
-    <ul className="flex flex-col space-y-4 p-2">
-      {studios.map((item) => (
-        <SearchStudioItem key={item.id} item={item}/>
-      ))}
-    </ul>
+    <div>
+      <div className="flex justify-between items-center mb-4 px-6">
+        <div className="text-[24px] text-black font-bold">인기 스튜디오</div>
+        <button className="text-[#86898C] flex items-center" onClick={onClickMore}>
+          더보기
+          <RightArrowIcon/>
+        </button>
+      </div>
+      <ul className="flex flex-col space-y-4 px-6">
+        {studios.map((item) => (
+          <SearchStudioItem key={item.id} item={item}/>
+        ))}
+      </ul>
+    </div>
   )
 }
 

@@ -26,6 +26,7 @@ export const MenuItem = ({ label, path }: { label: string; path: string }) => {
 
       // 모바일 앱 처리
       if (window.KloudEvent) {
+        window.KloudEvent.showToast('성공적으로 로그아웃하였습니다.')
         window.KloudEvent.clearAndPush(KloudScreen.Login);
       } else {
         // 웹 브라우저 처리

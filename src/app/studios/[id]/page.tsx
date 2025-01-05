@@ -7,6 +7,7 @@ import Instagram from "../../../../public/assets/instagram-colored.svg";
 import Youtube from "../../../../public/assets/youtube-colored.svg";
 import Divider from "./studio.divider";
 import LessonCardInStudio from "./studio.lesson";
+import { LessonGridSection } from "@/app/components/lesson.grid.section";
 
 export type Props = {
   params: Promise<{ id: string }>;
@@ -24,7 +25,7 @@ export default async function StudioDetail({params}: Props) {
   const [address, _] = res.address.split("/");
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
+    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
       {/* 헤더 */}
       <HeaderInDetail title={res.name}/>
 
@@ -118,18 +119,8 @@ export default async function StudioDetail({params}: Props) {
 
       {/* 더보기 영역 */}
       {res.lessons.length > 0 && (
-        <div className="px-6 w-full box-border pb-8">
-          <p className="text-black text-2xl font-medium leading-7 pt-10 pb-5">Hot</p>
-
-          <div className="h-[660px] w-full flex-col justify-start items-start gap-5 inline-flex">
-            <div
-              className="self-stretch justify-start items-center gap-x-[calc(100%/42.75)] gap-y-5 inline-flex flex-wrap">
-              {res.lessons.splice(0, 4).map((data) => (
-                <LessonCardInStudio key={data.id} {...data} />
-              ))}
-            </div>
-          </div>
-        </div>
+        <LessonGridSection title="HOT" lessons={res.lessons}
+        />
       )}
     </div>
   );

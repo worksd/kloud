@@ -5,6 +5,7 @@ export const KloudScreen = {
   LoginEmail: '/login/email',
   SignUp: '/signUp',
   Home: '/home',
+  Lessons: '/lessons',
   LessonDetail: (id: number) => `/lessons/${id}`,
   LessonPayment: (id: number) => `/lessons/${id}/payment`,
   TicketDetail: (id: number) => `/tickets/${id}`,

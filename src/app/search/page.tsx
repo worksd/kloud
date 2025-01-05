@@ -4,6 +4,8 @@ import { api } from "@/app/api.client";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { UserStatus } from "@/entities/user/user.status";
 import { TopToolbar } from "@/shared/top.toolbar";
+import { LessonGridSection } from "@/app/components/lesson.grid.section";
+import { mockLessons } from "@/app/home/mock.lessons";
 
 export default async function Search() {
 
@@ -14,8 +16,9 @@ export default async function Search() {
       <div className="sticky top-0 z-10 bg-white">
         <TopToolbar title="검색"/>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto space-y-4">
         <SearchStudioItems studios={res.studios ?? []}/>
+        <LessonGridSection title={"인기 수업"} lessons={mockLessons}/>
       </div>
     </div>
   )

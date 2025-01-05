@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-    <body style={{backgroundColor: "black", color: "white"}}>
+    <body style={{backgroundColor: "white", color: "white"}}>
     {children}
     </body>
     </html>
@@ -48,6 +48,7 @@ declare global {
     setToken: (token: string) => void;
     sendBootInfo: (bootInfo: string) => void;
     onSplashStarted: () => void;
+    showToast: (message: string) => void;
 
     addEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;
     dispatchEvent<K extends keyof CustomEventMap>(ev: CustomEventMap[K]): void;

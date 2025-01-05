@@ -19,7 +19,7 @@ export const Poster = ({
 ) => {
   const router = useRouter();
   const handleOnClick = () => {
-    if (window) {
+    if (window.KloudEvent) {
       window.KloudEvent.push(KloudScreen.LessonDetail(id))
     } else {
       router.push(KloudScreen.LessonDetail(id))
@@ -36,6 +36,7 @@ export const Poster = ({
           src="https://picsum.photos/250/250"
           alt="dd"
           fill
+          draggable={false}
           style={{
             objectFit: 'cover',
             borderRadius: '4px',        // 둥근 모서리(선택 사항)
@@ -50,6 +51,5 @@ export const Poster = ({
         24.10.14(토) / 17:00
       </div>
     </div>
-
   )
 }
