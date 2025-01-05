@@ -106,7 +106,6 @@ export const LoginForm = () => {
       }}
       onSubmit={handleSubmit}
     >
-
       <label className="mb-2 text-[14px] font-[Pretendard] font-normal text-black">이메일</label>
       <input
         className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
@@ -117,7 +116,7 @@ export const LoginForm = () => {
         value={email}
         placeholder='이메일을 입력해주세요'
       />
-      <div className="text-[#E55B5B] mb-5 text-[12px]">
+      <div className="text-[#E55B5B] mb-2 text-[12px]">
         {emailErrorMessage}
       </div>
       <div className="flex items-center gap-2 mb-2">
@@ -146,17 +145,19 @@ export const LoginForm = () => {
         {passwordErrorMessage}
       </div>
 
+
+      <div className="flex items-center justify-end mb-4" onClick={handleClickSignUp}>
+        <span className="text-[#86898C] text-[12px]">아직 회원이 아니신가요?</span>
+        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">회원가입하기</span>
+      </div>
+
       <button
         disabled={!isFormValid}
-        className={`flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full mb-[40px] ${
+        className={`sticky bottom-0 flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
-        Continue
+        시작하기
       </button>
 
-      <div className="flex items-center justify-center" onClick={handleClickSignUp}>
-        <span className="text-[#86898C] text-[14px]">아직 회원이 아니신가요?</span>
-        <span className="text-black ml-1 font-medium cursor-pointer text-[14px]">회원가입하기</span>
-      </div>
 
     </form>
   );

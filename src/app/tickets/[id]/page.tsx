@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import Logo from "../../../../public/assets/logo_white.svg"
+import { Thumbnail } from "@/app/components/Thumbnail";
 
 export type Props = {
   params: Promise<{ id: string }>;
@@ -34,14 +35,7 @@ export default async function TicketDetail({params}: Props) {
       <div className="flex flex-col px-6 justify-center items-center mt-6">
         {/* Image */}
         <div style={{width: '263px', height: '350px', position: 'relative'}}>
-          <Image
-            src="https://picsum.photos/250/250"
-            alt="수업 썸네일"
-            fill
-            style={{
-              objectFit: 'cover',
-              borderRadius: '8px',
-            }}
+          <Thumbnail width={263}
           />
         </div>
 

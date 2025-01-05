@@ -12,11 +12,8 @@ export default async function Search() {
   const res = await getStudioList()
 
   return (
-    <div className="fixed inset-0 bg-white flex flex-col">
-      <div className="sticky top-0 z-10 bg-white">
-        <TopToolbar title="검색"/>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-4">
+    <div className="fixed inset-0 bg-white flex flex-col mt-4">
+      <div className="flex-1 overflow-y-auto space-y-8 scrollbar-hide">
         <SearchStudioItems studios={res.studios ?? []}/>
         <LessonGridSection title={"인기 수업"} lessons={mockLessons}/>
       </div>

@@ -46,7 +46,7 @@ export const NewNotifications = () => {
       <div className="p-4">
         <div className="text-[24px] font-normal text-black">New</div>
       </div>
-      <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory">
+      <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
         {newItems.map((item) => (
           <div
             key={item.id}
