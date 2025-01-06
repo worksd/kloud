@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export const Thumbnail = ({width, url} : {width: number, url: string} ) => {
+export const Thumbnail = ({width, url} : {width?: number, url: string} ) => {
   return (
     <div
       className={width === undefined ? "w-full aspect-[167/222] relative" : "relative"}
