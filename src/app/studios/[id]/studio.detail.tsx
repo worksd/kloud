@@ -11,6 +11,7 @@ import Youtube from "../../../../public/assets/youtube-colored.svg";
 import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import { useEffect, useState } from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
+import { notFound } from "next/navigation";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
   const [studio, setStudio] = useState<any>(undefined)
@@ -40,7 +41,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
   }
 
   if (!studio) {
-    return <div>스튜디오를 찾을 수 없습니다.</div>
+    return notFound();
   }
 
   return (
@@ -85,17 +86,16 @@ export const StudioDetailForm = ({id}: { id: string }) => {
       </div>
 
       {/* 상세 영역 */}
-      <div className="w-full flex flex-col justify-start items-start gap-2 mt-6">
-        <div className="self-stretch px-6 py-0.5 box-border justify-between items-center flex">
-          <div className="justify-start items-center gap-1 flex">
-            <LocationIcon/>
-            <div className="text-center text-[#505356] text-sm font-medium leading-tight">{studio.address}</div>
-          </div>
+      <div className="flex flex-col gap-2 mt-6">
+        <div className="flex flex-row items-center px-6 gap-1">
+          <LocationIcon className="flex-shrink-0"/>
+          <div className="text-[#505356] text-[14px] font-medium">{studio.address}</div>
         </div>
 
+
         <div className="justify-start items-center gap-1 flex px-6">
-          <PhoneIcon/>
-          <div className="text-center text-[#505356] text-sm font-medium leading-tight">{studio.phone}</div>
+          <PhoneIcon classname="flex-shrink-0"/>
+          <div className="text-center text-[#505356] text-[14px] font-medium leading-tight">{studio.phone}</div>
         </div>
 
         <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">

@@ -7,13 +7,14 @@ export type IdParameter = {
 export type GetStudioResponse = {
     id: number;
     name: string;
-    address: string;
+    address?: string;
+    roadAddress?: string;
     profileImageUrl: string;
     coverImageUrl?: string;
-    phone: string;
+    phone?: string;
     youtubeUrl?: string;
     instagramAddress?: string;
-    lessons: LessonResponse[];
+    lessons?: LessonResponse[];
     follow?: StudioFollowResponse;
 };
 
