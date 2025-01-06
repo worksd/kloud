@@ -24,7 +24,7 @@ export const TicketItem = ({item} : {item: TicketResponse}) => {
       {/* 메인 컨텐츠 */}
       <div className="flex gap-3 px-6 mb-3">
         {/* 이미지 */}
-        <Thumbnail width={84}/>
+        <Thumbnail width={84} url={"https://picsum.photos/250/250"}/>
 
         {/* 텍스트 정보 */}
         <div className="flex flex-col justify-center">
