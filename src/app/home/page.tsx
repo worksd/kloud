@@ -1,26 +1,22 @@
-import Logo from "../../../public/assets/logo_black.svg"
-import { UpcomingLessons } from "@/app/home/upcoming.lessons";
-import { NotificationList } from "@/app/home/notification.list";
-import { mockLessons } from "@/app/home/mock.lessons";
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
 
-export default async function Home(props: any) {
+function UserDetails() {
+  const user = null; // 사용자 데이터를 불러오려 했으나 실패
+  if (!user) {
+    notFound(); // 사용자 데이터가 없으므로 404 페이지를 렌더링
+  }
+
+  return <div>User: {user}</div>;
+}
+
+export default function Page() {
   return (
-    <div className="w-full min-h-screen bg-white flex flex-col">
-      <div className="p-4">
-        <div className="w-[105px]">
-          <Logo className="scale-[0.7] origin-left"/>
-        </div>
-      </div>
-      <NotificationList title="New"/>
-      <div>
-        <div className="headline-200 text-left p-4">
-          Upcoming
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <UpcomingLessons lessons={mockLessons}/>
-        </div>
-      </div>
+    <div>
+      {/*<h1>Welcome to the User Page</h1>*/}
+      <Suspense fallback={<p>Loading user details...</p>}>
+        <UserDetails />
+      </Suspense>
     </div>
   );
 }
-

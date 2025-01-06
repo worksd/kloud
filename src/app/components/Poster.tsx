@@ -33,7 +33,7 @@ export const Poster = ({
 
   return (
     <div
-      className="flex flex-col active:scale-[0.98] transition-transform duration-150 select-none [-webkit-touch-callout:none]"
+      className="flex flex-col active:scale-[0.98] transition-transform duration-150 select-none"
       onClick={handleOnClick}
     >
       <Thumbnail

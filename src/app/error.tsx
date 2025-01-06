@@ -1,7 +1,8 @@
-export default function Loading() {
+'use client';
+export default function Error() {
   return (
     <div className="w-full min-h-screen bg-white flex flex-col text-black">
-      Loading...
+      Error...
     </div>
   );
 }
