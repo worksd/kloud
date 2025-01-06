@@ -13,7 +13,7 @@ export const LessonGridSection = ({title, lessons} : {title: string, lessons: Le
   }
 
   return (
-    <div className="px-6 pb-8">
+    <div className="w-screen px-4 pb-8">
       {/* 헤더 */}
       <div className="flex justify-between items-center mb-5">
         <div className="text-[24px] text-black font-bold">{title}</div>

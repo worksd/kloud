@@ -11,7 +11,7 @@ export const Poster = ({
                          studioLogoUrl,
                          startTime,
                          title,
-                         width = 167
+                         width
                        }:
                          {
                            id: number,
@@ -36,7 +36,10 @@ export const Poster = ({
       className="flex flex-col active:scale-[0.98] transition-transform duration-150 select-none [-webkit-touch-callout:none]"
       onClick={handleOnClick}
     >
-      <Thumbnail width={width} url={posterUrl}/>
+      <Thumbnail
+        width={width}
+        url={posterUrl}
+      />
 
       <div className="body-400 mt-2">
         {title}
