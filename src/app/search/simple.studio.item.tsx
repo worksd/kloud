@@ -54,6 +54,12 @@ const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
     }
   }
 
+  const handleSubmit = () => {
+    if (window.KloudEvent) {
+      window.KloudEvent.sendHapticFeedback()
+    }
+  }
+
   useEffect(() => {
     if (actionState.sequence >= 0) {
       setIsFollow(actionState.follow != null)
@@ -65,7 +71,7 @@ const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
   }, [actionState])
 
   return (
-    <form className="px-6 space-y-4">
+    <div className="px-6 space-y-4">
       <div className="flex items-center justify-between w-full max-w-md bg-white rounded-lg">
         {/* 프로필 이미지 및 정보 */}
         <div className="flex items-center space-x-4" onClick={handleOnClick}>
@@ -78,20 +84,23 @@ const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
             <div className="text-sm text-gray-500">{item.address}</div>
           </div>
         </div>
-        {/* 팔로우 버튼 */}
-        <button
-          formAction={formAction}
-          className={`px-2.5 py-1 text-sm font-medium rounded-full
+        <form action={formAction}
+              onSubmit={handleSubmit}>
+          {/* 팔로우 버튼 */}
+          <button
+
+            className={`px-2.5 py-1 text-sm font-medium rounded-full
           ${isFollow
-            ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
-            : 'text-white bg-black hover:bg-gray-900'
-          }`}
-        >
-          {isFollow ? '팔로잉' : '팔로우'}
-        </button>
+              ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
+              : 'text-white bg-black hover:bg-gray-900'
+            }`}
+          >
+            {isFollow ? '팔로잉' : '팔로우'}
+          </button>
+        </form>
       </div>
       <div className="w-full h-[1px] bg-[#f7f8f9]"/>
-    </form>
+    </div>
   )
 }
 

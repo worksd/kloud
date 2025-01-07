@@ -57,6 +57,12 @@ export const StudioDetailForm = ({id}: { id: string }) => {
     fetchStudio()
   }, [id])
 
+  const handleSubmit = () => {
+    if (window.KloudEvent) {
+      window.KloudEvent.sendHapticFeedback()
+    }
+  }
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-gray-900"></div>
@@ -98,11 +104,11 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
           <Image src={studio.profileImageUrl} alt={"studio logo"} width={60} height={60}
                  className="rounded-full"/>
-          <form className="flex-col justify-center items-start gap-2 inline-flex">
+          <form className="flex-col justify-center items-start gap-2 inline-flex" onSubmit={handleSubmit}>
             <div className="text-[#131517] text-xl font-bold leading-normal">{studio.name}</div>
             <button
               formAction={formAction}
-              className={`px-2.5 py-1 text-sm font-medium rounded-full
+              className={`px-2.5 py-1 text-sm font-medium rounded-full 
           ${isFollow
                 ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
                 : 'text-white bg-black hover:bg-gray-900'
