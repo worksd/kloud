@@ -4,6 +4,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { formatDateTime } from "@/app/lessons/[id]/lesson.info.section";
+import { calculateDDays } from "@/utils";
 
 export const Poster = ({
                          id,
@@ -36,10 +37,22 @@ export const Poster = ({
       className="flex flex-col active:scale-[0.98] transition-transform duration-150 select-none"
       onClick={handleOnClick}
     >
-      <Thumbnail
-        width={width}
-        url={posterUrl}
-      />
+      <div className="relative overflow-hidden">
+        <Thumbnail
+          className="relative z-0 object-cover"
+          width={width}
+          url={posterUrl}
+        />
+        {(() => {
+          const d_days = calculateDDays(startTime);
+          return d_days ? (
+            <div
+              className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
+              {d_days}
+            </div>
+          ) : null;
+        })()}
+      </div>
 
       <div className="body-400 mt-2">
         {title}

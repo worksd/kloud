@@ -1,13 +1,22 @@
 import Image from "next/image";
 
-export const Thumbnail = ({width, url} : {width?: number, url: string} ) => {
+interface ThumbnailProps {
+  className?: string;
+  width?: number;
+  url: string;
+  aspectRatio?: number; // 기본값 167/222
+}
+
+export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222 }: ThumbnailProps) => {
+  const containerStyle = width ? {
+    width: `${width}px`,
+    height: `${Math.round(width / aspectRatio)}px`
+  } : undefined;
+
   return (
     <div
-      className={width === undefined ? "w-full aspect-[167/222] relative [-webkit-touch-callout:none]" : "relative [-webkit-touch-callout:none]"}
-      style={width ? {
-        width: `${width}px`,
-        height: `${Math.round((width * 222) / 167)}px`
-      } : undefined}
+      className={`relative [-webkit-touch-callout:none] ${width ? '' : 'w-full aspect-[167/222]'} ${className}`}
+      style={containerStyle}
     >
       <Image
         src={url}
@@ -15,6 +24,7 @@ export const Thumbnail = ({width, url} : {width?: number, url: string} ) => {
         fill
         draggable={false}
         className="object-cover rounded-lg"
+        sizes={width ? `${width}px` : "100vw"}
       />
     </div>
   );

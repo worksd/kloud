@@ -5,7 +5,7 @@ import { formatDateTime } from "@/app/lessons/[id]/lesson.info.section";
 export const LessonGridItems = ({lessons} : {lessons: LessonResponse[]}) => {
   console.log(lessons);
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-2">
       {lessons.map((lesson) => (
         <Poster
           key={lesson.id}

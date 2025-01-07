@@ -8,7 +8,7 @@ export const extractNumber = (input: string): number => {
  * @param input "2024.11.28 16:10"의 형태여야 함
  * @returns
  */
-export const calculateDDays = (input: string): string => {
+export const calculateDDays = (input: string): string | undefined => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -21,5 +21,5 @@ export const calculateDDays = (input: string): string => {
     const diffInMs = targetDate.getTime() - today.getTime();
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
-    return diffInDays > 0 ? `D-${diffInDays}` : diffInDays === 0 ? "D-Day" : `D+${Math.abs(diffInDays)}`;
+    return diffInDays > 0 ? `D-${diffInDays}` : diffInDays === 0 ? "D-Day" : undefined;
 };
