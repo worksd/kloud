@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import React, { useState } from "react";
-import Chevron from "../../../public/assets/chevron.svg";
+import ArrowUpIcon from "../../../public/assets/arrow-up.svg"
+import ArrowDownIcon from "../../../public/assets/arrow-down.svg"
 
 interface DropdownDetailsProps {
     title: string; // 제목
@@ -18,10 +19,14 @@ const DropdownDetails = ({ title, children }: DropdownDetailsProps) => {
         <div className="flex flex-col gap-y-4">
             <div onClick={toggleDropdown} className="flex justify-between">
                 <p className="text-black text-sm font-semibold font-['Pretendard']">{title}</p>
-                
-                <div className={`w-6 h-6 ${isExpanded ? "" : "rotate-180"}`}>
-                    <Image src={Chevron} alt="펼치기 화살표" />
-                </div>
+
+                {isExpanded && (
+                  <ArrowUpIcon/>
+                )}
+
+                {!isExpanded && (
+                  <ArrowDownIcon/>
+                )}
             </div>
 
             {isExpanded && children}
