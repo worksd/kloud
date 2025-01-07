@@ -87,13 +87,13 @@ export const StudioDetailForm = ({id}: { id: string }) => {
 
       {/* 상세 영역 */}
       <div className="flex flex-col gap-2 mt-6">
-        <div className="flex flex-row items-center px-6 gap-1">
+        <div className="flex flex-row items-center px-4 gap-2">
           <LocationIcon className="flex-shrink-0"/>
           <div className="text-[#505356] text-[14px] font-medium">{studio.address}</div>
         </div>
 
 
-        <div className="justify-start items-center gap-1 flex px-6">
+        <div className="justify-start items-center gap-2 flex px-4">
           <PhoneIcon classname="flex-shrink-0"/>
           <div className="text-center text-[#505356] text-[14px] font-medium leading-tight">{studio.phone}</div>
         </div>

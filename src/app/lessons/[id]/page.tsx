@@ -66,33 +66,40 @@ export default async function LessonDetail({ params }: Props) {
 
             {/* 디테일 영역 */}
             <div className="w-full py-5 flex-col justify-start items-start gap-8 inline-flex">
-                <div className="self-stretch h-[235px] flex-col justify-start items-start gap-4 flex">
+                <div className="self-stretch flex-col justify-start items-start gap-0 flex">
                     {/* 수업명 */}
-                    <div className="self-stretch h-[58px] px-6 flex-col justify-start items-start gap-2.5 flex">
+                    <div className="self-stretch px-6 flex-col justify-start items-start gap-2.5 flex">
                         <div className="self-stretch justify-between items-start inline-flex">
                             <Image
-                                className="relative rounded-[20px] border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
-                                src={data.studio.profileImageUrl}
-                                alt={`${data.studio.name} 스튜디오`}
-                                width={24}
-                                height={24}
+                              className="relative rounded-[20px] border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
+                              src={data.studio.profileImageUrl}
+                              alt={`${data.studio.name} 스튜디오`}
+                              width={24}
+                              height={24}
                             />
                             <div className="justify-center items-start gap-[3px] flex">
-                                <div className="self-stretch px-2 py-1 bg-black rounded-xl justify-center items-center gap-2.5 inline-flex">
+                                <div
+                                  className="self-stretch px-2 py-1 bg-black rounded-xl justify-center items-center gap-2.5 inline-flex">
                                     <div className="text-white text-xs font-medium leading-none">{data.level}</div>
                                 </div>
-                                <div className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
-                                    <div className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[data.type]}</div>
+                                <div
+                                  className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
+                                    <div
+                                      className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[data.type]}</div>
                                 </div>
                             </div>
                         </div>
                         <div className="self-stretch justify-start items-center gap-2 inline-flex">
                             <div className="w-[342px] text-black text-xl font-bold leading-normal">{data.title}</div>
                         </div>
+                        <div className="w-full h-[1px] bg-[#f7f8f9]"/>
                     </div>
 
+
                     {/* 상세 */}
-                    <LessonInfoSection data={data} />
+                    <LessonInfoSection data={data}/>
+
+                    <div className="w-full h-3 bg-[#f7f8f9]"/>
                 </div>
 
                 {/* 강사 */}

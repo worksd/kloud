@@ -1,7 +1,6 @@
 import Logo from "../../../public/assets/logo_black.svg"
 import { UpcomingLessons } from "@/app/home/upcoming.lessons";
 import { NotificationList } from "@/app/home/notification.list";
-import { mockLessons } from "@/app/home/mock.lessons";
 
 export default async function Home(props: any) {
   return (
@@ -17,7 +16,7 @@ export default async function Home(props: any) {
           Upcoming
         </div>
         <div className="flex-1 overflow-y-auto">
-          <UpcomingLessons lessons={mockLessons}/>
+          <UpcomingLessons />
         </div>
       </div>
     </div>
