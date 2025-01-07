@@ -29,6 +29,11 @@ export class ApiClient extends EndpointClient {
     get: this.endpointBuilder(API.Ticket.GetTicket),
     list: this.endpointBuilder(API.Ticket.ListTickets),
   }
+
+  readonly studioFollow = {
+    create: this.endpointBuilder(API.StudioFollow.Follow),
+    delete: this.endpointBuilder(API.StudioFollow.UnFollow),
+  }
 }
 
 export interface ClientOptions {

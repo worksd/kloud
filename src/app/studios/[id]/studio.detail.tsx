@@ -1,6 +1,4 @@
 'use client';
-import { api } from "@/app/api.client";
-import { extractNumber } from "@/utils";
 import { HeaderInDetail } from "@/app/components/headers";
 import Image from "next/image";
 import LocationIcon from "../../../../public/assets/location.svg";
@@ -12,10 +10,32 @@ import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import { useEffect, useState } from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { useFormState } from "react-dom";
+import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
-  const [studio, setStudio] = useState<any>(undefined)
+  const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
+  const [isFollow, setIsFollow] = useState(false)
+  const [actionState, formAction] = useFormState(toggleFollowStudio, {
+    studioId: 0,
+    sequence: -1,
+    errorCode: '',
+    errorMessage: '',
+    message: undefined,
+    follow: undefined,
+  });
+
+  useEffect(() => {
+    if (actionState.sequence >= 0) {
+      setIsFollow(actionState.follow != null)
+
+      if (window.KloudEvent && actionState.message) {
+        window.KloudEvent.showToast(actionState.message)
+      }
+    }
+  }, [actionState])
 
   useEffect(() => {
     const fetchStudio = async () => {
@@ -23,6 +43,9 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         const response = await getStudioDetail(id)
         if ('id' in response) {
           setStudio(response)
+          setIsFollow(response.follow != null)
+          actionState.studioId = response.id
+          actionState.follow = response.follow
         }
       } catch (error) {
         console.error('스튜디오 정보를 불러오는데 실패했습니다:', error)
@@ -73,15 +96,21 @@ export const StudioDetailForm = ({id}: { id: string }) => {
             before:z-[2]"
       >
         <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
-          <Image src={studio.profileImageUrl || "https://picsum.photos/250/250"} alt={"studio logo"} width={60} height={60}
+          <Image src={studio.profileImageUrl} alt={"studio logo"} width={60} height={60}
                  className="rounded-full"/>
-          <div className="flex-col justify-center items-start gap-2 inline-flex">
+          <form className="flex-col justify-center items-start gap-2 inline-flex">
             <div className="text-[#131517] text-xl font-bold leading-normal">{studio.name}</div>
-
-            <button className="px-2.5 py-1 bg-black rounded-[999px] justify-center items-center gap-2.5 inline-flex">
-              <div className="text-center text-white text-sm font-medium leading-tight">팔로우</div>
+            <button
+              formAction={formAction}
+              className={`px-2.5 py-1 text-sm font-medium rounded-full
+          ${isFollow
+                ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
+                : 'text-white bg-black hover:bg-gray-900'
+              }`}
+            >
+              {isFollow ? '팔로잉' : '팔로우'}
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -111,8 +140,8 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
           <div className="mt-10">
-            {studio.lessons.length > 0 && (
-              <LessonGridSection title="Hot" lessons={studio.lessons}
+            {(studio?.lessons?.length ?? 0) > 0 && (
+              <LessonGridSection title="Hot" lessons={studio?.lessons ?? []}
               />
             )}
           </div>
