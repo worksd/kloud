@@ -58,6 +58,10 @@ export type GetLessonTicketResponse = {
     id: number;
 };
 
+export type ListLessonsResponse = {
+    lessons: GetLessonResponse[]
+}
+
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     method: "get",
     path: (e) => `/lessons/${e.id}`,
