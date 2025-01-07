@@ -12,11 +12,11 @@ export default function PaymentButton({ data }: { data: any }) {
         setLoading(true);
 
         const info: PaymentRequest = {
-            storeId: process.env.NEXT_PUBLIC_PORTONE_SOTRE_ID!,
+            storeId: process.env.PORTONE_SOTRE_ID!,
             channelKey:
                 process.env.NODE_ENV !== "development"
-                    ? process.env.NEXT_PUBLIC_TEST_PORTONE_CHANNEL_KEY!
-                    : process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+                    ? process.env.TEST_PORTONE_CHANNEL_KEY!
+                    : process.env.PORTONE_CHANNEL_KEY!,
             paymentId: `${data.id}-${crypto.randomUUID()}`,
             orderName: data.title,
             totalAmount: data.price,
