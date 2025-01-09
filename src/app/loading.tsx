@@ -1,3 +1,5 @@
   export default function Loading() {
-    return <div/>
+    return <div className="text-black">
+      Loading...
+    </div>
   }

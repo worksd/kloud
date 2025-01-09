@@ -1,15 +1,15 @@
 'use client';
-import React, { FormEventHandler, useEffect, useState } from "react";
-import { createPortal, useFormState } from "react-dom";
+import React, { useEffect, useState } from "react";
+import { useFormState } from "react-dom";
 import { UserStatus } from "@/entities/user/user.status";
 import { useRouter } from "next/navigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import loginAction from "@/app/login/login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
-import { getBottomMenuList } from "@/app/splash/splash.screen";
+import { loginSuccessAction } from "@/app/login/login.success.action";
+import { push } from "@/utils/kloud.navigate";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -21,46 +21,23 @@ export const LoginForm = () => {
     accessToken: ''
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sequence, setClientSequence] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
 
-  const router = useRouter();
-
   useEffect(() => {
     if (actionState.sequence > 0) {
-      console.log("actionState 변경 감지:", actionState);
       setPasswordErrorMessage('');
       setEmailErrorMessage('');
 
-      if (actionState.userStatus && actionState.accessToken) {
-        // 로그인 성공 시 쿠키 설정
-        document.cookie = `${accessTokenKey}=${actionState.accessToken};path=/; max-age=2592000; SameSite=Lax`;
-        document.cookie = `${userIdKey}=${actionState.userId};path=/; max-age=2592000; SameSite=Lax`;
-
-        // 이후 라우팅 처리
-        if (actionState.userStatus === UserStatus.New) {
-          if (window.KloudEvent) {
-            window.KloudEvent.clearAndPush(KloudScreen.Onboard);
-          } else {
-            router.push(KloudScreen.Onboard);
-          }
-        } else if (actionState.userStatus === UserStatus.Ready) {
-          if (window.KloudEvent) {
-            const bottomMenuList = getBottomMenuList();
-            const bootInfo = JSON.stringify({
-              bottomMenuList: bottomMenuList,
-              route: KloudScreen.Main,
-            });
-            window.KloudEvent.navigateMain(bootInfo)
-          } else {
-            router.push(KloudScreen.Home);
-          }
-        }
+      if (actionState.userStatus && actionState.accessToken && actionState.userId) {
+        loginSuccessAction({
+          status: actionState.userStatus,
+          userId: actionState.userId,
+          accessToken: actionState.accessToken,
+        })
       } else if (actionState.errorMessage) {
         if (actionState.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
           setPasswordErrorMessage(actionState.errorMessage);
@@ -70,18 +47,6 @@ export const LoginForm = () => {
       }
     }
   }, [actionState]);
-
-  const handleClickSignUp = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.push(KloudScreen.SignUp)
-    } else {
-      router.push(KloudScreen.SignUp);
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    setIsSubmitting(true);
-  };
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -100,11 +65,7 @@ export const LoginForm = () => {
   return (
     <form
       className="flex flex-col p-6"
-      action={async (formData) => {
-        await formAction(formData);
-        setIsSubmitting(false);
-      }}
-      onSubmit={handleSubmit}
+      action={formAction}
     >
       <label className="mb-2 text-[14px] font-[Pretendard] font-normal text-black">이메일</label>
       <input
@@ -146,7 +107,7 @@ export const LoginForm = () => {
       </div>
 
 
-      <div className="flex items-center justify-end mb-4" onClick={handleClickSignUp}>
+      <div className="flex items-center justify-end mb-4" onClick={() => push({route: KloudScreen.SignUp})}>
         <span className="text-[#86898C] text-[12px]">아직 회원이 아니신가요?</span>
         <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">회원가입하기</span>
       </div>

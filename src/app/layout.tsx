@@ -50,6 +50,7 @@ declare global {
     onSplashStarted: () => void;
     showToast: (message: string) => void;
     sendHapticFeedback: () => void;
+    sendAppleLogin: () => void;
 
     addEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;
     dispatchEvent<K extends keyof CustomEventMap>(ev: CustomEventMap[K]): void;

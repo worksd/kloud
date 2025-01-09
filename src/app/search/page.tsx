@@ -1,9 +1,6 @@
-import Logo from "../../../public/assets/logo_black.svg";
 import { SearchStudioItems } from "@/app/search/simple.studio.item";
 import { api } from "@/app/api.client";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { UserStatus } from "@/entities/user/user.status";
-import { TopToolbar } from "@/shared/top.toolbar";
 import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import { mockLessons } from "@/app/home/mock.lessons";
 
