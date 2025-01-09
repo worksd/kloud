@@ -1,37 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
-import { getNewNotifications } from "@/app/home/new.notifications.action";
 import { GetNotificationResponse } from "@/app/endpoint/notification.endpoint";
 
-export const NotificationList = ({title}: {title: string}) => {
+export default async function NewNotifications() {
 
-  const [notifications, setNotifications] = useState<any>(undefined)
-
-  useEffect(() => {
-    const fetchNewNotifications = async () => {
-      try {
-        const res = await getNewNotifications()
-        if ('notifications' in res) {
-          setNotifications(res.notifications)
-        }
-      } catch (error) {
-        setNotifications([])
-        console.error('스튜디오 정보를 불러오는데 실패했습니다:', error)
-      }
-    }
-    if (!notifications) {
-      fetchNewNotifications()
-    }
-  }, [])
+  const notifications: GetNotificationResponse[] = []
 
   return (
     <section className="sticky top-0 bg-white z-10">
       <div className="p-4">
-        {title.length > 0 && (
-          <div className="text-[24px] font-normal text-black">{title}</div>
-        )}
+        <div className="text-[24px] font-normal text-black">New</div>
       </div>
       {notifications && notifications.length > 0 && (
         <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
