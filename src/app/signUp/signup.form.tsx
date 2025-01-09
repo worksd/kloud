@@ -2,16 +2,16 @@
 import { useFormState } from "react-dom";
 import { signUpAction } from "@/app/signUp/signup.action";
 import React, { useEffect, useState } from "react";
-import { isMobile } from "react-device-detect";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import TopToolbar from "@/app/components/TopToolbar";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import CheckIcon from "../../../public/assets/check.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
-import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
+import { UserStatus } from "@/entities/user/user.status";
+import { loginSuccessAction } from "@/app/login/login.success.action";
+import { back } from "@/utils/kloud.navigate";
+import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export const SignupForm = () => {
   const [actionState, formAction] = useFormState(signUpAction, {
@@ -30,21 +30,16 @@ export const SignupForm = () => {
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
   const [isPasswordPatternValid, setIsPasswordPatternValid] = useState(false);
 
-  const router = useRouter();
-
   useEffect(() => {
-    console.log("actionState 변경 감지:", actionState);
     setEmailErrorMessage('');
 
-    if (actionState.accessToken && !actionState.errorCode) {
-      if (window.KloudEvent) {
-        document.cookie = `${accessTokenKey}=${actionState.accessToken};path=/; max-age=2592000; SameSite=Lax`;
-        document.cookie = `${userIdKey}=${actionState.userId};path=/; max-age=2592000; SameSite=Lax`;
-        window.KloudEvent.clearAndPush(KloudScreen.Onboard);
-      } else {
-        router.push(KloudScreen.Onboard);
-      }
-    } else {
+    if (actionState.userId && actionState.accessToken && !actionState.errorCode) {
+      loginSuccessAction({
+        status: UserStatus.New,
+        userId: actionState.userId,
+        accessToken: actionState.accessToken,
+      })
+    } else if (actionState.errorCode) {
       if (actionState.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(actionState.errorMessage ?? '');
       }
@@ -55,8 +50,6 @@ export const SignupForm = () => {
     setEmailErrorMessage('');
     const email = e.target.value;
     setEmail(email);
-
-    // 이메일 패턴: 계정@도메인.최상위도메인
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     setIsEmailPatternValid(emailPattern.test(email));
   }
@@ -64,34 +57,17 @@ export const SignupForm = () => {
   const onPasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const password = e.target.value;
     setPassword(password);
-
-    // 비밀번호 패턴: 영문/숫자/특수문자 조합, 8자 이상
     const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$/;
     setIsPasswordPatternValid(passwordPattern.test(password));
     setIsPasswordLengthValid(password.length >= 8);
   }
 
-  const onClickBack = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.back()
-    } else {
-      router.back()
-    }
-  }
-
   return (
     <div>
-      <div className="relative flex items-center justify-center h-[56px]">
-        <div className="absolute top-4 left-4">
-          <button className="flex items-center justify-center text-black rounded-full" onClick={onClickBack}>
-            <ArrowLeftIcon className="w-6 h-6"/>
-          </button>
-        </div>
-        <h1 className="text-[16px] font-bold text-black">가입하기</h1>
+      <div className="flex justify-between items-center mb-14">
+        <SimpleHeader title="가입하기"/>
       </div>
-
-      <form className="flex flex-col p-6 h-screen justify-between" action={formAction}>
-
+      <form className="flex flex-col p-6 justify-between" action={formAction}>
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">
             <label className="text-[14px] font-medium text-black">이메일</label>
@@ -152,14 +128,16 @@ export const SignupForm = () => {
           </div>
         </div>
 
-        <div>
+        <div className="fixed bottom-0 left-0 right-0 px-6 pb-5 bg-white">
           <button
-            disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}
-            className={`flex items-center justify-center text-lg font-bold rounded-lg h-14 w-full mb-[40px] font-[16px] ${
-              isEmailPatternValid && isPasswordPatternValid && isPasswordLengthValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
+            className={`flex items-center justify-center font-bold rounded-lg h-14 w-full text-[16px] ${
+              isEmailPatternValid && isPasswordPatternValid && isPasswordLengthValid
+                ? "bg-black text-white"
+                : "bg-[#BCBFC2] text-white"
+            }`}
+            disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
             다음으로
           </button>
-
         </div>
       </form>
     </div>
