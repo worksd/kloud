@@ -3,7 +3,6 @@
 import AppleLoginButton from "@/app/login/apple.login.button";
 import GoogleLoginButton from "@/app/login/google.login.button";
 import KakaoLoginButton from "@/app/login/kakaok.login.button";
-import { push } from "@/utils/kloud.navigate";
 import { KloudScreen } from "@/shared/kloud.screen";
 
 export default function LoginButtonForm() {
@@ -16,7 +15,7 @@ export default function LoginButtonForm() {
         <KakaoLoginButton/>
       </div>
       <div className="text-[#86898C] text-[14px] cursor-pointer mt-12"
-           onClick={() => push({route: KloudScreen.LoginEmail})}>
+           onClick={() => window.KloudEvent?.push(KloudScreen.LoginEmail)}>
         이메일로 시작하기
       </div>
     </section>

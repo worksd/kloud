@@ -5,7 +5,7 @@ import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
-import { getBottomMenuList } from "@/app/splash/splash.screen";
+import { getBottomMenuList } from "@/utils";
 
 export const OnboardForm = () => {
   const router = useRouter();

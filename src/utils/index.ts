@@ -23,3 +23,52 @@ export const calculateDDays = (input: string): string | undefined => {
 
     return diffInDays > 0 ? `D-${diffInDays}` : diffInDays === 0 ? "D-Day" : undefined;
 };
+
+export function getBottomMenuList() {
+    return [
+        {
+            label: "홈",
+            labelSize: 16,
+            labelColor: "#FF5733",
+            iconUrl: "https://picsum.photos/250/250",
+            iconSize: 24,
+            page: {
+                route: "/home",
+                initialColor: "#FFFFFF"
+            },
+        },
+        {
+            label: "검색",
+            labelSize: 12,
+            labelColor: "#3357FF",
+            iconUrl: "https://picsum.photos/250/250",
+            iconSize: 18,
+            page: {
+                route: "/search",
+                initialColor: "#FFFFFF"
+            },
+        },
+        {
+            label: "알림",
+            labelSize: 14,
+            labelColor: "#33FF57",
+            iconUrl: "https://picsum.photos/250/250",
+            iconSize: 20,
+            page: {
+                route: "/notifications",
+                initialColor: "#FFFFFF"
+            },
+        },
+        {
+            label: "마이페이지",
+            labelSize: 14,
+            labelColor: "#33FF57",
+            iconUrl: "https://picsum.photos/250/250",
+            iconSize: 20,
+            page: {
+                route: "/setting",
+                initialColor: "#FFFFFF"
+            },
+        },
+    ];
+}

@@ -9,7 +9,6 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 import { loginSuccessAction } from "@/app/login/login.success.action";
-import { push } from "@/utils/kloud.navigate";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -33,11 +32,20 @@ export const LoginForm = () => {
       setEmailErrorMessage('');
 
       if (actionState.userStatus && actionState.accessToken && actionState.userId) {
-        loginSuccessAction({
+        const route = loginSuccessAction({
           status: actionState.userStatus,
           userId: actionState.userId,
           accessToken: actionState.accessToken,
         })
+        if (route == KloudScreen.Main) {
+          const bootInfo = JSON.stringify({
+            bottomMenuList: process.env.BOTTOM_MENU_LIST,
+            route: KloudScreen.Main,
+          });
+          window.KloudEvent.navigateMain(bootInfo)
+        } else {
+          window.KloudEvent.clearAndPush(route)
+        }
       } else if (actionState.errorMessage) {
         if (actionState.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
           setPasswordErrorMessage(actionState.errorMessage);
@@ -58,6 +66,10 @@ export const LoginForm = () => {
     setEmail(e.target.value);
     setEmailErrorMessage('');
     setPasswordErrorMessage('');
+  }
+
+  const onClickSignUp = () => {
+    window.KloudEvent?.push(KloudScreen.SignUp)
   }
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
@@ -107,7 +119,7 @@ export const LoginForm = () => {
       </div>
 
 
-      <div className="flex items-center justify-end mb-4" onClick={() => push({route: KloudScreen.SignUp})}>
+      <div className="flex items-center justify-end mb-4" onClick={onClickSignUp}>
         <span className="text-[#86898C] text-[12px]">아직 회원이 아니신가요?</span>
         <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">회원가입하기</span>
       </div>

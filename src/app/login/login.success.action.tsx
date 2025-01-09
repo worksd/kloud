@@ -7,9 +7,7 @@ export const loginSuccessAction = ({accessToken, userId, status}: {
   userId: number,
   status: UserStatus,
 }) => {
-
   document.cookie = `${accessTokenKey}=${accessToken};path=/; max-age=2592000; SameSite=Lax`;
   document.cookie = `${userIdKey}=${userId};path=/; max-age=2592000; SameSite=Lax`;
-
-  authNavigateAction({status: status})
+  return authNavigateAction({status: status})
 }
