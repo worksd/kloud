@@ -8,6 +8,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 import { loginSuccessAction } from "@/app/login/login.success.action";
+import { getBottomMenuList } from "@/utils";
 
 export const LoginForm = () => {
   const [actionState, formAction] = useFormState(loginAction, {
@@ -38,7 +39,7 @@ export const LoginForm = () => {
         })
         if (route == KloudScreen.Main) {
           const bootInfo = JSON.stringify({
-            bottomMenuList: process.env.BOTTOM_MENU_LIST,
+            bottomMenuList: getBottomMenuList(),
             route: KloudScreen.Main,
           });
           window.KloudEvent.navigateMain(bootInfo)

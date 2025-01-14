@@ -21,10 +21,7 @@ export default async function Setting(){
 
         {/* 메뉴 리스트 */}
         <MenuItem label="구매내역" path="/tickets"/>
-        <MenuItem label="문의하기" path="/contact"/>
-        <MenuItem label="자주 묻는 질문" path="/faq"/>
-        <MenuItem label="공지사항" path="/notices"/>
-        <MenuItem label="약관 및 정책" path="/terms-and-policies"/>
+        <MenuItem label="약관 및 정책" path="/setting/terms"/>
         <MenuItem label="로그아웃" path="/logout" />
       </div>
     );
