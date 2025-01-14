@@ -2,37 +2,11 @@
 import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
 import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
-import RightArrowIcon from "../../../public/assets/right-arrow.svg";
-import Image from "next/image";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import { useFormState } from "react-dom";
 import { useEffect, useState } from "react";
 
-export const SearchStudioItems = ({studios}: { studios: GetStudioResponse[] }) => {
-
-  const onClickMore = () => {
-    console.log('hello')
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-4 mt-4 px-6">
-        <div className="text-[24px] text-black font-bold">인기 스튜디오</div>
-        <button className="text-[#86898C] flex items-center" onClick={onClickMore}>
-          더보기
-          <RightArrowIcon/>
-        </button>
-      </div>
-      <ul className="flex flex-col space-y-4">
-        {studios.map((item) => (
-          <SearchStudioItem key={item.id} item={item}/>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
+export const StudioItem = ({item}: { item: GetStudioResponse }) => {
 
   const [actionState, formAction] = useFormState(toggleFollowStudio, {
     studioId: item.id,

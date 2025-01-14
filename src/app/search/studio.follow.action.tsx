@@ -1,6 +1,6 @@
 'use server'
 import { api } from "@/app/api.client";
-import { ToggleFollowActionResult } from "@/app/search/simple.studio.item";
+import { ToggleFollowActionResult } from "@/app/search/StudioItem";
 import { ExceptionResponseCode, GuinnessErrorCaseScheme } from "@/app/guinnessErrorCase";
 
 export const toggleFollowStudio = async (prev: ToggleFollowActionResult, formData: FormData): Promise<ToggleFollowActionResult> => {
