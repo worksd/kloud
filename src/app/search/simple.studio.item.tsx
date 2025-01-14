@@ -76,8 +76,13 @@ const SearchStudioItem = ({item}: { item: GetStudioResponse }) => {
         {/* 프로필 이미지 및 정보 */}
         <div className="flex items-center space-x-4" onClick={handleOnClick}>
           {/* 프로필 이미지 */}
-          <Image src={item.profileImageUrl} alt={"studio logo"} width={60} height={60}
-                 className="rounded-full"/>
+          <div className="w-[60px] h-[60px] rounded-full overflow-hidden flex-shrink-0">
+            <img
+              src={item.profileImageUrl}
+              alt={item.name}
+              className="w-full h-full object-cover"  // object-cover로 비율 유지
+            />
+          </div>
           {/* 텍스트 정보 */}
           <div>
             <div className="text-lg font-bold text-black">{item.name}</div>
