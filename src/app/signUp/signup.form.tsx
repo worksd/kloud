@@ -10,7 +10,6 @@ import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
 import { UserStatus } from "@/entities/user/user.status";
 import { loginSuccessAction } from "@/app/login/login.success.action";
-import { back } from "@/utils/kloud.navigate";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export const SignupForm = () => {

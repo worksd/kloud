@@ -34,10 +34,6 @@ export default function RootLayout({
 }
 
 declare global {
-  interface CustomEventMap {
-    onSplashStarted: () => void;
-  }
-
   interface Window {
     KloudEvent: Record<string, (data?: string) => void>;
     push: (screen: string, data?: string) => void;
@@ -51,9 +47,15 @@ declare global {
     showToast: (message: string) => void;
     sendHapticFeedback: () => void;
     sendAppleLogin: () => void;
+    sendKakaoLogin: () => void;
+    sendGoogleLogin: () => void;
 
-    addEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;
-    dispatchEvent<K extends keyof CustomEventMap>(ev: CustomEventMap[K]): void;
-    removeEventListener<K extends keyof CustomEventMap>(type: K, listener: (this: Document, ev: CustomEventMap[K]) => void): void;
+    onKakaoLoginSuccess: (data: { code: string }) => void;
+    onAppleLoginSuccess: (data: { code: string }) => void;
+    onGoogleLoginSuccess: (data: { code: string }) => void;
   }
 }
+
+export type SnsLoginSuccess = {
+  code: string;
+};

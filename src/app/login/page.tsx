@@ -1,5 +1,5 @@
 import Logo from "../../../public/assets/logo_black.svg"
-import LoginButtonForm from "@/app/login/login.button.form";
+import { LoginButtonForm } from "@/app/login/login.button.form";
 
 export default function Login() {
   return (

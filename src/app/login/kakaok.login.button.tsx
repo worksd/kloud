@@ -1,13 +1,23 @@
+'use client';
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
+import { useEffect } from "react";
 
 const KakaoLoginButton = () => {
+  useEffect(() => {
+    window.onKakaoLoginSuccess = (data: { code: string }) => {
+
+    };
+  }, []);
 
   const kakaoLogin = () => {
-    // TODO: 카카오 로그인
+    window.KloudEvent?.sendKakaoLogin()
   };
+
   return (
-    <button className="relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full"
-    onClick={() => kakaoLogin()}>
+    <button
+      className="relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full"
+      onClick={kakaoLogin}
+    >
       <span className="absolute left-4">
         <KakaoLogo/>
       </span>
@@ -18,4 +28,4 @@ const KakaoLoginButton = () => {
   );
 };
 
-export default KakaoLoginButton
+export default KakaoLoginButton;

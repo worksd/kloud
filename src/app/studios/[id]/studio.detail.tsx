@@ -31,8 +31,8 @@ export const StudioDetailForm = ({id}: { id: string }) => {
     if (actionState.sequence >= 0) {
       setIsFollow(actionState.follow != null)
 
-      if (window.KloudEvent && actionState.message) {
-        window.KloudEvent.showToast(actionState.message)
+      if (actionState.message) {
+        window.KloudEvent?.showToast(actionState.message)
       }
     }
   }, [actionState])
@@ -58,9 +58,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
   }, [id])
 
   const handleSubmit = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.sendHapticFeedback()
-    }
+    window.KloudEvent?.sendHapticFeedback()
   }
 
   if (isLoading) {

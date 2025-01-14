@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { UserStatus } from "@/entities/user/user.status";
-import { useRouter } from "next/navigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import loginAction from "@/app/login/login.action";
 import { KloudScreen } from "@/shared/kloud.screen";

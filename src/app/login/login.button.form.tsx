@@ -5,7 +5,7 @@ import GoogleLoginButton from "@/app/login/google.login.button";
 import KakaoLoginButton from "@/app/login/kakaok.login.button";
 import { KloudScreen } from "@/shared/kloud.screen";
 
-export default function LoginButtonForm() {
+export const LoginButtonForm = () => {
 
   return (
     <section className="flex flex-col items-center justify-center">

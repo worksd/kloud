@@ -57,20 +57,20 @@ export const PostSignUpEmail: Endpoint<PostAuthEmailSignUpParameter, PostAuthLog
   bodyParams: ['email', 'password', 'type'],
 }
 
-export const PostAuthKakao: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
-  method: 'post',
+export const GetAuthKakao: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
+  method: 'get',
   path: '/auth/kakao',
   bodyParams: ['token'],
 }
 
-export const PostAuthGoogle: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
-  method: 'post',
+export const GetAuthGoogle: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
+  method: 'get',
   path: '/auth/google',
   bodyParams: ['token'],
 }
 
-export const PostAuthApple: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
-  method: 'post',
+export const GetAuthApple: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
+  method: 'get',
   path: '/auth/apple',
   bodyParams: ['token'],
 }
