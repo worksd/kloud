@@ -6,6 +6,7 @@ import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { LessonTypesDisplay } from "@/entities/lesson/lesson";
 import LessonInfoSection from "./lesson.info.section";
 import LessonPaymentButton from "./lesson.payment.button";
+import { userAgent } from "next/server";
 
 type Props = {
     params: Promise<{ id: string }>;

@@ -6,12 +6,14 @@ export default async function NewNotifications() {
 
   return (
     <section className="sticky top-0 bg-white z-10">
+      <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+
       <div className="p-4">
         <div className="text-[24px] font-normal text-black">New</div>
       </div>
       {notifications && notifications.length > 0 && (
         <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-          {notifications.map((item : GetNotificationResponse) => (
+          {notifications.map((item: GetNotificationResponse) => (
             <div
               key={item.id}
               className="min-w-[calc(100vw-32px)] snap-start pl-4"
