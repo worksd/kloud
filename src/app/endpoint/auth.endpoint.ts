@@ -1,7 +1,12 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
 import { UserStatus } from "@/entities/user/user.status";
-import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
+
+export enum SnsProvider {
+  Google = 'Google',
+  Kakao = 'Kakao',
+  Apple = 'Apple',
+}
 
 export type GetAuthTokenParameter = object
 export type GetAuthTokenResponse = {
@@ -11,6 +16,7 @@ export type GetAuthTokenResponse = {
 }
 
 export type SnsLoginParameter = {
+  provider: SnsProvider;
   token: string;
 }
 
@@ -57,20 +63,8 @@ export const PostSignUpEmail: Endpoint<PostAuthEmailSignUpParameter, PostAuthLog
   bodyParams: ['email', 'password', 'type'],
 }
 
-export const GetAuthKakao: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
-  method: 'get',
-  path: '/auth/kakao',
-  bodyParams: ['token'],
-}
-
-export const GetAuthGoogle: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
-  method: 'get',
-  path: '/auth/google',
-  bodyParams: ['token'],
-}
-
-export const GetAuthApple: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
-  method: 'get',
-  path: '/auth/apple',
-  bodyParams: ['token'],
+export const PostSocialLogin: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
+  method: 'post',
+  path: '/auth/social-login',
+  bodyParams: ['provider', 'token'],
 }
