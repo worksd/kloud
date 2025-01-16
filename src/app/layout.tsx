@@ -1,18 +1,6 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
-
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import { KloudDialogId, KloudMenuId } from "@/app/home/page";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -49,13 +37,13 @@ declare global {
     sendAppleLogin: () => void;
     sendKakaoLogin: () => void;
     sendGoogleLogin: () => void;
+    showDialog: (info: string) => void;
+    showBottomDialog: (info: string) => void;
 
+    onDialogMenuClicked: (data: { dialogId: KloudDialogId, menuId: KloudMenuId }) => void;
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
+
   }
 }
-
-export type SnsLoginSuccess = {
-  code: string;
-};

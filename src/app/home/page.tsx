@@ -1,28 +1,35 @@
 'use client'
-import Popup, { PopupType } from "@/app/components/popup/Popup";
-import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function Home() {
-  const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
-    setIsMounted(true);
+    // TODO: 하드코딩 수정
+    const dialogInfo = {
+      route: "/studios/9",
+      hideForeverMessage: "다시 보지 않기",
+      imageUrl: "https://picsum.photos/250/250",
+      imageRatio: 0.8,
+    }
+    window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
   }, []);
 
-  if (!isMounted) {
-    return null;
-  }
-  return (
-    createPortal(
-      <Popup
-        popupType={PopupType.Event}
-        message={'테스트입니다'}
-        buttonText={'닫기'}
-        onClose={() => {
-        }}
-      />,
-      document.body,
-    )
-  )
+  return <></>
+}
+
+
+export interface KloudDialog {
+  route: string;
+  menus?: KloudMenu[];
+  imageUrl?: string;
+  imageRatio?: number;
+  hideForeverMessage?: string;
+}
+
+export interface KloudMenu {
+  id: KloudMenuId;
+}
+
+export enum KloudMenuId {
+  Confirm = 'Confirm',
+  Cancel = 'Cancel',
 }
