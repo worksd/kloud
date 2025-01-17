@@ -38,10 +38,12 @@ declare global {
     sendGoogleLogin: () => void;
     showDialog: (info: string) => void;
     showBottomDialog: (info: string) => void;
+    requestPayment: (command: string) => void;
 
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
+    onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
 
   }
 }

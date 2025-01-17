@@ -10,7 +10,7 @@ export default function Home() {
       imageUrl: "https://picsum.photos/250/250",
       imageRatio: 0.8,
     }
-    window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
+    // window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
   }, []);
 
   return <></>

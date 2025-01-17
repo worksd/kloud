@@ -2,38 +2,36 @@
 
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import LoadSpinner from "@/app/components/LoadSpinner";
-import PortOne, { PaymentRequest } from "@portone/browser-sdk/v2";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getBottomMenuList } from "@/utils";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default function PaymentButton({ data }: { data: any }) {
     const [loading, setLoading] = useState(false);
 
     const handlePayment = useCallback(async () => {
-        setLoading(true);
-
-        const info: PaymentRequest = {
-            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
-            channelKey:
-                process.env.NODE_ENV !== "development"
-                    ? process.env.NEXT_PUBLIC_TEST_PORTONE_CHANNEL_KEY!
-                    : process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
-            paymentId: `aslkfjasklfjl`,
-            orderName: data.title,
-            totalAmount: data.price,
-            currency: "CURRENCY_KRW",
-            payMethod: "CARD",
-            redirectUrl: `${window.location.origin}/lessons/${data.id}/payment`,
-            customer: {
-                customerId: "data.user.id",
-                fullName: "profile.name",
-                email: "cc@naver.com",
-            },
-        };
-
-        const response = await PortOne.requestPayment(info);
-        console.log(response);
-        setLoading(false);
+        const paymentInfo: PaymentInfo = {
+            storeId: 'store-53f5255f-266f-43c1-b77a-c1b9549383dc',
+            channelKey: 'channel-key-4112f241-b68a-413d-b9f7-c033c98f043f',
+            paymentId: 'asdfafIDSLSKsdfDJFL1as24asdf32',
+            orderName: '안드로이드테스트',
+            price: 1000,
+        }
+        window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     }, [data]);
+
+    useEffect(() => {
+        window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
+            const bottomMenuList = getBottomMenuList();
+            const bootInfo = JSON.stringify({
+                bottomMenuList: bottomMenuList,
+                route: KloudScreen.Main,
+                pushRoute: KloudScreen.TicketDetail(0) // TODO: 하드코딩 삭제
+            });
+            window.KloudEvent?.navigateMain(bootInfo);
+            window.KloudEvent?.showToast(`${data.paymentId} 결제에 성공했습니다.`)
+        }
+    }, [])
 
     return (
         <CommonSubmitButton originProps={{ onClick: handlePayment }}>
@@ -46,4 +44,12 @@ export default function PaymentButton({ data }: { data: any }) {
             )}
         </CommonSubmitButton>
     );
+}
+
+interface PaymentInfo {
+    storeId: string,
+    channelKey: string,
+    paymentId: string,
+    orderName: string,
+    price: number,
 }
