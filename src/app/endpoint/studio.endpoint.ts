@@ -1,4 +1,5 @@
 import { Endpoint, NoParameter } from "@/app/endpoint/index";
+import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
 export type IdParameter = {
     id: number;
@@ -14,21 +15,8 @@ export type GetStudioResponse = {
     phone?: string;
     youtubeUrl?: string;
     instagramAddress?: string;
-    lessons?: LessonResponse[];
+    lessons?: GetLessonResponse[];
     follow?: StudioFollowResponse;
-};
-
-export type LessonResponse = {
-    id: number;
-    thumbnailUrl: string;
-    description: string;
-    title: string;
-    startTime: string;
-    studio: {
-        id: number;
-        name: string;
-        profileImageUrl: string;
-    };
 };
 
 export type StudioFollowResponse = {

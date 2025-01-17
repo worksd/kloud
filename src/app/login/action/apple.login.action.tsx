@@ -7,10 +7,12 @@ import { UserStatus } from "@/entities/user/user.status";
 import { loginSuccessAction } from "@/app/login/login.success.action";
 
 export const appleLoginAction = async ({code}: {code: string}): Promise<string> => {
+  console.log(code)
   const res = await api.auth.socialLogin({
     provider: SnsProvider.Apple,
     token: code,
   })
+  console.log(res)
   if ('accessToken' in res) {
     return loginSuccessAction({
       status: res.user.status,

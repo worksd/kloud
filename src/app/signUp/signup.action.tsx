@@ -4,6 +4,7 @@ import { api } from "@/app/api.client";
 import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { SignUpActionResult } from "@/app/signUp/signup.form";
+import { loginSuccessAction } from "@/app/login/login.success.action";
 
 export const signUpAction = async (prev: SignUpActionResult, formData: FormData): Promise<SignUpActionResult> => {
 
@@ -19,10 +20,14 @@ export const signUpAction = async (prev: SignUpActionResult, formData: FormData)
       type: UserType.Default,
     });
     if ('user' in res) {
-      return {
-        sequence: prev.sequence + 1,
+      const route = loginSuccessAction({
         accessToken: res.accessToken,
         userId: res.user.id,
+        status: res.user.status,
+      })
+      return {
+        route: route,
+        sequence: prev.sequence + 1,
       }
     } else {
       return {

@@ -144,10 +144,8 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
           <div className="mt-10">
-            {(studio?.lessons?.length ?? 0) > 0 && (
-              <LessonGridSection title="Hot" lessons={studio?.lessons ?? []}
-              />
-            )}
+            <LessonGridSection title="Hot" lessons={studio?.lessons ?? []}
+            />
           </div>
         </div>
 

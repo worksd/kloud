@@ -6,8 +6,6 @@ export default async function NewNotifications() {
 
   return (
     <section className="sticky top-0 bg-white z-10">
-      <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
-
       <div className="p-4">
         <div className="text-[24px] font-normal text-black">New</div>
       </div>

@@ -4,6 +4,7 @@ import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { LoginActionResult } from "@/app/login/login.form";
 import { z } from "zod";
+import { loginSuccessAction } from "@/app/login/login.success.action";
 
 const loginAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
   try {
@@ -19,11 +20,14 @@ const loginAction = async (prev: LoginActionResult, formData: FormData): Promise
     });
 
     if ('user' in res) {
-      return {
-        sequence: prev?.sequence + 1,
+      const route = loginSuccessAction({
         accessToken: res.accessToken,
-        userStatus: res.user.status,
         userId: res.user.id,
+        status: res.user.status,
+      })
+      return {
+        route: route,
+        sequence: prev?.sequence + 1,
       };
     } else {
       return {

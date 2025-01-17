@@ -1,20 +1,16 @@
 "use client";
 
-import { LessonResponse } from "@/app/endpoint/studio.endpoint";
 import { calculateDDays } from "@/utils";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
-const LessonCardInStudio = (data: LessonResponse) => {
+const LessonCardInStudio = (data: GetLessonResponse) => {
     const router = useRouter();
     const handleClick = useCallback(() => {
-      if (window.KloudEvent) {
-        window.KloudEvent.push(KloudScreen.LessonDetail(data.id))
-      } else {
-        router.push(`/lessons/${data.id}`);
-      }
+      window.KloudEvent?.push(KloudScreen.LessonDetail(data.id))
     }, [data.id, router]);
 
     return (

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { KloudDialogId, KloudMenuId } from "@/app/home/page";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -40,7 +39,6 @@ declare global {
     showDialog: (info: string) => void;
     showBottomDialog: (info: string) => void;
 
-    onDialogMenuClicked: (data: { dialogId: KloudDialogId, menuId: KloudMenuId }) => void;
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;

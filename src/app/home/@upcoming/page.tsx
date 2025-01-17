@@ -1,9 +1,8 @@
-import { LessonResponse } from "@/app/endpoint/studio.endpoint";
 import { Poster } from "@/app/components/Poster";
-import { mockLessons } from "@/app/home/mock.lessons";
+import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
 export default async function Upcoming() {
-  const lessons = mockLessons;
+  const lessons: GetLessonResponse[] = [];
   return (
     <div>
       <div className="p-4">
@@ -11,7 +10,7 @@ export default async function Upcoming() {
       </div>
       {lessons && lessons.length > 0 && (
         <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-          {lessons.map((item: LessonResponse) => (
+          {lessons.map((item: GetLessonResponse) => (
             <div
               key={item.id}
               className="pl-4"

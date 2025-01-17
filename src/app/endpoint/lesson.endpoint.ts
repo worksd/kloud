@@ -66,3 +66,8 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     method: "get",
     path: (e) => `/lessons/${e.id}`,
 };
+
+export const GetPopularLessons: Endpoint<object, ListLessonsResponse> = {
+    method: "get",
+    path: `/lessons/popular`,
+}

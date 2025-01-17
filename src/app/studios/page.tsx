@@ -1,6 +1,7 @@
 import { StudioItem } from "@/app/search/StudioItem";
-import { getStudioList } from "@/app/search/page";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { api } from "@/app/api.client";
+import { GetStudioResult } from "@/app/search/@popularStudios/page";
 
 export default async function StudioList() {
   const res = await getStudioList()
@@ -18,4 +19,19 @@ export default async function StudioList() {
       </div>
     </div>
   )
+}
+
+//TODO: 하나로 합치기
+async function getStudioList(): Promise<GetStudioResult> {
+  const res = await api.studio.list({});
+
+  if ('studios' in res) {
+    return {
+      studios: res.studios
+    }
+  } else {
+    return {
+      errorMessage: res.message,
+    }
+  }
 }

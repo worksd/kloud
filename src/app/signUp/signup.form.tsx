@@ -11,14 +11,15 @@ import ShowPasswordIcon from "../../../public/assets/show-password.svg";
 import { UserStatus } from "@/entities/user/user.status";
 import { loginSuccessAction } from "@/app/login/login.success.action";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { KloudScreen } from "@/shared/kloud.screen";
+import { getBottomMenuList } from "@/utils";
 
 export const SignupForm = () => {
   const [actionState, formAction] = useFormState(signUpAction, {
     sequence: -1,
     errorCode: '',
     errorMessage: '',
-    userId: -1,
-    accessToken: undefined
+    route: undefined,
   });
 
   const [email, setEmail] = useState("");
@@ -32,12 +33,16 @@ export const SignupForm = () => {
   useEffect(() => {
     setEmailErrorMessage('');
 
-    if (actionState.userId && actionState.accessToken && !actionState.errorCode) {
-      loginSuccessAction({
-        status: UserStatus.New,
-        userId: actionState.userId,
-        accessToken: actionState.accessToken,
-      })
+    if (actionState.route && !actionState.errorCode) {
+      if (actionState.route == KloudScreen.Main) {
+        const bootInfo = JSON.stringify({
+          bottomMenuList: getBottomMenuList(),
+          route: KloudScreen.Main,
+        });
+        window.KloudEvent.navigateMain(bootInfo)
+      } else {
+        window.KloudEvent.clearAndPush(actionState.route)
+      }
     } else if (actionState.errorCode) {
       if (actionState.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(actionState.errorMessage ?? '');
@@ -145,8 +150,7 @@ export const SignupForm = () => {
 
 export interface SignUpActionResult {
   sequence: number,
-  userId?: number,
   errorCode?: string,
   errorMessage?: string,
-  accessToken?: string,
+  route?: string,
 }

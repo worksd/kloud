@@ -1,10 +1,10 @@
 'use client';
-import { LessonResponse } from "@/app/endpoint/studio.endpoint";
 import { LessonGridItems } from "@/app/lessons/lesson.grid.items";
 import RightArrowIcon from "../../../public/assets/right-arrow.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
+import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
-export const LessonGridSection = ({title, lessons} : {title: string, lessons: LessonResponse[]}) => {
+export const LessonGridSection = ({title, lessons} : {title: string, lessons: GetLessonResponse[]}) => {
 
   const onClickMore = () => {
     if (window.KloudEvent) {
@@ -17,14 +17,22 @@ export const LessonGridSection = ({title, lessons} : {title: string, lessons: Le
       {/* 헤더 */}
       <div className="flex justify-between items-center mb-5">
         <div className="text-[24px] text-black font-bold">{title}</div>
-        <button className="text-[#86898C] flex items-center font-normal" onClick={onClickMore}>
-          더보기
-          <RightArrowIcon/>
-        </button>
+        {lessons.length >= 4 &&
+          <button className="text-[#86898C] flex items-center font-normal" onClick={onClickMore}>
+            더보기
+            <RightArrowIcon/>
+          </button>
+        }
       </div>
 
-      {/* 포스터 그리드 */}
-      <LessonGridItems lessons={lessons} />
+      {lessons.length > 0 ? (
+        <LessonGridItems lessons={lessons}/>
+      ) : (
+        <div className="flex flex-col items-center text-[#86898C]">
+          <p className="text-[16px] font-medium">등록된 수업이 없습니다</p>
+          <p className="text-[14px] mt-2">새로운 수업을 등록해보세요!</p>
+        </div>
+      )}
     </div>
   );
 }
