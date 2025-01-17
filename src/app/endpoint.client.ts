@@ -40,19 +40,21 @@ export abstract class EndpointClient {
     Parameter extends Record<string, any>,
     Response extends Record<string, any>
   >(endpoint: Endpoint<Parameter, Response | GuinnessErrorCase>) {
-    return (args: Parameter): Promise<Response | GuinnessErrorCase> => {
+    return async (args: Parameter): Promise<Response | GuinnessErrorCase> => {
       const path =
         typeof endpoint.path === "string"
           ? endpoint.path
           : endpoint.path(args);
 
-      return this.request<Response>({
+      const request = this.request<Response>({
         path,
         method: endpoint.method,
         query: pick(args, endpoint.queryParams || ([] as any)),
         body: pick(args, endpoint.bodyParams || ([] as any)),
         headers: endpoint.headers,
       });
+      console.log(await request);
+      return request;
     };
   }
 
@@ -89,7 +91,6 @@ export abstract class EndpointClient {
       method: method.toUpperCase(),
       headers: _headers
     };
-    console.log(method + ' ' + url);
     const response = await fetch(fullUrl, options);
     return response.json();
 

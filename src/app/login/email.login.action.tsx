@@ -6,7 +6,7 @@ import { LoginActionResult } from "@/app/login/login.form";
 import { z } from "zod";
 import { loginSuccessAction } from "@/app/login/login.success.action";
 
-const loginAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
+const emailLoginAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
   try {
     const getValidatedString = (data: unknown): string =>
       z.string().safeParse(data)?.data ?? '';
@@ -20,13 +20,12 @@ const loginAction = async (prev: LoginActionResult, formData: FormData): Promise
     });
 
     if ('user' in res) {
-      const route = loginSuccessAction({
+      loginSuccessAction({
         accessToken: res.accessToken,
         userId: res.user.id,
-        status: res.user.status,
       })
       return {
-        route: route,
+        status: res.user.status,
         sequence: prev?.sequence + 1,
       };
     } else {
@@ -45,4 +44,4 @@ const loginAction = async (prev: LoginActionResult, formData: FormData): Promise
   }
 }
 
-export default loginAction
+export default emailLoginAction

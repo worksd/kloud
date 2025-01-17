@@ -1,23 +1,17 @@
 'use client';
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
 import { useEffect } from "react";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { getBottomMenuList } from "@/utils";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
+import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 const KakaoLoginButton = () => {
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
-      const route = await kakaoLoginAction({code: data.code})
-      if (route == KloudScreen.Main) {
-        const bootInfo = JSON.stringify({
-          bottomMenuList: getBottomMenuList(),
-          route: KloudScreen.Main,
-        });
-        window.KloudEvent.navigateMain(bootInfo)
-      } else {
-        window.KloudEvent.clearAndPush(route)
-      }
+      const res = await kakaoLoginAction({code: data.code})
+      loginAuthNavigation({
+        status: res.status,
+        window: window,
+      })
     }
   }, []);
 

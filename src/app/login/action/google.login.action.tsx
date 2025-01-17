@@ -6,20 +6,28 @@ import { SnsProvider } from "@/app/endpoint/auth.endpoint";
 import { UserStatus } from "@/entities/user/user.status";
 import { loginSuccessAction } from "@/app/login/login.success.action";
 
-export const googleLoginAction = async ({code}: {code: string}): Promise<string> => {
-  console.log(code)
+export const googleLoginAction = async ({code}: {code: string}): Promise<RoutePageParams> => {
   const res = await api.auth.socialLogin({
     provider: SnsProvider.Google,
     token: code,
   })
-  console.log(res)
   if ('accessToken' in res) {
-    return loginSuccessAction({
-      status: res.user.status,
+    loginSuccessAction({
       userId: res.user.id,
       accessToken: res.accessToken,
     })
+    return {
+      status: res.user.status,
+    }
   } else {
-    throw Error()
+    return {
+      errorTitle: res.message,
+    }
   }
+}
+
+export interface RoutePageParams {
+  status?: UserStatus,
+  errorTitle ?: string,
+  errorBody ?: string,
 }

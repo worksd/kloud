@@ -9,7 +9,6 @@ import Users from "../../../../public/assets/users.svg";
 import LessonInfoLabel from "./lesson.info.label";
 
 export function formatDateTime(input: string): { time: string; date: string } {
-    console.log('format date Time ' + input)
     try {
         const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
 

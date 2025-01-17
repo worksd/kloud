@@ -1,21 +1,21 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
-import { UserStatus } from "@/entities/user/user.status";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import loginAction from "@/app/login/login.action";
+import emailLoginAction from "@/app/login/email.login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
-import { loginSuccessAction } from "@/app/login/login.success.action";
 import { getBottomMenuList } from "@/utils";
+import { UserStatus } from "@/entities/user/user.status";
+import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 export const LoginForm = () => {
-  const [actionState, formAction] = useFormState(loginAction, {
+  const [actionState, formAction] = useFormState(emailLoginAction, {
     sequence: 0,
     errorCode: '',
     errorMessage: '',
-    route: undefined,
+    status: undefined,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -29,16 +29,11 @@ export const LoginForm = () => {
       setPasswordErrorMessage('');
       setEmailErrorMessage('');
 
-      if (actionState.route) {
-        if (actionState.route == KloudScreen.Main) {
-          const bootInfo = JSON.stringify({
-            bottomMenuList: getBottomMenuList(),
-            route: KloudScreen.Main,
-          });
-          window.KloudEvent.navigateMain(bootInfo)
-        } else {
-          window.KloudEvent.clearAndPush(actionState.route)
-        }
+      if (actionState.status) {
+        loginAuthNavigation({
+          status: actionState.status,
+          window: window,
+        })
       } else if (actionState.errorMessage) {
         if (actionState.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
           setPasswordErrorMessage(actionState.errorMessage);
@@ -123,8 +118,6 @@ export const LoginForm = () => {
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
         시작하기
       </button>
-
-
     </form>
   );
 };
@@ -133,5 +126,5 @@ export interface LoginActionResult {
   sequence: number,
   errorCode?: string,
   errorMessage?: string,
-  route?: string,
+  status?: UserStatus,
 }

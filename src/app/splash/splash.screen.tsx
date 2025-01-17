@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
-import { UserStatus } from "@/entities/user/user.status";
-import { authNavigateAction } from "@/app/splash/auth.navigate.action";
+import { authToken } from "@/app/splash/auth.token.action";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { UserStatus } from "@/entities/user/user.status";
 import { getBottomMenuList } from "@/utils";
 
-export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
+export const SplashScreen = () => {
   useEffect(() => {
-    setTimeout(() => {
-      const route = authNavigateAction({status: status})
+    setTimeout(async () => {
+      const res = await authToken()
+      const status = res.status
+
+      const route = !status
+        ? KloudScreen.Login
+        : status === UserStatus.New
+          ? KloudScreen.Onboard
+          : status === UserStatus.Ready
+            ? KloudScreen.Main : KloudScreen.Login
+
       if (route == KloudScreen.Main) {
-        console.log(getBottomMenuList())
         const bootInfo = JSON.stringify({
           bottomMenuList: getBottomMenuList(),
           route: KloudScreen.Main,
@@ -21,7 +29,7 @@ export const SplashScreen = ({status}: { status: UserStatus | undefined }) => {
         window.KloudEvent?.clearAndPush(route)
       }
     }, 1000)
-  }, [status]);
+  }, []);
 
   return (
     <div className="bg-black">
