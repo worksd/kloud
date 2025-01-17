@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import { api } from "@/app/api.client";
 import { redirect } from "next/navigation";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function Setting(){
   console.log(cookies().get(userIdKey)?.value)
@@ -20,8 +21,8 @@ export default async function Setting(){
         </div>
 
         {/* 메뉴 리스트 */}
-        <MenuItem label="구매내역" path="/tickets"/>
-        <MenuItem label="약관 및 정책" path="/setting/terms"/>
+        <MenuItem label="구매내역" path={KloudScreen.Tickets}/>
+        <MenuItem label="약관 및 정책" path={KloudScreen.Terms}/>
         <MenuItem label="로그아웃" path="/logout" />
       </div>
     );

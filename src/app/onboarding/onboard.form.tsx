@@ -3,12 +3,10 @@ import React, { ChangeEvent, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { useRouter } from "next/navigation";
-import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import { getBottomMenuList } from "@/utils";
+import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export const OnboardForm = () => {
-  const router = useRouter();
   const [actionState, formAction] = useFormState(onboardAction, {
     sequence: -1,
     errorCode: '',
@@ -39,61 +37,43 @@ export const OnboardForm = () => {
 
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
     const {name, checked} = e.target;
-
-    // 개별 체크박스 상태 업데이트
     const updatedCheckboxes = {
       ...checkboxes,
       [name]: checked,
     };
-
-    // '모두 동의' 체크박스가 변경된 경우 처리
     if (name === 'all') {
       updatedCheckboxes.terms = checked;
       updatedCheckboxes.privacy = checked;
     }
-
-    // '모두 동의' 체크박스 상태 업데이트
     updatedCheckboxes.all =
       updatedCheckboxes.terms && updatedCheckboxes.privacy;
-
     setCheckboxes(updatedCheckboxes);
-
-    // 모든 필수 체크박스가 체크되었는지 확인
     setAllChecked(updatedCheckboxes.terms && updatedCheckboxes.privacy);
   };
 
-  useEffect(() => {
-    console.log(actionState);
+  const onClickTerms = () => {
+    window.KloudEvent?.push(KloudScreen.Terms)
+  }
 
+  const onClickPrivacy = () => {
+    window.KloudEvent?.push(KloudScreen.Privacy)
+  }
+
+  useEffect(() => {
     if (actionState.success) {
-      if (window.KloudEvent) {
-        const bottomMenuList = getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList: bottomMenuList,
-          route: KloudScreen.Main,
-        });
-        window.KloudEvent.navigateMain(bootInfo);
-      } else {
-        router.push(KloudScreen.Home);
-      }
+      const bottomMenuList = getBottomMenuList();
+      const bootInfo = JSON.stringify({
+        bottomMenuList: bottomMenuList,
+        route: KloudScreen.Main,
+      });
+      window.KloudEvent?.navigateMain(bootInfo);
     }
   }, [actionState]);
 
-  const onClickBack = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.back()
-    }
-  }
-
   return (
     <form className="flex flex-col h-screen bg-white" action={formAction}>
-      <div className="relative flex items-center justify-center h-[56px]">
-        <div className="absolute top-4 left-4">
-          <button className="flex items-center justify-center text-black rounded-full" onClick={onClickBack}>
-            <ArrowLeftIcon className="w-6 h-6"/>
-          </button>
-        </div>
-        <h1 className="text-[16px] font-bold text-black">가입하기</h1>
+      <div className="flex justify-between items-center mb-14">
+        <SimpleHeader title="가입하기"/>
       </div>
       <div className="flex flex-col p-4">
         <div className="flex items-center gap-1 mb-2">
@@ -132,8 +112,9 @@ export const OnboardForm = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex flex-row items-center gap-1 mb-1 mr-2">
-                  <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}>[필수] 서비스 이용약관</span>
-                  <RightArrow isChecked={checkboxes.terms} />
+                  <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}
+                        onClick={onClickTerms}>[필수] 서비스 이용약관</span>
+                  <RightArrow isChecked={checkboxes.terms}/>
                 </div>
                 <input
                   type="checkbox"
@@ -146,7 +127,8 @@ export const OnboardForm = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex flex-row items-center gap-1 mb-1 mr-2">
-                  <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}>[필수] 개인정보 수집 및 이용동의</span>
+                  <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}
+                        onClick={onClickPrivacy}>[필수] 개인정보 수집 및 이용동의</span>
                   <RightArrow isChecked={checkboxes.privacy}/>
                 </div>
                 <input
