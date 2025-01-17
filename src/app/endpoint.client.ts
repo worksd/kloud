@@ -46,6 +46,8 @@ export abstract class EndpointClient {
           ? endpoint.path
           : endpoint.path(args);
 
+      console.log(endpoint.method + ' ' + path)
+
       const request = this.request<Response>({
         path,
         method: endpoint.method,
@@ -93,6 +95,5 @@ export abstract class EndpointClient {
     };
     const response = await fetch(fullUrl, options);
     return response.json();
-
   }
 }

@@ -13,7 +13,6 @@ export const onboardAction = async (prev: OnboardActionResult, formData: FormDat
       z.string().safeParse(data)?.data ?? '';
 
     const name = getValidatedString(formData.get('name'));
-    console.log(cookies().get(userIdKey)?.value)
     const userId = Number(cookies().get(userIdKey)?.value)
     if (isNaN(userId)) throw Error('User Id가 없습니다' + userId)
     const res = await api.user.update({
@@ -21,16 +20,14 @@ export const onboardAction = async (prev: OnboardActionResult, formData: FormDat
       id: userId,
       type: UserType.Default,
     });
-    console.log(res)
-    if ('user' in res) {
+    if ('id' in res) {
       return {
         success: true,
         sequence: prev.sequence + 1,
       }
     } else {
-      console.log('error return 가즈아!')
       return {
-        success: true,
+        success: false,
         sequence: prev.sequence + 1,
       }
     }
