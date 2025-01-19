@@ -137,7 +137,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         </div>
 
         <div>
-          <div className="w-full h-1 bg-[#f7f8f9]"/>
+          {/*<div className="w-full h-1 bg-[#f7f8f9]"/>*/}
           {/*<NotificationList title=""/>*/}
         </div>
 

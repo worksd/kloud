@@ -13,6 +13,8 @@ const emailLoginAction = async (prev: LoginActionResult, formData: FormData): Pr
 
     const email = getValidatedString(formData.get('email'));
     const password = getValidatedString(formData.get('password'));
+    console.log(email)
+    console.log(password)
     const res = await api.auth.email({
       email: email,
       password: password,

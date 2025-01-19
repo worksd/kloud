@@ -5,12 +5,15 @@ export default function Home() {
   useEffect(() => {
     // TODO: 하드코딩 수정
     const dialogInfo = {
-      route: "/studios/9",
-      hideForeverMessage: "다시 보지 않기",
-      imageUrl: "https://picsum.photos/250/250",
+      id: "LessonLandingDialog",
+      type: "image",
+      route: "/lessons/9",
+      hideForeverMessage: "오늘 하루 보지 않기",
+      imageUrl: "https://data-rawgraphy.s3.us-east-1.amazonaws.com/vita.png",
       imageRatio: 0.8,
+      ctaButtonText: '이벤트 바로가기'
     }
-    // window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
+    window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
   }, []);
 
   return <></>

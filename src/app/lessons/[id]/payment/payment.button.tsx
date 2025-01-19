@@ -13,7 +13,7 @@ export default function PaymentButton({ data }: { data: any }) {
         const paymentInfo: PaymentInfo = {
             storeId: 'store-53f5255f-266f-43c1-b77a-c1b9549383dc',
             channelKey: 'channel-key-4112f241-b68a-413d-b9f7-c033c98f043f',
-            paymentId: 'asdfafIDSLSKsdfDJFL1as24asdf32',
+            paymentId: 'asdfafIDSLSKsdfDJasdfFL1as24asdf123132',
             orderName: '안드로이드테스트',
             price: 1000,
         }

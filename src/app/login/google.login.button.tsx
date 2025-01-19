@@ -16,12 +16,16 @@ const GoogleLoginButton = () => {
   }, []);
 
   const googleLogin = () => {
-    window.KloudEvent?.sendGoogleLogin()
+    const configuration = {
+      serverClientId: process.env.NEXT_PUBLIC_GOOGLE_SERVER_CLIENAT_ID,
+      nonce: process.env.NEXT_PUBLIC_GOOGLE_NONCE,
+    }
+    window.KloudEvent?.sendGoogleLogin(JSON.stringify(configuration));
   }
 
   return (
     <button
-      className="relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full border border-gray-200"
+      className="relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full border border-gray-200 active:scale-[0.90] transition-transform duration-150 select-none"
       onClick={googleLogin}>
       <span className="absolute left-4">
         <GoogleLogo/>

@@ -3,10 +3,10 @@ import { z } from "zod";
 import { api } from "@/app/api.client";
 import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import { SignUpActionResult } from "@/app/signUp/signup.form";
 import { loginSuccessAction } from "@/app/login/login.success.action";
+import { LoginActionResult } from "@/app/login/login.form";
 
-export const signUpAction = async (prev: SignUpActionResult, formData: FormData): Promise<SignUpActionResult> => {
+export const signUpAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
 
   try {
     const getValidatedString = (data: unknown): string =>
@@ -20,15 +20,14 @@ export const signUpAction = async (prev: SignUpActionResult, formData: FormData)
       type: UserType.Default,
     });
     if ('user' in res) {
-      const route = loginSuccessAction({
+      loginSuccessAction({
         accessToken: res.accessToken,
         userId: res.user.id,
-        status: res.user.status,
       })
       return {
-        route: route,
-        sequence: prev.sequence + 1,
-      }
+        status: res.user.status,
+        sequence: prev?.sequence + 1,
+      };
     } else {
       return {
         sequence: prev.sequence + 1,

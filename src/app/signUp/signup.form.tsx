@@ -2,24 +2,19 @@
 import { useFormState } from "react-dom";
 import { signUpAction } from "@/app/signUp/signup.action";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import CheckIcon from "../../../public/assets/check.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
-import { UserStatus } from "@/entities/user/user.status";
-import { loginSuccessAction } from "@/app/login/login.success.action";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { getBottomMenuList } from "@/utils";
+import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 export const SignupForm = () => {
   const [actionState, formAction] = useFormState(signUpAction, {
     sequence: -1,
     errorCode: '',
     errorMessage: '',
-    route: undefined,
+    status: undefined,
   });
 
   const [email, setEmail] = useState("");
@@ -33,16 +28,11 @@ export const SignupForm = () => {
   useEffect(() => {
     setEmailErrorMessage('');
 
-    if (actionState.route && !actionState.errorCode) {
-      if (actionState.route == KloudScreen.Main) {
-        const bootInfo = JSON.stringify({
-          bottomMenuList: getBottomMenuList(),
-          route: KloudScreen.Main,
-        });
-        window.KloudEvent.navigateMain(bootInfo)
-      } else {
-        window.KloudEvent.clearAndPush(actionState.route)
-      }
+    if (actionState.status) {
+      loginAuthNavigation({
+        status: actionState.status,
+        window: window,
+      })
     } else if (actionState.errorCode) {
       if (actionState.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(actionState.errorMessage ?? '');
@@ -146,11 +136,4 @@ export const SignupForm = () => {
       </form>
     </div>
   );
-}
-
-export interface SignUpActionResult {
-  sequence: number,
-  errorCode?: string,
-  errorMessage?: string,
-  route?: string,
 }

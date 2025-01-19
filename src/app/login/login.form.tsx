@@ -6,7 +6,6 @@ import emailLoginAction from "@/app/login/email.login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
-import { getBottomMenuList } from "@/utils";
 import { UserStatus } from "@/entities/user/user.status";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 

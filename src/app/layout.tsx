@@ -34,7 +34,7 @@ declare global {
     showToast: (message: string) => void;
     sendHapticFeedback: () => void;
     sendAppleLogin: () => void;
-    sendKakaoLogin: () => void;
+    sendKakaoLogin: (configuration: string) => void;
     sendGoogleLogin: () => void;
     showDialog: (info: string) => void;
     showBottomDialog: (info: string) => void;
@@ -44,6 +44,7 @@ declare global {
     onAppleLoginSuccess: (data: { code: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
     onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
+    onErrorInvoked: (data: {code?: string, message?: string}) => void;
 
   }
 }

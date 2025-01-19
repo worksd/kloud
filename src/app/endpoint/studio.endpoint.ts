@@ -14,6 +14,10 @@ export type GetStudioResponse = {
     coverImageUrl?: string;
     phone?: string;
     youtubeUrl?: string;
+    businessRegistrationNumber?: string;
+    eCommerceRegNumber?: string;
+    educationOfficeRegNumber?: string;
+    representative?: string;
     instagramAddress?: string;
     lessons?: GetLessonResponse[];
     follow?: StudioFollowResponse;
