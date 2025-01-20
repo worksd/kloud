@@ -12,7 +12,7 @@ export const googleLoginAction = async ({code}: {code: string}): Promise<RoutePa
     token: code,
   })
   if ('accessToken' in res) {
-    loginSuccessAction({
+    await loginSuccessAction({
       userId: res.user.id,
       accessToken: res.accessToken,
     })

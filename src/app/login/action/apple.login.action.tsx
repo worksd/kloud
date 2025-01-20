@@ -13,7 +13,7 @@ export const appleLoginAction = async ({code}: { code: string }): Promise<RouteP
   })
   console.log(res)
   if ('accessToken' in res) {
-    loginSuccessAction({
+    await loginSuccessAction({
       userId: res.user.id,
       accessToken: res.accessToken,
     })

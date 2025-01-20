@@ -13,7 +13,7 @@ export const onboardAction = async (prev: OnboardActionResult, formData: FormDat
       z.string().safeParse(data)?.data ?? '';
 
     const name = getValidatedString(formData.get('name'));
-    const userId = Number(cookies().get(userIdKey)?.value)
+    const userId = Number((await cookies()).get(userIdKey)?.value)
     if (isNaN(userId)) throw Error('User Id가 없습니다' + userId)
     const res = await api.user.update({
       name: name,

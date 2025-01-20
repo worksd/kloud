@@ -1,10 +1,12 @@
 'use client'
 import GoogleLogo from "../../../public/assets/logo_google.svg";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { googleLoginAction } from "@/app/login/action/google.login.action";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 const GoogleLoginButton = () => {
+  const [isPressed, setIsPressed] = useState(false);
+
   useEffect(() => {
     window.onGoogleLoginSuccess = async (data: { code: string }) => {
       const res = await googleLoginAction({code: data.code})
@@ -25,8 +27,18 @@ const GoogleLoginButton = () => {
 
   return (
     <button
-      className="relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full border border-gray-200 active:scale-[0.90] transition-transform duration-150 select-none"
-      onClick={googleLogin}>
+      className={`relative flex items-center justify-center bg-white text-black text-lg font-semibold 
+        rounded-lg h-14 shadow-lg w-full border border-gray-200 
+        transition-transform duration-75 transform
+        ${isPressed ? 'scale-[0.95]' : 'scale-100'}
+        `}
+      onClick={googleLogin}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+    >
       <span className="absolute left-4">
         <GoogleLogo/>
       </span>
@@ -37,4 +49,4 @@ const GoogleLoginButton = () => {
   );
 };
 
-export default GoogleLoginButton
+export default GoogleLoginButton;

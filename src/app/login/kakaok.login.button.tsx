@@ -1,10 +1,12 @@
 'use client';
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 const KakaoLoginButton = () => {
+  const [isPressed, setIsPressed] = useState(false);
+
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
       const res = await kakaoLoginAction({code: data.code})
@@ -21,8 +23,16 @@ const KakaoLoginButton = () => {
 
   return (
     <button
-      className="relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full active:scale-[0.90] transition-transform duration-150 select-none"
+      className={`relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full 
+        transition-transform duration-75 transform
+        ${isPressed ? 'scale-[0.95]' : 'scale-100'}
+      `}
       onClick={kakaoLogin}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
     >
       <span className="absolute left-4">
         <KakaoLogo/>

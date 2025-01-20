@@ -14,7 +14,7 @@ function SellerInfoItem ({label, value}: {label: string; value: string;}) {
 </div>
 }
 
-export default async function LessonPaymentPage({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
+export default async function LessonPaymentPage() {
 
 
     const lesson = await getPaymentDetail({id: 1})

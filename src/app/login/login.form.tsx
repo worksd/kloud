@@ -1,7 +1,5 @@
 'use client';
-import React, { useEffect, useState } from "react";
-import { useFormState } from "react-dom";
-import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import React, { useState } from "react";
 import emailLoginAction from "@/app/login/email.login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
@@ -10,38 +8,13 @@ import { UserStatus } from "@/entities/user/user.status";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 export const LoginForm = () => {
-  const [actionState, formAction] = useFormState(emailLoginAction, {
-    sequence: 0,
-    errorCode: '',
-    errorMessage: '',
-    status: undefined,
-  });
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
-
-  useEffect(() => {
-    if (actionState.sequence > 0) {
-      setPasswordErrorMessage('');
-      setEmailErrorMessage('');
-
-      if (actionState.status) {
-        loginAuthNavigation({
-          status: actionState.status,
-          window: window,
-        })
-      } else if (actionState.errorMessage) {
-        if (actionState.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
-          setPasswordErrorMessage(actionState.errorMessage);
-        } else if (actionState.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
-          setEmailErrorMessage(actionState.errorMessage);
-        }
-      }
-    }
-  }, [actionState]);
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -59,12 +32,22 @@ export const LoginForm = () => {
     window.KloudEvent?.push(KloudScreen.SignUp)
   }
 
+  const onClickLogin = async () => {
+    const res = await emailLoginAction({
+      email: email,
+      password: password,
+    })
+    loginAuthNavigation({
+      status: res.status,
+      window: window,
+    })
+  }
+
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
-    <form
+    <div
       className="flex flex-col p-6"
-      action={formAction}
     >
       <label className="mb-2 text-[14px] font-[Pretendard] font-normal text-black">이메일</label>
       <input
@@ -112,12 +95,13 @@ export const LoginForm = () => {
       </div>
 
       <button
+        onClick={onClickLogin}
         disabled={!isFormValid}
         className={`sticky bottom-0 flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
         시작하기
       </button>
-    </form>
+    </div>
   );
 };
 

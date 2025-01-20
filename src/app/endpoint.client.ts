@@ -60,9 +60,9 @@ export abstract class EndpointClient {
     };
   }
 
-  private authAsHeaders(): Record<string, string> {
+  private async authAsHeaders(): Promise<Record<string, string>> {
     const headers: Record<string, string> = {};
-    const accessToken = cookies().get('accessToken')
+    const accessToken = (await cookies()).get('accessToken')
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken.value}`
     }
@@ -77,23 +77,29 @@ export abstract class EndpointClient {
                                         body,
                                         headers = {},
                                       }: RequestParameters): Promise<ResponseBody> {
-
     const url = `${this.baseUrl}${path}`;
-    const _headers: Record<string, string> = {
-      ...this.authAsHeaders(),
+    const authHeaders = await this.authAsHeaders(); // await 추가
+
+    const _headers = {
+      ...authHeaders,
       ...this.defaultHeaders,
       ...headers,
+      'Content-Type': 'application/json', // Content-Type 추가
     };
+
     const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
-    const options = body && Object.keys(body).length > 0 ? {
+
+    const options = {
       method: method.toUpperCase(),
       headers: _headers,
-      body: JSON.stringify(body),
-    } : {
-      method: method.toUpperCase(),
-      headers: _headers
+      ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) })
     };
+
+    console.log('Request:', { url: fullUrl, options });
+
     const response = await fetch(fullUrl, options);
-    return response.json();
+    const jsonResponse = await response.json();
+    console.log('Response:', jsonResponse);
+    return jsonResponse;
   }
 }

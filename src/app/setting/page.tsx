@@ -6,12 +6,13 @@ import { redirect } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function Setting(){
-  console.log(cookies().get(userIdKey)?.value)
+  const cookieStore = await cookies()
+  console.log(cookieStore.get(userIdKey)?.value)
   const user = await api.user.get({
-    id: Number(cookies().get(userIdKey)?.value)
+    id: Number(cookieStore.get(userIdKey)?.value)
   })
   if ('id' in user) {
-    console.log('hello setting' + cookies().get(accessTokenKey)?.value)
+    console.log('hello setting' + cookieStore.get(accessTokenKey)?.value)
     return (
       <div className="w-screen min-h-screen bg-white mx-auto py-8 ">
         {/* 프로필 섹션 */}
