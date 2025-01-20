@@ -45,7 +45,7 @@ declare global {
     onAppleLoginSuccess: (data: { code: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
     onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
-    onErrorInvoked: (data: {code?: string, message?: string}) => void;
+    onErrorInvoked: (data: {code: string}) => void;
     onDialogConfirm: (data: GetEventResponse) => void;
     onHideDialogConfirm: (data: {id: string, clicked: boolean}) => void;
 

@@ -30,7 +30,6 @@ export const LessonGridSection = ({title, lessons} : {title: string, lessons: Ge
       ) : (
         <div className="flex flex-col items-center text-[#86898C]">
           <p className="text-[16px] font-medium">등록된 수업이 없습니다</p>
-          <p className="text-[14px] mt-2">새로운 수업을 등록해보세요!</p>
         </div>
       )}
     </div>

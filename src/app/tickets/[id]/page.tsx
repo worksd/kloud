@@ -35,7 +35,7 @@ export default async function TicketDetail({params}: Props) {
       <div className="flex flex-col px-6 justify-center items-center mt-6">
         {/* Image */}
         <div style={{width: '263px', height: '350px', position: 'relative'}}>
-          <Thumbnail width={263} url={"https://picsum.photos/250/250"}
+          <Thumbnail width={263} url={"https://picsum.photos/250/250"} // TODO: 하드코딩 수정
           />
         </div>
 
