@@ -1,13 +1,12 @@
 'use client';
 import React, { ChangeEvent, useEffect, useState } from "react";
-import { useFormState } from "react-dom";
 import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { getBottomMenuList } from "@/utils";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export const OnboardForm = () => {
-  const [actionState, formAction] = useFormState(onboardAction, {
+  const [actionState, formAction] = React.useActionState(onboardAction, {
     sequence: -1,
     errorCode: '',
     errorMessage: '',

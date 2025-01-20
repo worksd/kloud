@@ -1,38 +1,50 @@
 'use client'
 import { useEffect } from "react";
+import { getEventList } from "@/app/home/get.event.list.action";
+import { GetEventResponse } from "@/app/endpoint/event.endpoint";
+import { hideDialogAction } from "@/app/home/hide.dialog.action";
+
 
 export default function Home() {
   useEffect(() => {
-    // TODO: 하드코딩 수정
-    const dialogInfo = {
-      id: "LessonLandingDialog",
-      type: "image",
-      route: "/lessons/9",
-      hideForeverMessage: "오늘 하루 보지 않기",
-      imageUrl: "https://data-rawgraphy.s3.us-east-1.amazonaws.com/vita.png",
-      imageRatio: 0.8,
-      ctaButtonText: '이벤트 바로가기'
-    }
-    window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
+    const fetchEvents = async () => {
+      try {
+        const events = await getEventList();
+        if (events.length > 0) {
+          const randomIndex = Math.floor(Math.random() * events.length);
+          const event = events[randomIndex];
+          const dialogInfo = {
+            id: event.id,
+            route: event.route,
+            hideForeverMessage: event.hideForeverMessage,
+            imageUrl: event.imageUrl,
+            imageRatio: event.imageRatio,
+            ctaButtonText: event.ctaButtonText,
+            type: 'IMAGE',
+          }
+          window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+        }
+
+      } catch (error) {
+        console.error('이벤트 로딩 중 에러 발생:', error);
+      }
+    };
+    fetchEvents();
   }, []);
 
-  return <></>
-}
+  useEffect(() => {
+    window.onDialogConfirm = async (data: GetEventResponse) => {
+      if (data.route) {
+        window.KloudEvent.push(data.route)
+      }
+    }
+  }, [])
 
+  useEffect(() => {
+    window.onHideDialogConfirm = async ( data: { id: string, clicked: boolean}) => {
+      await hideDialogAction({id: data.id, clicked: data.clicked})
+    }
+  })
 
-export interface KloudDialog {
-  route: string;
-  menus?: KloudMenu[];
-  imageUrl?: string;
-  imageRatio?: number;
-  hideForeverMessage?: string;
-}
-
-export interface KloudMenu {
-  id: KloudMenuId;
-}
-
-export enum KloudMenuId {
-  Confirm = 'Confirm',
-  Cancel = 'Cancel',
+  return <></>;
 }

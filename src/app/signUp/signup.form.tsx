@@ -1,5 +1,4 @@
 "use client";
-import { useFormState } from "react-dom";
 import { signUpAction } from "@/app/signUp/signup.action";
 import React, { useEffect, useState } from "react";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
@@ -10,7 +9,7 @@ import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
 export const SignupForm = () => {
-  const [actionState, formAction] = useFormState(signUpAction, {
+  const [actionState, formAction] = React.useActionState(signUpAction, {
     sequence: -1,
     errorCode: '',
     errorMessage: '',

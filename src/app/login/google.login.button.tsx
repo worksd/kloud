@@ -27,9 +27,8 @@ const GoogleLoginButton = () => {
 
   return (
     <button
-      className={`relative flex items-center justify-center bg-white text-black text-lg font-semibold 
-        rounded-lg h-14 shadow-lg w-full border border-gray-200 
-        transition-transform duration-75 transform
+      className={`relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full 
+        transition-transform duration-75 transform border border-gray-200 
         ${isPressed ? 'scale-[0.95]' : 'scale-100'}
         `}
       onClick={googleLogin}

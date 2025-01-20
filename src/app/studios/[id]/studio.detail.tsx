@@ -7,18 +7,17 @@ import SnsButton from "@/app/components/buttons/SnsButton";
 import Instagram from "../../../../public/assets/instagram-colored.svg";
 import Youtube from "../../../../public/assets/youtube-colored.svg";
 import { LessonGridSection } from "@/app/components/lesson.grid.section";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { useFormState } from "react-dom";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
   const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [isFollow, setIsFollow] = useState(false)
-  const [actionState, formAction] = useFormState(toggleFollowStudio, {
+  const [actionState, formAction] = React.useActionState(toggleFollowStudio, {
     studioId: 0,
     sequence: -1,
     errorCode: '',
@@ -127,7 +126,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
 
 
         <div className="justify-start items-center gap-2 flex px-4">
-          <PhoneIcon classname="flex-shrink-0"/>
+          <PhoneIcon className="flex-shrink-0"/>
           <div className="text-center text-[#505356] text-[14px] font-medium leading-tight">{studio.phone}</div>
         </div>
 

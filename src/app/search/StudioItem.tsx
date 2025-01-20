@@ -3,12 +3,11 @@ import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.e
 import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
-import { useFormState } from "react-dom";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export const StudioItem = ({item}: { item: GetStudioResponse }) => {
 
-  const [actionState, formAction] = useFormState(toggleFollowStudio, {
+  const [actionState, formAction] = React.useActionState(toggleFollowStudio, {
     studioId: item.id,
     sequence: -1,
     errorCode: '',

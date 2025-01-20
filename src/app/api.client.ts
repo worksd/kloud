@@ -37,6 +37,10 @@ export class ApiClient extends EndpointClient {
     create: this.endpointBuilder(API.StudioFollow.Follow),
     delete: this.endpointBuilder(API.StudioFollow.UnFollow),
   }
+
+  readonly event = {
+    list: this.endpointBuilder(API.Event.GetEventList),
+  }
 }
 
 export interface ClientOptions {
