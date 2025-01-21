@@ -1,5 +1,5 @@
 "use client";
-import { signUpAction } from "@/app/signUp/signup.action";
+
 import React, { useEffect, useState } from "react";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../public/assets/check.svg"
@@ -7,14 +7,9 @@ import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { signUpAction } from "@/app/signUp/signup.action";
 
 export const SignupForm = () => {
-  const [actionState, formAction] = React.useActionState(signUpAction, {
-    sequence: -1,
-    errorCode: '',
-    errorMessage: '',
-    status: undefined,
-  });
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,21 +18,6 @@ export const SignupForm = () => {
   const [isEmailPatternValid, setIsEmailPatternValid] = useState(false);
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
   const [isPasswordPatternValid, setIsPasswordPatternValid] = useState(false);
-
-  useEffect(() => {
-    setEmailErrorMessage('');
-
-    if (actionState.status) {
-      loginAuthNavigation({
-        status: actionState.status,
-        window: window,
-      })
-    } else if (actionState.errorCode) {
-      if (actionState.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
-        setEmailErrorMessage(actionState.errorMessage ?? '');
-      }
-    }
-  }, [actionState]);
 
   const onEmailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmailErrorMessage('');
@@ -55,12 +35,28 @@ export const SignupForm = () => {
     setIsPasswordLengthValid(password.length >= 8);
   }
 
+  const onClickSignUp = async () => {
+    setEmailErrorMessage('');
+
+    const res = await signUpAction({ email, password })
+    if (res.success) {
+        loginAuthNavigation({
+          status: res.status,
+          window: window,
+        })
+    } else {
+      if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
+        setEmailErrorMessage(res.errorTitle ?? '')
+      }
+    }
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-14">
         <SimpleHeader title="가입하기"/>
       </div>
-      <form className="flex flex-col p-6 justify-between" action={formAction}>
+      <div className="flex flex-col p-6 justify-between">
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">
             <label className="text-[14px] font-medium text-black">이메일</label>
@@ -123,6 +119,7 @@ export const SignupForm = () => {
 
         <div className="fixed bottom-0 left-0 right-0 px-6 pb-5 bg-white">
           <button
+            onClick={onClickSignUp}
             className={`flex items-center justify-center font-bold rounded-lg h-14 w-full text-[16px] ${
               isEmailPatternValid && isPasswordPatternValid && isPasswordLengthValid
                 ? "bg-black text-white"
@@ -132,7 +129,7 @@ export const SignupForm = () => {
             다음으로
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

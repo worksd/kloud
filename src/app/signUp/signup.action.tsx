@@ -4,16 +4,11 @@ import { api } from "@/app/api.client";
 import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { loginSuccessAction } from "@/app/login/login.success.action";
-import { NavigationActionResult } from "@/app/login/login.form";
+import { RoutePageParams } from "@/app/login/action/google.login.action";
 
-export const signUpAction = async (prev: NavigationActionResult, formData: FormData): Promise<NavigationActionResult> => {
+export const signUpAction = async ({ email, password } : {email: string, password: string}): Promise<RoutePageParams> => {
 
   try {
-    const getValidatedString = (data: unknown): string =>
-      z.string().safeParse(data)?.data ?? '';
-
-    const email = getValidatedString(formData.get('email'));
-    const password = getValidatedString(formData.get('password'));
     const res = await api.auth.signUp({
       email: email,
       password: password,
@@ -25,20 +20,20 @@ export const signUpAction = async (prev: NavigationActionResult, formData: FormD
         userId: res.user.id,
       })
       return {
+        success: true,
         status: res.user.status,
-        sequence: prev?.sequence + 1,
       };
     } else {
       return {
-        sequence: prev.sequence + 1,
+        success: false,
         errorCode: res.code,
-        errorMessage: res.message
+        errorTitle: res.message
       }
     }
   } catch (e) {
     return {
-      sequence: prev.sequence + 1,
-      errorMessage: ExceptionResponseCode.UNKNOWN_ERROR
+      success:false,
+      errorTitle: ExceptionResponseCode.UNKNOWN_ERROR
     }
   }
 }
