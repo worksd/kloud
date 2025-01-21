@@ -24,6 +24,7 @@ export const SplashScreen = () => {
           bottomMenuList: getBottomMenuList(),
           route: KloudScreen.Main,
         });
+        console.log('bootInfo = ' + bootInfo);
         window.KloudEvent?.navigateMain(bootInfo)
       } else {
         window.KloudEvent?.clearAndPush(route)

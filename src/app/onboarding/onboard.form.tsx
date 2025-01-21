@@ -65,6 +65,7 @@ export const OnboardForm = () => {
         bottomMenuList: bottomMenuList,
         route: KloudScreen.Main,
       });
+      console.log('bootInfo = ' + bootInfo);
       window.KloudEvent?.navigateMain(bootInfo);
     }
   }, [actionState]);

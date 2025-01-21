@@ -28,6 +28,7 @@ export default function PaymentButton({ lessonId, price, title }: { lessonId: nu
                 route: KloudScreen.Main,
                 pushRoute: KloudScreen.TicketDetail(Number.parseInt(data.paymentId))
             });
+            console.log('bootInfo = ' + bootInfo);
             window.KloudEvent?.navigateMain(bootInfo);
             window.KloudEvent?.showToast(`${data.paymentId} 결제에 성공했습니다.`)
         }

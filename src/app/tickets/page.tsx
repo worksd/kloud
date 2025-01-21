@@ -1,16 +1,19 @@
 import { Props } from "@/app/studios/[id]/page";
-import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { TicketItem } from "@/app/tickets/ticket.item";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
 import { api } from "@/app/api.client";
+import { NoItems } from "@/app/components/NoItem";
 
 async function TicketList() {
-  await new Promise(resolve => setTimeout(resolve, 2000));
   const res = await api.ticket.list({});
 
   if ('tickets' in res) {
+    if (res.tickets.length as number === 0) {
+      return <NoItems title={"구매 내역이 존재하지 않습니다"} description={"새로운 클래스를 수강해보세요!"} />;
+    }
+
     return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
         <div className="flex justify-between items-center mb-14">
@@ -29,7 +32,8 @@ async function TicketList() {
     );
   }
 
-  return <div className="text-black">아직 구매내역이 없습니다.</div>;
+  return <NoItems title={"구매 내역이 존재하지 않습니다"} description={"새로운 클래스를 수강해보세요!"} />;
+
 }
 
 export default function TicketDetail({ params }: Props) {

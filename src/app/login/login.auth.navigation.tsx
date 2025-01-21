@@ -9,6 +9,7 @@ export const loginAuthNavigation = ({status, window}: {status?: UserStatus, wind
       bottomMenuList: getBottomMenuList(),
       route: KloudScreen.Main,
     });
+    console.log('bootInfo = ' + bootInfo);
     window.KloudEvent?.navigateMain(bootInfo)
   }
   else if (status == UserStatus.New) {
