@@ -16,10 +16,12 @@ export const appleLoginAction = async ({code}: { code: string }): Promise<RouteP
       accessToken: res.accessToken,
     })
     return {
+      success: true,
       status: res.user.status,
     }
   } else {
     return {
+      success: false,
       errorTitle: res.message,
     }
   }

@@ -4,9 +4,9 @@ import { api } from "@/app/api.client";
 import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { loginSuccessAction } from "@/app/login/login.success.action";
-import { LoginActionResult } from "@/app/login/login.form";
+import { NavigationActionResult } from "@/app/login/login.form";
 
-export const signUpAction = async (prev: LoginActionResult, formData: FormData): Promise<LoginActionResult> => {
+export const signUpAction = async (prev: NavigationActionResult, formData: FormData): Promise<NavigationActionResult> => {
 
   try {
     const getValidatedString = (data: unknown): string =>

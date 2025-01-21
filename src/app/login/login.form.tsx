@@ -43,11 +43,11 @@ export const LoginForm = () => {
         status: res.status,
         window: window,
       })
-    } else if (res.errorMessage) {
+    } else if (res.errorCode) {
       if (res.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
-        setPasswordErrorMessage(res.errorMessage);
+        setPasswordErrorMessage(res.errorTitle ?? '');
       } else if (res.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
-        setEmailErrorMessage(res.errorMessage);
+        setEmailErrorMessage(res.errorTitle ?? '');
       }
     }
   }
@@ -113,10 +113,3 @@ export const LoginForm = () => {
     </div>
   );
 };
-
-export interface LoginActionResult {
-  sequence: number,
-  errorCode?: string,
-  errorMessage?: string,
-  status?: UserStatus,
-}

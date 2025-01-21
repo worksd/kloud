@@ -6,13 +6,6 @@ import { getBottomMenuList } from "@/utils";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export const OnboardForm = () => {
-  const [actionState, formAction] = React.useActionState(onboardAction, {
-    sequence: -1,
-    errorCode: '',
-    errorMessage: '',
-    success: false,
-  });
-
   const [name, setName] = useState(""); // 이름 상태 관리
   const [isNameSubmitted, setIsNameSubmitted] = useState(false); // 이름 제출 상태 관리
   const [allChecked, setAllChecked] = useState(false); // 모든 체크박스 체크 상태
@@ -58,20 +51,25 @@ export const OnboardForm = () => {
     window.KloudEvent?.push(KloudScreen.Privacy)
   }
 
-  useEffect(() => {
-    if (actionState.success) {
-      const bottomMenuList = getBottomMenuList();
+  const onClickCompleteOnboard = async () => {
+    if (!isNameSubmitted) {
+      handleNameSubmit()
+      return
+    }
+
+    const res = await onboardAction({ name })
+    if (res.success) {
       const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
+        bottomMenuList: getBottomMenuList(),
         route: KloudScreen.Main,
       });
       console.log('bootInfo = ' + bootInfo);
-      window.KloudEvent?.navigateMain(bootInfo);
+      window.KloudEvent?.navigateMain(bootInfo)
     }
-  }, [actionState]);
+  }
 
   return (
-    <form className="flex flex-col h-screen bg-white" action={formAction}>
+    <div className="flex flex-col h-screen bg-white">
       <div className="flex justify-between items-center mb-14">
         <SimpleHeader title="가입하기"/>
       </div>
@@ -147,8 +145,7 @@ export const OnboardForm = () => {
       {/* 다음으로 버튼 - 화면 맨 아래 고정 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white">
         <button
-          type="submit"
-          onClick={handleNameSubmit}
+          onClick={onClickCompleteOnboard}
           disabled={
             (!isNameSubmitted && name.length < 2) ||
             (isNameSubmitted && (name.length < 2 || !checkboxes.all))
@@ -163,7 +160,7 @@ export const OnboardForm = () => {
           다음으로
         </button>
       </div>
-    </form>
+    </div>
   );
 };
 

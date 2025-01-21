@@ -85,8 +85,9 @@ export abstract class EndpointClient {
 
     const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
 
-    const options = {
+    const options: RequestInit = {
       method: method.toUpperCase(),
+      cache: 'no-store',
       headers: _headers,
       ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) })
     };

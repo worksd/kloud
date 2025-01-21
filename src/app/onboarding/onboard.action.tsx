@@ -1,18 +1,15 @@
 'use server'
-import { z } from "zod";
 import { api } from "@/app/api.client";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
 import { UserType } from "@/entities/user/user.type";
+import { RoutePageParams } from "@/app/login/action/google.login.action";
+import { UserStatus } from "@/entities/user/user.status";
 
-export const onboardAction = async (prev: OnboardActionResult, formData: FormData): Promise<OnboardActionResult> => {
+export const onboardAction = async ({name}: { name: string }): Promise<RoutePageParams> => {
 
   try {
-    const getValidatedString = (data: unknown): string =>
-      z.string().safeParse(data)?.data ?? '';
-
-    const name = getValidatedString(formData.get('name'));
     const userId = Number((await cookies()).get(userIdKey)?.value)
     if (isNaN(userId)) throw Error('User Id가 없습니다' + userId)
     const res = await api.user.update({
@@ -23,27 +20,20 @@ export const onboardAction = async (prev: OnboardActionResult, formData: FormDat
     if ('id' in res) {
       return {
         success: true,
-        sequence: prev.sequence + 1,
+        status: UserStatus.Ready,
       }
     } else {
       return {
         success: false,
-        sequence: prev.sequence + 1,
+        errorCode: res.code,
+        errorTitle: res.message,
       }
     }
   } catch (e) {
     console.log(e)
     return {
       success: false,
-      sequence: prev.sequence + 1,
-      errorMessage: ExceptionResponseCode.UNKNOWN_ERROR
+      errorCode: ExceptionResponseCode.UNKNOWN_ERROR
     }
   }
-}
-
-export interface OnboardActionResult {
-  success: boolean;
-  sequence: number;
-  errorCode?: string;
-  errorMessage?: string;
 }

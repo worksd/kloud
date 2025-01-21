@@ -2,10 +2,10 @@
 import { api } from "@/app/api.client";
 import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import { LoginActionResult } from "@/app/login/login.form";
 import { loginSuccessAction } from "@/app/login/login.success.action";
+import { RoutePageParams } from "@/app/login/action/google.login.action";
 
-const emailLoginAction = async ({email, password}: { email: string, password: string }): Promise<LoginActionResult> => {
+const emailLoginAction = async ({email, password}: { email: string, password: string }): Promise<RoutePageParams> => {
   try {
     const res = await api.auth.email({
       email: email,
@@ -19,21 +19,21 @@ const emailLoginAction = async ({email, password}: { email: string, password: st
         userId: res.user.id,
       })
       return {
+        success: true,
         status: res.user.status,
-        sequence: 1,
       };
     } else {
       return {
-        sequence: 1,
+        success: false,
         errorCode: res.code,
-        errorMessage: res.message
+        errorTitle: res.message
       }
     }
   } catch (e) {
     console.log(e)
     return {
-      sequence: 1,
-      errorMessage: ExceptionResponseCode.UNKNOWN_ERROR
+      success: false,
+      errorTitle: ExceptionResponseCode.UNKNOWN_ERROR
     }
   }
 }
