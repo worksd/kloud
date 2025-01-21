@@ -4,6 +4,8 @@ import PaymentButton from "./payment.button";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { getPaymentDetail } from "@/app/lessons/[id]/payment/payment.detail.action";
+import { cookies } from "next/headers";
+import { userIdKey } from "@/shared/cookies.key";
 
 function SellerInfoItem({label, value}: { label: string; value: string; }) {
   return <div className="self-stretch justify-start items-start inline-flex">
@@ -119,7 +121,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
         </div>
 
         <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-          <PaymentButton lessonId={lesson.studio.id} price={lesson.price} title={lesson.title}/>
+          <PaymentButton lessonId={lesson.id} price={lesson.price} title={lesson.title} userId={(await cookies()).get(userIdKey)?.value}/>
         </div>
       </div>
     );

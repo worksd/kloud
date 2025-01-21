@@ -1,6 +1,7 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { LessonLevels, LessonTypes } from "@/entities/lesson/lesson";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 
 export type GetLessonParameter = {
     id: number;
@@ -31,11 +32,7 @@ export type GetLessonResponse = {
         maxNumber: number;
         name: string;
     };
-    ticket?: GetLessonTicketResponse;
-};
-
-export type GetLessonTicketResponse = {
-    id: number;
+    ticket?: TicketResponse;
 };
 
 export type ListLessonsResponse = {

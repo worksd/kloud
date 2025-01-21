@@ -6,6 +6,7 @@ import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 import { UserStatus } from "@/entities/user/user.status";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
 export const LoginForm = () => {
 
@@ -37,10 +38,18 @@ export const LoginForm = () => {
       email: email,
       password: password,
     })
-    loginAuthNavigation({
-      status: res.status,
-      window: window,
-    })
+    if ('status' in res) {
+      loginAuthNavigation({
+        status: res.status,
+        window: window,
+      })
+    } else if (res.errorMessage) {
+      if (res.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
+        setPasswordErrorMessage(res.errorMessage);
+      } else if (res.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
+        setEmailErrorMessage(res.errorMessage);
+      }
+    }
   }
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";

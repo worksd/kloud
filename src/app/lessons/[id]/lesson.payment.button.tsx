@@ -1,14 +1,14 @@
 "use client";
 
 import { CommonSubmitButton } from "@/app/components/buttons";
-import { GetLessonTicketResponse } from "@/app/endpoint/lesson.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 
 type LessonPaymentButtonProps = {
     id: number;
-    ticketData?: GetLessonTicketResponse;
+    ticketData?: TicketResponse;
 };
 
 const LessonPaymentButton = ({ id, ticketData }: LessonPaymentButtonProps) => {

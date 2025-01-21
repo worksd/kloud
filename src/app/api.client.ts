@@ -1,6 +1,5 @@
 import { EndpointClient } from "@/app/endpoint.client";
 import * as API from "./endpoint";
-import { PostSignUpEmail } from "@/app/endpoint/auth.endpoint";
 
 
 export class ApiClient extends EndpointClient {
@@ -31,6 +30,7 @@ export class ApiClient extends EndpointClient {
   readonly ticket = {
     get: this.endpointBuilder(API.Ticket.GetTicket),
     list: this.endpointBuilder(API.Ticket.ListTickets),
+    create: this.endpointBuilder(API.Ticket.CreateTicket),
   }
 
   readonly studioFollow = {

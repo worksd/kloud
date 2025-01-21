@@ -12,6 +12,11 @@ export type TicketResponse = {
   lesson?: GetLessonResponse;
 }
 
+export type CreateTicketParameter = {
+  paymentId: string;
+  lessonId: number;
+}
+
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
   method: 'get',
   path: `/tickets`,
@@ -20,4 +25,10 @@ export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
 export const GetTicket: Endpoint<IdParameter, TicketResponse> = {
   method: 'get',
   path: (e) => `/tickets/${e.id}`,
+}
+
+export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
+  method: 'post',
+  path: `/tickets`,
+  bodyParams: ['paymentId', 'lessonId']
 }

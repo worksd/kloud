@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
+import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 
-export default function PaymentButton({ lessonId, price, title }: { lessonId: number, price: number ,title: string }) {
+export default function PaymentButton({ lessonId, price, title, userId }: { lessonId: number, userId?: string, price: number ,title: string }) {
     const handlePayment = useCallback(async () => {
         const paymentInfo: PaymentInfo = {
             storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
@@ -16,21 +17,25 @@ export default function PaymentButton({ lessonId, price, title }: { lessonId: nu
             paymentId: generatePaymentId(lessonId),
             orderName: title,
             price: price,
+            userId: userId,
         }
         window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     }, [lessonId]);
 
     useEffect(() => {
         window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
+            const res = await createTicketAction( {paymentId: data.paymentId, lessonId: lessonId });
+            console.log(res)
+            const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0) : null // TODO: API 못쐈을때 이벤트 처리
+            console.log(pushRoute)
             const bottomMenuList = getBottomMenuList();
             const bootInfo = JSON.stringify({
                 bottomMenuList: bottomMenuList,
                 route: KloudScreen.Main,
-                pushRoute: KloudScreen.TicketDetail(Number.parseInt(data.paymentId))
+                pushRoute: pushRoute,
             });
-            console.log('bootInfo = ' + bootInfo);
             window.KloudEvent?.navigateMain(bootInfo);
-            window.KloudEvent?.showToast(`${data.paymentId} 결제에 성공했습니다.`)
+            window.KloudEvent?.showToast(`${title} 결제에 성공했습니다.`)
         }
     }, [])
 
@@ -61,6 +66,7 @@ interface PaymentInfo {
     paymentId: string,
     orderName: string,
     price: number,
+    userId?: string,
 }
 export const generatePaymentId = (lessonId: number): string => {
     const today = new Date();

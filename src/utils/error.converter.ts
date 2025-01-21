@@ -6,7 +6,7 @@ export function errorConverter({code}: {code: string}) {
     }
   }
   return {
-    title: '',
-    message: '',
+    title: '결제에 실패했습니다',
+    message: '다시 시도해주세요',
   }
 }
