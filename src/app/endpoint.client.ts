@@ -46,17 +46,13 @@ export abstract class EndpointClient {
           ? endpoint.path
           : endpoint.path(args);
 
-      console.log(endpoint.method + ' ' + path)
-
-      const request = this.request<Response>({
+      return this.request<Response>({
         path,
         method: endpoint.method,
         query: pick(args, endpoint.queryParams || ([] as any)),
         body: pick(args, endpoint.bodyParams || ([] as any)),
         headers: endpoint.headers,
       });
-      console.log(await request);
-      return request;
     };
   }
 

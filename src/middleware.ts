@@ -8,11 +8,8 @@ import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl
-  const cookieStore = await cookies()
   const { os } = userAgent(request)
   url.searchParams.set('os', os.name ?? '')
-  console.log(cookieStore.get(userIdKey))
-  console.log(cookieStore.get(accessTokenKey))
   return NextResponse.rewrite(url)
 }
 // 모든 경로에 대해 미들웨어 실행

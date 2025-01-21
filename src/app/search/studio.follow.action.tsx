@@ -4,11 +4,8 @@ import { ToggleFollowActionResult } from "@/app/search/StudioItem";
 import { ExceptionResponseCode, GuinnessErrorCaseScheme } from "@/app/guinnessErrorCase";
 
 export const toggleFollowStudio = async (prev: ToggleFollowActionResult, formData: FormData): Promise<ToggleFollowActionResult> => {
-  console.log('hi')
   if (!prev.follow) {
-    console.log(prev.studioId)
     const res = await followStudio({studioId: prev.studioId})
-    console.log(JSON.stringify(res))
     if ('id' in res) {
       return {
         sequence: prev.sequence + 1,

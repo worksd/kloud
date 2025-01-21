@@ -7,7 +7,6 @@ export async function register() {
 
   // Example: Log every server-side request
   tracer.startActiveSpan('request-handler', (span) => {
-    console.log('New request received');
     span.end();
   });
 }

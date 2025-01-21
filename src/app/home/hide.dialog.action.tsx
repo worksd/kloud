@@ -31,8 +31,6 @@ export const hideDialogAction = async ({id, clicked} : {id: string, clicked: boo
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() + 7);
 
-  console.log('new id list = ' + newIdList)
-
   cookieStore.set('hideDialogIdList', newIdList, {
     expires: expiryDate,
     path: '/',
