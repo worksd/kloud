@@ -10,9 +10,11 @@ export type TicketListResponse = {
 
 export type TicketResponse = {
   id: number;
+  status: string;
   studio?: GetStudioResponse;
   lesson?: GetLessonResponse;
   user?: GetUserResponse;
+  createdAt?: string;
 }
 
 export type CreateTicketParameter = {
@@ -34,4 +36,9 @@ export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
   method: 'post',
   path: `/tickets`,
   bodyParams: ['paymentId', 'lessonId']
+}
+
+export function convertStatusToMessage({status} : {status: string}) {
+  if (status === 'Ready' || status == 'Completed') return '구매완료'
+  else return ''
 }

@@ -2,21 +2,12 @@
 import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
 import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import React, { useEffect, useState } from "react";
+import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 
 export const StudioItem = ({item}: { item: GetStudioResponse }) => {
 
-  const [actionState, formAction] = React.useActionState(toggleFollowStudio, {
-    studioId: item.id,
-    sequence: -1,
-    errorCode: '',
-    errorMessage: '',
-    message: undefined,
-    follow: item.follow,
-  });
-
-  const [isFollow, setIsFollow] = useState(item.follow != null);
+  const [follow, setFollow] = useState(item.follow);
 
   const router = useRouter();
   const handleOnClick = () => {
@@ -27,27 +18,23 @@ export const StudioItem = ({item}: { item: GetStudioResponse }) => {
     }
   }
 
-  const handleSubmit = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.sendHapticFeedback()
-    }
+  const onClickFollow = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.KloudEvent?.sendHapticFeedback()
+    const res = await toggleFollowStudio({
+      studioId: item.id,
+      follow: follow
+    })
+    setFollow(res.follow)
+    window.KloudEvent?.showToast(res.message)
+
   }
 
-  useEffect(() => {
-    if (actionState.sequence >= 0) {
-      setIsFollow(actionState.follow != null)
-
-      if (window.KloudEvent && actionState.message) {
-        window.KloudEvent.showToast(actionState.message)
-      }
-    }
-  }, [actionState])
-
   return (
-    <div className="px-6 space-y-4">
-      <div className="flex items-center justify-between w-full max-w-md bg-white rounded-lg">
+    <div className="px-6 space-y-4 active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none">
+      <div className="flex items-center justify-between w-full max-w-md rounded-lg mt-4" onClick={handleOnClick}>
         {/* 프로필 이미지 및 정보 */}
-        <div className="flex items-center space-x-4" onClick={handleOnClick}>
+        <div className="flex items-center space-x-4">
           {/* 프로필 이미지 */}
           <div className="w-[60px] h-[60px] rounded-full overflow-hidden flex-shrink-0">
             <img
@@ -62,32 +49,21 @@ export const StudioItem = ({item}: { item: GetStudioResponse }) => {
             <div className="text-sm text-gray-500">{item.address}</div>
           </div>
         </div>
-        <form action={formAction}
-              onSubmit={handleSubmit}>
+        <div onClick={(e) => e.stopPropagation()}>
           {/* 팔로우 버튼 */}
           <button
-
+            onClick={onClickFollow}
             className={`px-2.5 py-1 text-sm font-medium rounded-full
-          ${isFollow
+          ${follow != null
               ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
               : 'text-white bg-black hover:bg-gray-900'
             }`}
           >
-            {isFollow ? '팔로잉' : '팔로우'}
+            {follow != null ? '팔로잉' : '팔로우'}
           </button>
-        </form>
+        </div>
       </div>
       <div className="w-full h-[1px] bg-[#f7f8f9]"/>
     </div>
   )
-}
-
-
-export interface ToggleFollowActionResult {
-  studioId: number;
-  sequence: number,
-  errorCode?: string,
-  errorMessage?: string,
-  message?: string,
-  follow?: StudioFollowResponse,
 }

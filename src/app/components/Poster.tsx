@@ -3,8 +3,9 @@
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 import { Thumbnail } from "@/app/components/Thumbnail";
-import { formatDateTime } from "@/app/lessons/[id]/lesson.info.section";
 import { calculateDDays } from "@/utils";
+import { formatDateTime } from "@/utils/date.format";
+import Image from "next/image";
 
 export const Poster = ({
                          id,
@@ -17,7 +18,7 @@ export const Poster = ({
                          {
                            id: number,
                            posterUrl: string,
-                           studioLogoUrl: string,
+                           studioLogoUrl?: string,
                            startTime: string,
                            title: string,
                            width?: number // optional로 설정
@@ -34,7 +35,7 @@ export const Poster = ({
 
   return (
     <div
-      className="flex flex-col active:scale-[0.98] transition-transform duration-150 select-none"
+      className="flex flex-col active:scale-[0.98] transition-transform duration-150 "
       onClick={handleOnClick}
     >
       <div className="relative overflow-hidden">
@@ -52,13 +53,24 @@ export const Poster = ({
             </div>
           ) : null;
         })()}
+
+        {studioLogoUrl && <Image
+          className="absolute left-0 top-0 left mt-2 ml-2 w-[24px] h-[24px] rounded-full flex-shrink-0"
+          src={studioLogoUrl}
+          alt={'로고 URL'}
+          width={24}
+          height={24}
+        />}
+
       </div>
 
-      <div className="body-400 mt-2">
-        {title}
-      </div>
-      <div className="body-200 text-gray-500">
-        {`${formatDateTime(startTime).date} ${formatDateTime(startTime).time}`}
+      <div className={"ml-1"}>
+        <div className="body-400 mt-2">
+          {title}
+        </div>
+        <div className="body-200 text-gray-500">
+          {`${formatDateTime(startTime).date} ${formatDateTime(startTime).time}`}
+        </div>
       </div>
     </div>
   )

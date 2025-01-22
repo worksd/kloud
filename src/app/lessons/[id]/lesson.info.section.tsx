@@ -19,7 +19,7 @@ const LessonInfoSection = ({data}: {data: GetLessonResponse}) => {
 
             <LessonInfoLabel Icon={TimeCircle} text={startTime.time} subText={`${data.duration}분`} />
 
-            <LessonInfoLabel Icon={Users} text={data.currentStudentCount + ""} subText={data.room?.maxNumber + "" } />
+            <LessonInfoLabel Icon={Users} text={`${data.currentStudentCount}`} subText={`${data.limit}`} />
         </div>
     </div>
 }

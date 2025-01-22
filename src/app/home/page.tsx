@@ -125,7 +125,7 @@ export default function Home() {
                 posterUrl={item?.thumbnailUrl ?? ''}
                 title={item.title ?? ''}
                 startTime={item.startTime ?? ''}
-                studioLogoUrl={item.studio?.profileImageUrl ?? ''}
+                studioLogoUrl={item.studio?.profileImageUrl}
               />
             </div>
           ))}

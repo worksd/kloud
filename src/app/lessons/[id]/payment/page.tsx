@@ -6,11 +6,13 @@ import { Thumbnail } from "@/app/components/Thumbnail";
 import { getPaymentDetail } from "@/app/lessons/[id]/payment/payment.detail.action";
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
+import Image from "next/image";
+import { formatDateTime } from "@/utils/date.format";
 
 function SellerInfoItem({label, value}: { label: string; value: string; }) {
-  return <div className="self-stretch justify-start items-start inline-flex">
-    <div className="w-[120px] text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">{label}</div>
-    <div className="grow shrink basis-0 text-black text-xs font-medium font-['Pretendard'] leading-none">
+  return <div className="self-stretch justify-start items-top inline-flex">
+    <div className="w-[120px] text-[#86898c] text-[12px] font-medium leading-none">{label}</div>
+    <div className="grow basis-0 text-black text-[12px] font-medium">
       {value}
     </div>
   </div>
@@ -20,6 +22,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
   const lesson = await getPaymentDetail({id: (await params).id})
 
   if ('id' in lesson) {
+    const formattedTime = formatDateTime(lesson?.startTime ?? '')
     return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
         {/* 백 헤더 */}
@@ -29,18 +32,39 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
 
         <div className="flex flex-col">
           {/* 수업 정보 */}
-          <div className="flex gap-7 w-full px-6">
+          <div className="flex gap-4 w-full px-6 items-center">
             <Thumbnail url={lesson.thumbnailUrl ?? ''} width={86}
                        className="rounded-lg flex-shrink-0"/>
 
-            <div className="flex flex-col gap-2 min-w-0">
+            <div className="flex flex-col gap-1 min-w-0">
               <p className="text-base font-bold text-left text-[#131517] break-words">{lesson.title}</p>
-              <p className="text-sm font-bold text-left text-[#505356] break-words">
-                {lesson.startTime} ({lesson.duration}분간)
-              </p>
-              <p className="text-sm font-medium text-left text-[#505356] break-words">
-                {lesson.studio?.name} / {lesson.room?.name}
-              </p>
+              <div className="flex items-center gap-2">
+                {lesson?.studio?.profileImageUrl && <Image
+                  className="w-[20px] h-[20px] rounded-full overflow-hidden flex-shrink-0"
+                  src={lesson?.studio?.profileImageUrl}
+                  alt={'로고 URL'}
+                  width={20}
+                  height={20}
+                />}
+
+                <div className={"flex flex-row items-center"}>
+                <span className="font-medium text-[14px] text-[#86898c]">
+                {lesson?.studio?.name}
+                </span>
+                  <span className="font-medium text-[12px] text-[#86898C]">
+                /{lesson?.room?.name}
+              </span>
+                </div>
+              </div>
+              <div className={"flex flex-row items-center mb-1"}>
+                <p className="text-[#86898C] text-[14px] font-medium">
+                  {formattedTime.date} {formattedTime.time}
+                </p>
+                <p className="text-[#86898C] text-[12px] font-medium">
+                  /{lesson?.duration}분
+                </p>
+              </div>
+
             </div>
           </div>
 
@@ -77,7 +101,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
               </div>
             </div>
 
-            <div className="w-full h-px bg-[#35383b]"/>
+            <div className="w-full h-px bg-[#D7DADD]"/>
 
             <div className="flex justify-between text-base font-bold text-center text-black">
               <p>총 결제 금액</p>
@@ -105,23 +129,25 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
 
             {/* 환불 안내 */}
             <DropdownDetails title="환불 안내">
-              <div className="text-[#86898c] text-xs font-medium font-['Pretendard'] leading-none">
+              <div className="text-[#86898c] text-[12px] font-medium">
                 <p className="pb-4">수강료 환불은 학원의 설립 및 과외교습에 관한 법률 시행령 제18조 제3항 별표 4에 의거 진행됩니다.</p>
                 <p>다만, 입점사별로 환불정책이 다를 경우 입점사의 환불 정책에 따라 환불이 진행됩니다.</p>
+              </div>
+
+              <div
+                className="mt-10 text-center text-[#6b6e71] text-[10px] font-medium leading-[14px]">
+                <p className="pb-4">본 주문 내용 및 약관 내용을 확인하였으며, 예약에 동의합니다.</p>
+                <p>로우그래피(주)는 통신판매중개자이며, 통신판매의 당사자가 아닙니다.</p>
+                <p>상품, 상품 정보, 거래, 이용에 관한 의무와 책임은 판매자에게 있습니다.</p>
               </div>
             </DropdownDetails>
           </div>
 
-          <div
-            className="w-[354px] mt-5 text-center text-[#6b6e71] text-[10px] font-medium font-['Pretendard'] leading-[14px]">
-            <p className="pb-4">본 주문 내용 및 약관 내용을 확인하였으며, 예약에 동의합니다.</p>
-            <p>로우그래피(주)는 통신판매중개자이며, 통신판매의 당사자가 아닙니다.</p>
-            <p>상품, 상품 정보, 거래, 이용에 관한 의무와 책임은 판매자에게 있습니다.</p>
-          </div>
         </div>
 
         <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-          <PaymentButton lessonId={lesson.id} price={lesson.price ?? 0} title={lesson.title ?? ''} userId={(await cookies()).get(userIdKey)?.value}/>
+          <PaymentButton lessonId={lesson.id} price={lesson.price ?? 0} title={lesson.title ?? ''}
+                         userId={(await cookies()).get(userIdKey)?.value}/>
         </div>
       </div>
     );

@@ -1,36 +1,32 @@
 'use server'
 import { api } from "@/app/api.client";
-import { ToggleFollowActionResult } from "@/app/search/StudioItem";
-import { ExceptionResponseCode, GuinnessErrorCaseScheme } from "@/app/guinnessErrorCase";
+import { StudioFollowResponse } from "@/app/endpoint/studio.follow.endpoint";
 
-export const toggleFollowStudio = async (prev: ToggleFollowActionResult, formData: FormData): Promise<ToggleFollowActionResult> => {
-  if (!prev.follow) {
-    const res = await followStudio({studioId: prev.studioId})
+export const toggleFollowStudio = async ({studioId, follow}: {
+  studioId: number,
+  follow?: StudioFollowResponse
+}): Promise<{ success: boolean, follow?: StudioFollowResponse, message?: string }> => {
+  if (!follow) {
+    const res = await followStudio({studioId})
     if ('id' in res) {
       return {
-        sequence: prev.sequence + 1,
+        success: true,
         follow: res,
         message: '팔로우하였습니다',
-        studioId: prev.studioId,
       }
     }
-  }
-  else if (prev.follow) {
-    await unFollowStudio({followId: prev.follow.id})
+  } else if (follow) {
+    await unFollowStudio({followId: follow.id})
     return {
-      sequence: prev.sequence + 1,
+      success: true,
       follow: undefined,
       message: '팔로우를 취소하였습니다',
-      studioId: prev.studioId,
     }
   }
   return {
-    sequence: prev.sequence + 1,
-    follow: prev.follow,
+    success: false,
+    follow: undefined,
     message: undefined,
-    errorCode: ExceptionResponseCode.UNKNOWN_ERROR,
-    errorMessage: '알 수 없는 에러가 발생했습니다',
-    studioId: prev.studioId,
   }
 }
 

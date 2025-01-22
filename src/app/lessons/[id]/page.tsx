@@ -71,7 +71,7 @@ export default async function LessonDetail({ params }: Props) {
                     <div className="self-stretch px-6 flex-col justify-start items-start gap-2.5 flex">
                         <div className="self-stretch justify-between items-start inline-flex">
                             <Image
-                              className="relative rounded-[20px] border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
+                              className="relative rounded-full border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
                               src={data.studio?.profileImageUrl ?? ''}
                               alt={`${data.studio?.name} 스튜디오`}
                               width={24}
@@ -110,7 +110,7 @@ export default async function LessonDetail({ params }: Props) {
                     <div className="self-stretch h-9 px-6 flex-col justify-start items-start gap-4 flex">
                         <div className="self-stretch justify-start items-center gap-3 inline-flex">
                             <Image
-                                className="rounded-[20px]"
+                                className="w-[36px] h-[36px] rounded-full overflow-hidden flex-shrink-0"
                                 src={data.artist?.profileImageUrl ?? ''}
                                 alt={`${data.artist?.nickName} 강사`}
                                 width={36}

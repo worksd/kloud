@@ -19,7 +19,7 @@ export const StudioItems = ({studios}: { studios: GetStudioResponse[] }) => {
           <RightArrowIcon/>
         </button>
       </div>
-      <ul className="flex flex-col space-y-4">
+      <ul className="flex flex-col">
         {studios.map((item) => (
           <StudioItem key={item.id} item={item}/>
         ))}
