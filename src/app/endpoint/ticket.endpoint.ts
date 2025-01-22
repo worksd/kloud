@@ -1,6 +1,8 @@
 import { Endpoint, NoParameter } from "@/app/endpoint/index";
 import { GetStudioResponse, IdParameter } from "@/app/endpoint/studio.endpoint";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { UserResponse } from "@/app/endpoint/auth.endpoint";
+import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 
 export type TicketListResponse = {
   tickets: [TicketResponse];
@@ -10,6 +12,7 @@ export type TicketResponse = {
   id: number;
   studio?: GetStudioResponse;
   lesson?: GetLessonResponse;
+  user?: GetUserResponse;
 }
 
 export type CreateTicketParameter = {
