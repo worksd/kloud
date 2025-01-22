@@ -9,10 +9,10 @@ export const LessonGridItems = ({lessons} : {lessons: GetLessonResponse[]}) => {
         <Poster
           key={lesson.id}
           id={lesson.id}
-          posterUrl={lesson.thumbnailUrl ?? lesson.artist.profileImageUrl}
+          posterUrl={lesson.thumbnailUrl ?? lesson.artist?.profileImageUrl ?? ''}
           studioLogoUrl={lesson.studio ? lesson.studio.profileImageUrl : ''}
-          title={lesson.title}
-          startTime={lesson.startTime}
+          title={lesson.title ?? ''}
+          startTime={lesson.startTime ?? ''}
         />
       ))}
     </div>

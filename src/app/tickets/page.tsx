@@ -9,17 +9,13 @@ import { NoItems } from "@/app/components/NoItem";
 async function TicketList() {
   const res = await api.ticket.list({});
 
-  if ('tickets' in res) {
-    if (res.tickets.length as number === 0) {
-      return <NoItems title={"구매 내역이 존재하지 않습니다"} description={"새로운 클래스를 수강해보세요!"} />;
-    }
+  return (
+    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
+      <div className="flex justify-between items-center mb-14">
+        <SimpleHeader title="구매내역"/>
+      </div>
 
-    return (
-      <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader title="구매내역"/>
-        </div>
-
+      {('tickets' in res && res.tickets.length > 0) ? (
         <div className="flex flex-col gap-4">
           {res.tickets.map((item) => (
             <TicketItem
@@ -28,18 +24,20 @@ async function TicketList() {
             />
           ))}
         </div>
-      </div>
-    );
-  }
-
-  return <NoItems title={"구매 내역이 존재하지 않습니다"} description={"새로운 클래스를 수강해보세요!"} />;
-
+      ) : (
+        <NoItems
+          title="구매 내역이 존재하지 않습니다"
+          description="새로운 클래스를 수강해보세요!"
+        />
+      )}
+    </div>
+  );
 }
 
-export default function TicketDetail({ params }: Props) {
+export default function TicketDetail({params}: Props) {
   return (
-    <Suspense fallback={<Loading />}>
-      <TicketList />
+    <Suspense fallback={<Loading/>}>
+      <TicketList/>
     </Suspense>
   );
 }

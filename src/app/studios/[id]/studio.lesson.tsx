@@ -17,15 +17,15 @@ const LessonCardInStudio = (data: GetLessonResponse) => {
         <button onClick={handleClick} className="flex-col justify-start items-start gap-2 inline-flex w-[calc(100%/2.0479)]">
             <div className="w-full aspect-[0.75/1] rounded-2xl overflow-hidden relative">
                 <Image
-                    src={data.thumbnailUrl}
-                    alt={data.title}
+                    src={data.thumbnailUrl ?? ''}
+                    alt={data.title ?? ''}
                     width={167}
                     height={222}
                     className="w-full h-full justify-start items-center inline-flex"
                 />
 
                 <div className="h-6 px-2 py-1 bg-black/60 rounded-xl justify-center items-center gap-2.5 inline-flex absolute bottom-[10px] right-3">
-                    <div className="text-white text-xs font-medium leading-none">{calculateDDays(data.startTime)}</div>
+                    <div className="text-white text-xs font-medium leading-none">{calculateDDays(data.startTime ?? '')}</div>
                 </div>
             </div>
             <div className="px-1 flex-col justify-start items-start gap-1 flex">

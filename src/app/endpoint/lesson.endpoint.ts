@@ -9,15 +9,17 @@ export type GetLessonParameter = {
 
 export type GetLessonResponse = {
     id: number;
-    code: string;
-    title: string;
-    thumbnailUrl: string;
-    startTime: string;
-    duration: number;
-    type: LessonTypes;
-    price: number;
-    level: LessonLevels;
-    artist: {
+    code?: string;
+    status?: string;
+    limit?: number;
+    title?: string;
+    thumbnailUrl?: string;
+    startTime?: string;
+    duration?: number;
+    type?: LessonTypes;
+    price?: number;
+    level?: LessonLevels;
+    artist?: {
         id: number;
         name: string;
         nickName: string;
@@ -25,9 +27,9 @@ export type GetLessonResponse = {
         phone: string;
         instagramAddress: string;
     };
-    studio: GetStudioResponse;
-    currentStudentCount: number;
-    room: {
+    studio?: GetStudioResponse;
+    currentStudentCount?: number;
+    room?: {
         id: number;
         maxNumber: number;
         name: string;
@@ -35,7 +37,7 @@ export type GetLessonResponse = {
     ticket?: TicketResponse;
 };
 
-export type ListLessonsResponse = {
+export type LessonListResponse = {
     lessons: GetLessonResponse[]
 }
 
@@ -44,7 +46,7 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     path: (e) => `/lessons/${e.id}`,
 };
 
-export const GetPopularLessons: Endpoint<object, ListLessonsResponse> = {
+export const GetPopularLessons: Endpoint<object, LessonListResponse> = {
     method: "get",
     path: `/lessons/popular`,
 }

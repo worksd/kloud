@@ -30,7 +30,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
         <div className="flex flex-col">
           {/* 수업 정보 */}
           <div className="flex gap-7 w-full px-6">
-            <Thumbnail url={lesson.thumbnailUrl} width={86}
+            <Thumbnail url={lesson.thumbnailUrl ?? ''} width={86}
                        className="rounded-lg flex-shrink-0"/>
 
             <div className="flex flex-col gap-2 min-w-0">
@@ -39,7 +39,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
                 {lesson.startTime} ({lesson.duration}분간)
               </p>
               <p className="text-sm font-medium text-left text-[#505356] break-words">
-                {lesson.studio.name} / {lesson.room.name}
+                {lesson.studio?.name} / {lesson.room?.name}
               </p>
             </div>
           </div>
@@ -68,12 +68,12 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
             <div className="flex flex-col gap-y-2">
               <div className="flex justify-between text-sm font-medium text-center text-black">
                 <p>수강권 금액</p>
-                <p>{new Intl.NumberFormat("ko-KR").format(lesson.price)}원</p>
+                <p>{new Intl.NumberFormat("ko-KR").format(lesson.price ?? 0)}원</p>
               </div>
 
               <div className="flex justify-between text-[10px] font-medium text-center text-[#86898c]">
                 <p>1회 수업권</p>
-                <p>{new Intl.NumberFormat("ko-KR").format(lesson.price)}원</p>
+                <p>{new Intl.NumberFormat("ko-KR").format(lesson.price?? 0)}원</p>
               </div>
             </div>
 
@@ -81,7 +81,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
 
             <div className="flex justify-between text-base font-bold text-center text-black">
               <p>총 결제 금액</p>
-              <p>{new Intl.NumberFormat("ko-KR").format(lesson.price)}원</p>
+              <p>{new Intl.NumberFormat("ko-KR").format(lesson.price ?? 0)}원</p>
             </div>
           </div>
 
@@ -92,15 +92,15 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
           <div className="flex flex-col gap-y-5 px-6">
             {/* 판매자 정보 */}
             <DropdownDetails title="판매자 정보">
-              <SellerInfoItem label="사업자명" value={lesson.studio.name}/>
-              {lesson.studio.businessRegistrationNumber &&
+              <SellerInfoItem label="사업자명" value={lesson.studio?.name ?? ''}/>
+              {lesson.studio?.businessRegistrationNumber &&
                 <SellerInfoItem label="사업자번호" value={lesson.studio.businessRegistrationNumber}/>}
-              {lesson.studio.eCommerceRegNumber &&
+              {lesson.studio?.eCommerceRegNumber &&
                 <SellerInfoItem label="통신판매업 신고번호" value={lesson.studio.eCommerceRegNumber}/>}
-              {lesson.studio.representative && <SellerInfoItem label="대표자명" value={lesson.studio.representative}/>}
-              {lesson.studio.educationOfficeRegNumber &&
+              {lesson.studio?.representative && <SellerInfoItem label="대표자명" value={lesson.studio.representative}/>}
+              {lesson.studio?.educationOfficeRegNumber &&
                 <SellerInfoItem label="교육청 등록번호" value={lesson.studio.educationOfficeRegNumber}/>}
-              {lesson.studio.address && <SellerInfoItem label={"사업자소재지"} value={lesson.studio.address}/>}
+              {lesson.studio?.address && <SellerInfoItem label={"사업자소재지"} value={lesson.studio.address}/>}
             </DropdownDetails>
 
             {/* 환불 안내 */}
@@ -121,7 +121,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
         </div>
 
         <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-          <PaymentButton lessonId={lesson.id} price={lesson.price} title={lesson.title} userId={(await cookies()).get(userIdKey)?.value}/>
+          <PaymentButton lessonId={lesson.id} price={lesson.price ?? 0} title={lesson.title ?? ''} userId={(await cookies()).get(userIdKey)?.value}/>
         </div>
       </div>
     );

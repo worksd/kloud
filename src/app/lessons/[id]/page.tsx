@@ -3,7 +3,7 @@ import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
 import { api } from "@/app/api.client";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { LessonTypesDisplay } from "@/entities/lesson/lesson";
+import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
 import LessonInfoSection from "./lesson.info.section";
 import LessonPaymentButton from "./lesson.payment.button";
 
@@ -72,8 +72,8 @@ export default async function LessonDetail({ params }: Props) {
                         <div className="self-stretch justify-between items-start inline-flex">
                             <Image
                               className="relative rounded-[20px] border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
-                              src={data.studio.profileImageUrl}
-                              alt={`${data.studio.name} 스튜디오`}
+                              src={data.studio?.profileImageUrl ?? ''}
+                              alt={`${data.studio?.name} 스튜디오`}
                               width={24}
                               height={24}
                             />
@@ -85,7 +85,7 @@ export default async function LessonDetail({ params }: Props) {
                                 <div
                                   className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
                                     <div
-                                      className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[data.type]}</div>
+                                      className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[data.type ?? LessonTypes.PopUp]}</div>
                                 </div>
                             </div>
                         </div>
@@ -111,13 +111,13 @@ export default async function LessonDetail({ params }: Props) {
                         <div className="self-stretch justify-start items-center gap-3 inline-flex">
                             <Image
                                 className="rounded-[20px]"
-                                src={data.artist.profileImageUrl}
-                                alt={`${data.artist.nickName} 강사`}
+                                src={data.artist?.profileImageUrl ?? ''}
+                                alt={`${data.artist?.nickName} 강사`}
                                 width={36}
                                 height={36}
                             />
 
-                            <div className="text-black text-sm font-bold leading-tight">{data.artist.nickName}</div>
+                            <div className="text-black text-sm font-bold leading-tight">{data.artist?.nickName ?? ''}</div>
                         </div>
                     </div>
                 </div>

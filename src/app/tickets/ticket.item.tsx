@@ -40,10 +40,10 @@ export const TicketItem = ({item} : {item: TicketResponse}) => {
           {/* 스튜디오 정보 */}
           <div className="flex items-center gap-2 mb-1">
             <span className="font-bold text-[18px] text-black">
-              {item.lesson?.studio.name}
+              {item.lesson?.studio?.name}
             </span>
             <span className="text-[#86898C]">
-              {item.lesson?.studio.address} /{item.lesson?.room.name}
+              {item.lesson?.studio?.address} /{item.lesson?.room?.name}
             </span>
           </div>
 
