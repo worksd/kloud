@@ -10,31 +10,14 @@ import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import React, { useEffect, useState } from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
-import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
+import { extractNumber } from "@/utils";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
   const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
-  const [isFollow, setIsFollow] = useState(false)
-  const [actionState, formAction] = React.useActionState(toggleFollowStudio, {
-    studioId: 0,
-    sequence: -1,
-    errorCode: '',
-    errorMessage: '',
-    message: undefined,
-    follow: undefined,
-  });
-
-  useEffect(() => {
-    if (actionState.sequence >= 0) {
-      setIsFollow(actionState.follow != null)
-
-      if (actionState.message) {
-        window.KloudEvent?.showToast(actionState.message)
-      }
-    }
-  }, [actionState])
+  const [follow, setFollow] = useState<StudioFollowResponse | undefined>(undefined)
 
   useEffect(() => {
     const fetchStudio = async () => {
@@ -42,9 +25,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         const response = await getStudioDetail(id)
         if ('id' in response) {
           setStudio(response)
-          setIsFollow(response.follow != null)
-          actionState.studioId = response.id
-          actionState.follow = response.follow
+          setFollow(response.follow)
         }
       } catch (error) {
         console.error('스튜디오 정보를 불러오는데 실패했습니다:', error)
@@ -56,10 +37,18 @@ export const StudioDetailForm = ({id}: { id: string }) => {
     fetchStudio()
   }, [id])
 
-  const handleSubmit = () => {
+  const onClickFollow = async (e: React.MouseEvent) => {
     window.KloudEvent?.sendHapticFeedback()
-  }
+    const res = await toggleFollowStudio({
+      studioId: extractNumber(id),
+      follow: follow
+    })
+    setFollow(res.follow)
+    if (res.message) {
+      window.KloudEvent?.showToast(res.message)
+    }
 
+  }
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-gray-900"></div>
@@ -101,19 +90,19 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
           <Image src={studio.profileImageUrl} alt={"studio logo"} width={60} height={60}
                  className="rounded-full"/>
-          <form className="flex-col justify-center items-start gap-2 inline-flex" onSubmit={handleSubmit}>
+          <div className="flex-col justify-center items-start gap-2 inline-flex">
             <div className="text-[#131517] text-xl font-bold leading-normal">{studio.name}</div>
-            <button
-              formAction={formAction}
+            <div
+              onClick={onClickFollow}
               className={`px-2.5 py-1 text-sm font-medium rounded-full 
-          ${isFollow
+          ${follow
                 ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
                 : 'text-white bg-black hover:bg-gray-900'
               }`}
             >
-              {isFollow ? '팔로잉' : '팔로우'}
-            </button>
-          </form>
+              {follow ? '팔로잉' : '팔로우'}
+            </div>
+          </div>
         </div>
       </div>
 
