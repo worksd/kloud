@@ -116,7 +116,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
           <div className="flex flex-col gap-y-5 px-6">
             {/* 판매자 정보 */}
             <DropdownDetails title="판매자 정보">
-              <SellerInfoItem label="사업자명" value={lesson.studio?.name ?? ''}/>
+              <SellerInfoItem label="사업자명" value={lesson.studio?.businessName ?? ''}/>
               {lesson.studio?.businessRegistrationNumber &&
                 <SellerInfoItem label="사업자번호" value={lesson.studio.businessRegistrationNumber}/>}
               {lesson.studio?.eCommerceRegNumber &&
