@@ -38,7 +38,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
 
             <div className="flex flex-col gap-1 min-w-0">
               <p className="text-base font-bold text-left text-[#131517] break-words">{lesson.title}</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-top gap-2">
                 {lesson?.studio?.profileImageUrl && <Image
                   className="w-[20px] h-[20px] rounded-full overflow-hidden flex-shrink-0"
                   src={lesson?.studio?.profileImageUrl}
@@ -47,13 +47,13 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
                   height={20}
                 />}
 
-                <div className={"flex flex-row items-center"}>
-                <span className="font-medium text-[14px] text-[#86898c]">
-                {lesson?.studio?.name}
-                </span>
+                <div className={"flex flex-col items-start"}>
+                  <span className="font-medium text-[14px] text-[#86898c]">
+                    {lesson?.studio?.name}
+                  </span>
                   <span className="font-medium text-[12px] text-[#86898C]">
-                /{lesson?.room?.name}
-              </span>
+                    {lesson?.room?.name}
+                  </span>
                 </div>
               </div>
               <div className={"flex flex-row items-center mb-1"}>
