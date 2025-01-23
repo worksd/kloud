@@ -36,7 +36,7 @@ export default async function LessonDetail({ params }: Props) {
     }
 
     return (
-        <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto font-['Pretendard']">
+        <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
             {/* 헤더 */}
             <HeaderInDetail title={data.title} />
 
