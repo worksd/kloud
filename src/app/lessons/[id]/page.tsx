@@ -6,6 +6,7 @@ import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
 import LessonInfoSection from "./lesson.info.section";
 import LessonPaymentButton from "./lesson.payment.button";
+import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -104,28 +105,26 @@ export default async function LessonDetail({ params }: Props) {
 
                 {/* 강사 */}
                 <div className="self-stretch flex-col justify-start items-start gap-5 flex">
-                    <div className="self-stretch h-7 px-6 justify-center items-center gap-2.5 inline-flex">
+                    <div className="self-stretch h-7 px-6 justify-center items-center gap-5 inline-flex">
                         <div className="grow shrink basis-0 text-black text-base font-medium leading-snug">강의정보</div>
                     </div>
-                    <div className="self-stretch h-9 px-6 flex-col justify-start items-start gap-4 flex">
-                        <div className="self-stretch justify-start items-center gap-3 inline-flex">
-                            <Image
-                                className="w-[36px] h-[36px] rounded-full overflow-hidden flex-shrink-0"
-                                src={data.artist?.profileImageUrl ?? ''}
-                                alt={`${data.artist?.nickName} 강사`}
-                                width={36}
-                                height={36}
+                    <LessonArtistItem artist={data.artist}/>
+                    {data.extraArtists && data.extraArtists.length > 0 && (
+                      <div className="flex flex-col gap-5">
+                          {data.extraArtists.map((artist, index) => (
+                            <LessonArtistItem
+                              key={artist.id || index}
+                              artist={artist}
                             />
-
-                            <div className="text-black text-sm font-bold leading-tight">{data.artist?.nickName ?? ''}</div>
-                        </div>
-                    </div>
+                          ))}
+                      </div>
+                    )}
                 </div>
             </div>
 
             {/* 결제 페이지 이동 버튼 */}
             <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-                <LessonPaymentButton id={id} ticketData={data.ticket} />
+                <LessonPaymentButton id={id} ticketData={data.ticket}/>
             </div>
         </div>
     );

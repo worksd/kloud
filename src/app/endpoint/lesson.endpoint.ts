@@ -19,14 +19,7 @@ export type GetLessonResponse = {
     type?: LessonTypes;
     price?: number;
     level?: LessonLevels;
-    artist?: {
-        id: number;
-        name: string;
-        nickName: string;
-        profileImageUrl: string;
-        phone: string;
-        instagramAddress: string;
-    };
+    artist?: GetArtistResponse;
     studio?: GetStudioResponse;
     currentStudentCount?: number;
     room?: {
@@ -35,10 +28,20 @@ export type GetLessonResponse = {
         name: string;
     };
     ticket?: TicketResponse;
+    extraArtists?: GetArtistResponse[];
 };
 
 export type LessonListResponse = {
     lessons: GetLessonResponse[]
+}
+
+export type GetArtistResponse = {
+    id: number;
+    name: string;
+    nickName: string;
+    profileImageUrl: string;
+    phone: string;
+    instagramAddress: string;
 }
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
