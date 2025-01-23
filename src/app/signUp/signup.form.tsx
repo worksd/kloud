@@ -30,7 +30,7 @@ export const SignupForm = () => {
   const onPasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const password = e.target.value;
     setPassword(password);
-    const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$/;
+    const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[~․!@#$%^&*()_\-+=\[\]|\\;:'"<>,.\/?])[A-Za-z\d~․!@#$%^&*()_\-+=\[\]|\\;:'"<>,.\/?]+$/;
     setIsPasswordPatternValid(passwordPattern.test(password));
     setIsPasswordLengthValid(password.length >= 8);
   }
