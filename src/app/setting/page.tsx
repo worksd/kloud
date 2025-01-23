@@ -22,6 +22,7 @@ export default async function Setting(){
         {/* 메뉴 리스트 */}
         <MenuItem label="구매내역" path={KloudScreen.Tickets}/>
         <MenuItem label="약관 및 정책" path={KloudScreen.Terms}/>
+        <MenuItem label="문의하기" path={KloudScreen.Inquiry} />
         <MenuItem label="로그아웃" path="/logout" />
       </div>
     );

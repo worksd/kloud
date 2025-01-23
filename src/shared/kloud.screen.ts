@@ -9,6 +9,7 @@ export const KloudScreen = {
   Studios: '/studios',
   Privacy: '/setting/privacy',
   Terms: '/setting/terms',
+  Inquiry: '/setting/inquiry',
   Tickets: '/tickets',
   LessonDetail: (id: number) => `/lessons/${id}`,
   LessonPayment: (id: number) => `/lessons/${id}/payment`,
