@@ -6,7 +6,7 @@ export function errorConverter({code}: {code: string}) {
     }
   }
   return {
-    title: '결제에 실패했습니다',
+    title: '결제에 실패했습니다', // TODO: 도메인 묻은거 발라내기
     message: '다시 시도해주세요',
   }
 }
