@@ -88,8 +88,15 @@ export const StudioDetailForm = ({id}: { id: string }) => {
             before:z-[2]"
       >
         <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
-          <Image src={studio.profileImageUrl} alt={"studio logo"} width={60} height={60}
-                 className="rounded-full"/>
+          <div className="w-[60px] h-[60px] rounded-full overflow-hidden flex-shrink-0">
+            <Image
+              src={studio.profileImageUrl}
+              alt="studio logo"
+              width={60}
+              height={60}
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div className="flex-col justify-center items-start gap-2 inline-flex">
             <div className="text-[#131517] text-xl font-bold leading-normal">{studio.name}</div>
             <div
@@ -97,7 +104,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
               className={`px-2.5 py-1 text-sm font-medium rounded-full 
           ${follow
                 ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
-                : 'text-white bg-black hover:bg-gray-900'
+                : 'text-white bg-black border border-black hover:bg-gray-900'
               }`}
             >
               {follow ? '팔로잉' : '팔로우'}
