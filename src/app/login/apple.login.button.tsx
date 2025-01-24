@@ -15,6 +15,7 @@ const AppleLoginButton = () => {
       loginAuthNavigation({
         status: res.status,
         window: window,
+        message: res.errorMessage,
       })
     };
   }, []);

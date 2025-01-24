@@ -6,6 +6,7 @@ import { loginSuccessAction } from "@/app/login/login.success.action";
 import { RoutePageParams } from "@/app/login/action/google.login.action";
 
 export const kakaoLoginAction = async ({code}: { code: string }): Promise<RoutePageParams> => {
+  console.log('kakao login = ' + code)
   const res = await api.auth.socialLogin({
     provider: SnsProvider.Kakao,
     token: code,
@@ -22,7 +23,7 @@ export const kakaoLoginAction = async ({code}: { code: string }): Promise<RouteP
   } else {
     return {
       success: false,
-      errorTitle: res.message,
+      errorMessage: res.message,
     }
   }
 }

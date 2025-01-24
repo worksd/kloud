@@ -22,7 +22,7 @@ export const appleLoginAction = async ({code}: { code: string }): Promise<RouteP
   } else {
     return {
       success: false,
-      errorTitle: res.message,
+      errorMessage: res.message,
     }
   }
 }

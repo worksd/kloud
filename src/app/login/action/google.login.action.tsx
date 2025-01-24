@@ -22,7 +22,7 @@ export const googleLoginAction = async ({code}: { code: string }): Promise<Route
   } else {
     return {
       success: false,
-      errorTitle: res.message,
+      errorMessage: res.message,
     }
   }
 }
@@ -31,6 +31,5 @@ export interface RoutePageParams {
   success: boolean,
   status?: UserStatus,
   errorCode?: string,
-  errorTitle?: string,
-  errorBody?: string,
+  errorMessage?: string,
 }

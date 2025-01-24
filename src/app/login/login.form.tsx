@@ -45,9 +45,17 @@ export const LoginForm = () => {
       })
     } else if (res.errorCode) {
       if (res.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
-        setPasswordErrorMessage(res.errorTitle ?? '');
+        setPasswordErrorMessage(res.errorMessage ?? '');
       } else if (res.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
-        setEmailErrorMessage(res.errorTitle ?? '');
+        setEmailErrorMessage(res.errorMessage ?? '');
+      } else {
+        const dialogInfo = {
+          id: 'Empty',
+          type: 'SIMPLE',
+          title: '로그인 실패',
+          message: res.errorMessage,
+        }
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     }
   }

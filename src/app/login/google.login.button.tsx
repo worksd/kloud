@@ -13,6 +13,7 @@ const GoogleLoginButton = () => {
       loginAuthNavigation({
         status: res.status,
         window: window,
+        message: res.errorMessage,
       })
     };
   }, []);
