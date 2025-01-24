@@ -7,9 +7,9 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 
-export default function PaymentButton({ lessonId, price, title, userId }: { lessonId: number, userId?: string, price: number ,title: string }) {
+export default function PaymentButton({ lessonId, price, title, userId, os }: { lessonId: number, userId?: string, price: number ,title: string, os: string }) {
     const handlePayment = useCallback(async () => {
-        const paymentInfo: PaymentInfo = {
+        const paymentInfo = os == 'Android' ? {
             storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
             channelKey: process.env.NODE_ENV === "development"
               ? process.env.NEXT_PUBLIC_TEST_PORTONE_CHANNEL_KEY!
@@ -18,6 +18,15 @@ export default function PaymentButton({ lessonId, price, title, userId }: { less
             orderName: title,
             price: price,
             userId: userId,
+        } : {
+            paymentId: generatePaymentId(lessonId),
+            pg: 'tosspayments',
+            scheme: 'iamport',
+            orderName: title,
+            amount: `${price}`,
+            method: 'card',
+            userId: userId,
+            userCode: process.env.NEXT_PUBLIC_USER_CODE,
         }
         window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     }, [lessonId]);
@@ -60,7 +69,7 @@ export default function PaymentButton({ lessonId, price, title, userId }: { less
     );
 }
 
-interface PaymentInfo {
+type AndroidPaymentInfo = {
     storeId: string,
     channelKey: string,
     paymentId: string,
@@ -68,6 +77,19 @@ interface PaymentInfo {
     price: number,
     userId?: string,
 }
+
+type iOSPaymentInfo = {
+    paymentId: string,
+    orderName: string,
+    amount: string,
+    method: string,
+    scheme: string,
+    pg: string,
+    userId?: string,
+    useCode?: string,
+
+}
+
 export const generatePaymentId = (lessonId: number): string => {
     const today = new Date();
     const year = today.getFullYear();

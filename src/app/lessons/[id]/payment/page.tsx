@@ -18,7 +18,7 @@ function SellerInfoItem({label, value}: { label: string; value: string; }) {
   </div>
 }
 
-export default async function LessonPaymentPage({params}: { params: Promise<{ id: number }> }) {
+export default async function LessonPaymentPage({params}: { params: Promise<{ id: number, os: string }> }) {
   const lesson = await getPaymentDetail({id: (await params).id})
 
   if ('id' in lesson) {
@@ -146,8 +146,13 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
         </div>
 
         <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-          <PaymentButton lessonId={lesson.id} price={lesson.price ?? 0} title={lesson.title ?? ''}
-                         userId={(await cookies()).get(userIdKey)?.value}/>
+          <PaymentButton
+            os={(await params).os}
+            lessonId={lesson.id}
+            price={lesson.price ?? 0}
+            title={lesson.title ?? ''}
+            userId={(await cookies()).get(userIdKey)?.value}
+          />
         </div>
       </div>
     );
