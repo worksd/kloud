@@ -40,5 +40,6 @@ export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
 
 export function convertStatusToMessage({status} : {status: string}) {
   if (status === 'Ready' || status == 'Completed') return '구매완료'
+    else if (status == 'Cancelled') return '구매취소'
   else return ''
 }

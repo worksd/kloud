@@ -16,7 +16,7 @@ async function TicketList() {
       </div>
 
       {('tickets' in res && res.tickets.length > 0) ? (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {res.tickets.map((item) => (
             <TicketItem
               key={item.id}
