@@ -59,7 +59,7 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
 
           {/* 가운데 타이틀 */}
           <div
-            className={`truncate text-center text-black text-base font-bold font-['Pretendard'] leading-snug transition ${
+            className={`truncate text-center text-black text-base font-bold leading-snug transition ${
               isScrolled ? "opacity-100" : "opacity-0"
             }`}
           >
