@@ -23,7 +23,7 @@ export default function Home() {
           const randomIndex = Math.floor(Math.random() * events.length);
           const event = events[randomIndex];
           const dialogInfo = {
-            id: event.id,
+            id: `${event.id}`,
             route: event.route,
             hideForeverMessage: event.hideForeverMessage,
             imageUrl: event.imageUrl,
