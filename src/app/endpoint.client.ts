@@ -1,7 +1,7 @@
 import { ClientOptions } from "@/app/api.client";
 import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
 
 type QueryParams = Record<string, any> | URLSearchParams;
@@ -26,16 +26,6 @@ function convertFromJsonToQuery(input: QueryParams | undefined) {
 
 export abstract class EndpointClient {
 
-  private readonly baseUrl: string;
-  private readonly defaultHeaders: Record<string, string>;
-
-  constructor(
-    {baseUrl, defaultHeaders} : ClientOptions
-  ) {
-    this.baseUrl = baseUrl ?? '';
-    this.defaultHeaders = defaultHeaders ?? {};
-  }
-
   protected endpointBuilder<
     Parameter extends Record<string, any>,
     Response extends Record<string, any>
@@ -57,13 +47,17 @@ export abstract class EndpointClient {
   }
 
   private async authAsHeaders(): Promise<Record<string, string>> {
-    const headers: Record<string, string> = {};
+    const defaultHeaders: Record<string, string> = {};
     const accessToken = (await cookies()).get('accessToken')
     if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken.value}`
+      defaultHeaders['Authorization'] = `Bearer ${accessToken.value}`
     }
+    const nextHeaders = await headers()
+    defaultHeaders['x-guinness-client'] = nextHeaders.get('x-guinness-client')?.valueOf() ?? ''
+    defaultHeaders['x-guinness-device-name'] = nextHeaders.get('x-guinness-device-name')?.valueOf() ?? ''
+    defaultHeaders['x-guinness-version'] = nextHeaders.get('x-guinness-version')?.valueOf() ?? ''
     console.log('Access Token ' + accessToken?.value)
-    return headers;
+    return defaultHeaders;
   }
 
   private async request<ResponseBody>({
@@ -73,12 +67,11 @@ export abstract class EndpointClient {
                                         body,
                                         headers = {},
                                       }: RequestParameters): Promise<ResponseBody> {
-    const url = `${this.baseUrl}${path}`;
+    const url = `${process.env.GUINNESS_API_SERVER}${path}`;
     const authHeaders = await this.authAsHeaders(); // await 추가
 
     const _headers = {
       ...authHeaders,
-      ...this.defaultHeaders,
       ...headers,
       'Content-Type': 'application/json', // Content-Type 추가
     };

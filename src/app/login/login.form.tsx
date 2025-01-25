@@ -66,7 +66,7 @@ export const LoginForm = () => {
     <div
       className="flex flex-col p-6"
     >
-      <label className="mb-2 text-[14px] font-[Pretendard] font-normal text-black">이메일</label>
+      <label className="mb-2 text-[14px] font-normal text-black">이메일</label>
       <input
         className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
         type="email"
