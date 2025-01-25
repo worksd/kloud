@@ -35,7 +35,7 @@ export const Poster = ({
     <div
       className="flex flex-col active:scale-[0.98] transition-transform duration-150"
       onClick={handleOnClick}
-      style={{ width: `${width}px` }}
+      style={{width: `${width}px`}}
     >
       <div className="relative overflow-hidden">
         <Thumbnail
@@ -46,7 +46,8 @@ export const Poster = ({
         {(() => {
           const d_days = calculateDDays(startTime);
           return d_days ? (
-            <div className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
+            <div
+              className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
               {d_days}
             </div>
           ) : null;
@@ -62,7 +63,15 @@ export const Poster = ({
       </div>
 
       <div className="ml-1 w-full">
-        <div className="body-400 mt-2 truncate">
+        <div
+          className="body-400 mt-2"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}
+        >
           {title}
         </div>
         <div className="body-200 text-gray-500 truncate">
