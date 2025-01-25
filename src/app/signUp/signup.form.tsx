@@ -46,7 +46,7 @@ export const SignupForm = () => {
         })
     } else {
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
-        setEmailErrorMessage(res.errorTitle ?? '')
+        setEmailErrorMessage(res.errorMessage ?? '')
       }
     }
   }

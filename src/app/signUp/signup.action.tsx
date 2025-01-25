@@ -27,13 +27,13 @@ export const signUpAction = async ({ email, password } : {email: string, passwor
       return {
         success: false,
         errorCode: res.code,
-        errorTitle: res.message
+        errorMessage: res.message
       }
     }
   } catch (e) {
     return {
       success:false,
-      errorTitle: ExceptionResponseCode.UNKNOWN_ERROR
+      errorMessage: ExceptionResponseCode.UNKNOWN_ERROR
     }
   }
 }

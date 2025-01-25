@@ -26,7 +26,7 @@ export const onboardAction = async ({name}: { name: string }): Promise<RoutePage
       return {
         success: false,
         errorCode: res.code,
-        errorTitle: res.message,
+        errorMessage: res.message,
       }
     }
   } catch (e) {
