@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
 function extractKloudVersion(userAgent: string): string | null {
   try {
     // kloudNativeClient/ 다음에 오는 버전 번호를 찾습니다
-    const regex = /kloudNativeClient\/([0-9]+(?:\.[0-9]+)*)/;
+    const regex = /KloudNativeClient\/([0-9]+(?:\.[0-9]+)*)/;
     const match = userAgent.match(regex);
 
     if (!match) {
