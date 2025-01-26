@@ -7,7 +7,7 @@ export const loginAuthNavigation = ({status, message, window}: {status?: UserSta
   if (status == UserStatus.Ready) {
     const bootInfo = JSON.stringify({
       bottomMenuList: getBottomMenuList(),
-      route: KloudScreen.Main,
+      route: '',
     });
     console.log('bootInfo = ' + bootInfo);
     window.KloudEvent?.navigateMain(bootInfo)

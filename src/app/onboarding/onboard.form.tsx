@@ -61,7 +61,7 @@ export const OnboardForm = () => {
     if (res.success) {
       const bootInfo = JSON.stringify({
         bottomMenuList: getBottomMenuList(),
-        route: KloudScreen.Main,
+        route: '',
       });
       console.log('bootInfo = ' + bootInfo);
       window.KloudEvent?.navigateMain(bootInfo)

@@ -9,7 +9,7 @@ import { GetNotificationResponse } from "@/app/endpoint/notification.endpoint";
 import { getMe } from "@/app/home/get.me.action";
 import Loading from "@/app/loading";
 
-export default function Home() {
+export default function Home({params}: { params: Promise<{ id: number, os: string }>}) {
 
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [notifications, setNotifications] = useState<GetNotificationResponse[]>([]);
@@ -44,7 +44,13 @@ export default function Home() {
   useEffect(() => {
     window.onDialogConfirm = async (data: GetEventResponse) => {
       if (data.route) {
-        window.KloudEvent.push(data.route)
+        const os = (await params).os
+        if (os == 'Android') {
+          window.KloudEvent.push(data.route)
+        }
+        else {
+          window.KloudEvent.rootNext(data.route)
+        }
       }
     }
   }, [])

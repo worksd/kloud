@@ -40,8 +40,7 @@ export default function PaymentButton({ lessonId, price, title, userId, os }: { 
             const bottomMenuList = getBottomMenuList();
             const bootInfo = JSON.stringify({
                 bottomMenuList: bottomMenuList,
-                route: KloudScreen.Main,
-                pushRoute: pushRoute,
+                route: pushRoute,
             });
             window.KloudEvent?.navigateMain(bootInfo);
             window.KloudEvent?.showToast(`${title} 결제에 성공했습니다.`)
@@ -62,7 +61,7 @@ export default function PaymentButton({ lessonId, price, title, userId, os }: { 
 
     return (
         <CommonSubmitButton originProps={{ onClick: handlePayment }}>
-            <p className="flex-grow-0 flex-shrink-0 text-base font-medium text-center text-white">
+            <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
                 {new Intl.NumberFormat("ko-KR").format(price)}원 결제하기
             </p>
         </CommonSubmitButton>
