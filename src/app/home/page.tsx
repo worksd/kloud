@@ -45,10 +45,10 @@ export default function Home({params}: { params: Promise<{ id: number, os: strin
     window.onDialogConfirm = async (data: GetEventResponse) => {
       if (data.route) {
         const os = (await params).os
-        if (os == 'Android') {
+        if (os === 'Android') {
           window.KloudEvent.push(data.route)
         }
-        else {
+        else if (os === 'iOS'){
           window.KloudEvent.rootNext(data.route)
         }
       }
