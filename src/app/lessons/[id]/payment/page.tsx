@@ -18,7 +18,10 @@ function SellerInfoItem({label, value}: { label: string; value: string; }) {
   </div>
 }
 
-export default async function LessonPaymentPage({params}: { params: Promise<{ id: number, os: string }> }) {
+export default async function LessonPaymentPage({params, searchParams}: {
+  params: Promise<{ id: number }>,
+  searchParams: Promise<{ os: string }>
+}) {
   const lesson = await getPaymentDetail({id: (await params).id})
 
   if ('id' in lesson) {
@@ -97,7 +100,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
 
               <div className="flex justify-between text-[10px] font-medium text-center text-[#86898c]">
                 <p>1회 수업권</p>
-                <p>{new Intl.NumberFormat("ko-KR").format(lesson.price?? 0)}원</p>
+                <p>{new Intl.NumberFormat("ko-KR").format(lesson.price ?? 0)}원</p>
               </div>
             </div>
 
@@ -147,7 +150,7 @@ export default async function LessonPaymentPage({params}: { params: Promise<{ id
 
         <div className="left-0 w-full h-fit fixed bottom-2 px-6">
           <PaymentButton
-            os={(await params).os}
+            os={(await searchParams).os}
             lessonId={lesson.id}
             price={lesson.price ?? 0}
             title={lesson.title ?? ''}
