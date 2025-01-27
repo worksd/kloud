@@ -42,3 +42,8 @@ export const Me: Endpoint<object, GetMeResponse> = {
   method: 'get',
   path: '/users/me',
 }
+
+export const DeleteUser: Endpoint<object, SimpleResponse> = {
+  method: 'delete',
+  path: `/users`,
+}

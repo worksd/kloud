@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GetEventResponse } from "@/app/endpoint/event.endpoint";
+import { DialogInfo } from "@/app/setting/setting.menu.item";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -47,7 +48,7 @@ declare global {
     onGoogleLoginSuccess: (data: { code: string }) => void;
     onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
     onErrorInvoked: (data: {code: string}) => void;
-    onDialogConfirm: (data: GetEventResponse) => void;
+    onDialogConfirm: (data: DialogInfo) => void;
     onHideDialogConfirm: (data: {id: string, clicked: boolean}) => void;
 
   }

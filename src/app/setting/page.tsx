@@ -1,11 +1,15 @@
 import { MenuItem } from "@/app/setting/setting.menu.item";
 import { cookies } from "next/headers";
-import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
+import { userIdKey } from "@/shared/cookies.key";
 import { api } from "@/app/api.client";
-import { redirect } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 
-export default async function Setting(){
+export default async function Setting({
+                                        searchParams
+                                      }: {
+  searchParams: Promise<{ os: string }>
+}) {
+  const os = (await searchParams).os
   const cookieStore = await cookies()
   const user = await api.user.get({
     id: Number(cookieStore.get(userIdKey)?.value)
@@ -22,8 +26,9 @@ export default async function Setting(){
         {/* 메뉴 리스트 */}
         <MenuItem label="구매내역" path={KloudScreen.Tickets}/>
         <MenuItem label="약관 및 정책" path={KloudScreen.Terms}/>
-        <MenuItem label="문의하기" path={KloudScreen.Inquiry} />
-        <MenuItem label="로그아웃" path="/logout" />
+        { os === 'Android' && <MenuItem label="문의하기" path={KloudScreen.Inquiry}/> }
+        <MenuItem label="로그아웃" path="/logout"/>
+        <MenuItem label="회원탈퇴" path="/signOut"/>
       </div>
     );
   }

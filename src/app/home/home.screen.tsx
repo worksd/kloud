@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetNotificationResponse } from "@/app/endpoint/notification.endpoint";
 import { getEventList } from "@/app/home/get.event.list.action";
-import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 import { hideDialogAction } from "@/app/home/hide.dialog.action";
 import { getMe } from "@/app/home/get.me.action";
 import { Poster } from "@/app/components/Poster";
+import { DialogInfo } from "@/app/setting/setting.menu.item";
 
 export default function HomeScreen({ os } : {os: string}) {
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
@@ -40,7 +40,7 @@ export default function HomeScreen({ os } : {os: string}) {
   }, []);
 
   useEffect(() => {
-    window.onDialogConfirm = async (data: GetEventResponse) => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.route) {
         if (os === 'Android') {
           window.KloudEvent.push(data.route)

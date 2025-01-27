@@ -4,6 +4,8 @@ import { onboardAction } from "@/app/onboarding/onboard.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { getBottomMenuList } from "@/utils";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
+import { getUserAction } from "@/app/onboarding/get.user.action";
 
 export const OnboardForm = () => {
   const [name, setName] = useState(""); // 이름 상태 관리
@@ -67,6 +69,21 @@ export const OnboardForm = () => {
       window.KloudEvent?.navigateMain(bootInfo)
     }
   }
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await getUserAction()
+        if (response) {
+          setName(response.name)
+        }
+      } catch (error) {
+        console.error('유저 정보를 불러오는데 실패했습니다:', error)
+      }
+    }
+
+    fetchUser()
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-white">

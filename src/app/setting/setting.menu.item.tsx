@@ -4,7 +4,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { clearToken } from "@/app/setting/clear.token.action";
 import RightArrowIcon from "../../../public/assets/right-arrow.svg"
 import { useEffect } from "react";
-import { GetEventResponse } from "@/app/endpoint/event.endpoint";
+import { deleteUserAction } from "@/app/setting/sign.out.action";
 
 export const MenuItem = ({label, path}: { label: string; path: string }) => {
 
@@ -19,20 +19,38 @@ export const MenuItem = ({label, path}: { label: string; path: string }) => {
       }
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
 
+    } else if (path === '/signOut') {
+      const dialogInfo = {
+        id: 'SignOut',
+        type: 'YESORNO',
+        title: '회원탈퇴',
+        message: "정말로 회원탈퇴 하시겠습니까?",
+        route: KloudScreen.Login,
+      }
+      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     } else {
       window.KloudEvent?.push(path);
     }
-  };
+  }
+
 
   useEffect(() => {
-    window.onDialogConfirm = async (data: GetEventResponse) => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
       console.log(data)
-      if (data.route) {
+      if (data.route && data.id == 'Logout') {
         await clearToken();
         localStorage.clear();
         sessionStorage.clear();
         window.KloudEvent?.clearToken()
         window.KloudEvent?.showToast('성공적으로 로그아웃하였습니다.')
+        window.KloudEvent.clearAndPush(data.route)
+      } else if (data.route && data.id == 'SignOut') {
+        await deleteUserAction();
+        await clearToken();
+        localStorage.clear();
+        sessionStorage.clear();
+        window.KloudEvent?.clearToken()
+        window.KloudEvent?.showToast('성공적으로 회원탈퇴하였습니다.')
         window.KloudEvent.clearAndPush(data.route)
       }
     }
@@ -48,3 +66,8 @@ export const MenuItem = ({label, path}: { label: string; path: string }) => {
     </div>
   );
 };
+
+export type DialogInfo = {
+  id: string;
+  route: string;
+}
