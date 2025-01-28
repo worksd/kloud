@@ -1,8 +1,6 @@
 'use client';
 import AppleLogo from "../../../public/assets/logo_apple.svg"
 import { useEffect, useState } from "react";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { getBottomMenuList } from "@/utils";
 import { appleLoginAction } from "@/app/login/action/apple.login.action";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 
@@ -10,8 +8,8 @@ const AppleLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
 
   useEffect(() => {
-    window.onAppleLoginSuccess = async (data: { code: string }) => {
-      const res = await appleLoginAction({code: data.code})
+    window.onAppleLoginSuccess = async (data: { code: string, name: string}) => {
+      const res = await appleLoginAction({code: data.code, name: data.name})
       loginAuthNavigation({
         status: res.status,
         window: window,

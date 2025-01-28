@@ -44,7 +44,7 @@ declare global {
     requestPayment: (command: string) => void;
 
     onKakaoLoginSuccess: (data: { code: string }) => void;
-    onAppleLoginSuccess: (data: { code: string }) => void;
+    onAppleLoginSuccess: (data: { code: string, name: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
     onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
     onErrorInvoked: (data: {code: string}) => void;

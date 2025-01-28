@@ -18,6 +18,7 @@ export type GetAuthTokenResponse = {
 export type SnsLoginParameter = {
   provider: SnsProvider;
   token: string;
+  name?: string;
 }
 
 export const GetAuthToken: Endpoint<
@@ -66,5 +67,5 @@ export const PostSignUpEmail: Endpoint<PostAuthEmailSignUpParameter, PostAuthLog
 export const PostSocialLogin: Endpoint<SnsLoginParameter, PostAuthLoginResponse> = {
   method: 'post',
   path: '/auth/social-login',
-  bodyParams: ['provider', 'token'],
+  bodyParams: ['provider', 'token', 'name'],
 }
