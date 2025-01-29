@@ -75,7 +75,7 @@ export const OnboardForm = () => {
       try {
         const response = await getUserAction()
         if (response) {
-          setName(response.name)
+          setName(response.name ?? '')
         }
       } catch (error) {
         console.error('유저 정보를 불러오는데 실패했습니다:', error)

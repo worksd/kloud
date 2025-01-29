@@ -10,7 +10,7 @@ export type GetUserParameter = {
 export type GetUserResponse = {
   id: number
   email: string
-  name: string
+  name?: string
   status: UserStatus
 }
 
