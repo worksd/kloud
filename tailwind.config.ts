@@ -21,8 +21,10 @@ const config: Config = {
           to: { transform: 'translateX(-100%)' }
         }
       },
+      fontFamily: {
+        paperlogy: ['var(--font-paperlogy)']
+      },
     },
-
   },
   plugins: [],
 };

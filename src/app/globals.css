@@ -135,3 +135,17 @@ body {
 html, body {
   @apply scrollbar-hide;
 }
+
+@keyframes scroll-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-scroll-reverse {
+  display: flex;
+  white-space: nowrap;
+  animation: scroll-reverse 10s linear infinite;
+}

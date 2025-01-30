@@ -12,6 +12,7 @@ export type GetUserResponse = {
   email: string
   name?: string
   status: UserStatus
+  profileImageUrl?: string
 }
 
 export type GetMeResponse = {

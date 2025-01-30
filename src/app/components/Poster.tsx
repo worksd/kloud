@@ -75,7 +75,7 @@ export const Poster = ({
           {title}
         </div>
         <div className="body-200 text-gray-500 truncate">
-          {`${formatDateTime(startTime).date} ${formatDateTime(startTime).time}`}
+          {`${formatDateTime(startTime).date}(${formatDateTime(startTime).dayOfWeek}) ${formatDateTime(startTime).time}`}
         </div>
       </div>
     </div>

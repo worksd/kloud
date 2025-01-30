@@ -11,6 +11,7 @@ export type TicketListResponse = {
 export type TicketResponse = {
   id: number;
   status: string;
+  paymentId: string;
   studio?: GetStudioResponse;
   lesson?: GetLessonResponse;
   user?: GetUserResponse;

@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
+import localFont from "next/font/local";
+
+const paperFont = localFont({
+  src: '../../public/fonts/Paperlogy-7Bold.ttf',
+  variable: '--font-paperlogy',
+  weight: '700'
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${paperFont.variable}`}>
     <body style={{backgroundColor: "white", color: "white"}}>
       {children}
     </body>

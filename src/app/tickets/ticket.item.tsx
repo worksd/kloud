@@ -56,7 +56,7 @@ export const TicketItem = ({item}: { item: TicketResponse }) => {
           {/* 일시 */}
           <div className={"flex flex-row items-center mb-1"}>
             <p className="text-[#86898C] text-[14px] font-medium">
-              {formattedTime.date} {formattedTime.time}
+              {formattedTime.date} ({formattedTime.dayOfWeek}) {formattedTime.time}
             </p>
             <p className="text-[#86898C] text-[12px] font-medium">
               /{item.lesson?.duration}분

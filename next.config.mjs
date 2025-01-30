@@ -4,13 +4,12 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'picsum.photos',
-        pathname: '/**',
+        hostname: '*',
       },
       {
-        protocol: "https",
-        hostname: "guinness.s3.ap-northeast-2.amazonaws.com",
-      },
+        protocol: 'http',
+        hostname: '*',
+      }
     ],
   },
   webpack: config => {
