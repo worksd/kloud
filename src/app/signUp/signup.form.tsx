@@ -47,6 +47,14 @@ export const SignupForm = () => {
     } else {
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(res.errorMessage ?? '')
+      } else {
+        const dialogInfo = {
+          id: 'Empty',
+          type: 'SIMPLE',
+          title: '회원가입 실패',
+          message: res.errorMessage,
+        }
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     }
   }
