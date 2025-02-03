@@ -22,6 +22,7 @@ export type CreateTicketParameter = {
   paymentId: string;
   lessonId: number;
   status: string;
+  depositor?: string;
 }
 
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
@@ -37,7 +38,7 @@ export const GetTicket: Endpoint<IdParameter, TicketResponse> = {
 export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
   method: 'post',
   path: `/tickets`,
-  bodyParams: ['paymentId', 'lessonId', 'status']
+  bodyParams: ['paymentId', 'lessonId', 'status', 'depositor']
 }
 
 export function convertStatusToMessage({status} : {status: string}) {

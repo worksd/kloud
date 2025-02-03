@@ -7,6 +7,7 @@ import { useState } from "react";
 
 const PaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: string, userId: string, }) => {
   const [selectedMethod, setSelectedMethod] = useState("신용카드");
+  const [depositor, setDepositor] = useState("");
 
   const paymentOptions = [
     { id: "credit", label: "신용카드" },
@@ -35,6 +36,25 @@ const PaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: stri
           </label>
         ))}
       </div>
+
+      {selectedMethod === '계좌이체' &&
+        <div className="flex flex-col space-y-3 p-4 text-black px-6">
+          {/* 입력 필드 */}
+          <div className="flex flex-col space-y-3 ">
+            <label className="text-base text-left font-bold">
+              입금자명 <span className="text-[#E55B5B] text-[14px] font-medium">필수</span>
+            </label>
+            <input
+              type="text"
+              placeholder="이름을 입력해 주세요"
+              className="border border-gray-300 rounded-lg p-4 text-[14px] w-full disabled:bg-gray-100
+             focus:border-black focus:text-black focus:outline-none"
+              value={depositor}
+              onChange={(e) => setDepositor(e.target.value)}
+            />
+          </div>
+        </div>
+      }
 
       <div className="py-5">
         <div className="w-full h-[1px] bg-[#F7F8F9] "/>
@@ -106,6 +126,7 @@ const PaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: stri
           price={lesson.price ?? 0}
           title={lesson.title ?? ''}
           userId={userId}
+          depositor={depositor}
         />
       </div>
     </div>

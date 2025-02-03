@@ -7,13 +7,14 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 
-export default function PaymentButton({lessonId, price, title, userId, os, method}: {
+export default function PaymentButton({lessonId, price, title, userId, os, method, depositor}: {
   lessonId: number,
   userId?: string,
   price: number,
   title: string,
   os: string,
-  method: string
+  method: string,
+  depositor: string,
 }) {
   const handlePayment = useCallback(async () => {
     if (method === '신용카드') {
@@ -38,16 +39,25 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
       }
       window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     } else if (method === '계좌이체') {
-      // TODO: 문구 수정
-      const dialogInfo = {
-        id: `Payment`,
-        type: 'YESORNO',
-        title: '계좌이체',
-        message: `${title} 수업의 수강권을 계좌이체로 구매하시겠습니까?\n\n수강권 : ${new Intl.NumberFormat("ko-KR").format(price)}원`,
+      if (depositor.length === 0) {
+        const info = {
+          id: 'Empty',
+          title: '계좌이체 안내',
+          type: 'SIMPLE',
+          message: '입금자명을 입력해주시길 바랍니다',
+        }
+        window.KloudEvent?.showDialog(JSON.stringify(info));
+      } else {
+        const dialogInfo = {
+          id: `Payment`,
+          type: 'YESORNO',
+          title: '계좌이체',
+          message: `${title} 수업의 수강권을 계좌이체로 구매하시겠습니까?\n\n수강권 : ${new Intl.NumberFormat("ko-KR").format(price)}원\n\n입금자명: ${depositor} \n\n(실제 입금자명과 다를 경우 확인이 어려울 수 있습니다)`,
+        }
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
-      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
-  }, [lessonId, method]);
+  }, [lessonId, method, depositor]);
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
@@ -80,7 +90,12 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
   useEffect(() => {
     window.onDialogConfirm = async (data: { id: string, route: string}) => {
       const paymentId = generatePaymentId(lessonId);
-      const res = await createTicketAction({paymentId: paymentId, lessonId: lessonId, status: 'Pending'});
+      const res = await createTicketAction({
+        paymentId: paymentId,
+        lessonId: lessonId,
+        status: 'Pending',
+        depositor: depositor,
+      });
       const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
       const bottomMenuList = getBottomMenuList();
       const bootInfo = JSON.stringify({
@@ -89,7 +104,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
       });
       window.KloudEvent?.navigateMain(bootInfo);
     }
-  }, [])
+  }, [depositor])
   return (
     <CommonSubmitButton originProps={{onClick: handlePayment}}>
       <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
