@@ -40,6 +40,10 @@ export class ApiClient extends EndpointClient {
     delete: this.endpointBuilder(API.StudioFollow.UnFollow),
   }
 
+  readonly question = {
+    create: this.endpointBuilder(API.Question.CreateQuestion)
+  }
+
   readonly event = {
     list: this.endpointBuilder(API.Event.GetEventList),
   }

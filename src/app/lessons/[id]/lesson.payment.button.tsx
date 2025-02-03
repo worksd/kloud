@@ -17,7 +17,7 @@ const LessonPaymentButton = ({ id, ticketData }: LessonPaymentButtonProps) => {
 
     const handleOnClick = useCallback(() => {
         const isPaid = ticketData != null;
-        const screen = isPaid ? KloudScreen.TicketDetail(ticketData.id) : KloudScreen.LessonPayment(id);
+        const screen = isPaid ? KloudScreen.TicketDetail(ticketData.id, false) : KloudScreen.LessonPayment(id);
 
         if (window.KloudEvent) {
             window.KloudEvent.push(screen);

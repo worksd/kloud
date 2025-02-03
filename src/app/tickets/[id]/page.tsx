@@ -8,9 +8,12 @@ import Logo from "../../../../public/assets/logo_white.svg"
 import StampCancel from "../../../../public/assets/stamp_cancel.svg"
 import StampUsed from "../../../../public/assets/stamp_used.svg"
 import StampNotPaid from "../../../../public/assets/stamp_not_paid.svg"
-import React from "react";
+import PaymentQuestionPopup from "@/app/tickets/[id]/ArtistQuestionDialog";
 
-export default async function TicketDetail({params}: { params: Promise<{ id: number }> }) {
+export default async function TicketDetail({params, searchParams}: {
+  params: Promise<{ id: number }>,
+  searchParams: Promise<{ isJustPaid: string }>
+}) {
   const ticket = await api.ticket.get({id: (await params).id});
   if ('id' in ticket) {
     const startTime = formatDateTime(ticket.lesson?.startTime ?? '');
@@ -161,7 +164,15 @@ export default async function TicketDetail({params}: { params: Promise<{ id: num
             </div>
           </div>
         }
+        {/* 결제 완료 팝업 */}
+        <div className={"z-10"}>
+          {(await searchParams).isJustPaid === "true" && (
+            <PaymentQuestionPopup title={ticket.lesson?.title ?? ''} lessonId={ticket.lesson?.id ?? 0}
+                                  studioId={ticket.lesson?.studio?.id ?? 0}/>
+          )}
+        </div>
       </div>
+
     );
   } else {
     return <Loading/>;

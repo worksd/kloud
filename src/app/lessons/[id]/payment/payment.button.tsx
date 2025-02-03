@@ -53,7 +53,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId, status: 'Paid'});
       console.log(res)
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0) : null // TODO: API 못쐈을때 이벤트 처리
+      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null // TODO: API 못쐈을때 이벤트 처리
       console.log(pushRoute)
       const bottomMenuList = getBottomMenuList();
       const bootInfo = JSON.stringify({
@@ -81,7 +81,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
     window.onDialogConfirm = async (data: { id: string, route: string}) => {
       const paymentId = generatePaymentId(lessonId);
       const res = await createTicketAction({paymentId: paymentId, lessonId: lessonId, status: 'Pending'});
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0) : null
+      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
       const bottomMenuList = getBottomMenuList();
       const bootInfo = JSON.stringify({
         bottomMenuList: bottomMenuList,

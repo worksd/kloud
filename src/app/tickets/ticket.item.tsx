@@ -7,7 +7,7 @@ import { formatDateTime } from "@/utils/date.format";
 
 export const TicketItem = ({item}: { item: TicketResponse }) => {
   const onClickTicket = () => {
-    window.KloudEvent?.push(KloudScreen.TicketDetail(item.id))
+    window.KloudEvent?.push(KloudScreen.TicketDetail(item.id, false))
   }
   const formattedTime = formatDateTime(item.lesson?.startTime ?? '')
 

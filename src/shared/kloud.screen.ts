@@ -13,6 +13,6 @@ export const KloudScreen = {
   Tickets: '/tickets',
   LessonDetail: (id: number) => `/lessons/${id}`,
   LessonPayment: (id: number) => `/lessons/${id}/payment`,
-  TicketDetail: (id: number) => `/tickets/${id}`,
+  TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
   StudioDetail: (id: number) => `/studios/${id}`,
 } as const;

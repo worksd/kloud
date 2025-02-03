@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Image from 'next/image';
 import Dim from "@/app/components/Dim";
 
 export enum PopupType {
@@ -16,7 +15,7 @@ interface PopupProps {
   onClose?: () => void;
 }
 
-const PopupDialog = ({ popupType, title, message, buttonText, onClose }: PopupProps) => {
+const PopupDialog = ({popupType, title, message, buttonText, onClose}: PopupProps) => {
   const [isClosed, setIsClosed] = useState(false);
   const handleClickClose = () => {
     if (onClose) {
@@ -38,15 +37,6 @@ const PopupDialog = ({ popupType, title, message, buttonText, onClose }: PopupPr
           ? 'bg-red-950'
           : 'bg-gray-800';
 
-  // const popupIcon =
-  //   popupType === PopupType.INFO ? (
-  //     <Image src={'/images/info.png'} alt={'정보'} width={64} height={64} className={'w-6'} />
-  //   ) : popupType === PopupType.WARNING ? (
-  //     <Image src={'/images/warning.png'} alt={'경고'} width={64} height={64} className={'w-4'} />
-  //   ) : popupType === PopupType.ERROR ? (
-  //     <Image src={'/images/error.png'} alt={'오류'} width={64} height={64} className={'w-4'} />
-  //   ) : null;
-
   return (
     <Dim>
       <section
@@ -54,7 +44,6 @@ const PopupDialog = ({ popupType, title, message, buttonText, onClose }: PopupPr
       >
         <header className={'flex justify-center items-center text-xl'}>
           <h1 className={'mr-2'}>{`${title ? title : '알림'}`}</h1>
-          {/*{popupIcon}*/}
         </header>
         <main className={'flex flex-col justify-center items-center'}>
           {message.split('\n').map((line, index) => (
