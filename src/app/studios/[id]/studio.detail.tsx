@@ -85,7 +85,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
             before:from-[65%]
             before:to-white
             before:to-100%
-            before:z-[2]"
+            before:z-25"
       >
         <div className="w-full pl-6 box-border items-center gap-3 inline-flex absolute bottom-0 z-20">
           <div className="w-[60px] h-[60px] rounded-full overflow-hidden flex-shrink-0">
@@ -110,6 +110,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
               {follow ? '팔로잉' : '팔로우'}
             </div>
           </div>
+
         </div>
       </div>
 

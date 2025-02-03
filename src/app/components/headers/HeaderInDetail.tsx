@@ -46,7 +46,7 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
     return (
       <div
         ref={headerRef}
-        className={`w-full h-14 px-6 fixed top-0 left-0 z-10 transition-colors grid grid-cols-3 items-center ${
+        className={`w-full h-14 px-6 fixed top-0 left-0 z-30 transition-colors grid grid-cols-3 items-center ${
           isScrolled ? "bg-white" : "bg-transparent"
         }`}
       >
