@@ -21,6 +21,7 @@ export type TicketResponse = {
 export type CreateTicketParameter = {
   paymentId: string;
   lessonId: number;
+  status: string;
 }
 
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
@@ -36,11 +37,12 @@ export const GetTicket: Endpoint<IdParameter, TicketResponse> = {
 export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
   method: 'post',
   path: `/tickets`,
-  bodyParams: ['paymentId', 'lessonId']
+  bodyParams: ['paymentId', 'lessonId', 'status']
 }
 
 export function convertStatusToMessage({status} : {status: string}) {
-  if (status === 'Ready' || status == 'Completed') return '구매완료'
+  if (status === 'Paid') return '구매완료'
     else if (status == 'Cancelled') return '구매취소'
+    else if (status == 'Pending') return '결제대기'
   else return ''
 }

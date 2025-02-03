@@ -7,6 +7,7 @@ import { Thumbnail } from "@/app/components/Thumbnail";
 import Logo from "../../../../public/assets/logo_white.svg"
 import StampCancel from "../../../../public/assets/stamp_cancel.svg"
 import StampUsed from "../../../../public/assets/stamp_used.svg"
+import StampNotPaid from "../../../../public/assets/stamp_not_paid.svg"
 import React from "react";
 
 export default async function TicketDetail({params}: { params: Promise<{ id: number }> }) {
@@ -22,28 +23,56 @@ export default async function TicketDetail({params}: { params: Promise<{ id: num
 
         <div className="flex flex-col p-6">
           <div className="flex flex-row mt-5 rounded-[16px] bg-black p-6 items-center">
-            <Image
-              className="w-[42px] h-[42px] rounded-full overflow-hidden flex-shrink-0 border border-[#F7F8F9]"
-              src={ticket.user?.profileImageUrl ?? ''}
-              alt={'로고 URL'}
-              width={42}
-              height={42}
-            />
+
             {ticket.status == 'Cancelled' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
-            <div className="flex flex-col ml-3">
-              <div className="font-bold text-[18px]">
-                {ticket.user?.name}
+            {ticket.status === "Pending" && (
+              <div className="flex flex-col p-4 border rounded-lg bg-gray-100 justify-center">
+                <div className="text-sm font-bold text-gray-700">{ticket.lesson?.title}</div>
+                <div className="text-sm font-bold text-gray-700">아래 계좌로 입금해 주시면 확인 후 구매 결정해드리겠습니다.</div>
+                <div className="text-sm font-bold text-gray-700">신청해주셔서 감사합니다.</div>
+
+                <div className="flex flex-col mt-2 p-3 bg-white rounded-lg shadow">
+                  <div className="text-gray-500 text-sm">예금주</div>
+                  <div className="font-bold text-lg text-black">(주)웍스앤피플</div>
+
+                  <div className="text-gray-500 text-sm">은행명</div>
+                  <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.bank}</div>
+
+                  <div className="mt-2 text-gray-500 text-sm">계좌번호</div>
+                  <div className="font-medium text-base text-black">{ticket.lesson?.studio?.accountNumber}</div>
+
+                  <div className="mt-4 text-gray-500 text-sm">입금 금액</div>
+                  <div className="font-bold text-xl text-red-500">
+                    {new Intl.NumberFormat("ko-KR").format(ticket.lesson?.price ?? 0)}원
+                  </div>
+                </div>
               </div>
-              <div className="font-medium text-[14px]">
-                {ticket.user?.email}
-              </div>
-            </div>
+            )}
+            {ticket.status != 'Pending' &&
+              <div className={"flex flex-row items-center"}>
+                <Image
+                  className="w-[42px] h-[42px] rounded-full overflow-hidden flex-shrink-0 border border-[#F7F8F9]"
+                  src={ticket.user?.profileImageUrl ?? ''}
+                  alt={'로고 URL'}
+                  width={42}
+                  height={42}
+                />
+                <div className="flex flex-col ml-3">
+                  <div className="font-bold text-[18px]">
+                    {ticket.user?.name}
+                  </div>
+                  <div className="font-medium text-[14px]">
+                    {ticket.user?.email}
+                  </div>
+                </div>
+              </div>}
+
           </div>
 
           <div className="flex flex-col mt-0.5 relative">
             <Thumbnail url={ticket.lesson?.thumbnailUrl ?? ''}/>
             <div className="absolute inset-0 bg-black/65 rounded-[16px]"/>
-            {ticket.status == 'Cancelled' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
+            {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
 
             <div className={"absolute inset-x-0 px-6"}>
               <div className={"mt-9 text-[12px] text-white font-bold font-paperlogy"}>
@@ -84,7 +113,7 @@ export default async function TicketDetail({params}: { params: Promise<{ id: num
             <div className="absolute -right-4 top-0 w-8 h-8 bg-white rounded-full -translate-y-1/2"/>
             <div className="absolute -left-4 top-0 w-8 h-8 bg-white rounded-full -translate-y-1/2"/>
             <div className={"absolute right-0 bottom-0 text-red-400"}>
-              {ticket.status == 'Ready' && <div>
+              {ticket.status == 'Paid' && <div>
                 <div className="w-[40px] h-[40px] rounded-full overflow-hidden flex-shrink-0 m-6">
                   <Image
                     src={ticket.lesson?.studio?.profileImageUrl ?? ''}
@@ -102,13 +131,18 @@ export default async function TicketDetail({params}: { params: Promise<{ id: num
               </div>}
               {ticket.status == 'Used' && <div>
                 <div className="w-[160px] h-[160px] overflow-hidden flex-shrink-0 m-6">
-                  <StampUsed/>
+                  <StampUsed className={"scale-75"}/>
+                </div>
+              </div>}
+              {ticket.status == 'Pending' && <div>
+                <div className="overflow-hidden flex-shrink-0">
+                  <StampNotPaid className="scale-75"/>
                 </div>
               </div>}
             </div>
           </div>
         </div>
-        {ticket.status !== 'Cancelled' && ticket.status !== 'Used' &&
+        {ticket.status === 'Paid' &&
           <div className="absolute bottom-0 w-full overflow-hidden bg-black py-1">
             <div className="flex animate-scroll-reverse">
               <div className="flex shrink-0">

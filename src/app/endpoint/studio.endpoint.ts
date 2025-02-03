@@ -15,6 +15,8 @@ export type GetStudioResponse = {
     phone?: string;
     youtubeUrl?: string;
     businessName?: string;
+    bank?: string;
+    accountNumber?: string;
     businessRegistrationNumber?: string;
     eCommerceRegNumber?: string;
     educationOfficeRegNumber?: string;
