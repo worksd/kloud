@@ -1,14 +1,29 @@
 'use client'
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { onboardAction } from "@/app/onboarding/onboard.action";
 import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { clearToken } from "@/app/setting/clear.token.action";
+import { getUserAction } from "@/app/onboarding/get.user.action";
 
-export const DeactivateScreen = ({user}: {user: GetUserResponse}) => {
+export const DeactivateScreen = () => {
+
+  const [user, setUser] = useState<GetUserResponse | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setUser(await getUserAction())
+      } catch (error) {
+        console.error('유저 정보를 불러오는데 실패했습니다:', error)
+      }
+    }
+
+    fetchUser()
+  }, []);
 
 
   const handleActivate = async () => {
@@ -32,7 +47,7 @@ export const DeactivateScreen = ({user}: {user: GetUserResponse}) => {
       {/* 메인 컨텐츠 */}
       <div className="flex-1 p-6 text-black">
         <h1 className="text-2xl font-bold mt-14 mb-8">
-          {user.name}님, 다시보니 반가워요!<br/>
+          {user?.name}님, 다시보니 반가워요!<br/>
           잘..지내셨나요?
         </h1>
 
@@ -42,16 +57,16 @@ export const DeactivateScreen = ({user}: {user: GetUserResponse}) => {
           <div className="flex items-center space-x-4 mb-5">
             <div className="w-[50px] h-[50px] rounded-full overflow-hidden flex-shrink-0">
               <Image
-                src={user.profileImageUrl ?? ''}
-                alt={user.name ?? ''}
+                src={user?.profileImageUrl ?? ''}
+                alt={user?.name ?? ''}
                 width={50}
                 height={50}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
-              <div className="font-bold text-[20px]">{user.name}</div>
-              <div className="text-[#86898C] font-medium text-[14px]">{user.email}</div>
+              <div className="font-bold text-[20px]">{user?.name}</div>
+              <div className="text-[#86898C] font-medium text-[14px]">{user?.email}</div>
             </div>
           </div>
 
@@ -62,7 +77,7 @@ export const DeactivateScreen = ({user}: {user: GetUserResponse}) => {
           {/* 탈퇴 일시 */}
           <div className="flex flex-row space-x-4 mt-5">
             <div className="text-[#86898C] font-bold mb-1">탈퇴일시</div>
-            <div className="font-medium">{user.deactivatedAt}</div>
+            <div className="font-medium">{user?.deactivatedAt}</div>
           </div>
 
           {/* 안내 텍스트 */}
