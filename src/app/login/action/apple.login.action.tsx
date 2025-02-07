@@ -24,6 +24,7 @@ export const appleLoginAction = async ({code, name}: { code: string, name: strin
     return {
       success: false,
       errorMessage: res.message,
+      errorCode: res.code,
     }
   }
 }

@@ -22,6 +22,7 @@ export const googleLoginAction = async ({code}: { code: string }): Promise<Route
   } else {
     return {
       success: false,
+      errorCode: res.code,
       errorMessage: res.message,
     }
   }

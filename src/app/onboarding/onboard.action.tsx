@@ -7,7 +7,7 @@ import { UserType } from "@/entities/user/user.type";
 import { RoutePageParams } from "@/app/login/action/google.login.action";
 import { UserStatus } from "@/entities/user/user.status";
 
-export const onboardAction = async ({name}: { name: string }): Promise<RoutePageParams> => {
+export const onboardAction = async ({name}: { name?: string }): Promise<RoutePageParams> => {
 
   try {
     const userId = Number((await cookies()).get(userIdKey)?.value)

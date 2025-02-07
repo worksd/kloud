@@ -19,12 +19,15 @@ export const MenuItem = ({label, path}: { label: string; path: string }) => {
       }
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
 
-    } else if (path === '/signOut') {
+    } else if (path === '/deactivate') {
+      window.KloudEvent?.push(KloudScreen.SignOut)
+    } else if (path === '/profileEdit' || path == '/notification') {
+      // TODO: 구현
       const dialogInfo = {
-        id: 'SignOut',
-        type: 'YESORNO',
-        title: '회원탈퇴',
-        message: "정말로 회원탈퇴 하시겠습니까?",
+        id: 'ProfileEdit',
+        type: 'SIMPLE',
+        title: '프로필 수정',
+        message: "개발 중인 메뉴입니다. 조금만 기다려주세요!",
         route: KloudScreen.Login,
       }
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
@@ -43,14 +46,6 @@ export const MenuItem = ({label, path}: { label: string; path: string }) => {
         sessionStorage.clear();
         window.KloudEvent?.clearToken()
         window.KloudEvent?.showToast('성공적으로 로그아웃하였습니다.')
-        window.KloudEvent.clearAndPush(data.route)
-      } else if (data.route && data.id == 'SignOut') {
-        await deleteUserAction();
-        await clearToken();
-        localStorage.clear();
-        sessionStorage.clear();
-        window.KloudEvent?.clearToken()
-        window.KloudEvent?.showToast('성공적으로 회원탈퇴하였습니다.')
         window.KloudEvent.clearAndPush(data.route)
       }
     }

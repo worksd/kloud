@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import emailLoginAction from "@/app/login/email.login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
@@ -7,6 +7,7 @@ import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 import { UserStatus } from "@/entities/user/user.status";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import { clearToken } from "@/app/setting/clear.token.action";
 
 export const LoginForm = () => {
 
@@ -59,6 +60,16 @@ export const LoginForm = () => {
       }
     }
   }
+
+  useEffect(() => {
+    const clear = async () => {
+      await clearToken();
+    }
+    clear();
+    localStorage.clear();
+    sessionStorage.clear();
+    window.KloudEvent?.clearToken()
+  }, []);
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 

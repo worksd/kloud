@@ -12,6 +12,9 @@ export const loginAuthNavigation = ({status, message, window}: {status?: UserSta
     console.log('bootInfo = ' + bootInfo);
     window.KloudEvent?.navigateMain(bootInfo)
   }
+  else if (status == UserStatus.Deactivate) {
+    window.KloudEvent?.clearAndPush(KloudScreen.LoginDeactivate)
+  }
   else if (status == UserStatus.New) {
     window.KloudEvent?.clearAndPush(KloudScreen.Onboard)
   } else {
