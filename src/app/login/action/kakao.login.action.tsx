@@ -21,9 +21,11 @@ export const kakaoLoginAction = async ({code}: { code: string }): Promise<RouteP
       status: res.user.status,
     }
   } else {
+    console.log(res.code)
     return {
       success: false,
       errorMessage: res.message,
+      errorCode: res.code,
     }
   }
 }

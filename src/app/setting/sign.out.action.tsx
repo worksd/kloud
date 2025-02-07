@@ -1,10 +1,6 @@
 'use server'
 import { api } from "@/app/api.client";
 
-export const deleteUserAction = async () => {
-  try {
-    await api.user.delete({})
-  } catch (e) {
-    console.log(e)
-  }
+export const deleteUserAction = async ({reason} : {reason: string}) => {
+  return await api.user.delete({ reason })
 }

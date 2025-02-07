@@ -13,11 +13,16 @@ export type GetUserResponse = {
   name?: string
   status: UserStatus
   profileImageUrl?: string
+  deactivatedAt: string
 }
 
 export type GetMeResponse = {
   id: number
   lessons?: GetLessonResponse[],
+}
+
+export type SignOutParameter = {
+  reason: string
 }
 
 export const GetUser: Endpoint<GetUserParameter, GetUserResponse> = {
@@ -28,7 +33,7 @@ export const GetUser: Endpoint<GetUserParameter, GetUserResponse> = {
 
 export type PatchUserParameter = {
   id: number
-  name: string
+  name?: string
   type: UserType
 }
 
@@ -44,7 +49,8 @@ export const Me: Endpoint<object, GetMeResponse> = {
   path: '/users/me',
 }
 
-export const DeleteUser: Endpoint<object, SimpleResponse> = {
+export const DeleteUser: Endpoint<SignOutParameter, SimpleResponse> = {
   method: 'delete',
   path: `/users`,
+  bodyParams: ['reason']
 }
