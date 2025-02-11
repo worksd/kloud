@@ -84,8 +84,8 @@ export default async function TicketDetail({params, searchParams}: {
               <div className={"text-[26px] text-white font-bold"}>
                 {ticket.lesson?.title}
               </div>
-              <div className="mt-4 w-full h-[1px] bg-[#f7f8f9]"/>
-              <div className="mt-4 grid gap-y-3">
+              <div className="mt-3 w-full h-[1px] bg-[#f7f8f9]"/>
+              <div className="mt-3 grid gap-y-2">
                 <div>
                   <p className="text-[#D9D9E3] font-medium text-[12px]">날짜</p>
                   <p className="text-white font-medium text-[18px]">{startTime.date}</p>
