@@ -9,6 +9,9 @@ import { getBottomMenuList } from "@/utils";
 export const SplashScreen = () => {
   useEffect(() => {
     setTimeout(async () => {
+      if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
+        window.KloudEvent?.clearAndPush(KloudScreen.Maintenance)
+      }
       const res = await authToken()
       const status = res.status
 
@@ -19,10 +22,8 @@ export const SplashScreen = () => {
           : status === UserStatus.Ready
             ? KloudScreen.Main : KloudScreen.Login
 
-      if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
-        window.KloudEvent?.clearAndPush(KloudScreen.Maintenance)
-      }
-      else if (route == KloudScreen.Main) {
+
+      if (route == KloudScreen.Main) {
         const bootInfo = JSON.stringify({
           bottomMenuList: getBottomMenuList(),
           route: '',
