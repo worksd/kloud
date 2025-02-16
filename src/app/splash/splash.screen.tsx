@@ -19,7 +19,10 @@ export const SplashScreen = () => {
           : status === UserStatus.Ready
             ? KloudScreen.Main : KloudScreen.Login
 
-      if (route == KloudScreen.Main) {
+      if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
+        window.KloudEvent?.clearAndPush(KloudScreen.Maintenance)
+      }
+      else if (route == KloudScreen.Main) {
         const bootInfo = JSON.stringify({
           bottomMenuList: getBottomMenuList(),
           route: '',
