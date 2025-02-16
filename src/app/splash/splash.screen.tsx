@@ -11,6 +11,7 @@ export const SplashScreen = () => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
         window.KloudEvent?.clearAndPush(KloudScreen.Maintenance)
+        return
       }
       const res = await authToken()
       const status = res.status
