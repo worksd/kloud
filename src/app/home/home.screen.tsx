@@ -14,6 +14,9 @@ import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action
 import { StudioItems } from "@/app/search/StudioItems";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default function HomeScreen({os}: { os: string }) {
   const [jumbotrons, setJumbotrons] = useState<GetLessonResponse[]>([]);
@@ -168,41 +171,50 @@ export default function HomeScreen({os}: { os: string }) {
 
       <section>
         {announcements && announcements.length > 0 && (
-          <div className={"flex flex-col"}>
+          <div className="flex flex-col">
             <div className="p-4">
-              <div className="text-[20px] text-black font-bold">스튜디오 공지사항</div>
+              <div className="text-[20px] text-black font-bold">
+                스튜디오 공지사항
+              </div>
             </div>
-            <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-              {announcements.map((item: GetAnnouncementResponse) => (
-                <div
-                  key={item.id}
-                  className="min-w-[calc(100vw-32px)] snap-start pl-4 pr-4" // 오른쪽 패딩 추가
-                >
-                  <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 mr-4"> {/* flex-1과 우측 마진 추가 */}
-                        <div className="flex items-center gap-2">
-                          <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
-                            <img
-                              src={item.studio.profileImageUrl}
-                              alt={"스튜디오"}
-                              className="w-full h-full object-cover"
-                            />
+
+            <Swiper
+              simulateTouch={true}
+              grabCursor={true}
+              centeredSlides={true}
+              modules={[Navigation, Pagination, Autoplay]}
+            >
+              {announcements?.map((item, index) => (
+                <SwiperSlide key={index}>
+                  <div className="px-4" onClick={() => window.KloudEvent?.push(KloudScreen.StudioDetail(item.studio.id))}> {/* 좌우 패딩 추가 */}
+                    <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 mr-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
+                              <img
+                                src={item.studio.profileImageUrl}
+                                alt="스튜디오"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="font-bold text-black text-[14px]">
+                        {item.studio.name}
+                      </span>
                           </div>
-                          <span className="font-bold text-black text-[14px]">{item.studio.name}</span>
+                          <p className="text-[#667085] mt-2 text-[14px]">
+                            {item.body}
+                          </p>
                         </div>
-                        <p className="text-[#667085] mt-2 text-[14px]">
-                          {item.body}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0"> {/* flex-shrink-0 추가 */}
-                        <AnnouncementIcon/>
+                        <div className="flex-shrink-0">
+                          <AnnouncementIcon/>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         )}
       </section>
