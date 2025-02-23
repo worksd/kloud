@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect } from "react";
-import { GetNotificationResponse, NotificationType } from "@/app/endpoint/notification.endpoint";
+import { GetNotificationResponse } from "@/app/endpoint/notification.endpoint";
 import Image from "next/image";
 
 export default function NotificationForm({notifications}: { notifications: GetNotificationResponse[] }) {
@@ -20,13 +20,7 @@ export default function NotificationForm({notifications}: { notifications: GetNo
               key={notification.id}
               className="flex flex-row p-4 border-b border-gray-100 gap-3 cursor-pointer active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
               onClick={() => {
-                const route = convertDataToRoute({
-                  type: notification.type,
-                  dataId: notification.dataId
-                })
-                if (route) {
-                  window.KloudEvent?.push(route)
-                }
+                  window.KloudEvent?.push(notification.route);
               }}
             >
               {/* 썸네일 */}
@@ -90,10 +84,4 @@ function EmptyNotifications() {
       <p className="text-gray-500 text-[16px]">알림이 오면 여기서 확인할 수 있어요</p>
     </div>
   );
-}
-
-function convertDataToRoute({type, dataId}: { type: NotificationType, dataId: string }) {
-  if (type == NotificationType.LessonUpcoming) {
-    return `/lessons/${dataId}`
-  } else return null
 }
