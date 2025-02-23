@@ -125,9 +125,10 @@ export default function HomeScreen({os}: { os: string }) {
 
         {lessons && lessons.length > 0 && (
           <div className="flex scrollbar-hide">
-            {lessons.map((item: GetLessonResponse) => (
+            {lessons.map((item: GetLessonResponse, index: number) => (
               <div
                 key={item.id}
+                className={index === 0 ? 'pl-4' : ''}  // 첫 번째 아이템에만 왼쪽 패딩
               >
                 <Poster
                   width={167}

@@ -9,5 +9,7 @@ export const unregisterDeviceAction = async () => {
     return await api.device.unregister({
       udid: deviceId
     })
+  } else {
+    console.log(`deviceId not found`)
   }
 }
