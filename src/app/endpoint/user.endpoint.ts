@@ -2,6 +2,7 @@ import { UserStatus } from "@/entities/user/user.status";
 import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
 import { GetLessonResponse, LessonListResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetUserParameter = {
   id: number
@@ -21,6 +22,14 @@ export type GetUserResponse = {
 export type GetMeResponse = {
   id: number
   lessons?: GetLessonResponse[],
+  announcements: GetAnnouncementResponse[],
+}
+
+export type GetAnnouncementResponse = {
+  id: number
+  title: string
+  body: string
+  studio: GetStudioResponse,
 }
 
 export type SignOutParameter = {

@@ -1,7 +1,6 @@
 'use client'
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
-import { GetNotificationResponse } from "@/app/endpoint/notification.endpoint";
 import { getEventList } from "@/app/home/get.event.list.action";
 import { hideDialogAction } from "@/app/home/hide.dialog.action";
 import { getMe } from "@/app/home/get.me.action";
@@ -9,16 +8,18 @@ import { Poster } from "@/app/components/Poster";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { registerDeviceAction } from "@/app/home/action/register.device.action";
 import CardList from "@/app/components/Carousel";
+import AnnouncementIcon from "../../../public/assets/announcement-right-arrow.svg"
 import { getJumbotronList } from "@/app/home/action/get.jumbotron.list";
 import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
 import { StudioItems } from "@/app/search/StudioItems";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 
 export default function HomeScreen({os}: { os: string }) {
   const [jumbotrons, setJumbotrons] = useState<GetLessonResponse[]>([]);
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [studios, setStudios] = useState<GetStudioResponse[]>([]);
-  const [notifications, setNotifications] = useState<GetNotificationResponse[]>([]);
+  const [announcements, setAnnouncements] = useState<GetAnnouncementResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +40,6 @@ export default function HomeScreen({os}: { os: string }) {
           }
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
         }
-
       } catch (error) {
         console.error('이벤트 로딩 중 에러 발생:', error);
       }
@@ -81,6 +81,8 @@ export default function HomeScreen({os}: { os: string }) {
         setIsLoading(false);
 
         setLessons(me.lessons ?? [])
+
+        setAnnouncements(me.announcements ?? [])
 
       } catch (error) {
         setIsLoading(false);
@@ -162,6 +164,47 @@ export default function HomeScreen({os}: { os: string }) {
       </section>
       <section>
         <StudioItems studios={studios?.slice(0, 5) ?? []}/>
+      </section>
+
+      <section>
+        {announcements && announcements.length > 0 && (
+          <div className={"flex flex-col"}>
+            <div className="p-4">
+              <div className="text-[20px] text-black font-bold">스튜디오 공지사항</div>
+            </div>
+            <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
+              {announcements.map((item: GetAnnouncementResponse) => (
+                <div
+                  key={item.id}
+                  className="min-w-[calc(100vw-32px)] snap-start pl-4 pr-4" // 오른쪽 패딩 추가
+                >
+                  <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 mr-4"> {/* flex-1과 우측 마진 추가 */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
+                            <img
+                              src={item.studio.profileImageUrl}
+                              alt={"스튜디오"}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className="font-bold text-black text-[14px]">{item.studio.name}</span>
+                        </div>
+                        <p className="text-[#667085] mt-2 text-[14px]">
+                          {item.body}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0"> {/* flex-shrink-0 추가 */}
+                        <AnnouncementIcon/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
