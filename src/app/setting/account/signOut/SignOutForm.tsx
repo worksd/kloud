@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import CheckIcon from "../../../../../public/assets/check_white.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
-import { clearToken } from "@/app/setting/clear.token.action";
+import { clearCookies } from "@/app/setting/clear.token.action";
 import { deleteUserAction } from "@/app/setting/sign.out.action";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
@@ -51,7 +51,7 @@ export default function SignOutForm() {
         });
         if ('success' in res && res.success) {
           await unregisterDeviceAction()
-          await clearToken();
+          await clearCookies();
           localStorage.clear();
           sessionStorage.clear();
           window.KloudEvent?.clearToken()
