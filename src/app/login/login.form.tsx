@@ -64,11 +64,11 @@ export const LoginForm = () => {
   useEffect(() => {
     const clear = async () => {
       await clearToken();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.KloudEvent?.clearToken()
     }
     clear();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.KloudEvent?.clearToken()
   }, []);
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";

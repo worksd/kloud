@@ -6,6 +6,7 @@ import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
+import { getUserAction } from "@/app/onboarding/get.user.action";
 
 export default function PaymentButton({lessonId, price, title, userId, os, method, depositor}: {
   lessonId: number,
@@ -17,6 +18,15 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
   depositor: string,
 }) {
   const handlePayment = useCallback(async () => {
+
+    const user = await getUserAction()
+    if (!user) return;
+
+    if (!user.phone) {
+      window.KloudEvent?.fullSheet(KloudScreen.Certification)
+      return;
+    }
+
     if (method === '신용카드') {
       const paymentInfo = os == 'Android' ? {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',

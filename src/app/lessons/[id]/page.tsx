@@ -7,6 +7,7 @@ import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
 import LessonInfoSection from "./lesson.info.section";
 import LessonPaymentButton from "./lesson.payment.button";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
+import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -37,7 +38,7 @@ export default async function LessonDetail({ params }: Props) {
     }
 
     return (
-        <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
+        <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
             {/* 헤더 */}
             <HeaderInDetail title={data.title} />
 
@@ -71,13 +72,7 @@ export default async function LessonDetail({ params }: Props) {
                     {/* 수업명 */}
                     <div className="self-stretch px-6 flex-col justify-start items-start gap-2.5 flex">
                         <div className="self-stretch justify-between items-start inline-flex">
-                            <Image
-                              className="relative rounded-full border border-[#f7f8f9] w-6 h-6 box-border object-cover object-center"
-                              src={data.studio?.profileImageUrl ?? ''}
-                              alt={`${data.studio?.name} 스튜디오`}
-                              width={24}
-                              height={24}
-                            />
+                            <StudioProfileImage studio={data.studio}/>
                             <div className="justify-center items-start gap-[3px] flex">
                                 <div
                                   className="self-stretch px-2 py-1 bg-black rounded-xl justify-center items-center gap-2.5 inline-flex">

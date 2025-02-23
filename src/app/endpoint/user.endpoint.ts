@@ -11,9 +11,11 @@ export type GetUserResponse = {
   id: number
   email: string
   name?: string
+  nickName?: string
   status: UserStatus
   profileImageUrl?: string
   deactivatedAt: string
+  phone?: string
 }
 
 export type GetMeResponse = {
@@ -34,13 +36,15 @@ export const GetUser: Endpoint<GetUserParameter, GetUserResponse> = {
 export type PatchUserParameter = {
   id: number
   name?: string
+  nickName?: string
   type: UserType
+  phone?: string
 }
 
 export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
-  bodyParams: ['name', 'type'],
+  bodyParams: ['name', 'nickName', 'type', 'phone'],
   pathParams: ['id']
 }
 
@@ -53,4 +57,10 @@ export const DeleteUser: Endpoint<SignOutParameter, SimpleResponse> = {
   method: 'delete',
   path: `/users`,
   bodyParams: ['reason']
+}
+
+export const CheckDuplicate: Endpoint<{ nickName: string}, SimpleResponse> = {
+  method: 'post',
+  path: '/users/duplicate-check',
+  bodyParams: ['nickName']
 }

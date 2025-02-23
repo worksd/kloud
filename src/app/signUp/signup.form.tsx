@@ -60,7 +60,7 @@ export const SignupForm = () => {
   }
 
   return (
-    <div>
+    <div className={"flex flex-col"}>
       <div className="flex justify-between items-center mb-14">
         <SimpleHeader title="가입하기"/>
       </div>

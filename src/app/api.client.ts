@@ -16,6 +16,7 @@ export class ApiClient extends EndpointClient {
     update: this.endpointBuilder(API.User.UpdateUser),
     me: this.endpointBuilder(API.User.Me),
     delete: this.endpointBuilder(API.User.DeleteUser),
+    checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
   }
   
   readonly lesson = {
@@ -46,6 +47,15 @@ export class ApiClient extends EndpointClient {
 
   readonly event = {
     list: this.endpointBuilder(API.Event.GetEventList),
+  }
+
+  readonly device = {
+    register: this.endpointBuilder(API.Device.RegisterDevice),
+    unregister: this.endpointBuilder(API.Device.UnregisterDevice),
+  }
+
+  readonly notification = {
+    get: this.endpointBuilder(API.Notification.GetNotifications)
   }
 }
 

@@ -6,19 +6,18 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl
   const { os, ua, device } = userAgent(request)
 
+  const appVersion = extractKloudVersion(ua) ?? ''
   // URL 파라미터 설정
   url.searchParams.set('os', os.name ?? '')
-
-  console.log(userAgent(request))
+  url.searchParams.set('appVersion', appVersion)
 
   // 새로운 Response 생성하면서 헤더 설정
   const response = NextResponse.rewrite(url)
 
   // 헤더 설정
   response.headers.set('x-guinness-client', `${os.name}`)
-  response.headers.set('x-guinness-version', extractKloudVersion(ua) ?? '')
+  response.headers.set('x-guinness-version', appVersion)
   response.headers.set('x-guinness-device-name', `${device.model}(${device.vendor}/${os.version})`)
-
   return response
 }
 
@@ -42,5 +41,6 @@ function extractKloudVersion(userAgent: string): string | null {
 export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/api/:path*'  // API 라우트 포함
   ],
 }

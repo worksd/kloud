@@ -1,7 +1,7 @@
 import { StudioItem } from "@/app/search/StudioItem";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { api } from "@/app/api.client";
-import { GetStudioResult } from "@/app/search/@popularStudios/page";
+import { GetStudioResult } from "@/app/home/@popularStudios/page";
 
 export default async function StudioList() {
   const res = await getStudioList()

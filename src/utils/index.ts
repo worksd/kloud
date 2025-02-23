@@ -12,7 +12,7 @@ export const calculateDDays = (input: string): string | undefined => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (!input) return 'input 데이터가 없습니다';
+    if (!input) return '';
 
     const [datePart] = input.split(" ");
     const [year, month, day] = datePart.split(".").map(Number);

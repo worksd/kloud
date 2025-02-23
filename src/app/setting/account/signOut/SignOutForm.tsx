@@ -6,6 +6,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { clearToken } from "@/app/setting/clear.token.action";
 import { deleteUserAction } from "@/app/setting/sign.out.action";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
+import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 
 const reasons = [
   "원하는 콘텐츠가 부족해요.",
@@ -49,6 +50,7 @@ export default function SignOutForm() {
           reason: selectedReason ?? ''
         });
         if ('success' in res && res.success) {
+          await unregisterDeviceAction()
           await clearToken();
           localStorage.clear();
           sessionStorage.clear();
