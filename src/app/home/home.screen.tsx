@@ -124,7 +124,7 @@ export default function HomeScreen({os}: { os: string }) {
         </div>
 
         {lessons && lessons.length > 0 && (
-          <div className="flex scrollbar-hide">
+          <div className="flex scrollbar-hide space-x-4">
             {lessons.map((item: GetLessonResponse, index: number) => (
               <div
                 key={item.id}
