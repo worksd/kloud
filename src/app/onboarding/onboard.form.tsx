@@ -46,7 +46,7 @@ export const OnboardForm = () => {
     all: false,
   });
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const isNextButtonDisabled = () => {
     switch (step) {
