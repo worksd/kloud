@@ -45,7 +45,7 @@ export default function NotificationForm({notifications}: { notifications: GetNo
                 </p>
                 {mounted && (
                   <span className="text-xs text-gray-400">
-              {formatTimeAgo(new Date(notification.createdAt), new Date())}
+              {formatTimeAgo(notification.createdAt)}
             </span>
                 )}
               </div>
@@ -59,9 +59,21 @@ export default function NotificationForm({notifications}: { notifications: GetNo
   }
 }
 
-function formatTimeAgo(date: Date, now: Date): string {
-  const diff = now.getTime() - date.getTime();
+function formatTimeAgo(dateInput: string | Date, now: Date = new Date()): string {
+  let date: Date;
 
+  if (typeof dateInput === "string") {
+    // 문자열을 Date 객체로 변환
+    date = new Date(dateInput.replace(/\./g, '-')); // "2025.02.24 10:45" -> "2025-02-24 10:45"
+  } else {
+    date = dateInput;
+  }
+
+  if (isNaN(date.getTime())) {
+    return '잘못된 날짜';
+  }
+
+  const diff = now.getTime() - date.getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
