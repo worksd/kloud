@@ -17,6 +17,7 @@ export const CertificationForm = () => {
   const [step, setStep] = useState(1);
   const [code, setCode] = useState(0);
   const [name, setName] = useState('');
+  const [rrn, setRrn] = useState('');
   const [phone, setPhone] = useState('');
 
   const onClickBack = () => {
@@ -41,12 +42,14 @@ export const CertificationForm = () => {
         <NamePhoneInput
           name={name}
           phone={phone}
+          rrn={rrn}
           onClickSubmit={({code}: { code: number }) => {
             setStep(step + 1)
             setCode(code)
           }}
           setName={(name) => setName(name)}
           setPhone={setPhone}
+          setRrn={setRrn}
         />
       ) : (
         <CertificationCodeInput code={code} generateNewCode={
@@ -57,6 +60,7 @@ export const CertificationForm = () => {
           const res = await updateUserAction({
             phone: phone,
             name: name,
+            rrn: rrn,
           })
           if (res.success && res.user?.phone) {
             window.KloudEvent?.back()
@@ -74,5 +78,4 @@ export const CertificationForm = () => {
       )}
     </div>
   );
-
 };
