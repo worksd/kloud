@@ -46,6 +46,8 @@ export const OnboardForm = () => {
     all: false,
   });
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const isNextButtonDisabled = () => {
     switch (step) {
       case 'profile':
@@ -142,21 +144,27 @@ export const OnboardForm = () => {
     } else if (step === "favorite") {
       setStep("agreement")
     } else if (step === "agreement") {
-      for (const id of selectedIdList) {
-        await followStudio({studioId: id})
-      }
-      const res = await updateUserAction({
-        nickName: nickName,
-      })
+      setIsLoading(true); // 로딩 시작
 
-      if (res.success && res.user?.status == UserStatus.Ready) {
-        const bootInfo = JSON.stringify({
-          bottomMenuList: getBottomMenuList(),
-          route: '',
-          withFcmToken: true,
+      try {
+        for (const id of selectedIdList) {
+          await followStudio({ studioId: id });
+        }
+        const res = await updateUserAction({
+          nickName: nickName,
         });
-        console.log('bootInfo = ' + bootInfo);
-        window.KloudEvent?.navigateMain(bootInfo)
+
+        if (res.success && res.user?.status == UserStatus.Ready) {
+          const bootInfo = JSON.stringify({
+            bottomMenuList: getBottomMenuList(),
+            route: '',
+            withFcmToken: true,
+          });
+          console.log('bootInfo = ' + bootInfo);
+          window.KloudEvent?.navigateMain(bootInfo);
+        }
+      } finally {
+        setIsLoading(false); // 로딩 종료
       }
     }
   }
@@ -223,6 +231,18 @@ export const OnboardForm = () => {
           다음
         </CommonSubmitButton>
       </div>
+
+      {/* 로딩 오버레이 */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <p className="text-lg font-semibold text-black">
+              환영합니다! 🎉<br/>
+              Rawgraphy와 함께 멋진 순간을 만들어봐요.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
