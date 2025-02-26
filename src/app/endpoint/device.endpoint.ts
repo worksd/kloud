@@ -6,18 +6,13 @@ export type RegisterDeviceParameter = {
   udid: string,
 }
 
-export type UnregisterDeviceParameter = {
-  udid: string,
-}
-
 export const RegisterDevice: Endpoint<RegisterDeviceParameter, SimpleResponse> = {
   method: 'post',
   path: `/devices`,
   bodyParams: ['token', 'udid']
 }
 
-export const UnregisterDevice: Endpoint<UnregisterDeviceParameter, SimpleResponse> = {
+export const UnregisterDevice: Endpoint<object, SimpleResponse> = {
   method: 'delete',
-  path: (e) => `/devices/${e.udid}`,
-  pathParams: ['udid']
+  path: 'devices',
 }
