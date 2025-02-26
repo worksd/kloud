@@ -28,6 +28,7 @@ export const SplashScreen = () => {
         const bootInfo = JSON.stringify({
           bottomMenuList: getBottomMenuList(),
           route: '',
+          withFcmToken: true,
         });
         console.log('bootInfo = ' + bootInfo);
         window.KloudEvent?.navigateMain(bootInfo)

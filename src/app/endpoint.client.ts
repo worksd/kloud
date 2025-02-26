@@ -49,7 +49,7 @@ export abstract class EndpointClient {
   private async authAsHeaders(): Promise<Record<string, string>> {
     const defaultHeaders: Record<string, string> = {};
     const accessToken = (await cookies()).get('accessToken')
-    if (accessToken) {
+    if (accessToken?.value) {
       defaultHeaders['Authorization'] = `Bearer ${accessToken.value}`
     }
     const nextHeaders = await headers()

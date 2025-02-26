@@ -13,7 +13,7 @@ export const StudioItems = ({studios}: { studios: GetStudioResponse[] }) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-4 mt-4 px-4">
-        <div className="text-[24px] text-black font-bold">인기 스튜디오</div>
+        <div className="text-[20px] text-black font-bold">인기 스튜디오</div>
         {studios.length > 5 && <button className="text-[#86898C] flex items-center" onClick={onClickMore}>
           더보기
           <RightArrowIcon/>

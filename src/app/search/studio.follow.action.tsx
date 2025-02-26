@@ -6,6 +6,8 @@ export const toggleFollowStudio = async ({studioId, follow}: {
   studioId: number,
   follow?: StudioFollowResponse
 }): Promise<{ success: boolean, follow?: StudioFollowResponse, message?: string }> => {
+  console.log(studioId)
+  console.log(follow)
   if (!follow) {
     const res = await followStudio({studioId})
     if ('id' in res) {
@@ -30,10 +32,10 @@ export const toggleFollowStudio = async ({studioId, follow}: {
   }
 }
 
-async function followStudio({studioId}: { studioId: number }) {
+export async function followStudio({studioId}: { studioId: number }) {
   return await api.studioFollow.create({studioId})
 }
 
-async function unFollowStudio({followId}: { followId: number }) {
+export async function unFollowStudio({followId}: { followId: number }) {
   return await api.studioFollow.delete({id: followId})
 }

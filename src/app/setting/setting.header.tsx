@@ -14,7 +14,7 @@ export const SettingHeader = ({user}: { user: GetUserResponse }) => {
   return (
     <div className={"flex flex-row items-center justify-between mb-8 px-4 w-full"}>
 
-      <div className={"flex flex-row justify-center"}>
+      <div className={"flex flex-row justify-center items-center"}>
         <div className="w-[40px] h-[40px] rounded-full overflow-hidden flex-shrink-0">
           <Image
             src={user.profileImageUrl ?? ''}
@@ -26,7 +26,7 @@ export const SettingHeader = ({user}: { user: GetUserResponse }) => {
           />
         </div>
         <div className="flex flex-col px-4">
-          <div className="font-bold text-lg text-black">{user.name}</div>
+          <div className="font-bold text-lg text-black">{user.nickName}</div>
           <div className="text-gray-500">{user.email}</div>
         </div>
       </div>

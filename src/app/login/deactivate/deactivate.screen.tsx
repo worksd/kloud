@@ -3,11 +3,11 @@ import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { onboardAction } from "@/app/onboarding/onboard.action";
+import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { clearToken } from "@/app/setting/clear.token.action";
 import { getUserAction } from "@/app/onboarding/get.user.action";
+import { UserStatus } from "@/entities/user/user.status";
 
 export const DeactivateScreen = () => {
 
@@ -27,11 +27,12 @@ export const DeactivateScreen = () => {
 
 
   const handleActivate = async () => {
-    const res = await onboardAction({})
-    if (res.success) {
+    const res = await updateUserAction({})
+    if (res.success && res.user?.status == UserStatus.Ready) {
       const bootInfo = JSON.stringify({
         bottomMenuList: getBottomMenuList(),
         route: '',
+        withFcmToken: true,
       });
       console.log('bootInfo = ' + bootInfo);
       window.KloudEvent?.navigateMain(bootInfo)

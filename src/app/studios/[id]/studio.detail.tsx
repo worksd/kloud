@@ -13,9 +13,15 @@ import { notFound } from "next/navigation";
 import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import { extractNumber } from "@/utils";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { KloudScreen } from "@/shared/kloud.screen";
+import AnnouncementIcon from "../../../../public/assets/announcement-right-arrow.svg";
+import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
   const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
+  const [announcements, setAnnouncements] = useState<GetAnnouncementResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true)
   const [follow, setFollow] = useState<StudioFollowResponse | undefined>(undefined)
 
@@ -26,6 +32,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         if ('id' in response) {
           setStudio(response)
           setFollow(response.follow)
+          setAnnouncements(response.announcements ?? [])
         }
       } catch (error) {
         console.error('스튜디오 정보를 불러오는데 실패했습니다:', error)
@@ -60,7 +67,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
   }
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
+    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar">
       {/* 헤더 */}
       <HeaderInDetail title={studio.name}/>
 
@@ -132,15 +139,52 @@ export const StudioDetailForm = ({id}: { id: string }) => {
           {studio.youtubeUrl && <SnsButton link={studio.youtubeUrl} logoPath={Youtube} alt="youtube"/>}
         </div>
 
-        <div>
-          {/*<div className="w-full h-1 bg-[#f7f8f9]"/>*/}
-          {/*<NotificationList title=""/>*/}
-        </div>
+        <section>
+          {announcements && announcements.length > 0 && (
+            <div className="flex flex-col">
+              <div className="p-4">
+                <div className="text-[20px] text-black font-bold">
+                  스튜디오 공지사항
+                </div>
+              </div>
+              {announcements && announcements.length > 0 && (
+                <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
+                  {announcements.map((item: GetAnnouncementResponse) => (
+                    <div
+                      key={item.id}
+                      className="min-w-[calc(100vw-32px)] snap-start pl-4"
+                    >
+                      <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8 h-[120px] flex flex-col">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
+                              <img
+                                src={studio.profileImageUrl}
+                                alt="스튜디오"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="font-bold text-black text-[14px]">
+          {studio.name}
+        </span>
+                          </div>
+                        </div>
+                        <p className="text-[#667085] mt-2 text-[14px] line-clamp-2">
+                          {item.body}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
 
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
           <div className="mt-10">
-            <LessonGridSection title="Hot" lessons={studio?.lessons ?? []}
+            <LessonGridSection studioId={studio.id} title="Hot" lessons={studio?.lessons ?? []}
             />
           </div>
         </div>

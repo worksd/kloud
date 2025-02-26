@@ -44,6 +44,10 @@ export type GetArtistResponse = {
     instagramAddress: string;
 }
 
+export type GetStudioLessonParameter = {
+    studioId: string;
+}
+
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     method: "get",
     path: (e) => `/lessons/${e.id}`,
@@ -57,4 +61,10 @@ export const GetPopularLessons: Endpoint<object, LessonListResponse> = {
 export const GetLessonPayment: Endpoint<GetLessonParameter, GetLessonResponse> = {
      method: "get",
     path: (e) => `/lessons/${e.id}/payment`,
+}
+
+export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
+    method: 'get',
+    path: `/lessons`,
+    queryParams: ['studioId']
 }

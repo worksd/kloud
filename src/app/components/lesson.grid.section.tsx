@@ -1,14 +1,14 @@
 'use client';
-import { LessonGridItems } from "@/app/lessons/lesson.grid.items";
+import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
 import RightArrowIcon from "../../../public/assets/right-arrow.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
-export const LessonGridSection = ({title, lessons} : {title: string, lessons: GetLessonResponse[]}) => {
+export const LessonGridSection = ({studioId, title, lessons} : {studioId?: number, title: string, lessons: GetLessonResponse[]}) => {
 
   const onClickMore = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.push(KloudScreen.Lessons)
+    if (studioId) {
+      window.KloudEvent?.push(KloudScreen.StudioLessons(studioId))
     }
   }
 

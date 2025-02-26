@@ -1,10 +1,11 @@
 'use client';
 
 import { KloudScreen } from "@/shared/kloud.screen";
-import { clearToken } from "@/app/setting/clear.token.action";
+import { clearCookies } from "@/app/setting/clear.token.action";
 import RightArrowIcon from "../../../public/assets/right-arrow.svg"
 import { useEffect } from "react";
 import { deleteUserAction } from "@/app/setting/sign.out.action";
+import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 
 export const MenuItem = ({label, path}: { label: string; path: string }) => {
 
@@ -41,7 +42,8 @@ export const MenuItem = ({label, path}: { label: string; path: string }) => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       console.log(data)
       if (data.route && data.id == 'Logout') {
-        await clearToken();
+        await unregisterDeviceAction()
+        await clearCookies();
         localStorage.clear();
         sessionStorage.clear();
         window.KloudEvent?.clearToken()

@@ -19,7 +19,7 @@ export const Poster = ({
   posterUrl: string,
   studioLogoUrl?: string,
   startTime: string,
-  title: string,
+  title?: string,
   width?: number
 }) => {
   const router = useRouter();
@@ -74,9 +74,11 @@ export const Poster = ({
         >
           {title}
         </div>
-        <div className="body-200 text-gray-500 truncate">
-          {`${formatDateTime(startTime).date}(${formatDateTime(startTime).dayOfWeek}) ${formatDateTime(startTime).time}`}
-        </div>
+        {title &&
+          <div className="body-200 text-gray-500 truncate">
+            {`${formatDateTime(startTime).date}(${formatDateTime(startTime).dayOfWeek}) ${formatDateTime(startTime).time}`}
+          </div>
+        }
       </div>
     </div>
   )

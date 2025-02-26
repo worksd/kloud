@@ -7,7 +7,7 @@ import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 import { UserStatus } from "@/entities/user/user.status";
 import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import { clearToken } from "@/app/setting/clear.token.action";
+import { clearCookies } from "@/app/setting/clear.token.action";
 
 export const LoginForm = () => {
 
@@ -63,12 +63,12 @@ export const LoginForm = () => {
 
   useEffect(() => {
     const clear = async () => {
-      await clearToken();
+      await clearCookies();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.KloudEvent?.clearToken()
     }
     clear();
-    localStorage.clear();
-    sessionStorage.clear();
-    window.KloudEvent?.clearToken()
   }, []);
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";

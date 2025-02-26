@@ -36,7 +36,7 @@ export default async function TicketDetail({params, searchParams}: {
 
                 <div className="flex flex-col mt-2 p-3 bg-white rounded-lg shadow">
                   <div className="text-gray-500 text-sm">예금주</div>
-                  <div className="font-bold text-lg text-black">(주)웍스앤피플</div>
+                  <div className="font-bold text-lg text-black">${ticket.lesson?.studio?.depositor}</div>
 
                   <div className="text-gray-500 text-sm">은행명</div>
                   <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.bank}</div>

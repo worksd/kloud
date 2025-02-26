@@ -6,30 +6,43 @@ import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
+import { getUserAction } from "@/app/onboarding/get.user.action";
 
-export default function PaymentButton({lessonId, price, title, userId, os, method, depositor}: {
+export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor}: {
   lessonId: number,
   userId?: string,
   price: number,
   title: string,
   os: string,
+  appVersion: string,
   method: string,
   depositor: string,
 }) {
   const handlePayment = useCallback(async () => {
+
+    const user = await getUserAction()
+    if (!user) return;
+
+    if (!user.phone) {
+      if (isLowerVersion(appVersion, '1.0.2')) {
+        window.KloudEvent?.push(KloudScreen.Certification)
+      } else {
+        window.KloudEvent?.fullSheet(KloudScreen.Certification)
+      }
+      return;
+    }
+
     if (method === '신용카드') {
       const paymentInfo = os == 'Android' ? {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-        channelKey: process.env.NODE_ENV === "development"
-          ? process.env.NEXT_PUBLIC_TEST_PORTONE_CHANNEL_KEY!
-          : process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
         paymentId: generatePaymentId(lessonId),
         orderName: title,
         price: price,
         userId: userId,
       } : {
         paymentId: generatePaymentId(lessonId),
-        pg: 'tosspayments',
+        pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
         scheme: 'iamport',
         orderName: title,
         amount: `${price}`,
@@ -151,4 +164,15 @@ export const generatePaymentId = (lessonId: number): string => {
 
   // 학원번호-날짜-랜덤문자열
   return `${lessonId}-${dateStr}-${randomStr}`;
+}
+
+function isLowerVersion(currentVersion: string, targetVersion: string): boolean {
+  const current = currentVersion.split('.').map(Number);
+  const target = targetVersion.split('.').map(Number);
+
+  for (let i = 0; i < target.length; i++) {
+    if ((current[i] ?? 0) < target[i]) return true;
+    if ((current[i] ?? 0) > target[i]) return false;
+  }
+  return false;
 }

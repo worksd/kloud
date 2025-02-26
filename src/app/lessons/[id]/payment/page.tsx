@@ -12,7 +12,7 @@ import PaymentInfo from "@/app/lessons/[id]/payment/payment.info";
 
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
-  searchParams: Promise<{ os: string }>
+  searchParams: Promise<{ os: string, appVersion: string}>
 }) {
   const lesson = await getPaymentDetail({id: (await params).id})
 
@@ -52,7 +52,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
               </div>
               <div className={"flex flex-row items-center mb-1"}>
                 <p className="text-[#86898C] text-[14px] font-medium">
-                  `{formattedTime.date} ({formattedTime.dayOfWeek}) {formattedTime.time}`
+                  {formattedTime.date} ({formattedTime.dayOfWeek}) {formattedTime.time}
                 </p>
                 <p className="text-[#86898C] text-[12px] font-medium">
                   /{lesson?.duration}분
@@ -66,8 +66,12 @@ export default async function LessonPaymentPage({params, searchParams}: {
             <div className="w-full h-3 bg-[#F7F8F9] "/>
           </div>
 
-          <PaymentInfo os={(await searchParams).os} lesson={lesson}
-                       userId={(await cookies()).get(userIdKey)?.value ?? ''}/>
+          <PaymentInfo
+            os={(await searchParams).os}
+            appVersion={(await searchParams).appVersion}
+            lesson={lesson}
+            userId={(await cookies()).get(userIdKey)?.value ?? ''}
+          />
         </div>
       </div>
     );
