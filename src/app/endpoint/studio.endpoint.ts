@@ -22,6 +22,7 @@ export type GetStudioResponse = {
     eCommerceRegNumber?: string;
     educationOfficeRegNumber?: string;
     representative?: string;
+    depositor?: string;
     instagramAddress?: string;
     lessons?: GetLessonResponse[];
     follow?: StudioFollowResponse;
