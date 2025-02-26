@@ -1,69 +1,60 @@
 'use client';
-import React, { useEffect } from "react";
-import { GetNotificationResponse } from "@/app/endpoint/notification.endpoint";
-import Image from "next/image";
 
-export default function NotificationForm({notifications}: { notifications: GetNotificationResponse[] }) {
+import React, { useEffect, useState } from 'react';
+import { GetNotificationResponse } from '@/app/endpoint/notification.endpoint';
+import Image from 'next/image';
 
-  const [mounted, setMounted] = React.useState(false);
+export default function NotificationForm({
+                                           notifications,
+                                         }: {
+  notifications: GetNotificationResponse[];
+}) {
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (notifications && notifications.length > 0) {
+  if (notifications.length > 0) {
     return (
       <div className="flex flex-col w-screen h-screen">
-        <div className="flex flex-col overflow-y-auto">
-          {notifications.map(notification => (
+        <div className="flex flex-col overflow-y-auto pb-14 no-scrollbar">
+          {notifications.map((notification, index) => (
             <div
               key={notification.id}
-              className="flex flex-row p-4 border-b border-gray-100 gap-3 cursor-pointer active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
+              className={`flex flex-row p-4 gap-3 cursor-pointer active:scale-[0.98] active:bg-gray-100 transition-all duration-150 
+          ${index === notifications.length - 1 ? '' : 'border-b border-gray-100'}`}
               onClick={() => {
-                  window.KloudEvent?.push(notification.route);
+                window.KloudEvent?.push(notification.route);
               }}
             >
               {/* 썸네일 */}
               {notification.thumbnailUrl && (
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                  <Image
-                    src={notification.thumbnailUrl}
-                    alt={'알림'}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={notification.thumbnailUrl} alt="알림" fill className="object-cover"/>
                 </div>
               )}
 
               {/* 컨텐츠 */}
               <div className="flex flex-col flex-1">
-          <span className="text-base font-bold text-black mb-1">
-            {notification.title}
-          </span>
-                <p className="text-sm text-gray-600 mb-1">
-                  {notification.body}
-                </p>
-                {mounted && (
-                  <span className="text-xs text-gray-400">
-              {formatTimeAgo(notification.createdAt)}
-            </span>
-                )}
+                <span className="text-base font-bold text-black mb-1">{notification.title}</span>
+                <p className="text-sm text-gray-600 mb-1">{notification.body}</p>
+                {mounted && <span className="text-xs text-gray-400">{formatTimeAgo(notification.createdAt)}</span>}
               </div>
             </div>
           ))}
         </div>
       </div>
     );
-  } else {
-    return EmptyNotifications()
   }
+
+  return <EmptyNotifications/>;
 }
 
 function formatTimeAgo(dateInput: string | Date, now: Date = new Date()): string {
   let date: Date;
 
-  if (typeof dateInput === "string") {
-    // 문자열을 Date 객체로 변환
+  if (typeof dateInput === 'string') {
     date = new Date(dateInput.replace(/\./g, '-')); // "2025.02.24 10:45" -> "2025-02-24 10:45"
   } else {
     date = dateInput;
@@ -78,15 +69,10 @@ function formatTimeAgo(dateInput: string | Date, now: Date = new Date()): string
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (days > 0) {
-    return `${days}일 전`;
-  } else if (hours > 0) {
-    return `${hours}시간 전`;
-  } else if (minutes > 0) {
-    return `${minutes}분 전`;
-  } else {
-    return '방금 전';
-  }
+  if (days > 0) return `${days}일 전`;
+  if (hours > 0) return `${hours}시간 전`;
+  if (minutes > 0) return `${minutes}분 전`;
+  return '방금 전';
 }
 
 function EmptyNotifications() {

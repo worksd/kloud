@@ -118,7 +118,7 @@ export default function HomeScreen({os}: { os: string }) {
   }, [])
 
   return (
-    <div className="h-full overflow-y-auto no-scrollbar">
+    <div className="h-full overflow-y-auto no-scrollbar max-w-screen w-full">
       <section className="flex flex-col">
         <CardList lessons={jumbotrons}/>
       </section>
@@ -183,6 +183,7 @@ export default function HomeScreen({os}: { os: string }) {
               grabCursor={true}
               centeredSlides={true}
               modules={[Navigation, Pagination, Autoplay]}
+              className={"overflow-hidden"}
             >
               {announcements?.map((item, index) => (
                 <SwiperSlide key={index}>

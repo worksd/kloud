@@ -11,7 +11,7 @@ const CardList = ({lessons}: { lessons: GetLessonResponse[] }) => {
   const [currentCard, setCurrentCard] = useState<number>(0);
 
   return (
-    <div className="relative"> {/* 컨테이너를 relative로 설정 */}
+    <div className="relative overflow-hidden"> {/* 컨테이너를 relative로 설정 */}
       <Swiper
         simulateTouch={true}
         grabCursor={true}
