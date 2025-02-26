@@ -6,6 +6,7 @@ import { CertificationCodeInput } from "@/app/certification/CertificationCodeInp
 import { NamePhoneInput } from "@/app/certification/NamePhoneInput";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
+import { sendVerificationSMS } from "@/app/certification/send.message.action";
 
 const getHeaderTitle = (step: number) => {
   if (step == 1) return '본인인증'
@@ -53,8 +54,15 @@ export const CertificationForm = () => {
         />
       ) : (
         <CertificationCodeInput code={code} generateNewCode={
-          () => {
-            setCode(Math.floor(100000 + Math.random() * 900000))
+          async () => {
+            const newCode = Math.floor(100000 + Math.random() * 900000)
+            const res = await sendVerificationSMS({
+              phone: phone.replaceAll('-', ''),
+              code: newCode,
+            });
+            if (res) {
+              setCode(newCode);
+            }
           }
         } certificatePhone={async () => {
           const res = await updateUserAction({

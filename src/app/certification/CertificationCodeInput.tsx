@@ -31,7 +31,7 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
   const handleResend = () => {
     setTimeLeft(179);
     setIsExpired(false);
-    generateNewCode()
+    generateNewCode();
   };
 
   const onClickSubmit = () => {
@@ -111,13 +111,9 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
           {/* 재전송 버튼 */}
           <button
             onClick={handleResend}
-            disabled={!isExpired && timeLeft > 0}
-            className={`px-4 py-2 rounded-lg text-sm
-            ${isExpired || timeLeft <= 0
-              ? 'bg-black text-white'
-              : 'bg-gray-100 text-gray-400'}`}
-          >
-            {isExpired ? '인증번호 재전송' : '문자 다시 받기'}
+            disabled={!isExpired}
+            className={`px-4 py-2 rounded-lg text-sm transition ${isExpired ? 'bg-black text-white' : 'bg-gray-200 text-gray-400'}`}>
+            인증번호 재전송
           </button>
         </div>
 

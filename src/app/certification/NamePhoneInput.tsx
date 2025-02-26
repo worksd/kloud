@@ -11,6 +11,7 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
   setRrn: (rn: string) => void,
 }) => {
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePhoneChange = (value: string) => {
     const numbers = value.replace(/[^0-9]/g, '');
@@ -36,23 +37,32 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const newCode = Math.floor(100000 + Math.random() * 900000);
 
-    const res = await sendVerificationSMS({
-      phone: phone.replaceAll('-', ''),
-      code: newCode,
-    })
-    if (res) {
-      onClickSubmit({code: newCode})
-      console.log('Submit:', {name, phone});
-    } else {
-      const dialogInfo = {
-        id: 'Empty',
-        type: 'SIMPLE',
-        title: '개인정보 불일치',
-        message: '이름과 휴대전화 번호를 다시 입력해주십시오',
+    try {
+      const res = await sendVerificationSMS({
+        phone: phone.replaceAll('-', ''),
+        code: newCode,
+      });
+
+      if (res) {
+        onClickSubmit({ code: newCode });
+        console.log('Submit:', { name, phone });
+      } else {
+        const dialogInfo = {
+          id: 'Empty',
+          type: 'SIMPLE',
+          title: '개인정보 불일치',
+          message: '이름과 휴대전화 번호를 다시 입력해주십시오',
+        };
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
-      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+    } catch (error) {
+      console.error('SMS 전송 실패:', error);
+    } finally {
+      setIsSubmitting(false); // 요청 완료 후 다시 활성화
     }
   };
 
@@ -142,13 +152,13 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
       <div className="p-6">
         <button
           onClick={handleSubmit}
-          disabled={!name || phone.length < 13}
+          disabled={isSubmitting || !name || phone.length < 13 || rrn.length < 7}
           className={`w-full py-4 rounded-lg text-[16px] font-medium
-            ${name && phone.length === 13 && rrn.length === 7
-            ? 'bg-black text-white'
-            : 'bg-[#BCBFC2] text-white'}`}
+            ${isSubmitting || !name || phone.length < 13 || rrn.length < 7
+            ? 'bg-[#BCBFC2] text-white cursor-not-allowed'
+            : 'bg-black text-white'}`}
         >
-          인증번호 발송
+          {isSubmitting ? '전송 중...' : '인증번호 발송'}
         </button>
       </div>
     </div>
