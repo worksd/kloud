@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { HeaderInDetail } from "@/app/components/headers";
 import { Metadata } from "next";
 import { api } from "@/app/api.client";
