@@ -8,12 +8,13 @@ import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 import { getUserAction } from "@/app/onboarding/get.user.action";
 
-export default function PaymentButton({lessonId, price, title, userId, os, method, depositor}: {
+export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor}: {
   lessonId: number,
   userId?: string,
   price: number,
   title: string,
   os: string,
+  appVersion: string,
   method: string,
   depositor: string,
 }) {
@@ -23,7 +24,11 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
     if (!user) return;
 
     if (!user.phone) {
-      window.KloudEvent?.fullSheet(KloudScreen.Certification)
+      if (isLowerVersion(appVersion, '1.0.2')) {
+        window.KloudEvent?.push(KloudScreen.Certification)
+      } else {
+        window.KloudEvent?.fullSheet(KloudScreen.Certification)
+      }
       return;
     }
 
@@ -159,4 +164,15 @@ export const generatePaymentId = (lessonId: number): string => {
 
   // 학원번호-날짜-랜덤문자열
   return `${lessonId}-${dateStr}-${randomStr}`;
+}
+
+function isLowerVersion(currentVersion: string, targetVersion: string): boolean {
+  const current = currentVersion.split('.').map(Number);
+  const target = targetVersion.split('.').map(Number);
+
+  for (let i = 0; i < target.length; i++) {
+    if ((current[i] ?? 0) < target[i]) return true;
+    if ((current[i] ?? 0) > target[i]) return false;
+  }
+  return false;
 }

@@ -5,7 +5,7 @@ import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useState } from "react";
 
-const PaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: string, userId: string, }) => {
+const PaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonResponse, os: string, appVersion: string, userId: string, }) => {
   const [selectedMethod, setSelectedMethod] = useState("신용카드");
   const [depositor, setDepositor] = useState("");
 
@@ -123,6 +123,7 @@ const PaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: stri
           method={selectedMethod}
           os={os}
           lessonId={lesson.id}
+          appVersion={appVersion}
           price={lesson.price ?? 0}
           title={lesson.title ?? ''}
           userId={userId}
