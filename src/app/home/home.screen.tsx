@@ -200,10 +200,10 @@ export default function HomeScreen({os}: { os: string }) {
                               />
                             </div>
                             <span className="font-bold text-black text-[14px]">
-                        {item.studio.name}
+                              {item.studio.name}
                             </span>
                           </div>
-                          <p className="text-[#667085] mt-2 text-[14px]">
+                          <p className="text-[#667085] mt-2 text-[14px] line-clamp-2">
                             {item.body}
                           </p>
                         </div>

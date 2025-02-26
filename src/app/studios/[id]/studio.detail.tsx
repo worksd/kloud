@@ -165,11 +165,11 @@ export const StudioDetailForm = ({id}: { id: string }) => {
                               />
                             </div>
                             <span className="font-bold text-black text-[14px]">
-          {studio.name}
-        </span>
+                              {studio.name}
+                            </span>
                           </div>
                         </div>
-                        <p className="text-[#667085] mt-2 text-[14px] line-clamp-2">
+                        <p className="text-[#667085] mt-2 text-[14px]">
                           {item.body}
                         </p>
                       </div>
