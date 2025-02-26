@@ -30,9 +30,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
     if (method === '신용카드') {
       const paymentInfo = os == 'Android' ? {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-        channelKey: process.env.NODE_ENV === "development"
-          ? process.env.NEXT_PUBLIC_TEST_PORTONE_CHANNEL_KEY!
-          : process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
         paymentId: generatePaymentId(lessonId),
         orderName: title,
         price: price,
