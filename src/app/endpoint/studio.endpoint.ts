@@ -1,5 +1,6 @@
 import { Endpoint, NoParameter } from "@/app/endpoint/index";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 
 export type IdParameter = {
     id: number;
@@ -24,6 +25,7 @@ export type GetStudioResponse = {
     instagramAddress?: string;
     lessons?: GetLessonResponse[];
     follow?: StudioFollowResponse;
+    announcements?: GetAnnouncementResponse[];
 };
 
 export type StudioFollowResponse = {

@@ -201,7 +201,7 @@ export default function HomeScreen({os}: { os: string }) {
                             </div>
                             <span className="font-bold text-black text-[14px]">
                         {item.studio.name}
-                      </span>
+                            </span>
                           </div>
                           <p className="text-[#667085] mt-2 text-[14px]">
                             {item.body}
