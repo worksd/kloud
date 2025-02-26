@@ -14,5 +14,5 @@ export const RegisterDevice: Endpoint<RegisterDeviceParameter, SimpleResponse> =
 
 export const UnregisterDevice: Endpoint<object, SimpleResponse> = {
   method: 'delete',
-  path: 'devices',
+  path: '/devices',
 }
