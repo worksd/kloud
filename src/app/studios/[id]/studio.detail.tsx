@@ -154,7 +154,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
                       key={item.id}
                       className="min-w-[calc(100vw-32px)] snap-start pl-4"
                     >
-                      <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8 h-[120px] flex flex-col">
+                      <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8 flex flex-col">
                         <div>
                           <div className="flex items-center gap-2">
                             <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
