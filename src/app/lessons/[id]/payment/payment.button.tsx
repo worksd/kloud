@@ -37,7 +37,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, metho
         userId: userId,
       } : {
         paymentId: generatePaymentId(lessonId),
-        pg: 'tosspayments',
+        pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
         scheme: 'iamport',
         orderName: title,
         amount: `${price}`,
