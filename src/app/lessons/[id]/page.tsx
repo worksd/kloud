@@ -7,6 +7,7 @@ import LessonInfoSection from "./lesson.info.section";
 import LessonPaymentButton from "./lesson.payment.button";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
 import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
+import { isPastTime } from "@/app/lessons/[id]/time.util";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -118,7 +119,7 @@ export default async function LessonDetail({ params }: Props) {
 
             {/* 결제 페이지 이동 버튼 */}
             <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-                <LessonPaymentButton id={id} ticketData={data.ticket}/>
+                <LessonPaymentButton id={id} ticketData={data.ticket} disabled={isPastTime(data.startTime)}/>
             </div>
         </div>
     );

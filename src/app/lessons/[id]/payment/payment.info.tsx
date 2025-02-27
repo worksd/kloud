@@ -4,6 +4,7 @@ import DropdownDetails from "@/app/components/DropdownDetail";
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useState } from "react";
+import { isPastTime } from "@/app/lessons/[id]/time.util";
 
 const PaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonResponse, os: string, appVersion: string, userId: string, }) => {
   const [selectedMethod, setSelectedMethod] = useState("신용카드");
@@ -128,6 +129,7 @@ const PaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonRespon
           title={lesson.title ?? ''}
           userId={userId}
           depositor={depositor}
+          disabled={isPastTime(lesson.startTime)}
         />
       </div>
     </div>

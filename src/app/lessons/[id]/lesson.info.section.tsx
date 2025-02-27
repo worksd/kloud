@@ -15,7 +15,7 @@ const LessonInfoSection = ({data}: {data: GetLessonResponse}) => {
         <div className="self-stretch flex-col justify-start items-start gap-2 flex">
             <LessonInfoLabel Icon={Location} text={data.studio?.name ?? ''} subText={data.room?.name ?? ''} />
 
-            <LessonInfoLabel Icon={Calendar} text={`${startTime.date}(${startTime.dayOfWeek})`} subText={calculateDDays(data.startTime ?? '') ?? ''} />
+            <LessonInfoLabel Icon={Calendar} text={`${startTime.date}(${startTime.dayOfWeek})`} subText={calculateDDays(data.startTime ?? '') ?? '종료'} />
 
             <LessonInfoLabel Icon={TimeCircle} text={startTime.time} subText={`${data.duration}분`} />
 

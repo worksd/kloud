@@ -8,7 +8,7 @@ import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 import { getUserAction } from "@/app/onboarding/get.user.action";
 
-export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor}: {
+export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor, disabled}: {
   lessonId: number,
   userId?: string,
   price: number,
@@ -17,6 +17,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   appVersion: string,
   method: string,
   depositor: string,
+  disabled: boolean,
 }) {
   const handlePayment = useCallback(async () => {
 
@@ -75,9 +76,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId, status: 'Paid'});
-      console.log(res)
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null // TODO: API 못쐈을때 이벤트 처리
-      console.log(pushRoute)
+      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
       const bottomMenuList = getBottomMenuList();
       const bootInfo = JSON.stringify({
         bottomMenuList: bottomMenuList,
@@ -119,33 +118,12 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
     }
   }, [depositor])
   return (
-    <CommonSubmitButton originProps={{onClick: handlePayment}}>
+    <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled}>
       <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
         {new Intl.NumberFormat("ko-KR").format(price)}원 결제하기
       </p>
     </CommonSubmitButton>
   );
-}
-
-type AndroidPaymentInfo = {
-  storeId: string,
-  channelKey: string,
-  paymentId: string,
-  orderName: string,
-  price: number,
-  userId?: string,
-}
-
-type iOSPaymentInfo = {
-  paymentId: string,
-  orderName: string,
-  amount: string,
-  method: string,
-  scheme: string,
-  pg: string,
-  userId?: string,
-  useCode?: string,
-
 }
 
 export const generatePaymentId = (lessonId: number): string => {

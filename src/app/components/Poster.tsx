@@ -50,7 +50,15 @@ export const Poster = ({
               className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
               {d_days}
             </div>
-          ) : null;
+          ) : (
+            <div className="absolute py-1 px-2 left-0 top-0 mt-1">
+              <div className="relative border-2 border-[#737373] rounded-lg">
+            <span className="text-[14px] font-bold text-[#737373] tracking-wider p-1">
+              종료
+            </span>
+              </div>
+            </div>
+          );
         })()}
 
         {studioLogoUrl && <Image
