@@ -62,7 +62,8 @@ export default async function TicketDetail({params, searchParams}: {
                 />
                 <div className="flex flex-col ml-3">
                   <div className="font-bold text-[18px]">
-                    {ticket.user?.name}
+                    {ticket.user?.nickName}
+                    {ticket.user?.name ? ` (${ticket.user.name})` : ""}
                   </div>
                   <div className="font-medium text-[14px]">
                     {ticket.user?.email}
