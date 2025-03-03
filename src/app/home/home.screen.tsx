@@ -17,8 +17,10 @@ import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function HomeScreen({os}: { os: string }) {
+  const { t } = useLocale()
   const [jumbotrons, setJumbotrons] = useState<GetLessonResponse[]>([]);
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [studios, setStudios] = useState<GetStudioResponse[]>([]);
@@ -125,7 +127,7 @@ export default function HomeScreen({os}: { os: string }) {
 
       <section className="mt-4">
         <div className="p-4">
-          <div className="text-[20px] text-black font-bold">다가오는 수업</div>
+          <div className="text-[20px] text-black font-bold">{t("upcoming_lessons")}</div>
         </div>
 
         {lessons && lessons.length > 0 && (
@@ -174,7 +176,7 @@ export default function HomeScreen({os}: { os: string }) {
           <div className="flex flex-col">
             <div className="p-4">
               <div className="text-[20px] text-black font-bold">
-                스튜디오 공지사항
+                {t('studio_announcement')}
               </div>
             </div>
 

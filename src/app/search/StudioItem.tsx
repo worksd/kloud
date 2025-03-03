@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 import React, { useEffect, useState } from "react";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export const StudioItem = ({item}: { item: GetStudioResponse }) => {
 
   const [follow, setFollow] = useState(item.follow);
+  const { t } = useLocale();
 
   const router = useRouter();
   const handleOnClick = () => {
@@ -59,7 +61,7 @@ export const StudioItem = ({item}: { item: GetStudioResponse }) => {
               : 'text-white bg-black hover:bg-gray-900'
             }`}
           >
-            {follow != null ? '팔로잉' : '팔로우'}
+            {follow != null ? t('following') : t('follow')}
           </button>
         </div>
       </div>

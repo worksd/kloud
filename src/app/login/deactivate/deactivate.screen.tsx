@@ -4,14 +4,16 @@ import { CommonSubmitButton } from "@/app/components/buttons";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
-import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { getUserAction } from "@/app/onboarding/get.user.action";
+import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { UserStatus } from "@/entities/user/user.status";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export const DeactivateScreen = () => {
 
   const [user, setUser] = useState<GetUserResponse | null>(null)
+  const { t, locale } = useLocale();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -30,7 +32,7 @@ export const DeactivateScreen = () => {
     const res = await updateUserAction({})
     if (res.success && res.user?.status == UserStatus.Ready) {
       const bootInfo = JSON.stringify({
-        bottomMenuList: getBottomMenuList(),
+        bottomMenuList: getBottomMenuList(locale),
         route: '',
         withFcmToken: true,
       });

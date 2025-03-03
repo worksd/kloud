@@ -64,6 +64,7 @@ declare global {
     showBottomDialog: (info: string) => void;
     requestPayment: (command: string) => void;
     showGallery: () => void;
+    forceEnd: () => void;
 
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string, name: string }) => void;

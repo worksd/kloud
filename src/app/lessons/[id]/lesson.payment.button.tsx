@@ -2,9 +2,9 @@
 
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { useLocale } from "@/hooks/useLocale";
 
 type LessonPaymentButtonProps = {
     id: number;
@@ -13,21 +13,16 @@ type LessonPaymentButtonProps = {
 };
 
 const LessonPaymentButton = ({ id, ticketData, disabled }: LessonPaymentButtonProps) => {
-    const router = useRouter();
+    const { t, locale } = useLocale();
     const buttonText = useMemo(() => {
-        if (disabled) return "종료된 수업입니다.";
-        return ticketData != null ? "내 수강권 보러가기" : "수강권 결제하기";
+        if (disabled) return t("finish_lesson_title");
+        return ticketData != null ? t("my_ticket") : t("purchase_ticket");
     }, [disabled, ticketData]);
     const handleOnClick = useCallback(() => {
         const isPaid = ticketData != null;
         const screen = isPaid ? KloudScreen.TicketDetail(ticketData.id, false) : KloudScreen.LessonPayment(id);
-
-        if (window.KloudEvent) {
-            window.KloudEvent.push(screen);
-        } else {
-            router.push(screen);
-        }
-    }, [id, router, ticketData]);
+        window.KloudEvent?.push(screen);
+    }, [id, ticketData]);
 
     return <CommonSubmitButton originProps={{onClick: handleOnClick, disabled: disabled}}
                                disabled={disabled}>{buttonText}</CommonSubmitButton>;

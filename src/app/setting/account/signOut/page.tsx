@@ -11,7 +11,7 @@ export default async function SignOut({
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title="회원탈퇴"/>
+        <SimpleHeader title="sign_out"/>
       </div>
       <SignOutForm/>
     </div>

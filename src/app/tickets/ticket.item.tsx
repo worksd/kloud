@@ -4,19 +4,21 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { convertStatusToMessage, TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { formatDateTime } from "@/utils/date.format";
+import { useLocale } from "@/hooks/useLocale";
 
 export const TicketItem = ({item}: { item: TicketResponse }) => {
+  const {t, locale} = useLocale()
   const onClickTicket = () => {
     window.KloudEvent?.push(KloudScreen.TicketDetail(item.id, false))
   }
-  const formattedTime = formatDateTime(item.lesson?.startTime ?? '')
+  const formattedTime = formatDateTime(item.lesson?.startTime ?? '', locale)
 
   return (
     <div className="bg-white active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
          onClick={onClickTicket}>
       {/* 상단 날짜와 상태 */}
       <div className="flex justify-between items-center px-6 mb-3 mt-2">
-        <span className="text-[#86898C] text-[14px] font-medium">{formatDateTime(item.createdAt ?? ' ').date}</span>
+        <span className="text-[#86898C] text-[14px] font-medium">{formatDateTime(item.createdAt ?? ' ', locale).date}</span>
         <span className="text-[#86898C] px-2 py-1 rounded-full border border-[#86898C] font-medium text-[12px]">
           {convertStatusToMessage({status: item.status})}
         </span>

@@ -6,6 +6,7 @@ import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.e
 import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
 import CheckIcon from "../../../public/assets/check_white.svg"
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
+import { useLocale } from "@/hooks/useLocale";
 
 interface StudioCardProps {
   studio: GetStudioResponse;
@@ -54,6 +55,7 @@ export const FavoriteStudioForm = ({
   studios: GetStudioResponse[]
 }) => {
 
+  const { t } = useLocale();
   const handleSelect = (id: number) => {
     onSelectStudio(id);  // 직접 ID만 전달
   };
@@ -62,10 +64,10 @@ export const FavoriteStudioForm = ({
     <div className="flex flex-col bg-white">
       <div className="flex flex-col p-6">
         <h1 className="text-2xl font-bold mb-2 text-black">
-          관심 학원을 팔로우해요
+          {t('follow_studio_message')}
         </h1>
         <p className="text-gray-600 mb-8">
-          어떤 스튜디오에 관심있으십니까?
+          {t('follow_studio_description')}
         </p>
 
         <div className="grid grid-cols-3 gap-4">

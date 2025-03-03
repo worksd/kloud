@@ -13,13 +13,11 @@ import { notFound } from "next/navigation";
 import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
 import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import { extractNumber } from "@/utils";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import { KloudScreen } from "@/shared/kloud.screen";
-import AnnouncementIcon from "../../../../public/assets/announcement-right-arrow.svg";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
+import { useLocale } from "@/hooks/useLocale";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
+  const { t, locale } = useLocale();
   const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
   const [announcements, setAnnouncements] = useState<GetAnnouncementResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true)
@@ -114,7 +112,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
                 : 'text-white bg-black border border-black hover:bg-gray-900'
               }`}
             >
-              {follow ? '팔로잉' : '팔로우'}
+              {follow ? t('following') : t('follow')}
             </div>
           </div>
 
@@ -144,7 +142,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
             <div className="flex flex-col">
               <div className="p-4">
                 <div className="text-[20px] text-black font-bold">
-                  스튜디오 공지사항
+                  {t('studio_announcement')}
                 </div>
               </div>
               {announcements && announcements.length > 0 && (

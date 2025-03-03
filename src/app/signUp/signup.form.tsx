@@ -6,8 +6,9 @@ import CheckIcon from "../../../public/assets/check.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { signUpAction } from "@/app/signUp/signup.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export const SignupForm = () => {
 
@@ -18,6 +19,7 @@ export const SignupForm = () => {
   const [isEmailPatternValid, setIsEmailPatternValid] = useState(false);
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
   const [isPasswordPatternValid, setIsPasswordPatternValid] = useState(false);
+  const { t, locale } = useLocale();
 
   const onEmailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmailErrorMessage('');
@@ -40,9 +42,10 @@ export const SignupForm = () => {
 
     const res = await signUpAction({ email, password })
     if (res.success) {
-        loginAuthNavigation({
+        LoginAuthNavigation({
           status: res.status,
           window: window,
+          locale,
         })
     } else {
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
@@ -51,7 +54,7 @@ export const SignupForm = () => {
         const dialogInfo = {
           id: 'Empty',
           type: 'SIMPLE',
-          title: '회원가입 실패',
+          title: t('fail_sign_up'),
           message: res.errorMessage,
         }
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
@@ -62,13 +65,13 @@ export const SignupForm = () => {
   return (
     <div className={"flex flex-col"}>
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title="가입하기"/>
+        <SimpleHeader title={'sign_up'}/>
       </div>
       <div className="flex flex-col p-6 justify-between">
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium text-black">이메일</label>
-            <span className="text-[10px] font-normal text-[#E55B5B]">필수</span>
+            <label className="text-[14px] font-medium text-black">{t('email')}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{t('required')}</span>
           </div>
           <input
             className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
@@ -76,20 +79,20 @@ export const SignupForm = () => {
             name="email"
             onChange={onEmailChanged}
             value={email}
-            placeholder='이메일을 입력해주세요'
+            placeholder={t('input_email_message')}
           />
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isEmailPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isEmailPatternValid ? "text-black" : "text-gray-300"}`}>
-              이메일 주소 형식
+              {t('email_format')}
             </span>
           </div>
           <div className="text-[#E55B5B] mt-2 text-[12px]">
             {emailErrorMessage}
           </div>
           <div className="flex items-center gap-1 mb-2 mt-5">
-            <label className="text-[14px] font-medium text-black" htmlFor="password">비밀번호</label>
-            <span className="text-[10px] font-normal text-[#E55B5B]">필수</span>
+            <label className="text-[14px] font-medium text-black" htmlFor="password">{t('password')}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{t('required')}</span>
           </div>
           <div className="relative mb-2">
             <input
@@ -99,7 +102,7 @@ export const SignupForm = () => {
               name="password"
               value={password}
               onChange={onPasswordChanged}
-              placeholder='비밀번호를 입력해주세요'
+              placeholder={t('input_password_message')}
             />
             <button
               type="button"
@@ -113,14 +116,14 @@ export const SignupForm = () => {
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordLengthValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordLengthValid ? "text-black" : "text-gray-300"}`}>
-              8자리 이상
+              {t("email_format")}
             </span>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordPatternValid ? "text-black" : "text-gray-300"}`}>
-              영문 / 숫자 / 특수문자 혼용
+              {t('password_requirements')}
             </span>
           </div>
         </div>
@@ -134,7 +137,7 @@ export const SignupForm = () => {
                 : "bg-[#BCBFC2] text-white"
             }`}
             disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
-            다음으로
+            {t('sign_up')}
           </button>
         </div>
       </div>

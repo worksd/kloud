@@ -1,6 +1,8 @@
-export function formatDateTime(input: string): { time: string; date: string, dayOfWeek: string } {
+import { StringResource } from "@/shared/StringResource";
+
+export function formatDateTime(input: string, locale: keyof typeof StringResource ): { time: string; date: string, dayOfWeek: (keyof (typeof StringResource)["ko"]) } {
   try {
-    const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+    const daysOfWeek: (keyof (typeof StringResource)["ko"])[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
     const [datePart, timePart] = input.split(" ");
     const [year, month, day] = datePart.split(".").map(Number);
@@ -19,7 +21,7 @@ export function formatDateTime(input: string): { time: string; date: string, day
     return {
       time: '',
       date: '',
-      dayOfWeek: ''
+      dayOfWeek: 'unknown'
     }
   }
 }

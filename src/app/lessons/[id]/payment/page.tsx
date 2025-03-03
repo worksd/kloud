@@ -8,6 +8,7 @@ import Image from "next/image";
 import { formatDateTime } from "@/utils/date.format";
 import React from "react";
 import PaymentInfo from "@/app/lessons/[id]/payment/payment.info";
+import { FormattedDate } from "@/app/lessons/[id]/payment/FormattedDate";
 
 
 export default async function LessonPaymentPage({params, searchParams}: {
@@ -16,13 +17,11 @@ export default async function LessonPaymentPage({params, searchParams}: {
 }) {
   const lesson = await getPaymentDetail({id: (await params).id})
 
-  if ('id' in lesson) {
-    const formattedTime = formatDateTime(lesson?.startTime ?? '')
-    return (
+  if ('id' in lesson) {return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
         {/* 백 헤더 */}
         <div className="flex justify-between items-center mb-14 px-6">
-          <SimpleHeader title="결제하기"/>
+          <SimpleHeader title="payment"/>
         </div>
 
         <div className="flex flex-col">
@@ -51,9 +50,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
                 </div>
               </div>
               <div className={"flex flex-row items-center mb-1"}>
-                <p className="text-[#86898C] text-[14px] font-medium">
-                  {formattedTime.date} ({formattedTime.dayOfWeek}) {formattedTime.time}
-                </p>
+                <FormattedDate startTime={lesson.startTime ?? ''}/>
                 <p className="text-[#86898C] text-[12px] font-medium">
                   /{lesson?.duration}분
                 </p>

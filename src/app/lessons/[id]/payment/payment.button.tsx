@@ -2,11 +2,12 @@
 
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import { useCallback, useEffect } from "react";
-import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
-import { getUserAction } from "@/app/onboarding/get.user.action";
+import { getUserAction } from "@/app/onboarding/action/get.user.action";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor, disabled}: {
   lessonId: number,
@@ -19,6 +20,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   depositor: string,
   disabled: boolean,
 }) {
+  const { t, locale } = useLocale();
   const handlePayment = useCallback(async () => {
 
     const user = await getUserAction()
@@ -77,7 +79,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId, status: 'Paid'});
       const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = getBottomMenuList();
+      const bottomMenuList = getBottomMenuList(locale);
       const bootInfo = JSON.stringify({
         bottomMenuList: bottomMenuList,
         route: pushRoute,
@@ -109,7 +111,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
         depositor: depositor,
       });
       const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = getBottomMenuList();
+      const bottomMenuList = getBottomMenuList(locale);
       const bootInfo = JSON.stringify({
         bottomMenuList: bottomMenuList,
         route: pushRoute,

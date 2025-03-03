@@ -9,7 +9,7 @@ export default async function StudioLessons({params}: Props) {
     return (
       <div className="w-full h-screen bg-whiteflex flex-col">
         <div className="flex justify-between items-center mb-14">
-          <SimpleHeader title="인기 수업"/>
+          <SimpleHeader title="popular_lesson"/>
         </div>
         <div className={"px-6"}>
           <LessonGridItems lessons={'lessons' in res ? res.lessons : []}/>

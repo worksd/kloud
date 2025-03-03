@@ -23,8 +23,3 @@ export const calculateDDays = (input: string): string | undefined => {
 
     return diffInDays > 0 ? `D-${diffInDays}` : diffInDays === 0 ? "D-Day" : undefined;
 };
-
-export function getBottomMenuList() {
-    return JSON.parse(process.env.NEXT_PUBLIC_BOTTOM_MENU_LIST || "[]");
-
-}

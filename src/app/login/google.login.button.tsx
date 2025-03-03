@@ -2,18 +2,21 @@
 import GoogleLogo from "../../../public/assets/logo_google.svg";
 import { useEffect, useState } from "react";
 import { googleLoginAction } from "@/app/login/action/google.login.action";
-import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
+import { useLocale } from "@/hooks/useLocale";
 
 const GoogleLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
+  const { t, locale } = useLocale();
 
   useEffect(() => {
     window.onGoogleLoginSuccess = async (data: { code: string }) => {
       const res = await googleLoginAction({code: data.code})
-      loginAuthNavigation({
+      LoginAuthNavigation({
         status: res.status,
         window: window,
         message: res.errorMessage,
+        locale,
       })
     };
   }, []);
@@ -43,7 +46,7 @@ const GoogleLoginButton = () => {
         <GoogleLogo/>
       </span>
       <span className="flex-1 text-center text-[16px]">
-        Google로 시작하기
+        {t('google_login')}
       </span>
     </button>
   );

@@ -3,6 +3,7 @@ import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
 import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
+import { localeKey } from "@/shared/cookies.key";
 
 type QueryParams = Record<string, any> | URLSearchParams;
 
@@ -56,6 +57,7 @@ export abstract class EndpointClient {
     defaultHeaders['x-guinness-client'] = nextHeaders.get('x-guinness-client')?.valueOf() ?? ''
     defaultHeaders['x-guinness-device-name'] = nextHeaders.get('x-guinness-device-name')?.valueOf() ?? ''
     defaultHeaders['x-guinness-version'] = nextHeaders.get('x-guinness-version')?.valueOf() ?? ''
+    defaultHeaders['x-guinness-locale'] = (await cookies()).get(localeKey)?.value ?? 'ko'
     console.log('Access Token ' + accessToken?.value)
     return defaultHeaders;
   }
@@ -89,7 +91,7 @@ export abstract class EndpointClient {
 
     const response = await fetch(fullUrl, options);
     const jsonResponse = await response.json();
-    console.log('Response:', jsonResponse);
+    // console.log('Response:', jsonResponse);
     return jsonResponse;
   }
 }

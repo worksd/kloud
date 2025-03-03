@@ -3,12 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { GetNotificationResponse } from '@/app/endpoint/notification.endpoint';
 import Image from 'next/image';
+import { EmptyNotifications } from "@/app/notifications/EmptyNotification";
+import { formatTimeAgo } from "@/app/notifications/format.time.ago";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function NotificationForm({
                                            notifications,
                                          }: {
   notifications: GetNotificationResponse[];
 }) {
+  const { locale } = useLocale()
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -39,7 +43,7 @@ export default function NotificationForm({
               <div className="flex flex-col flex-1">
                 <span className="text-base font-bold text-black mb-1">{notification.title}</span>
                 <p className="text-sm text-gray-600 mb-1">{notification.body}</p>
-                {mounted && <span className="text-xs text-gray-400">{formatTimeAgo(notification.createdAt)}</span>}
+                {mounted && <span className="text-xs text-gray-400">{formatTimeAgo(notification.createdAt, locale)}</span>}
               </div>
             </div>
           ))}
@@ -47,39 +51,6 @@ export default function NotificationForm({
       </div>
     );
   }
-
   return <EmptyNotifications/>;
 }
 
-function formatTimeAgo(dateInput: string | Date, now: Date = new Date()): string {
-  let date: Date;
-
-  if (typeof dateInput === 'string') {
-    date = new Date(dateInput.replace(/\./g, '-')); // "2025.02.24 10:45" -> "2025-02-24 10:45"
-  } else {
-    date = dateInput;
-  }
-
-  if (isNaN(date.getTime())) {
-    return '잘못된 날짜';
-  }
-
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}일 전`;
-  if (hours > 0) return `${hours}시간 전`;
-  if (minutes > 0) return `${minutes}분 전`;
-  return '방금 전';
-}
-
-function EmptyNotifications() {
-  return (
-    <div className="flex flex-col min-h-screen items-center justify-center rounded-lg pb-36">
-      <h2 className="text-black font-semibold text-[24px]">새로운 소식이 없어요</h2>
-      <p className="text-gray-500 text-[16px]">알림이 오면 여기서 확인할 수 있어요</p>
-    </div>
-  );
-}

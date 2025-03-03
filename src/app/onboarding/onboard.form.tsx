@@ -8,30 +8,19 @@ import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
-import { getUserAction } from "@/app/onboarding/get.user.action";
+import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
-import { getBottomMenuList } from "@/utils";
 import { UserStatus } from "@/entities/user/user.status";
-import { checkDuplicateNickName } from "@/app/onboarding/check.duplicate.nickname.action";
+import { checkDuplicateNickName } from "@/app/onboarding/action/check.duplicate.nickname.action";
 import { followStudio } from "@/app/search/studio.follow.action";
+import { useLocale } from "@/hooks/useLocale";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 
 type Step = 'profile' | 'favorite' | 'agreement';
 
-const getHeaderTitle = (step: Step) => {
-  switch (step) {
-    case 'profile':
-      return '프로필 설정';
-    case 'favorite':
-      return '관심 스튜디오';
-    case 'agreement':
-      return '개인정보 동의';
-    default:
-      return '가입하기';
-  }
-};
-
 export const OnboardForm = () => {
+  const { t, locale } = useLocale();
   const [step, setStep] = useState<Step>('profile');
   const [user, setUser] = useState<GetUserResponse | null>(null);
   const [studios, setStudios] = useState<GetStudioResponse[]>([]);
@@ -47,6 +36,12 @@ export const OnboardForm = () => {
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const headerTitle = {
+    'profile' : t('onboarding_profile'),
+    'favorite': t('onboarding_favorite_studio'),
+    'agreement' : t('onboarding_agreement'),
+  };
 
   const isNextButtonDisabled = () => {
     switch (step) {
@@ -110,7 +105,6 @@ export const OnboardForm = () => {
   }, [])
 
   const hideKeyboard = () => {
-    // 현재 포커스된 요소에서 포커스 제거
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
@@ -138,7 +132,7 @@ export const OnboardForm = () => {
         if (res.success) {
           setStep("favorite")
         } else {
-          setInputErrorMessage('이미 사용중인 닉네임입니다')
+          setInputErrorMessage(t('duplicate_nick_name_message'))
         }
       } else {}
     } else if (step === "favorite") {
@@ -156,7 +150,7 @@ export const OnboardForm = () => {
 
         if (res.success && res.user?.status == UserStatus.Ready) {
           const bootInfo = JSON.stringify({
-            bottomMenuList: getBottomMenuList(),
+            bottomMenuList: getBottomMenuList(locale),
             route: '',
             withFcmToken: true,
           });
@@ -189,7 +183,7 @@ export const OnboardForm = () => {
               <ArrowLeftIcon className="w-6 h-6"/>
             </button>
           </div>
-          <span className="text-[16px] font-bold text-black">{getHeaderTitle(step)}</span>
+          <span className="text-[16px] font-bold text-black">{headerTitle[step]}</span>
         </div>
       </div>
 
@@ -228,7 +222,7 @@ export const OnboardForm = () => {
             disabled: isNextButtonDisabled()
           }}
         >
-          다음
+          {t('next')}
         </CommonSubmitButton>
       </div>
 
@@ -239,8 +233,8 @@ export const OnboardForm = () => {
             {/* 스피너 */}
             <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin mb-4"></div>
             <p className="text-lg font-semibold text-black">
-              환영합니다! 🎉<br/>
-              Rawgraphy와 함께 멋진 순간을 만들어봐요.
+              {t('welcome_title')}<br/>
+              {t('welcome_message')}
             </p>
           </div>
         </div>

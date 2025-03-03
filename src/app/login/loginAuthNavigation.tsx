@@ -1,12 +1,13 @@
 'use client'
 import { UserStatus } from "@/entities/user/user.status";
-import { getBottomMenuList } from "@/utils";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { StringResource } from "@/shared/StringResource";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 
-export const loginAuthNavigation = ({status, message, window}: {status?: UserStatus, message?: string, window: Window}) => {
+export const LoginAuthNavigation = ({status, message, window, locale}: {status?: UserStatus, message?: string, window: Window, locale: keyof typeof StringResource}) => {
   if (status == UserStatus.Ready) {
     const bootInfo = JSON.stringify({
-      bottomMenuList: getBottomMenuList(),
+      bottomMenuList: getBottomMenuList(locale),
       route: '',
       withFcmToken: true,
     });
@@ -23,7 +24,7 @@ export const loginAuthNavigation = ({status, message, window}: {status?: UserSta
       id: 'Empty',
       type: 'SIMPLE',
       title: '로그인 실패',
-      message: message ?? '알 수 없는 에러가 발생했습니다',
+      message: message,
     }
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }

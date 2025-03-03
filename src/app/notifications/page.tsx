@@ -8,7 +8,7 @@ export default async function Notification(props: any) {
     return (
       <div className="fixed inset-0 bg-white flex flex-col">
         <div className="sticky top-0 z-10 bg-white">
-          <TopToolbar title="알림"/>
+          <TopToolbar title="notification"/>
         </div>
         <div className="flex-1">
           <NotificationForm notifications={res.notifications}/>

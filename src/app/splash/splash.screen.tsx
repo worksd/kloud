@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { authToken } from "@/app/splash/auth.token.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
-import { getBottomMenuList } from "@/utils";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export const SplashScreen = () => {
+  const { locale } = useLocale()
   useEffect(() => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
@@ -26,7 +28,7 @@ export const SplashScreen = () => {
 
       if (route == KloudScreen.Main) {
         const bootInfo = JSON.stringify({
-          bottomMenuList: getBottomMenuList(),
+          bottomMenuList: getBottomMenuList(locale),
           route: '',
           withFcmToken: true,
         });

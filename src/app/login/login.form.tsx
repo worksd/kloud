@@ -1,13 +1,14 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import emailLoginAction from "@/app/login/email.login.action";
+import emailLoginAction from "@/app/login/action/email.login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg"
 import { UserStatus } from "@/entities/user/user.status";
-import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { clearCookies } from "@/app/setting/clear.token.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export const LoginForm = () => {
 
@@ -17,6 +18,7 @@ export const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+  const { t, locale } = useLocale();
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -40,9 +42,10 @@ export const LoginForm = () => {
       password: password,
     })
     if ('status' in res) {
-      loginAuthNavigation({
+      LoginAuthNavigation({
         status: res.status,
         window: window,
+        locale: locale,
       })
     } else if (res.errorCode) {
       if (res.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
@@ -53,7 +56,7 @@ export const LoginForm = () => {
         const dialogInfo = {
           id: 'Empty',
           type: 'SIMPLE',
-          title: '로그인 실패',
+          title: t('fail_login'),
           message: res.errorMessage,
         }
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
@@ -77,7 +80,7 @@ export const LoginForm = () => {
     <div
       className="flex flex-col p-6"
     >
-      <label className="mb-2 text-[14px] font-normal text-black">이메일</label>
+      <label className="mb-2 text-[14px] font-normal text-black">{t('email')}</label>
       <input
         className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
         type="email"
@@ -85,13 +88,13 @@ export const LoginForm = () => {
         name="email"
         onChange={onEmailChange}
         value={email}
-        placeholder='이메일을 입력해주세요'
+        placeholder={t('input_email_message')}
       />
       <div className="text-[#E55B5B] mb-2 text-[12px]">
         {emailErrorMessage}
       </div>
       <div className="flex items-center gap-2 mb-2">
-        <label className="text-[14px] font-normal text-black">비밀번호</label>
+        <label className="text-[14px] font-normal text-black">{t('password')}</label>
       </div>
       <div className="relative mb-2">
         <input
@@ -101,7 +104,7 @@ export const LoginForm = () => {
           name="password"
           value={password}
           onChange={onPasswordChange}
-          placeholder='비밀번호를 입력해주세요'
+          placeholder={t('input_password_message')}
         />
         <button
           type="button"
@@ -118,8 +121,8 @@ export const LoginForm = () => {
 
 
       <div className="flex items-center justify-end mb-4" onClick={onClickSignUp}>
-        <span className="text-[#86898C] text-[12px]">아직 회원이 아니신가요?</span>
-        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">회원가입하기</span>
+        <span className="text-[#86898C] text-[12px]">{t('not_member_sign_up')}</span>
+        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">{t('create_account')}</span>
       </div>
 
       <button
@@ -127,7 +130,7 @@ export const LoginForm = () => {
         disabled={!isFormValid}
         className={`sticky bottom-0 flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
-        시작하기
+        {t('do_start')}
       </button>
     </div>
   );

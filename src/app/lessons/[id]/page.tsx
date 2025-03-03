@@ -8,6 +8,7 @@ import LessonPaymentButton from "./lesson.payment.button";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
 import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
+import { LessonDetailForm } from "@/app/lessons/[id]/payment/LessonDetailForm";
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -30,97 +31,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function LessonDetail({ params }: Props) {
     const id = Number((await params).id);
 
-    const data = await api.lesson.get({ id });
-    if (isGuinnessErrorCase(data)) {
+    const lesson = await api.lesson.get({ id });
+    if (isGuinnessErrorCase(lesson)) {
        return (
-         <div>{data.code} {data.message}</div>
+         <div>{lesson.code} {lesson.message}</div>
        )
+    } else {
+        return <LessonDetailForm data={lesson}/>
     }
 
-    return (
-        <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
-            {/* 헤더 */}
-            <HeaderInDetail title={data.title} />
 
-            {/* 수업 썸네일 */}
-            <div
-                style={{ backgroundImage: `url(${data.thumbnailUrl})` }}
-                className="
-            w-full
-            relative
-            aspect-[3/2]
-            
-            bg-cover
-            bg-center
-            bg-no-repeat
-
-            before:content-['']
-            before:absolute
-            before:inset-0
-            before:block
-            before:bg-gradient-to-b
-            before:from-transparent
-            before:from-70%
-            before:to-white
-            before:to-100%
-            before:z-[2]"
-            />
-
-            {/* 디테일 영역 */}
-            <div className="w-full py-5 flex-col justify-start items-start gap-8 inline-flex">
-                <div className="self-stretch flex-col justify-start items-start gap-0 flex">
-                    {/* 수업명 */}
-                    <div className="self-stretch px-6 flex-col justify-start items-start gap-2.5 flex">
-                        <div className="self-stretch justify-between items-start inline-flex">
-                            <StudioProfileImage studio={data.studio}/>
-                            <div className="justify-center items-start gap-[3px] flex">
-                                <div
-                                  className="self-stretch px-2 py-1 bg-black rounded-xl justify-center items-center gap-2.5 inline-flex">
-                                    <div className="text-white text-xs font-medium leading-none">{data.level}</div>
-                                </div>
-                                <div
-                                  className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
-                                    <div
-                                      className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[data.type ?? LessonTypes.PopUp]}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="self-stretch justify-start items-center gap-2 inline-flex">
-                            <div className="w-[342px] text-black text-xl font-bold leading-normal">{data.title}</div>
-                        </div>
-                        <div className="w-full h-[1px] bg-[#f7f8f9]"/>
-                    </div>
-
-
-                    {/* 상세 */}
-                    <LessonInfoSection data={data}/>
-
-                    <div className="w-full h-3 bg-[#f7f8f9]"/>
-                </div>
-
-                {/* 강사 */}
-                <div className="self-stretch flex-col justify-start items-start gap-5 flex">
-                    <div className="self-stretch h-7 px-6 justify-center items-center gap-5 inline-flex">
-                        <div className="grow shrink basis-0 text-black text-base font-medium leading-snug">강의정보</div>
-                    </div>
-                    <LessonArtistItem artist={data.artist}/>
-                    {data.extraArtists && data.extraArtists.length > 0 && (
-                      <div className="flex flex-col gap-5">
-                          {data.extraArtists.map((artist, index) => (
-                            <LessonArtistItem
-                              key={artist.id || index}
-                              artist={artist}
-                            />
-                          ))}
-                      </div>
-                    )}
-                </div>
-            </div>
-
-            {/* 결제 페이지 이동 버튼 */}
-            <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-                <LessonPaymentButton id={id} ticketData={data.ticket} disabled={isPastTime(data.startTime)}/>
-            </div>
-        </div>
-    );
 }

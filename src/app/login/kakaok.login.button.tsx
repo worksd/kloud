@@ -2,18 +2,21 @@
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
 import { useEffect, useState } from "react";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
-import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
+import { useLocale } from "@/hooks/useLocale";
 
 const KakaoLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
+  const { t, locale } = useLocale()
 
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
       const res = await kakaoLoginAction({code: data.code})
-      loginAuthNavigation({
+      LoginAuthNavigation({
         status: res.status,
         window: window,
         message: res.errorMessage,
+        locale,
       })
     }
   }, []);
@@ -39,7 +42,7 @@ const KakaoLoginButton = () => {
         <KakaoLogo/>
       </span>
       <span className="flex-1 text-center text-[16px]">
-        카카오로 시작하기
+        {t('kakao_login')}
       </span>
     </button>
   );

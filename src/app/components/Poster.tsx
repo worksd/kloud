@@ -1,11 +1,11 @@
 "use client"
 
 import { KloudScreen } from "@/shared/kloud.screen";
-import { useRouter } from "next/navigation";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { formatDateTime } from "@/utils/date.format";
 import Image from "next/image";
 import { calculateDDays } from "@/utils";
+import { useLocale } from "@/hooks/useLocale";
 
 export const Poster = ({
                          id,
@@ -22,13 +22,9 @@ export const Poster = ({
   title?: string,
   width?: number
 }) => {
-  const router = useRouter();
+  const {t , locale} = useLocale();
   const handleOnClick = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.push(KloudScreen.LessonDetail(id))
-    } else {
-      router.push(KloudScreen.LessonDetail(id))
-    }
+      window.KloudEvent?.push(KloudScreen.LessonDetail(id))
   }
 
   return (
@@ -54,7 +50,7 @@ export const Poster = ({
             <div className="absolute py-1 px-2 left-0 top-0 mt-1">
               <div className="relative border-2 border-[#737373] rounded-lg">
             <span className="text-[14px] font-bold text-[#737373] tracking-wider p-1">
-              종료
+              {t('finish')}
             </span>
               </div>
             </div>
@@ -84,7 +80,7 @@ export const Poster = ({
         </div>
         {title &&
           <div className="body-200 text-gray-500 truncate">
-            {`${formatDateTime(startTime).date}(${formatDateTime(startTime).dayOfWeek}) ${formatDateTime(startTime).time}`}
+            {`${formatDateTime(startTime, locale).date}(${t(formatDateTime(startTime, locale).dayOfWeek)}) ${formatDateTime(startTime, locale).time}`}
           </div>
         }
       </div>

@@ -2,18 +2,21 @@
 import AppleLogo from "../../../public/assets/logo_apple.svg"
 import { useEffect, useState } from "react";
 import { appleLoginAction } from "@/app/login/action/apple.login.action";
-import { loginAuthNavigation } from "@/app/login/login.auth.navigation";
+import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
+import { useLocale } from "@/hooks/useLocale";
 
 const AppleLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
+  const { t, locale} = useLocale()
 
   useEffect(() => {
     window.onAppleLoginSuccess = async (data: { code: string, name: string}) => {
       const res = await appleLoginAction({code: data.code, name: data.name})
-      loginAuthNavigation({
+      LoginAuthNavigation({
         status: res.status,
         window: window,
         message: res.errorMessage,
+        locale: locale,
       })
     };
   }, []);
@@ -40,7 +43,7 @@ const AppleLoginButton = () => {
         <AppleLogo/>
       </span>
       <span className="flex-1 text-center text-[16px]">
-        Apple로 시작하기
+        {t('apple_login')}
       </span>
     </button>
   );

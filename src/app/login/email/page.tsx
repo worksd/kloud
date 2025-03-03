@@ -6,7 +6,7 @@ export default function EmailLogin(props: any) {
 
   return (
     <section className="min-h-screen bg-white flex flex-col">
-      <SimpleHeader title={""}/>
+      <SimpleHeader />
       <Logo className="mx-auto mt-14"/>
       <LoginForm/>
     </section>

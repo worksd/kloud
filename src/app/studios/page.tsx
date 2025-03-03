@@ -9,7 +9,7 @@ export default async function StudioList() {
     <div className="fixed inset-0 bg-white flex flex-col">
       <div className="flex-1 overflow-y-auto space-y-8 scrollbar-hide">
         <div className="flex justify-between items-center mb-14">
-          <SimpleHeader title="스튜디오"/>
+          <SimpleHeader title="studio"/>
         </div>
         <ul className="flex flex-col space-y-4">
           {(res.studios ?? []).map((item) => (
