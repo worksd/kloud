@@ -5,7 +5,6 @@ import { getPaymentDetail } from "@/app/lessons/[id]/payment/payment.detail.acti
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
 import Image from "next/image";
-import { formatDateTime } from "@/utils/date.format";
 import React from "react";
 import PaymentInfo from "@/app/lessons/[id]/payment/payment.info";
 import { FormattedDate } from "@/app/lessons/[id]/payment/FormattedDate";

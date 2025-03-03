@@ -12,7 +12,7 @@ export const SettingHeader = ({user}: { user: GetUserResponse }) => {
   }
 
   return (
-    <div className={"flex flex-row items-center justify-between mb-8 px-4 w-full"}>
+    <div className={"flex flex-row items-center justify-between mb-8 w-full"}>
 
       <div className={"flex flex-row justify-center items-center"}>
         <div className="w-[40px] h-[40px] rounded-full overflow-hidden flex-shrink-0">

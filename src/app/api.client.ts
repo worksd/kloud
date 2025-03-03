@@ -58,6 +58,10 @@ export class ApiClient extends EndpointClient {
   readonly notification = {
     get: this.endpointBuilder(API.Notification.GetNotifications)
   }
+
+  readonly pass = {
+    list: this.endpointBuilder(API.Pass.GetPasses),
+  }
 }
 
 export interface ClientOptions {

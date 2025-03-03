@@ -18,6 +18,7 @@ import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useLocale } from "@/hooks/useLocale";
+import { LessonBand } from "@/app/LessonBand";
 
 export default function HomeScreen({os}: { os: string }) {
   const { t } = useLocale()
@@ -126,29 +127,7 @@ export default function HomeScreen({os}: { os: string }) {
       </section>
 
       <section className="mt-4">
-        <div className="p-4">
-          <div className="text-[20px] text-black font-bold">{t("upcoming_lessons")}</div>
-        </div>
-
-        {lessons && lessons.length > 0 && (
-          <div className="flex scrollbar-hide space-x-4">
-            {lessons.map((item: GetLessonResponse, index: number) => (
-              <div
-                key={item.id}
-                className={index === 0 ? 'pl-4' : ''}  // 첫 번째 아이템에만 왼쪽 패딩
-              >
-                <Poster
-                  width={167}
-                  id={item.id}
-                  posterUrl={item?.thumbnailUrl ?? ''}
-                  title={item.title ?? ''}
-                  startTime={item.startTime ?? ''}
-                  studioLogoUrl={item.studio?.profileImageUrl}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <LessonBand title={t("upcoming_lessons")} lessons={lessons}/>
 
         {!isLoading && lessons && lessons.length == 0 && (
           <div className="w-full text-center text-[#BCBFC2] py-10">

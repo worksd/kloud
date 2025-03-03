@@ -5,6 +5,7 @@ import { api } from "@/app/api.client";
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
 import { SettingHeader } from "@/app/setting/setting.header";
+import { PassPurchaseButton } from "@/app/setting/PassPurchaseButton";
 
 export default async function Setting({
                                         searchParams
@@ -19,9 +20,12 @@ export default async function Setting({
 
   if ('id' in user) {
     return (
-      <div className="flex flex-col w-screen min-h-screen bg-white mx-auto py-8 ">
+      <div className="flex flex-col w-screen min-h-screen bg-white mx-auto py-8">
         {/* 프로필 섹션 */}
-        <SettingHeader user={user}/>
+        <div className={"px-4 mb-4"}>
+          <SettingHeader user={user}/>
+          <PassPurchaseButton />
+        </div>
 
         {/* 메뉴 리스트 */}
         <MenuItem label="payment_records" path={KloudScreen.Tickets}/>

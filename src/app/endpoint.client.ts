@@ -91,7 +91,7 @@ export abstract class EndpointClient {
 
     const response = await fetch(fullUrl, options);
     const jsonResponse = await response.json();
-    // console.log('Response:', jsonResponse);
+    console.log('Response:', jsonResponse);
     return jsonResponse;
   }
 }

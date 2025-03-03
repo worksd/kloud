@@ -139,7 +139,7 @@ const PaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonRespon
   )
 }
 
-function SellerInfoItem({label, value}: { label: string; value: string; }) {
+export function SellerInfoItem({label, value}: { label: string; value: string; }) {
   return <div className="self-stretch justify-start items-top inline-flex">
     <div className="w-[120px] text-[#86898c] text-[12px] font-medium leading-none">{label}</div>
     <div className="grow basis-0 text-black text-[12px] font-medium">

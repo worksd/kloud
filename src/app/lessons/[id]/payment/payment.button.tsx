@@ -54,7 +54,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
         userCode: process.env.NEXT_PUBLIC_USER_CODE,
       }
       window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
-    } else if (method === '계좌이체') {
+    } else if (method === 'account_transfer') {
       if (depositor.length === 0) {
         const info = {
           id: 'Empty',
