@@ -14,5 +14,4 @@ export const loginSuccessAction = async ({accessToken, userId}: {
     maxAge: 2592000,
     sameSite: 'lax',
   })
-  console.log(`cookie set accessToken = ${accessToken} userId = ${userId}`)
 }

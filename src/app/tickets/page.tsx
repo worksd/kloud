@@ -12,7 +12,7 @@ async function TicketList() {
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title="payment_records"/>
+        <SimpleHeader titleResource="payment_records"/>
       </div>
 
       {('tickets' in res && res.tickets.length > 0) ? (

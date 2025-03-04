@@ -1,22 +1,20 @@
 import NotificationForm from "@/app/notifications/notification.form";
-import { TopToolbar } from "@/shared/top.toolbar";
-import { getNotificationListAction } from "@/app/notifications/get.notification.list.action";
+import { translate } from "@/utils/translate";
+import { api } from "@/app/api.client";
 
-export default async function Notification(props: any) {
-  const res = await getNotificationListAction()
-  if ('notifications' in res) {
-    return (
-      <div className="fixed inset-0 bg-white flex flex-col">
-        <div className="sticky top-0 z-10 bg-white">
-          <TopToolbar title="notification"/>
-        </div>
-        <div className="flex-1">
-          <NotificationForm notifications={res.notifications}/>
-        </div>
-      </div>
-    );
+export default async function NotificationPage() {
+  const res = await api.notification.get({});
+
+  if (!('notifications' in res)) {
+    throw Error();
   }
-  else {
-    throw Error()
-  }
+
+  return (
+    <main className="min-h-screen bg-white">
+      <header className="sticky top-0 z-10 bg-white p-4">
+        <h1 className="text-2xl text-black">{await translate('notification')}</h1>
+      </header>
+      <NotificationForm notifications={res.notifications}/>
+    </main>
+  );
 }

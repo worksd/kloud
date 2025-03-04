@@ -11,7 +11,6 @@ export const LoginAuthNavigation = ({status, message, window, locale}: {status?:
       route: '',
       withFcmToken: true,
     });
-    console.log('bootInfo = ' + bootInfo);
     window.KloudEvent?.navigateMain(bootInfo)
   }
   else if (status == UserStatus.Deactivate) {

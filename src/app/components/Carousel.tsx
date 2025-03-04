@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
@@ -11,7 +12,7 @@ const CardList = ({lessons}: { lessons: GetLessonResponse[] }) => {
   const [currentCard, setCurrentCard] = useState<number>(0);
 
   return (
-    <div className="relative overflow-hidden"> {/* 컨테이너를 relative로 설정 */}
+    <div className="relative overflow-hidden">
       <Swiper
         simulateTouch={true}
         grabCursor={true}

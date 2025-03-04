@@ -1,47 +1,30 @@
-"use client";
-import { useLocale } from "@/hooks/useLocale";
+
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import React from "react";
 import { StringResource } from "@/shared/StringResource";
 import CheckIcon from "../../../../../public/assets/check_white.svg";
 import { CommonSubmitButton } from "@/app/components/buttons";
+import { cookies } from "next/headers";
+import { localeKey } from "@/shared/cookies.key";
+import { translate } from "@/utils/translate";
 
-export default function LanguageSettings() {
-  const {locale, changeLocale, t} = useLocale();
+export default async function LanguageSettings() {
+  const locale = (await cookies()).get(localeKey)?.value
 
   const handleChangeLocale = (locale: keyof typeof StringResource) => {
-    changeLocale(locale);
-  }
-
-  const handleSubmit = () => {
-    // 언어 설정 저장 로직
-    window.KloudEvent?.back();
-    setInterval(() => {
-      const dialogInfo = {
-        id: 'Empty',
-        type: 'SIMPLE',
-        title: '언어 변경',
-        message: '언어 변경에 성공했습니다.\n앱을 다시 실행합니다.',
-      }
-      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
-    }, 700)
-
-    setInterval(() => {
-      window.KloudEvent?.forceEnd();
-    }, 2000)
   }
 
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white mx-auto px-4">
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title="language_setting"/>
+        <SimpleHeader titleResource="language_setting"/>
       </div>
 
       <ul className="flex flex-col w-full space-y-2">
         {/* 기존 라디오 버튼들 */}
         <li>
-          <label className={`flex items-center w-full p-4 rounded-lg cursor-pointer 
-            transition-colors duration-200 
+          <label className={`flex items-center w-full p-4 rounded-lg cursor-pointer
+            transition-colors duration-200
             ${locale === "ko"
             ? 'bg-black border-2 border-black'
             : 'bg-gray-50'}`}
@@ -54,8 +37,8 @@ export default function LanguageSettings() {
               onChange={() => handleChangeLocale('ko')}
               className="hidden"
             />
-            <div className={`w-6 h-6 flex items-center justify-center rounded-full border-2 
-              transition-all duration-200 
+            <div className={`w-6 h-6 flex items-center justify-center rounded-full border-2
+              transition-all duration-200
               ${locale === "ko"
               ? "bg-black border-white"
               : "bg-[#22222233] border-white"}`}
@@ -72,8 +55,8 @@ export default function LanguageSettings() {
           </label>
         </li>
         <li>
-          <label className={`flex items-center w-full p-4 rounded-lg cursor-pointer 
-            transition-colors duration-200 
+          <label className={`flex items-center w-full p-4 rounded-lg cursor-pointer
+            transition-colors duration-200
             ${locale === "en"
             ? 'bg-black border-2 border-black'
             : 'bg-gray-50'}`}
@@ -86,8 +69,8 @@ export default function LanguageSettings() {
               onChange={() => handleChangeLocale('en')}
               className="hidden"
             />
-            <div className={`w-6 h-6 flex items-center justify-center rounded-full border-2 
-              transition-all duration-200 
+            <div className={`w-6 h-6 flex items-center justify-center rounded-full border-2
+              transition-all duration-200
               ${locale === "en"
               ? "bg-black border-white"
               : "bg-[#22222233] border-white"}`}
@@ -107,10 +90,9 @@ export default function LanguageSettings() {
 
       {/* CommonSubmitButton 추가 */}
       <div className="mt-auto pb-6">
-        <CommonSubmitButton
-          originProps={{onClick: handleSubmit}}>
+        <CommonSubmitButton>
           <div>
-            {t('confirm')}
+            {await translate('confirm')}
           </div>
         </CommonSubmitButton>
 

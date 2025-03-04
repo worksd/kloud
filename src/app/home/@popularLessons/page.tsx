@@ -1,12 +1,13 @@
-import { StudioItems } from "@/app/search/StudioItems";
-import { api } from "@/app/api.client";
-import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import { getJumbotronList } from "@/app/home/action/get.jumbotron.list";
+import CardList from "@/app/components/Carousel";
+import React from "react";
 
 export default async function PopularLessons() {
   const res = await getJumbotronList()
   return (
-    <LessonGridSection title={"인기 수업"} lessons={res.lessons?.slice(0,4) ?? []}/>
+    <section className="flex flex-col">
+      <CardList lessons={res.lessons ?? []}/>
+    </section>
   )
 }
 

@@ -154,7 +154,6 @@ export const OnboardForm = () => {
             route: '',
             withFcmToken: true,
           });
-          console.log('bootInfo = ' + bootInfo);
           window.KloudEvent?.navigateMain(bootInfo);
         }
       } finally {

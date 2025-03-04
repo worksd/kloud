@@ -30,7 +30,6 @@ const emailLoginAction = async ({email, password}: { email: string, password: st
       }
     }
   } catch (e) {
-    console.log(e)
     return {
       success: false,
       errorMessage: ExceptionResponseCode.UNKNOWN_ERROR

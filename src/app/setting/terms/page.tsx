@@ -4,7 +4,7 @@ import Term from "@/app/setting/terms/Term";
 export default async function TermPage() {
   return (
     <div>
-      <SimpleHeader title={'service_terms_agreement'}/>
+      <SimpleHeader titleResource={'service_terms_agreement'}/>
       <Term/>
     </div>
   )

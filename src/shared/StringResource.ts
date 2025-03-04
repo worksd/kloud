@@ -136,6 +136,7 @@ export const StringResource = {
     studio_announcement: '스튜디오 공지사항',
     language_setting: '언어 설정',
     no_lessons: '등록된 수업이 없습니다',
+    purchase_pass: '패스권 구매하기',
   },
   en: {
     welcome: "Welcome!",
@@ -274,5 +275,6 @@ export const StringResource = {
     studio_announcement: 'Studio Announcement',
     language_setting: "Language Setting",
     no_lessons: 'No registered lessons.',
+    purchase_pass: 'Purchase Pass Ticket'
   }
 };

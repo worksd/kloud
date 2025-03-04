@@ -37,7 +37,6 @@ export const updateUserAction = async ({name, nickName, phone, rrn}: {
       }
     }
   } catch (e) {
-    console.log(e)
     return {
       success: false,
       errorCode: ExceptionResponseCode.UNKNOWN_ERROR

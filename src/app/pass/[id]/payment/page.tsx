@@ -11,7 +11,7 @@ export default async function PassPayment({params, searchParams}: {
   return (
     <div>
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title={undefined}/>
+        <SimpleHeader titleResource={undefined}/>
       </div>
       <div className={"px-6"}>
         <div className={"text-[16px] text-black  font-medium"}>

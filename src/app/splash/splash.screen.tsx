@@ -32,7 +32,6 @@ export const SplashScreen = () => {
           route: '',
           withFcmToken: true,
         });
-        console.log('bootInfo = ' + bootInfo);
         window.KloudEvent?.navigateMain(bootInfo)
       } else {
         window.KloudEvent?.clearAndPush(route)

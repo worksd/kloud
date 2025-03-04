@@ -5,7 +5,7 @@ export default async function InquiryPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title="inquiry"/>
+        <SimpleHeader titleResource="inquiry"/>
       </div>
       <Inquiry/>
     </div>

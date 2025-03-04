@@ -12,7 +12,7 @@ export default async function PassPaymentCompletePage({params}: Props) {
   return (
     <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
       <div className="flex justify-between items-center">
-        <SimpleHeader title={undefined}/>
+        <SimpleHeader titleResource={undefined}/>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center space-y-4 w-full">
         <LargeCircleCheckIcon/>

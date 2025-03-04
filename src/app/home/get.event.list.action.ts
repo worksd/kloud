@@ -7,7 +7,6 @@ export const getEventList = async () => {
   if ('events' in res) {
     const events = res.events;
     const hideDialogIdList = (await cookies()).get('hideDialogIdList')?.value ?? '';
-    console.log('hide dialog id list ' + hideDialogIdList)
 
     const hideIds = hideDialogIdList
       ? hideDialogIdList.split('/').map(id => parseInt(id, 10))

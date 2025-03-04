@@ -36,7 +36,6 @@ export const DeactivateScreen = () => {
         route: '',
         withFcmToken: true,
       });
-      console.log('bootInfo = ' + bootInfo);
       window.KloudEvent?.navigateMain(bootInfo)
     }
   }

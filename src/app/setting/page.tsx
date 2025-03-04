@@ -6,10 +6,11 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
 import { SettingHeader } from "@/app/setting/setting.header";
 import { PassPurchaseButton } from "@/app/setting/PassPurchaseButton";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
-export default async function Setting({
-                                        searchParams
-                                      }: {
+export default async function SettingPage({
+                                            searchParams
+                                          }: {
   searchParams: Promise<{ os: string }>
 }) {
   const os = (await searchParams).os
@@ -20,19 +21,25 @@ export default async function Setting({
 
   if ('id' in user) {
     return (
-      <div className="flex flex-col w-screen min-h-screen bg-white mx-auto py-8">
-        {/* 프로필 섹션 */}
+      <div className="flex flex-col min-h-screen bg-white py-8">
         <div className={"px-4 mb-4"}>
           <SettingHeader user={user}/>
-          <PassPurchaseButton />
+          <PassPurchaseButton/>
         </div>
+        <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
+          <MenuItem label="payment_records"/>
+        </NavigateClickWrapper>
 
-        {/* 메뉴 리스트 */}
-        <MenuItem label="payment_records" path={KloudScreen.Tickets}/>
-        <MenuItem label="terms_and_policy" path={KloudScreen.Terms}/>
-        {os === 'Android' && <MenuItem label="inquiry" path={KloudScreen.Inquiry}/>}
+        <NavigateClickWrapper method={'push'} route={KloudScreen.Terms}>
+          <MenuItem label="terms_and_policy"/>
+        </NavigateClickWrapper>
+
+        {os === 'Android' &&
+          <NavigateClickWrapper method={'push'} route={KloudScreen.Inquiry}>
+            <MenuItem label="inquiry"/>
+          </NavigateClickWrapper>
+        }
       </div>
     );
   }
 };
-

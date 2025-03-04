@@ -64,9 +64,6 @@ export const SignupForm = () => {
 
   return (
     <div className={"flex flex-col"}>
-      <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title={'sign_up'}/>
-      </div>
       <div className="flex flex-col p-6 justify-between">
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">

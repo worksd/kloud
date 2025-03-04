@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
 import { StudioArrowItem } from "@/app/pass/StudioArrowItem";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export const PassSelectStudio = ({onClickAction} : {onClickAction: (studio: GetStudioResponse) => void}) => {
 

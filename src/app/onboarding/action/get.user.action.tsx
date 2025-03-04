@@ -9,7 +9,6 @@ export async function getUserAction(): Promise<GetUserResponse | null> {
     const userId = (await cookies()).get(userIdKey)?.value;
 
     if (!userId) {
-      console.log('No user ID found in cookies');
       return null;
     }
 

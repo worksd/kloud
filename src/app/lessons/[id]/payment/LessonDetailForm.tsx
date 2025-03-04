@@ -2,12 +2,12 @@
 import { HeaderInDetail } from "@/app/components/headers";
 import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
 import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
-import LessonInfoSection from "@/app/lessons/[id]/lesson.info.section";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
 import LessonPaymentButton from "@/app/lessons/[id]/lesson.payment.button";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useLocale } from "@/hooks/useLocale";
+import { LessonInfoSection } from "@/app/lessons/[id]/lesson.info.section";
 
 export const LessonDetailForm = ({data} : {data: GetLessonResponse}) => {
   const { t } = useLocale()

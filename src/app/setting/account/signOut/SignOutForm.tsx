@@ -47,7 +47,6 @@ export default function SignOutForm() {
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      console.log(data)
       if (data.route && data.id == 'SignOut') {
         const res = await deleteUserAction({
           reason: selectedReason ?? ''

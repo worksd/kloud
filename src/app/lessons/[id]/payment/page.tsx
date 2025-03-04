@@ -20,7 +20,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
         {/* 백 헤더 */}
         <div className="flex justify-between items-center mb-14 px-6">
-          <SimpleHeader title="payment"/>
+          <SimpleHeader titleResource="payment"/>
         </div>
 
         <div className="flex flex-col">

@@ -50,8 +50,6 @@ function makeSignature(timeStamp: string): string {
 const sendSMS = async (serviceId: string, request: SMSRequest) => {
   try {
     const now = Date.now().toString()
-    console.log(now)
-    console.log(process.env.NCP_ACCESS_KEY_ID)
     const response = await fetch(
       `https://sens.apigw.ntruss.com/sms/v2/services/${serviceId}/messages`,
       {
@@ -67,12 +65,10 @@ const sendSMS = async (serviceId: string, request: SMSRequest) => {
     );
 
     if (!response.ok) {
-      console.log(await response.json())
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(data)
     return data;
 
   } catch (error) {
@@ -82,7 +78,6 @@ const sendSMS = async (serviceId: string, request: SMSRequest) => {
 
 // 사용 예시
 export const sendVerificationSMS = async ({phone, code} : {phone: string, code: number}) => {
-  console.log(`phone = ${phone} code = ${code}`)
   const request: SMSRequest = {
     type: 'SMS',
     contentType: 'COMM',

@@ -1,7 +1,8 @@
+'use server'
 import { Poster } from "@/app/components/Poster";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
-export const LessonGridItems = ({lessons} : {lessons: GetLessonResponse[]}) => {
+export const LessonGridItems = async ({lessons} : {lessons: GetLessonResponse[]}) => {
   return (
     <div className="grid grid-cols-2 gap-2">
       {lessons.map((lesson) => (

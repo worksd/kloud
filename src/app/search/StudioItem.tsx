@@ -7,21 +7,20 @@ import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import { useLocale } from "@/hooks/useLocale";
 
 export const StudioItem = ({item}: { item: GetStudioResponse }) => {
-
+  const [mounted, setMounted] = useState(false);
   const [follow, setFollow] = useState(item.follow);
   const { t } = useLocale();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const router = useRouter();
+  if (!mounted) return;
+
   const handleOnClick = () => {
-    if (window.KloudEvent) {
-      window.KloudEvent.push(KloudScreen.StudioDetail(item.id))
-    } else {
-      router.push(KloudScreen.StudioDetail(item.id))
-    }
+    window.KloudEvent?.push(KloudScreen.StudioDetail(item.id))
   }
 
   const onClickFollow = async (e: React.MouseEvent) => {
-    e.stopPropagation();
     window.KloudEvent?.sendHapticFeedback()
     const res = await toggleFollowStudio({
       studioId: item.id,

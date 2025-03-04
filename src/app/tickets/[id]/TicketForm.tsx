@@ -1,4 +1,3 @@
-'use client'
 import { formatDateTime } from "@/utils/date.format";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import Image from "next/image";
@@ -10,15 +9,15 @@ import Logo from "../../../../public/assets/logo_white.svg";
 import PaymentQuestionPopup from "@/app/tickets/[id]/ArtistQuestionDialog";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { useLocale } from "@/hooks/useLocale";
+import { translate } from "@/utils/translate";
 
-export const TicketForm = ({ticket, isJustPaid} : {ticket: TicketResponse, isJustPaid: string}) => {
-  const { t, locale } = useLocale()
-  const startTime = formatDateTime(ticket.lesson?.startTime ?? '', locale);
+export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse, isJustPaid: string}) {
+  const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
   return (
     <div className="flex flex-col bg-white">
       {/* Header */}
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader title="ticket"/>
+        <SimpleHeader titleResource="ticket"/>
       </div>
 
       <div className="flex flex-col p-6">
@@ -28,20 +27,20 @@ export const TicketForm = ({ticket, isJustPaid} : {ticket: TicketResponse, isJus
           {ticket.status === "Pending" && (
             <div className="flex flex-col p-4 border rounded-lg bg-gray-100 justify-center">
               <div className="text-sm font-bold text-gray-700">{ticket.lesson?.title}</div>
-              <div className="text-sm font-bold text-gray-700">{t('bank_transfer_message')}</div>
-              <div className="text-sm font-bold text-gray-700">{t('bank_transfer_description')}</div>
+              <div className="text-sm font-bold text-gray-700">{await translate('bank_transfer_message')}</div>
+              <div className="text-sm font-bold text-gray-700">{await translate('bank_transfer_description')}</div>
 
               <div className="flex flex-col mt-2 p-3 bg-white rounded-lg shadow">
-                <div className="text-gray-500 text-sm">{t('depositor')}</div>
+                <div className="text-gray-500 text-sm">{await translate('depositor')}</div>
                 <div className="font-bold text-lg text-black">${ticket.lesson?.studio?.depositor}</div>
 
-                <div className="text-gray-500 text-sm">{t('bank')}</div>
+                <div className="text-gray-500 text-sm">{await translate('bank')}</div>
                 <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.bank}</div>
 
-                <div className="mt-2 text-gray-500 text-sm">{t('account_number')}</div>
+                <div className="mt-2 text-gray-500 text-sm">{await translate('account_number')}</div>
                 <div className="font-medium text-base text-black">{ticket.lesson?.studio?.accountNumber}</div>
 
-                <div className="mt-4 text-gray-500 text-sm">{t('deposit_amount')}</div>
+                <div className="mt-4 text-gray-500 text-sm">{await translate('deposit_amount')}</div>
                 <div className="font-bold text-xl text-red-500">
                   {new Intl.NumberFormat("ko-KR").format(ticket.lesson?.price ?? 0)}원
                 </div>
@@ -85,27 +84,27 @@ export const TicketForm = ({ticket, isJustPaid} : {ticket: TicketResponse, isJus
             <div className="mt-3 w-full h-[1px] bg-[#f7f8f9]"/>
             <div className="mt-3 grid gap-y-2">
               <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{t('date')}</p>
+                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('date')}</p>
                 <p className="text-white font-medium text-[18px]">{startTime.date}</p>
               </div>
               <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{t('day')}</p>
+                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('day')}</p>
                 <p className="text-white font-medium text-[18px]">{startTime.dayOfWeek}</p>
               </div>
               <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{t('start')}</p>
+                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('start')}</p>
                 <p className="text-white font-medium text-[18px]">{startTime.time}</p>
               </div>
               <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{t('lesson_duration')}</p>
-                <p className="text-white font-medium text-[18px]">{ticket.lesson?.duration} {t('minutes')}</p>
+                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('lesson_duration')}</p>
+                <p className="text-white font-medium text-[18px]">{ticket.lesson?.duration} {await translate('minutes')}</p>
               </div>
               <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{t('studio')}</p>
+                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('studio')}</p>
                 <p className="text-white font-medium text-[18px]">{ticket.lesson?.studio?.name}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{t('lesson_room')}</p>
+                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('lesson_room')}</p>
                 <p className="text-white font-medium text-[18px]">{ticket.lesson?.room?.name}</p>
               </div>
             </div>

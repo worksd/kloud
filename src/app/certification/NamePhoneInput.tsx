@@ -49,7 +49,6 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
 
       if (res) {
         onClickSubmit({ code: newCode });
-        console.log('Submit:', { name, phone });
       } else {
         const dialogInfo = {
           id: 'Empty',

@@ -2,7 +2,7 @@ import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { Poster } from "@/app/components/Poster";
 import React from "react";
 
-export const LessonBand = ({title, lessons}: { title: string, lessons?: GetLessonResponse[] }) => {
+export async function LessonBand ({title, lessons}: { title: string, lessons?: GetLessonResponse[] }) {
   if (!lessons || lessons.length === 0) {
     return null;
   }
