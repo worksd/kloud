@@ -72,7 +72,6 @@ const sendSMS = async (serviceId: string, request: SMSRequest) => {
     return data;
 
   } catch (error) {
-    console.error('SMS 전송 실패:', error);
   }
 };
 

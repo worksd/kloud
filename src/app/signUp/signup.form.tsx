@@ -42,10 +42,9 @@ export const SignupForm = () => {
 
     const res = await signUpAction({ email, password })
     if (res.success) {
-        LoginAuthNavigation({
+        await LoginAuthNavigation({
           status: res.status,
           window: window,
-          locale,
         })
     } else {
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {

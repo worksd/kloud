@@ -4,10 +4,10 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { StringResource } from "@/shared/StringResource";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 
-export const LoginAuthNavigation = ({status, message, window, locale}: {status?: UserStatus, message?: string, window: Window, locale: keyof typeof StringResource}) => {
+export const LoginAuthNavigation = async ({status, message, window}: {status?: UserStatus, message?: string, window: Window}) => {
   if (status == UserStatus.Ready) {
     const bootInfo = JSON.stringify({
-      bottomMenuList: getBottomMenuList(locale),
+      bottomMenuList: await getBottomMenuList(),
       route: '',
       withFcmToken: true,
     });

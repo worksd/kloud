@@ -25,7 +25,6 @@ export default function HomeScreen({os}: { os: string }) {
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
         }
       } catch (error) {
-        console.error('이벤트 로딩 중 에러 발생:', error);
       }
     };
     fetchEvents();

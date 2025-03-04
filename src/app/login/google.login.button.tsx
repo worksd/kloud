@@ -12,11 +12,10 @@ const GoogleLoginButton = () => {
   useEffect(() => {
     window.onGoogleLoginSuccess = async (data: { code: string }) => {
       const res = await googleLoginAction({code: data.code})
-      LoginAuthNavigation({
+      await LoginAuthNavigation({
         status: res.status,
         window: window,
         message: res.errorMessage,
-        locale,
       })
     };
   }, []);

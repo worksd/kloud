@@ -81,8 +81,8 @@ export const OnboardForm = () => {
         if (res.studios) {
           setStudios(res.studios);
         }
-      } catch (error) {
-        console.error('Failed to fetch studios:', error);
+      } catch (error){
+
       }
     };
 
@@ -150,7 +150,7 @@ export const OnboardForm = () => {
 
         if (res.success && res.user?.status == UserStatus.Ready) {
           const bootInfo = JSON.stringify({
-            bottomMenuList: getBottomMenuList(locale),
+            bottomMenuList: await getBottomMenuList(),
             route: '',
             withFcmToken: true,
           });

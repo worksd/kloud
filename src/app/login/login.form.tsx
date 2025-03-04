@@ -42,10 +42,9 @@ export const LoginForm = () => {
       password: password,
     })
     if ('status' in res) {
-      LoginAuthNavigation({
+      await LoginAuthNavigation({
         status: res.status,
         window: window,
-        locale: locale,
       })
     } else if (res.errorCode) {
       if (res.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {

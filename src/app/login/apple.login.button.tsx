@@ -12,11 +12,10 @@ const AppleLoginButton = () => {
   useEffect(() => {
     window.onAppleLoginSuccess = async (data: { code: string, name: string}) => {
       const res = await appleLoginAction({code: data.code, name: data.name})
-      LoginAuthNavigation({
+      await LoginAuthNavigation({
         status: res.status,
         window: window,
         message: res.errorMessage,
-        locale: locale,
       })
     };
   }, []);

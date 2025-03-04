@@ -7,7 +7,6 @@ export function isPastTime(dateString: string | undefined) {
   const now = new Date();
 
   if (isNaN(inputTime.getTime())) {
-    console.error('Invalid date format:', dateString);
     return true;
   }
 

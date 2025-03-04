@@ -79,7 +79,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId, status: 'Paid'});
       const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = getBottomMenuList(locale);
+      const bottomMenuList = await getBottomMenuList();
       const bootInfo = JSON.stringify({
         bottomMenuList: bottomMenuList,
         route: pushRoute,
@@ -111,7 +111,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
         depositor: depositor,
       });
       const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = getBottomMenuList(locale);
+      const bottomMenuList = await getBottomMenuList();
       const bootInfo = JSON.stringify({
         bottomMenuList: bottomMenuList,
         route: pushRoute,

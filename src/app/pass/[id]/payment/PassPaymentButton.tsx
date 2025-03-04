@@ -21,7 +21,7 @@ export default function PassPaymentButton({studioId, passId, price, title, userI
   const {t, locale} = useLocale();
   const handlePayment = useCallback(async () => {
     const pushRoute = KloudScreen.StudioPassPaymentComplete(studioId)
-    const bottomMenuList = getBottomMenuList(locale);
+    const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList: bottomMenuList,
       route: pushRoute,

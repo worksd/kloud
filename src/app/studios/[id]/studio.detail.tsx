@@ -33,7 +33,6 @@ export const StudioDetailForm = ({id}: { id: string }) => {
           setAnnouncements(response.announcements ?? [])
         }
       } catch (error) {
-        console.error('스튜디오 정보를 불러오는데 실패했습니다:', error)
       } finally {
         setIsLoading(false)
       }

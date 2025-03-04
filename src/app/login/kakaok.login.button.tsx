@@ -12,11 +12,10 @@ const KakaoLoginButton = () => {
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
       const res = await kakaoLoginAction({code: data.code})
-      LoginAuthNavigation({
+      await LoginAuthNavigation({
         status: res.status,
         window: window,
         message: res.errorMessage,
-        locale,
       })
     }
   }, []);

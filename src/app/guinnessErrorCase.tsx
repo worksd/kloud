@@ -53,7 +53,3 @@ export const isGuinnessErrorCase = (value: unknown): value is GuinnessErrorCase 
   const result = GuinnessErrorCaseScheme.safeParse(value);
   return result.success;
 };
-
-export type ExceptionResponseCodeType = {
-  [key: string]: string; // or specify the specific keys and their types
-};

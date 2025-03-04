@@ -33,7 +33,6 @@ function extractKloudVersion(userAgent: string): string | null {
 
     return match[1]; // 버전 번호만 반환 (예: "1.0.1")
   } catch (error) {
-    console.error('Failed to extract Kloud version:', error);
     return null;
   }
 }

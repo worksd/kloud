@@ -28,7 +28,7 @@ export const SplashScreen = () => {
 
       if (route == KloudScreen.Main) {
         const bootInfo = JSON.stringify({
-          bottomMenuList: getBottomMenuList(locale),
+          bottomMenuList: await getBottomMenuList(),
           route: '',
           withFcmToken: true,
         });

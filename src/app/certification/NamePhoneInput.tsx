@@ -59,7 +59,6 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     } catch (error) {
-      console.error('SMS 전송 실패:', error);
     } finally {
       setIsSubmitting(false); // 요청 완료 후 다시 활성화
     }
