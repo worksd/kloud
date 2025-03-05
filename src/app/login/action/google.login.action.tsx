@@ -3,7 +3,7 @@
 import { api } from "@/app/api.client";
 import { SnsProvider } from "@/app/endpoint/auth.endpoint";
 import { UserStatus } from "@/entities/user/user.status";
-import { loginSuccessAction } from "@/app/login/login.success.action";
+import { loginSuccessAction } from "@/app/login/action/login.success.action";
 
 export const googleLoginAction = async ({code}: { code: string }): Promise<RoutePageParams> => {
   const res = await api.auth.socialLogin({

@@ -2,8 +2,8 @@
 
 import { api } from "@/app/api.client";
 import { SnsProvider } from "@/app/endpoint/auth.endpoint";
-import { loginSuccessAction } from "@/app/login/login.success.action";
 import { RoutePageParams } from "@/app/login/action/google.login.action";
+import { loginSuccessAction } from "@/app/login/action/login.success.action";
 
 export const kakaoLoginAction = async ({code}: { code: string }): Promise<RoutePageParams> => {
   const res = await api.auth.socialLogin({

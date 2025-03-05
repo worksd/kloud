@@ -3,6 +3,7 @@ import "./globals.css";
 import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
 import localFont from "next/font/local";
+import { ReactNode } from "react";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
 
@@ -74,6 +75,5 @@ declare global {
     onDialogConfirm: (data: DialogInfo) => void;
     onHideDialogConfirm: (data: {id: string, clicked: boolean}) => void;
     onFcmTokenComplete: (data: { fcmToken: string, udid: string }) => void;
-
   }
 }

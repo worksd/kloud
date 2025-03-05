@@ -2,7 +2,7 @@
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 
-export async function createDialog(id: DialogId): Promise<DialogInfo | undefined> {
+export async function createDialog(id: DialogId, message?: string): Promise<DialogInfo | undefined> {
   if (id == 'Logout') {
     return {
       id: 'Logout',
@@ -20,9 +20,17 @@ export async function createDialog(id: DialogId): Promise<DialogInfo | undefined
       message: await translate('under_development_message'),
     }
   }
+  else if (id == 'LoginFail') {
+    return {
+      id: 'LoginFail',
+      type: 'SIMPLE',
+      title: await translate('fail_login'),
+      message: message ?? ''
+    }
+  }
 }
 
-export type DialogId = 'Logout' | 'UnderDevelopment'
+export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail';
 type DialogType = 'YESORNO' | 'SIMPLE'
 type DialogInfo = {
   id: DialogId

@@ -1,11 +1,8 @@
 'use client';
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
-import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import CheckIcon from "../../../public/assets/check_white.svg"
-import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import { useLocale } from "@/hooks/useLocale";
 
 interface StudioCardProps {
@@ -14,7 +11,7 @@ interface StudioCardProps {
   onSelect: (id: number) => void;
 }
 
-const StudioCard = ({ studio, isSelected, onSelect }: StudioCardProps) => {
+const StudioCard = ({studio, isSelected, onSelect}: StudioCardProps) => {
   const onClickStudioCard = (studioId: number) => {
     onSelect(studioId);
   }
@@ -47,17 +44,17 @@ const StudioCard = ({ studio, isSelected, onSelect }: StudioCardProps) => {
 }
 export const FavoriteStudioForm = ({
                                      selectedIdList,
-                                     onSelectStudio,
+                                     onSelectStudioAction,
                                      studios
                                    }: {
   selectedIdList: number[],
-  onSelectStudio: (id: number) => void,
+  onSelectStudioAction: (id: number) => void,
   studios: GetStudioResponse[]
 }) => {
 
-  const { t } = useLocale();
+  const {t} = useLocale();
   const handleSelect = (id: number) => {
-    onSelectStudio(id);  // 직접 ID만 전달
+    onSelectStudioAction(id);  // 직접 ID만 전달
   };
 
   return (

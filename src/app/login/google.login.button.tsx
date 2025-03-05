@@ -7,7 +7,8 @@ import { useLocale } from "@/hooks/useLocale";
 
 const GoogleLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
+
 
   useEffect(() => {
     window.onGoogleLoginSuccess = async (data: { code: string }) => {
@@ -27,6 +28,12 @@ const GoogleLoginButton = () => {
     }
     window.KloudEvent?.sendGoogleLogin(JSON.stringify(configuration));
   }
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return;
 
   return (
     <button

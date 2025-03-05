@@ -1,6 +1,6 @@
 import Logo from "../../../../public/assets/logo_black.svg";
-import { LoginForm } from "@/app/login/login.form";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { LoginForm } from "@/app/login/email/login.form";
 
 export default function EmailLogin(props: any) {
 

@@ -1,3 +1,4 @@
+'use server'
 import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import { cookies } from "next/headers";
 

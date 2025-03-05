@@ -24,6 +24,12 @@ const AppleLoginButton = () => {
     window.KloudEvent?.sendAppleLogin()
   }
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return;
+
   return (
     <button
       className={`relative flex items-center justify-center bg-black text-white text-lg font-semibold 

@@ -2,23 +2,22 @@
 import React, { useEffect, useState } from "react";
 import emailLoginAction from "@/app/login/action/email.login.action";
 import { KloudScreen } from "@/shared/kloud.screen";
-import ShowPasswordIcon from "../../../public/assets/show-password.svg"
-import HidePasswordIcon from "../../../public/assets/hide-password.svg"
-import { UserStatus } from "@/entities/user/user.status";
+import ShowPasswordIcon from "../../../../public/assets/show-password.svg"
+import HidePasswordIcon from "../../../../public/assets/hide-password.svg"
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { clearCookies } from "@/app/setting/clear.token.action";
 import { useLocale } from "@/hooks/useLocale";
+import { createDialog } from "@/utils/dialog.factory";
 
 export const LoginForm = () => {
-
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -52,12 +51,7 @@ export const LoginForm = () => {
       } else if (res.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
         setEmailErrorMessage(res.errorMessage ?? '');
       } else {
-        const dialogInfo = {
-          id: 'Empty',
-          type: 'SIMPLE',
-          title: t('fail_login'),
-          message: res.errorMessage,
-        }
+        const dialogInfo = await createDialog('LoginFail', res.errorMessage)
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     }
@@ -74,6 +68,12 @@ export const LoginForm = () => {
   }, []);
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return;
 
   return (
     <div

@@ -112,7 +112,7 @@ export const SignupForm = () => {
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordLengthValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordLengthValid ? "text-black" : "text-gray-300"}`}>
-              {t("email_format")}
+              {t("password_min_length")}
             </span>
           </div>
 

@@ -18,7 +18,7 @@ export default async function LoginDeactivatePage() {
         route: '',
         withFcmToken: true,
       });
-      window.KloudEvent?.navigateMain(bootInfo)
+      window.KloudEvent?.navigateMain(bootInfo) // TODO: 배포전 무조건 수정
     }
   }
   return (

@@ -2,8 +2,8 @@
 import { api } from "@/app/api.client";
 import { UserType } from "@/entities/user/user.type";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import { loginSuccessAction } from "@/app/login/login.success.action";
 import { RoutePageParams } from "@/app/login/action/google.login.action";
+import { loginSuccessAction } from "@/app/login/action/login.success.action";
 
 const emailLoginAction = async ({email, password}: { email: string, password: string }): Promise<RoutePageParams> => {
   try {

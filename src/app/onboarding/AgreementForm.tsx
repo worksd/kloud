@@ -4,12 +4,12 @@ import { ChangeEvent } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useLocale } from "@/hooks/useLocale";
 
-export const AgreementForm = ({checkboxes, handleCheckboxChange}: {
+export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
   checkboxes: {
     terms: boolean,
     privacy: boolean,
     all: boolean,
-  }, handleCheckboxChange: (e: ChangeEvent<HTMLInputElement>) => void
+  }, handleCheckboxChangeAction: (e: ChangeEvent<HTMLInputElement>) => void
 }) => {
 
   const { t } = useLocale()
@@ -36,7 +36,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChange}: {
             type="checkbox"
             name="all"
             checked={checkboxes.all}
-            onChange={handleCheckboxChange}
+            onChange={handleCheckboxChangeAction}
             className="w-5 h-5 accent-black"
           />
         </div>
@@ -52,7 +52,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChange}: {
               type="checkbox"
               name="terms"
               checked={checkboxes.terms}
-              onChange={handleCheckboxChange}
+              onChange={handleCheckboxChangeAction}
               className="w-5 h-5 accent-black"
             />
           </div>
@@ -67,7 +67,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChange}: {
               type="checkbox"
               name="privacy"
               checked={checkboxes.privacy}
-              onChange={handleCheckboxChange}
+              onChange={handleCheckboxChangeAction}
               className="w-5 h-5 accent-black"
             />
           </div>

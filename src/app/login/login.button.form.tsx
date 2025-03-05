@@ -1,24 +1,25 @@
-'use client';
-
+'use server'
 import AppleLoginButton from "@/app/login/apple.login.button";
 import GoogleLoginButton from "@/app/login/google.login.button";
 import KakaoLoginButton from "@/app/login/kakaok.login.button";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { useLocale } from "@/hooks/useLocale";
+import { translate } from "@/utils/translate";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
-export const LoginButtonForm = ({os} : {os: string}) => {
-  const { t } = useLocale()
+export const LoginButtonForm = async ({os}: { os: string }) => {
   return (
     <section className="flex flex-col items-center justify-center">
       <div className="space-y-2 w-full p-2">
-        {os === 'iOS' &&  <AppleLoginButton/> }
-        {os === 'Android' && <GoogleLoginButton/> }
+        {os === 'iOS' && <AppleLoginButton/>}
+        {os === 'Android' && <GoogleLoginButton/>}
         <KakaoLoginButton/>
       </div>
-      <div className="text-[#86898C] text-[14px] cursor-pointer mt-12"
-           onClick={() => window.KloudEvent?.push(KloudScreen.LoginEmail)}>
-        {t('email_login')}
-      </div>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.LoginEmail}>
+        <div className="text-[#86898C] text-[14px] cursor-pointer mt-12">
+          {await translate('email_login')}
+        </div>
+      </NavigateClickWrapper>
+
     </section>
   );
 }

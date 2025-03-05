@@ -7,7 +7,6 @@ import { useLocale } from "@/hooks/useLocale";
 
 const KakaoLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
-  const { t, locale } = useLocale()
 
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
@@ -23,6 +22,13 @@ const KakaoLoginButton = () => {
   const kakaoLogin = () => {
     window.KloudEvent?.sendKakaoLogin()
   };
+
+  const { t } = useLocale()
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return;
 
   return (
     <button

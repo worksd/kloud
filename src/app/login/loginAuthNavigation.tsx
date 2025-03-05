@@ -1,8 +1,8 @@
 'use client'
 import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { StringResource } from "@/shared/StringResource";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { createDialog } from "@/utils/dialog.factory";
 
 export const LoginAuthNavigation = async ({status, message, window}: {status?: UserStatus, message?: string, window: Window}) => {
   if (status == UserStatus.Ready) {
@@ -19,12 +19,7 @@ export const LoginAuthNavigation = async ({status, message, window}: {status?: U
   else if (status == UserStatus.New) {
     window.KloudEvent?.clearAndPush(KloudScreen.Onboard)
   } else {
-    const dialogInfo = {
-      id: 'Empty',
-      type: 'SIMPLE',
-      title: '로그인 실패',
-      message: message,
-    }
+    const dialogInfo = await createDialog('LoginFail', message)
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }
 }

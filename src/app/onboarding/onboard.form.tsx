@@ -201,13 +201,13 @@ export const OnboardForm = () => {
             <FavoriteStudioForm
               studios={studios}
               selectedIdList={selectedIdList}
-              onSelectStudio={handleSelectFavoriteStudio}
+              onSelectStudioAction={handleSelectFavoriteStudio}
             />
           )}
           {step === 'agreement' && (
             <AgreementForm
               checkboxes={checkboxes}
-              handleCheckboxChange={handleCheckboxChange}
+              handleCheckboxChangeAction={handleCheckboxChange}
             />
           )}
         </div>
