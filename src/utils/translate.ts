@@ -8,7 +8,7 @@ export const getLocale = async (): Promise<keyof typeof StringResource> => {
   'use server'
   const cookieStore = await cookies();
   const cookieLang = cookieStore.get(localeKey)?.value;
-  return cookieLang && cookieLang in StringResource ? (cookieLang as keyof typeof StringResource) : "en";
+  return cookieLang && cookieLang in StringResource ? (cookieLang as keyof typeof StringResource) : "ko";
 };
 
 export const translate = async (key: keyof (typeof StringResource)["ko"]): Promise<string> => {
