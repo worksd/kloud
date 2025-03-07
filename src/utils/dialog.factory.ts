@@ -28,9 +28,17 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: message ?? ''
     }
   }
+  else if (id == 'ChangeLocale') {
+    return {
+      id: 'ChangeLocale',
+      type: 'YESORNO',
+      title: await translate('change_locale_dialog_title'),
+      message: message ?? '',
+    }
+  }
 }
 
-export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail';
+export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'ChangeLocale';
 type DialogType = 'YESORNO' | 'SIMPLE'
 type DialogInfo = {
   id: DialogId

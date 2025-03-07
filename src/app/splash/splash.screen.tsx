@@ -8,7 +8,6 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
 
 export const SplashScreen = () => {
-  const { locale } = useLocale()
   useEffect(() => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {

@@ -137,6 +137,8 @@ export const StringResource = {
     language_setting: '언어 설정',
     no_lessons: '등록된 수업이 없습니다',
     purchase_pass: '패스권 구매하기',
+    change_locale_dialog_title: '언어 변경',
+    change_locale_dialog_message: `언어 변경 후 앱을 재시작하시겠습니까?`,
   },
   en: {
     welcome: "Welcome!",
@@ -275,6 +277,8 @@ export const StringResource = {
     studio_announcement: 'Studio Announcement',
     language_setting: "Language Setting",
     no_lessons: 'No registered lessons.',
-    purchase_pass: 'Purchase Pass Ticket'
+    purchase_pass: 'Purchase Pass Ticket',
+    change_locale_dialog_title: 'Selected Language',
+    change_locale_dialog_message: `Would you like to change it and restart the app?`,
   }
 };

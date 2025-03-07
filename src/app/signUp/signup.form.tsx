@@ -19,7 +19,7 @@ export const SignupForm = () => {
   const [isEmailPatternValid, setIsEmailPatternValid] = useState(false);
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
   const [isPasswordPatternValid, setIsPasswordPatternValid] = useState(false);
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
 
   const onEmailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmailErrorMessage('');

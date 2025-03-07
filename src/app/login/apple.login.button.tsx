@@ -7,10 +7,10 @@ import { useLocale } from "@/hooks/useLocale";
 
 const AppleLoginButton = () => {
   const [isPressed, setIsPressed] = useState(false);
-  const { t, locale} = useLocale()
+  const { t } = useLocale()
 
   useEffect(() => {
-    window.onAppleLoginSuccess = async (data: { code: string, name: string}) => {
+    window.onAppleLoginSuccess = async (data: { code: string, name: string }) => {
       const res = await appleLoginAction({code: data.code, name: data.name})
       await LoginAuthNavigation({
         status: res.status,

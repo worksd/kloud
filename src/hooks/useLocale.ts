@@ -12,23 +12,16 @@ export const useLocale = () => {
   const [locale, setLocale] = useState<keyof typeof StringResource>(getInitialLocale());
 
   useEffect(() => {
-    if (!Cookies.get(localeKey)?.valueOf()) {
-      Cookies.set(localeKey, locale, {expires: 360});
+    if (Cookies.get(localeKey)?.valueOf()) {
+      setLocale(getInitialLocale());
     }
   }, []);
-
-  const changeLocale = (newLocale: keyof typeof StringResource) => {
-    if (StringResource[newLocale]) {
-      setLocale(newLocale);
-      Cookies.set(localeKey, newLocale, {expires: 360});
-    }
-  };
 
   const t = <T extends keyof (typeof StringResource)["ko"]>(key: T): string => {
     return StringResource[locale]?.[key] || key;
   };
 
-  return {t, locale, changeLocale};
+  return {t, locale};
 };
 
 

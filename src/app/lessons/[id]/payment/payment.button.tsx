@@ -7,7 +7,6 @@ import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
-import { useLocale } from "@/hooks/useLocale";
 
 export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor, disabled}: {
   lessonId: number,
@@ -20,7 +19,6 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   depositor: string,
   disabled: boolean,
 }) {
-  const { t, locale } = useLocale();
   const handlePayment = useCallback(async () => {
 
     const user = await getUserAction()
@@ -35,7 +33,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
       return;
     }
 
-    if (method === '신용카드') {
+    if (method === 'credit_card') {
       const paymentInfo = os == 'Android' ? {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,

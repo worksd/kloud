@@ -17,7 +17,7 @@ import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { useLocale } from "@/hooks/useLocale";
 
 export const StudioDetailForm = ({id}: { id: string }) => {
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
   const [announcements, setAnnouncements] = useState<GetAnnouncementResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true)

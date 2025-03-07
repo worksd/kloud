@@ -1,4 +1,5 @@
 export const KloudScreen = {
+  Splash: '/splash',
   Main: '/main',
   Onboard: '/onboarding',
   Login: '/login',

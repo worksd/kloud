@@ -13,7 +13,7 @@ type LessonPaymentButtonProps = {
 };
 
 const LessonPaymentButton = ({ id, ticketData, disabled }: LessonPaymentButtonProps) => {
-    const { t, locale } = useLocale();
+    const { t } = useLocale();
     const buttonText = useMemo(() => {
         if (disabled) return t("finish_lesson_title");
         return ticketData != null ? t("my_ticket") : t("purchase_ticket");

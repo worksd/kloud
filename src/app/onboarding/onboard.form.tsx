@@ -20,7 +20,7 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 type Step = 'profile' | 'favorite' | 'agreement';
 
 export const OnboardForm = () => {
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const [step, setStep] = useState<Step>('profile');
   const [user, setUser] = useState<GetUserResponse | null>(null);
   const [studios, setStudios] = useState<GetStudioResponse[]>([]);
