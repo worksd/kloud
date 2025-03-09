@@ -50,7 +50,8 @@ export const LanguageChangeForm = () => {
 
   const languageOptions = [
     { value: 'ko', label: '🇰🇷 한국어' },
-    { value: 'en', label: '🇺🇸 English' }
+    { value: 'en', label: '🇺🇸 English' },
+    { value: 'jp', label: '🇯🇵 日本語' }
   ] as const;
 
   return (
