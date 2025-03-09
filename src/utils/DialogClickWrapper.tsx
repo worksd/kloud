@@ -18,9 +18,6 @@ export function DialogClickWrapper({ id, children }: DialogClickItemProps) {
       if (data.route && data.id == 'Logout') {
         await unregisterDeviceAction()
         await clearCookies();
-        localStorage.clear();
-        sessionStorage.clear();
-        window.KloudEvent?.clearToken()
         window.KloudEvent.clearAndPush(data.route)
       }
     }

@@ -18,6 +18,7 @@ export const KloudScreen = {
   Pass: '/pass',
   SignOut: '/setting/account/signOut',
   LanguageSetting: '/setting/account/language',
+  LanguageSettingSheet: '/setting/account/language/sheet',
   PassPayment: (id: number) => `/pass/${id}/payment`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
   StudioPassPaymentComplete: (id: number) => `/studios/${id}/passPaymentComplete`,

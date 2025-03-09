@@ -6,7 +6,7 @@ import { localeKey } from "@/shared/cookies.key";
 export const useLocale = () => {
   const getInitialLocale = (): keyof typeof StringResource => {
     const cookieLang = Cookies.get(localeKey);
-    return cookieLang && cookieLang in StringResource ? (cookieLang as keyof typeof StringResource) : "en";
+    return cookieLang && cookieLang in StringResource ? (cookieLang as keyof typeof StringResource) : "ko";
   };
 
   const [locale, setLocale] = useState<keyof typeof StringResource>(getInitialLocale());
