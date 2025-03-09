@@ -4,7 +4,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { changeLocale } from "@/utils/translate";
 import CheckIcon from "../../../../../../public/assets/check_white.svg";
 
-export const ChangeLocaleSheetItem = ({ selectedLanguage, currentLocale: locale }: {
+export const ChangeLocaleSheetItem = ({selectedLanguage, currentLocale: locale}: {
   selectedLanguage: keyof typeof StringResource,
   currentLocale: keyof typeof StringResource
 }) => {
@@ -26,12 +26,14 @@ export const ChangeLocaleSheetItem = ({ selectedLanguage, currentLocale: locale 
     >
       <div className="flex items-center gap-2">
         <span className="text-xl">
-          {locale === 'ko' ? '🇰🇷' : '🇺🇸'}
+          {locale === 'ko' ? '🇰🇷' : locale === 'jp' ? '🇯🇵' : '🇺🇸'}
         </span>
-        <span>{locale === 'ko' ? '한국어' : 'English'}</span>
+              <span>
+          {locale === 'ko' ? '한국어' : locale === 'jp' ? '日本語' : 'English'}
+        </span>
       </div>
 
-      {isSelected && <CheckIcon className="scale-125" />}
+      {isSelected && <CheckIcon className="scale-125"/>}
     </li>
   );
 };

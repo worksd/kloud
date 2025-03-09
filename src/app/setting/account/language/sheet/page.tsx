@@ -17,6 +17,7 @@ export default async function SettingLanguageSheet() {
       <ul className="space-y-2">
         <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} currentLocale={'ko'}/>
         <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} currentLocale={'en'}/>
+        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} currentLocale={'jp'}/>
       </ul>
     </div>
   );
