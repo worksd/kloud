@@ -72,7 +72,7 @@ export const CertificationForm = () => {
           })
           if (res.success && res.user?.phone) {
             window.KloudEvent?.back()
-            setInterval(() => {
+            setTimeout(() => {
               const dialogInfo = {
                 id: 'Empty',
                 type: 'SIMPLE',

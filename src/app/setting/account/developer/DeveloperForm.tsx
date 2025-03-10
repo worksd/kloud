@@ -25,7 +25,7 @@ const SERVER_CONFIGS: ServerConfig[] = [
 ];
 
 export const DeveloperForm = () => {
-  const [selectedServer, setSelectedServer] = useState<ServerConfig>(process.env.NEXT_PUBLIC_ENV == 'development' ? SERVER_CONFIGS[1] : SERVER_CONFIGS[0]);
+  const [selectedServer, setSelectedServer] = useState<ServerConfig>(process.env.NEXT_PUBLIC_IOS_PORTONE_PG == 'nice' ? SERVER_CONFIGS[1] : SERVER_CONFIGS[0]);
 
   const ServerItem = ({config}: { config: ServerConfig }) => {
     const isSelected = selectedServer.type === config.type;
