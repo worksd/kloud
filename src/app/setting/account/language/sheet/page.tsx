@@ -1,4 +1,4 @@
-import { getLocale } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import { ChangeLocaleSheetItem } from "@/app/setting/account/language/sheet/change.locale.sheet.item";
 import CloseIcon from "../../../../../../public/assets/ic_close_black.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
@@ -9,7 +9,7 @@ export default async function SettingLanguageSheet() {
   return (
     <div className="text-black p-4">
       <div className={"w-full flex flex-row justify-between"}>
-        <h2 className="text-lg font-bold mb-2">언어 선택</h2>
+        <h2 className="text-lg font-bold mb-2">{await translate('select_language')}</h2>
         <NavigateClickWrapper method={'closeBottomSheet'}>
           <CloseIcon/>
         </NavigateClickWrapper>

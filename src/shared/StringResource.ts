@@ -59,6 +59,7 @@ export const StringResource = {
     payment: '결제하기',
     app_version: '앱버전',
     confirm: '확인',
+    cancel: '취소',
     edit_profile: '프로필 수정',
     notification: '알림',
     notification_setting: '알림 설정',
@@ -139,6 +140,8 @@ export const StringResource = {
     purchase_pass: '패스권 구매하기',
     change_locale_dialog_title: '언어 변경',
     change_locale_dialog_message: `언어 변경 후 앱을 재시작하시겠습니까?`,
+    select_language: '언어 선택',
+    depositor_name: "입금자명",
   },
   en: {
     welcome: "Welcome!",
@@ -156,6 +159,7 @@ export const StringResource = {
     do_start: "Get Started",
     sign_up: "Sign Up",
     required: "Required",
+    cancel: 'Cancel',
     email_format: "Email format",
     password_min_length: "At least 8 characters",
     password_requirements: "Combination of letters, numbers, and special characters",
@@ -280,6 +284,8 @@ export const StringResource = {
     purchase_pass: 'Purchase Pass Ticket',
     change_locale_dialog_title: 'Selected Language',
     change_locale_dialog_message: `Would you like to change it and restart the app?`,
+    select_language: "Select Language",
+    depositor_name: "Depositor Name"
   },
   jp: {
     "welcome": "ようこそ！",
@@ -341,6 +347,7 @@ export const StringResource = {
     "payment": "決済",
     "app_version": "アプリバージョン",
     "confirm": "確認",
+    'cancel': 'キャンセル',
     "edit_profile": "プロフィール編集",
     "notification": "通知",
     "notification_setting": "通知設定",
@@ -420,6 +427,8 @@ export const StringResource = {
     "no_lessons": "登録されたレッスンがありません",
     "purchase_pass": "パス券を購入する",
     "change_locale_dialog_title": "言語変更",
-    "change_locale_dialog_message": "言語を変更後、アプリを再起動しますか？"
+    "change_locale_dialog_message": "言語を変更後、アプリを再起動しますか？",
+    select_language: "言語選択",
+    depositor_name: "振込人名",
   }
 };

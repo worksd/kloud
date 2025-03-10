@@ -1,31 +1,38 @@
-"use client";
+"use server";
 
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { useCallback, useMemo } from "react";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
-import { useLocale } from "@/hooks/useLocale";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { translate } from "@/utils/translate";
 
 type LessonPaymentButtonProps = {
-    id: number;
-    ticketData?: TicketResponse;
-    disabled: boolean;
+  id: number;
+  ticketData?: TicketResponse;
+  disabled: boolean;
 };
 
-const LessonPaymentButton = ({ id, ticketData, disabled }: LessonPaymentButtonProps) => {
-    const { t } = useLocale();
-    const buttonText = useMemo(() => {
-        if (disabled) return t("finish_lesson_title");
-        return ticketData != null ? t("my_ticket") : t("purchase_ticket");
-    }, [disabled, ticketData]);
-    const handleOnClick = useCallback(() => {
-        const isPaid = ticketData != null;
-        const screen = isPaid ? KloudScreen.TicketDetail(ticketData.id, false) : KloudScreen.LessonPayment(id);
-        window.KloudEvent?.push(screen);
-    }, [id, ticketData]);
+export const LessonPaymentButton = async ({id, ticketData, disabled}: LessonPaymentButtonProps) => {
 
-    return <CommonSubmitButton originProps={{onClick: handleOnClick, disabled: disabled}}
-                               disabled={disabled}>{buttonText}</CommonSubmitButton>;
+  const buttonTitleResource =
+    disabled ? "finish_lesson_title" : ticketData != null ? "my_ticket" : "purchase_ticket";
+
+
+  const targetRoute =
+    ticketData != null
+      ? KloudScreen.TicketDetail(ticketData.id, false)
+      : KloudScreen.LessonPayment(id);
+
+  return (
+    <NavigateClickWrapper
+      method="push"
+      route={targetRoute}
+    >
+      <CommonSubmitButton
+        disabled={disabled}
+      >
+        {await translate(buttonTitleResource)}
+      </CommonSubmitButton>
+    </NavigateClickWrapper>
+  );
 };
-
-export default LessonPaymentButton;

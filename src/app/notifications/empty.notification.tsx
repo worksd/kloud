@@ -1,5 +1,4 @@
 import React from "react";
-import { useLocale } from "@/hooks/useLocale";
 import { translate } from "@/utils/translate";
 
 export async function EmptyNotifications() {

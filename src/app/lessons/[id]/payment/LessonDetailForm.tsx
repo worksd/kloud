@@ -3,11 +3,11 @@ import { HeaderInDetail } from "@/app/components/headers";
 import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
 import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
-import LessonPaymentButton from "@/app/lessons/[id]/lesson.payment.button";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonInfoSection } from "@/app/lessons/[id]/lesson.info.section";
 import { translate } from "@/utils/translate";
+import { LessonPaymentButton } from "@/app/lessons/[id]/lesson.payment.button";
 
 export default async function LessonDetailForm({lesson} : {lesson: GetLessonResponse}) {
   return (

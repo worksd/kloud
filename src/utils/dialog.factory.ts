@@ -10,6 +10,8 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       title: await translate('log_out'),
       message: await translate('log_out_dialog_message'),
       route: KloudScreen.Login,
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
     }
   }
   else if (id == 'UnderDevelopment') {
@@ -17,6 +19,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       id: 'UnderDevelopment',
       type: 'SIMPLE',
       title: await translate('rawgraphy'),
+      confirmTitle: await translate('confirm'),
       message: await translate('under_development_message'),
     }
   }
@@ -25,7 +28,8 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       id: 'LoginFail',
       type: 'SIMPLE',
       title: await translate('fail_login'),
-      message: message ?? ''
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
     }
   }
   else if (id == 'ChangeLocale') {
@@ -34,6 +38,8 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       type: 'YESORNO',
       title: await translate('change_locale_dialog_title'),
       message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
     }
   }
 }
@@ -46,4 +52,6 @@ type DialogInfo = {
   title: string
   message: string
   route?: string
+  confirmTitle?: string
+  cancelTitle?: string
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { useLocale } from "@/hooks/useLocale";
 
 export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor, disabled}: {
   lessonId: number,
@@ -73,6 +74,13 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
     }
   }, [lessonId, method, depositor]);
 
+  const { t } = useLocale()
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId, status: 'Paid'});
@@ -83,7 +91,6 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
         route: pushRoute,
       });
       window.KloudEvent?.navigateMain(bootInfo);
-      window.KloudEvent?.showToast(`${title} 결제에 성공했습니다.`)
     }
   }, [])
 
@@ -120,7 +127,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   return (
     <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled}>
       <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-        {new Intl.NumberFormat("ko-KR").format(price)}원 결제하기
+        {mounted ? `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}` : ''}
       </p>
     </CommonSubmitButton>
   );

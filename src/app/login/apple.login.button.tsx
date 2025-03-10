@@ -3,12 +3,9 @@ import AppleLogo from "../../../public/assets/logo_apple.svg"
 import { useEffect, useState } from "react";
 import { appleLoginAction } from "@/app/login/action/apple.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
-import { useLocale } from "@/hooks/useLocale";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 const AppleLoginButton = () => {
-  const [isPressed, setIsPressed] = useState(false);
-  const { t } = useLocale()
-
   useEffect(() => {
     window.onAppleLoginSuccess = async (data: { code: string, name: string }) => {
       const res = await appleLoginAction({code: data.code, name: data.name})
@@ -24,32 +21,18 @@ const AppleLoginButton = () => {
     window.KloudEvent?.sendAppleLogin()
   }
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  if (!mounted) return;
-
   return (
     <button
       className={`relative flex items-center justify-center bg-black text-white text-lg font-semibold 
         rounded-lg h-14 shadow-lg w-full
-        transition-transform duration-75 transform
-        ${isPressed ? 'scale-[0.95]' : 'scale-100'}
+        active:scale-[0.95] transition-transform duration-150 select-none
         `}
       onClick={appleLogin}
-      onMouseDown={() => setIsPressed(true)}
-      onMouseUp={() => setIsPressed(false)}
-      onMouseLeave={() => setIsPressed(false)}
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
     >
       <span className="absolute left-4">
         <AppleLogo/>
       </span>
-      <span className="flex-1 text-center text-[16px]">
-        {t('apple_login')}
-      </span>
+      <TranslatableText className="flex-1 text-center text-[16px]" titleResource={'apple_login'}/>
     </button>
   );
 };

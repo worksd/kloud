@@ -8,8 +8,6 @@ import Image from "next/image";
 import React from "react";
 import PaymentInfo from "@/app/lessons/[id]/payment/payment.info";
 import { FormattedDate } from "@/app/lessons/[id]/payment/FormattedDate";
-
-
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
   searchParams: Promise<{ os: string, appVersion: string}>

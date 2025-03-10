@@ -73,13 +73,12 @@ export const LoginForm = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
-  if (!mounted) return;
 
   return (
     <div
       className="flex flex-col p-6"
     >
-      <label className="mb-2 text-[14px] font-normal text-black">{t('email')}</label>
+      <label className="mb-2 text-[14px] font-normal text-black">{mounted ? t('email') : ''}</label>
       <input
         className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
         type="email"
@@ -87,13 +86,13 @@ export const LoginForm = () => {
         name="email"
         onChange={onEmailChange}
         value={email}
-        placeholder={t('input_email_message')}
+        placeholder={mounted ? t('input_email_message') : ''}
       />
       <div className="text-[#E55B5B] mb-2 text-[12px]">
         {emailErrorMessage}
       </div>
       <div className="flex items-center gap-2 mb-2">
-        <label className="text-[14px] font-normal text-black">{t('password')}</label>
+        <label className="text-[14px] font-normal text-black">{mounted ? t('password'): ''}</label>
       </div>
       <div className="relative mb-2">
         <input
@@ -103,7 +102,7 @@ export const LoginForm = () => {
           name="password"
           value={password}
           onChange={onPasswordChange}
-          placeholder={t('input_password_message')}
+          placeholder={mounted ? t('input_password_message') : ''}
         />
         <button
           type="button"
@@ -120,8 +119,8 @@ export const LoginForm = () => {
 
 
       <div className="flex items-center justify-end mb-4" onClick={onClickSignUp}>
-        <span className="text-[#86898C] text-[12px]">{t('not_member_sign_up')}</span>
-        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">{t('create_account')}</span>
+        <span className="text-[#86898C] text-[12px]">{mounted ? t('not_member_sign_up') : ''}</span>
+        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">{mounted ? t('create_account') : ''}</span>
       </div>
 
       <button
@@ -129,7 +128,7 @@ export const LoginForm = () => {
         disabled={!isFormValid}
         className={`sticky bottom-0 flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
-        {t('do_start')}
+        {mounted ? t('do_start') : ''}
       </button>
     </div>
   );

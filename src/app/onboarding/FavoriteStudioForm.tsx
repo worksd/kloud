@@ -4,6 +4,7 @@ import Image from "next/image";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import CheckIcon from "../../../public/assets/check_white.svg"
 import { useLocale } from "@/hooks/useLocale";
+import { useState } from "react";
 
 interface StudioCardProps {
   studio: GetStudioResponse;
@@ -53,6 +54,7 @@ export const FavoriteStudioForm = ({
 }) => {
 
   const {t} = useLocale();
+  const [mounted, setMounted] = useState(false)
   const handleSelect = (id: number) => {
     onSelectStudioAction(id);  // 직접 ID만 전달
   };
@@ -61,10 +63,10 @@ export const FavoriteStudioForm = ({
     <div className="flex flex-col bg-white">
       <div className="flex flex-col p-6">
         <h1 className="text-2xl font-bold mb-2 text-black">
-          {t('follow_studio_message')}
+          {mounted ? t('follow_studio_message') : ''}
         </h1>
         <p className="text-gray-600 mb-8">
-          {t('follow_studio_description')}
+          {mounted ? t('follow_studio_description') : ''}
         </p>
 
         <div className="grid grid-cols-3 gap-4">

@@ -7,7 +7,6 @@ import TimeCircle from "../../../../public/assets/time-circle.svg";
 import Users from "../../../../public/assets/users.svg";
 import LessonInfoLabel from "./lesson.info.label";
 import { formatDateTime } from "@/utils/date.format";
-import { useLocale } from "@/hooks/useLocale";
 import { translate } from "@/utils/translate";
 export const LessonInfoSection = async ({data}: {data: GetLessonResponse}) => {
     const startTime = await formatDateTime(data.startTime ?? '');

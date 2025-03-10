@@ -61,13 +61,19 @@ export const SignupForm = () => {
     }
   }
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+
   return (
     <div className={"flex flex-col"}>
       <div className="flex flex-col p-6 justify-between">
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium text-black">{t('email')}</label>
-            <span className="text-[10px] font-normal text-[#E55B5B]">{t('required')}</span>
+            <label className="text-[14px] font-medium text-black">{mounted ? t('email') : ''}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{mounted ? t('required'): ''}</span>
           </div>
           <input
             className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
@@ -75,20 +81,20 @@ export const SignupForm = () => {
             name="email"
             onChange={onEmailChanged}
             value={email}
-            placeholder={t('input_email_message')}
+            placeholder={mounted ? t('input_email_message'): ''}
           />
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isEmailPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isEmailPatternValid ? "text-black" : "text-gray-300"}`}>
-              {t('email_format')}
+              {mounted ? t('email_format') : ''}
             </span>
           </div>
           <div className="text-[#E55B5B] mt-2 text-[12px]">
             {emailErrorMessage}
           </div>
           <div className="flex items-center gap-1 mb-2 mt-5">
-            <label className="text-[14px] font-medium text-black" htmlFor="password">{t('password')}</label>
-            <span className="text-[10px] font-normal text-[#E55B5B]">{t('required')}</span>
+            <label className="text-[14px] font-medium text-black" htmlFor="password">{mounted ? t('password') : ''}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{mounted ? t('required') : ''}</span>
           </div>
           <div className="relative mb-2">
             <input
@@ -98,7 +104,7 @@ export const SignupForm = () => {
               name="password"
               value={password}
               onChange={onPasswordChanged}
-              placeholder={t('input_password_message')}
+              placeholder={mounted ? t('input_password_message') : ''}
             />
             <button
               type="button"
@@ -112,14 +118,14 @@ export const SignupForm = () => {
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordLengthValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordLengthValid ? "text-black" : "text-gray-300"}`}>
-              {t("password_min_length")}
+              {mounted ? t('password_min_length') : ''}
             </span>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordPatternValid ? "text-black" : "text-gray-300"}`}>
-              {t('password_requirements')}
+              {mounted ? t('password_requirements') : ''}
             </span>
           </div>
         </div>
@@ -133,7 +139,7 @@ export const SignupForm = () => {
                 : "bg-[#BCBFC2] text-white"
             }`}
             disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
-            {t('sign_up')}
+            {mounted ? t('sign_up'): ''}
           </button>
         </div>
       </div>
