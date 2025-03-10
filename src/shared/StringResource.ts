@@ -142,6 +142,7 @@ export const StringResource = {
     change_locale_dialog_message: `언어 변경 후 앱을 재시작하시겠습니까?`,
     select_language: '언어 선택',
     depositor_name: "입금자명",
+    developer_mode: '개발자모드',
   },
   en: {
     welcome: "Welcome!",
@@ -285,7 +286,8 @@ export const StringResource = {
     change_locale_dialog_title: 'Selected Language',
     change_locale_dialog_message: `Would you like to change it and restart the app?`,
     select_language: "Select Language",
-    depositor_name: "Depositor Name"
+    depositor_name: "Depositor Name",
+    developer_mode: '개발자모드',
   },
   jp: {
     "welcome": "ようこそ！",
@@ -430,5 +432,6 @@ export const StringResource = {
     "change_locale_dialog_message": "言語を変更後、アプリを再起動しますか？",
     select_language: "言語選択",
     depositor_name: "振込人名",
+    developer_mode: '개발자모드',
   }
 };

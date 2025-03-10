@@ -42,9 +42,19 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       cancelTitle: await translate('cancel'),
     }
   }
+  else if (id == 'ChangeEndpoint') {
+    return {
+      id: 'ChangeEndpoint',
+      type: 'YESORNO',
+      title: '서버 전환',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
+  }
 }
 
-export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'ChangeLocale';
+export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'ChangeLocale' | 'ChangeEndpoint';
 type DialogType = 'YESORNO' | 'SIMPLE'
 type DialogInfo = {
   id: DialogId

@@ -66,7 +66,7 @@ declare global {
     requestPayment: (command: string) => void;
     showGallery: () => void;
     closeBottomSheet: () => void;
-
+    changeWebEndpoint: (endpoint: string) => void;
 
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string, name: string }) => void;

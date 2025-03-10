@@ -5,6 +5,7 @@ import { VersionMenu } from "@/app/setting/account/version.menu";
 import { DialogClickWrapper } from "@/utils/DialogClickWrapper";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { translate } from "@/utils/translate";
 
 export default async function AccountSetting({
                                                searchParams
@@ -25,7 +26,9 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting"/>
       </NavigateClickWrapper>
-      <VersionMenu version={(await searchParams).appVersion}/>
+      <VersionMenu
+        title={await translate('app_version')}
+        version={(await searchParams).appVersion}/>
 
       <DialogClickWrapper id={"Logout"}>
         <MenuItem label="log_out"/>
