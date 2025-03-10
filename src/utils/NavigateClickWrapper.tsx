@@ -10,11 +10,11 @@ export function NavigateClickWrapper({ method, route, children }: NavigateClickI
   return (
     <div
       onClick={() => {
-        if (method === 'push') {
+        if (method === 'push' && route) {
           window.KloudEvent?.push(route);
         } else if (method == 'back') {
           window.KloudEvent?.back();
-        } else if (method == 'clearAndPush') {
+        } else if (method == 'clearAndPush' && route) {
           window.KloudEvent?.clearAndPush(route);
         } else if (method == 'closeBottomSheet') {
           window.KloudEvent?.closeBottomSheet();

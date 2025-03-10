@@ -1,4 +1,3 @@
-'use client';
 import { HeaderInDetail } from "@/app/components/headers";
 import Image from "next/image";
 import LocationIcon from "../../../../public/assets/location.svg";
@@ -15,53 +14,14 @@ import { toggleFollowStudio } from "@/app/search/studio.follow.action";
 import { extractNumber } from "@/utils";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { useLocale } from "@/hooks/useLocale";
+import { StudioFollowButton } from "@/app/studios/[id]/StudioFollowButton";
+import { translate } from "@/utils/translate";
 
-export const StudioDetailForm = ({id}: { id: string }) => {
-  const { t } = useLocale();
-  const [studio, setStudio] = useState<GetStudioResponse | undefined>(undefined)
-  const [announcements, setAnnouncements] = useState<GetAnnouncementResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true)
-  const [follow, setFollow] = useState<StudioFollowResponse | undefined>(undefined)
+export const StudioDetailForm = async ({id}: { id: string }) => {
 
-  useEffect(() => {
-    const fetchStudio = async () => {
-      try {
-        const response = await getStudioDetail(id)
-        if ('id' in response) {
-          setStudio(response)
-          setFollow(response.follow)
-          setAnnouncements(response.announcements ?? [])
-        }
-      } catch (error) {
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  const studio = await getStudioDetail(id);
 
-    fetchStudio()
-  }, [id])
-
-  const onClickFollow = async (e: React.MouseEvent) => {
-    window.KloudEvent?.sendHapticFeedback()
-    const res = await toggleFollowStudio({
-      studioId: extractNumber(id),
-      follow: follow
-    })
-    setFollow(res.follow)
-    if (res.message) {
-      window.KloudEvent?.showToast(res.message)
-    }
-
-  }
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-gray-900"></div>
-    </div>
-  }
-
-  if (!studio) {
-    return notFound();
-  }
+  if (!('id' in studio)) return notFound();
 
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar">
@@ -103,16 +63,7 @@ export const StudioDetailForm = ({id}: { id: string }) => {
           </div>
           <div className="flex-col justify-center items-start gap-2 inline-flex">
             <div className="text-[#131517] text-xl font-bold leading-normal">{studio.name}</div>
-            <div
-              onClick={onClickFollow}
-              className={`px-2.5 py-1 text-sm font-medium rounded-full 
-          ${follow
-                ? 'text-gray-500 border border-gray-300 hover:bg-gray-100'
-                : 'text-white bg-black border border-black hover:bg-gray-900'
-              }`}
-            >
-              {follow ? t('following') : t('follow')}
-            </div>
+            <StudioFollowButton studioId={id} follow={studio.follow}/>
           </div>
 
         </div>
@@ -137,16 +88,16 @@ export const StudioDetailForm = ({id}: { id: string }) => {
         </div>
 
         <section>
-          {announcements && announcements.length > 0 && (
+          {studio.announcements && studio.announcements.length > 0 && (
             <div className="flex flex-col">
               <div className="p-4">
                 <div className="text-[20px] text-black font-bold">
-                  {t('studio_announcement')}
+                  {await translate('studio_announcement')}
                 </div>
               </div>
-              {announcements && announcements.length > 0 && (
+              {studio.announcements && studio.announcements.length > 0 && (
                 <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-                  {announcements.map((item: GetAnnouncementResponse) => (
+                  {studio.announcements.map((item: GetAnnouncementResponse) => (
                     <div
                       key={item.id}
                       className="min-w-[calc(100vw-32px)] snap-start pl-4"

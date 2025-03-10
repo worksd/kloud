@@ -18,9 +18,9 @@ export default async function MyHomeContents() {
 
         {res.lessons?.length == 0 && (
           <div className="w-full text-center text-[#BCBFC2] py-10">
-            <p className="text-lg mb-2 text-black font-medium">아직 신청한 수업이 없어요</p>
+            <p className="text-lg mb-2 text-black font-medium">{await translate('no_upcoming_lesson_title')}</p>
             <p className="text-sm text-gray-400">
-              관심있는 수업을 찾아보세요!
+              {await translate('no_upcoming_lesson_message')}
             </p>
           </div>
         )}

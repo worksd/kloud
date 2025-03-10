@@ -1,18 +1,20 @@
 'use server'
 import { api } from "@/app/api.client";
 import { StudioFollowResponse } from "@/app/endpoint/studio.follow.endpoint";
+import { StringResource } from "@/shared/StringResource";
+import { translate } from "@/utils/translate";
 
 export const toggleFollowStudio = async ({studioId, follow}: {
   studioId: number,
   follow?: StudioFollowResponse
-}): Promise<{ success: boolean, follow?: StudioFollowResponse, message?: string }> => {
+}): Promise<{ success: boolean, follow?: StudioFollowResponse, message?: string}> => {
   if (!follow) {
     const res = await followStudio({studioId})
     if ('id' in res) {
       return {
         success: true,
         follow: res,
-        message: '팔로우하였습니다',
+        message: await translate('follow_success_message'),
       }
     }
   } else if (follow) {
@@ -20,7 +22,7 @@ export const toggleFollowStudio = async ({studioId, follow}: {
     return {
       success: true,
       follow: undefined,
-      message: '팔로우를 취소하였습니다',
+      message: await translate('unfollow_success_message'),
     }
   }
   return {

@@ -1,10 +1,17 @@
-import { Props } from "@/app/studios/[id]/page";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { TicketItem } from "@/app/tickets/ticket.item";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
 import { api } from "@/app/api.client";
-import { NoItems } from "@/app/components/NoItem";
+import { translate } from "@/utils/translate";
+
+export default async function TicketListPage() {
+  return (
+    <Suspense fallback={<Loading/>}>
+      <TicketList/>
+    </Suspense>
+  );
+}
 
 async function TicketList() {
   const res = await api.ticket.list({});
@@ -25,19 +32,18 @@ async function TicketList() {
           ))}
         </div>
       ) : (
-        <NoItems
-          title="구매 내역이 존재하지 않습니다"
-          description="새로운 클래스를 수강해보세요!"
-        />
+        <div className="min-h-[400px] flex flex-col items-center justify-center bg-white p-4">
+          {/* 메시지 */}
+          <h2 className="text-[20px] font-bold text-black mb-2">
+            {await translate('no_payment_records_title')}
+          </h2>
+
+          <p className="text-[16px] text-[#86898C] text-center mb-8">
+            {await translate('no_payment_records_message')}
+          </p>
+        </div>
       )}
     </div>
   );
 }
 
-export default function TicketDetail({params}: Props) {
-  return (
-    <Suspense fallback={<Loading/>}>
-      <TicketList/>
-    </Suspense>
-  );
-}

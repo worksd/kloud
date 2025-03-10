@@ -29,7 +29,7 @@ const GoogleLoginButton = () => {
   return (
     <button
       className={`relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full 
-            active:scale-[0.95] transition-transform duration-150 select-none border-gray-200`}
+            active:scale-[0.95] transition-transform duration-150 border border-gray-200`}
       onClick={googleLogin}
     >
       <span className="absolute left-4">
