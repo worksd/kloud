@@ -74,7 +74,7 @@ export async function Poster({
           </div>
           {title &&
             <div className="body-200 text-gray-500 truncate">
-              {`${formatTime.date}(${formatTime.dayOfWeek}) ${formatTime.time}`}
+              {`${formatTime.date}(${await translate(formatTime.dayOfWeek)}) ${formatTime.time}`}
             </div>
           }
         </div>

@@ -36,7 +36,7 @@ export const StudioFollowButton = ({studioId, follow} : {studioId: string, follo
         : 'text-white bg-black border border-black hover:bg-gray-900'
       }`}
     >
-      {mounted ? currentFollow ? t('following') : t('follow') : ''}
+      {mounted ? (currentFollow ? t('following') : t('follow')) : ''}
     </div>
   )
 }

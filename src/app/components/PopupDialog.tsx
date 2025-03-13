@@ -46,9 +46,9 @@ const PopupDialog = ({popupType, title, message, buttonText, onClose}: PopupProp
           <h1 className={'mr-2'}>{`${title ? title : '알림'}`}</h1>
         </header>
         <main className={'flex flex-col justify-center items-center'}>
-          {message.split('\n').map((line, index) => (
+          {message ? message.split('\n').map((line, index) => (
             <p key={index}>{line}</p>
-          ))}
+          )) : ''}
         </main>
         <footer className={'flex justify-center items-center'}>
           <button className={'bg-white text-black py-1 px-4'} onClick={handleClickClose}>

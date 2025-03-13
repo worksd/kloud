@@ -5,7 +5,7 @@ import { translate } from "@/utils/translate";
 export async function createDialog(id: DialogId, message?: string): Promise<DialogInfo | undefined> {
   if (id == 'Logout') {
     return {
-      id: 'Logout',
+      id: id,
       type: 'YESORNO',
       title: await translate('log_out'),
       message: await translate('log_out_dialog_message'),
@@ -16,7 +16,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
   }
   else if (id == 'UnderDevelopment') {
     return {
-      id: 'UnderDevelopment',
+      id: id,
       type: 'SIMPLE',
       title: await translate('rawgraphy'),
       confirmTitle: await translate('confirm'),
@@ -25,7 +25,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
   }
   else if (id == 'LoginFail') {
     return {
-      id: 'LoginFail',
+      id: id,
       type: 'SIMPLE',
       title: await translate('fail_login'),
       message: message ?? '',
@@ -34,7 +34,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
   }
   else if (id == 'ChangeLocale') {
     return {
-      id: 'ChangeLocale',
+      id: id,
       type: 'YESORNO',
       title: await translate('change_locale_dialog_title'),
       message: message ?? '',
@@ -44,7 +44,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
   }
   else if (id == 'ChangeEndpoint') {
     return {
-      id: 'ChangeEndpoint',
+      id: id,
       type: 'YESORNO',
       title: '서버 전환',
       message: message ?? '',
@@ -52,9 +52,19 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       cancelTitle: await translate('cancel'),
     }
   }
+
+  else if (id == 'SignUpFail') {
+    return {
+      id: id,
+      type: 'SIMPLE',
+      title: await translate('fail_sign_up'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+    }
+  }
 }
 
-export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'ChangeLocale' | 'ChangeEndpoint';
+export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'SignUpFail' | 'ChangeLocale' | 'ChangeEndpoint';
 type DialogType = 'YESORNO' | 'SIMPLE'
 type DialogInfo = {
   id: DialogId

@@ -1,13 +1,14 @@
 import { LanguageChangeForm } from "@/app/setting/account/language/language.change.form";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { getLocale } from "@/utils/translate";
 
-export default function LanguageSettings() {
+export default async function LanguageSettingPage() {
   return (
     <div className={"flex flex-col w-screen min-h-screen bg-white"}>
       <div className="flex justify-between items-center mb-14">
         <SimpleHeader titleResource="language_setting"/>
       </div>
-      <LanguageChangeForm/>
+      <LanguageChangeForm locale={await getLocale()}/>
     </div>
   )
 }

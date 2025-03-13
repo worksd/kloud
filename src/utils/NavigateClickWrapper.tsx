@@ -1,15 +1,24 @@
 'use client';
 
+import { Locale } from "@/shared/StringResource";
+import { changeLocale } from "@/utils/translate";
+
 interface NavigateClickItemProps {
-  method: 'push' | 'back' | 'clearAndPush' | 'closeBottomSheet'
+  method: 'push' | 'back' | 'clearAndPush' | 'closeBottomSheet' | 'showBottomSheet',
+  action?: 'changeLocale',
+  locale?: Locale,
   route?: string;
   children: React.ReactNode;
 }
 
-export function NavigateClickWrapper({ method, route, children }: NavigateClickItemProps) {
+export function NavigateClickWrapper({ method, route, action, locale, children }: NavigateClickItemProps) {
   return (
     <div
-      onClick={() => {
+      onClick={async () => {
+        if (action === 'changeLocale' && locale) {
+          await changeLocale(locale)
+        }
+
         if (method === 'push' && route) {
           window.KloudEvent?.push(route);
         } else if (method == 'back') {
@@ -18,7 +27,11 @@ export function NavigateClickWrapper({ method, route, children }: NavigateClickI
           window.KloudEvent?.clearAndPush(route);
         } else if (method == 'closeBottomSheet') {
           window.KloudEvent?.closeBottomSheet();
-      }}}
+        } else if (method === 'showBottomSheet') {
+          window.KloudEvent?.showBottomSheet(route);
+        }
+
+      }}
     >
       {children}
     </div>

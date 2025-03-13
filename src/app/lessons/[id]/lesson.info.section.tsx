@@ -15,7 +15,7 @@ export const LessonInfoSection = async ({data}: {data: GetLessonResponse}) => {
         <div className="self-stretch flex-col justify-start items-start gap-2 flex">
             <LessonInfoLabel Icon={Location} text={data.studio?.name ?? ''} subText={data.room?.name ?? ''} />
 
-            <LessonInfoLabel Icon={Calendar} text={`${startTime.date}(${startTime.dayOfWeek})`} subText={calculateDDays(data.startTime ?? '') ?? await translate('finish')} />
+            <LessonInfoLabel Icon={Calendar} text={`${startTime.date}(${await translate(startTime.dayOfWeek)})`} subText={calculateDDays(data.startTime ?? '') ?? await translate('finish')} />
 
             <LessonInfoLabel Icon={TimeCircle} text={startTime.time} subText={`${data.duration} ${await translate('minutes')}`} />
 

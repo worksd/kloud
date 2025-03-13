@@ -9,6 +9,7 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { clearCookies } from "@/app/setting/clear.token.action";
 import { useLocale } from "@/hooks/useLocale";
 import { createDialog } from "@/utils/dialog.factory";
+import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
 
 export const LoginForm = () => {
 
@@ -78,7 +79,7 @@ export const LoginForm = () => {
     <div
       className="flex flex-col p-6"
     >
-      <label className="mb-2 text-[14px] font-normal text-black">{mounted ? t('email') : ''}</label>
+      <label className="mb-2 text-[14px] font-normal text-black"><TranslatableText titleResource={'email'}/></label>
       <input
         className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
         type="email"
@@ -86,13 +87,13 @@ export const LoginForm = () => {
         name="email"
         onChange={onEmailChange}
         value={email}
-        placeholder={mounted ? t('input_email_message') : ''}
+        placeholder={getTranslatedText({ titleResource: 'input_email_message', text: t('input_email_message'), mounted: mounted})}
       />
       <div className="text-[#E55B5B] mb-2 text-[12px]">
         {emailErrorMessage}
       </div>
       <div className="flex items-center gap-2 mb-2">
-        <label className="text-[14px] font-normal text-black">{mounted ? t('password'): ''}</label>
+        <label className="text-[14px] font-normal text-black"><TranslatableText titleResource={'password'}/></label>
       </div>
       <div className="relative mb-2">
         <input
@@ -102,7 +103,7 @@ export const LoginForm = () => {
           name="password"
           value={password}
           onChange={onPasswordChange}
-          placeholder={mounted ? t('input_password_message') : ''}
+          placeholder={getTranslatedText({ titleResource: 'input_password_message', text: t('input_password_message'), mounted: mounted})}
         />
         <button
           type="button"
@@ -119,8 +120,8 @@ export const LoginForm = () => {
 
 
       <div className="flex items-center justify-end mb-4" onClick={onClickSignUp}>
-        <span className="text-[#86898C] text-[12px]">{mounted ? t('not_member_sign_up') : ''}</span>
-        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]">{mounted ? t('create_account') : ''}</span>
+        <span className="text-[#86898C] text-[12px]"><TranslatableText titleResource={"not_member_sign_up"}/></span>
+        <span className="text-black ml-1 font-semibold cursor-pointer text-[12px]"><TranslatableText titleResource={'create_account'}/></span>
       </div>
 
       <button
@@ -128,7 +129,9 @@ export const LoginForm = () => {
         disabled={!isFormValid}
         className={`sticky bottom-0 flex items-center justify-center text-lg font-semibold rounded-lg h-14 shadow-lg w-full ${
           isFormValid ? "bg-black text-white" : "bg-[#BCBFC2] text-white"}`}>
-        {mounted ? t('do_start') : ''}
+        {/*{mounted ? t('do_start') : ''}*/}
+        {/*{getTranslatedText({ titleResource: 'do_start', text: t('do_start'), mounted: mounted})}*/}
+        <TranslatableText titleResource={'do_start'}/>
       </button>
     </div>
   );

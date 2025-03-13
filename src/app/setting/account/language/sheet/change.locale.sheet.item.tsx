@@ -1,39 +1,37 @@
-'use client'
-import { StringResource } from "@/shared/StringResource";
+import { Locale } from "@/shared/StringResource";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { changeLocale } from "@/utils/translate";
+import { getLocaleEmoji, getLocaleName } from "@/utils/translate";
 import CheckIcon from "../../../../../../public/assets/check_white.svg";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
-export const ChangeLocaleSheetItem = ({selectedLanguage, currentLocale: locale}: {
-  selectedLanguage: keyof typeof StringResource,
-  currentLocale: keyof typeof StringResource
+export const ChangeLocaleSheetItem = ({selectedLanguage, locale}: {
+  selectedLanguage: Locale,
+  locale: Locale
 }) => {
-  const isSelected = selectedLanguage === locale;
+  const isSelected = selectedLanguage === locale
 
   return (
-    <li
-      className={`flex items-center justify-between w-full p-4 rounded-lg text-lg font-medium border transition-transform duration-100 active:scale-[0.98]
+    <NavigateClickWrapper method={isSelected ? 'closeBottomSheet' : 'clearAndPush'}
+                          route={isSelected ? undefined : KloudScreen.Login}
+                          locale={locale}
+                          action={'changeLocale'}>
+      <li
+        className={`flex items-center justify-between w-full p-4 rounded-lg text-lg font-medium border transition-transform duration-100 active:scale-[0.98]
         ${isSelected ? "bg-black text-white border-gray-700" : "bg-gray-100 text-black border-gray-300"}`
-      }
-      onClick={async () => {
-        if (isSelected) {
-          window.KloudEvent?.closeBottomSheet()
-        } else {
-          await changeLocale(locale);
-          window.KloudEvent.clearAndPush(KloudScreen.Login);
         }
-      }}
-    >
-      <div className="flex items-center gap-2">
+      >
+        <div className="flex items-center gap-2">
         <span className="text-xl">
-          {locale === 'ko' ? '🇰🇷' : locale === 'jp' ? '🇯🇵' : '🇺🇸'}
+          {getLocaleEmoji(locale)}
         </span>
-              <span>
-          {locale === 'ko' ? '한국어' : locale === 'jp' ? '日本語' : 'English'}
+          <span>
+          {getLocaleName(locale)}
         </span>
-      </div>
+        </div>
 
-      {isSelected && <CheckIcon className="scale-125"/>}
-    </li>
+        {isSelected && <CheckIcon className="scale-125"/>}
+      </li>
+
+    </NavigateClickWrapper>
   );
 };

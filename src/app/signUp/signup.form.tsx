@@ -5,10 +5,12 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../public/assets/check.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { signUpAction } from "@/app/signUp/signup.action";
 import { useLocale } from "@/hooks/useLocale";
+import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
+import { translate } from "@/utils/translate";
+import { createDialog } from "@/utils/dialog.factory";
 
 export const SignupForm = () => {
 
@@ -50,12 +52,7 @@ export const SignupForm = () => {
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(res.errorMessage ?? '')
       } else {
-        const dialogInfo = {
-          id: 'Empty',
-          type: 'SIMPLE',
-          title: t('fail_sign_up'),
-          message: res.errorMessage,
-        }
+        const dialogInfo = await createDialog('SignUpFail', res.errorMessage)
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     }
@@ -72,8 +69,8 @@ export const SignupForm = () => {
       <div className="flex flex-col p-6 justify-between">
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium text-black">{mounted ? t('email') : ''}</label>
-            <span className="text-[10px] font-normal text-[#E55B5B]">{mounted ? t('required'): ''}</span>
+            <label className="text-[14px] font-medium text-black"><TranslatableText titleResource={'email'}/></label>
+            <span className="text-[10px] font-normal text-[#E55B5B]"><TranslatableText titleResource={'required'}/></span>
           </div>
           <input
             className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
@@ -81,20 +78,20 @@ export const SignupForm = () => {
             name="email"
             onChange={onEmailChanged}
             value={email}
-            placeholder={mounted ? t('input_email_message'): ''}
+            placeholder={getTranslatedText({titleResource: 'input_email_message', text: t('input_email_message'), mounted: mounted})}
           />
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isEmailPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isEmailPatternValid ? "text-black" : "text-gray-300"}`}>
-              {mounted ? t('email_format') : ''}
+              <TranslatableText titleResource={'email_format'}/>
             </span>
           </div>
           <div className="text-[#E55B5B] mt-2 text-[12px]">
             {emailErrorMessage}
           </div>
           <div className="flex items-center gap-1 mb-2 mt-5">
-            <label className="text-[14px] font-medium text-black" htmlFor="password">{mounted ? t('password') : ''}</label>
-            <span className="text-[10px] font-normal text-[#E55B5B]">{mounted ? t('required') : ''}</span>
+            <label className="text-[14px] font-medium text-black" htmlFor="password"><TranslatableText titleResource={'password'}/></label>
+            <span className="text-[10px] font-normal text-[#E55B5B]"><TranslatableText titleResource={'required'}/></span>
           </div>
           <div className="relative mb-2">
             <input
@@ -104,7 +101,7 @@ export const SignupForm = () => {
               name="password"
               value={password}
               onChange={onPasswordChanged}
-              placeholder={mounted ? t('input_password_message') : ''}
+              placeholder={getTranslatedText({titleResource: 'input_password_message', text: t('input_password_message'), mounted: mounted})}
             />
             <button
               type="button"
@@ -118,14 +115,14 @@ export const SignupForm = () => {
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordLengthValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordLengthValid ? "text-black" : "text-gray-300"}`}>
-              {mounted ? t('password_min_length') : ''}
+              <TranslatableText titleResource={'password_min_length'}/>
             </span>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordPatternValid ? "text-black" : "text-gray-300"}`}>
-              {mounted ? t('password_requirements') : ''}
+              <TranslatableText titleResource={'password_requirements'}/>
             </span>
           </div>
         </div>
@@ -139,7 +136,7 @@ export const SignupForm = () => {
                 : "bg-[#BCBFC2] text-white"
             }`}
             disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
-            {mounted ? t('sign_up'): ''}
+            <TranslatableText titleResource={'sign_up'}/>
           </button>
         </div>
       </div>

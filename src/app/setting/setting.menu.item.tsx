@@ -1,14 +1,8 @@
-import { KloudScreen } from "@/shared/kloud.screen";
-import { clearCookies } from "@/app/setting/clear.token.action";
 import RightArrowIcon from "../../../public/assets/right-arrow.svg"
-import { useEffect } from "react";
-import { deleteUserAction } from "@/app/setting/sign.out.action";
-import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
-import { useLocale } from "@/hooks/useLocale";
-import { StringResource } from "@/shared/StringResource";
+import { StringResource, StringResourceKey } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
 
-export const MenuItem = async ({label}: { label: keyof (typeof StringResource)["ko"]}) => {
+export const MenuItem = async ({label}: { label: StringResourceKey}) => {
 
 
   // const handleClick = async () => {

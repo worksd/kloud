@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { StringResource } from "@/shared/StringResource";
+import { StringResource, type Locale, StringResourceKey } from "@/shared/StringResource";
 import { localeKey } from "@/shared/cookies.key";
 
 export const useLocale = () => {
-  const getInitialLocale = (): keyof typeof StringResource => {
+  const getInitialLocale = (): Locale => {
     const cookieLang = Cookies.get(localeKey);
-    return cookieLang && cookieLang in StringResource ? (cookieLang as keyof typeof StringResource) : "ko";
+    return (cookieLang && cookieLang in StringResource.welcome) ?
+      (cookieLang as Locale) : "ko";
   };
 
-  const [locale, setLocale] = useState<keyof typeof StringResource>(getInitialLocale());
+  const [locale, setLocale] = useState<Locale>(getInitialLocale());
 
   useEffect(() => {
     if (Cookies.get(localeKey)?.valueOf()) {
@@ -17,11 +18,9 @@ export const useLocale = () => {
     }
   }, []);
 
-  const t = <T extends keyof (typeof StringResource)["ko"]>(key: T): string => {
-    return StringResource[locale]?.[key] || key;
+  const t = (key: StringResourceKey): string => {
+    return StringResource[key]?.[locale] || key;
   };
 
-  return {t, locale};
+  return { t, locale };
 };
-
-

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useLocale } from "@/hooks/useLocale";
 import { useEffect, useState } from "react";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 export const ProfileEditForm = ({nickName, profileImageUrl, inputErrorMessage, onNickNameChanged}: {
   nickName: string,
@@ -8,20 +9,15 @@ export const ProfileEditForm = ({nickName, profileImageUrl, inputErrorMessage, o
   inputErrorMessage: string | null,
   onNickNameChanged: (nickName: string) => void
 }) => {
-  const { t } = useLocale();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   return (
     <div className="fixed inset-0 bg-white">
       {/* 헤더 영역 */}
       <div className="p-6 mt-14">
         <h1 className="text-2xl font-bold mb-2 text-black">
-          {mounted ? t('change_profile_message') : ''}
+          <TranslatableText titleResource={'change_profile_message'}/>
         </h1>
         <p className="text-gray-600">
-          {mounted ? t('change_profile_description') : ''}
+          <TranslatableText titleResource={'change_profile_description'}/>
         </p>
       </div>
 
@@ -44,7 +40,7 @@ export const ProfileEditForm = ({nickName, profileImageUrl, inputErrorMessage, o
         {/* 닉네임 입력 */}
         <div className="flex flex-col w-full">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {mounted ? t('nick_name') : ''}
+            <TranslatableText titleResource={'nick_name'}/>
           </label>
           <input
             value={nickName}

@@ -6,7 +6,7 @@ import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useEffect, useState } from "react";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { useLocale } from "@/hooks/useLocale";
-import { StringResource } from "@/shared/StringResource";
+import { StringResource, StringResourceKey } from "@/shared/StringResource";
 
 const PaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonResponse, os: string, appVersion: string, userId: string, }) => {
   const { t } = useLocale()
@@ -14,7 +14,7 @@ const PaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonRespon
   const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
 
-  const paymentOptions: {id: string, label: keyof (typeof StringResource)["ko"]}[] = [
+  const paymentOptions: {id: string, label: StringResourceKey}[] = [
     { id: "credit", label: "credit_card" },
     { id: "bank", label: "account_transfer" },
   ];

@@ -49,8 +49,8 @@ async function formatTimeAgo(dateInput: string | Date): Promise<string> {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return StringResource[locale].just_now;
-  if (minutes < 60) return StringResource[locale].minutes_ago.replace("{n}", String(minutes));
-  if (hours < 24) return StringResource[locale].hours_ago.replace("{n}", String(hours));
-  return StringResource[locale].days_ago.replace("{n}", String(days));
+  if (seconds < 60) return StringResource['just_now'][locale];
+  if (minutes < 60) return StringResource['minutes_ago'][locale].replace("{n}", String(minutes));
+  if (hours < 24) return StringResource['hours_ago'][locale].replace("{n}", String(hours));
+  return StringResource['days_ago'][locale].replace("{n}", String(days));
 }

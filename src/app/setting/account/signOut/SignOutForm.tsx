@@ -8,9 +8,9 @@ import { deleteUserAction } from "@/app/setting/sign.out.action";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 import { useLocale } from "@/hooks/useLocale";
-import { StringResource } from "@/shared/StringResource";
+import { StringResource, StringResourceKey } from "@/shared/StringResource";
 
-const reasons: (keyof (typeof StringResource)["ko"])[] = [
+const reasons: StringResourceKey[] = [
   "sign_out_reason_no_contents",
   "sign_out_reason_no_use",
   "sign_out_reason_error",
@@ -23,7 +23,7 @@ export default function SignOutForm() {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [otherReason, setOtherReason] = useState("");
 
-  const handleReasonSelect = (reason: keyof (typeof StringResource)["ko"]) => {
+  const handleReasonSelect = (reason: StringResourceKey) => {
     setSelectedReason(reason);
     if (reason !== "guitar") {
       setOtherReason(""); // 기타 선택 해제 시 입력 필드 초기화

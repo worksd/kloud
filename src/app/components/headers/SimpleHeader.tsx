@@ -1,11 +1,11 @@
 'use server'
 import ArrowLeftIcon from "../../../../public/assets/left-arrow.svg";
-import { StringResource } from "@/shared/StringResource";
+import { StringResourceKey } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
-export async function SimpleHeader({ titleResource }: {
-  titleResource?: keyof (typeof StringResource)["ko"] | undefined
+export async function SimpleHeader({titleResource}: {
+  titleResource?: StringResourceKey
 }) {
   return (
     <div className="fixed top-0 left-0 right-0 bg-white z-10">

@@ -2,7 +2,7 @@
 import DropdownDetails from "@/app/components/DropdownDetail";
 import { useLocale } from "@/hooks/useLocale";
 import { useState } from "react";
-import { StringResource } from "@/shared/StringResource";
+import { StringResource, StringResourceKey } from "@/shared/StringResource";
 import { SellerInfoItem } from "@/app/lessons/[id]/payment/payment.info";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import PassPaymentButton from "@/app/pass/[id]/payment/PassPaymentButton";
@@ -12,7 +12,7 @@ export const PassPaymentInfo = ({studio, price}: { studio: GetStudioResponse, pr
   const [selectedMethod, setSelectedMethod] = useState("credit_card");
   const [depositor, setDepositor] = useState("");
 
-  const paymentOptions: { id: string, label: keyof (typeof StringResource)["ko"] }[] = [
+  const paymentOptions: { id: string, label: StringResourceKey }[] = [
     {id: "credit", label: "credit_card"},
     {id: "bank", label: "account_transfer"},
   ];

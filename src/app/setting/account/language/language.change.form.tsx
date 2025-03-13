@@ -1,41 +1,26 @@
 'use client'
 
-import { useLocale } from "@/hooks/useLocale";
 import { useEffect, useState } from "react";
-import { StringResource } from "@/shared/StringResource";
+import { Locale } from "@/shared/StringResource";
 import { createDialog } from "@/utils/dialog.factory";
 import CheckIcon from "../../../../../public/assets/check_white.svg";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { changeLocale } from "@/utils/translate";
+import { changeLocale, getLocaleText, translate } from "@/utils/translate";
+import { TranslatableText } from "@/utils/TranslatableText";
 
-export const LanguageChangeForm = () => {
-  const { t, locale } = useLocale();
-  const [currentLocale, setCurrentLocale] = useState<keyof typeof StringResource | undefined>(undefined);
+export const LanguageChangeForm = ({locale}: { locale: Locale }) => {
+  const [currentLocale, setCurrentLocale] = useState<Locale>(locale);
 
-  const handleChangeLocale = async (newLocale: keyof typeof StringResource) => {
+  const handleChangeLocale = async (newLocale: Locale) => {
     setCurrentLocale(newLocale);
   };
 
   const handleClickSubmit = async () => {
-    const localeText = currentLocale === 'ko'
-      ? '🇰🇷 한국어'
-      : currentLocale === 'en'
-        ? '🇺🇸 English'
-        : currentLocale === 'jp'
-          ? '🇯🇵 日本語'
-          : '';
-    const dialog = await createDialog('ChangeLocale', `\n${localeText}\n\n ${t('change_locale_dialog_message')}`);
+    const dialog = await createDialog('ChangeLocale', `\n${(await getLocaleText({ currentLocale }))}\n\n ${await translate('change_locale_dialog_message')}`);
     window.KloudEvent.showDialog(JSON.stringify(dialog));
   };
-
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setCurrentLocale(locale);
-  }, [locale]);
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
@@ -46,12 +31,11 @@ export const LanguageChangeForm = () => {
     }
   }, [currentLocale]);
 
-  if (!mounted) return null;
-
   const languageOptions = [
-    { value: 'ko', label: '🇰🇷 한국어' },
-    { value: 'en', label: '🇺🇸 English' },
-    { value: 'jp', label: '🇯🇵 日本語' }
+    {value: 'ko', label: '🇰🇷 한국어'},
+    {value: 'en', label: '🇺🇸 English'},
+    {value: 'jp', label: '🇯🇵 日本語'},
+    {value: 'zh', label: '🇨🇳 中文'},
   ] as const;
 
   return (
@@ -83,7 +67,7 @@ export const LanguageChangeForm = () => {
                   : "bg-[#22222233] border-white"
                 }`}
               >
-                {currentLocale === option.value && <CheckIcon />}
+                {currentLocale === option.value && <CheckIcon/>}
               </div>
               <span
                 className={`ml-4 text-[14px] ${
@@ -100,10 +84,8 @@ export const LanguageChangeForm = () => {
       </ul>
 
       <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 bg-white">
-        <CommonSubmitButton originProps={{ onClick: handleClickSubmit }}>
-          <div>
-            {t('confirm')}
-          </div>
+        <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
+          <TranslatableText titleResource={'confirm'}/>
         </CommonSubmitButton>
       </div>
     </div>

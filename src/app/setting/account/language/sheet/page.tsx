@@ -5,7 +5,6 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export default async function SettingLanguageSheet() {
   const selectedLanguage = await getLocale()
-
   return (
     <div className="text-black p-4">
       <div className={"w-full flex flex-row justify-between"}>
@@ -15,9 +14,10 @@ export default async function SettingLanguageSheet() {
         </NavigateClickWrapper>
       </div>
       <ul className="space-y-2">
-        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} currentLocale={'ko'}/>
-        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} currentLocale={'en'}/>
-        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} currentLocale={'jp'}/>
+        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} locale={'ko'}/>
+        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} locale={'en'}/>
+        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} locale={'jp'}/>
+        <ChangeLocaleSheetItem selectedLanguage={selectedLanguage} locale={'zh'}/>
       </ul>
     </div>
   );

@@ -1,8 +1,8 @@
-import { StringResource } from "@/shared/StringResource";
+import { StringResource, StringResourceKey } from "@/shared/StringResource";
 
-export async function formatDateTime(input: string ): Promise<{ time: string; date: string, dayOfWeek: (keyof (typeof StringResource)["ko"]) }> {
+export async function formatDateTime(input: string ): Promise<{ time: string; date: string, dayOfWeek: StringResourceKey }> {
   try {
-    const daysOfWeek: (keyof (typeof StringResource)["ko"])[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const daysOfWeek: (StringResourceKey)[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
     const [datePart, timePart] = input.split(" ");
     const [year, month, day] = datePart.split(".").map(Number);
