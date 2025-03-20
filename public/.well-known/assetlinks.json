@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.rawgraphy.blanc",
+      "sha256_cert_fingerprints": [
+        "62:14:3D:62:82:CD:81:BD:DE:40:77:80:97:BE:56:DA:ED:A2:E0:D1:86:64:3F:D3:B9:82:AD:9D:3A:07:51:BD",
+        "2F:40:4D:1D:E4:0B:81:B0:EF:36:DB:43:B2:27:58:B1:82:E1:0A:1A:40:16:60:80:5C:93:87:F2:3E:0B:8E:18"
+      ]
+    }
+  }
+]
