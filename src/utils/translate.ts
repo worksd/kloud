@@ -7,7 +7,6 @@ import { localeKey } from "@/shared/cookies.key";
 export const getLocale = async (): Promise<Locale> => {
   const cookieStore = await cookies();
   const cookieLang = cookieStore.get(localeKey)?.value;
-  console.log(cookieLang)
   const isValidLocale = (lang: string | undefined): lang is Locale =>
     lang !== undefined && ['ko', 'en', 'jp', 'zh'].includes(lang);
 
@@ -20,7 +19,6 @@ export const translate = async (key: StringResourceKey): Promise<string> => {
 };
 
 export const changeLocale = async (newLocale: Locale) => {
-  console.log(`change locale ${newLocale}`)
   const cookie = await cookies();
   cookie.set(localeKey, newLocale, {
     maxAge: 2592000,

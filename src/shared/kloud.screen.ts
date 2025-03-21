@@ -29,3 +29,7 @@ export const KloudScreen = {
   TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
   StudioDetail: (id: number) => `/studios/${id}`,
 } as const;
+
+export const isNoAuthScreen = (endpoint: string) => {
+  return endpoint == KloudScreen.Login || endpoint == KloudScreen.LoginEmail || endpoint == KloudScreen.SignUp || endpoint == KloudScreen.LanguageSettingSheet
+}

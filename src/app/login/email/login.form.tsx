@@ -10,6 +10,7 @@ import { clearCookies } from "@/app/setting/clear.token.action";
 import { useLocale } from "@/hooks/useLocale";
 import { createDialog } from "@/utils/dialog.factory";
 import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
+import { useRouter } from "next/navigation";
 
 export const LoginForm = () => {
 
@@ -19,6 +20,7 @@ export const LoginForm = () => {
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const { t } = useLocale();
+  const router = useRouter();
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -33,7 +35,11 @@ export const LoginForm = () => {
   }
 
   const onClickSignUp = () => {
-    window.KloudEvent?.push(KloudScreen.SignUp)
+    if (window.KloudEvent) {
+      window.KloudEvent?.push(KloudScreen.SignUp)
+    } else {
+      router.push(KloudScreen.SignUp)
+    }
   }
 
   const onClickLogin = async () => {

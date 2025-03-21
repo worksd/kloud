@@ -1,10 +1,14 @@
 import { NextRequest, userAgent } from 'next/server'
 import { NextResponse } from 'next/server'
+import { cookies } from "next/headers";
+import { accessTokenKey } from "@/shared/cookies.key";
+import { isNoAuthScreen, KloudScreen } from "@/shared/kloud.screen";
 
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl
   const { os, ua, device } = userAgent(request)
+  const cookie = await cookies()
 
   const appVersion = extractKloudVersion(ua) ?? ''
   // URL 파라미터 설정
@@ -18,6 +22,12 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-guinness-client', `${os.name}`)
   response.headers.set('x-guinness-version', appVersion)
   response.headers.set('x-guinness-device-name', `${device.model}(${device.vendor}/${os.version})`)
+
+  if (!isNoAuthScreen(url.pathname) && !cookie.get(accessTokenKey)?.value) {
+    return NextResponse.redirect(new URL(KloudScreen.Login, request.url))
+  }
+
+
   return response
 }
 

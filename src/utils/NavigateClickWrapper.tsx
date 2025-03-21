@@ -2,6 +2,7 @@
 
 import { Locale } from "@/shared/StringResource";
 import { changeLocale } from "@/utils/translate";
+import { useRouter } from "next/navigation";
 
 interface NavigateClickItemProps {
   method: 'push' | 'back' | 'clearAndPush' | 'closeBottomSheet' | 'showBottomSheet',
@@ -12,6 +13,7 @@ interface NavigateClickItemProps {
 }
 
 export function NavigateClickWrapper({ method, route, action, locale, children }: NavigateClickItemProps) {
+  const navigation = useRouter()
   return (
     <div
       onClick={async () => {
@@ -21,8 +23,10 @@ export function NavigateClickWrapper({ method, route, action, locale, children }
 
         if (method === 'push' && route) {
           window.KloudEvent?.push(route);
+          navigation.push(route);
         } else if (method == 'back') {
           window.KloudEvent?.back();
+          navigation.back();
         } else if (method == 'clearAndPush' && route) {
           window.KloudEvent?.clearAndPush(route);
         } else if (method == 'closeBottomSheet') {
