@@ -2,7 +2,7 @@
 
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { StringResourceKey } from "@/shared/StringResource";
 import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
@@ -14,18 +14,24 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 export const LessonPaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: string, userId: string }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("credit");
   const [depositor, setDepositor] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   const paymentOptions: { id: PaymentMethod, label: StringResourceKey }[] = [
     {id: "credit", label: "credit_card"},
     {id: "account_transfer", label: "account_transfer"},
   ];
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) return;
   return (
-    <div className={"flex flex-col "}>
-
-      <PaymentMethodComponent paymentOptions={paymentOptions} selectedMethod={selectedMethod}
-                              selectPaymentMethodAction={setSelectedMethod} depositor={depositor}
-                              setDepositorAction={setDepositor}/>
+    <div className={"flex flex-col"}>
+      <div className="flex flex-col gap-y-4">
+        <PaymentMethodComponent paymentOptions={paymentOptions} selectedMethod={selectedMethod}
+                                selectPaymentMethodAction={setSelectedMethod} depositor={depositor}
+                                setDepositorAction={setDepositor}/>
+      </div>
 
       <div className="py-5">
         <div className="w-full h-[1px] bg-[#F7F8F9] "/>
@@ -46,7 +52,7 @@ export const LessonPaymentInfo = ({lesson, os, userId}: { lesson: GetLessonRespo
         <RefundInformation/>
       </div>
 
-      <div className="px-6 mt-4 bottom-0 sticky">
+      <div className="left-0 w-full fixed bottom-2 px-6">
         <PaymentButton
           method={selectedMethod}
           os={os}
