@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-guinness-version', appVersion)
   response.headers.set('x-guinness-device-name', `${device.model}(${device.vendor}/${os.version})`)
 
-  if (!isNoAuthScreen(url.pathname) && !cookie.get(accessTokenKey)?.value) {
+  if (appVersion == '' && !isNoAuthScreen(url.pathname) && !cookie.get(accessTokenKey)?.value) {
     return NextResponse.redirect(new URL(KloudScreen.Login, request.url))
   }
 
