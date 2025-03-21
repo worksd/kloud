@@ -2,8 +2,8 @@
 import { api } from "@/app/api.client";
 import { GetStudioResult } from "@/app/home/@popularStudios/page";
 
-export async function getStudioList(): Promise<GetStudioResult> {
-  const res = await api.studio.list({});
+export async function getStudioList({hasPass}: { hasPass?: boolean }): Promise<GetStudioResult> {
+  const res = await api.studio.list({hasPass: hasPass ?? false});
 
   if ('studios' in res) {
     return {

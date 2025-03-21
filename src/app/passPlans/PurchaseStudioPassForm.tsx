@@ -1,29 +1,66 @@
 'use client'
 
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import React, { useState } from "react";
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { PassItem } from "@/app/pass/PassItem";
+import React, { useEffect, useState } from "react";
+import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { PassPlanItem } from "@/app/passPlans/PassPlanItem";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
+import { TranslatableText } from "@/utils/TranslatableText";
+import { useLocale } from "@/hooks/useLocale";
 
 export const PurchaseStudioPassForm = ({studio}: { studio: GetStudioResponse | null }) => {
 
-  const [pass, setPass] = useState<GetPassResponse | null>(null);
+  const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>([]);
+  const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(null);
+
+  const { t } = useLocale();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true)
+  }, []);
+
+  useEffect(() => {
+    const fetchPassPlans = async () => {
+      if (studio) {
+        const res = await getPassPlanListAction({
+          studioId: studio.id,
+        });
+        if ('passPlans' in res) {
+          let passPlans = res.passPlans ?? [];
+
+          // 서버에서 isPopular를 모두 false로 내려줄경우 가장 첫번째를 popular pass로 설정
+          if (!passPlans.some(plan => plan.isPopular) && passPlans.length > 0) {
+            passPlans = passPlans.map((plan, index) =>
+              index === 0 ? { ...plan, isPopular: true } : plan
+            );
+          }
+
+          const popularPassPlan = passPlans.find(value => value.isPopular) ?? passPlans[0];
+
+          setPassPlans(passPlans);
+          setPassPlan(popularPassPlan);
+        }
+      }
+    }
+    fetchPassPlans()
+  }, [studio]);
 
   return (
     <div className={"flex flex-col"}>
       {studio && studio.name &&
-        <div className={"text-[24px] text-black font-medium px-6 mt-4"}>{studio?.name} 댄스 스튜디오 패스 구매하기</div>
+        <div className={"text-[24px] text-black font-medium px-6 mt-4"}>{studio?.name} {mounted ? t('purchase_pass') : ''}</div>
       }
       <ul className="flex flex-col p-6 space-y-4 mt-4">
-        {mockPassResponseList.map((item) => (
-          <PassItem
+        {passPlans.map((item) => (
+          <PassPlanItem
             key={item.id}
             item={item}
-            isSelected={pass ? pass.id === item.id : mockPassResponseList.find(p => p.isHot)?.id === item.id}
-            onClickAction={(item: GetPassResponse) => {
-              setPass(item)
+            isSelected={passPlan ? passPlan.id === item.id : passPlans.find(p => p.isPopular)?.id === item.id}
+            onClickAction={(item: GetPassPlanResponse) => {
+              setPassPlan(item)
             }}/>
         ))}
       </ul>
@@ -44,40 +81,13 @@ export const PurchaseStudioPassForm = ({studio}: { studio: GetStudioResponse | n
       <div className={"sticky bottom-0 px-6"}>
         <CommonSubmitButton originProps={{
           onClick: () => {
-            window.KloudEvent?.push(KloudScreen.PassPayment(pass?.id ?? 0))
+            window.KloudEvent?.push(KloudScreen.PassPayment(passPlan?.id ?? 0))
           }
         }} disabled={false}>
-          패스 구매하기
+          <TranslatableText titleResource={'purchase_pass_title'}/>
         </CommonSubmitButton>
       </div>
 
     </div>
   )
 }
-
-export const mockPassResponseList: GetPassResponse[] = [
-  {
-    id: 0,
-    price: 28000,
-    title: '1 Class',
-    isHot: false,
-  },
-  {
-    id: 1,
-    price: 125000,
-    title: '5 Class',
-    isHot: true,
-  },
-  {
-    id: 2,
-    price: 220000,
-    title: '10 Class',
-    isHot: false,
-  },
-  {
-    id: 3,
-    price: 330000,
-    title: '20 Class',
-    isHot: false,
-  },
-]

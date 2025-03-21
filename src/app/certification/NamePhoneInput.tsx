@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
+import { createDialog } from "@/utils/dialog.factory";
+import { TranslatableText } from "@/utils/TranslatableText";
+import { useLocale } from "@/hooks/useLocale";
 
 export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubmit, setRrn}: {
   name: string,
@@ -12,6 +15,10 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
 }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, [])
 
   const handlePhoneChange = (value: string) => {
     const numbers = value.replace(/[^0-9]/g, '');
@@ -50,13 +57,8 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
       if (res) {
         onClickSubmit({ code: newCode });
       } else {
-        const dialogInfo = {
-          id: 'Empty',
-          type: 'SIMPLE',
-          title: '개인정보 불일치',
-          message: '이름과 휴대전화 번호를 다시 입력해주십시오',
-        };
-        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+        const dialog = await createDialog('CertificationMismatch')
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } catch (error) {
     } finally {
@@ -64,26 +66,25 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
     }
   };
 
+  const { t } = useLocale()
+
   return (
     <div className="flex flex-col">
 
       {/* 메인 컨텐츠 */}
       <div className="flex-1 px-6 text-black">
-        <h1 className="text-[18px] font-bold mb-8">
-          본인인증을 위해 정보를 입력해주세요
-        </h1>
-
+        <TranslatableText className="text-[18px] font-bold mb-8" titleResource={'input_personal_information'}/>
         {/* 이름 입력 */}
         <div className="text-black">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium">이름</label>
-            <span className="text-[10px] text-[#E55B5B]">필수</span>
+            <TranslatableText titleResource={'name'} className="text-[14px] font-medium"/>
+            <TranslatableText titleResource={'required'} className="text-[10px] text-[#E55B5B]"/>
           </div>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="이름을 입력해주세요"
+            placeholder={mounted ? t('input_name_message') : ''}
             className="w-full text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
           />
         </div>
@@ -91,8 +92,8 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
         {/* 주민등록번호 입력 */}
         <div className="text-black mb-2">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium">주민등록번호</label>
-            <span className="text-[10px] text-[#E55B5B]">필수</span>
+            <TranslatableText titleResource={'rrn'} className="text-[14px] font-medium"/>
+            <TranslatableText titleResource={'required'} className="text-[10px] text-[#E55B5B]"/>
           </div>
           <div className="flex gap-2 items-center">
             <input
@@ -107,7 +108,7 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
                 }
               }}
               maxLength={6}
-              placeholder="앞자리(생년월일)"
+              placeholder={mounted ? t('birthday') : ''}
               className="w-1/2 text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
             />
             <span className="flex items-center">-</span>
@@ -132,15 +133,15 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
         {/* 전화번호 입력 */}
         <div className="text-black">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium">휴대폰 번호</label>
-            <span className="text-[10px] text-[#E55B5B]">필수</span>
+            <TranslatableText titleResource={'cellphone_number'} className="text-[14px] font-medium"/>
+            <TranslatableText titleResource={'required'} className="text-[10px] text-[#E55B5B]"/>
           </div>
           <input
             id="phone"
             type="tel"
             value={phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
-            placeholder="휴대폰 번호를 입력해주세요"
+            placeholder={mounted ? t('input_birthday_message') : ''}
             className="w-full text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md mb-2 p-4"
           />
         </div>
@@ -156,7 +157,7 @@ export const NamePhoneInput = ({name, phone, rrn, setName, setPhone, onClickSubm
             ? 'bg-[#BCBFC2] text-white cursor-not-allowed'
             : 'bg-black text-white'}`}
         >
-          {isSubmitting ? '전송 중...' : '인증번호 발송'}
+          <TranslatableText titleResource={isSubmitting ? 'submitting' : 'submit_code'}/>
         </button>
       </div>
     </div>

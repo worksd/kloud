@@ -6,6 +6,10 @@ export type IdParameter = {
     id: number;
 };
 
+export type GetStudioListParameter = {
+    hasPass: boolean;
+}
+
 export type GetStudioResponse = {
     id: number;
     name: string;
@@ -42,7 +46,8 @@ export type GetStudioListResponse = {
     studios: GetStudioResponse[]
 }
 
-export const ListStudios: Endpoint<NoParameter, GetStudioListResponse> = {
+export const ListStudios: Endpoint<GetStudioListParameter, GetStudioListResponse> = {
     method: 'get',
-    path: `/studios`
+    path: `/studios`,
+    queryParams: ['hasPass']
 }

@@ -4,17 +4,20 @@ import { Thumbnail } from "@/app/components/Thumbnail";
 import { getPaymentDetail } from "@/app/lessons/[id]/payment/payment.detail.action";
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
-import Image from "next/image";
 import React from "react";
-import PaymentInfo from "@/app/lessons/[id]/payment/payment.info";
 import { FormattedDate } from "@/app/lessons/[id]/payment/FormattedDate";
+import { LessonPaymentInfo } from "@/app/lessons/[id]/payment/lesson.payment.info";
+import { CircleImage } from "@/app/components/CircleImage";
+import { translate } from "@/utils/translate";
+
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
-  searchParams: Promise<{ os: string, appVersion: string}>
+  searchParams: Promise<{ os: string, appVersion: string }>
 }) {
   const lesson = await getPaymentDetail({id: (await params).id})
 
-  if ('id' in lesson) {return (
+  if ('id' in lesson) {
+    return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
         {/* 백 헤더 */}
         <div className="flex justify-between items-center mb-14 px-6">
@@ -30,13 +33,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
             <div className="flex flex-col gap-1 min-w-0">
               <p className="text-base font-bold text-left text-[#131517] break-words">{lesson.title}</p>
               <div className="flex items-top gap-2">
-                {lesson?.studio?.profileImageUrl && <Image
-                  className="w-[20px] h-[20px] rounded-full overflow-hidden flex-shrink-0"
-                  src={lesson?.studio?.profileImageUrl}
-                  alt={'로고 URL'}
-                  width={20}
-                  height={20}
-                />}
+                {lesson?.studio?.profileImageUrl && <CircleImage size={20} imageUrl={lesson.studio.profileImageUrl}/>}
                 <div className={"flex flex-col items-start"}>
                   <span className="font-medium text-[14px] text-[#86898c]">
                     {lesson?.studio?.name}
@@ -49,7 +46,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
               <div className={"flex flex-row items-center mb-1"}>
                 <FormattedDate startTime={lesson.startTime ?? ''}/>
                 <p className="text-[#86898C] text-[12px] font-medium">
-                  /{lesson?.duration}분
+                  /{lesson?.duration} {await translate('minutes')}
                 </p>
               </div>
 
@@ -60,9 +57,8 @@ export default async function LessonPaymentPage({params, searchParams}: {
             <div className="w-full h-3 bg-[#F7F8F9] "/>
           </div>
 
-          <PaymentInfo
+          <LessonPaymentInfo
             os={(await searchParams).os}
-            appVersion={(await searchParams).appVersion}
             lesson={lesson}
             userId={(await cookies()).get(userIdKey)?.value ?? ''}
           />

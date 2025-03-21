@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ArrowLeftIcon from '../../../public/assets/left-arrow.svg';
 import { CertificationCodeInput } from "@/app/certification/CertificationCodeInput";
 import { NamePhoneInput } from "@/app/certification/NamePhoneInput";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
+import { StringResourceKey } from "@/shared/StringResource";
+import { TranslatableText } from "@/utils/TranslatableText";
 
-const getHeaderTitle = (step: number) => {
-  if (step == 1) return '본인인증'
-  else return '인증번호'
+const getHeaderTitleResource = (step: number): StringResourceKey => {
+  if (step == 1) return 'certification'
+  else return 'certification_code'
 };
 
 export const CertificationForm = () => {
@@ -37,7 +38,7 @@ export const CertificationForm = () => {
             <ArrowLeftIcon className="w-6 h-6"/>
           </button>
         </div>
-        <span className="text-[16px] font-bold text-black">{getHeaderTitle(step)}</span>
+        <TranslatableText titleResource={getHeaderTitleResource(step)} className="text-[16px] font-bold text-black"/>
       </div>
       {step === 1 ? (
         <NamePhoneInput

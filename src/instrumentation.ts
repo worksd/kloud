@@ -1,4 +1,3 @@
-import { registerOTel } from '@vercel/otel'
 import { trace } from "@opentelemetry/api";
 
 // Next.js instrumentation function

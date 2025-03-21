@@ -895,11 +895,152 @@ export const StringResource = {
   },
   select_pass_ticket_studio_message: {
     ko: "패스를 구매할 스튜디오를 선택해주세요",
-    en: "Choose a studio for your pass purchase",
+    en: "Choose a studio for your passPlans purchase",
     jp: "パスを購入したいスタジオをお選びください",
     zh: "请选择要购买通票的工作室"
+  },
+  my_pass: {
+    ko: "내 패스권",
+    en: "My Pass",
+    jp: "私のパス",
+    zh: "我的通票"
+  },
+  select_purchase_pass_plan_studio: {
+    ko: '패스를 구매할 스튜디오를 선택해 주세요',
+    en: 'Please select a studio to purchase a pass',
+    jp: 'パスを購入するスタジオを選択してください',
+    zh: '请选择要购买通行证的工作室',
+  },
+  purchase_pass_title: {
+    ko: '패스 구매하기',
+    en: 'Purchase Pass',
+    jp: 'パスを購入する',
+    zh: '购买通行证',
+  },
+  my_active_passes: {
+    ko: '보유 패스',
+    en: 'Active Passes',
+    jp: '保有パス',
+    zh: '持有的通行证',
+  },
+  my_used_passes: {
+    ko: '지난 패스',
+    en: 'Used Passes',
+    jp: '過去のパス',
+    zh: '已使用的通行证',
+  },
+  no_active_passes_message: {
+    ko: '갖고있는 패스가 없어요\n패스를 구매해보세요',
+    en: 'You don’t have any passes.\nTry purchasing one!',
+    jp: '保有しているパスがありません\nパスを購入してみましょう！',
+    zh: '你没有任何通行证。\n尝试购买一个吧！',
+  },
+  no_used_passes_message: {
+    ko: '사용한 패스가 없어요',
+    en: 'No passes have been used',
+    jp: '使用したパスがありません',
+    zh: '没有使用过的通行证',
+  },
+  go_purchase_pass_title: {
+    ko: '패스 구매하러가기',
+    en: 'Go to Purchase Pass',
+    jp: 'パスを購入しに行く',
+    zh: '前往购买通行证',
+  },
+  pass_plan_price: {
+    ko: '패스권 금액',
+    en: 'Pass Price',
+    jp: 'パス料金',
+    zh: '通行证价格',
+  },
+  certification: {
+    ko: '본인인증',
+    en: 'Identity Verification',
+    jp: '本人確認',
+    zh: '身份认证',
+  },
+  certification_code: {
+    ko: '인증번호',
+    en: 'Verification Code',
+    jp: '認証番号',
+    zh: '验证码',
+  },
+  mismatch_personal_information_title: {
+    ko: '개인정보 불일치',
+    en: 'Personal Information Mismatch',
+    jp: '個人情報の不一致',
+    zh: '个人信息不匹配',
+  },
+  mismatch_personal_information_message: {
+    ko: '이름과 휴대전화 번호를 다시 입력해주십시오',
+    en: 'Please re-enter your name and phone number.',
+    jp: '名前と携帯電話番号を再入力してください。',
+    zh: '请重新输入姓名和手机号。',
+  },
+  input_personal_information: {
+    ko: '본인인증을 위해 정보를 입력해주세요',
+    en: 'Please enter your information for identity verification.',
+    jp: '本人確認のため、情報を入力してください。',
+    zh: '请填写信息进行身份认证。',
+  },
+  name: {
+    ko: '이름',
+    en: 'Name',
+    jp: '名前',
+    zh: '姓名',
+  },
+  rrn: {
+    ko: '주민등록번호',
+    en: 'Resident Registration Number',
+    jp: '住民登録番号',
+    zh: '居民登记号',
+  },
+  cellphone_number: {
+    ko: '휴대폰 번호',
+    en: 'Phone Number',
+    jp: '携帯電話番号',
+    zh: '手机号',
+  },
+  birthday: {
+    ko: '앞자리(생년월일)',
+    en: 'Date of Birth (First Digits)',
+    jp: '生年月日（前桁）',
+    zh: '出生日期（前几位）',
+  },
+  input_birthday_message: {
+    ko: '휴대폰 번호를 입력해주세요',
+    en: 'Please enter your phone number.',
+    jp: '携帯電話番号を入力してください。',
+    zh: '请输入手机号。',
+  },
+  submitting: {
+    ko: '전송중...',
+    en: 'Submitting...',
+    jp: '送信中...',
+    zh: '提交中...',
+  },
+  submit_code: {
+    ko: '인증번호 발송',
+    en: 'Send Verification Code',
+    jp: '認証番号を送信',
+    zh: '发送验证码',
+  },
+  input_six_code: {
+    ko: '문자로 받은\n인증번호 6자리를 입력해주세요',
+    en: 'Enter the 6-digit verification code\nreceived via SMS.',
+    jp: 'SMSで受信した\n6桁の認証番号を入力してください。',
+    zh: '请输入短信收到的\n6位验证码。',
+  },
+  certification_code_retry: {
+    ko: '인증번호 재전송',
+    en: 'Resend Verification Code',
+    jp: '認証番号を再送信',
+    zh: '重新发送验证码',
   }
 }
 
 export type StringResourceKey = keyof typeof StringResource;
 export type Locale = 'ko' | 'en' | 'jp' | 'zh';
+type LocaleMap = { [K in Locale]: K };
+
+export const LOCALES = Object.keys({} as LocaleMap) as Locale[];

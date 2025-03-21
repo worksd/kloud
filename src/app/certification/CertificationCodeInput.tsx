@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}: {
   code: number,
@@ -56,10 +57,7 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-1 px-6 mt-6">
-        <h1 className="text-2xl font-bold mb-2 text-black">
-          문자로 받은<br/>
-          인증번호 6자리를 입력해주세요
-        </h1>
+        <TranslatableText titleResource={'input_six_code'} className="text-2xl font-bold mb-2 text-black"/>
 
         {/* 인증번호 입력 필드 */}
         <div className="relative mt-8 mb-4">
@@ -105,7 +103,7 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
               ? 'bg-black text-white'
               : 'bg-gray-100 text-gray-400'}`}
           >
-            확인
+            <TranslatableText titleResource={'confirm'}/>
           </button>
 
           {/* 재전송 버튼 */}
@@ -113,7 +111,7 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
             onClick={handleResend}
             disabled={!isExpired}
             className={`px-4 py-2 rounded-lg text-sm transition ${isExpired ? 'bg-black text-white' : 'bg-gray-200 text-gray-400'}`}>
-            인증번호 재전송
+            <TranslatableText titleResource={'certification_code_retry'}/>
           </button>
         </div>
 

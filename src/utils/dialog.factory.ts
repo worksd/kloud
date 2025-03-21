@@ -62,9 +62,18 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       confirmTitle: await translate('confirm'),
     }
   }
+  else if (id == 'CertificationMismatch') {
+    return {
+      id: id,
+      type: 'SIMPLE',
+      title: await translate('mismatch_personal_information_title'),
+      message: await translate('mismatch_personal_information_message'),
+      confirmTitle: await translate('confirm')
+    }
+  }
 }
 
-export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'SignUpFail' | 'ChangeLocale' | 'ChangeEndpoint';
+export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'SignUpFail' | 'ChangeLocale' | 'ChangeEndpoint' | 'CertificationMismatch';
 type DialogType = 'YESORNO' | 'SIMPLE'
 type DialogInfo = {
   id: DialogId

@@ -1,20 +1,17 @@
 'use client'
-import { type Locale, StringResource } from "@/shared/StringResource";
+import { StringResource, StringResourceKey } from "@/shared/StringResource";
 import { useLocale } from "@/hooks/useLocale";
 import { useEffect, useState } from "react";
-import Cookies from "js-cookie";
-import { localeKey } from "@/shared/cookies.key";
 
 interface TranslatableTextProps {
   className?: string;
-  titleResource: keyof typeof StringResource;
+  titleResource: StringResourceKey;
   onClick?: () => void;
 }
 
 export const TranslatableText = ({className = '', titleResource, onClick}: TranslatableTextProps) => {
   const {t} = useLocale()
   const [mounted, setMounted] = useState(false);
-  const locale = Cookies.get(localeKey)?.valueOf();
 
   useEffect(() => {
     setMounted(true)
@@ -22,7 +19,7 @@ export const TranslatableText = ({className = '', titleResource, onClick}: Trans
 
   return (
     <div
-      className={`${className}`}
+      className={`${className} whitespace-pre-line`} // whitespace-pre-line 추가
       onClick={onClick}
     >
       {mounted ? t(titleResource) : ''}

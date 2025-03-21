@@ -1,40 +1,20 @@
 import React from "react";
-import { PassPaymentInfo } from "@/app/pass/[id]/payment/PassPaymentInfo";
+import { PassPaymentInfo } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import TicketIcon from "../../../../../public/assets/ic_ticket.svg";
-import ArrowDownIcon from "../../../../../public/assets/arrow-down.svg"
+import { CurrentPassPlan } from "@/app/passPlans/[id]/payment/CurrentPassPlan";
 
 export default async function PassPayment({params, searchParams}: {
   params: Promise<{ id: number }>,
   searchParams: Promise<{ os: string, appVersion: string }>
 }) {
+  // API 나오면 작업하기
   return (
     <div>
       <div className="flex justify-between items-center mb-14">
-        <SimpleHeader titleResource={undefined}/>
+        <SimpleHeader titleResource={'purchase_pass_title'}/>
       </div>
-      <div className={"px-6"}>
-        <div className={"text-[16px] text-black  font-medium"}>
-          서울 댄스 스튜디오
-        </div>
-        <div className={"flex flex-row justify-between items-center"}>
-          <div className={"flex flex-row items-center space-x-3"}>
-            <div
-              className="w-[32px] h-[32px] rounded-full overflow-hidden flex-shrink-0 bg-[#F3F3F4] flex items-center justify-center my-5">
-              <TicketIcon/>
-            </div>
-            <div className={"text-[16px] text-black font-medium"}>
-              1 Class
-            </div>
-          </div>
-
-          <ArrowDownIcon/>
-        </div>
-
-      </div>
-      <div className="pb-5">
-        <div className="w-full h-3 bg-[#F7F8F9] "/>
-      </div>
+      <CurrentPassPlan/>
+      <div className="w-full h-3 bg-[#F7F8F9] mb-5"/>
       <PassPaymentInfo studio={
         {
           id: 14,
@@ -51,7 +31,7 @@ export default async function PassPayment({params, searchParams}: {
           businessRegistrationNumber: "123-45-67890",
           eCommerceRegNumber: "제2024-서울강남-1234호",
           educationOfficeRegNumber: "서울교육청 제2024-001호",
-        }} price={10000}/>
+        }} price={10000} os={(await searchParams).os}/>
 
     </div>
 

@@ -4,7 +4,7 @@ import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action
 import { api } from "@/app/api.client";
 
 export default async function PopularStudios() {
-  const res = await api.studio.list({})
+  const res = await getStudioList({})
   if (!('studios' in res)) {throw Error()}
   return (
     <StudioItems studios={res.studios?.slice(0, 5) ?? []}/>

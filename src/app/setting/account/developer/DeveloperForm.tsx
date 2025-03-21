@@ -15,12 +15,12 @@ const SERVER_CONFIGS: ServerConfig[] = [
   {
     type: 'production',
     label: 'Production 서버',
-    url: 'https://kloud-alpha.vercel.app'
+    url: 'https://rawgraphy.com'
   },
   {
     type: 'test',
     label: 'Test 서버',
-    url: 'https://kloud-git-develop-rawgraphy-inc.vercel.app'
+    url: 'https://staging.rawgraphy.com'
   }
 ];
 

@@ -1,9 +1,9 @@
 'use client'
 
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { useLocale } from "@/hooks/useLocale";
 
-export const PassItem = ({ item, isSelected, onClickAction }: { item: GetPassResponse, isSelected: boolean, onClickAction: (item: GetPassResponse) => void }) => {
+export const PassPlanItem = ({ item, isSelected, onClickAction }: { item: GetPassPlanResponse, isSelected: boolean, onClickAction: (item: GetPassPlanResponse) => void }) => {
   const { t } = useLocale();
   return (
     <div
@@ -14,7 +14,7 @@ export const PassItem = ({ item, isSelected, onClickAction }: { item: GetPassRes
         onClickAction(item);
       }}>
 
-      {item.isHot ?
+      {item.isPopular ?
         <div className={`text-sm font-bold px-3 py-1 rounded-tl-[7px] rounded-br-[8px] w-[84px] mb-3
           transition-colors duration-300 ease-in-out
           ${isSelected ? 'text-white bg-black' : 'text-[#86898C] bg-[#F2F4F6] group-hover:bg-gray-300'}`}>
@@ -25,7 +25,7 @@ export const PassItem = ({ item, isSelected, onClickAction }: { item: GetPassRes
       {/* Title & Price Container */}
       <div className="flex items-center justify-between w-full pl-2 pr-6 pb-4">
         <div className={`text-[16px] flex-1 transition-colors duration-300 ease-in-out ${isSelected ? 'font-bold' : 'font-medium'}`}>
-          {item.title}
+          {item.name}
         </div>
         <div className="text-right transition-colors duration-300 ease-in-out">
           {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)} {t('won')}

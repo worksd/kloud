@@ -9,7 +9,6 @@ import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { signUpAction } from "@/app/signUp/signup.action";
 import { useLocale } from "@/hooks/useLocale";
 import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
-import { translate } from "@/utils/translate";
 import { createDialog } from "@/utils/dialog.factory";
 
 export const SignupForm = () => {

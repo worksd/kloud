@@ -15,7 +15,7 @@ export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222 }:
 
   return (
     <div
-      className={`relative [-webkit-touch-callout:none] ${width ? '' : 'w-full aspect-[167/222]'} ${className}`}
+      className={`${width ? '' : 'w-full aspect-[167/222]'} ${className}`}
       style={containerStyle}
     >
       <Image

@@ -77,7 +77,7 @@ export const OnboardForm = () => {
     const fetchStudios = async () => {
       if (studios.length !== 0) return
       try {
-        const res = await getStudioList();
+        const res = await getStudioList({});
         if (res.studios) {
           setStudios(res.studios);
         }

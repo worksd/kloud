@@ -7,14 +7,11 @@ export default async function StudioLessons({params}: Props) {
   const res = await api.lesson.listStudioLessons({studioId: (await params).id})
   if ('lessons' in res) {
     return (
-      <div className="w-full h-screen bg-whiteflex flex-col">
+      <div className="flex flex-col">
         <div className="flex justify-between items-center mb-14">
           <SimpleHeader titleResource="popular_lesson"/>
         </div>
-        <div className={"px-6"}>
-          <LessonGridItems lessons={'lessons' in res ? res.lessons : []}/>
-        </div>
-
+        <LessonGridItems lessons={'lessons' in res ? res.lessons : []}/>
       </div>
     )
   } else {

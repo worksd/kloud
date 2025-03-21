@@ -30,6 +30,10 @@ export default async function SettingPage({
           <MenuItem label="payment_records"/>
         </NavigateClickWrapper>
 
+        <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
+          <MenuItem label="my_pass"/>
+        </NavigateClickWrapper>
+
         <NavigateClickWrapper method={'push'} route={KloudScreen.Terms}>
           <MenuItem label="terms_and_policy"/>
         </NavigateClickWrapper>

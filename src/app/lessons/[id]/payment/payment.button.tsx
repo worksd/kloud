@@ -8,15 +8,39 @@ import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.act
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
+import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 
-export default function PaymentButton({lessonId, price, title, userId, os, appVersion, method, depositor, disabled}: {
-  lessonId: number,
-  userId?: string,
+export const PaymentTypes = [
+  { value: 'lesson', prefix: 'LT' },
+  { value: 'passPlan', prefix: 'LP' },
+] as const;
+
+export type PaymentType = (typeof PaymentTypes)[number];
+
+type PaymentInfo = {
+  storeId?: string
+  pg?: string
+  channelKey?: string
+  scheme?: string
+  paymentId: string
+  type: PaymentType,
+  orderName: string
+  method: PaymentMethod
+  userId: string
+  price?: number
+  amount?: string
+  userCode?: string
+}
+
+export default function PaymentButton({lessonId, passPlanId, type, price, title, userId, os, method, depositor, disabled}: {
+  lessonId?: number,
+  passPlanId?: number,
+  userId: string,
+  type: PaymentType,
   price: number,
   title: string,
   os: string,
-  appVersion: string,
-  method: string,
+  method: PaymentMethod,
   depositor: string,
   disabled: boolean,
 }) {
@@ -26,29 +50,30 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
     if (!user) return;
 
     if (!user.phone) {
-      if (isLowerVersion(appVersion, '1.0.2')) {
-        window.KloudEvent?.push(KloudScreen.Certification)
-      } else {
-        window.KloudEvent?.fullSheet(KloudScreen.Certification)
-      }
+      window.KloudEvent?.fullSheet(KloudScreen.Certification)
       return;
     }
 
-    if (method === 'credit_card') {
-      const paymentInfo = os == 'Android' ? {
+    const paymentId = generatePaymentId({type: type, id: lessonId ?? passPlanId ?? -1})
+
+    if (method === 'credit') {
+      const paymentInfo: PaymentInfo = os == 'Android' ? {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
-        paymentId: generatePaymentId(lessonId),
+        paymentId: paymentId,
         orderName: title,
+        method: 'credit',
+        type: type,
         price: price,
         userId: userId,
       } : {
-        paymentId: generatePaymentId(lessonId),
+        paymentId: paymentId,
         pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
         scheme: 'iamport',
         orderName: title,
+        type: type,
         amount: `${price}`,
-        method: 'card',
+        method: 'credit',
         userId: userId,
         userCode: process.env.NEXT_PUBLIC_USER_CODE,
       }
@@ -83,14 +108,18 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
-      const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId, status: 'Paid'});
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
-        route: pushRoute,
-      });
-      window.KloudEvent?.navigateMain(bootInfo);
+      if (type.value == 'lesson') {
+        const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId ?? -1, status: 'Paid'});
+        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: pushRoute,
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
+      } else if (type.value == 'passPlan') {
+        // TODO: 결제 모듈로 pass를 구매했을때의 행동
+      }
     }
   }, [])
 
@@ -107,21 +136,27 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   }, [])
 
   useEffect(() => {
+    // 계좌이체에 대한 onDialogConfirm
     window.onDialogConfirm = async (data: { id: string, route: string}) => {
-      const paymentId = generatePaymentId(lessonId);
-      const res = await createTicketAction({
-        paymentId: paymentId,
-        lessonId: lessonId,
-        status: 'Pending',
-        depositor: depositor,
-      });
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
-        route: pushRoute,
-      });
-      window.KloudEvent?.navigateMain(bootInfo);
+      const paymentId = generatePaymentId({type: type, id: lessonId ?? -1});
+      if (type.value == 'lesson') {
+
+        const res = await createTicketAction({
+          paymentId: paymentId,
+          lessonId: lessonId ?? -1,
+          status: 'Pending',
+          depositor: depositor,
+        });
+        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: pushRoute,
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
+      } else if (type.value == 'passPlan') {
+
+      }
     }
   }, [depositor])
   return (
@@ -133,7 +168,7 @@ export default function PaymentButton({lessonId, price, title, userId, os, appVe
   );
 }
 
-export const generatePaymentId = (lessonId: number): string => {
+const generatePaymentId = ({type, id}: { type: PaymentType, id: number }): string => {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -148,7 +183,7 @@ export const generatePaymentId = (lessonId: number): string => {
   ).join('');
 
   // 학원번호-날짜-랜덤문자열
-  return `${lessonId}-${dateStr}-${randomStr}`;
+  return `${type.prefix}-${id}-${dateStr}-${randomStr}`;
 }
 
 function isLowerVersion(currentVersion: string, targetVersion: string): boolean {

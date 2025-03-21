@@ -11,9 +11,9 @@ export const LessonGridSection = async ({studioId, title, lessons}: {
   lessons: GetLessonResponse[]
 }) => {
   return (
-    <div className="w-screen px-4 pb-8">
+    <div className="w-screen pb-8">
       {/* 헤더 */}
-      <div className="flex justify-between items-center mb-5">
+      <div className="flex justify-between items-center mb-5 px-4">
         <div className="text-[24px] text-black font-bold">{title}</div>
         {lessons.length >= 4 &&
           <NavigateClickWrapper method={'push'} route={KloudScreen.StudioLessons(studioId)}>

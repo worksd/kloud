@@ -13,7 +13,7 @@ interface NavigateClickItemProps {
 }
 
 export function NavigateClickWrapper({ method, route, action, locale, children }: NavigateClickItemProps) {
-  const navigation = useRouter()
+  const router = useRouter()
   return (
     <div
       onClick={async () => {
@@ -21,20 +21,25 @@ export function NavigateClickWrapper({ method, route, action, locale, children }
           await changeLocale(locale)
         }
 
-        if (method === 'push' && route) {
-          window.KloudEvent?.push(route);
-          navigation.push(route);
-        } else if (method == 'back') {
-          window.KloudEvent?.back();
-          navigation.back();
-        } else if (method == 'clearAndPush' && route) {
-          window.KloudEvent?.clearAndPush(route);
-        } else if (method == 'closeBottomSheet') {
-          window.KloudEvent?.closeBottomSheet();
-        } else if (method === 'showBottomSheet') {
-          window.KloudEvent?.showBottomSheet(route);
+        if (window.KloudEvent) {
+          if (method === 'push' && route) {
+            window.KloudEvent?.push(route);
+          } else if (method == 'back') {
+            window.KloudEvent?.back();
+          } else if (method == 'clearAndPush' && route) {
+            window.KloudEvent?.clearAndPush(route);
+          } else if (method == 'closeBottomSheet') {
+            window.KloudEvent?.closeBottomSheet();
+          } else if (method === 'showBottomSheet') {
+            window.KloudEvent?.showBottomSheet(route);
+          }
+        } else {
+          if (method === 'push' && route) {
+            router.push(route);
+          } else if (method == 'back') {
+            router.back();
+          }
         }
-
       }}
     >
       {children}

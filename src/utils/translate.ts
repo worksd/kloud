@@ -5,17 +5,15 @@ import { localeKey } from "@/shared/cookies.key";
 
 // 서버 컴포넌트에서 사용할 함수들
 export const getLocale = async (): Promise<Locale> => {
-  const cookieStore = await cookies();
-  const cookieLang = cookieStore.get(localeKey)?.value;
+  const cookieLocale = (await cookies()).get(localeKey)?.value;
   const isValidLocale = (lang: string | undefined): lang is Locale =>
     lang !== undefined && ['ko', 'en', 'jp', 'zh'].includes(lang);
 
-  return isValidLocale(cookieLang) ? cookieLang : "ko";
+  return isValidLocale(cookieLocale) ? cookieLocale : "ko";
 };
 
 export const translate = async (key: StringResourceKey): Promise<string> => {
-  const locale = await getLocale();
-  return StringResource[key]?.[locale] || key;
+  return StringResource[key]?.[await getLocale()] || key;
 };
 
 export const changeLocale = async (newLocale: Locale) => {

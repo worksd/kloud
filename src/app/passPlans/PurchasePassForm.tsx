@@ -1,13 +1,13 @@
 'use client'
 import React, { useState } from "react";
-import { PassSelectStudio } from "@/app/pass/PassSelectStudio";
-import { PurchaseStudioPassForm } from "@/app/pass/PurchaseStudioPassForm";
+import { PassSelectStudio } from "@/app/passPlans/PassSelectStudio";
+import { PurchaseStudioPassForm } from "@/app/passPlans/PurchaseStudioPassForm";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 type PassStep = 'studio' | 'purchase'
 
-export const PurchasePassForm = () => {
+export const PurchasePassForm = ({studios} : {studios: GetStudioResponse[]}) => {
   const [step, setStep] = useState<PassStep>('studio');
   const [studio, setStudio] = useState<GetStudioResponse | null>(null);
 
@@ -33,7 +33,7 @@ export const PurchasePassForm = () => {
       </div>
       <div className="flex-1">
         {step === 'studio' && (
-          <PassSelectStudio onClickAction={(studio: GetStudioResponse) => {
+          <PassSelectStudio studios={studios} onClickAction={(studio: GetStudioResponse) => {
             setStudio(studio)
             setStep('purchase')
           }}/>
