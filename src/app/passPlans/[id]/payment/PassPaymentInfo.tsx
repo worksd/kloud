@@ -57,6 +57,7 @@ export const PassPaymentInfo = ({studio, price, os}: { studio: GetStudioResponse
       <div className="px-6 mt-4 bottom-0 sticky">
         <PaymentButton type={{value: 'passPlan', prefix: 'LP'}} os={os} title={'zxcv'} price={10000} passPlanId={3}
                        disabled={false}
+                       appVersion={'asdf'}
                        method={selectedMethod} depositor={depositor} userId={'3'}/>
       </div>
     </div>

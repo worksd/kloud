@@ -4,8 +4,12 @@ import { useEffect } from "react";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const KakaoLoginButton = () => {
+const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl: string}) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
       const res = await kakaoLoginAction({code: data.code})
@@ -16,9 +20,33 @@ const KakaoLoginButton = () => {
       })
     }
   }, []);
+  useEffect(() => {
+    const handleKakaoLogin = async () => {
+      const code = searchParams?.get('code');
+      const state = searchParams?.get('state');
+
+      if (code && state) {
+        try {
+          await kakaoLoginAction({code});
+          const decodedState = decodeURIComponent(state);
+          router.replace(decodedState || '/');
+        } catch (error) {
+          console.error('Login error:', error);
+        }
+      }
+    };
+
+    handleKakaoLogin();
+  }, [searchParams, router]);
 
   const kakaoLogin = () => {
-    window.KloudEvent?.sendKakaoLogin()
+    if (appVersion == '') {
+      const state = callbackUrl ? encodeURIComponent(callbackUrl) : '';
+      const URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_REDIRECT_URL}&response_type=code&state=${state}`;
+      window.location.href = URL;
+    } else {
+      window.KloudEvent?.sendKakaoLogin()
+    }
   };
 
   return (

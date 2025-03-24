@@ -33,6 +33,6 @@ export const KloudScreen = {
   StudioDetail: (id: number) => `/studios/${id}`,
 } as const;
 
-export const isNoAuthScreen = (endpoint: string) => {
-  return endpoint == KloudScreen.Login || endpoint == KloudScreen.LoginEmail || endpoint == KloudScreen.SignUp || endpoint == KloudScreen.LanguageSettingSheet
+export const isAuthScreen = (endpoint: string) => {
+  return (endpoint.includes('/lessons/') && endpoint.includes('/payment'));
 }

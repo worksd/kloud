@@ -8,10 +8,9 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
 const LessonCardInStudio = (data: GetLessonResponse) => {
-    const router = useRouter();
-    const handleClick = useCallback(() => {
+    const handleClick = (() => {
       window.KloudEvent?.push(KloudScreen.LessonDetail(data.id))
-    }, [data.id, router]);
+    });
 
     return (
         <button onClick={handleClick} className="flex-col justify-start items-start gap-2 inline-flex w-[calc(100%/2.0479)]">

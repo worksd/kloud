@@ -9,6 +9,8 @@ import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
 import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
+import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
+
 
 export const PaymentTypes = [
   { value: 'lesson', prefix: 'LT' },
@@ -32,7 +34,8 @@ type PaymentInfo = {
   userCode?: string
 }
 
-export default function PaymentButton({lessonId, passPlanId, type, price, title, userId, os, method, depositor, disabled}: {
+export default function PaymentButton({appVersion, lessonId, passPlanId, type, price, title, userId, os, method, depositor, disabled}: {
+  appVersion: string;
   lessonId?: number,
   passPlanId?: number,
   userId: string,
@@ -57,27 +60,40 @@ export default function PaymentButton({lessonId, passPlanId, type, price, title,
     const paymentId = generatePaymentId({type: type, id: lessonId ?? passPlanId ?? -1})
 
     if (method === 'credit') {
-      const paymentInfo: PaymentInfo = os == 'Android' ? {
-        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
-        paymentId: paymentId,
-        orderName: title,
-        method: 'credit',
-        type: type,
-        price: price,
-        userId: userId,
-      } : {
-        paymentId: paymentId,
-        pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
-        scheme: 'iamport',
-        orderName: title,
-        type: type,
-        amount: `${price}`,
-        method: 'credit',
-        userId: userId,
-        userCode: process.env.NEXT_PUBLIC_USER_CODE,
+      if (appVersion == '') {
+        const mobileWebPaymentRequest: PaymentRequest = {
+          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+          paymentId: paymentId,
+          orderName: title,
+          payMethod: 'CARD',
+          totalAmount: price,
+          currency: "CURRENCY_KRW",
+        }
+        await requestPayment(mobileWebPaymentRequest)
+      } else {
+        const paymentInfo: PaymentInfo = os == 'Android' ? {
+          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+          paymentId: paymentId,
+          orderName: title,
+          method: 'credit',
+          type: type,
+          price: price,
+          userId: userId,
+        } : {
+          paymentId: paymentId,
+          pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
+          scheme: 'iamport',
+          orderName: title,
+          type: type,
+          amount: `${price}`,
+          method: 'credit',
+          userId: userId,
+          userCode: process.env.NEXT_PUBLIC_USER_CODE,
+        }
+        window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
       }
-      window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     } else if (method === 'account_transfer') {
       if (depositor.length === 0) {
         const info = {

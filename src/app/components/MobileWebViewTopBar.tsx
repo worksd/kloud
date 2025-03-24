@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 const getStoreLink = ({os} : {os: string}) => {
   if (os == 'Android') {
@@ -16,7 +17,26 @@ const getStoreLink = ({os} : {os: string}) => {
   return null;
 };
 
-export default function StoreButton({os} : {os: string}) {
+export const MobileWebViewTopBar = () => {
+  'use client'
+  const searchParams = useSearchParams();
+  const appVersion = searchParams?.get('appVersion')?.valueOf()
+
+  useEffect(() => {
+    console.log(searchParams?.get('appVersion')?.valueOf());
+  }, [searchParams]);
+  console.log('searchParams = ' + appVersion)
+  if (appVersion && appVersion == '' ) {
+    return (
+      <div className={"text-black"}> Hello World
+      </div>
+    )
+  } else {
+    return;
+  }
+}
+
+function StoreButton({os} : {os: string}) {
   const [store, setStore] = useState<{ url: string; label: string; } | null>(null);
 
   useEffect(() => {

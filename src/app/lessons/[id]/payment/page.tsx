@@ -59,6 +59,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
 
           <LessonPaymentInfo
             os={(await searchParams).os}
+            appVersion={(await searchParams).appVersion}
             lesson={lesson}
             userId={(await cookies()).get(userIdKey)?.value ?? ''}
           />

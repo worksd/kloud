@@ -11,7 +11,7 @@ import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformat
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 
-export const LessonPaymentInfo = ({lesson, os, userId}: { lesson: GetLessonResponse, os: string, userId: string }) => {
+export const LessonPaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonResponse, os: string, appVersion: string, userId: string }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("credit");
   const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -56,6 +56,7 @@ export const LessonPaymentInfo = ({lesson, os, userId}: { lesson: GetLessonRespo
         <PaymentButton
           method={selectedMethod}
           os={os}
+          appVersion={appVersion}
           type={{value: 'lesson', prefix: 'LT'}}
           lessonId={lesson.id}
           price={lesson.price ?? 0}

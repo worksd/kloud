@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 import { DialogInfo } from "@/app/setting/setting.menu.item";
 import localFont from "next/font/local";
 import { ReactNode } from "react";
@@ -72,9 +71,9 @@ declare global {
     onAppleLoginSuccess: (data: { code: string, name: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
     onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
-    onErrorInvoked: (data: {code: string}) => void;
+    onErrorInvoked: (data: { code: string }) => void;
     onDialogConfirm: (data: DialogInfo) => void;
-    onHideDialogConfirm: (data: {id: string, clicked: boolean}) => void;
+    onHideDialogConfirm: (data: { id: string, clicked: boolean }) => void;
     onFcmTokenComplete: (data: { fcmToken: string, udid: string }) => void;
   }
 }
