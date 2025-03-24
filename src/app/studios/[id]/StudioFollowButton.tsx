@@ -6,7 +6,7 @@ import { extractNumber } from "@/utils";
 import { StudioFollowResponse } from "@/app/endpoint/studio.follow.endpoint";
 import { useLocale } from "@/hooks/useLocale";
 
-export const StudioFollowButton = ({studioId, follow} : {studioId: string, follow?: StudioFollowResponse}) => {
+export const StudioFollowButton = ({studioId, follow} : {studioId: number, follow?: StudioFollowResponse}) => {
   const { t } = useLocale();
   const [currentFollow , setFollow] = React.useState<StudioFollowResponse | undefined>(follow);
   const [mounted, setMounted ] = useState(false);
@@ -14,7 +14,7 @@ export const StudioFollowButton = ({studioId, follow} : {studioId: string, follo
   const onClickFollow = async (e: React.MouseEvent) => {
     window.KloudEvent?.sendHapticFeedback()
     const res = await toggleFollowStudio({
-      studioId: extractNumber(studioId),
+      studioId: studioId,
       follow: follow
     })
     setFollow(res.follow)

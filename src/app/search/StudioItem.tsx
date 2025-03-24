@@ -21,7 +21,7 @@ export const StudioItem = ({item}: { item: GetStudioResponse }) => {
               <div className="text-sm text-gray-500">{item.address}</div>
             </div>
           </div>
-          <StudioFollowButton studioId={`${item.id}`} follow={item.follow}/>
+          <StudioFollowButton studioId={item.id} follow={item.follow}/>
         </div>
       </NavigateClickWrapper>
       <div className="w-full h-[1px] bg-[#f7f8f9]"/>

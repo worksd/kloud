@@ -17,7 +17,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { StudioFollowButton } from "@/app/studios/[id]/StudioFollowButton";
 import { translate } from "@/utils/translate";
 
-export const StudioDetailForm = async ({id}: { id: string }) => {
+export const StudioDetailForm = async ({id}: { id: number }) => {
 
   const studio = await getStudioDetail(id);
 
