@@ -54,9 +54,10 @@ export abstract class EndpointClient {
       defaultHeaders['Authorization'] = `Bearer ${accessToken.value}`
     }
     const nextHeaders = await headers()
+    const version = nextHeaders.get('x-guinness-version')?.valueOf()
     defaultHeaders['x-guinness-client'] = nextHeaders.get('x-guinness-client')?.valueOf() ?? ''
     defaultHeaders['x-guinness-device-name'] = nextHeaders.get('x-guinness-device-name')?.valueOf() ?? ''
-    defaultHeaders['x-guinness-version'] = nextHeaders.get('x-guinness-version')?.valueOf() ?? '1.0.0' // 여기다가만 넣어줘야 웹인지 앱인지 구분 가능함
+    defaultHeaders['x-guinness-version'] = (!version || version == '') ? '1.0.0' : version // 여기다가만 넣어줘야 웹인지 앱인지 구분 가능함
     defaultHeaders['x-guinness-locale'] = (await cookies()).get(localeKey)?.value ?? 'ko'
     return defaultHeaders;
   }
