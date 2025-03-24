@@ -69,6 +69,7 @@ export default function PaymentButton({appVersion, lessonId, passPlanId, type, p
           payMethod: 'CARD',
           totalAmount: price,
           currency: "CURRENCY_KRW",
+          redirectUrl: process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '',
         }
         await requestPayment(mobileWebPaymentRequest)
       } else {
