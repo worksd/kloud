@@ -13,12 +13,12 @@ export const TicketItem = async ({item}: { item: TicketResponse }) => {
 
   return (
     <NavigateClickWrapper method={'push'} route={KloudScreen.TicketDetail(item.id, false)}>
-      <div className="bg-white active:scale-[0.98] active:bg-gray-100 transition-all duration-150">
+      <div className="bg-white active:scale-[0.98] active:bg-gray-100 transition-all duration-150 py-2">
         {/* 상단 날짜와 상태 */}
         <div className="flex justify-between items-center px-6 mb-3 mt-2">
-          <span className="text-[#86898C] text-[14px] font-medium">{formattedTime.date}</span>
+          <span className="text-[#86898C] text-[14px] font-medium">{formattedTime.date} ({await translate(formattedTime.dayOfWeek)})</span>
           <span className="text-[#86898C] px-2 py-1 rounded-full border border-[#86898C] font-medium text-[12px]">
-          {convertStatusToMessage({status: item.status})}
+          {await translate(convertStatusToMessage({status: item.status}))}
         </span>
         </div>
 
@@ -62,13 +62,8 @@ export const TicketItem = async ({item}: { item: TicketResponse }) => {
                 /{item.lesson?.duration} {await translate('minutes')}
               </p>
             </div>
-            <p className="text-black text-[14px] font-medium">
-              구매가격 : {new Intl.NumberFormat("ko-KR").format(item.lesson?.price ?? 0)} {await translate('won')}
-            </p>
           </div>
         </div>
-
-        <div className="w-full h-[2px] bg-[#F7F8F9]"/>
       </div>
     </NavigateClickWrapper>
   );

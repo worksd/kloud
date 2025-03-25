@@ -1,13 +1,14 @@
 'use client'
 import TicketIcon from "../../../../../public/assets/ic_ticket.svg";
 import React from "react";
+import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 
-export const CurrentPassPlan = () => {
+export const CurrentPassPlan = ({passPlan} : {passPlan?: GetPassPlanResponse}) => {
 
   return (
     <div className={"px-6"}>
-      <div className={"text-[16px] text-black  font-medium"}>
-        서울 댄스 스튜디오
+      <div className={"text-[16px] text-black font-medium"}>
+        {passPlan?.studio?.name}
       </div>
       <div className={"flex flex-row justify-between items-center"}>
         <div className={"flex flex-row items-center space-x-3"}>
@@ -16,7 +17,7 @@ export const CurrentPassPlan = () => {
             <TicketIcon/>
           </div>
           <div className={"text-[16px] text-black font-medium"}>
-            1 Class
+            {passPlan?.name}
           </div>
         </div>
       </div>

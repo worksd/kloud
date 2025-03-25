@@ -12,7 +12,7 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
 
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
-      const res = await kakaoLoginAction({code: data.code})
+      const res = await kakaoLoginAction({token: data.code})
       await LoginAuthNavigation({
         status: res.status,
         window: window,

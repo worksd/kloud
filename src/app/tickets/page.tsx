@@ -25,10 +25,10 @@ async function TicketList() {
       {('tickets' in res && res.tickets.length > 0) ? (
         <div className="flex flex-col">
           {res.tickets.map((item) => (
-            <TicketItem
-              key={item.id}
-              item={item}
-            />
+            <div className={'flex flex-col'} key={item.id}>
+              <TicketItem item={item}/>
+              <div className="w-full h-[2px] bg-[#F7F8F9]"/>
+            </div>
           ))}
         </div>
       ) : (

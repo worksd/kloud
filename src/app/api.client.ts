@@ -62,6 +62,12 @@ export class ApiClient extends EndpointClient {
   readonly pass = {
     list: this.endpointBuilder(API.Pass.GetPasses),
     listPlans: this.endpointBuilder(API.Pass.GetPassPlans),
+    get: this.endpointBuilder(API.Pass.GetPass),
+    create: this.endpointBuilder(API.Pass.CreatePass),
+  }
+
+  readonly payment = {
+    get: this.endpointBuilder(API.Payment.GetPayment),
   }
 }
 

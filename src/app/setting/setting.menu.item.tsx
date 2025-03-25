@@ -1,6 +1,7 @@
 import RightArrowIcon from "../../../public/assets/right-arrow.svg"
 import { StringResource, StringResourceKey } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
+import { DialogId } from "@/utils/dialog.factory";
 
 export const MenuItem = async ({label}: { label: StringResourceKey}) => {
 
@@ -58,5 +59,5 @@ export const MenuItem = async ({label}: { label: StringResourceKey}) => {
 
 export type DialogInfo = {
   id: string;
-  route: string;
+  route?: string;
 }

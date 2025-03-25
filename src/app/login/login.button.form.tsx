@@ -10,8 +10,8 @@ export const LoginButtonForm = async ({os, appVersion, callbackUrl}: { os: strin
   return (
     <section className="flex flex-col items-center justify-center">
       <div className="space-y-2 w-full p-2">
-        {os === 'iOS' || appVersion != '' && <AppleLoginButton/>}
-        {os === 'Android' || appVersion != '' && <GoogleLoginButton/>}
+        {os === 'iOS' && appVersion != '' && <AppleLoginButton/>}
+        {os === 'Android' && appVersion != '' && <GoogleLoginButton/>}
         <KakaoLoginButton appVersion={appVersion} callbackUrl={callbackUrl}/>
       </div>
       <NavigateClickWrapper method={'push'} route={KloudScreen.LoginEmail}>

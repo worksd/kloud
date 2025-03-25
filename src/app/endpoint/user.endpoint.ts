@@ -3,6 +3,7 @@ import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
 import { GetLessonResponse, LessonListResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
 export type GetUserParameter = {
   id: number
@@ -17,6 +18,7 @@ export type GetUserResponse = {
   profileImageUrl?: string
   deactivatedAt: string
   phone?: string
+  passes?: GetPassResponse[]
 }
 
 export type GetMeResponse = {

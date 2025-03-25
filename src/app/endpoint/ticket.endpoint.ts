@@ -3,6 +3,7 @@ import { GetStudioResponse, IdParameter } from "@/app/endpoint/studio.endpoint";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { UserResponse } from "@/app/endpoint/auth.endpoint";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
+import { StringResourceKey } from "@/shared/StringResource";
 
 export type TicketListResponse = {
   tickets: [TicketResponse];
@@ -23,6 +24,7 @@ export type CreateTicketParameter = {
   lessonId: number;
   status: string;
   depositor?: string;
+  passId?: number;
 }
 
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
@@ -38,12 +40,11 @@ export const GetTicket: Endpoint<IdParameter, TicketResponse> = {
 export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
   method: 'post',
   path: `/tickets`,
-  bodyParams: ['paymentId', 'lessonId', 'status', 'depositor']
+  bodyParams: ['paymentId', 'lessonId', 'status', 'depositor', 'passId']
 }
 
-export function convertStatusToMessage({status} : {status: string}) {
-  if (status === 'Paid') return '구매완료'
-    else if (status == 'Cancelled') return '구매취소'
-    else if (status == 'Pending') return '결제대기'
-  else return ''
+export function convertStatusToMessage({status} : {status: string}): StringResourceKey {
+  if (status === 'Paid') return 'purchase_complete'
+    else if (status == 'Cancelled') return 'purchase_cancel'
+    else return 'purchase_pending'
 }

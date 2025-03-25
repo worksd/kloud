@@ -9,6 +9,12 @@ type PassTabType = 'active' | 'used'
 
 export const MyPassForm = ({passes}: { passes: GetPassResponse[] }) => {
   const [currentTab, setCurrentTab] = useState<PassTabType>('active')
+  const activePasses = passes.filter(value => value.status == 'Active' || value.status == 'Pending')
+  const notActivePasses = passes.filter(value => !activePasses.includes(value));
+
+  const handleOnClick = (id: number) => {
+
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -39,11 +45,11 @@ export const MyPassForm = ({passes}: { passes: GetPassResponse[] }) => {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-4">
         {currentTab === 'active' ? (
-          <PassList passItems={passes.filter(value => value.status == 'Active')} isActivePass={true}/>
+          <PassList passItems={activePasses} isActivePass={true}/>
         ) : (
-          <PassList passItems={passes.filter(value => value.status != 'Active')} isActivePass={false}/>
+          <PassList passItems={notActivePasses} isActivePass={false}/>
         )}
       </div>
     </div>

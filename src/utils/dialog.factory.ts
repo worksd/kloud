@@ -13,8 +13,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
-  }
-  else if (id == 'UnderDevelopment') {
+  } else if (id == 'UnderDevelopment') {
     return {
       id: id,
       type: 'SIMPLE',
@@ -22,8 +21,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       confirmTitle: await translate('confirm'),
       message: await translate('under_development_message'),
     }
-  }
-  else if (id == 'LoginFail') {
+  } else if (id == 'LoginFail') {
     return {
       id: id,
       type: 'SIMPLE',
@@ -31,8 +29,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: message ?? '',
       confirmTitle: await translate('confirm'),
     }
-  }
-  else if (id == 'ChangeLocale') {
+  } else if (id == 'ChangeLocale') {
     return {
       id: id,
       type: 'YESORNO',
@@ -41,8 +38,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
-  }
-  else if (id == 'ChangeEndpoint') {
+  } else if (id == 'ChangeEndpoint') {
     return {
       id: id,
       type: 'YESORNO',
@@ -51,9 +47,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
-  }
-
-  else if (id == 'SignUpFail') {
+  } else if (id == 'SignUpFail') {
     return {
       id: id,
       type: 'SIMPLE',
@@ -61,8 +55,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: message ?? '',
       confirmTitle: await translate('confirm'),
     }
-  }
-  else if (id == 'CertificationMismatch') {
+  } else if (id == 'CertificationMismatch') {
     return {
       id: id,
       type: 'SIMPLE',
@@ -70,10 +63,55 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: await translate('mismatch_personal_information_message'),
       confirmTitle: await translate('confirm')
     }
+  } else if (id == 'AccountTransfer') {
+    return {
+      id: `AccountTransfer`,
+      type: 'YESORNO',
+      title: await translate('account_transfer'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
+  } else if (id == 'PaymentFail') {
+    return {
+      id: 'PaymentFail',
+      type: 'SIMPLE',
+      title: await translate('payment_fail'),
+      message: await translate('payment_fail_message'),
+      confirmTitle: await translate('confirm'),
+    }
+  } else if (id == 'UsePass') {
+    return {
+      id: 'UsePass',
+      type: 'YESORNO',
+      title: await translate('use_pass'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
+  } else if (id == 'EmptyDepositor') {
+    return {
+      id: 'EmptyDepositor',
+      type: 'SIMPLE',
+      title: await translate('account_transfer'),
+      message: '입금자명을 입력해주시길 바랍니다',
+      confirmTitle: await translate('confirm'),
+    }
   }
 }
 
-export type DialogId = 'Logout' | 'UnderDevelopment' | 'LoginFail' | 'SignUpFail' | 'ChangeLocale' | 'ChangeEndpoint' | 'CertificationMismatch';
+export type DialogId =
+  'Logout'
+  | 'UnderDevelopment'
+  | 'LoginFail'
+  | 'SignUpFail'
+  | 'ChangeLocale'
+  | 'ChangeEndpoint'
+  | 'CertificationMismatch'
+  | 'AccountTransfer'
+  | 'PaymentFail'
+  | 'UsePass'
+  | 'EmptyDepositor';
 type DialogType = 'YESORNO' | 'SIMPLE'
 type DialogInfo = {
   id: DialogId
@@ -84,3 +122,26 @@ type DialogInfo = {
   confirmTitle?: string
   cancelTitle?: string
 }
+
+export const createAccountTransferMessage = async ({
+                                                     title,
+                                                     price,
+                                                     depositor,
+
+                                                   }: {
+  title: string;
+  price: number;
+  depositor: string;
+}): Promise<DialogInfo | undefined> => {
+
+  const message = await translate('account_transfer_dialog_message')
+
+  const transformMessage = message
+    .replace('{title}', title)
+    .replace('{price}', new Intl.NumberFormat('ko-KR').format(price))
+    .replace('{depositor}', depositor);
+
+  console.log(transformMessage)
+
+  return createDialog('AccountTransfer', transformMessage);
+};

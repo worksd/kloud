@@ -2,6 +2,6 @@
 
 import { api } from "@/app/api.client";
 
-export const getPaymentDetail = async ({id} : {id: number}) => {
-  return await api.lesson.getPayment({id: id})
+export const getLessonPaymentAction = async ({id}: { id: number }) => {
+  return await api.payment.get({item: 'lesson', itemId: id})
 }

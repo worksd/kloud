@@ -1036,6 +1036,137 @@ export const StringResource = {
     en: 'Resend Verification Code',
     jp: '認証番号を再送信',
     zh: '重新发送验证码',
+  },
+  payment_fail: {
+    ko: '결제실패',
+    en: 'Payment Failed',
+    jp: '決済失敗',
+    zh: '支付失败',
+  },
+  payment_fail_message: {
+    ko: '결제에 실패했습니다. 잠시 후 다시 시도해주세요.',
+    en: 'Payment failed. Please try again later.',
+    jp: '決済に失敗しました。しばらくしてから再試行してください。',
+    zh: '支付失败。请稍后再试。',
+  },
+  use_pass: {
+    ko: "패스권 사용하기",
+    en: "Use Pass",
+    jp: "パスを使用する",
+    zh: "使用通行证"
+  },
+  input_depositor_message: {
+    ko: "입금자명을 입력해주시길 바랍니다",
+    en: "Please enter the depositor's name",
+    jp: "入金者名を入力してください",
+    zh: "请输入存款人姓名"
+  },
+  pass_price_amount: {
+    ko: '패스 금액',
+    en: 'Pass Amount',
+    jp: 'パス料金',
+    zh: '通行证金额'
+  },
+  pending_account_transfer: {
+    ko: '계좌 이체 확인중',
+    en: 'Verifying Bank Transfer',
+    jp: '口座振込確認中',
+    zh: '确认账户转账中'
+  },
+  used_complete: {
+    ko: '사용 완료',
+    en: 'Used',
+    jp: '使用済み',
+    zh: '已使用'
+  },
+  until: {
+    ko: '까지',
+    en: 'until',
+    jp: 'まで',
+    zh: '至'
+  },
+  expired: {
+    ko: '기간 만료',
+    en: 'Expired',
+    jp: '期限切れ',
+    zh: '已过期'
+  },
+  usage_information: {
+    ko: '사용 정보',
+    en: 'Usage Information',
+    jp: '利用情報',
+    zh: '使用信息'
+  },
+  purchase_complete: {
+    ko: '구매완료',
+    en: 'Purchase Complete',
+    jp: '購入完了',
+    zh: '购买完成'
+  },
+  purchase_cancel: {
+    ko: '구매취소',
+    en: 'Purchase Cancelled',
+    jp: '購入取消',
+    zh: '购买取消'
+  },
+  purchase_pending: {
+    ko: '결제대기',
+    en: 'Payment Pending',
+    jp: '支払待ち',
+    zh: '待付款'
+  },
+  purchase_pass_information: {
+    ko: '패스 구매 안내사항',
+    en: 'Pass Purchase Information',
+    jp: 'パス購入案内事項',
+    zh: '通行证购买指南'
+  },
+  pass_refund_policy: {
+    ko: `- 패스 유효기간: 패스는 구입일로부터 일정 기간 내에만 사용 가능합니다. 유효기간 내에 모든 수업을 완료하지 않으면, 남은 수업은 자동으로 소멸되며 환불이 불가합니다.
+
+- 수업 일정 및 변경: 수업 일정은 사전 공지 없이 변경될 수 있으며, 변경된 일정에 맞출 수 없는 경우에는 다른 일정으로 대체가 불가능할 수 있습니다. 수업에 대한 변경 사항을 주기적으로 확인해 주세요.
+
+- 패스 양도 불가: 구매한 패스는 본인만 사용할 수 있으며, 타인에게 양도하거나 판매할 수 없습니다. 양도 및 판매 시 패스가 무효 처리될 수 있습니다.
+
+- 환불 정책: 패스 구입 후 환불의 주체는 서비스 제공자에게 있습니다. 따라서, 환불을 원할 경우 서비스 제공자에 문의해 주세요.
+
+- 기타 조건: 패스 사용에 관한 기타 조건은 서비스 제공자와의 계약에 따라 달라질 수 있으며, 변경 사항은 사전에 공지됩니다. 이에 대한 자세한 내용은 이용 약관을 참고하시기 바랍니다.`,
+
+    en: `- Pass Validity Period: Passes are only valid for a specific period from the date of purchase. If all classes are not completed within the validity period, remaining classes will automatically expire and are non-refundable.
+
+- Class Schedule and Changes: Class schedules may change without prior notice, and if you cannot accommodate the changed schedule, it may not be possible to substitute with another schedule. Please check class changes regularly.
+
+- Non-Transferable Pass: Purchased passes can only be used by the buyer and cannot be transferred or sold to others. The pass may be invalidated if transferred or sold.
+
+- Refund Policy: The service provider is responsible for refunds after pass purchase. Therefore, please contact the service provider if you wish to request a refund.
+
+- Other Conditions: Other conditions regarding pass usage may vary according to the contract with the service provider, and changes will be notified in advance. Please refer to the Terms of Service for detailed information.`,
+
+    jp: `- パス有効期間：パスは購入日から一定期間内のみ使用可能です。有効期間内にすべての授業を完了しない場合、残りの授業は自動的に消滅し、返金はできません。
+
+- 授業スケジュールと変更：授業スケジュールは事前通知なく変更される場合があり、変更されたスケジュールに合わせられない場合は、他のスケジュールへの振替が不可能な場合があります。授業の変更事項を定期的にご確認ください。
+
+- パス譲渡不可：購入したパスは本人のみ使用可能で、他人への譲渡や販売はできません。譲渡および販売時にパスが無効になる場合があります。
+
+- 返金ポリシー：パス購入後の返金の主体はサービス提供者にあります。したがって、返金をご希望の場合はサービス提供者にお問い合わせください。
+
+- その他の条件：パス使用に関するその他の条件はサービス提供者との契約により異なる場合があり、変更事項は事前に通知されます。詳しい内容は利用規約をご参照ください。`,
+
+    zh: `- 通行证有效期：通行证仅在购买日起的特定期限内有效。如果未能在有效期内完成所有课程，剩余课程将自动失效且不予退款。
+
+- 课程日程及变更：课程日程可能会在未经事先通知的情况下变更，如果无法适应变更后的日程，可能无法替换为其他日程。请定期查看课程变更事项。
+
+- 通行证不可转让：购买的通行证仅限本人使用，不得转让或出售给他人。转让或出售时通行证可能会被作废。
+
+- 退款政策：通行证购买后的退款主体为服务提供方。因此，如需退款请联系服务提供方。
+
+- 其他条件：关于通行证使用的其他条件可能会根据与服务提供方的合同而有所不同，变更事项将提前通知。详细内容请参考使用条款。`
+  },
+  account_transfer_dialog_message: {
+    ko: '구매상품 : {title}\n결제금액 : {price}원\n\n입금자명: {depositor}\n\n(실제 입금자명과 다를 경우 확인이 어려울 수 있습니다)',
+    en: 'Product : {title}\nAmount : KRW {price}\n\nDepositor Name: {depositor}\n\n(Verification may be difficult if the actual depositor name is different)',
+    jp: '購入商品 : {title}\n決済金額 : {price}ウォン\n\n入金者名: {depositor}\n\n(実際の入金者名と異なる場合、確認が難しい場合があります)',
+    zh: '购买商品 : {title}\n支付金额 : {price}韩元\n\n存款人姓名: {depositor}\n\n(如果与实际存款人姓名不符，可能难以确认)'
   }
 }
 

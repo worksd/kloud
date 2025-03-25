@@ -1,7 +1,6 @@
 'use client'
 
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useEffect, useState } from "react";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { StringResourceKey } from "@/shared/StringResource";
@@ -10,13 +9,18 @@ import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation"
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
+import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
-export const LessonPaymentInfo = ({lesson, os, appVersion, userId}: { lesson: GetLessonResponse, os: string, appVersion: string, userId: string }) => {
+export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPaymentResponse, os: string, appVersion: string }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("credit");
-  const [depositor, setDepositor] = useState("");
+  const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
+    payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
+  );  const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
 
   const paymentOptions: { id: PaymentMethod, label: StringResourceKey }[] = [
+    {id: 'pass', label: 'my_pass'},
     {id: "credit", label: "credit_card"},
     {id: "account_transfer", label: "account_transfer"},
   ];
@@ -28,9 +32,15 @@ export const LessonPaymentInfo = ({lesson, os, appVersion, userId}: { lesson: Ge
   return (
     <div className={"flex flex-col"}>
       <div className="flex flex-col gap-y-4">
-        <PaymentMethodComponent paymentOptions={paymentOptions} selectedMethod={selectedMethod}
-                                selectPaymentMethodAction={setSelectedMethod} depositor={depositor}
-                                setDepositorAction={setDepositor}/>
+        <PaymentMethodComponent
+          passes={payment.user.passes}
+          selectedPass={selectedPass}
+          selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
+          paymentOptions={paymentOptions}
+          selectedMethod={selectedMethod}
+          selectPaymentMethodAction={setSelectedMethod}
+          depositor={depositor}
+          setDepositorAction={setDepositor}/>
       </div>
 
       <div className="py-5">
@@ -38,7 +48,7 @@ export const LessonPaymentInfo = ({lesson, os, appVersion, userId}: { lesson: Ge
       </div>
 
       {/* 결제 정보 */}
-      <PurchaseInformation price={lesson.price ?? 0} titleResource={'lesson_price'}/>
+      <PurchaseInformation price={payment.totalPrice} titleResource={'lesson_price'}/>
 
 
       <div className="py-5">
@@ -47,7 +57,7 @@ export const LessonPaymentInfo = ({lesson, os, appVersion, userId}: { lesson: Ge
 
       <div className="flex flex-col px-6 space-y-4">
         {/* 판매자 정보 */}
-        {lesson.studio && <SellerInformation studio={lesson.studio}/>}
+        {payment.lesson?.studio && <SellerInformation studio={payment.lesson.studio}/>}
         {/* 환불 안내 */}
         <RefundInformation/>
       </div>
@@ -57,13 +67,14 @@ export const LessonPaymentInfo = ({lesson, os, appVersion, userId}: { lesson: Ge
           method={selectedMethod}
           os={os}
           appVersion={appVersion}
+          selectedPass={selectedPass}
           type={{value: 'lesson', prefix: 'LT'}}
-          lessonId={lesson.id}
-          price={lesson.price ?? 0}
-          title={lesson.title ?? ''}
-          userId={userId}
+          lessonId={payment.lesson?.id}
+          price={payment.totalPrice}
+          title={payment.lesson?.title ?? ''}
+          userId={payment.user.id}
           depositor={depositor}
-          disabled={isPastTime(lesson.startTime)}
+          disabled={isPastTime(payment.lesson?.startTime)}
         />
       </div>
     </div>

@@ -89,7 +89,7 @@ export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse,
               </div>
               <div>
                 <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('day')}</p>
-                <p className="text-white font-medium text-[18px]">{startTime.dayOfWeek}</p>
+                <p className="text-white font-medium text-[18px]">{await translate(startTime.dayOfWeek)}</p>
               </div>
               <div>
                 <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('start')}</p>

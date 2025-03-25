@@ -1,16 +1,22 @@
 'use client'
 import { useEffect, useState } from "react";
 import { StringResourceKey } from "@/shared/StringResource";
-import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
+import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 
-export type PaymentMethod = 'credit' | 'account_transfer'
+export type PaymentMethod = 'credit' | 'account_transfer' | 'pass'
 
-export const PassPaymentInfo = ({studio, price, os}: { studio: GetStudioResponse, price: number, os: string }) => {
+export const PassPaymentInfo = ({payment, price, os, appVersion}: {
+  payment: GetPaymentResponse,
+  price: number,
+  os: string,
+  appVersion: string
+}) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("credit");
   const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -47,7 +53,7 @@ export const PassPaymentInfo = ({studio, price, os}: { studio: GetStudioResponse
 
       <div className="flex flex-col gap-y-5 px-6">
         {/* 판매자 정보 */}
-        <SellerInformation studio={studio}/>
+        {payment.passPlan?.studio && <SellerInformation studio={payment.passPlan.studio}/>}
 
         {/* 환불 안내 */}
         <RefundInformation/>
@@ -55,10 +61,12 @@ export const PassPaymentInfo = ({studio, price, os}: { studio: GetStudioResponse
 
 
       <div className="px-6 mt-4 bottom-0 sticky">
-        <PaymentButton type={{value: 'passPlan', prefix: 'LP'}} os={os} title={'zxcv'} price={10000} passPlanId={3}
+        <PaymentButton type={{value: 'passPlan', prefix: 'LP'}} os={os} title={payment.passPlan?.name ?? ''}
+                       price={price}
+                       passPlanId={payment.passPlan?.id}
                        disabled={false}
-                       appVersion={'asdf'}
-                       method={selectedMethod} depositor={depositor} userId={'3'}/>
+                       appVersion={appVersion}
+                       method={selectedMethod} depositor={depositor} userId={payment.user.id}/>
       </div>
     </div>
   )

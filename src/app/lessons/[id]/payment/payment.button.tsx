@@ -3,18 +3,21 @@
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import { useCallback, useEffect, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { errorConverter } from "@/utils/error.converter";
 import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
 import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
+import { createAccountTransferMessage, createDialog, DialogId } from "@/utils/dialog.factory";
+import { createPassAction } from "@/app/passPlans/[id]/payment/create.pass.action";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { DialogInfo } from "@/app/setting/setting.menu.item";
 
 
 export const PaymentTypes = [
-  { value: 'lesson', prefix: 'LT' },
-  { value: 'passPlan', prefix: 'LP' },
+  {value: 'lesson', prefix: 'LT'},
+  {value: 'passPlan', prefix: 'LP'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];
@@ -34,11 +37,25 @@ type PaymentInfo = {
   userCode?: string
 }
 
-export default function PaymentButton({appVersion, lessonId, passPlanId, type, price, title, userId, os, method, depositor, disabled}: {
+export default function PaymentButton({
+                                        appVersion,
+                                        lessonId,
+                                        passPlanId,
+                                        selectedPass,
+                                        type,
+                                        price,
+                                        title,
+                                        userId,
+                                        os,
+                                        method,
+                                        depositor,
+                                        disabled
+                                      }: {
   appVersion: string;
   lessonId?: number,
+  selectedPass?: GetPassResponse,
   passPlanId?: number,
-  userId: string,
+  userId: number,
   type: PaymentType,
   price: number,
   title: string,
@@ -81,7 +98,7 @@ export default function PaymentButton({appVersion, lessonId, passPlanId, type, p
           method: 'credit',
           type: type,
           price: price,
-          userId: userId,
+          userId: `${userId}`,
         } : {
           paymentId: paymentId,
           pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
@@ -90,33 +107,30 @@ export default function PaymentButton({appVersion, lessonId, passPlanId, type, p
           type: type,
           amount: `${price}`,
           method: 'credit',
-          userId: userId,
+          userId: `${userId}`,
           userCode: process.env.NEXT_PUBLIC_USER_CODE,
         }
         window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
       }
     } else if (method === 'account_transfer') {
       if (depositor.length === 0) {
-        const info = {
-          id: 'Empty',
-          title: '계좌이체 안내',
-          type: 'SIMPLE',
-          message: '입금자명을 입력해주시길 바랍니다',
-        }
-        window.KloudEvent?.showDialog(JSON.stringify(info));
+        const dialog = await createDialog('EmptyDepositor')
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       } else {
-        const dialogInfo = {
-          id: `Payment`,
-          type: 'YESORNO',
-          title: '계좌이체',
-          message: `${title} 수업의 수강권을 계좌이체로 구매하시겠습니까?\n\n수강권 : ${new Intl.NumberFormat("ko-KR").format(price)}원\n\n입금자명: ${depositor} \n\n(실제 입금자명과 다를 경우 확인이 어려울 수 있습니다)`,
-        }
-        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+        const dialog = await createAccountTransferMessage({
+          title,
+          price,
+          depositor,
+        })
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
+    } else if (method === 'pass') {
+      const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
+      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
   }, [lessonId, method, depositor]);
 
-  const { t } = useLocale()
+  const {t} = useLocale()
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -135,34 +149,70 @@ export default function PaymentButton({appVersion, lessonId, passPlanId, type, p
         });
         window.KloudEvent?.navigateMain(bootInfo);
       } else if (type.value == 'passPlan') {
-        // TODO: 결제 모듈로 pass를 구매했을때의 행동
+        const res = await createPassAction({paymentId: data.paymentId, passPlanId: passPlanId ?? -1, status: 'Active'});
+        const pushRoute = 'id' in res ? KloudScreen.MyPassDetail(res.id ?? 0) : null
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: pushRoute,
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
       }
     }
-  }, [])
+  }, [selectedPass])
 
   useEffect(() => {
     window.onErrorInvoked = async (data: { code: string }) => {
-      const info = {
-        id: 'Empty',
-        title: errorConverter({code: data.code}).title,
-        type: 'SIMPLE',
-        message: errorConverter({code: data.code}).message,
-      }
-      window.KloudEvent?.showDialog(JSON.stringify(info));
+      const dialog = await createDialog('PaymentFail')
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
     }
   }, [])
 
   useEffect(() => {
-    // 계좌이체에 대한 onDialogConfirm
-    window.onDialogConfirm = async (data: { id: string, route: string}) => {
-      const paymentId = generatePaymentId({type: type, id: lessonId ?? -1});
-      if (type.value == 'lesson') {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      const paymentId = generatePaymentId({type: type, id: lessonId ?? passPlanId ?? -1});
+      if (data.id == 'AccountTransfer') {
+        if (type.value == 'lesson') {
 
+          const res = await createTicketAction({
+            paymentId: paymentId,
+            lessonId: lessonId ?? -1,
+            status: 'Pending',
+            depositor: depositor,
+          });
+          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+          const bottomMenuList = await getBottomMenuList();
+          const bootInfo = JSON.stringify({
+            bottomMenuList: bottomMenuList,
+            route: pushRoute,
+          });
+          window.KloudEvent?.navigateMain(bootInfo);
+        } else if (type.value == 'passPlan') {
+          const res = await createPassAction({
+            passPlanId: passPlanId ?? 0,
+            paymentId: paymentId,
+            status: 'Pending',
+            depositor: depositor,
+          })
+          if ('id' in res) {
+            const pushRoute = KloudScreen.MyPassDetail(res.id)
+            const bottomMenuList = await getBottomMenuList();
+            const bootInfo = JSON.stringify({
+              bottomMenuList: bottomMenuList,
+              route: pushRoute,
+            });
+            window.KloudEvent?.navigateMain(bootInfo);
+          } else {
+            const dialog = await createDialog('PaymentFail')
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          }
+        }
+      } else if (data.id == 'UsePass') {
         const res = await createTicketAction({
           paymentId: paymentId,
-          lessonId: lessonId ?? -1,
-          status: 'Pending',
-          depositor: depositor,
+          lessonId: lessonId ?? 0,
+          passId: selectedPass?.id ?? 0,
+          status: 'Paid',
         });
         const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
         const bottomMenuList = await getBottomMenuList();
@@ -171,15 +221,13 @@ export default function PaymentButton({appVersion, lessonId, passPlanId, type, p
           route: pushRoute,
         });
         window.KloudEvent?.navigateMain(bootInfo);
-      } else if (type.value == 'passPlan') {
-
       }
     }
   }, [depositor])
   return (
     <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled}>
       <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-        {mounted ? `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}` : ''}
+        {mounted ? (method == 'pass' ? t('use_pass') : `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}`) : ''}
       </p>
     </CommonSubmitButton>
   );
