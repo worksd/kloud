@@ -1,7 +1,7 @@
 'use client'
 
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { StringResourceKey } from "@/shared/StringResource";
 import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
@@ -19,11 +19,22 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
   );  const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
 
-  const paymentOptions: { id: PaymentMethod, label: StringResourceKey }[] = [
-    {id: 'pass', label: 'my_pass'},
-    {id: "credit", label: "credit_card"},
-    {id: "account_transfer", label: "account_transfer"},
-  ];
+  const paymentOptions = useMemo(() => {
+    const options: { id: PaymentMethod, label: StringResourceKey }[] = [];
+
+    // 패스가 있을 때만 패스 결제 옵션 추가
+    if (payment.user.passes && payment.user.passes.length > 0) {
+      options.push({id: 'pass', label: 'my_pass'});
+    }
+
+    // 기본 결제 옵션 추가
+    options.push(
+      {id: "credit", label: "credit_card"},
+      {id: "account_transfer", label: "account_transfer"}
+    );
+
+    return options;
+  }, [payment.user.passes]);
 
   useEffect(() => {
     setMounted(true);
