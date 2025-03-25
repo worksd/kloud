@@ -26,7 +26,7 @@ export const KloudScreen = {
   DeveloperAuthentication: '/setting/account/developer/authentication',
   PassPayment: (id: number) => `/passPlans/${id}/payment`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
-  StudioPassPaymentComplete: (id: number) => `/studios/${id}/passPaymentComplete`,
+  PassPaymentComplete: (id: number) => `/passPlans/${id}/paymentComplete`,
   LessonDetail: (id: number) => `/lessons/${id}`,
   LessonPayment: (id: number) => `/lessons/${id}/payment`,
   TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
