@@ -9,6 +9,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useLocale } from "@/hooks/useLocale";
+import Loading from "@/app/loading";
 
 export const PurchaseStudioPassForm = ({studio}: { studio: GetStudioResponse | null }) => {
 
@@ -53,17 +54,22 @@ export const PurchaseStudioPassForm = ({studio}: { studio: GetStudioResponse | n
       {studio && studio.name &&
         <div className={"text-[24px] text-black font-medium px-6 mt-4"}>{studio?.name} {mounted ? t('purchase_pass') : ''}</div>
       }
-      <ul className="flex flex-col p-6 space-y-4 mt-4">
-        {passPlans.map((item) => (
-          <PassPlanItem
-            key={item.id}
-            item={item}
-            isSelected={passPlan ? passPlan.id === item.id : passPlans.find(p => p.isPopular)?.id === item.id}
-            onClickAction={(item: GetPassPlanResponse) => {
-              setPassPlan(item)
-            }}/>
-        ))}
-      </ul>
+      {passPlan && passPlans.length > 0 && (
+        <ul className="flex flex-col p-6 space-y-4 mt-4">
+          {passPlans.map((item) => (
+            <PassPlanItem
+              key={item.id}
+              item={item}
+              isSelected={passPlan ? passPlan.id === item.id : passPlans.find(p => p.isPopular)?.id === item.id}
+              onClickAction={(item: GetPassPlanResponse) => {
+                setPassPlan(item)
+              }}/>
+          ))}
+        </ul>
+      )}
+      {passPlans.length == 0 &&
+        <Loading/>
+      }
 
       <div className={"flex flex-col bg-[#F7F8F9] p-6 text-[#86898C] space-y-4"}>
         <TranslatableText className={"font-bold text-[16px]"} titleResource={'purchase_pass_information'}/>
