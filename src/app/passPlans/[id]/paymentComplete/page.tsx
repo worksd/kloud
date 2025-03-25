@@ -18,14 +18,14 @@ export default async function PassPaymentCompletePage({params}: Props) {
           <div className="flex justify-between items-center">
             <SimpleHeader titleResource={'purchase_pass_complete'}/>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center space-y-4 w-full px-4">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-2 w-full px-4">
             <LargeCircleCheckIcon/>
             <div className="text-black text-[24px] font-medium">{res.passPlan?.name} 패스 구매를 완료했어요!</div>
             <div className="text-[16px] text-black">{studio.name} 스튜디오의 수업을 신청해보세요</div>
 
             {'id' in studio && (
-              <div className="w-full mt-4">
-                <LessonBand lessons={studio.lessons} title={'⭐ 수강생 98%가 만족한 추천 클래스'}/>
+              <div className="w-full mt-6">
+                <LessonBand lessons={studio.lessons} title={'패스권 추천 클래스'}/>
               </div>
             )}
           </div>
