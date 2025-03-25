@@ -1167,6 +1167,12 @@ export const StringResource = {
     en: 'Product : {title}\nAmount : KRW {price}\n\nDepositor Name: {depositor}\n\n(Verification may be difficult if the actual depositor name is different)',
     jp: '購入商品 : {title}\n決済金額 : {price}ウォン\n\n入金者名: {depositor}\n\n(実際の入金者名と異なる場合、確認が難しい場合があります)',
     zh: '购买商品 : {title}\n支付金额 : {price}韩元\n\n存款人姓名: {depositor}\n\n(如果与实际存款人姓名不符，可能难以确认)'
+  },
+  purchase_pass_complete: {
+    ko: '패스권 구매완료',
+    en: 'Pass Purchase Complete',
+    jp: 'パス購入完了',
+    zh: '通行证购买完成'
   }
 }
 
