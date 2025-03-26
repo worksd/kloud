@@ -39,8 +39,8 @@ type PaymentInfo = {
 
 export default function PaymentButton({
                                         appVersion,
-                                        lessonId,
-                                        passPlanId,
+                                        id,
+
                                         selectedPass,
                                         type,
                                         price,
@@ -52,9 +52,8 @@ export default function PaymentButton({
                                         disabled
                                       }: {
   appVersion: string;
-  lessonId?: number,
+  id: number,
   selectedPass?: GetPassResponse,
-  passPlanId?: number,
   userId: number,
   type: PaymentType,
   price: number,
@@ -74,7 +73,7 @@ export default function PaymentButton({
       return;
     }
 
-    const paymentId = generatePaymentId({type: type, id: lessonId ?? passPlanId ?? -1})
+    const paymentId = generatePaymentId({type: type, id: id})
 
     if (method === 'credit') {
       if (appVersion == '') {
@@ -86,7 +85,10 @@ export default function PaymentButton({
           payMethod: 'CARD',
           totalAmount: price,
           currency: "CURRENCY_KRW",
-          redirectUrl: process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '',
+          customer: {
+            fullName: `${userId}`
+          },
+          redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
         }
         await requestPayment(mobileWebPaymentRequest)
       } else {
@@ -128,7 +130,7 @@ export default function PaymentButton({
       const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
-  }, [lessonId, method, depositor]);
+  }, [id, method, depositor]);
 
   const {t} = useLocale()
   const [mounted, setMounted] = useState(false);
@@ -140,7 +142,7 @@ export default function PaymentButton({
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       if (type.value == 'lesson') {
-        const res = await createTicketAction({paymentId: data.paymentId, lessonId: lessonId ?? -1, status: 'Paid'});
+        const res = await createTicketAction({paymentId: data.paymentId, lessonId: id, status: 'Paid'});
         const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
@@ -149,7 +151,7 @@ export default function PaymentButton({
         });
         window.KloudEvent?.navigateMain(bootInfo);
       } else if (type.value == 'passPlan') {
-        const res = await createPassAction({paymentId: data.paymentId, passPlanId: passPlanId ?? -1, status: 'Active'});
+        const res = await createPassAction({paymentId: data.paymentId, passPlanId: id, status: 'Active'});
         const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
@@ -170,13 +172,13 @@ export default function PaymentButton({
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      const paymentId = generatePaymentId({type: type, id: lessonId ?? passPlanId ?? -1});
+      const paymentId = generatePaymentId({type: type, id: id});
       if (data.id == 'AccountTransfer') {
         if (type.value == 'lesson') {
 
           const res = await createTicketAction({
             paymentId: paymentId,
-            lessonId: lessonId ?? -1,
+            lessonId: id,
             status: 'Pending',
             depositor: depositor,
           });
@@ -189,7 +191,7 @@ export default function PaymentButton({
           window.KloudEvent?.navigateMain(bootInfo);
         } else if (type.value == 'passPlan') {
           const res = await createPassAction({
-            passPlanId: passPlanId ?? 0,
+            passPlanId: id,
             paymentId: paymentId,
             status: 'Pending',
             depositor: depositor,
@@ -210,7 +212,7 @@ export default function PaymentButton({
       } else if (data.id == 'UsePass') {
         const res = await createTicketAction({
           paymentId: paymentId,
-          lessonId: lessonId ?? 0,
+          lessonId: id,
           passId: selectedPass?.id ?? 0,
           status: 'Paid',
         });

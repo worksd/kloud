@@ -63,7 +63,7 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
       <div className="px-6 mt-4 bottom-0 sticky">
         <PaymentButton type={{value: 'passPlan', prefix: 'LP'}} os={os} title={payment.passPlan?.name ?? ''}
                        price={price}
-                       passPlanId={payment.passPlan?.id}
+                       id={payment.passPlan?.id ?? 0}
                        disabled={false}
                        appVersion={appVersion}
                        method={selectedMethod} depositor={depositor} userId={payment.user.id}/>

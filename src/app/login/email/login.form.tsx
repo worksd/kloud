@@ -12,7 +12,7 @@ import { createDialog } from "@/utils/dialog.factory";
 import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
 import { useRouter } from "next/navigation";
 
-export const LoginForm = () => {
+export const LoginForm = ({appVersion}: { appVersion: string }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -48,10 +48,14 @@ export const LoginForm = () => {
       password: password,
     })
     if ('status' in res) {
-      await LoginAuthNavigation({
-        status: res.status,
-        window: window,
-      })
+      if (appVersion == '') {
+        router.replace(KloudScreen.Login);
+      } else {
+        await LoginAuthNavigation({
+          status: res.status,
+          window: window,
+        })
+      }
     } else if (res.errorCode) {
       if (res.errorCode === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
         setPasswordErrorMessage(res.errorMessage ?? '');

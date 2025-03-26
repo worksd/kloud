@@ -2,13 +2,15 @@ import Logo from "../../../../public/assets/logo_black.svg";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { LoginForm } from "@/app/login/email/login.form";
 
-export default function EmailLogin(props: any) {
+export default async function EmailLogin({searchParams}: {
+  searchParams: Promise<{ appVersion: string }>
+}) {
 
   return (
     <section className="min-h-screen bg-white flex flex-col">
-      <SimpleHeader />
+      <SimpleHeader/>
       <Logo className="mx-auto mt-14"/>
-      <LoginForm/>
+      <LoginForm appVersion={(await searchParams).appVersion}/>
     </section>
   );
 }
