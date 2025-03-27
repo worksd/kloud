@@ -1,8 +1,10 @@
 import { OnboardForm } from "@/app/onboarding/onboard.form";
 
-export default function Onboarding(props: any) {
+export default async function Onboarding({searchParams}: { searchParams: Promise<{ appVersion: string, returnUrl: string }> }) {
+
+  const {returnUrl, appVersion} = await searchParams;
 
   return (
-    <OnboardForm/>
+    <OnboardForm returnUrl={returnUrl} appVersion={appVersion}/>
   )
 }

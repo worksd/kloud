@@ -9,10 +9,11 @@ interface NavigateClickItemProps {
   action?: 'changeLocale',
   locale?: Locale,
   route?: string;
+  returnUrl?: string;
   children: React.ReactNode;
 }
 
-export function NavigateClickWrapper({ method, route, action, locale, children }: NavigateClickItemProps) {
+export function NavigateClickWrapper({ method, route, action, locale, returnUrl, children }: NavigateClickItemProps) {
   const router = useRouter()
   return (
     <div
@@ -35,7 +36,7 @@ export function NavigateClickWrapper({ method, route, action, locale, children }
           }
         } else {
           if (method === 'push' && route) {
-            router.push(route);
+            router.push(route + '?returnUrl=' + returnUrl);
           } else if (method == 'back') {
             router.back();
           }

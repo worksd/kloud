@@ -16,11 +16,13 @@ import { checkDuplicateNickName } from "@/app/onboarding/action/check.duplicate.
 import { followStudio } from "@/app/search/studio.follow.action";
 import { useLocale } from "@/hooks/useLocale";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { useRouter } from "next/navigation";
 
 type Step = 'profile' | 'favorite' | 'agreement';
 
-export const OnboardForm = () => {
+export const OnboardForm = ({appVersion, returnUrl} : {appVersion: string, returnUrl: string}) => {
   const { t } = useLocale();
+  const router = useRouter();
   const [step, setStep] = useState<Step>('profile');
   const [user, setUser] = useState<GetUserResponse | null>(null);
   const [studios, setStudios] = useState<GetStudioResponse[]>([]);
@@ -164,7 +166,11 @@ export const OnboardForm = () => {
 
   const onClickBack = () => {
     if (step === "profile") {
-      window.KloudEvent?.clearAndPush(KloudScreen.Login)
+      if (appVersion == '') {
+        router.replace(KloudScreen.Login(returnUrl))
+      } else {
+        window.KloudEvent?.clearAndPush(KloudScreen.Login(returnUrl))
+      }
     } else if (step === "favorite") {
       setStep("profile")
     } else if (step === "agreement") {

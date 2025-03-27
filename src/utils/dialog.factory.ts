@@ -9,7 +9,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       type: 'YESORNO',
       title: await translate('log_out'),
       message: await translate('log_out_dialog_message'),
-      route: KloudScreen.Login,
+      route: KloudScreen.Login(''),
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }

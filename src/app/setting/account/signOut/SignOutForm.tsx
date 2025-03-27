@@ -40,7 +40,7 @@ export default function SignOutForm() {
       type: 'YESORNO',
       title: t('sign_out'),
       message: t('sign_out_dialog_message'),
-      route: KloudScreen.Login,
+      route: KloudScreen.Login(''),
     }
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }

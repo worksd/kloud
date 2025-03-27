@@ -6,7 +6,7 @@ import { getLocale } from "@/utils/translate";
 export default async function Login({
                                       searchParams,
                                     }: {
-  searchParams: Promise<{ os: string, appVersion: string, code: string, callbackUrl: string, state: string }>,
+  searchParams: Promise<{ os: string, appVersion: string, code: string, returnUrl: string, state: string }>,
 }) {
   return (
     <section className="w-screen min-h-screen bg-white flex flex-col items-center relative"
@@ -17,7 +17,7 @@ export default async function Login({
         <LoginButtonForm
           os={(await searchParams).os}
           appVersion={(await searchParams).appVersion}
-          callbackUrl={(await searchParams).callbackUrl}
+          returnUrl={(await searchParams).returnUrl}
         />
       </div>
     </section>

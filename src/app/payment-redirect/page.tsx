@@ -30,6 +30,7 @@ export default async function PaymentRedirectPage({searchParams}:
       const route = 'id' in res ? KloudScreen.PassPaymentComplete(res.id) : null
       if (route) redirect(route)
     }
+    return <div>잘못된 결제ID입니다 ID: {paymentId}</div>
   }
 
   return (

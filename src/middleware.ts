@@ -24,8 +24,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-guinness-device-name', `${device.model}(${device.vendor}/${os.version})`)
 
   if (appVersion == '' && isAuthScreen(url.pathname) && !cookie.get(accessTokenKey)?.value) {
-    const loginUrl = new URL(KloudScreen.Login, request.url);
-    loginUrl.searchParams.set('callbackUrl', url.pathname);
+    const loginUrl = new URL(KloudScreen.Login(url.pathname), request.url);
     return NextResponse.redirect(loginUrl);
   }
 

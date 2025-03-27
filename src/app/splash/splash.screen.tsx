@@ -18,11 +18,11 @@ export const SplashScreen = () => {
       const status = res.status
 
       const route = !status
-        ? KloudScreen.Login
+        ? KloudScreen.Login('')
         : status === UserStatus.New
           ? KloudScreen.Onboard
           : status === UserStatus.Ready
-            ? KloudScreen.Main : KloudScreen.Login
+            ? KloudScreen.Main : KloudScreen.Login('')
 
 
       if (route == KloudScreen.Main) {

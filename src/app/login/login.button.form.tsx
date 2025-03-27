@@ -6,15 +6,15 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
-export const LoginButtonForm = async ({os, appVersion, callbackUrl}: { os: string, appVersion: string, callbackUrl: string}) => {
+export const LoginButtonForm = async ({os, appVersion, returnUrl}: { os: string, appVersion: string, returnUrl: string}) => {
   return (
     <section className="flex flex-col items-center justify-center">
       <div className="space-y-2 w-full p-2">
         {os === 'iOS' && appVersion != '' && <AppleLoginButton/>}
         {os === 'Android' && appVersion != '' && <GoogleLoginButton/>}
-        <KakaoLoginButton appVersion={appVersion} callbackUrl={callbackUrl}/>
+        <KakaoLoginButton appVersion={appVersion} callbackUrl={returnUrl}/>
       </div>
-      <NavigateClickWrapper method={'push'} route={KloudScreen.LoginEmail}>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.LoginEmail(returnUrl)}>
         <div className="text-[#86898C] text-[14px] cursor-pointer mt-12">
           {await translate('email_login')}
         </div>

@@ -12,7 +12,7 @@ export const ChangeLocaleSheetItem = ({selectedLanguage, locale}: {
 
   return (
     <NavigateClickWrapper method={isSelected ? 'closeBottomSheet' : 'clearAndPush'}
-                          route={isSelected ? undefined : KloudScreen.Login}
+                          route={isSelected ? undefined : KloudScreen.Login('')} // TODO: 웹에서도 외국어 대응시 returnUrl 넣어주기
                           locale={locale}
                           action={'changeLocale'}>
       <li
