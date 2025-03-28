@@ -1,7 +1,7 @@
 export const KloudScreen = {
   Splash: '/splash',
   Main: '/main',
-  Onboard: '/onboarding',
+  Onboard: (returnUrl: string) => `/onboarding?returnUrl=${returnUrl}`,
   Login: (returnUrl: string) => `/login?returnUrl=${returnUrl}`,
   LoginEmail: (returnUrl: string) => `/login/email?returnUrl=${returnUrl}`,
   LoginDeactivate: '/login/deactivate',

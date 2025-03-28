@@ -3,23 +3,35 @@ import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { getLessonPaymentAction } from "@/app/lessons/[id]/payment/payment.detail.action";
 import { cookies } from "next/headers";
-import { userIdKey } from "@/shared/cookies.key";
+import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import React from "react";
 import { FormattedDate } from "@/app/lessons/[id]/payment/FormattedDate";
 import { LessonPaymentInfo } from "@/app/lessons/[id]/payment/lesson.payment.info";
 import { CircleImage } from "@/app/components/CircleImage";
 import { translate } from "@/utils/translate";
+import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
   searchParams: Promise<{ os: string, appVersion: string }>
 }) {
-  const res = await getLessonPaymentAction({id: (await params).id})
+  const { id } = await params
+  const { appVersion, os } = await searchParams
+  const res = await getLessonPaymentAction({id: id})
 
   if ('user' in res) {
     return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
         {/* 백 헤더 */}
+
+        {appVersion == '' &&
+          <MobileWebViewTopBar
+            os={os}
+            isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
+            returnUrl={KloudScreen.LessonPayment(id)}
+          />}
+
         <div className="flex justify-between items-center mb-14 px-6">
           <SimpleHeader titleResource="payment"/>
         </div>
@@ -58,8 +70,8 @@ export default async function LessonPaymentPage({params, searchParams}: {
           </div>
 
           <LessonPaymentInfo
-            os={(await searchParams).os}
-            appVersion={(await searchParams).appVersion}
+            os={os}
+            appVersion={appVersion}
             payment={res}
           />
         </div>

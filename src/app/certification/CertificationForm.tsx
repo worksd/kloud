@@ -8,23 +8,29 @@ import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { StringResourceKey } from "@/shared/StringResource";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { useRouter } from "next/navigation";
 
 const getHeaderTitleResource = (step: number): StringResourceKey => {
   if (step == 1) return 'certification'
   else return 'certification_code'
 };
 
-export const CertificationForm = () => {
+export const CertificationForm = ({appVersion}: { appVersion: string}) => {
 
   const [step, setStep] = useState(1);
   const [code, setCode] = useState(0);
   const [name, setName] = useState('');
   const [rrn, setRrn] = useState('');
   const [phone, setPhone] = useState('');
+  const router = useRouter();
 
   const onClickBack = () => {
     if (step == 1) {
-      window.KloudEvent?.back()
+      if (appVersion == '') {
+        router.back();
+      } else {
+        window.KloudEvent?.back()
+      }
     } else {
       setStep(step - 1)
     }
@@ -72,7 +78,11 @@ export const CertificationForm = () => {
             rrn: rrn,
           })
           if (res.success && res.user?.phone) {
-            window.KloudEvent?.back()
+            if (appVersion == '') {
+              router.back()
+            } else {
+              window.KloudEvent?.back()
+            }
             setTimeout(() => {
               const dialogInfo = {
                 id: 'Empty',

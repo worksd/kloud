@@ -1,14 +1,12 @@
 'use client';
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { AgreementForm } from "@/app/onboarding/AgreementForm";
 import { ProfileEditForm } from "@/app/onboarding/ProfileEditForm";
 import { FavoriteStudioForm } from "@/app/onboarding/FavoriteStudioForm";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
-import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { UserStatus } from "@/entities/user/user.status";
@@ -20,12 +18,15 @@ import { useRouter } from "next/navigation";
 
 type Step = 'profile' | 'favorite' | 'agreement';
 
-export const OnboardForm = ({appVersion, returnUrl} : {appVersion: string, returnUrl: string}) => {
-  const { t } = useLocale();
+export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
+  user: GetUserResponse,
+  studios: GetStudioResponse[],
+  appVersion: string,
+  returnUrl: string
+}) => {
+  const {t} = useLocale();
   const router = useRouter();
   const [step, setStep] = useState<Step>('profile');
-  const [user, setUser] = useState<GetUserResponse | null>(null);
-  const [studios, setStudios] = useState<GetStudioResponse[]>([]);
   const [selectedIdList, setSelectedIdList] = useState<number[]>([]);
   const [nickName, setNickName] = useState<string | undefined>(undefined);
   const [inputErrorMessage, setInputErrorMessage] = useState<string | null>(null);
@@ -40,9 +41,9 @@ export const OnboardForm = ({appVersion, returnUrl} : {appVersion: string, retur
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const headerTitle = {
-    'profile' : t('onboarding_profile'),
+    'profile': t('onboarding_profile'),
     'favorite': t('onboarding_favorite_studio'),
-    'agreement' : t('onboarding_agreement'),
+    'agreement': t('onboarding_agreement'),
   };
 
   const isNextButtonDisabled = () => {
@@ -74,38 +75,6 @@ export const OnboardForm = ({appVersion, returnUrl} : {appVersion: string, retur
     setAllChecked(updatedCheckboxes.terms && updatedCheckboxes.privacy);
   };
 
-
-  useEffect(() => {
-    const fetchStudios = async () => {
-      if (studios.length !== 0) return
-      try {
-        const res = await getStudioList({});
-        if (res.studios) {
-          setStudios(res.studios);
-        }
-      } catch (error){
-
-      }
-    };
-
-    fetchStudios();
-  }, [studios]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await getUserAction()
-        if (res && 'id' in res) {
-          setUser(res);
-          setNickName(res.name || '');
-        }
-      } catch (e) {
-
-      }
-    }
-    fetchUser();
-  }, [])
-
   const hideKeyboard = () => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
@@ -136,7 +105,8 @@ export const OnboardForm = ({appVersion, returnUrl} : {appVersion: string, retur
         } else {
           setInputErrorMessage(t('duplicate_nick_name_message'))
         }
-      } else {}
+      } else {
+      }
     } else if (step === "favorite") {
       setStep("agreement")
     } else if (step === "agreement") {
@@ -144,19 +114,23 @@ export const OnboardForm = ({appVersion, returnUrl} : {appVersion: string, retur
 
       try {
         for (const id of selectedIdList) {
-          await followStudio({ studioId: id });
+          await followStudio({studioId: id});
         }
         const res = await updateUserAction({
           nickName: nickName,
         });
 
         if (res.success && res.user?.status == UserStatus.Ready) {
-          const bootInfo = JSON.stringify({
-            bottomMenuList: await getBottomMenuList(),
-            route: '',
-            withFcmToken: true,
-          });
-          window.KloudEvent?.navigateMain(bootInfo);
+          if (appVersion == '') {
+            router.replace(returnUrl)
+          } else {
+            const bootInfo = JSON.stringify({
+              bottomMenuList: await getBottomMenuList(),
+              route: '',
+              withFcmToken: true,
+            });
+            window.KloudEvent?.navigateMain(bootInfo);
+          }
         }
       } finally {
         setIsLoading(false); // 로딩 종료

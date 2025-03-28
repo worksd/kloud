@@ -9,10 +9,11 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
 import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
-import { createAccountTransferMessage, createDialog, DialogId } from "@/utils/dialog.factory";
+import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { createPassAction } from "@/app/passPlans/[id]/payment/create.pass.action";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
+import { useRouter } from "next/navigation";
+import { SimpleDialog } from "@/app/components/SimpleDialog";
 
 
 export const PaymentTypes = [
@@ -40,7 +41,6 @@ type PaymentInfo = {
 export default function PaymentButton({
                                         appVersion,
                                         id,
-
                                         selectedPass,
                                         type,
                                         price,
@@ -63,13 +63,21 @@ export default function PaymentButton({
   depositor: string,
   disabled: boolean,
 }) {
+
+  const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
+  const router = useRouter();
+
   const handlePayment = useCallback(async () => {
 
     const user = await getUserAction()
     if (!user) return;
 
     if (!user.phone) {
-      window.KloudEvent?.fullSheet(KloudScreen.Certification)
+      if (appVersion == '') {
+        router.push(KloudScreen.Certification)
+      } else {
+        window.KloudEvent?.fullSheet(KloudScreen.Certification)
+      }
       return;
     }
 
@@ -124,7 +132,11 @@ export default function PaymentButton({
           price,
           depositor,
         })
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        if (appVersion == '' && dialog) {
+          setWebDialogInfo(dialog)
+        } else {
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
       }
     } else if (method === 'pass') {
       const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
@@ -170,68 +182,94 @@ export default function PaymentButton({
     }
   }, [])
 
-  useEffect(() => {
-    window.onDialogConfirm = async (data: DialogInfo) => {
-      const paymentId = generatePaymentId({type: type, id: id});
-      if (data.id == 'AccountTransfer') {
-        if (type.value == 'lesson') {
+  const onConfirmDialog = async (data: DialogInfo) => {
+    const paymentId = generatePaymentId({type: type, id: id});
+    if (data.id == 'AccountTransfer') {
+      if (type.value == 'lesson') {
 
-          const res = await createTicketAction({
-            paymentId: paymentId,
-            lessonId: id,
-            status: 'Pending',
-            depositor: depositor,
-          });
-          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+        const res = await createTicketAction({
+          paymentId: paymentId,
+          lessonId: id,
+          status: 'Pending',
+          depositor: depositor,
+        });
+        const route = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+        if (appVersion == '' && route) {
+          router.replace(route)
+        } else {
           const bottomMenuList = await getBottomMenuList();
           const bootInfo = JSON.stringify({
             bottomMenuList: bottomMenuList,
-            route: pushRoute,
+            route: route,
           });
           window.KloudEvent?.navigateMain(bootInfo);
-        } else if (type.value == 'passPlan') {
-          const res = await createPassAction({
-            passPlanId: id,
-            paymentId: paymentId,
-            status: 'Pending',
-            depositor: depositor,
-          })
-          if ('id' in res) {
-            const pushRoute = KloudScreen.MyPassDetail(res.id)
+        }
+      } else if (type.value == 'passPlan') {
+        const res = await createPassAction({
+          passPlanId: id,
+          paymentId: paymentId,
+          status: 'Pending',
+          depositor: depositor,
+        })
+        if ('id' in res) {
+          const pushRoute = KloudScreen.MyPassDetail(res.id)
+          if (appVersion == '') {
+            router.replace(pushRoute)
+          } else {
             const bottomMenuList = await getBottomMenuList();
             const bootInfo = JSON.stringify({
               bottomMenuList: bottomMenuList,
               route: pushRoute,
             });
             window.KloudEvent?.navigateMain(bootInfo);
-          } else {
-            const dialog = await createDialog('PaymentFail')
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
+        } else {
+          const dialog = await createDialog('PaymentFail')
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
-      } else if (data.id == 'UsePass') {
-        const res = await createTicketAction({
-          paymentId: paymentId,
-          lessonId: id,
-          passId: selectedPass?.id ?? 0,
-          status: 'Paid',
-        });
-        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-        const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList: bottomMenuList,
-          route: pushRoute,
-        });
-        window.KloudEvent?.navigateMain(bootInfo);
       }
+    } else if (data.id == 'UsePass') {
+      const res = await createTicketAction({
+        paymentId: paymentId,
+        lessonId: id,
+        passId: selectedPass?.id ?? 0,
+        status: 'Paid',
+      });
+      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+      const bottomMenuList = await getBottomMenuList();
+      const bootInfo = JSON.stringify({
+        bottomMenuList: bottomMenuList,
+        route: pushRoute,
+      });
+      window.KloudEvent?.navigateMain(bootInfo);
+    }
+  }
+
+  useEffect(() => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      await onConfirmDialog(data)
     }
   }, [depositor])
+
+
   return (
-    <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled}>
-      <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-        {mounted ? (method == 'pass' ? t('use_pass') : `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}`) : ''}
-      </p>
-    </CommonSubmitButton>
+    <div>
+      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled}>
+        <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
+          {mounted ? (method == 'pass' ? t('use_pass') : `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}`) : ''}
+        </p>
+      </CommonSubmitButton>
+      {webDialogInfo != null && <SimpleDialog
+        dialogInfo={webDialogInfo}
+        onClickConfirmAction={async (dialogInfo) => {
+          await onConfirmDialog(dialogInfo);
+          setWebDialogInfo(null);
+        }}
+        onClickCancelAction={() => setWebDialogInfo(null)}/>
+      }
+    </div>
+
+
   );
 }
 

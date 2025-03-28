@@ -1,15 +1,14 @@
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import React from "react";
 import { Props } from "@/app/studios/[id]/page";
-import { extractNumber } from "@/utils";
 import LargeCircleCheckIcon from "../../../../../public/assets/ic_large_circle_check.svg"
 import { LessonBand } from "@/app/LessonBand";
 import { getPassAction } from "@/app/setting/myPass/action/getPassAction";
-import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 
 export default async function PassPaymentCompletePage({params}: Props) {
-  const res = await getPassAction({id: extractNumber((await params).id)})
+  const {id} = await params
+  const res = await getPassAction({id})
   if ('id' in res) {
     const studio = await getStudioDetail(res.passPlan?.studio?.id ?? 0)
     if ('id' in studio) {

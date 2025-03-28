@@ -32,7 +32,7 @@ export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse,
 
               <div className="flex flex-col mt-2 p-3 bg-white rounded-lg shadow">
                 <div className="text-gray-500 text-sm">{await translate('depositor')}</div>
-                <div className="font-bold text-lg text-black">${ticket.lesson?.studio?.depositor}</div>
+                <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.depositor}</div>
 
                 <div className="text-gray-500 text-sm">{await translate('bank')}</div>
                 <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.bank}</div>

@@ -26,9 +26,9 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting"/>
       </NavigateClickWrapper>
-      <VersionMenu
-        title={await translate('app_version')}
-        version={(await searchParams).appVersion}/>
+      {/*<VersionMenu*/}
+      {/*  title={await translate('app_version')}*/}
+      {/*  version={(await searchParams).appVersion}/>*/}
 
       <DialogClickWrapper id={"Logout"}>
         <MenuItem label="log_out"/>

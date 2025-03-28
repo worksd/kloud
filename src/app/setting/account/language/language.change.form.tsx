@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Locale } from "@/shared/StringResource";
-import { createDialog } from "@/utils/dialog.factory";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CheckIcon from "../../../../../public/assets/check_white.svg";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { changeLocale, getLocaleText, translate } from "@/utils/translate";
 import { TranslatableText } from "@/utils/TranslatableText";

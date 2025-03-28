@@ -4,7 +4,8 @@ import { api } from "@/app/api.client";
 import { Props } from "@/app/studios/[id]/page";
 
 export default async function StudioLessons({params}: Props) {
-  const res = await api.lesson.listStudioLessons({studioId: (await params).id})
+  const { id } = await params
+  const res = await api.lesson.listStudioLessons({studioId: id})
   if ('lessons' in res) {
     return (
       <div className="flex flex-col">

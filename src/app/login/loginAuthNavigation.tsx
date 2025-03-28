@@ -17,7 +17,7 @@ export const LoginAuthNavigation = async ({status, message, window}: {status?: U
     window.KloudEvent?.clearAndPush(KloudScreen.LoginDeactivate)
   }
   else if (status == UserStatus.New) {
-    window.KloudEvent?.clearAndPush(KloudScreen.Onboard)
+    window.KloudEvent?.clearAndPush(KloudScreen.Onboard(''))
   } else {
     const dialogInfo = await createDialog('LoginFail', message)
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));

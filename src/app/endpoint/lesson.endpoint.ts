@@ -45,7 +45,7 @@ export type GetArtistResponse = {
 }
 
 export type GetStudioLessonParameter = {
-    studioId: string;
+    studioId: number;
 }
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {

@@ -1,8 +1,7 @@
 'use client';
 
-import { createDialog, DialogId } from "@/utils/dialog.factory";
+import { createDialog, DialogId, DialogInfo } from "@/utils/dialog.factory";
 import { useEffect } from "react";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 import { clearCookies } from "@/app/setting/clear.token.action";
 

@@ -10,9 +10,14 @@ import { signUpAction } from "@/app/signUp/signup.action";
 import { useLocale } from "@/hooks/useLocale";
 import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
 import { createDialog } from "@/utils/dialog.factory";
+import { UserStatus } from "@/entities/user/user.status";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { KloudScreen } from "@/shared/kloud.screen";
+import { useRouter } from "next/navigation";
 
-export const SignupForm = () => {
+export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, returnUrl: string}) => {
 
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -43,10 +48,23 @@ export const SignupForm = () => {
 
     const res = await signUpAction({ email, password })
     if (res.success) {
+      if (appVersion == '') {
+        // TODO 스마트하게 바꿔보자..
+        if (res.status == UserStatus.Ready) {
+          router.replace(returnUrl);
+        }
+        else if (res.status == UserStatus.Deactivate) {
+          router.replace(KloudScreen.LoginDeactivate)
+        }
+        else if (res.status == UserStatus.New) {
+          router.replace(KloudScreen.Onboard(returnUrl))
+        }
+      } else {
         await LoginAuthNavigation({
           status: res.status,
           window: window,
         })
+      }
     } else {
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(res.errorMessage ?? '')

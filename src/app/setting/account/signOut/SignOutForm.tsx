@@ -5,10 +5,10 @@ import CheckIcon from "../../../../../public/assets/check_white.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
 import { clearCookies } from "@/app/setting/clear.token.action";
 import { deleteUserAction } from "@/app/setting/sign.out.action";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 import { useLocale } from "@/hooks/useLocale";
 import { StringResource, StringResourceKey } from "@/shared/StringResource";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 
 const reasons: StringResourceKey[] = [
   "sign_out_reason_no_contents",
@@ -35,13 +35,7 @@ export default function SignOutForm() {
   }
 
   const onClickSignOut = () => {
-    const dialogInfo = {
-      id: 'SignOut',
-      type: 'YESORNO',
-      title: t('sign_out'),
-      message: t('sign_out_dialog_message'),
-      route: KloudScreen.Login(''),
-    }
+    const dialogInfo =createDialog('SignOut')
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }
 

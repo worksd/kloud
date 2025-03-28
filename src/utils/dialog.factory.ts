@@ -97,6 +97,14 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: '입금자명을 입력해주시길 바랍니다',
       confirmTitle: await translate('confirm'),
     }
+  } else if (id == 'SignOut') {
+    return {
+      id: 'SignOut',
+      type: 'YESORNO',
+      title: await translate('sign_out'),
+      message: await translate('sign_out_dialog_message'),
+      route: KloudScreen.Login(''),
+    }
   }
 }
 
@@ -111,9 +119,10 @@ export type DialogId =
   | 'AccountTransfer'
   | 'PaymentFail'
   | 'UsePass'
+  | 'SignOut'
   | 'EmptyDepositor';
 type DialogType = 'YESORNO' | 'SIMPLE'
-type DialogInfo = {
+export type DialogInfo = {
   id: DialogId
   type: DialogType
   title: string

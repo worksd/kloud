@@ -2,23 +2,34 @@ import { StudioDetailForm } from "@/app/studios/[id]/studio.detail";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { Metadata, ResolvingMetadata } from "next";
-import { extractNumber } from "@/utils";
+import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
+import { cookies } from "next/headers";
+import { accessTokenKey } from "@/shared/cookies.key";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export type Props = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  params: Promise<{ id: number }>;
+  searchParams: Promise<{ appVersion: string, os: string }>;
 };
 
-export default async function StudioDetail({params}: Props) {
-  const id = (await params).id;
-
+export default async function StudioDetail({params, searchParams}: Props) {
+  const {id} = (await params);
+  const {appVersion, os} = await searchParams
   return (
-    <StudioDetailForm id={extractNumber(id)}/>
+    <div className={'flex flex-col'}>
+      {appVersion == '' && <MobileWebViewTopBar
+        os={os}
+        isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
+        returnUrl={KloudScreen.StudioDetail(id)}
+      />}
+      <StudioDetailForm id={id}/>
+    </div>
+
   )
 }
 
 export async function generateMetadata(
-  { params }: Props,
+  {params}: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const studioId = Number((await params).id);

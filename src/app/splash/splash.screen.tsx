@@ -20,7 +20,7 @@ export const SplashScreen = () => {
       const route = !status
         ? KloudScreen.Login('')
         : status === UserStatus.New
-          ? KloudScreen.Onboard
+          ? KloudScreen.Onboard('')
           : status === UserStatus.Ready
             ? KloudScreen.Main : KloudScreen.Login('')
 

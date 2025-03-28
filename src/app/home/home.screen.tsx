@@ -2,8 +2,8 @@
 import React, { useEffect } from "react";
 import { getEventList } from "@/app/home/get.event.list.action";
 import { hideDialogAction } from "@/app/home/hide.dialog.action";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
 import { registerDeviceAction } from "@/app/home/action/register.device.action";
+import { DialogInfo } from "@/utils/dialog.factory";
 
 export default function HomeScreen({os}: { os: string }) {
   useEffect(() => {

@@ -1,8 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import CheckIcon from "../../../../../public/assets/check_white.svg";
-import { createDialog } from "@/utils/dialog.factory";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { KloudScreen } from "@/shared/kloud.screen";
 
 type ServerConfig = {

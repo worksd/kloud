@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { DialogInfo } from "@/app/setting/setting.menu.item";
 import localFont from "next/font/local";
 import { ReactNode } from "react";
+import { DialogInfo } from "@/utils/dialog.factory";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',

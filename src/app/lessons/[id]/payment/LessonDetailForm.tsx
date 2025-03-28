@@ -8,16 +8,19 @@ import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonInfoSection } from "@/app/lessons/[id]/lesson.info.section";
 import { translate } from "@/utils/translate";
 import { LessonPaymentButton } from "@/app/lessons/[id]/lesson.payment.button";
+import React from "react";
 
-export default async function LessonDetailForm({lesson} : {lesson: GetLessonResponse}) {
+export default async function LessonDetailForm({lesson}: {
+  lesson: GetLessonResponse,
+}) {
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
       {/* 헤더 */}
-      <HeaderInDetail title={lesson.title} />
+      <HeaderInDetail title={lesson.title}/>
 
       {/* 수업 썸네일 */}
       <div
-        style={{ backgroundImage: `url(${lesson.thumbnailUrl})` }}
+        style={{backgroundImage: `url(${lesson.thumbnailUrl})`}}
         className="
             w-full
             relative
@@ -74,7 +77,8 @@ export default async function LessonDetailForm({lesson} : {lesson: GetLessonResp
         {/* 강사 */}
         <div className="self-stretch flex-col justify-start items-start gap-5 flex">
           <div className="self-stretch h-7 px-6 justify-center items-center gap-5 inline-flex">
-            <div className="grow shrink basis-0 text-black text-[16px] font-bold leading-snug">{await translate('lesson_information')}</div>
+            <div
+              className="grow shrink basis-0 text-black text-[16px] font-bold leading-snug">{await translate('lesson_information')}</div>
           </div>
           {lesson.artist && <LessonArtistItem artist={lesson.artist}/>}
           {lesson.extraArtists && lesson.extraArtists.length > 0 && (
