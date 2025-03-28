@@ -19,10 +19,9 @@ export const metadata: Metadata = {
   viewport: 'width=device-width, initial-scale=1.0',
   robots: 'index, follow',
 }
-
 export default async function Main() {
   return (
-    <main className="h-screen overflow-hidden bg-white flex items-center justify-center">
+    <main className="h-screen overflow-hidden bg-white flex items-center justify-center select-none">
       <div className="w-full max-w-5xl mx-auto px-4">
         {/* Logo and Welcome */}
         <div className="flex flex-col items-center justify-center">
