@@ -1,8 +1,28 @@
 import Logo from "../../public/assets/logo_black.svg"
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
+  description: '댄스 스튜디오 예약을 손쉽게, Rawgraphy와 함께하세요',
+  keywords: ['댄스', '스튜디오', '예약', '댄스 스튜디오', 'Rawgraphy'],
+  openGraph: {
+    title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
+    description: '댄스 스튜디오 예약을 손쉽게, Rawgraphy와 함께하세요',
+    type: 'website',
+    locale: 'ko_KR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
+    description: '댄스 스튜디오 예약을 손쉽게, Rawgraphy와 함께하세요',
+  },
+  viewport: 'width=device-width, initial-scale=1.0',
+  robots: 'index, follow',
+}
 
 export default async function Main() {
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center">
+    <main className="h-screen overflow-hidden bg-white flex items-center justify-center">
       <div className="w-full max-w-5xl mx-auto px-4">
         {/* Logo and Welcome */}
         <div className="flex flex-col items-center justify-center">
