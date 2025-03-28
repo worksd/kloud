@@ -5,6 +5,8 @@ import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useRouter, useSearchParams } from "next/navigation";
+import { UserStatus } from "@/entities/user/user.status";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl: string}) => {
   const router = useRouter();
@@ -27,9 +29,16 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
 
       if (code && state) {
         try {
-          await kakaoLoginAction({code});
-          const decodedState = decodeURIComponent(state);
-          router.replace(decodedState || '/');
+          const res = await kakaoLoginAction({code});
+          if (res.success) {
+            const decodedState = decodeURIComponent(state);
+            if (res.status == UserStatus.Ready) {
+              router.replace(decodedState);
+            } else if (res.status == UserStatus.New) {
+              router.replace(KloudScreen.Onboard(decodedState))
+            }
+          }
+
         } catch (error) {
           console.error('Login error:', error);
         }
