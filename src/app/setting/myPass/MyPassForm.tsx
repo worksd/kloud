@@ -12,10 +12,6 @@ export const MyPassForm = ({passes}: { passes: GetPassResponse[] }) => {
   const activePasses = passes.filter(value => value.status == 'Active' || value.status == 'Pending')
   const notActivePasses = passes.filter(value => !activePasses.includes(value));
 
-  const handleOnClick = (id: number) => {
-
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Sticky Header */}

@@ -235,13 +235,18 @@ export default function PaymentButton({
         passId: selectedPass?.id ?? 0,
         status: 'Paid',
       });
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
-        route: pushRoute,
-      });
-      window.KloudEvent?.navigateMain(bootInfo);
+      if ('id' in res) {
+        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, true) : null
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: pushRoute,
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
+      }else {
+        const dialog = await createDialog('PaymentFail')
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      }
     }
   }
 
