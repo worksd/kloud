@@ -2,18 +2,11 @@ import { HeaderInDetail } from "@/app/components/headers";
 import Image from "next/image";
 import LocationIcon from "../../../../public/assets/location.svg";
 import PhoneIcon from "../../../../public/assets/phone.svg";
-import SnsButton from "@/app/components/buttons/SnsButton";
-import Instagram from "../../../../public/assets/instagram-colored.svg";
-import Youtube from "../../../../public/assets/youtube-colored.svg";
 import { LessonGridSection } from "@/app/components/lesson.grid.section";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
-import { GetStudioResponse, StudioFollowResponse } from "@/app/endpoint/studio.endpoint";
-import { toggleFollowStudio } from "@/app/search/studio.follow.action";
-import { extractNumber } from "@/utils";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
-import { useLocale } from "@/hooks/useLocale";
 import { StudioFollowButton } from "@/app/studios/[id]/StudioFollowButton";
 import { translate } from "@/utils/translate";
 
@@ -77,15 +70,16 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
         </div>
 
 
-        <div className="justify-start items-center gap-2 flex px-4">
+        {studio.phone && studio.phone.length > 0 && <div className="justify-start items-center gap-2 flex px-4">
           <PhoneIcon className="flex-shrink-0"/>
           <div className="text-center text-[#505356] text-[14px] font-medium leading-tight">{studio.phone}</div>
-        </div>
+        </div>}
 
-        <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">
-          {studio.instagramAddress && <SnsButton link={studio.instagramAddress} logoPath={Instagram} alt="instagram"/>}
-          {studio.youtubeUrl && <SnsButton link={studio.youtubeUrl} logoPath={Youtube} alt="youtube"/>}
-        </div>
+
+        {/*<div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">*/}
+        {/*  {studio.instagramAddress && <InstagramIcon/>}*/}
+        {/*  {studio.youtubeUrl && <YoutubeIcon/>}*/}
+        {/*</div>*/}
 
         <section>
           {studio.announcements && studio.announcements.length > 0 && (
