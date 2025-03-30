@@ -243,7 +243,7 @@ export default function PaymentButton({
           route: pushRoute,
         });
         window.KloudEvent?.navigateMain(bootInfo);
-      }else {
+      } else {
         const dialog = await createDialog('PaymentFail')
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
