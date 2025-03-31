@@ -15,7 +15,7 @@ export const KloudScreen = {
   Maintenance: '/maintenance',
   Certification: '/certification',
   AccountSetting: '/setting/account',
-  PurchasePass: (studioId?: number) => `/passPlans?studioId=${studioId}`,
+  PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
   MyPass: '/setting/myPass',
   PassPlanSheet: (id: number) => `/studios/${id}/passPlans`,
   MyPassDetail: (id: number) => `/setting/myPass/${id}`,
@@ -36,3 +36,5 @@ export const KloudScreen = {
 export const isAuthScreen = (endpoint: string) => {
   return (endpoint.includes('/lessons/') && endpoint.includes('/payment'));
 }
+
+export const NO_DATA_ID = -1

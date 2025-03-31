@@ -3,12 +3,13 @@ import { getStudioList } from "@/app/home/@popularStudios/get.studio.list.action
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { PurchaseStudioPassForm } from "@/app/passPlans/PurchaseStudioPassForm";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { NO_DATA_ID } from "@/shared/kloud.screen";
 
 export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId: number }> }) {
   const {studioId} = await searchParams;
   const res = await getStudioList({hasPass: true})
 
-  if (studioId) {
+  if (studioId != NO_DATA_ID) {
     const studio = await getStudioDetail(studioId);
     if ('id' in studio) {
       return <div className={'flex flex-col'}>

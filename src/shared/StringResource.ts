@@ -1173,7 +1173,13 @@ export const StringResource = {
     en: 'Pass Purchase Complete',
     jp: 'パス購入完了',
     zh: '通行证购买完成'
-  }
+  },
+  no_used_pass: {
+    ko: '패스로 구매한 수강권이 없습니다',
+    en: 'No passes have been used for class purchases',
+    jp: 'パスで購入した受講券はありません',
+    zh: '没有使用通行证购买的课程'
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

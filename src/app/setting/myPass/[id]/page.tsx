@@ -23,11 +23,11 @@ export default async function MyPassDetailPage({params}: {
         </div>
 
         <Divider/>
-        {pass.tickets && pass.tickets.length > 0 && (
+
           <div className={'py-5'}>
             <PassTicketUsageHistory tickets={pass.tickets}/>
           </div>
-        )}
+
         <Divider/>
         <div className={'py-5'}>
           <PurchaseInformation price={pass.passPlan?.price ?? 0} titleResource={'pass_price_amount'}/>
