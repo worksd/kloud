@@ -142,7 +142,7 @@ export default function PaymentButton({
       const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
-  }, [id, method, depositor]);
+  }, [id, method, depositor, selectedPass]);
 
   const {t} = useLocale()
   const [mounted, setMounted] = useState(false);
@@ -254,7 +254,7 @@ export default function PaymentButton({
     window.onDialogConfirm = async (data: DialogInfo) => {
       await onConfirmDialog(data)
     }
-  }, [depositor])
+  }, [depositor, selectedPass])
 
 
   return (
