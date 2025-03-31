@@ -15,7 +15,7 @@ export const KloudScreen = {
   Maintenance: '/maintenance',
   Certification: '/certification',
   AccountSetting: '/setting/account',
-  PurchasePass: '/passPlans',
+  PurchasePass: (studioId?: number) => `/passPlans?studioId=${studioId}`,
   MyPass: '/setting/myPass',
   PassPlanSheet: (id: number) => `/studios/${id}/passPlans`,
   MyPassDetail: (id: number) => `/setting/myPass/${id}`,

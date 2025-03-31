@@ -35,7 +35,7 @@ export const PassList = ({
       <div className={'flex flex-col justify-center pt-36 items-center space-y-4 text-center'}>
         {isActivePass && <div
           className={'text-[14px] text-black font-bold border rounded-full border-black px-4 py-3 active:scale-[0.98] active:bg-gray-100 transition-transform duration-150 text-center'}
-          onClick={() => window.KloudEvent?.push(KloudScreen.PurchasePass)}><TranslatableText
+          onClick={() => window.KloudEvent?.push(KloudScreen.PurchasePass(undefined))}><TranslatableText
           titleResource={'go_purchase_pass_title'}/></div>}
         <TranslatableText titleResource={isActivePass ? 'no_active_passes_message' : 'no_used_passes_message'}
                           className={'text-[#85898C] font-medium text-[16px] text-center'}/>

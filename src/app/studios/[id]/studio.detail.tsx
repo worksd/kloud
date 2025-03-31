@@ -9,6 +9,9 @@ import { notFound } from "next/navigation";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { StudioFollowButton } from "@/app/studios/[id]/StudioFollowButton";
 import { translate } from "@/utils/translate";
+import { LessonPaymentButton } from "@/app/lessons/[id]/lesson.payment.button";
+import { isPastTime } from "@/app/lessons/[id]/time.util";
+import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchaseSubmitButton";
 
 export const StudioDetailForm = async ({id}: { id: number }) => {
 
@@ -130,7 +133,10 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
             />
           </div>
         </div>
+      </div>
 
+      <div className="left-0 w-full h-fit fixed bottom-2 px-6">
+        <PassPlanPurchaseSubmitButton studioId={studio.id}/>
       </div>
 
     </div>
