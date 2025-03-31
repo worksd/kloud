@@ -1,8 +1,8 @@
 'use client'
 import { CircleImage } from "@/app/components/CircleImage";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { calculateDDays, calculateDdaysWithDay } from "@/utils";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { DdayText } from "@/app/components/DdayText";
 
 export const PassItem = ({pass}: { pass: GetPassResponse }) => {
   return (
@@ -26,7 +26,7 @@ export const PassItem = ({pass}: { pass: GetPassResponse }) => {
                 </div>
               }
 
-              <span className={'text-[#FF434F] font-bold'}>{calculateDdaysWithDay(pass.endDate)}</span>
+              <DdayText input={pass.endDate}/>
               <span className={'text-[#A4A4A4] font-medium'}>|</span>
               <div className={'flex flex-row space-x-0.5'}>
                 <span className={'text-[#A4A4A4] font-medium'}>{pass.endDate}</span>
