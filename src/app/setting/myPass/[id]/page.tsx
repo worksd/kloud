@@ -6,6 +6,7 @@ import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation"
 import { PassItem } from "@/app/setting/myPass/action/PassItem";
 import Divider from "@/app/studios/[id]/studio.divider";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
+import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
 export default async function MyPassDetailPage({params}: {
   params: Promise<{ id: number }>
@@ -18,8 +19,14 @@ export default async function MyPassDetailPage({params}: {
           <DynamicHeader title={pass.passPlan?.name}/>
         </div>
 
-        <div className={'pl-4 py-5'}>
+        <div className={'px-4 py-5 space-y-4'}>
           <PassItem pass={pass}/>
+          <AccountTransferComponent
+            depositor={pass.passPlan?.studio?.depositor}
+            bank={pass.passPlan?.studio?.bank}
+            accountNumber={pass.passPlan?.studio?.accountNumber}
+            price={pass.passPlan?.price}
+          />
         </div>
 
         <Divider/>

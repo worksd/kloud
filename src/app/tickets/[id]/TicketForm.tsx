@@ -10,6 +10,7 @@ import PaymentQuestionPopup from "@/app/tickets/[id]/ArtistQuestionDialog";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { useLocale } from "@/hooks/useLocale";
 import { translate } from "@/utils/translate";
+import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
 export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse, isJustPaid: string}) {
   const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
@@ -24,29 +25,13 @@ export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse,
         <div className="flex flex-row mt-5 rounded-[16px] bg-black p-6 items-center">
 
           {ticket.status == 'Cancelled' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
-          {ticket.status === "Pending" && (
-            <div className="flex flex-col p-4 border rounded-lg bg-gray-100 justify-center">
-              <div className="text-sm font-bold text-gray-700">{ticket.lesson?.title}</div>
-              <div className="text-sm font-bold text-gray-700">{await translate('bank_transfer_message')}</div>
-              <div className="text-sm font-bold text-gray-700">{await translate('bank_transfer_description')}</div>
-
-              <div className="flex flex-col mt-2 p-3 bg-white rounded-lg shadow">
-                <div className="text-gray-500 text-sm">{await translate('depositor')}</div>
-                <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.depositor}</div>
-
-                <div className="text-gray-500 text-sm">{await translate('bank')}</div>
-                <div className="font-bold text-lg text-black">{ticket.lesson?.studio?.bank}</div>
-
-                <div className="mt-2 text-gray-500 text-sm">{await translate('account_number')}</div>
-                <div className="font-medium text-base text-black">{ticket.lesson?.studio?.accountNumber}</div>
-
-                <div className="mt-4 text-gray-500 text-sm">{await translate('deposit_amount')}</div>
-                <div className="font-bold text-xl text-red-500">
-                  {new Intl.NumberFormat("ko-KR").format(ticket.lesson?.price ?? 0)}원
-                </div>
-              </div>
-            </div>
-          )}
+          {ticket.status === 'Pending' && <AccountTransferComponent
+            title={ticket.lesson?.title}
+            depositor={ticket.lesson?.studio?.depositor}
+            bank={ticket.lesson?.studio?.bank}
+            accountNumber={ticket.lesson?.studio?.accountNumber}
+            price={ticket.lesson?.price}
+          />}
           {ticket.status != 'Pending' &&
             <div className={"flex flex-row items-center"}>
               <Image

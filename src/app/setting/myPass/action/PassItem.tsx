@@ -3,6 +3,7 @@ import { CircleImage } from "@/app/components/CircleImage";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { DdayText } from "@/app/components/DdayText";
+import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
 export const PassItem = ({pass}: { pass: GetPassResponse }) => {
   return (
