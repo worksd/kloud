@@ -7,6 +7,10 @@ import { PassItem } from "@/app/setting/myPass/action/PassItem";
 import Divider from "@/app/studios/[id]/studio.divider";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
+import { CommonSubmitButton } from "@/app/components/buttons";
+import { translate } from "@/utils/translate";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function MyPassDetailPage({params}: {
   params: Promise<{ id: number }>
@@ -21,19 +25,21 @@ export default async function MyPassDetailPage({params}: {
 
         <div className={'px-4 py-5 space-y-4'}>
           <PassItem pass={pass}/>
-          <AccountTransferComponent
-            depositor={pass.passPlan?.studio?.depositor}
-            bank={pass.passPlan?.studio?.bank}
-            accountNumber={pass.passPlan?.studio?.accountNumber}
-            price={pass.passPlan?.price}
-          />
+          {pass.status == 'Pending' &&
+            <AccountTransferComponent
+              depositor={pass.passPlan?.studio?.depositor}
+              bank={pass.passPlan?.studio?.bank}
+              accountNumber={pass.passPlan?.studio?.accountNumber}
+              price={pass.passPlan?.price}
+            />
+          }
         </div>
 
         <Divider/>
 
-          <div className={'py-5'}>
-            <PassTicketUsageHistory tickets={pass.tickets}/>
-          </div>
+        <div className={'py-5'}>
+          <PassTicketUsageHistory tickets={pass.tickets}/>
+        </div>
 
         <Divider/>
         <div className={'py-5'}>
@@ -45,6 +51,17 @@ export default async function MyPassDetailPage({params}: {
           <RefundInformation/>
         </div>
 
+        {pass.status == 'Active' &&
+          <div className={"sticky bottom-0 px-6"}>
+            <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(pass.passPlan?.studio?.id ?? 0)}>
+              <CommonSubmitButton
+                disabled={false}
+              >
+                {await translate('use_pass_go_studio')}
+              </CommonSubmitButton>
+            </NavigateClickWrapper>
+          </div>
+        }
       </div>
     )
   }

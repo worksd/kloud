@@ -1180,6 +1180,12 @@ export const StringResource = {
     jp: 'パスで購入した受講券はありません',
     zh: '没有使用通行证购买的课程'
   },
+  use_pass_go_studio: {
+    ko: '패스 사용하러 가기',
+    en: 'Go use a pass',
+    jp: 'パスを使いに行く',
+    zh: '去使用通行证',
+  }
 }
 
 export type StringResourceKey = keyof typeof StringResource;
