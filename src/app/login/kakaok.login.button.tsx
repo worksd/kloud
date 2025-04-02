@@ -1,6 +1,6 @@
 'use client';
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { TranslatableText } from "@/utils/TranslatableText";
@@ -11,6 +11,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl: string}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [prevCode, setPrevCode] = useState("");
 
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
@@ -29,6 +30,8 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
 
       if (code && state) {
         try {
+          if (code == prevCode) return
+          setPrevCode(code);
           const res = await kakaoLoginAction({code});
           if (res.success) {
             const decodedState = decodeURIComponent(state);
@@ -38,6 +41,7 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
               router.replace(KloudScreen.Onboard(decodedState))
             }
           }
+          setPrevCode('');
 
         } catch (error) {
           console.error('Login error:', error);
