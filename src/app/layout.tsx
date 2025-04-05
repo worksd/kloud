@@ -53,7 +53,6 @@ declare global {
     rootNext: (screen: string) => void;
     navigateMain: (bootInfo: string) => void;
     setToken: (token: string) => void;
-    sendBootInfo: (bootInfo: string) => void;
     onSplashStarted: () => void;
     showToast: (message: string) => void;
     sendHapticFeedback: () => void;

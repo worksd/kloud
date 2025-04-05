@@ -4,7 +4,7 @@ import Image from "next/image";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import CheckIcon from "../../../public/assets/check_white.svg"
 import { useLocale } from "@/hooks/useLocale";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface StudioCardProps {
   studio: GetStudioResponse;
@@ -36,7 +36,7 @@ const StudioCard = ({studio, isSelected, onSelect}: StudioCardProps) => {
         </>
       )}
     </div>
-    <div className={`text-[16px] truncate text-center transition-colors duration-200 ${
+    <div className={`text-[16px] text-center transition-colors duration-200 ${
       isSelected ? 'text-black font-bold' : 'text-gray-300 font-normal'
     }`}>
       {studio.name}
@@ -58,6 +58,12 @@ export const FavoriteStudioForm = ({
   const handleSelect = (id: number) => {
     onSelectStudioAction(id);  // 직접 ID만 전달
   };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return;
 
   return (
     <div className="flex flex-col bg-white">

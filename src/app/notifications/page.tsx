@@ -1,6 +1,6 @@
 import NotificationForm from "@/app/notifications/notification.form";
-import { translate } from "@/utils/translate";
 import { api } from "@/app/api.client";
+import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
 export default async function NotificationPage() {
   const res = await api.notification.get({});
@@ -11,9 +11,9 @@ export default async function NotificationPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <header className="sticky top-0 z-10 bg-white p-4">
-        <h1 className="text-2xl text-black">{await translate('notification')}</h1>
-      </header>
+      <div className="flex justify-between items-center mb-14">
+        <SimpleHeader titleResource={'notification'}/>
+      </div>
       <NotificationForm notifications={res.notifications}/>
     </main>
   );

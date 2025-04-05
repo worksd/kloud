@@ -68,6 +68,28 @@ export default function PaymentButton({
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   const router = useRouter();
 
+  const onPaymentSuccess = async ({paymentId} : {paymentId: string}) => {
+    if (type.value == 'lesson') {
+      const res = await createTicketAction({paymentId: paymentId, lessonId: id, status: 'Paid'});
+      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
+      const bottomMenuList = await getBottomMenuList();
+      const bootInfo = JSON.stringify({
+        bottomMenuList: bottomMenuList,
+        route: pushRoute,
+      });
+      window.KloudEvent?.navigateMain(bootInfo);
+    } else if (type.value == 'passPlan') {
+      const res = await createPassAction({paymentId: paymentId, passPlanId: id, status: 'Active'});
+      const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
+      const bottomMenuList = await getBottomMenuList();
+      const bootInfo = JSON.stringify({
+        bottomMenuList: bottomMenuList,
+        route: pushRoute,
+      });
+      window.KloudEvent?.navigateMain(bootInfo);
+    }
+  }
+
   const handlePayment = useCallback(async () => {
 
     const user = await getUserAction()
@@ -83,6 +105,11 @@ export default function PaymentButton({
     }
 
     const paymentId = generatePaymentId({type: type, id: id})
+
+    if (price == 0) {
+      await onPaymentSuccess({paymentId: paymentId})
+      return
+    }
 
     if (method === 'credit') {
       if (appVersion == '') {
@@ -154,27 +181,8 @@ export default function PaymentButton({
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
-      if (type.value == 'lesson') {
-        const res = await createTicketAction({paymentId: data.paymentId, lessonId: id, status: 'Paid'});
-        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-        const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList: bottomMenuList,
-          route: pushRoute,
-        });
-        window.KloudEvent?.navigateMain(bootInfo);
-      } else if (type.value == 'passPlan') {
-        const res = await createPassAction({paymentId: data.paymentId, passPlanId: id, status: 'Active'});
-        const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
-        const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList: bottomMenuList,
-          route: pushRoute,
-        });
-        window.KloudEvent?.navigateMain(bootInfo);
-      }
-    }
-  }, [selectedPass])
+      onPaymentSuccess({paymentId: data.paymentId})
+  }}, [selectedPass])
 
   useEffect(() => {
     window.onErrorInvoked = async (data: { code: string }) => {

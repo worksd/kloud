@@ -6,7 +6,7 @@ export default async function PopularLessons() {
   const res = await getJumbotronList()
   return (
     <section className="flex flex-col">
-      <CardList lessons={res.lessons ?? []}/>
+      <CardList lessons={res.lessons?.slice(0,5) ?? []}/>
     </section>
   )
 }

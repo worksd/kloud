@@ -21,6 +21,9 @@ export default async function LessonPaymentPage({params, searchParams}: {
   const res = await getLessonPaymentAction({id: id})
 
   if ('user' in res) {
+    if (res.lesson?.status != '예약 중') {
+      return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
+    }
     return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
         {/* 백 헤더 */}

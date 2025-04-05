@@ -20,6 +20,9 @@ export default async function AccountSetting({
       <DialogClickWrapper id={"UnderDevelopment"}>
         <MenuItem label="edit_profile"/>
       </DialogClickWrapper>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+        <MenuItem label="edit_refund_account"/>
+      </NavigateClickWrapper>
       <DialogClickWrapper id={"UnderDevelopment"}>
         <MenuItem label="notification_setting"/>
       </DialogClickWrapper>

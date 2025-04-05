@@ -24,7 +24,7 @@ export default async function PassPaymentCompletePage({params}: Props) {
 
             {'id' in studio && (
               <div className="w-full mt-6">
-                <LessonBand lessons={studio.lessons} title={'패스권 추천 클래스'}/>
+                <LessonBand lessons={studio.lessons ?? []} title={'패스권 추천 클래스'} type={'Default'}/>
               </div>
             )}
           </div>

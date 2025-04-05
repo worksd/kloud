@@ -540,7 +540,7 @@ export const StringResource = {
     zh: "购买课程票"
   },
   finish_lesson_title: {
-    ko: "종료된 수업입니다",
+    ko: "수강신청이 종료된 수업입니다",
     en: "Lesson Ended",
     jp: "終了したレッスンです",
     zh: "课程已结束"
@@ -606,8 +606,8 @@ export const StringResource = {
     zh: ""
   },
   finish: {
-    ko: "종료",
-    en: "Finish",
+    ko: "수업 종료",
+    en: "Lesson Finish",
     jp: "終了",
     zh: "结束"
   },
@@ -1185,7 +1185,62 @@ export const StringResource = {
     en: 'Go use a pass',
     jp: 'パスを使いに行く',
     zh: '去使用通行证',
+  },
+  my_studio: {
+    ko: '나의 스튜디오',
+    en: 'My Studio',
+    jp: 'マイスタジオ',
+    zh: '我的工作室',
+  },
+  no_student_message: {
+    ko: "아직 수강권을 구매한 스튜디오가 없어요.\n관심 있는 스튜디오에서 수강권을 구매해보세요!",
+    en: "You haven’t purchased a pass from any studio yet.\nTry buying one from a studio you're interested in!",
+    jp: "まだパスを購入したスタジオがありません。\n気になるスタジオで購入してみましょう！",
+    zh: "你还没有在任何工作室购买通行证。\n可以考虑在感兴趣的工作室购买一个！"
+  },
+  refund_account_number: {
+    ko: '환불 계좌번호',
+    en: 'Refund Account Number',
+    jp: '返金口座番号',
+    zh: '退款账户号码',
+  },
+  refund_account_bank: {
+    ko: '환불 계좌 은행',
+    en: 'Refund Account Bank',
+    jp: '返金銀行',
+    zh: '退款银行',
+  },
+  refund_account_depositor: {
+    ko: '환불 계좌 예금주',
+    en: 'Account Holder Name',
+    jp: '口座名義人',
+    zh: '账户持有人姓名',
+  },
+  input_refund_account_number: {
+    ko: '환불 받으실 계좌 번호를 입력해주세요',
+    en: 'Please enter your refund account number',
+    jp: '返金用の口座番号を入力してください',
+    zh: '请输入用于退款的账户号码',
+  },
+  input_refund_account_bank: {
+    ko: '환불 받으실 은행을 입력해주세요',
+    en: 'Please enter your bank name for the refund',
+    jp: '返金用の銀行名を入力してください',
+    zh: '请输入用于退款的银行名称',
+  },
+  input_refund_account_depositor: {
+    ko: '환불 받으실 계좌의 예금주를 입력해주세요',
+    en: 'Please enter the account holder’s name for the refund',
+    jp: '返金用の口座名義人を入力してください',
+    zh: '请输入退款账户的持有人姓名',
+  },
+  edit_refund_account: {
+    ko: '계좌 관리',
+    en: 'Manage Account',
+    jp: '口座管理',
+    zh: '账户管理',
   }
+
 }
 
 export type StringResourceKey = keyof typeof StringResource;

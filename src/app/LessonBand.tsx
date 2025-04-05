@@ -1,11 +1,17 @@
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { Poster } from "@/app/components/Poster";
 import React from "react";
+import { RecommendPoster } from "@/app/components/RecommendPoster";
 
-export async function LessonBand ({title, lessons}: { title: string, lessons?: GetLessonResponse[] }) {
-  if (!lessons || lessons.length === 0) {
-    return null;
-  }
+export type LessonBandType = 'Default' | 'Recommend'
+
+export async function LessonBand({title, lessons, type}: {
+  title: string,
+  lessons: GetLessonResponse[],
+  type: LessonBandType
+}) {
+
+  if (lessons.length == 0) return;
 
   return (
     <div className="flex flex-col mb-6">
@@ -16,17 +22,28 @@ export async function LessonBand ({title, lessons}: { title: string, lessons?: G
             key={item.id}
             className={index === 0 ? 'pl-4' : ''}
           >
-            <Poster
-              width={167}
-              id={item.id}
-              posterUrl={item?.thumbnailUrl ?? ''}
-              title={item.title ?? ''}
-              startTime={item.startTime ?? ''}
-              studioLogoUrl={item.studio?.profileImageUrl}
-            />
+            {type == 'Default' &&
+              <Poster
+                width={167}
+                id={item.id}
+                posterUrl={item?.thumbnailUrl ?? ''}
+                title={item.title ?? ''}
+                startTime={item.startTime ?? ''}
+                studioLogoUrl={item.studio?.profileImageUrl}
+              />
+            }
+            {
+              type == 'Recommend' &&
+              <RecommendPoster
+                id={item.id}
+                posterUrl={item?.thumbnailUrl ?? ''}
+                startTime={item.startTime ?? ''}
+              />
+            }
           </div>
         ))}
-        <div className="pr-4" /> {/* 마지막 여백 */}
+        <div className="pr-4"/>
+        {/* 마지막 여백 */}
       </div>
     </div>
   );

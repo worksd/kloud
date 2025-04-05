@@ -1,14 +1,14 @@
-import { Endpoint, NoParameter } from "@/app/endpoint/index";
+import { Endpoint } from "@/app/endpoint/index";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
-import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
 export type IdParameter = {
-    id: number;
+  id: number;
 };
 
 export type GetStudioListParameter = {
-    hasPass: boolean;
+  hasPass: boolean;
 }
 
 export type GetStudioResponse = {
@@ -33,23 +33,42 @@ export type GetStudioResponse = {
     follow?: StudioFollowResponse;
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];
+    passes?: GetPassResponse[];
 };
 
+export type GetMyStudioResponse = {
+  announcements: GetAnnouncementResponse[];
+  myUpcomingLessons: GetLessonResponse[];
+  jumbotrons: GetLessonResponse[];
+  schedules: GetLessonResponse[];
+}
+
 export type StudioFollowResponse = {
-    id: number;
+  id: number;
 }
 
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
-    method: "get",
-    path: (e) => `/studios/${e.id}`,
+  method: "get",
+  path: (e) => `/studios/${e.id}`,
 };
 
 export type GetStudioListResponse = {
-    studios: GetStudioResponse[]
+  studios: GetStudioResponse[]
 }
 
 export const ListStudios: Endpoint<GetStudioListParameter, GetStudioListResponse> = {
-    method: 'get',
-    path: `/studios`,
-    queryParams: ['hasPass']
+  method: 'get',
+  path: `/studios`,
+  queryParams: ['hasPass']
+}
+
+export const Me: Endpoint<IdParameter, GetMyStudioResponse> = {
+  method: 'get',
+  path: (e) => `/studios/${e.id}/me`,
+  pathParams: ['id'],
+}
+
+export const My: Endpoint<object, GetStudioListResponse> = {
+  method: 'get',
+  path: `/studios/my`,
 }

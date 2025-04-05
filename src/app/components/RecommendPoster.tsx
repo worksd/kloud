@@ -7,13 +7,13 @@ import { calculateDDays } from "@/utils";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { translate } from "@/utils/translate";
 
-export async function Poster({
+export async function RecommendPoster({
                                id,
                                posterUrl,
                                studioLogoUrl,
                                startTime,
                                title,
-                               width = 160
+                               width = 240
                              }: {
   id: number,
   posterUrl: string,
@@ -22,8 +22,6 @@ export async function Poster({
   title?: string,
   width?: number
 }) {
-  const d_days = calculateDDays(startTime)
-  const formatTime = await formatDateTime(startTime)
   return (
     <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(id)}>
       <div
@@ -35,18 +33,8 @@ export async function Poster({
             className="relative z-0 object-cover w-full"
             width={width}
             url={posterUrl}
+            aspectRatio={120/222}
           />
-          {d_days ? (
-            <div
-              className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
-              {d_days}
-            </div>
-          ) : (
-            <div className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">
-              {await translate('finish')}
-            </div>
-          )}
-
           {studioLogoUrl && <Image
             className="absolute left-0 top-0 mt-2 ml-2 w-[24px] h-[24px] rounded-full flex-shrink-0"
             src={studioLogoUrl}
@@ -68,11 +56,6 @@ export async function Poster({
           >
             {title}
           </div>
-          {title &&
-            <div className="body-200 text-gray-500 truncate">
-              {`${formatTime.date}(${await translate(formatTime.dayOfWeek)}) ${formatTime.time}`}
-            </div>
-          }
         </div>
       </div>
     </NavigateClickWrapper>

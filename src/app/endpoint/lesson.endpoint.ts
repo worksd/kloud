@@ -46,6 +46,7 @@ export type GetArtistResponse = {
 
 export type GetStudioLessonParameter = {
     studioId: number;
+    page: number;
 }
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
@@ -66,5 +67,5 @@ export const GetLessonPayment: Endpoint<GetLessonParameter, GetLessonResponse> =
 export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons`,
-    queryParams: ['studioId']
+    queryParams: ['studioId', 'page']
 }

@@ -19,6 +19,9 @@ export type GetUserResponse = {
   deactivatedAt: string
   phone?: string
   passes?: GetPassResponse[]
+  refundAccountNumber?: string
+  refundAccountBank?: string
+  refundAccountDepositor?: string
 }
 
 export type GetMeResponse = {

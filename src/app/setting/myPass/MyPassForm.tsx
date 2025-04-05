@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { PassList } from "@/app/setting/myPass/PassList";
+import { PassColumnList } from "@/app/setting/myPass/PassColumnList";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TranslatableText } from "@/utils/TranslatableText";
 
@@ -43,9 +43,9 @@ export const MyPassForm = ({passes}: { passes: GetPassResponse[] }) => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-4">
         {currentTab === 'active' ? (
-          <PassList passItems={activePasses} isActivePass={true}/>
+          <PassColumnList passItems={activePasses} isActivePass={true}/>
         ) : (
-          <PassList passItems={notActivePasses} isActivePass={false}/>
+          <PassColumnList passItems={notActivePasses} isActivePass={false}/>
         )}
       </div>
     </div>

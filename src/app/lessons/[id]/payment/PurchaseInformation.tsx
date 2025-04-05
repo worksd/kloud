@@ -4,8 +4,9 @@ import { useLocale } from "@/hooks/useLocale";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { StringResourceKey } from "@/shared/StringResource";
 import { useEffect, useState } from "react";
+import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 
-export const PurchaseInformation = ({price, titleResource} : { price: number, titleResource: StringResourceKey}) => {
+export const PurchaseInformation = ({price, method, titleResource} : { price: number, method?: PaymentMethod, titleResource: StringResourceKey}) => {
   const { t } = useLocale();
   const [mounted, setMounted] = useState(false)
 
@@ -28,7 +29,7 @@ export const PurchaseInformation = ({price, titleResource} : { price: number, ti
 
       <div className="flex justify-between text-base font-bold text-center text-black">
         <TranslatableText titleResource={'total_amount'}/>
-        <p>{new Intl.NumberFormat("ko-KR").format(price)} {mounted ? t('won') : ''}</p>
+        <p>{new Intl.NumberFormat("ko-KR").format(method == 'pass' ? 0 : price)} {mounted ? t('won') : ''}</p>
       </div>
     </div>
   )

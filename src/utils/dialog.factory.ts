@@ -104,6 +104,16 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       title: await translate('sign_out'),
       message: await translate('sign_out_dialog_message'),
       route: KloudScreen.Login(''),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
+  } else if (id == 'CertificationSuccess') {
+    return {
+      id: 'CertificationSuccess',
+      type: 'SIMPLE',
+      title: '본인인증 성공',
+      message: '본인인증에 성공하였습니다',
+      confirmTitle: await translate('confirm'),
     }
   }
 }
@@ -120,7 +130,8 @@ export type DialogId =
   | 'PaymentFail'
   | 'UsePass'
   | 'SignOut'
-  | 'EmptyDepositor';
+  | 'EmptyDepositor'
+  | 'CertificationSuccess'
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
   id: DialogId

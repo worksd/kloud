@@ -2,10 +2,6 @@ import { LessonBand } from "@/app/LessonBand";
 import React from "react";
 import { api } from "@/app/api.client";
 import { translate } from "@/utils/translate";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import { KloudScreen } from "@/shared/kloud.screen";
-import AnnouncementIcon from "../../../../public/assets/announcement-right-arrow.svg";
 import { AnnouncementBand } from "@/app/home/@my/announcement.band";
 
 export default async function MyHomeContents() {
@@ -14,7 +10,7 @@ export default async function MyHomeContents() {
   return (
     <div>
       <section className="mt-4">
-        <LessonBand title={await translate('upcoming_lessons')} lessons={res.lessons}/>
+        <LessonBand title={'실시간 인기 스튜디오'} lessons={res.lessons ?? []} type={'Default'}/>
 
         {res.lessons?.length == 0 && (
           <div className="w-full text-center text-[#BCBFC2] py-10">

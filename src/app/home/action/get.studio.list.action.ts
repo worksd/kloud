@@ -1,8 +1,8 @@
 'use server'
 import { api } from "@/app/api.client";
-import { GetStudioResult } from "@/app/home/@popularStudios/page";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
-export async function getStudioList({hasPass}: { hasPass?: boolean }): Promise<GetStudioResult> {
+export async function getStudioList({hasPass}: { hasPass?: boolean }): Promise<{studios?: GetStudioResponse[], errorMessage?: string}> {
   const res = await api.studio.list({hasPass: hasPass ?? false});
 
   if ('studios' in res) {

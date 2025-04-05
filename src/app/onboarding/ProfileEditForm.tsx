@@ -16,9 +16,9 @@ export const ProfileEditForm = ({nickName, profileImageUrl, inputErrorMessage, o
         <h1 className="text-2xl font-bold mb-2 text-black">
           <TranslatableText titleResource={'change_profile_message'}/>
         </h1>
-        <p className="text-gray-600">
+        <div className="text-gray-600">
           <TranslatableText titleResource={'change_profile_description'}/>
-        </p>
+        </div>
       </div>
 
       {/* 컨텐츠 영역 */}

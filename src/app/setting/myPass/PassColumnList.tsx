@@ -8,7 +8,7 @@ import { TranslatableText } from "@/utils/TranslatableText";
 import { useEffect, useState } from "react";
 import { PassItem } from "@/app/setting/myPass/action/PassItem";
 
-export const PassList = ({
+export const PassColumnList = ({
                            passItems,
                            isActivePass,
                          }: { passItems: GetPassResponse[], isActivePass: boolean }) => {
@@ -44,12 +44,12 @@ export const PassList = ({
   }
 }
 
-const ActivePassItem = ({pass}: { pass: GetPassResponse }) => {
+export const ActivePassItem = ({pass}: { pass: GetPassResponse }) => {
   return (
     <div
       className="bg-white rounded-2xl p-6 border active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none"
       onClick={() => window.KloudEvent.push(KloudScreen.MyPassDetail(pass.id))}>
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center space-x-4">
         <PassItem pass={pass}/>
         <RightArrowIcon/>
       </div>

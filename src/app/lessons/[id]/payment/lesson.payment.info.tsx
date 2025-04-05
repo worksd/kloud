@@ -36,6 +36,10 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
     return options;
   }, [payment.user.passes]);
 
+  const handleSelectMethod = (method: PaymentMethod) => {
+    setSelectedMethod(method);
+  }
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -49,7 +53,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
           paymentOptions={paymentOptions}
           selectedMethod={selectedMethod}
-          selectPaymentMethodAction={setSelectedMethod}
+          selectPaymentMethodAction={handleSelectMethod}
           depositor={depositor}
           setDepositorAction={setDepositor}/>
       </div>
@@ -59,7 +63,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
       </div>
 
       {/* 결제 정보 */}
-      <PurchaseInformation price={payment.totalPrice} titleResource={'lesson_price'}/>
+      <PurchaseInformation price={payment.totalPrice} method={selectedMethod} titleResource={'lesson_price'}/>
 
 
       <div className="py-5">

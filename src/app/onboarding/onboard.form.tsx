@@ -15,6 +15,7 @@ import { followStudio } from "@/app/search/studio.follow.action";
 import { useLocale } from "@/hooks/useLocale";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useRouter } from "next/navigation";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 type Step = 'profile' | 'favorite' | 'agreement';
 
@@ -211,10 +212,8 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
           <div className="bg-white p-6 rounded-lg shadow-lg text-center flex flex-col items-center">
             {/* 스피너 */}
             <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin mb-4"></div>
-            <p className="text-lg font-semibold text-black">
-              {t('welcome_title')}<br/>
-              {t('welcome_message')}
-            </p>
+            <TranslatableText className="text-lg font-semibold text-black" titleResource={'welcome_title'}/>
+            <TranslatableText className="text-lg font-semibold text-black" titleResource={'welcome_message'}/>
           </div>
         </div>
       )}
