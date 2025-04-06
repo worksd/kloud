@@ -18,11 +18,13 @@ export const PassItem = ({pass}: { pass: GetPassResponse }) => {
           {
             pass.status == 'Active' &&
             <div className="flex items-center space-x-2 text-gray-500">
-              {pass.passPlan?.usageLimit && pass.tickets &&
-                <div className={'space-x-2'}>
-                <span
-                  className={'text-[#A4A4A4] font-medium'}>{(pass.passPlan?.usageLimit ?? 0) - (pass.tickets?.length ?? 0)}회 남음</span>
-                  <span className={'text-[#A4A4A4] font-medium'}>|</span>
+              {pass.remainingCount &&
+                <div className="flex items-center space-x-2 text-[#A4A4A4] font-medium">
+                  <div className="flex flex-row items-center">
+                    <div>{pass.remainingCount}</div>
+                    <TranslatableText titleResource="remaining_count"/>
+                  </div>
+                  <span>|</span>
                 </div>
               }
 

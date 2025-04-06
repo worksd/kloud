@@ -1276,6 +1276,18 @@ export const StringResource = {
     jp: '返金口座情報が正常に更新されました。',
     zh: '退款账户信息已成功更新。',
   },
+  remaining_count: {
+    ko: '회 남음',
+    en: 'times left',
+    jp: '回残り',
+    zh: '次剩余',
+  },
+  live_popular_lessons: {
+    ko: '실시간 인기 클래스',
+    en: 'Live Popular Classes',
+    jp: 'ライブ人気クラス',
+    zh: '实时热门课程',
+  },
 
 }
 

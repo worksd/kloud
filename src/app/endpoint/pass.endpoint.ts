@@ -36,6 +36,7 @@ export type GetPassResponse = {
   title: string
   passPlan?: GetPassPlanResponse
   tickets?: TicketResponse[]
+  remainingCount?: number
 }
 
 export type GetPassesResponse = {

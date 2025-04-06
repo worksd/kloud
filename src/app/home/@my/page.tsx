@@ -10,7 +10,7 @@ export default async function MyHomeContents() {
   return (
     <div>
       <section className="mt-4">
-        <LessonBand title={'실시간 인기 스튜디오'} lessons={res.lessons ?? []} type={'Default'}/>
+        <LessonBand title={await translate('live_popular_lessons')} lessons={res.lessons ?? []} type={'Default'}/>
 
         {res.lessons?.length == 0 && (
           <div className="w-full text-center text-[#BCBFC2] py-10">
