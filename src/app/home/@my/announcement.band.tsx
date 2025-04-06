@@ -2,7 +2,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { KloudScreen } from "@/shared/kloud.screen";
-import AnnouncementIcon from "../../../../public/assets/announcement-right-arrow.svg";
+import AnnouncementIcon from "../../../../public/assets/gray_right_arrow.svg";
 import React from "react";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 

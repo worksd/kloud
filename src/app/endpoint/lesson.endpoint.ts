@@ -49,6 +49,14 @@ export type GetStudioLessonParameter = {
     page: number;
 }
 
+export type GetBandResponse = {
+    title: string;
+    type: BandType;
+    lessons: GetLessonResponse[];
+}
+
+export type BandType = 'Default' | 'Recommendation'
+
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     method: "get",
     path: (e) => `/lessons/${e.id}`,

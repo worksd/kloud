@@ -5,8 +5,10 @@ import React from "react";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { saveStudioIdAction } from "@/app/studios/save.studio.id.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import CheckIcon from "../../../../../public/assets/ic_check_black.svg"
 
-export const StudioSheetItem = ({item}: { item: GetStudioResponse }) => {
+
+export const StudioSheetItem = ({item, isSelected}: { item: GetStudioResponse, isSelected: boolean }) => {
   const handleOnClickStudio = async () => {
     await saveStudioIdAction({studioId: item.id})
     const bootInfo = JSON.stringify({
@@ -29,7 +31,9 @@ export const StudioSheetItem = ({item}: { item: GetStudioResponse }) => {
             <div className="text-sm text-gray-500">{item.address}</div>
           </div>
         </div>
+        {isSelected && <CheckIcon/>}
       </div>
+
     </div>
     <div className="w-full h-[1px] bg-[#f7f8f9]"/>
   </div>

@@ -1,5 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
@@ -37,10 +37,10 @@ export type GetStudioResponse = {
 };
 
 export type GetMyStudioResponse = {
-  announcements: GetAnnouncementResponse[];
-  myUpcomingLessons: GetLessonResponse[];
-  jumbotrons: GetLessonResponse[];
-  schedules: GetLessonResponse[];
+  studio: GetStudioResponse;
+  announcement: GetAnnouncementResponse;
+  passes: GetPassResponse[];
+  bands: GetBandResponse[];
 }
 
 export type StudioFollowResponse = {

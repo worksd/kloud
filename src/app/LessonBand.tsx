@@ -1,14 +1,13 @@
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { BandType, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { Poster } from "@/app/components/Poster";
 import React from "react";
 import { RecommendPoster } from "@/app/components/RecommendPoster";
 
-export type LessonBandType = 'Default' | 'Recommend'
 
 export async function LessonBand({title, lessons, type}: {
   title: string,
   lessons: GetLessonResponse[],
-  type: LessonBandType
+  type: BandType
 }) {
 
   if (lessons.length == 0) return;
@@ -33,7 +32,7 @@ export async function LessonBand({title, lessons, type}: {
               />
             }
             {
-              type == 'Recommend' &&
+              type == 'Recommendation' &&
               <RecommendPoster
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}

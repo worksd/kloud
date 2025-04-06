@@ -1187,7 +1187,7 @@ export const StringResource = {
     zh: '去使用通行证',
   },
   my_studio: {
-    ko: '나의 스튜디오',
+    ko: '내 스튜디오',
     en: 'My Studio',
     jp: 'マイスタジオ',
     zh: '我的工作室',
@@ -1239,6 +1239,9 @@ export const StringResource = {
     en: 'Manage Account',
     jp: '口座管理',
     zh: '账户管理',
+  },
+  my_ticket_studio: {
+    ko: '나의 수강 스튜디오',
   }
 
 }
