@@ -1,5 +1,5 @@
 import React from "react";
-import { ProfileEditPageForm } from "@/app/setting/account/edit/ProfileEditPageForm";
+import { RefundAccountEditForm } from "@/app/setting/account/refund/RefundAccountEditForm";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 
@@ -9,9 +9,9 @@ export default async function ProfileEditPage() {
     return (
       <div className={'flex flex-col'}>
         <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource={'edit_profile'}/>
+          <SimpleHeader titleResource={'refund_account'}/>
         </div>
-        <ProfileEditPageForm
+        <RefundAccountEditForm
           initialAccountBank={user.refundAccountBank}
           initialAccountDepositor={user.refundAccountDepositor}
           initialAccountNumber={user.refundAccountNumber}

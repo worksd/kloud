@@ -403,7 +403,7 @@ export const StringResource = {
   },
   sign_out_reason_new_account: {
     ko: "새 계정을 만들고 싶어요.",
-    en: "I want to create a new account.",
+    en: "I want to create a new refund.",
     jp: "新しいアカウントを作成したい。",
     zh: "我想创建一个新账户。"
   },
@@ -415,7 +415,7 @@ export const StringResource = {
   },
   sign_out_description: {
     ko: "회원님이 떠나신다니 너무 아쉬워요.\n탈퇴하시면 계정 정보와 활동 내역이 삭제되며, 한 달 이전에는 복구가 가능해요.",
-    en: "We're sad to see you go.\nIf you delete your account, your data and activity will be removed, but you can recover it within a month.",
+    en: "We're sad to see you go.\nIf you delete your refund, your data and activity will be removed, but you can recover it within a month.",
     jp: "退会されるのはとても残念です。\n退会するとアカウント情報と活動履歴が削除され、1か月以内であれば復旧が可能です。",
     zh: "很遗憾您要离开。\n注销后，您的账户信息和活动记录将被删除，且一个月内可恢复。"
   },
@@ -427,7 +427,7 @@ export const StringResource = {
   },
   sign_out_dialog_message: {
     ko: "정말로 회원탈퇴 하시겠습니까?\n회원님의 데이터가 모두 삭제됩니다.",
-    en: "Are you sure you want to delete your account?\nAll your data will be erased.",
+    en: "Are you sure you want to delete your refund?\nAll your data will be erased.",
     jp: "本当に退会しますか？\nすべてのデータが削除されます。",
     zh: "确定要注销账户吗?\n您的所有数据都将被删除。"
   },
@@ -637,7 +637,7 @@ export const StringResource = {
   },
   bank_transfer_message: {
     ko: "아래 계좌로 입금해 주시면 확인 후 구매 결정해드리겠습니다.",
-    en: "Please transfer to the account below, and we will confirm your purchase.",
+    en: "Please transfer to the refund below, and we will confirm your purchase.",
     jp: "以下の口座に入金いただければ、確認後に購入手続きを行います。",
     zh: "请汇款至以下账户，我们确认后将进行购买处理。"
   },
@@ -1217,8 +1217,8 @@ export const StringResource = {
     zh: '账户持有人姓名',
   },
   input_refund_account_number: {
-    ko: '환불 받으실 계좌 번호를 입력해주세요',
-    en: 'Please enter your refund account number',
+    ko: '환불 받으실 계좌 번호를 입력해주세요(-를 제외하고 입력)',
+    en: 'Please enter your refund refund number',
     jp: '返金用の口座番号を入力してください',
     zh: '请输入用于退款的账户号码',
   },
@@ -1230,7 +1230,7 @@ export const StringResource = {
   },
   input_refund_account_depositor: {
     ko: '환불 받으실 계좌의 예금주를 입력해주세요',
-    en: 'Please enter the account holder’s name for the refund',
+    en: 'Please enter the refund holder’s name for the refund',
     jp: '返金用の口座名義人を入力してください',
     zh: '请输入退款账户的持有人姓名',
   },
@@ -1242,7 +1242,40 @@ export const StringResource = {
   },
   my_ticket_studio: {
     ko: '나의 수강 스튜디오',
-  }
+    en: 'My Studio',
+    jp: '私のスタジオ',
+    zh: '我的教室',
+  },
+  certification_success_title: {
+    ko: '본인인증 성공',
+    en: 'Verification Success',
+    jp: '本人確認成功',
+    zh: '实名认证成功',
+  },
+  certification_success_message: {
+    ko: '본인인증에 성공하였습니다',
+    en: 'You have successfully verified your identity.',
+    jp: '本人確認に成功しました。',
+    zh: '您已成功完成实名认证。',
+  },
+  refund_account: {
+    ko: '환불 계좌',
+    en: 'Refund Account',
+    jp: '返金口座',
+    zh: '退款账户',
+  },
+  empty_account_information_message: {
+    ko: '계좌 정보가 입력되지 않았습니다',
+    en: 'No account information has been entered.',
+    jp: '口座情報が入力されていません。',
+    zh: '尚未填写账户信息。',
+  },
+  refund_account_update_success_message: {
+    ko: '환불 계좌 정보를 성공적으로 반영했습니다',
+    en: 'Refund account information has been updated successfully.',
+    jp: '返金口座情報が正常に更新されました。',
+    zh: '退款账户信息已成功更新。',
+  },
 
 }
 

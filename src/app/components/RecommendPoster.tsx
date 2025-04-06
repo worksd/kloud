@@ -23,39 +23,41 @@ export async function RecommendPoster({
   width?: number
 }) {
   return (
-    <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(id)}>
+    <NavigateClickWrapper method="push" route={KloudScreen.LessonDetail(id)}>
       <div
         className="flex flex-col active:scale-[0.98] transition-transform duration-150"
-        style={{width: `${width}px`}}
+        style={{ width: `${width}px` }}
       >
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-lg">
           <Thumbnail
             className="relative z-0 object-cover w-full"
             width={width}
             url={posterUrl}
-            aspectRatio={120/222}
+            aspectRatio={2 / 3}
           />
-          {studioLogoUrl && <Image
-            className="absolute left-0 top-0 mt-2 ml-2 w-[24px] h-[24px] rounded-full flex-shrink-0"
-            src={studioLogoUrl}
-            alt={'로고 URL'}
-            width={24}
-            height={24}
-          />}
-        </div>
 
-        <div className="ml-1 w-full">
+          {/* 타이틀 오버레이 */}
           <div
-            className="body-400 mt-2"
-            style={{
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
-            }}
+            className="absolute bottom-0 left-0 w-full rounded-[16px] h-[100px] bg-gradient-to-t from-black/70 to-transparent px-2 py-2 z-10 flex items-end"
           >
-            {title}
+            <div className="text-white text-[18px] font-bold line-clamp-2">
+              {title}
+            </div>
           </div>
+
+
+          {/* 스튜디오 로고 */}
+          {studioLogoUrl && (
+            <div className="absolute top-2 left-2 bg-white p-[2px] rounded-full shadow">
+              <Image
+                src={studioLogoUrl}
+                alt="로고 URL"
+                width={24}
+                height={24}
+                className="w-[24px] h-[24px] rounded-full"
+              />
+            </div>
+          )}
         </div>
       </div>
     </NavigateClickWrapper>

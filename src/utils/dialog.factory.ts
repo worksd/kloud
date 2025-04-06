@@ -94,7 +94,7 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       id: 'EmptyDepositor',
       type: 'SIMPLE',
       title: await translate('account_transfer'),
-      message: '입금자명을 입력해주시길 바랍니다',
+      message: await translate('input_depositor_message'),
       confirmTitle: await translate('confirm'),
     }
   } else if (id == 'SignOut') {
@@ -111,8 +111,24 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
     return {
       id: 'CertificationSuccess',
       type: 'SIMPLE',
-      title: '본인인증 성공',
-      message: '본인인증에 성공하였습니다',
+      title: await translate('certification_success_title'),
+      message: await translate('certification_success_message'),
+      confirmTitle: await translate('confirm'),
+    }
+  } else if (id == 'EmptyAccountInformation') {
+    return {
+      id: 'EmptyAccountInformation',
+      type: 'SIMPLE',
+      title: await translate('refund_account'),
+      message: await translate('empty_account_information_message'),
+      confirmTitle: await translate('confirm'),
+    }
+  } else if (id == 'RefundAccountUpdateSuccess') {
+    return {
+      id: 'RefundAccountUpdateSuccess',
+      type: 'SIMPLE',
+      title: await translate('refund_account'),
+      message: await translate('refund_account_update_success_message'),
       confirmTitle: await translate('confirm'),
     }
   }
@@ -132,6 +148,9 @@ export type DialogId =
   | 'SignOut'
   | 'EmptyDepositor'
   | 'CertificationSuccess'
+  | 'EmptyAccountInformation'
+  | 'RefundAccountUpdateSuccess'
+
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
   id: DialogId

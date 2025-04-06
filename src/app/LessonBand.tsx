@@ -37,6 +37,7 @@ export async function LessonBand({title, lessons, type}: {
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}
                 startTime={item.startTime ?? ''}
+                title={item.title ?? ''}
               />
             }
           </div>

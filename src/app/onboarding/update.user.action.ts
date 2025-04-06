@@ -6,11 +6,22 @@ import { userIdKey } from "@/shared/cookies.key";
 import { UserType } from "@/entities/user/user.type";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 
-export const updateUserAction = async ({name, nickName, phone, rrn}: {
+export const updateUserAction = async ({
+                                         name,
+                                         nickName,
+                                         phone,
+                                         rrn,
+                                         refundAccountNumber,
+                                         refundDepositor,
+                                         refundAccountBank
+                                       }: {
   name?: string,
   nickName?: string,
   phone?: string,
   rrn?: string,
+  refundAccountNumber?: string;
+  refundAccountBank?: string;
+  refundDepositor?: string;
 }): Promise<{ success: boolean, errorCode?: string, errorMessage?: string, user?: GetUserResponse }> => {
 
   try {
@@ -23,6 +34,9 @@ export const updateUserAction = async ({name, nickName, phone, rrn}: {
       type: UserType.Default,
       phone: phone,
       rrn: rrn,
+      refundAccountNumber: refundAccountNumber,
+      refundAccountBank: refundAccountBank,
+      refundDepositor: refundDepositor,
     });
     if ('id' in res) {
       return {

@@ -9,6 +9,7 @@ import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { StringResourceKey } from "@/shared/StringResource";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useRouter } from "next/navigation";
+import { createDialog } from "@/utils/dialog.factory";
 
 const getHeaderTitleResource = (step: number): StringResourceKey => {
   if (step == 1) return 'certification'
@@ -84,12 +85,7 @@ export const CertificationForm = ({appVersion}: { appVersion: string}) => {
               window.KloudEvent?.back()
             }
             setTimeout(() => {
-              const dialogInfo = {
-                id: 'Empty',
-                type: 'SIMPLE',
-                title: '본인인증 성공',
-                message: '본인인증에 성공하였습니다',
-              }
+              const dialogInfo = createDialog('CertificationSuccess')
               window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
             }, 1000)
           }

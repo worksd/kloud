@@ -54,12 +54,15 @@ export type PatchUserParameter = {
   type: UserType
   phone?: string
   rrn?: string
+  refundAccountNumber?: string
+  refundAccountBank?: string
+  refundDepositor?: string
 }
 
 export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
-  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn'],
+  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor'],
   pathParams: ['id']
 }
 

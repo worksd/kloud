@@ -3,8 +3,10 @@ import { InputComponent } from "@/app/components/InputComponent";
 import React from "react";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { updateUserAction } from "@/app/onboarding/update.user.action";
+import { createDialog } from "@/utils/dialog.factory";
 
-export const ProfileEditPageForm = ({
+export const RefundAccountEditForm = ({
                                       initialAccountNumber,
                                       initialAccountBank,
                                       initialAccountDepositor
@@ -18,8 +20,22 @@ export const ProfileEditPageForm = ({
   const [refundAccountBank, setRefundAccountBank] = React.useState(initialAccountBank ?? '');
   const [refundAccountDepositor, setRefundAccountDepositor] = React.useState(initialAccountDepositor ?? '');
 
-  const handleClickSubmit = () => {
+  const handleClickSubmit = async () => {
+    if (refundAccountBank.length == 0 || refundAccountDepositor.length == 0 || refundAccountNumber.length == 0) {
+      const dialog = await createDialog('EmptyAccountInformation')
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+      return;
+    }
+    const res = await updateUserAction({
+      refundAccountBank,
+      refundAccountNumber: refundAccountNumber.replace('-', ''),
+      refundDepositor: refundAccountDepositor,
+    })
 
+    if (res.success) {
+      const dialog = await createDialog('RefundAccountUpdateSuccess')
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
   }
 
   return (
