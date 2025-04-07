@@ -28,5 +28,7 @@ export default async function NoMyStudioPage() {
         </ul>
       </div>
     )
+  } else {
+    return <div className={'text-black'}>{res.errorMessage}</div>
   }
 }

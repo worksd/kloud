@@ -43,5 +43,7 @@ export default async function StudioPage({
         <HomeScreen os={os}/>
       </div>
     );
+  } else {
+    return <div className={'text-black'}>{res.message}</div>
   }
 }

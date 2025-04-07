@@ -52,5 +52,7 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
 
       </div>
     )
+  } else {
+    return <div className={'text-black'}>{res.message}</div>
   }
 }
