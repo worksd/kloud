@@ -33,7 +33,7 @@ export async function RecommendPoster({
             className="relative z-0 object-cover w-full"
             width={width}
             url={posterUrl}
-            aspectRatio={2 / 3}
+            aspectRatio={120 / 222}
           />
 
           {/* 타이틀 오버레이 */}

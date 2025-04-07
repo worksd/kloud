@@ -1,18 +1,21 @@
 'use server'
-import { translate } from "@/utils/translate";
 import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
 import NoMyStudioPage from "@/app/studios/NoMyStudioPage";
 import { api } from "@/app/api.client";
 import MyStudioPage from "@/app/studios/MyStudioPage";
-import ArrowDownIcon from "../../../public/assets/arrow-down.svg"
 import Logo from "../../../public/assets/logo_black.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import NotificationIcon from "../../../public/assets/ic_notification.svg";
+import HomeScreen from "@/app/home/home.screen";
 
-export default async function StudioPage() {
-
+export default async function StudioPage({
+                                           searchParams
+                                         }: {
+  searchParams: Promise<{ os: string }>
+}) {
+  const {os} = await searchParams;
   const res = await api.studio.my({});
   const cookieStudioId = (await cookies()).get(studioKey)?.value
 
@@ -37,6 +40,7 @@ export default async function StudioPage() {
             <NoMyStudioPage/>
           )}
         </div>
+        <HomeScreen os={os}/>
       </div>
     );
   }

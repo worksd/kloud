@@ -7,6 +7,6 @@ export default async function Home({
 }) {
 
   return (
-    <HomeScreen os={(await searchParams).os}/>
+    <div/>
   )
 }
