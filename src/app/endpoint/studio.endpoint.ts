@@ -8,7 +8,7 @@ export type IdParameter = {
 };
 
 export type GetStudioListParameter = {
-  hasPass: boolean;
+  hasPass?: boolean;
 }
 
 export type GetStudioResponse = {
