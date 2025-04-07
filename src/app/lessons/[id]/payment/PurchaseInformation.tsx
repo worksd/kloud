@@ -4,9 +4,9 @@ import { useLocale } from "@/hooks/useLocale";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { StringResourceKey } from "@/shared/StringResource";
 import { useEffect, useState } from "react";
-import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
+import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 
-export const PurchaseInformation = ({price, method, titleResource} : { price: number, method?: PaymentMethod, titleResource: StringResourceKey}) => {
+export const PurchaseInformation = ({price, method, titleResource} : { price: number, method?: PaymentMethodType, titleResource: StringResourceKey}) => {
   const { t } = useLocale();
   const [mounted, setMounted] = useState(false)
 

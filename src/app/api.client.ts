@@ -22,7 +22,6 @@ export class ApiClient extends EndpointClient {
   readonly lesson = {
     get: this.endpointBuilder(API.Lesson.GetLesson),
     listPopular: this.endpointBuilder(API.Lesson.GetPopularLessons),
-    getPayment: this.endpointBuilder(API.Lesson.GetLessonPayment),
     listStudioLessons: this.endpointBuilder(API.Lesson.ListStudioLessons),
   }
 

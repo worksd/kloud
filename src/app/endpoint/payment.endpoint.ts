@@ -11,7 +11,7 @@ export type GetPaymentRequest = {
 export type GetPaymentResponse = {
   user: GetUserResponse;
   totalPrice: number;
-  methods: string[];
+  methods: GetPaymentMethodResponse[];
   lesson?: GetLessonResponse;
   passPlan?: GetPassPlanResponse;
 }
@@ -21,3 +21,12 @@ export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   path: `/payment`,
   queryParams: ['itemId', 'item']
 };
+
+
+export type GetPaymentMethodResponse = {
+  id: number;
+  type: PaymentMethodType;
+  name: string;
+}
+
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass'

@@ -7,13 +7,13 @@ import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.act
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
-import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { createPassAction } from "@/app/passPlans/[id]/payment/create.pass.action";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { useRouter } from "next/navigation";
 import { SimpleDialog } from "@/app/components/SimpleDialog";
+import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 
 
 export const PaymentTypes = [
@@ -31,7 +31,7 @@ type PaymentInfo = {
   paymentId: string
   type: PaymentType,
   orderName: string
-  method: PaymentMethod
+  method: PaymentMethodType
   userId: string
   price?: number
   amount?: string
@@ -59,7 +59,7 @@ export default function PaymentButton({
   price: number,
   title: string,
   os: string,
-  method: PaymentMethod,
+  method: PaymentMethodType,
   depositor: string,
   disabled: boolean,
 }) {

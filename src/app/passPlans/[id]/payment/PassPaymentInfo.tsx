@@ -1,15 +1,11 @@
 'use client'
 import { useEffect, useState } from "react";
-import { StringResourceKey } from "@/shared/StringResource";
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
-import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
-import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
-
-export type PaymentMethod = 'credit' | 'account_transfer' | 'pass'
+import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 
 export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   payment: GetPaymentResponse,
@@ -17,24 +13,19 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   os: string,
   appVersion: string
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("credit");
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
   const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const paymentOptions: { id: PaymentMethod, label: StringResourceKey }[] = [
-    {id: "credit", label: "credit_card"},
-    {id: "account_transfer", label: "account_transfer"},
-  ];
-
   if (!mounted) return;
 
   return (
     <div className={"flex flex-col justify-between"}>
       <PaymentMethodComponent
-        paymentOptions={paymentOptions}
+        paymentOptions={payment.methods}
         selectedMethod={selectedMethod}
         selectPaymentMethodAction={setSelectedMethod}
         depositor={depositor}

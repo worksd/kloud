@@ -1192,7 +1192,7 @@ export const StringResource = {
     jp: 'マイスタジオ',
     zh: '我的工作室',
   },
-  no_student_message: {
+  no_my_studio_message: {
     ko: "아직 수강권을 구매한 스튜디오가 없어요.\n관심 있는 스튜디오에서 수강권을 구매해보세요!",
     en: "You haven’t purchased a pass from any studio yet.\nTry buying one from a studio you're interested in!",
     jp: "まだパスを購入したスタジオがありません。\n気になるスタジオで購入してみましょう！",
@@ -1288,7 +1288,12 @@ export const StringResource = {
     jp: 'ライブ人気クラス',
     zh: '实时热门课程',
   },
-
+  studio_recommendation: {
+    ko: '추천 스튜디오',
+    en: 'Studio Recommendation',
+    jp: 'おすすめスタジオ',
+    zh: '推荐的工作室',
+  }
 }
 
 export type StringResourceKey = keyof typeof StringResource;

@@ -2,7 +2,7 @@
 import { translate } from "@/utils/translate";
 import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
-import NoStudentPage from "@/app/studios/NoStudentPage";
+import NoMyStudioPage from "@/app/studios/NoMyStudioPage";
 import { api } from "@/app/api.client";
 import MyStudioPage from "@/app/studios/MyStudioPage";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg"
@@ -31,16 +31,10 @@ export default async function StudioPage() {
 
         {/* Content Area */}
         <div className="pt-16"> {/* 헤더 높이만큼 패딩 줌 */}
-          <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
-            <header className="flex flex-row space-x-2 p-4 bg-white items-center">
-              <h1 className="text-[18px] font-medium text-black">{await translate('my_studio')}</h1>
-              <ArrowDownIcon/>
-            </header>
-          </NavigateClickWrapper>
           {(cookieStudioId || serverStudioId) ? (
             <MyStudioPage studioId={cookieStudioId ?? serverStudioId}/>
           ) : (
-            <NoStudentPage/>
+            <NoMyStudioPage/>
           )}
         </div>
       </div>

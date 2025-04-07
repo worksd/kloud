@@ -1,11 +1,10 @@
 'use client'
-import { StringResourceKey } from "@/shared/StringResource";
-import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { useEffect, useState } from "react";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useLocale } from "@/hooks/useLocale";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassList";
+import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 
 export const PaymentMethodComponent = ({
                                          paymentOptions,
@@ -17,12 +16,12 @@ export const PaymentMethodComponent = ({
                                          depositor,
                                          setDepositorAction
                                        }: {
-  paymentOptions: { id: PaymentMethod, label: StringResourceKey }[],
+  paymentOptions: GetPaymentMethodResponse[],
   passes?: GetPassResponse[],
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
-  selectedMethod: PaymentMethod,
-  selectPaymentMethodAction: (method: PaymentMethod) => void,
+  selectedMethod: PaymentMethodType,
+  selectPaymentMethodAction: (method: PaymentMethodType) => void,
   depositor: string,
   setDepositorAction: (value: string) => void,
 }) => {
@@ -44,25 +43,25 @@ export const PaymentMethodComponent = ({
           <label
 
             className={`w-full flex items-center h-[52px] relative gap-2 pl-4 pr-2 py-2 rounded-lg border 
-            ${selectedMethod === option.id ? "border-black bg-gray-100" : "border-gray-300"}
+            ${selectedMethod === option.type ? "border-black bg-gray-100" : "border-gray-300"}
             cursor-pointer transition-all`}
           >
             <input
               type="checkbox"
-              checked={selectedMethod === option.id}
-              onChange={() => selectPaymentMethodAction(option.id)}
+              checked={selectedMethod === option.type}
+              onChange={() => selectPaymentMethodAction(option.type)}
               className="w-5 h-5 accent-black cursor-pointer"
             />
             <div className="flex-grow text-sm font-medium text-left text-black">
-              <TranslatableText titleResource={option.label}/>
+              {option.name}
             </div>
           </label>
 
-          {passes && passes.length > 0 && selectedMethod == 'pass' && option.id == 'pass' && selectPass && selectedPass &&
+          {passes && passes.length > 0 && selectedMethod == 'pass' && option.type == 'pass' && selectPass && selectedPass &&
             <SelectablePassList passItems={passes} onSelect={selectPass}
                                 selectedPassId={selectedPass.id}/>
           }
-          {selectedMethod === 'account_transfer' && option.id == 'account_transfer' &&
+          {selectedMethod === 'account_transfer' && option.type == 'account_transfer' &&
             <div className="flex flex-col w-full space-y-3 text-black mt-3">
               {/* 입력 필드 */}
               <div className="flex flex-col space-y-3 ">

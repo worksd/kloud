@@ -67,11 +67,6 @@ export const GetPopularLessons: Endpoint<object, LessonListResponse> = {
     path: `/lessons/popular`,
 }
 
-export const GetLessonPayment: Endpoint<GetLessonParameter, GetLessonResponse> = {
-     method: "get",
-    path: (e) => `/lessons/${e.id}/payment`,
-}
-
 export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons`,

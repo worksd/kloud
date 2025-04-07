@@ -11,17 +11,7 @@ export default async function MyHomeContents() {
     <div>
       <section className="mt-4">
         <LessonBand title={await translate('live_popular_lessons')} lessons={res.lessons ?? []} type={'Default'}/>
-
-        {res.lessons?.length == 0 && (
-          <div className="w-full text-center text-[#BCBFC2] py-10">
-            <p className="text-lg mb-2 text-black font-medium">{await translate('no_upcoming_lesson_title')}</p>
-            <p className="text-sm text-gray-400">
-              {await translate('no_upcoming_lesson_message')}
-            </p>
-          </div>
-        )}
       </section>
-
 
       <section>
         {res.announcements.length > 0 && (

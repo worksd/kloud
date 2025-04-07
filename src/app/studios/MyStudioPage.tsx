@@ -9,6 +9,7 @@ import ArrowRightIcon from "../../../public/assets/gray_right_arrow.svg"
 import { PassBand } from "@/app/studios/PassBand";
 import { translate } from "@/utils/translate";
 import { getStudioInfoAction } from "@/app/studios/getStudioInfoAction";
+import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 
 export default async function MyStudioPage({studioId}: { studioId?: string }) {
   console.log(`studioId = ${studioId}`)
@@ -19,6 +20,12 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
   if ('studio' in res) {
     return (
       <div className={'flex flex-col space-y-4 overflow-y-auto no-scrollbar pb-10'}>
+        <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
+          <header className="flex flex-row space-x-2 p-4 bg-white items-center">
+            <h1 className="text-[18px] font-medium text-black">{await translate('my_studio')}</h1>
+            <ArrowDownIcon/>
+          </header>
+        </NavigateClickWrapper>
         <div className={'mb-5'}>
           <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(res.studio.id)}>
             <div

@@ -4,39 +4,21 @@ import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
 import { useEffect, useMemo, useState } from "react";
 import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { StringResourceKey } from "@/shared/StringResource";
-import { PaymentMethod } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
-import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
+import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
 export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPaymentResponse, os: string, appVersion: string }) => {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("credit");
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
   );  const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
 
-  const paymentOptions = useMemo(() => {
-    const options: { id: PaymentMethod, label: StringResourceKey }[] = [];
-
-    // 패스가 있을 때만 패스 결제 옵션 추가
-    if (payment.user.passes && payment.user.passes.length > 0) {
-      options.push({id: 'pass', label: 'my_pass'});
-    }
-
-    // 기본 결제 옵션 추가
-    options.push(
-      {id: "credit", label: "credit_card"},
-      {id: "account_transfer", label: "account_transfer"}
-    );
-
-    return options;
-  }, [payment.user.passes]);
-
-  const handleSelectMethod = (method: PaymentMethod) => {
+  const handleSelectMethod = (method: PaymentMethodType) => {
     setSelectedMethod(method);
   }
 
@@ -51,7 +33,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           passes={payment.user.passes}
           selectedPass={selectedPass}
           selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
-          paymentOptions={paymentOptions}
+          paymentOptions={payment.methods}
           selectedMethod={selectedMethod}
           selectPaymentMethodAction={handleSelectMethod}
           depositor={depositor}
