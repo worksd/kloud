@@ -87,11 +87,11 @@ export abstract class EndpointClient {
       ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) })
     };
 
-    // console.log('Request:', { url: fullUrl, options });
+    console.log('Request:', { url: fullUrl, options });
 
     const response = await fetch(fullUrl, options);
     const jsonResponse = await response.json();
-    // console.log('Response:', jsonResponse);
+    console.log('Response:', jsonResponse);
     return jsonResponse;
   }
 }
