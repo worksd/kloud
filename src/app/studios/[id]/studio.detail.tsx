@@ -133,9 +133,11 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
         </div>
       </div>
 
-      <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-        <PassPlanPurchaseSubmitButton studioId={studio.id}/>
-      </div>
+      {studio.passPlans && studio.passPlans.length > 0 &&
+        <div className="left-0 w-full h-fit fixed bottom-2 px-6">
+          <PassPlanPurchaseSubmitButton studioId={studio.id}/>
+        </div>
+      }
 
     </div>
   );
