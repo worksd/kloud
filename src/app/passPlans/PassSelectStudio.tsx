@@ -22,13 +22,19 @@ export const PassSelectStudio = ({studios, onClickAction}: {
       <div className={"text-black text-[24px] font-medium px-6 mb-10"}>
         <TranslatableText titleResource={'select_purchase_pass_plan_studio'}/>
       </div>
-      <ul className="flex flex-col">
-        {studios.map((item) => (
-          <StudioArrowItem key={item.id} item={item} onClickAction={(studio: GetStudioResponse) => {
-            onClickAction(studio)
-          }}/>
-        ))}
-      </ul>
+      {studios.length > 0 ?
+        <ul className="flex flex-col">
+          {studios.map((item) => (
+            <StudioArrowItem key={item.id} item={item} onClickAction={(studio: GetStudioResponse) => {
+              onClickAction(studio)
+            }}/>
+          ))}
+        </ul> : <div className="flex justify-center items-center h-64">
+          <TranslatableText
+            className="text-black text-center text-base"
+            titleResource="no_studio_pass_plan_message"
+          />
+        </div>}
     </div>
 
   )

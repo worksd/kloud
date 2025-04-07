@@ -1299,6 +1299,12 @@ export const StringResource = {
     en: 'There are no lessons scheduled for this week.',
     jp: '今週は予定されているレッスンがありません。',
     zh: '本周没有安排课程。'
+  },
+  no_studio_pass_plan_message: {
+    ko: '현재 패스권을 판매하는 스튜디오가 없습니다.',
+    en: 'There are currently no studios selling passes.',
+    jp: '現在、パスを販売しているスタジオはありません。',
+    zh: '目前没有销售通行证的工作室。'
   }
 }
 
