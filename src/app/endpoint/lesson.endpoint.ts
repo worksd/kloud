@@ -22,15 +22,16 @@ export type GetLessonResponse = {
     artist?: GetArtistResponse;
     studio?: GetStudioResponse;
     currentStudentCount?: number;
-    room?: {
-        id: number;
-        maxNumber: number;
-        name: string;
-    };
+    room?: GetStudioRoomResponse;
     ticket?: TicketResponse;
     extraArtists?: GetArtistResponse[];
 };
 
+export type GetStudioRoomResponse = {
+    id: number;
+    maxNumber: number;
+    name: string;
+};
 export type LessonListResponse = {
     lessons: GetLessonResponse[]
 }

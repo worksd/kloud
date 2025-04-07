@@ -10,6 +10,7 @@ import { PassBand } from "@/app/studios/PassBand";
 import { translate } from "@/utils/translate";
 import { getStudioInfoAction } from "@/app/studios/getStudioInfoAction";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
+import { TimeTable } from "@/app/studios/timetable/TimeTable";
 
 export default async function MyStudioPage({studioId}: { studioId?: string }) {
   console.log(`studioId = ${studioId}`)
@@ -19,7 +20,7 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
   const res = await getStudioInfoAction({studioId: Number(studioId)});
   if ('studio' in res) {
     return (
-      <div className={'flex flex-col space-y-4 overflow-y-auto no-scrollbar pb-10'}>
+      <div className={'flex flex-col overflow-y-auto no-scrollbar'}>
         <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
           <header className="flex flex-row space-x-2 p-4 bg-white items-center">
             <h1 className="text-[18px] font-medium text-black">{await translate('my_studio')}</h1>
@@ -40,6 +41,10 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
             </div>
           </NavigateClickWrapper>
         </div>
+        <div className={'my-4'}>
+          <TimeTable lessons={res.schedules ?? []}/>
+        </div>
+
         {res.bands.map((value) => (
           <LessonBand
             key={value.title}
@@ -48,8 +53,9 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
             type={value.type}
           />
         ))}
-        <PassBand title={await translate('my_pass')} passes={res.passes ?? []}/>
-
+        {res.passes && res.passes.length > 0 &&
+          <PassBand title={await translate('my_pass')} passes={res.passes ?? []}/>
+        }
       </div>
     )
   } else {

@@ -40,6 +40,7 @@ export type GetMyStudioResponse = {
   studio: GetStudioResponse;
   announcement: GetAnnouncementResponse;
   passes: GetPassResponse[];
+  schedules?: GetLessonResponse[];
   bands: GetBandResponse[];
 }
 

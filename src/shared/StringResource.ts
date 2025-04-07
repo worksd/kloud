@@ -1293,6 +1293,12 @@ export const StringResource = {
     en: 'Studio Recommendation',
     jp: 'おすすめスタジオ',
     zh: '推荐的工作室',
+  },
+  no_this_week_lessons: {
+    ko: '이번주는 진행되는 수업이 없습니다.',
+    en: 'There are no lessons scheduled for this week.',
+    jp: '今週は予定されているレッスンがありません。',
+    zh: '本周没有安排课程。'
   }
 }
 
