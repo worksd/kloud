@@ -540,7 +540,7 @@ export const StringResource = {
     zh: "购买课程票"
   },
   finish_lesson_title: {
-    ko: "수강신청이 종료된 수업입니다",
+    ko: "종료된 수업입니다",
     en: "Lesson Ended",
     jp: "終了したレッスンです",
     zh: "课程已结束"
@@ -1311,6 +1311,30 @@ export const StringResource = {
     en: 'Ongoing Lessons',
     jp: '進行中のレッスン',
     zh: '正在进行的课程'
+  },
+  to_be_released_lesson: {
+    ko: '부터 예약 가능한 수업입니다',
+    en: 'will be available for booking from',
+    jp: 'から予約可能なレッスンです',
+    zh: '起可预约的课程'
+  },
+  register_lesson_finish: {
+    ko: '수신청이 마감된 수업입니다',
+    en: 'This class is no longer available for registration.',
+    jp: 'このレッスンの申し込みは締め切られました。',
+    zh: '该课程已截止报名。'
+  },
+  canceled_lesson: {
+    ko: '취소된 수업입니다',
+    en: 'This class has been canceled.',
+    jp: 'このレッスンはキャンセルされました。',
+    zh: '该课程已被取消。'
+  },
+  pending_lesson_title: {
+    ko: '공개예정인 수업입니다.',
+    en: 'This class will be released soon.',
+    jp: 'このレッスンは近日公開予定です。',
+    zh: '该课程即将上线。'
   }
 }
 

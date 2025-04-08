@@ -96,7 +96,7 @@ export default async function LessonDetailForm({lesson}: {
 
       {/* 결제 페이지 이동 버튼 */}
       <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-        <LessonPaymentButton id={lesson.id} ticketData={lesson.ticket} disabled={isPastTime(lesson.startTime) || lesson.status != '예약 중'}/>
+        <LessonPaymentButton lesson={lesson}/>
       </div>
     </div>
   );
