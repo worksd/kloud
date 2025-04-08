@@ -70,6 +70,10 @@ export class ApiClient extends EndpointClient {
   readonly payment = {
     get: this.endpointBuilder(API.Payment.GetPayment),
   }
+
+  readonly paymentRecord = {
+    list: this.endpointBuilder(API.PaymentRecord.GetPaymentRecords),
+  }
 }
 
 export interface ClientOptions {

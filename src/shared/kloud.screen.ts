@@ -13,6 +13,7 @@ export const KloudScreen = {
   Terms: '/setting/terms',
   Inquiry: '/setting/inquiry',
   Tickets: '/tickets',
+  PaymentRecords: '/paymentRecords',
   Maintenance: '/maintenance',
   Certification: '/certification',
   AccountSetting: '/setting/account',

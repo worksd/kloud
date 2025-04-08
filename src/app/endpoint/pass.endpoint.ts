@@ -33,7 +33,6 @@ export type GetPassResponse = {
   price: number
   endDate: string,
   status?: PassStatus,
-  title: string
   passPlan?: GetPassPlanResponse
   tickets?: TicketResponse[]
   remainingCount?: number

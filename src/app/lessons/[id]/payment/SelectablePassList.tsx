@@ -1,6 +1,7 @@
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { CircleImage } from "@/app/components/CircleImage";
-import CheckIcon from ".././../../../../public/assets/ic_check_black.svg"
+import { TranslatableText } from "@/utils/TranslatableText";
+import { useEffect, useState } from "react";
+import { useLocale } from "@/hooks/useLocale";
 
 export const SelectablePassList = ({
                                      passItems,
@@ -32,6 +33,12 @@ const SelectablePassItem = ({pass, isSelected, onSelect}: {
   isSelected: boolean,
   onSelect: () => void
 }) => {
+  const { t } = useLocale();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, [])
+  if (!mounted) return null;
   return (
     <div
       className={`bg-white rounded-3xl p-6 flex-shrink-0 transition-all duration-200 select-none cursor-pointer 
@@ -41,8 +48,8 @@ const SelectablePassItem = ({pass, isSelected, onSelect}: {
         : 'border border-gray-100 hover:border-gray-200'}`}
       onClick={onSelect}
     >
-      <div className="flex flex-col items-center text-center">
-          <h2 className="text-xl font-bold tracking-tight">{pass.passPlan?.name}</h2>
+      <div className="flex flex-row items-center text-center font-bold text-xl ">
+        <h2 className="tracking-tight">{pass.passPlan?.name} ({pass.remainingCount}{mounted ? t('remaining_count') : ''})</h2>
       </div>
     </div>
   )

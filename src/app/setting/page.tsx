@@ -26,7 +26,7 @@ export default async function SettingPage({
           <SettingHeader user={user}/>
           <PassPurchaseButton/>
         </div>
-        <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
+        <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
           <MenuItem label="payment_records"/>
         </NavigateClickWrapper>
 
