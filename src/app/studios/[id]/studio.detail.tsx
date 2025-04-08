@@ -57,7 +57,6 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
           </div>
           <div className="flex-col justify-center items-start gap-2 inline-flex">
             <div className="text-[#131517] text-xl font-bold leading-normal">{studio.name}</div>
-            <StudioFollowButton studioId={id} follow={studio.follow}/>
           </div>
 
         </div>
