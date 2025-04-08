@@ -146,13 +146,13 @@ export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse,
           </div>
         </div>
       }
-      {/* 결제 완료 팝업 */}
-      <div className={"z-10"}>
-        {isJustPaid === "true" && (
-          <PaymentQuestionPopup title={ticket.lesson?.title ?? ''} lessonId={ticket.lesson?.id ?? 0}
-                                studioId={ticket.lesson?.studio?.id ?? 0}/>
-        )}
-      </div>
+      {/*/!* 결제 완료 팝업 *!/*/}
+      {/*<div className={"z-10"}>*/}
+      {/*  {isJustPaid === "true" && (*/}
+      {/*    <PaymentQuestionPopup title={ticket.lesson?.title ?? ''} lessonId={ticket.lesson?.id ?? 0}*/}
+      {/*                          studioId={ticket.lesson?.studio?.id ?? 0}/>*/}
+      {/*  )}*/}
+      {/*</div>*/}
     </div>
 
   );
