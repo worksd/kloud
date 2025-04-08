@@ -126,7 +126,7 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
           <div className="mt-4">
-            <LessonGridSection studioId={studio.id} title="Hot" lessons={studio?.lessons ?? []}
+            <LessonGridSection studioId={studio.id} title={await translate('ongoing_lessons')} lessons={studio?.lessons ?? []}
             />
           </div>
         </div>

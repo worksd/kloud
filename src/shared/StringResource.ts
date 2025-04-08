@@ -1305,6 +1305,12 @@ export const StringResource = {
     en: 'There are currently no studios selling passes.',
     jp: '現在、パスを販売しているスタジオはありません。',
     zh: '目前没有销售通行证的工作室。'
+  },
+  ongoing_lessons: {
+    ko: '진행중인 수업들',
+    en: 'Ongoing Lessons',
+    jp: '進行中のレッスン',
+    zh: '正在进行的课程'
   }
 }
 
