@@ -49,6 +49,7 @@ export type GetArtistResponse = {
 export type GetStudioLessonParameter = {
     studioId: number;
     page: number;
+    type: string;
 }
 
 export type GetBandResponse = {
@@ -72,7 +73,7 @@ export const GetPopularLessons: Endpoint<object, LessonListResponse> = {
 export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons`,
-    queryParams: ['studioId', 'page']
+    queryParams: ['studioId', 'page', 'type']
 }
 
 export enum LessonStatus {
