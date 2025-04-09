@@ -816,8 +816,8 @@ export const StringResource = {
     zh: "语言设置"
   },
   no_lessons: {
-    ko: "등록된 수업이 없습니다",
-    en: "No registered lessons.",
+    ko: "진행중인 수업이 없습니다",
+    en: "No ongoing lessons.",
     jp: "登録されたレッスンがありません",
     zh: "暂无课程"
   },
@@ -1313,7 +1313,7 @@ export const StringResource = {
     zh: '正在进行的课程'
   },
   open_date: {
-    ko: '오픈 날짜',
+    ko: '공개 예정',
     en: 'Open Date',
     jp: '公開日',
     zh: '开放日期'
