@@ -28,7 +28,7 @@ export const LessonGridSection = async ({studioId, title, lessons}: {
       {lessons.length > 0 ? (
         <LessonGridItems lessons={lessons}/>
       ) : (
-        <div className="flex flex-col items-center text-[#86898C]">
+        <div className="flex flex-col items-center text-[#86898C] pt-10">
           <p className="text-[16px] font-medium">{await translate('no_lessons')}</p>
         </div>
       )}
