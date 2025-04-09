@@ -1,7 +1,7 @@
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { Props } from "@/app/studios/[id]/page";
-import { ClientLessonGridItems } from "@/app/studios/[id]/lessons/ClientLessonGridItems";
 import { getStudioLessonList } from "@/app/studios/[id]/lessons/get.studio.lesson.list.action";
+import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
 
 export default async function StudioLessons({params}: Props) {
   const {id} = await params
@@ -10,9 +10,9 @@ export default async function StudioLessons({params}: Props) {
     return (
       <div className="flex flex-col w-full">
         <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource="popular_lesson"/>
+          <SimpleHeader titleResource="ongoing_lessons"/>
         </div>
-        <ClientLessonGridItems lessons={res.lessons} studioId={id}/>
+        <LessonGridItems lessons={res.lessons}/>
       </div>
     )
   } else {
