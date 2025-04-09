@@ -13,14 +13,14 @@ export async function Poster({
                                studioLogoUrl,
                                startTime,
                                title,
-                               width = 160
+                               width
                              }: {
   id: number,
   posterUrl: string,
   studioLogoUrl?: string,
   startTime: string,
-  title?: string,
   width?: number
+  title?: string,
 }) {
   const d_days = calculateDDays(startTime)
   const formatTime = await formatDateTime(startTime)

@@ -14,6 +14,7 @@ export const LessonGridItems = async ({ lessons }: { lessons: GetLessonResponse[
             studioLogoUrl={lesson.studio?.profileImageUrl ? lesson.studio.profileImageUrl : ''}
             title={lesson.title ?? ''}
             startTime={lesson.startTime ?? ''}
+            width={undefined}
           />
         ))}
       </div>
