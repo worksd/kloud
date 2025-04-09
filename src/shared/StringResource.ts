@@ -1312,11 +1312,11 @@ export const StringResource = {
     jp: '進行中のレッスン',
     zh: '正在进行的课程'
   },
-  to_be_released_lesson: {
-    ko: '부터 예약 가능한 수업입니다',
-    en: 'will be available for booking from',
-    jp: 'から予約可能なレッスンです',
-    zh: '起可预约的课程'
+  open_date: {
+    ko: '오픈 날짜',
+    en: 'Open Date',
+    jp: '公開日',
+    zh: '开放日期'
   },
   register_lesson_finish: {
     ko: '수신청이 마감된 수업입니다',

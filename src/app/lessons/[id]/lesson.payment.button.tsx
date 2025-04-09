@@ -33,7 +33,7 @@ export const LessonPaymentButton = async ({lesson}: { lesson: GetLessonResponse 
 };
 
 const getButtonTitleResourceByStatus = async ({lesson}: { lesson: GetLessonResponse }): Promise<string> => {
-  if (lesson.status == LessonStatus.NotForSale) return lesson.saleDate + await translate('to_be_released_lesson')
+  if (lesson.status == LessonStatus.NotForSale) return await translate('open_date') + ' : ' + lesson.saleDate
   else if (lesson.status == LessonStatus.Cancelled) return await translate('canceled_lesson')
   else if (lesson.status == LessonStatus.Recruiting) return await translate('purchase_ticket')
   else if (lesson.status == LessonStatus.Completed) return await translate('finish_lesson_title')
