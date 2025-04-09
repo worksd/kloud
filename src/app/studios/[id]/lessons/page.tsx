@@ -1,12 +1,11 @@
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { api } from "@/app/api.client";
 import { Props } from "@/app/studios/[id]/page";
 import { ClientLessonGridItems } from "@/app/studios/[id]/lessons/ClientLessonGridItems";
 import { getStudioLessonList } from "@/app/studios/[id]/lessons/get.studio.lesson.list.action";
 
 export default async function StudioLessons({params}: Props) {
   const {id} = await params
-  const res = await getStudioLessonList({studioId: id, page: 1})
+  const res = await getStudioLessonList({studioId: id, page: 1, type: 'ALL'})
   if ('lessons' in res) {
     return (
       <div className="flex flex-col w-full">
