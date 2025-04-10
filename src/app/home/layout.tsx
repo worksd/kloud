@@ -4,10 +4,12 @@ export default async function HomeLayout({
                                            children,
                                            popularStudios,
                                            popularLessons,
+                                           band,
 
                                          }: Readonly<{
   children: ReactNode;
   popularStudios: ReactNode;
+  band: ReactNode;
   popularLessons: ReactNode;
 }>) {
   return (
@@ -15,6 +17,7 @@ export default async function HomeLayout({
       <div className="flex-1 overflow-y-auto">
         {popularLessons}
         {popularStudios}
+        {band}
         {children}
       </div>
     </div>

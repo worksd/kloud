@@ -58,6 +58,10 @@ export type GetBandResponse = {
     lessons: GetLessonResponse[];
 }
 
+export type GetBandListResponse = {
+    bands: GetBandResponse[]
+}
+
 export type BandType = 'Default' | 'Recommendation'
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
@@ -74,6 +78,11 @@ export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListRes
     method: 'get',
     path: `/lessons`,
     queryParams: ['studioId', 'page', 'type']
+}
+
+export const ListStageBands: Endpoint<object, GetBandListResponse> = {
+    method: 'get',
+    path: `/lessons/stage`,
 }
 
 export enum LessonStatus {
