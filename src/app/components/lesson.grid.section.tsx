@@ -1,5 +1,5 @@
 import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
-import RightArrowIcon from "../../../public/assets/right-arrow.svg"
+import RightArrowIcon from "../../../public/assets/right-arrow-black.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { translate } from "@/utils/translate";
@@ -17,7 +17,7 @@ export const LessonGridSection = async ({studioId, title, lessons}: {
         <div className="text-[18px] text-black font-bold">{title}</div>
         {lessons.length >= 4 &&
           <NavigateClickWrapper method={'push'} route={KloudScreen.StudioLessons(studioId)}>
-            <button className="text-[#86898C] flex items-center font-normal">
+            <button className="text-black flex items-center font-normal">
               {await translate('more')}
               <RightArrowIcon/>
             </button>
