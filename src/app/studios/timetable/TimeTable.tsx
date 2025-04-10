@@ -53,7 +53,6 @@ export const TimeTable = ({lessons}: { lessons: GetLessonResponse[] }) => {
                   gridRowStart: item.row + 1,
                 }}
               >
-                <span className="text-black text-[8px] truncate font-semibold">{item.lesson.artist?.nickName}</span>
                 {item.lesson.startTime && item.lesson.duration && (
                   <div className="text-black text-[8px] font-bold ml-0.5">
                     {formatTimeRange(item.lesson.startTime, item.lesson.duration)}
@@ -61,7 +60,7 @@ export const TimeTable = ({lessons}: { lessons: GetLessonResponse[] }) => {
                 )}
                 <div className="relative w-full flex-1 min-h-0">
                   <Image
-                    src={item.lesson.artist?.profileImageUrl ?? ''}
+                    src={item.lesson.thumbnailUrl ?? item.lesson.artist?.profileImageUrl ?? ''}
                     alt="profile"
                     fill
                     className="object-cover"
