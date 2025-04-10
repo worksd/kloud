@@ -13,10 +13,7 @@ export const LessonPaymentButton = async ({lesson}: { lesson: GetLessonResponse 
       ? KloudScreen.TicketDetail(lesson.ticket.id, false)
       : KloudScreen.LessonPayment(lesson.id);
 
-  const title = (lesson.status == LessonStatus.Recruiting || lesson.status == LessonStatus.Ready || lesson.status == LessonStatus.NotForSale)
-    ? lesson.ticket != null
-      ? await translate("my_ticket") : await getButtonTitleResourceByStatus({lesson})
-    : ''
+  const title = lesson.ticket != null ? await translate("my_ticket") : await getButtonTitleResourceByStatus({lesson});
 
   return (
     <NavigateClickWrapper
