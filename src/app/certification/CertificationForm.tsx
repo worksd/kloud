@@ -27,6 +27,7 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
   const [rrn, setRrn] = useState('');
   const [phone, setPhone] = useState('');
   const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
 
   const onClickBack = () => {
     if (step == 1) {
@@ -84,6 +85,8 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
             }
           }
         } certificatePhone={async () => {
+          if (isNavigating) return;
+          setIsNavigating(true);
           const res = await updateUserAction({
             phone: phone,
             name: name,
@@ -95,16 +98,15 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
             } else {
               window.KloudEvent?.back()
             }
-            setTimeout(() => {
-              const dialogInfo = createDialog('CertificationSuccess')
-              window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
-            }, 1000)
           }
         }}/>
       }
       {
         step == 3 && (
           <VerificationEmailForm code={emailCode} onVerify={ async () => {
+            if (isNavigating) return;
+            setIsNavigating(true);
+
             const res = await updateUserAction({ emailVerified: true, name, rrn})
             if (res.success && res.user?.emailVerified == true) {
               if (appVersion == '') {
@@ -112,10 +114,6 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
               } else {
                 window.KloudEvent?.back()
               }
-              setTimeout(() => {
-                const dialogInfo = createDialog('CertificationSuccess')
-                window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
-              }, 1000)
             }
           }
           }/>
