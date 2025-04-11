@@ -35,16 +35,24 @@ export const NotificationItem = ({
 
 async function formatTimeAgo(dateInput: string | Date): Promise<string> {
   let date: Date;
-  const locale = await getLocale()
+  const locale = await getLocale();
 
+  // 입력 파싱
   if (typeof dateInput === 'string') {
-    date = new Date(dateInput.replace(/\./g, '-')); // "2025.02.24 10:45" -> "2025-02-24 10:45"
+    date = new Date(dateInput.replace(/\./g, '-'));
   } else {
     date = dateInput;
   }
 
-  const diff = (new Date()).getTime() - date.getTime(); // 밀리초 단위 차이
-  const seconds = Math.floor(diff / 1000); // 초 단위 변환
+  // KST 기준 현재 시간 만들기 (UTC + 9시간)
+  const now = new Date();
+  const kstNow = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+
+  // KST 기준 입력 시간도 보정
+  const kstInput = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+
+  const diff = kstNow.getTime() - kstInput.getTime(); // 밀리초 차이
+  const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
