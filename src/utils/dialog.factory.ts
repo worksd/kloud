@@ -131,6 +131,23 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: await translate('refund_account_update_success_message'),
       confirmTitle: await translate('confirm'),
     }
+  } else if (id == 'CertificationEmail') {
+    return {
+      id: 'CertificationEmail',
+      type: 'YESORNO',
+      title: await translate('certificate_email_message'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
+  } else if (id == 'CertificationFail') {
+    return {
+      id: 'CertificationFail',
+      type: 'SIMPLE',
+      title: await translate('certification_code'),
+      message: await translate('certification_code_mismatch'),
+      confirmTitle: await translate('confirm'),
+    }
   }
 }
 
@@ -150,6 +167,8 @@ export type DialogId =
   | 'CertificationSuccess'
   | 'EmptyAccountInformation'
   | 'RefundAccountUpdateSuccess'
+  | 'CertificationEmail'
+  | 'CertificationFail'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

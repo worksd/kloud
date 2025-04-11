@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { createDialog } from "@/utils/dialog.factory";
 
 export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}: {
   code: number,
@@ -39,12 +40,7 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
     if (myCode == `${code}`) {
       certificatePhone()
     } else {
-      const dialogInfo = {
-        id: 'Empty',
-        type: 'SIMPLE',
-        title: '인증번호',
-        message: '인증번호가 틀렸습니다.',
-      }
+      const dialogInfo = createDialog('CertificationFail')
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
   }

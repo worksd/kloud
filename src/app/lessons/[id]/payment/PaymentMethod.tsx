@@ -20,7 +20,7 @@ export const PaymentMethodComponent = ({
   passes?: GetPassResponse[],
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
-  selectedMethod: PaymentMethodType,
+  selectedMethod?: PaymentMethodType,
   selectPaymentMethodAction: (method: PaymentMethodType) => void,
   depositor: string,
   setDepositorAction: (value: string) => void,

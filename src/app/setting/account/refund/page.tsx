@@ -5,7 +5,7 @@ import { getUserAction } from "@/app/onboarding/action/get.user.action";
 
 export default async function ProfileEditPage() {
   const user = await getUserAction()
-  if (user) {
+  if (user != null && 'id' in user) {
     return (
       <div className={'flex flex-col'}>
         <div className="flex justify-between items-center mb-14">
@@ -18,5 +18,7 @@ export default async function ProfileEditPage() {
         />
       </div>
     )
+  } else {
+    return <div className={'text-black'}>{user?.message}</div>
   }
 }

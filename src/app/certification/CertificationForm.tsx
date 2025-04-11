@@ -10,16 +10,19 @@ import { StringResourceKey } from "@/shared/StringResource";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useRouter } from "next/navigation";
 import { createDialog } from "@/utils/dialog.factory";
+import { GetUserResponse } from "@/app/endpoint/user.endpoint";
+import { VerificationEmailForm } from "@/app/certification/VerificationEmailForm";
 
 const getHeaderTitleResource = (step: number): StringResourceKey => {
   if (step == 1) return 'certification'
   else return 'certification_code'
 };
 
-export const CertificationForm = ({appVersion}: { appVersion: string}) => {
+export const CertificationForm = ({appVersion, user}: { appVersion: string, user: GetUserResponse }) => {
 
   const [step, setStep] = useState(1);
   const [code, setCode] = useState(0);
+  const [emailCode, setEmailCode] = useState('');
   const [name, setName] = useState('');
   const [rrn, setRrn] = useState('');
   const [phone, setPhone] = useState('');
@@ -33,8 +36,14 @@ export const CertificationForm = ({appVersion}: { appVersion: string}) => {
         window.KloudEvent?.back()
       }
     } else {
-      setStep(step - 1)
+      setRrn('')
+      setStep(1)
     }
+  }
+
+  const handleChangeEmailCode = (code: string) => {
+    setStep(3)
+    setEmailCode(code)
   }
 
   return (
@@ -47,20 +56,22 @@ export const CertificationForm = ({appVersion}: { appVersion: string}) => {
         </div>
         <TranslatableText titleResource={getHeaderTitleResource(step)} className="text-[16px] font-bold text-black"/>
       </div>
-      {step === 1 ? (
+      {step === 1 && (
         <NamePhoneInput
           name={name}
           phone={phone}
           rrn={rrn}
+          email={user.email}
           onClickSubmit={({code}: { code: number }) => {
-            setStep(step + 1)
+            setStep(2)
             setCode(code)
           }}
+          onClickCertificateEmail={handleChangeEmailCode}
           setName={(name) => setName(name)}
           setPhone={setPhone}
           setRrn={setRrn}
-        />
-      ) : (
+        />)}
+      {step == 2 &&
         <CertificationCodeInput code={code} generateNewCode={
           async () => {
             const newCode = Math.floor(100000 + Math.random() * 900000)
@@ -90,7 +101,26 @@ export const CertificationForm = ({appVersion}: { appVersion: string}) => {
             }, 1000)
           }
         }}/>
-      )}
+      }
+      {
+        step == 3 && (
+          <VerificationEmailForm code={emailCode} onVerify={ async () => {
+            const res = await updateUserAction({ emailVerified: true, name, rrn})
+            if (res.success && res.user?.emailVerified == true) {
+              if (appVersion == '') {
+                router.back()
+              } else {
+                window.KloudEvent?.back()
+              }
+              setTimeout(() => {
+                const dialogInfo = createDialog('CertificationSuccess')
+                window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+              }, 1000)
+            }
+          }
+          }/>
+        )
+      }
     </div>
   );
 };

@@ -59,7 +59,7 @@ export default function PaymentButton({
   price: number,
   title: string,
   os: string,
-  method: PaymentMethodType,
+  method?: PaymentMethodType,
   depositor: string,
   disabled: boolean,
 }) {
@@ -93,9 +93,9 @@ export default function PaymentButton({
   const handlePayment = useCallback(async () => {
 
     const user = await getUserAction()
-    if (!user) return;
+    if (!user || !('id' in user)) return;
 
-    if (!user.phone) {
+    if (!user.phone && user.emailVerified == false) {
       if (appVersion == '') {
         router.push(KloudScreen.Certification)
       } else {

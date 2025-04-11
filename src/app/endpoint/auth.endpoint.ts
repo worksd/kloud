@@ -47,6 +47,10 @@ export type UserResponse = {
   status: UserStatus;
 }
 
+export type VerifyCodeResponse = {
+  code: string;
+}
+
 export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthLoginResponse> = {
   method: 'post',
   path: '/auth/sign-in',
@@ -69,4 +73,9 @@ export const PostSocialLogin: Endpoint<SnsLoginParameter, PostAuthLoginResponse>
   method: 'post',
   path: '/auth/social-login',
   bodyParams: ['provider', 'token', 'name', 'code'],
+}
+
+export const SendVerificationEmail: Endpoint<object, VerifyCodeResponse> = {
+  method: 'post',
+  path: '/auth/email-certificate',
 }

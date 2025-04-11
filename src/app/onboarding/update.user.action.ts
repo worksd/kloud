@@ -13,7 +13,8 @@ export const updateUserAction = async ({
                                          rrn,
                                          refundAccountNumber,
                                          refundDepositor,
-                                         refundAccountBank
+                                         refundAccountBank,
+                                         emailVerified,
                                        }: {
   name?: string,
   nickName?: string,
@@ -22,6 +23,7 @@ export const updateUserAction = async ({
   refundAccountNumber?: string;
   refundAccountBank?: string;
   refundDepositor?: string;
+  emailVerified?: boolean,
 }): Promise<{ success: boolean, errorCode?: string, errorMessage?: string, user?: GetUserResponse }> => {
 
   try {
@@ -37,6 +39,7 @@ export const updateUserAction = async ({
       refundAccountNumber: refundAccountNumber,
       refundAccountBank: refundAccountBank,
       refundDepositor: refundDepositor,
+      emailVerified: emailVerified,
     });
     if ('id' in res) {
       return {

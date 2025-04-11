@@ -1335,7 +1335,31 @@ export const StringResource = {
     en: 'This class will be released soon.',
     jp: 'このレッスンは近日公開予定です。',
     zh: '该课程即将上线。'
-  }
+  },
+  certificate_email_message: {
+    ko: '가입하신 이메일로 본인인증을 진행하시겠습니까?',
+    en: 'This class will be released soon.',
+    jp: 'このレッスンは近日公開予定です。',
+    zh: '该课程即将上线。'
+  },
+  submitting_email: {
+    ko: '이메일을 보내는 중입니다...',
+    en: 'Sending email...',
+    jp: 'メールを送信しています...',
+    zh: '正在发送电子邮件...'
+  },
+  input_email_six_code: {
+    ko: '이메일로 받은 인증번호 6자리를 입력해주세요',
+    en: 'Please enter the 6-digit verification code sent to your email',
+    jp: 'メールで受け取った6桁の認証コードを入力してください',
+    zh: '请输入通过邮件收到的6位验证码',
+  },
+  certification_code_mismatch: {
+    ko: '인증번호가 일치하지 않습니다',
+    en: 'The verification code does not match',
+    jp: '認証コードが一致しません',
+    zh: '验证码不匹配',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

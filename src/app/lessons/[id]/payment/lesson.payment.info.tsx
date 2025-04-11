@@ -12,7 +12,7 @@ import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.en
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
 export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPaymentResponse, os: string, appVersion: string }) => {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(undefined);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
   );  const [depositor, setDepositor] = useState("");
@@ -71,7 +71,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           title={payment.lesson?.title ?? ''}
           userId={payment.user.id}
           depositor={depositor}
-          disabled={isPastTime(payment.lesson?.startTime)}
+          disabled={isPastTime(payment.lesson?.startTime) || selectedMethod == undefined}
         />
       </div>
     </div>
