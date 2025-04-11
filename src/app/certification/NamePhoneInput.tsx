@@ -120,7 +120,7 @@ export const NamePhoneInput = ({
         <div
           className="absolute inset-0 z-50 bg-black bg-opacity-50 flex flex-col items-center justify-center space-y-4">
           <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"/>
-          <span className="text-white text-sm font-medium">이메일을 보내는 중입니다...</span>
+          <TranslatableText className="text-white text-sm font-medium" titleResource={'submitting_email'}/>
         </div>
       )}
 
@@ -208,7 +208,7 @@ export const NamePhoneInput = ({
             <div>
               <div className="flex items-center gap-1 mb-2">
                 <label className="text-[14px] font-medium text-gray-800 leading-none">
-                  이메일
+                  <TranslatableText titleResource={'email'}/>
                 </label>
                 <TranslatableText
                   titleResource={'required'}
@@ -225,7 +225,7 @@ export const NamePhoneInput = ({
               }}>
               <div className="flex items-center gap-1 mb-2">
                 <label htmlFor="birthDate" className="text-[14px] font-medium text-gray-800 leading-none">
-                  생년월일
+                  <TranslatableText titleResource={'real_birthday'}/>
                 </label>
                 <TranslatableText
                   titleResource={'required'}
@@ -245,7 +245,7 @@ export const NamePhoneInput = ({
             <div>
               <div className="flex items-center gap-1 mb-2">
                 <label htmlFor="birthDate" className="text-[14px] font-medium text-gray-800 leading-none">
-                  성별
+                  <TranslatableText titleResource={'sex'}/>
                 </label>
                 <TranslatableText
                   titleResource={'required'}
@@ -261,7 +261,7 @@ export const NamePhoneInput = ({
                     onChange={() => setGender('M')}
                     className="accent-black"
                   />
-                  남자
+                  <TranslatableText titleResource={'man'}/>
                 </label>
                 <label className="inline-flex items-center gap-2">
                   <input
@@ -271,7 +271,7 @@ export const NamePhoneInput = ({
                     onChange={() => setGender('F')}
                     className="accent-black"
                   />
-                  여자
+                  <TranslatableText titleResource={'woman'}/>
                 </label>
               </div>
             </div>
@@ -289,7 +289,7 @@ export const NamePhoneInput = ({
             htmlFor="useEmailCheckbox"
             className="text-sm text-gray-400 font-medium cursor-pointer"
           >
-            외국인이신가요?
+            <TranslatableText titleResource={'are_you_foreigner'}/>
           </label>
         </div>
 

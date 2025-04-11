@@ -1360,6 +1360,36 @@ export const StringResource = {
     jp: '認証コードが一致しません',
     zh: '验证码不匹配',
   },
+  are_you_foreigner: {
+    ko: '외국인이신가요?',
+    en: 'Are you a foreigner?',
+    jp: '外国人ですか？',
+    zh: '您是外国人吗？',
+  },
+  man: {
+    ko: '남자',
+    en: 'Male',
+    jp: '男性',
+    zh: '男',
+  },
+  woman: {
+    ko: '여자',
+    en: 'Female',
+    jp: '女性',
+    zh: '女',
+  },
+  sex: {
+    ko: '성별',
+    en: 'Gender',
+    jp: '性別',
+    zh: '性别',
+  },
+  real_birthday: {
+    ko: '생년월일',
+    en: 'Date of Birth',
+    jp: '生年月日',
+    zh: '出生日期',
+  }
 }
 
 export type StringResourceKey = keyof typeof StringResource;
