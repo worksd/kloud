@@ -2,7 +2,7 @@
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 
-export async function createDialog(id: DialogId, message?: string): Promise<DialogInfo | undefined> {
+export async function createDialog(id: DialogId, message?: string, title?: string,): Promise<DialogInfo | undefined> {
   if (id == 'Logout') {
     return {
       id: id,
@@ -148,6 +148,14 @@ export async function createDialog(id: DialogId, message?: string): Promise<Dial
       message: await translate('certification_code_mismatch'),
       confirmTitle: await translate('confirm'),
     }
+  } else if (id == 'Simple') {
+    return {
+      id: 'Simple',
+      type: 'SIMPLE',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+    }
   }
 }
 
@@ -169,6 +177,7 @@ export type DialogId =
   | 'RefundAccountUpdateSuccess'
   | 'CertificationEmail'
   | 'CertificationFail'
+  | 'Simple'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

@@ -71,13 +71,18 @@ export default function PaymentButton({
   const onPaymentSuccess = async ({paymentId} : {paymentId: string}) => {
     if (type.value == 'lesson') {
       const res = await createTicketAction({paymentId: paymentId, lessonId: id, status: 'Paid'});
-      const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
-        route: pushRoute,
-      });
-      window.KloudEvent?.navigateMain(bootInfo);
+      if ('id' in res) {
+        const pushRoute = KloudScreen.TicketDetail(res.id ?? 0, true)
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: pushRoute,
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
+      } else {
+        const dialogInfo= await createDialog('Simple', res.message)
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
+      }
     } else if (type.value == 'passPlan') {
       const res = await createPassAction({paymentId: paymentId, passPlanId: id, status: 'Active'});
       const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
@@ -206,17 +211,23 @@ export default function PaymentButton({
             status: 'Pending',
             depositor: depositor,
           });
-          const route = 'id' in res ? KloudScreen.TicketDetail(res.id ?? 0, true) : null
-          if (appVersion == '' && route) {
-            router.replace(route)
+          if ('id' in res) {
+            const route = KloudScreen.TicketDetail(res.id, true)
+            if (appVersion == '' && route) {
+              router.replace(route)
+            } else {
+              const bottomMenuList = await getBottomMenuList();
+              const bootInfo = JSON.stringify({
+                bottomMenuList: bottomMenuList,
+                route: route,
+              });
+              window.KloudEvent?.navigateMain(bootInfo);
+            }
           } else {
-            const bottomMenuList = await getBottomMenuList();
-            const bootInfo = JSON.stringify({
-              bottomMenuList: bottomMenuList,
-              route: route,
-            });
-            window.KloudEvent?.navigateMain(bootInfo);
+            const dialogInfo = await createDialog('Simple', res.message)
+            window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
           }
+
         } else if (type.value == 'passPlan') {
           const res = await createPassAction({
             passPlanId: id,
