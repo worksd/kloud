@@ -1319,7 +1319,7 @@ export const StringResource = {
     zh: '开放日期'
   },
   register_lesson_finish: {
-    ko: '수신청이 마감된 수업입니다',
+    ko: '수강신청이 마감된 수업입니다',
     en: 'This class is no longer available for registration.',
     jp: 'このレッスンの申し込みは締め切られました。',
     zh: '该课程已截止报名。'
