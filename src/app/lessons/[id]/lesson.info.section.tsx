@@ -19,7 +19,7 @@ export const LessonInfoSection = async ({data}: {data: GetLessonResponse}) => {
 
             <LessonInfoLabel Icon={TimeCircle} text={startTime.time} subText={`${data.duration} ${await translate('minutes')}`} />
 
-            {(data.limit ?? 0) * 0.7 < (data.currentStudentCount ?? 0) &&
+            {(data.limit ?? 0) * 0.9 < (data.currentStudentCount ?? 0) &&
               <LessonInfoLabel Icon={Users} text={`${data.currentStudentCount}`} subText={`${data.limit}`}/>
             }
         </div>
