@@ -6,13 +6,11 @@ import StampCancel from "../../../../public/assets/stamp_cancel.svg";
 import StampUsed from "../../../../public/assets/stamp_used.svg";
 import StampNotPaid from "../../../../public/assets/stamp_not_paid.svg";
 import Logo from "../../../../public/assets/logo_white.svg";
-import PaymentQuestionPopup from "@/app/tickets/[id]/ArtistQuestionDialog";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
-import { useLocale } from "@/hooks/useLocale";
 import { translate } from "@/utils/translate";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
-export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse, isJustPaid: string}) {
+export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse, isJustPaid: string }) {
   const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
   return (
     <div className="flex flex-col bg-white">
@@ -22,36 +20,34 @@ export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse,
       </div>
 
       <div className="flex flex-col p-6">
-        <div className="flex flex-row mt-5 rounded-[16px] bg-black p-6 items-center">
+        <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
           {ticket.status == 'Cancelled' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
-          {ticket.status === 'Pending' && <AccountTransferComponent
+          {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
             title={ticket.lesson?.title}
             depositor={ticket.lesson?.studio?.depositor}
             bank={ticket.lesson?.studio?.bank}
             accountNumber={ticket.lesson?.studio?.accountNumber}
             price={ticket.lesson?.price}
-          />}
-          {ticket.status != 'Pending' &&
-            <div className={"flex flex-row items-center"}>
-              <Image
-                className="w-[42px] h-[42px] rounded-full overflow-hidden flex-shrink-0 border border-[#F7F8F9]"
-                src={ticket.user?.profileImageUrl ?? ''}
-                alt={'로고 URL'}
-                width={42}
-                height={42}
-              />
-              <div className="flex flex-col ml-3">
-                <div className="font-bold text-[18px]">
-                  {ticket.user?.nickName}
-                  {ticket.user?.name ? ` (${ticket.user.name})` : ""}
-                </div>
-                <div className="font-medium text-[14px]">
-                  {ticket.user?.email}
-                </div>
+          /></div>}
+          <div className={"flex flex-row items-center"}>
+            <Image
+              className="w-[42px] h-[42px] rounded-full overflow-hidden flex-shrink-0 border border-[#F7F8F9]"
+              src={ticket.user?.profileImageUrl ?? ''}
+              alt={'로고 URL'}
+              width={42}
+              height={42}
+            />
+            <div className="flex flex-col ml-3">
+              <div className="font-bold text-[18px]">
+                {ticket.user?.nickName}
+                {ticket.user?.name ? ` (${ticket.user.name})` : ""}
               </div>
-            </div>}
-
+              <div className="font-medium text-[14px]">
+                {ticket.user?.email}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col mt-0.5 relative">
@@ -82,7 +78,8 @@ export async function TicketForm({ticket, isJustPaid} : {ticket: TicketResponse,
               </div>
               <div>
                 <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('lesson_duration')}</p>
-                <p className="text-white font-medium text-[18px]">{ticket.lesson?.duration} {await translate('minutes')}</p>
+                <p
+                  className="text-white font-medium text-[18px]">{ticket.lesson?.duration} {await translate('minutes')}</p>
               </div>
               <div>
                 <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('studio')}</p>
