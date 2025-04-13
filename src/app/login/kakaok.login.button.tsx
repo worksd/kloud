@@ -27,13 +27,19 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
   useEffect(() => {
     const handleKakaoLogin = async () => {
       try {
-        if (isSubmitting) return;
+        if (isSubmitting) {
+          console.log('Kakao Login: Is Submitting...')
+          return;
+        }
         setIsSubmitting(true);
         const code = searchParams?.get('code');
         const state = searchParams?.get('state');
 
         if (code && state) {
-          if (code === prevCodeRef.current) return;
+          if (code === prevCodeRef.current) {
+            console.log(`Kakao Login Error: same code ${prevCodeRef.current}`)
+            return;
+          }
           prevCodeRef.current = code;
 
           try {
