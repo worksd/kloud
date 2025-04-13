@@ -1,6 +1,6 @@
 'use client';
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { TranslatableText } from "@/utils/TranslatableText";
@@ -11,7 +11,8 @@ import { KloudScreen } from "@/shared/kloud.screen";
 const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl: string}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [prevCode, setPrevCode] = useState("");
+  const prevCodeRef = useRef<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
@@ -25,32 +26,37 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
   }, []);
   useEffect(() => {
     const handleKakaoLogin = async () => {
-      const code = searchParams?.get('code');
-      const state = searchParams?.get('state');
+      try {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        const code = searchParams?.get('code');
+        const state = searchParams?.get('state');
 
-      if (code && state) {
-        try {
-          if (code == prevCode) return
-          setPrevCode(code);
-          const res = await kakaoLoginAction({code});
-          if (res.success) {
-            const decodedState = decodeURIComponent(state);
-            if (res.status == UserStatus.Ready) {
-              router.replace(decodedState);
-            } else if (res.status == UserStatus.New) {
-              router.replace(KloudScreen.Onboard(decodedState))
+        if (code && state) {
+          if (code === prevCodeRef.current) return;
+          prevCodeRef.current = code;
+
+          try {
+            const res = await kakaoLoginAction({code});
+            if (res.success) {
+              const decodedState = decodeURIComponent(state);
+              if (res.status === UserStatus.Ready) {
+                router.replace(decodedState);
+              } else if (res.status === UserStatus.New) {
+                router.replace(KloudScreen.Onboard(decodedState));
+              }
             }
+          } catch (error) {
+            console.error("Kakao Login Error:", error);
           }
-          setPrevCode('');
-
-        } catch (error) {
-          console.error('Login error:', error);
         }
+      } finally {
+        setIsSubmitting(false)
       }
     };
 
     handleKakaoLogin();
-  }, [searchParams, router]);
+  }, [searchParams, router, prevCodeRef.current]);
 
   const kakaoLogin = () => {
     if (appVersion == '') {
