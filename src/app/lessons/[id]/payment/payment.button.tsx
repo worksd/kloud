@@ -68,30 +68,39 @@ export default function PaymentButton({
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   const router = useRouter();
 
-  const onPaymentSuccess = async ({paymentId} : {paymentId: string}) => {
-    if (type.value == 'lesson') {
-      const res = await createTicketAction({paymentId: paymentId, lessonId: id, status: 'Paid'});
-      if ('id' in res) {
-        const pushRoute = KloudScreen.TicketDetail(res.id ?? 0, true)
+  const onPaymentSuccess = async ({paymentId}: { paymentId: string }) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      if (type.value == 'lesson') {
+        const res = await createTicketAction({paymentId: paymentId, lessonId: id, status: 'Paid'});
+        if ('id' in res) {
+          const pushRoute = KloudScreen.TicketDetail(res.id ?? 0, true)
+          const bottomMenuList = await getBottomMenuList();
+          const bootInfo = JSON.stringify({
+            bottomMenuList: bottomMenuList,
+            route: pushRoute,
+          });
+          window.KloudEvent?.navigateMain(bootInfo);
+        } else {
+          const dialogInfo = await createDialog('Simple', res.message)
+          window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
+        }
+      } else if (type.value == 'passPlan') {
+        const res = await createPassAction({paymentId: paymentId, passPlanId: id, status: 'Active'});
+        const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
           bottomMenuList: bottomMenuList,
           route: pushRoute,
         });
         window.KloudEvent?.navigateMain(bootInfo);
-      } else {
-        const dialogInfo= await createDialog('Simple', res.message)
-        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
       }
-    } else if (type.value == 'passPlan') {
-      const res = await createPassAction({paymentId: paymentId, passPlanId: id, status: 'Active'});
-      const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({
-        bottomMenuList: bottomMenuList,
-        route: pushRoute,
-      });
-      window.KloudEvent?.navigateMain(bootInfo);
+    } catch
+      (e) {
+      console.log(e)
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -187,7 +196,8 @@ export default function PaymentButton({
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       onPaymentSuccess({paymentId: data.paymentId})
-  }}, [selectedPass])
+    }
+  }, [selectedPass])
 
   useEffect(() => {
     window.onErrorInvoked = async (data: { code: string }) => {
