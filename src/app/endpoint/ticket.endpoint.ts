@@ -17,6 +17,7 @@ export type TicketResponse = {
   lesson?: GetLessonResponse;
   user?: GetUserResponse;
   createdAt?: string;
+  rank?: string;
 }
 
 export type CreateTicketParameter = {

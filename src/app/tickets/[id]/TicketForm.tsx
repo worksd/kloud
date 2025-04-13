@@ -9,6 +9,7 @@ import Logo from "../../../../public/assets/logo_white.svg";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { translate } from "@/utils/translate";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
+import KloudQRCode from "@/app/tickets/QRCode";
 
 export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse, isJustPaid: string }) {
   const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
@@ -22,7 +23,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
       <div className="flex flex-col p-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
-          {ticket.status == 'Cancelled' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
+          {/*{ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}*/}
           {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
             title={ticket.lesson?.title}
             depositor={ticket.lesson?.studio?.depositor}
@@ -53,10 +54,13 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
         <div className="flex flex-col mt-0.5 relative">
           <Thumbnail url={ticket.lesson?.thumbnailUrl ?? ''}/>
           <div className="absolute inset-0 bg-black/65 rounded-[16px]"/>
-          {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
+          {/*{ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}*/}
 
           <div className={"absolute inset-x-0 px-6"}>
-            <div className={"mt-9 text-[12px] text-white font-bold font-paperlogy"}>
+            <div className={"mt-3 text-[24px] text-white font-bold font-paperlogy"}>
+              {ticket.rank}
+            </div>
+            <div className={"text-[12px] text-white font-bold font-paperlogy"}>
               {ticket.paymentId}
             </div>
             <div className={"text-[26px] text-white font-bold"}>
@@ -112,7 +116,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
               </div>
             </div>}
             {ticket.status == 'Used' && <div>
-              <div className="w-[160px] h-[160px] overflow-hidden flex-shrink-0 m-6">
+              <div className="overflow-hidden flex-shrink-0">
                 <StampUsed className={"scale-75"}/>
               </div>
             </div>}
@@ -123,9 +127,10 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
             </div>}
           </div>
         </div>
+        {/*{ticket.status == 'Paid' && <KloudQRCode/>}*/}
       </div>
       {ticket.status === 'Paid' &&
-        <div className="absolute bottom-0 w-full overflow-hidden bg-black py-1">
+        <div className="left-0 w-full fixed bottom-0 px-6 bg-black">
           <div className="flex animate-scroll-reverse">
             <div className="flex shrink-0">
               {Array(2)
@@ -143,13 +148,6 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
           </div>
         </div>
       }
-      {/*/!* 결제 완료 팝업 *!/*/}
-      {/*<div className={"z-10"}>*/}
-      {/*  {isJustPaid === "true" && (*/}
-      {/*    <PaymentQuestionPopup title={ticket.lesson?.title ?? ''} lessonId={ticket.lesson?.id ?? 0}*/}
-      {/*                          studioId={ticket.lesson?.studio?.id ?? 0}/>*/}
-      {/*  )}*/}
-      {/*</div>*/}
     </div>
 
   );
