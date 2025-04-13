@@ -1389,6 +1389,12 @@ export const StringResource = {
     en: 'Date of Birth',
     jp: '生年月日',
     zh: '出生日期',
+  },
+  empty: {
+    ko: '',
+    en: '',
+    jp: '',
+    zh: '',
   }
 }
 

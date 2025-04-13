@@ -1,7 +1,6 @@
 import { Endpoint, NoParameter } from "@/app/endpoint/index";
 import { GetStudioResponse, IdParameter } from "@/app/endpoint/studio.endpoint";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
-import { UserResponse } from "@/app/endpoint/auth.endpoint";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { StringResourceKey } from "@/shared/StringResource";
 
@@ -44,8 +43,10 @@ export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
   bodyParams: ['paymentId', 'lessonId', 'status', 'depositor', 'passId']
 }
 
-export function convertStatusToMessage({status} : {status: string}): StringResourceKey {
+export function convertStatusToMessage({status}: { status: string }): StringResourceKey {
   if (status === 'Paid') return 'purchase_complete'
-    else if (status == 'Cancelled') return 'purchase_cancel'
-    else return 'purchase_pending'
+  else if (status == 'Cancelled') return 'purchase_cancel'
+  else if (status == 'Used') return 'used_complete'
+  else if (status == 'Pending') return 'purchase_pending'
+  else return 'empty'
 }

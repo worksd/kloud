@@ -23,7 +23,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
       <div className="flex flex-col p-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
-          {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
+          {(ticket.status == 'Cancelled' || ticket.status == 'Used') && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
           {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
             title={ticket.lesson?.title}
             depositor={ticket.lesson?.studio?.depositor}
