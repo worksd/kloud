@@ -69,7 +69,7 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
       if (isSubmitting) return;
       setIsSubmitting(true);
       if (appVersion == '') {
-        const state = callbackUrl ? encodeURIComponent(callbackUrl) : '';
+        const state = callbackUrl ? encodeURIComponent(callbackUrl) : encodeURIComponent('/');
         const URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_REDIRECT_URL}&response_type=code&state=${state}`;
         window.location.href = URL;
       } else {
