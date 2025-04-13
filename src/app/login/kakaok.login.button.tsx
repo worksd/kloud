@@ -65,12 +65,18 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
   }, [searchParams, router, prevCodeRef.current]);
 
   const kakaoLogin = () => {
-    if (appVersion == '') {
-      const state = callbackUrl ? encodeURIComponent(callbackUrl) : '';
-      const URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_REDIRECT_URL}&response_type=code&state=${state}`;
-      window.location.href = URL;
-    } else {
-      window.KloudEvent?.sendKakaoLogin()
+    try {
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+      if (appVersion == '') {
+        const state = callbackUrl ? encodeURIComponent(callbackUrl) : '';
+        const URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_REDIRECT_URL}&response_type=code&state=${state}`;
+        window.location.href = URL;
+      } else {
+        window.KloudEvent?.sendKakaoLogin()
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   };
 
@@ -80,6 +86,7 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
             active:scale-[0.95] transition-transform duration-150 select-none'}
       `}
       onClick={kakaoLogin}
+      disabled={isSubmitting}
     >
       <span className="absolute left-4">
         <KakaoLogo/>
