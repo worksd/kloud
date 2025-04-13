@@ -42,7 +42,7 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
           </NavigateClickWrapper>
         </div>
         <div className={'my-4'}>
-          <TimeTable lessons={res.schedules ?? []}/>
+          <TimeTable lessons={res.schedules ?? []} todayIndex={res.day}/>
         </div>
 
         {res.bands.map((value) => (

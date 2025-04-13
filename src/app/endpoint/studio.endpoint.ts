@@ -41,6 +41,7 @@ export type GetMyStudioResponse = {
   announcement: GetAnnouncementResponse;
   passes: GetPassResponse[];
   schedules?: GetLessonResponse[];
+  day: number;
   bands: GetBandResponse[];
 }
 

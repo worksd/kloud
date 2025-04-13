@@ -15,6 +15,7 @@ export const LessonGridItems = async ({ lessons }: { lessons: GetLessonResponse[
             title={lesson.title ?? ''}
             startTime={lesson.startTime ?? ''}
             width={undefined}
+            dday={lesson.dday}
           />
         ))}
       </div>

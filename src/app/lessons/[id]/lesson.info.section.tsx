@@ -1,6 +1,5 @@
 "use server";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
-import { calculateDDays } from "@/utils";
 import Calendar from "../../../../public/assets/calendar.svg";
 import Location from "../../../../public/assets/location.svg";
 import TimeCircle from "../../../../public/assets/time-circle.svg";
@@ -15,7 +14,7 @@ export const LessonInfoSection = async ({data}: {data: GetLessonResponse}) => {
         <div className="self-stretch flex-col justify-start items-start gap-2 flex">
             <LessonInfoLabel Icon={Location} text={data.studio?.name ?? ''} subText={data.room?.name ?? ''} />
 
-            <LessonInfoLabel Icon={Calendar} text={`${startTime.date}(${await translate(startTime.dayOfWeek)})`} subText={calculateDDays(data.startTime ?? '') ?? await translate('finish')} />
+            <LessonInfoLabel Icon={Calendar} text={`${startTime.date}(${await translate(startTime.dayOfWeek)})`} subText={data.dday ?? await translate('finish')} />
 
             <LessonInfoLabel Icon={TimeCircle} text={startTime.time} subText={`${data.duration} ${await translate('minutes')}`} />
 

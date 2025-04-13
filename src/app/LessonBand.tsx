@@ -29,6 +29,7 @@ export async function LessonBand({title, lessons, type}: {
                 title={item.title ?? ''}
                 startTime={item.startTime ?? ''}
                 studioLogoUrl={item.studio?.profileImageUrl}
+                dday={item.dday}
               />
             }
             {

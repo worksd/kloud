@@ -1,20 +1,17 @@
 'use server'
 import { KloudScreen } from "@/shared/kloud.screen";
 import { Thumbnail } from "@/app/components/Thumbnail";
-import { formatDateTime } from "@/utils/date.format";
 import Image from "next/image";
-import { calculateDDays } from "@/utils";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { translate } from "@/utils/translate";
 
 export async function RecommendPoster({
-                               id,
-                               posterUrl,
-                               studioLogoUrl,
-                               startTime,
-                               title,
-                               width = 240
-                             }: {
+                                        id,
+                                        posterUrl,
+                                        studioLogoUrl,
+                                        startTime,
+                                        title,
+                                        width = 240
+                                      }: {
   id: number,
   posterUrl: string,
   studioLogoUrl?: string,
@@ -26,7 +23,7 @@ export async function RecommendPoster({
     <NavigateClickWrapper method="push" route={KloudScreen.LessonDetail(id)}>
       <div
         className="flex flex-col active:scale-[0.98] transition-transform duration-150"
-        style={{ width: `${width}px` }}
+        style={{width: `${width}px`}}
       >
         <div className="relative overflow-hidden rounded-lg">
           <Thumbnail

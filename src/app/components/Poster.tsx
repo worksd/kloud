@@ -3,7 +3,6 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { formatDateTime } from "@/utils/date.format";
 import Image from "next/image";
-import { calculateDDays } from "@/utils";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { translate } from "@/utils/translate";
 
@@ -13,7 +12,8 @@ export async function Poster({
                                studioLogoUrl,
                                startTime,
                                title,
-                               width
+                               width,
+                               dday
                              }: {
   id: number,
   posterUrl: string,
@@ -21,8 +21,8 @@ export async function Poster({
   startTime: string,
   width?: number
   title?: string,
+  dday?: string,
 }) {
-  const d_days = calculateDDays(startTime)
   const formatTime = await formatDateTime(startTime)
   return (
     <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(id)}>
@@ -36,13 +36,14 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
-          {d_days ? (
+          {dday ? (
             <div
               className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
-              {d_days}
+              {dday}
             </div>
           ) : (
-            <div className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">
+            <div
+              className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">
               {await translate('finish')}
             </div>
           )}

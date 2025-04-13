@@ -26,6 +26,7 @@ export type GetLessonResponse = {
     room?: GetStudioRoomResponse;
     ticket?: TicketResponse;
     extraArtists?: GetArtistResponse[];
+    dday?: string;
 };
 
 export type GetStudioRoomResponse = {

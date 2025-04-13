@@ -12,11 +12,9 @@ export type TimeTableLesson = {
   lesson: GetLessonResponse;
 };
 
-export const TimeTable = ({lessons}: { lessons: GetLessonResponse[] }) => {
+export const TimeTable = ({lessons, todayIndex}: { lessons: GetLessonResponse[], todayIndex: number }) => {
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', "SUN"];
   const sortedLessons = sortLessons({lessons});
-  const jsDay = new Date().getDay();
-  const todayIndex = (jsDay + 6) % 7;
 
   return (
     <div>
