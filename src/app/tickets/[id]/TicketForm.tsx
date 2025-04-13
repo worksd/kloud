@@ -23,7 +23,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
       <div className="flex flex-col p-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
-          {/*{ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}*/}
+          {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
           {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
             title={ticket.lesson?.title}
             depositor={ticket.lesson?.studio?.depositor}
@@ -54,7 +54,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
         <div className="flex flex-col mt-0.5 relative">
           <Thumbnail url={ticket.lesson?.thumbnailUrl ?? ''}/>
           <div className="absolute inset-0 bg-black/65 rounded-[16px]"/>
-          {/*{ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}*/}
+          {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
 
           <div className={"absolute inset-x-0 px-6"}>
             <div className={"mt-3 text-[24px] text-white font-bold font-paperlogy"}>
@@ -112,7 +112,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
             </div>}
             {ticket.status == 'Cancelled' && <div>
               <div className="overflow-hidden flex-shrink-0">
-                <StampCancel className="scale-75"/> {/* 75% 크기로 */}
+                <StampCancel className="scale-75"/>
               </div>
             </div>}
             {ticket.status == 'Used' && <div>
@@ -127,6 +127,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
             </div>}
           </div>
         </div>
+        {/*TODO: QR 돌아올때 복구*/}
         {/*{ticket.status == 'Paid' && <KloudQRCode/>}*/}
       </div>
       {ticket.status === 'Paid' &&
