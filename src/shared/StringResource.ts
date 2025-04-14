@@ -1390,6 +1390,12 @@ export const StringResource = {
     jp: '生年月日',
     zh: '出生日期',
   },
+  no_available_payment_method: {
+    ko: '온라인 결제가 마감되었습니다.\n수업 전 추가 등록은 스튜디오로 문의해주세요.',
+    en: 'Online payment has closed.\nFor last-minute registration, please contact the studio.',
+    jp: 'オンライン決済は締め切られました。\n追加登録をご希望の方はスタジオまでお問い合わせください。',
+    zh: '线上付款已截止。\n如需临时报名，请联系工作室。',
+  },
   empty: {
     ko: '',
     en: '',

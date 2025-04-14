@@ -36,7 +36,7 @@ export const PaymentMethodComponent = ({
 
       <div className="text-base font-bold text-left text-black">{<TranslatableText
         titleResource={'payment_method'}/>}</div>
-      {paymentOptions.map((option) => (
+      {paymentOptions.length > 0 ? paymentOptions.map((option) => (
         <div
           key={option.id}
           className={'flex flex-col'}>
@@ -82,7 +82,9 @@ export const PaymentMethodComponent = ({
           }
 
         </div>
-      ))}
+      )): (
+        <TranslatableText className={'text-black font-medium text-center'} titleResource={'no_available_payment_method'}></TranslatableText>
+      )}
     </div>
   )
 }
