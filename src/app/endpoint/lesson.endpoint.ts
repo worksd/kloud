@@ -81,6 +81,12 @@ export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListRes
     queryParams: ['studioId', 'page', 'type']
 }
 
+export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
+    method: 'get',
+    path: `/lessons/ongoing`,
+    queryParams: ['studioId']
+}
+
 export const ListStageBands: Endpoint<object, GetBandListResponse> = {
     method: 'get',
     path: `/lessons/stage`,
