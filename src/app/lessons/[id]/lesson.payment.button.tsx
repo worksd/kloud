@@ -8,17 +8,22 @@ import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint"
 
 export const LessonPaymentButton = async ({lesson}: { lesson: GetLessonResponse }) => {
 
-  const disabled = lesson.status !== LessonStatus.Recruiting && !(lesson.status === LessonStatus.Ready && lesson.ticket !== null)
+  const clickable = lesson.status === LessonStatus.Recruiting ||
+    (lesson.status !== LessonStatus.Completed && lesson.ticket?.id != null)
   const targetRoute =
     lesson.ticket?.id != null
       ? KloudScreen.TicketDetail(lesson.ticket.id, false)
       : KloudScreen.LessonPayment(lesson.id);
 
-  const title = disabled
-    ? await getButtonTitleResourceByStatus({lesson})
-    : lesson.ticket != null
-      ? await translate("my_ticket")
-      : await getButtonTitleResourceByStatus({lesson});
+  let title: string;
+
+  if (lesson.status === LessonStatus.Completed) {
+    title = await translate("finish_lesson_title");
+  } else if (lesson.ticket?.id != null) {
+    title = await translate("my_ticket");
+  } else {
+    title = await getButtonTitleResourceByStatus({ lesson });
+  }
 
   return (
     <NavigateClickWrapper
@@ -26,7 +31,7 @@ export const LessonPaymentButton = async ({lesson}: { lesson: GetLessonResponse 
       route={targetRoute}
     >
       <CommonSubmitButton
-        disabled={disabled}
+        disabled={!clickable}
       >
         {title}
       </CommonSubmitButton>
