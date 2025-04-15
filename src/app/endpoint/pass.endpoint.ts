@@ -31,6 +31,7 @@ export type GetPassPlansResponse = {
 export type GetPassResponse = {
   id: number
   price: number
+  paymentId: string
   endDate: string,
   status?: PassStatus,
   passPlan?: GetPassPlanResponse

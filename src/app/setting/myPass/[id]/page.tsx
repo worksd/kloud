@@ -23,7 +23,7 @@ export default async function MyPassDetailPage({params}: {
           <DynamicHeader title={pass.passPlan?.name}/>
         </div>
 
-        <div className={'px-4 py-5 space-y-4'}>
+        <div className={'px-4 mt-5'}>
           <PassItem pass={pass} endDate={pass.endDate}/>
           {pass.status == 'Pending' &&
             <AccountTransferComponent
@@ -34,7 +34,9 @@ export default async function MyPassDetailPage({params}: {
             />
           }
         </div>
-
+        <div className={"text-[12px] text-[#A4A4A4] font-paperlogy ml-4 mb-4"}>
+          {pass.paymentId}
+        </div>
         <Divider/>
 
         <div className={'py-5'}>
