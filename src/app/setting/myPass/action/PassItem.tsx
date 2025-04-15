@@ -4,7 +4,7 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { DdayText } from "@/app/components/DdayText";
 
-export const PassItem = ({pass}: { pass: GetPassResponse }) => {
+export const PassItem = ({pass, endDate}: { pass: GetPassResponse, endDate?: string }) => {
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -29,16 +29,19 @@ export const PassItem = ({pass}: { pass: GetPassResponse }) => {
               }
 
               <DdayText input={pass.endDate}/>
-              <span className={'text-[#A4A4A4] font-medium'}>|</span>
-              <div className={'flex flex-row space-x-0.5'}>
-                <span className={'text-[#A4A4A4] font-medium'}>{pass.endDate}</span>
-                <TranslatableText className={'text-[#A4A4A4] font-medium'} titleResource={'until'}/>
-              </div>
+
+              {endDate &&
+                <div className={'flex flex-row space-x-0.5'}>
+                  <span className={'text-[#A4A4A4] font-medium'}>|</span>
+                  <span className={'text-[#A4A4A4] font-medium'}>{endDate}</span>
+                  <TranslatableText className={'text-[#A4A4A4] font-medium'} titleResource={'until'}/>
+                </div>
+              }
 
             </div>
           }
           {
-            pass.status == 'Pending' &&
+          pass.status == 'Pending' &&
             <div className="flex items-center space-x-2 text-gray-500">
               <TranslatableText className={'text-[#FF434F] font-bold'} titleResource={'pending_account_transfer'}/>
             </div>

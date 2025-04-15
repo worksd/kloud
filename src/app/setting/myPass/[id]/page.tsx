@@ -24,7 +24,7 @@ export default async function MyPassDetailPage({params}: {
         </div>
 
         <div className={'px-4 py-5 space-y-4'}>
-          <PassItem pass={pass}/>
+          <PassItem pass={pass} endDate={pass.endDate}/>
           {pass.status == 'Pending' &&
             <AccountTransferComponent
               depositor={pass.passPlan?.studio?.depositor}
