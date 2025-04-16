@@ -6,15 +6,22 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 
-export const SplashScreen = () => {
+export const SplashScreen = ({os}: {os: string}) => {
   useEffect(() => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
         window.KloudEvent?.clearAndPush(KloudScreen.Maintenance)
-        return
+        return;
       }
       const res = await authToken()
+      if (res.code == 'APP_UPGRADE_REQUIRED') {
+        const dialog = await createDialog('AppUpgrade', res.errorTitle)
+        window.KloudEvent.showDialog(JSON.stringify(dialog))
+        return;
+      }
       const status = res.status
 
       const route = !status
@@ -36,6 +43,17 @@ export const SplashScreen = () => {
         window.KloudEvent?.clearAndPush(route)
       }
     }, 1000)
+  }, []);
+
+  useEffect(() => {
+    window.onDialogConfirm = async (dialogInfo: DialogInfo) => {
+      if (dialogInfo.id == 'AppUpgrade') {
+        const url = getStoreLink({os})?.url
+        if (url) {
+          window.KloudEvent.openExternalBrowser(url)
+        }
+      }
+    }
   }, []);
 
   return (

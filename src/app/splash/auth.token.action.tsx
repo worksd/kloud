@@ -9,6 +9,7 @@ export async function authToken() {
     }
   } else {
     return {
+      code: res.code,
       errorTitle: res.message,
     }
   }

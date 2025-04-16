@@ -5,7 +5,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 import { clearCookies } from "@/app/setting/clear.token.action";
 
-const getStoreLink = ({os}: { os: string }) => {
+export const getStoreLink = ({os}: { os: string }) => {
   if (os == 'Android') {
     return {
       label: '플레이스토어',

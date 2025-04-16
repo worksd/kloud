@@ -156,6 +156,14 @@ export async function createDialog(id: DialogId, message?: string, title?: strin
       message: message ?? '',
       confirmTitle: await translate('confirm'),
     }
+  } else if (id == 'AppUpgrade') {
+    return {
+      id: 'AppUpgrade',
+      type: 'SIMPLE',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+    }
   }
 }
 
@@ -178,6 +186,7 @@ export type DialogId =
   | 'CertificationEmail'
   | 'CertificationFail'
   | 'Simple'
+  | 'AppUpgrade'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

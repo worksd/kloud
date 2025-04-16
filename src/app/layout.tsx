@@ -65,6 +65,7 @@ declare global {
     showGallery: () => void;
     closeBottomSheet: () => void;
     changeWebEndpoint: (endpoint: string) => void;
+    openExternalBrowser: (url: string) => void;
 
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string, name: string }) => void;
