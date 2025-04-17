@@ -1,9 +1,7 @@
 'use client'
 
 import PaymentButton from "@/app/lessons/[id]/payment/payment.button";
-import { useEffect, useMemo, useState } from "react";
-import { isPastTime } from "@/app/lessons/[id]/time.util";
-import { StringResourceKey } from "@/shared/StringResource";
+import { useEffect, useState } from "react";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
@@ -71,7 +69,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           title={payment.lesson?.title ?? ''}
           userId={payment.user.id}
           depositor={depositor}
-          disabled={isPastTime(payment.lesson?.startTime) || selectedMethod == undefined}
+          disabled={selectedMethod == undefined}
         />
       </div>
     </div>

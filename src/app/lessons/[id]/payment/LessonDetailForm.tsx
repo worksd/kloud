@@ -3,7 +3,6 @@ import { HeaderInDetail } from "@/app/components/headers";
 import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
 import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
-import { isPastTime } from "@/app/lessons/[id]/time.util";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonInfoSection } from "@/app/lessons/[id]/lesson.info.section";
 import { translate } from "@/utils/translate";
