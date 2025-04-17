@@ -69,9 +69,9 @@ export default function PaymentButton({
   const router = useRouter();
 
   const onPaymentSuccess = async ({paymentId}: { paymentId: string }) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
     try {
+      console.log(`${paymentId} 결제 성공해버렸어!`)
+      setIsSubmitting(true);
       if (type.value == 'lesson') {
         const res = await createTicketAction({paymentId: paymentId, lessonId: id, status: 'Paid'});
         if ('id' in res) {
@@ -214,10 +214,8 @@ export default function PaymentButton({
   }, [])
 
   const onConfirmDialog = async (data: DialogInfo) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-
     try {
+      setIsSubmitting(true);
       const paymentId = generatePaymentId({type: type, id: id});
       if (data.id == 'AccountTransfer') {
         if (type.value == 'lesson') {
