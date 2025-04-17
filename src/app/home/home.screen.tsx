@@ -52,7 +52,7 @@ export default function HomeScreen({os}: { os: string }) {
     window.onFcmTokenComplete = async (data: { fcmToken: string, udid: string }) => {
       await registerDeviceAction({
         token: data.fcmToken,
-        udid: data.udid,
+        udid: data.udid ?? generateRandomString(),
       })
     }
   }, [])
@@ -64,4 +64,14 @@ export default function HomeScreen({os}: { os: string }) {
   return (
     <div/>
   );
+}
+
+function generateRandomString(length: number = 15): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    const randomIdx = Math.floor(Math.random() * chars.length);
+    result += chars[randomIdx];
+  }
+  return result;
 }
