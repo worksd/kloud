@@ -7,6 +7,7 @@ export type GetNotificationResponse = {
   body: string;
   thumbnailUrl: string;
   createdAt: string;
+  diffStamp?: string;
   bold: string;
   route: string;
   isRead: boolean;

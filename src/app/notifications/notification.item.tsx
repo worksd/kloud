@@ -25,40 +25,10 @@ export const NotificationItem = ({
         <div className="flex flex-col flex-1">
           <span className="text-base font-bold text-black mb-1">{notification.title}</span>
           <p className="text-sm text-gray-600 mb-1">{notification.body}</p>
-          <span className="text-xs text-gray-400">{formatTimeAgo(notification.createdAt)}</span>
+          {notification.diffStamp && <span className="text-xs text-gray-400">{notification.diffStamp}</span>}
         </div>
       </div>
 
     </NavigateClickWrapper>
   );
 };
-
-async function formatTimeAgo(dateInput: string | Date): Promise<string> {
-  let date: Date;
-  const locale = await getLocale();
-
-  // 입력 파싱
-  if (typeof dateInput === 'string') {
-    date = new Date(dateInput.replace(/\./g, '-'));
-  } else {
-    date = dateInput;
-  }
-
-  // KST 기준 현재 시간 만들기 (UTC + 9시간)
-  const now = new Date();
-  const kstNow = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-
-  // KST 기준 입력 시간도 보정
-  const kstInput = new Date(date.getTime() + (9 * 60 * 60 * 1000));
-
-  const diff = kstNow.getTime() - kstInput.getTime(); // 밀리초 차이
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (seconds < 60) return StringResource['just_now'][locale];
-  if (minutes < 60) return StringResource['minutes_ago'][locale].replace("{n}", String(minutes));
-  if (hours < 24) return StringResource['hours_ago'][locale].replace("{n}", String(hours));
-  return StringResource['days_ago'][locale].replace("{n}", String(days));
-}
