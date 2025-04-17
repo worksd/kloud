@@ -77,7 +77,7 @@ export default async function LessonDetailForm({lesson}: {
         <div className="self-stretch flex-col justify-start items-start gap-5 flex">
           <div className="self-stretch h-7 px-6 justify-center items-center gap-5 inline-flex">
             <div
-              className="grow shrink basis-0 text-black text-[16px] font-bold leading-snug">{await translate('lesson_information')}</div>
+              className="grow shrink basis-0 text-black text-[16px] font-bold leading-snug">{await translate('lesson_artist_information')}</div>
           </div>
           {lesson.artist && <LessonArtistItem artist={lesson.artist}/>}
           {lesson.extraArtists && lesson.extraArtists.length > 0 && (
