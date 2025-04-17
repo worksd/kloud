@@ -20,7 +20,7 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
   const res = await getStudioInfoAction({studioId: Number(studioId)});
   if ('studio' in res) {
     return (
-      <div className={'flex flex-col overflow-y-auto no-scrollbar'}>
+      <div className={'flex flex-col overflow-y-auto no-scrollbar pb-10'}>
         <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
           <header className="flex flex-row space-x-2 p-4 bg-white items-center">
             <h1 className="text-[18px] font-medium text-black">{await translate('my_studio')}</h1>
