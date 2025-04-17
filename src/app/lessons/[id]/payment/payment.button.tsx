@@ -99,15 +99,17 @@ export default function PaymentButton({
     } catch
       (e) {
       console.log(e)
+      setIsSubmitting(false);
     } finally {
       setIsSubmitting(false);
     }
   }
 
   const handlePayment = useCallback(async () => {
-
     const user = await getUserAction()
-    if (!user || !('id' in user)) return;
+    if (!user || !('id' in user)) {
+      return;
+    }
 
     if (!user.phone && user.emailVerified == false) {
       if (appVersion == '') {
@@ -125,64 +127,69 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit') {
-      if (appVersion == '') {
-        const mobileWebPaymentRequest: PaymentRequest = {
-          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-          paymentId: paymentId,
-          orderName: title,
-          payMethod: 'CARD',
-          totalAmount: price,
-          currency: "CURRENCY_KRW",
-          customer: {
-            fullName: `${userId}`
-          },
-          redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
-        }
-        await requestPayment(mobileWebPaymentRequest)
-      } else {
-        const paymentInfo: PaymentInfo = os == 'Android' ? {
-          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-          paymentId: paymentId,
-          orderName: title,
-          method: 'credit',
-          type: type,
-          price: price,
-          userId: `${userId}`,
-        } : {
-          paymentId: paymentId,
-          pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
-          scheme: 'iamport',
-          orderName: title,
-          type: type,
-          amount: `${price}`,
-          method: 'credit',
-          userId: `${userId}`,
-          userCode: process.env.NEXT_PUBLIC_USER_CODE,
-        }
-        window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
-      }
-    } else if (method === 'account_transfer') {
-      if (depositor.length === 0) {
-        const dialog = await createDialog('EmptyDepositor')
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
-      } else {
-        const dialog = await createAccountTransferMessage({
-          title,
-          price,
-          depositor,
-        })
-        if (appVersion == '' && dialog) {
-          setWebDialogInfo(dialog)
+    try {
+      setIsSubmitting(true);
+      if (method === 'credit') {
+        if (appVersion == '') {
+          const mobileWebPaymentRequest: PaymentRequest = {
+            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+            channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+            paymentId: paymentId,
+            orderName: title,
+            payMethod: 'CARD',
+            totalAmount: price,
+            currency: "CURRENCY_KRW",
+            customer: {
+              fullName: `${userId}`
+            },
+            redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
+          }
+          await requestPayment(mobileWebPaymentRequest)
         } else {
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          const paymentInfo: PaymentInfo = os == 'Android' ? {
+            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+            channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+            paymentId: paymentId,
+            orderName: title,
+            method: 'credit',
+            type: type,
+            price: price,
+            userId: `${userId}`,
+          } : {
+            paymentId: paymentId,
+            pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
+            scheme: 'iamport',
+            orderName: title,
+            type: type,
+            amount: `${price}`,
+            method: 'credit',
+            userId: `${userId}`,
+            userCode: process.env.NEXT_PUBLIC_USER_CODE,
+          }
+          window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
         }
+      } else if (method === 'account_transfer') {
+        if (depositor.length === 0) {
+          const dialog = await createDialog('EmptyDepositor')
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        } else {
+          const dialog = await createAccountTransferMessage({
+            title,
+            price,
+            depositor,
+          })
+          if (appVersion == '' && dialog) {
+            setWebDialogInfo(dialog)
+          } else {
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          }
+        }
+      } else if (method === 'pass') {
+        const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
-    } else if (method === 'pass') {
-      const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
-      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+    } finally {
+      setIsSubmitting(false);
     }
   }, [id, method, depositor, selectedPass]);
 
@@ -298,7 +305,7 @@ export default function PaymentButton({
 
   return (
     <div>
-      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled}>
+      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
         {isSubmitting ? (
           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         ) : (
