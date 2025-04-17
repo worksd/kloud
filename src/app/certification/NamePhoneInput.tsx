@@ -183,7 +183,7 @@ export const NamePhoneInput = ({
       <div
         onClick={onClickForeigner}
         className="flex items-center justify-end px-6 text-[#BCBFC2]">
-        Are you a foreigner?
+        Don&#39;t have a Korean phone number?
       </div>
     </div>
   );
