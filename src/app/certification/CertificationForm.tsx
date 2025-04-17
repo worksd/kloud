@@ -9,20 +9,19 @@ import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { StringResourceKey } from "@/shared/StringResource";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useRouter } from "next/navigation";
-import { createDialog } from "@/utils/dialog.factory";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
-import { VerificationEmailForm } from "@/app/certification/VerificationEmailForm";
+import { ForeignCertificationForm } from "@/app/certification/ForeignCertificationForm";
 
 const getHeaderTitleResource = (step: number): StringResourceKey => {
   if (step == 1) return 'certification'
-  else return 'certification_code'
+    if (step == 2)  return 'certification_code'
+  else return 'foreign_certification'
 };
 
 export const CertificationForm = ({appVersion, user}: { appVersion: string, user: GetUserResponse }) => {
 
   const [step, setStep] = useState(1);
   const [code, setCode] = useState(0);
-  const [emailCode, setEmailCode] = useState('');
   const [name, setName] = useState('');
   const [rrn, setRrn] = useState('');
   const [phone, setPhone] = useState('');
@@ -42,11 +41,6 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
     }
   }
 
-  const handleChangeEmailCode = (code: string) => {
-    setStep(3)
-    setEmailCode(code)
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex h-14 justify-center items-center">
@@ -62,12 +56,11 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
           name={name}
           phone={phone}
           rrn={rrn}
-          email={user.email}
           onClickSubmit={({code}: { code: number }) => {
             setStep(2)
             setCode(code)
           }}
-          onClickCertificateEmail={handleChangeEmailCode}
+          onClickForeigner={() => setStep(3)}
           setName={(name) => setName(name)}
           setPhone={setPhone}
           setRrn={setRrn}
@@ -103,20 +96,7 @@ export const CertificationForm = ({appVersion, user}: { appVersion: string, user
       }
       {
         step == 3 && (
-          <VerificationEmailForm code={emailCode} onVerify={ async () => {
-            if (isNavigating) return;
-            setIsNavigating(true);
-
-            const res = await updateUserAction({ emailVerified: true, name, rrn})
-            if (res.success && res.user?.emailVerified == true) {
-              if (appVersion == '') {
-                router.back()
-              } else {
-                window.KloudEvent?.back()
-              }
-            }
-          }
-          }/>
+          <ForeignCertificationForm email={user.email} appVersion={appVersion}/>
         )
       }
     </div>

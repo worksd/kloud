@@ -11,6 +11,7 @@ export const updateUserAction = async ({
                                          nickName,
                                          phone,
                                          rrn,
+  country,
                                          refundAccountNumber,
                                          refundDepositor,
                                          refundAccountBank,
@@ -19,6 +20,7 @@ export const updateUserAction = async ({
   name?: string,
   nickName?: string,
   phone?: string,
+  country?: string,
   rrn?: string,
   refundAccountNumber?: string;
   refundAccountBank?: string;
@@ -36,6 +38,7 @@ export const updateUserAction = async ({
       type: UserType.Default,
       phone: phone,
       rrn: rrn,
+      country: country,
       refundAccountNumber: refundAccountNumber,
       refundAccountBank: refundAccountBank,
       refundDepositor: refundDepositor,
