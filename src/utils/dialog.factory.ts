@@ -77,7 +77,7 @@ export async function createDialog(id: DialogId, message?: string, title?: strin
       id: 'PaymentFail',
       type: 'SIMPLE',
       title: await translate('payment_fail'),
-      message: await translate('payment_fail_message'),
+      message: message ?? await translate('payment_fail_message'),
       confirmTitle: await translate('confirm'),
     }
   } else if (id == 'UsePass') {

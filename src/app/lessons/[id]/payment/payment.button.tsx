@@ -265,7 +265,7 @@ export default function PaymentButton({
               window.KloudEvent?.navigateMain(bootInfo);
             }
           } else {
-            const dialog = await createDialog('PaymentFail')
+            const dialog = await createDialog('PaymentFail', res.message)
             window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
         }
@@ -285,7 +285,7 @@ export default function PaymentButton({
           });
           window.KloudEvent?.navigateMain(bootInfo);
         } else {
-          const dialog = await createDialog('PaymentFail')
+          const dialog = await createDialog('PaymentFail', res.message)
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       }
