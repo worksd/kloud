@@ -1,10 +1,14 @@
 'use client'
 
-import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { useLocale } from "@/hooks/useLocale";
 
-export const PassPlanItem = ({ item, isSelected, onClickAction }: { item: GetPassPlanResponse, isSelected: boolean, onClickAction: (item: GetPassPlanResponse) => void }) => {
-  const { t } = useLocale();
+export const PassPlanItem = ({item, isSelected, onClickAction}: {
+  item: GetPassPlanResponse,
+  isSelected: boolean,
+  onClickAction: (item: GetPassPlanResponse) => void
+}) => {
+  const {t} = useLocale();
   return (
     <div
       className={`group flex flex-col w-full border rounded-[8px] font-bold space-x-2.5 text-[14px] select-none
@@ -24,9 +28,17 @@ export const PassPlanItem = ({ item, isSelected, onClickAction }: { item: GetPas
 
       {/* Title & Price Container */}
       <div className="flex items-center justify-between w-full pl-2 pr-6 pb-4">
-        <div className={`text-[16px] flex-1 transition-colors duration-300 ease-in-out ${isSelected ? 'font-bold' : 'font-medium'}`}>
-          {item.name}
+        <div className={'flex flex-col'}>
+          <div
+            className={`text-[16px] flex-1 transition-colors duration-300 ease-in-out ${isSelected ? 'font-bold' : 'font-medium'}`}>
+            {item.name}
+          </div>
+          {item.expireDateStamp &&
+            <div
+              className={`${isSelected ? 'font-bold' : 'font-medium'} text-gray-400 text-[10px]`}>{item.expireDateStamp}</div>
+          }
         </div>
+
         <div className="text-right transition-colors duration-300 ease-in-out">
           {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)} {t('won')}
         </div>

@@ -21,7 +21,8 @@ export type GetPassPlanResponse = {
   price?: number
   studio?: GetStudioResponse
   isPopular: boolean,
-  usageLimit?: number
+  usageLimit?: number,
+  expireDateStamp?: string,
 }
 
 export type GetPassPlansResponse = {
