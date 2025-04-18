@@ -34,8 +34,8 @@ export default function SignOutForm() {
     window.KloudEvent?.back()
   }
 
-  const onClickSignOut = () => {
-    const dialogInfo =createDialog('SignOut')
+  const onClickSignOut = async () => {
+    const dialogInfo = await createDialog('SignOut')
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }
 

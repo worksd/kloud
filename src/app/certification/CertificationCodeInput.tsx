@@ -36,11 +36,11 @@ export const CertificationCodeInput = ({code, generateNewCode, certificatePhone}
     generateNewCode();
   };
 
-  const onClickSubmit = () => {
+  const onClickSubmit = async () => {
     if (myCode == `${code}`) {
       certificatePhone()
     } else {
-      const dialogInfo = createDialog('CertificationFail')
+      const dialogInfo = await createDialog('CertificationFail')
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
   }
