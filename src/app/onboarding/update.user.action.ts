@@ -11,7 +11,7 @@ export const updateUserAction = async ({
                                          nickName,
                                          phone,
                                          rrn,
-  country,
+                                         country,
                                          refundAccountNumber,
                                          refundDepositor,
                                          refundAccountBank,

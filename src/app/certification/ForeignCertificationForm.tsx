@@ -7,21 +7,24 @@ import { useRouter } from "next/navigation";
 export const ForeignCertificationForm = ({email, appVersion}: { email: string, appVersion: string }) => {
 
   const [birthDate, setBirthDate] = React.useState<string>('');
+  const [name, setName] = React.useState("");
   const [gender, setGender] = React.useState<string>('');
   const [country, setCountry] = React.useState<string>('');
   const disabled = birthDate == '' || gender == '' || country == ''
   const router = useRouter();
 
-  const confirmationDialogText = ({birthDate, email, country, gender}: {
+  const confirmationDialogText = ({birthDate, email, country, gender, name}: {
     birthDate: string,
     email: string,
     country: string,
-    gender: string
+    gender: string,
+    name: string
   }) => `
 🤔 Are you ready to verify yourself?
 
 Please confirm that the following information is correct:
 
+- Name: ${name}
 - Birthday: ${birthDate}
 - Email: ${email}
 - Country: ${country}
@@ -45,6 +48,7 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
     const res = await updateUserAction({
       rrn,
       country,
+      name,
       emailVerified: true,
     })
     if (res.success && res.user?.emailVerified == true){
@@ -60,7 +64,7 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
     if (appVersion == '') {
       await onClickSubmit()
     } else {
-      const message = confirmationDialogText({birthDate, email, country, gender})
+      const message = confirmationDialogText({birthDate, email, country, gender, name})
       const dialog = await createDialog('ForeignerVerificationRequest', message)
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
@@ -89,6 +93,26 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
           {email}
         </div>
       </div>
+
+      <form onReset={() => {
+        setName('');
+      }}>
+        <div className="flex items-center gap-1 mb-2">
+          <label htmlFor="name" className="text-[14px] font-medium text-gray-800 leading-none">
+            <div>Name</div>
+          </label>
+          <div
+            className="text-[10px] text-[#E55B5B] leading-none">required
+          </div>
+        </div>
+        <input
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border border-gray-300 focus:border-black focus:outline-none rounded-md px-4 py-2 text-[14px] text-black"
+        />
+      </form>
 
       <form onReset={() => {
         setCountry('');
