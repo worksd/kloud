@@ -1402,6 +1402,12 @@ export const StringResource = {
     jp: 'Foreigner Verification',
     zh: 'Foreigner Verification',
   },
+  apple_login_failed: {
+    ko: 'Apple 로그인 시 이메일 정보가 제공되지 않아 로그인이 불가능합니다.\n[설정] > [Apple ID] > [암호 및 보안] > [Apple ID로 로그인한 앱]에서 이메일 공유를 허용해 주세요.',
+    en: 'Unable to log in because the email information was not provided during Apple login.\nPlease go to [Settings] > [Apple ID] > [Password & Security] > [Apps Using Apple ID] and allow email sharing.',
+    jp: 'Appleログイン時にメール情報が提供されなかったため、ログインできません。\n[設定] > [Apple ID] > [パスワードとセキュリティ] > [Apple IDを使用中のApp]でメールの共有を許可してください。',
+    zh: '由于Apple登录时未提供邮箱信息，无法登录。\n请前往[设置] > [Apple ID] > [密码与安全性] > [使用Apple ID的App]中允许共享邮箱信息。',
+  },
   empty: {
     ko: '',
     en: '',

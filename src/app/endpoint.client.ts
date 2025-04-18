@@ -3,7 +3,7 @@ import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
 import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
-import { localeKey } from "@/shared/cookies.key";
+import { localeKey, userIdKey } from "@/shared/cookies.key";
 
 type QueryParams = Record<string, any> | URLSearchParams;
 
@@ -80,6 +80,8 @@ export abstract class EndpointClient {
 
     const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
 
+    const userId = (await cookies()).get(userIdKey)?.value
+
     const options: RequestInit = {
       method: method.toUpperCase(),
       cache: 'no-store',
@@ -87,11 +89,11 @@ export abstract class EndpointClient {
       ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) })
     };
 
-    console.log('Request:', { url: fullUrl, options });
+    console.log(`Request(userId : ${userId} : `, { url: fullUrl, options });
 
     const response = await fetch(fullUrl, options);
     const jsonResponse = await response.json();
-    console.log('Response:', jsonResponse);
+    console.log(`Response(userId : ${userId} : :`, jsonResponse);
     return jsonResponse;
   }
 }
