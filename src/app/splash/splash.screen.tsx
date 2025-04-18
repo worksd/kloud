@@ -5,11 +5,10 @@ import { authToken } from "@/app/splash/auth.token.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
-import { useLocale } from "@/hooks/useLocale";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 
-export const SplashScreen = ({os}: {os: string}) => {
+export const SplashScreen = ({os}: { os: string }) => {
   useEffect(() => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
@@ -29,7 +28,8 @@ export const SplashScreen = ({os}: {os: string}) => {
         : status === UserStatus.New
           ? KloudScreen.Onboard('')
           : status === UserStatus.Ready
-            ? KloudScreen.Main : KloudScreen.Login('')
+            ? KloudScreen.Main
+            : status == UserStatus.Deactivate ? KloudScreen.LoginDeactivate : KloudScreen.Login('')
 
 
       if (route == KloudScreen.Main) {
