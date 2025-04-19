@@ -1,12 +1,16 @@
 'use client'
 import { QRCodeCanvas } from 'qrcode.react';
 
-const KloudQRCode = () => {
+const KloudQRCode = ({qrCodeUrl}: { qrCodeUrl?: string }) => {
   return (
     <>
-
-      <section className='w-full flex items-center justify-center flex-col'>
-        <QRCodeCanvas value={"https://naver.com"}/>
+      <section className='flex items-center justify-center flex-col bg-white w-[300px] h-[300px] rounded-[20px]'>
+        {qrCodeUrl &&
+          <QRCodeCanvas
+            value={qrCodeUrl}
+            size={256}
+          />
+        }
       </section>
     </>
   );

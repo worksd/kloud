@@ -17,6 +17,7 @@ export type TicketResponse = {
   user?: GetUserResponse;
   createdAt?: string;
   rank?: string;
+  qrCodeUrl?: string;
 }
 
 export type CreateTicketParameter = {

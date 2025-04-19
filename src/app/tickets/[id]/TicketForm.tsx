@@ -9,7 +9,6 @@ import Logo from "../../../../public/assets/logo_white.svg";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { translate } from "@/utils/translate";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
-import KloudQRCode from "@/app/tickets/QRCode";
 
 export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse, isJustPaid: string }) {
   const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
@@ -23,7 +22,8 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
       <div className="flex flex-col p-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
-          {(ticket.status == 'Cancelled' || ticket.status == 'Used') && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
+          {(ticket.status == 'Cancelled' || ticket.status == 'Used') &&
+            <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
           {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
             title={ticket.lesson?.title}
             depositor={ticket.lesson?.studio?.depositor}
@@ -127,8 +127,7 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
             </div>}
           </div>
         </div>
-        {/*TODO: QR 돌아올때 복구*/}
-        {/*{ticket.status == 'Paid' && <KloudQRCode/>}*/}
+
       </div>
       {ticket.status === 'Paid' &&
         <div className="left-0 w-full fixed bottom-0 px-6 bg-black">
@@ -150,6 +149,5 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
         </div>
       }
     </div>
-
   );
 }
