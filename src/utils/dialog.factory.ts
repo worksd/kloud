@@ -1,8 +1,12 @@
 'use server'
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
+import { cookies } from "next/headers";
+import { userIdKey } from "@/shared/cookies.key";
 
 export async function createDialog(id: DialogId, message?: string, title?: string,): Promise<DialogInfo | undefined> {
+  const userId = (await cookies()).get(userIdKey)?.value
+  console.log(`userId = ${ userId } DialogId = ${id} message = ${message} title = ${title}`)
   if (id == 'Logout') {
     return {
       id: id,

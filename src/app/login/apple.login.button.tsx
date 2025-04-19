@@ -23,6 +23,14 @@ const AppleLoginButton = () => {
           const dialog = await createDialog('Simple', await translate('apple_login_failed'))
           window.KloudEvent.showDialog(JSON.stringify(dialog))
         }
+        else if (res.errorCode == ExceptionResponseCode.USER_EMAIL_EMPTY) {
+          const dialog = await createDialog('Simple', await translate('user_email_empty_message'))
+          window.KloudEvent.showDialog(JSON.stringify(dialog))
+        }
+        else {
+          const dialog = await createDialog('Simple', res.errorMessage)
+          window.KloudEvent.showDialog(JSON.stringify(dialog))
+        }
       }
     };
   }, []);

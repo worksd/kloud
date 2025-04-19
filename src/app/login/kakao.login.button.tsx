@@ -7,6 +7,9 @@ import { TranslatableText } from "@/utils/TranslatableText";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { createDialog } from "@/utils/dialog.factory";
+import { translate } from "@/utils/translate";
+import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
 const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl: string}) => {
   const router = useRouter();
@@ -50,6 +53,16 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
                 router.replace(decodedState);
               } else if (res.status === UserStatus.New) {
                 router.replace(KloudScreen.Onboard(decodedState));
+              }
+            }
+            else {
+              if (res.errorCode == ExceptionResponseCode.USER_EMAIL_EMPTY) {
+                const dialog = await createDialog('Simple', await translate('user_email_empty_message'))
+                window.KloudEvent.showDialog(JSON.stringify(dialog))
+              }
+              else {
+                const dialog = await createDialog('Simple', res.errorMessage)
+                window.KloudEvent.showDialog(JSON.stringify(dialog))
               }
             }
           } catch (error) {

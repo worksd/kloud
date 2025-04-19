@@ -1,7 +1,7 @@
 'use server'
 import AppleLoginButton from "@/app/login/apple.login.button";
 import GoogleLoginButton from "@/app/login/google.login.button";
-import KakaoLoginButton from "@/app/login/kakaok.login.button";
+import KakaoLoginButton from "@/app/login/kakao.login.button";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";

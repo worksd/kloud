@@ -1408,6 +1408,12 @@ export const StringResource = {
     jp: 'Appleログイン時にメール情報が提供されなかったため、ログインできません。\n[設定] > [Apple ID] > [パスワードとセキュリティ] > [Apple IDを使用中のApp]でメールの共有を許可してください。',
     zh: '由于Apple登录时未提供邮箱信息，无法登录。\n请前往[设置] > [Apple ID] > [密码与安全性] > [使用Apple ID的App]中允许共享邮箱信息。',
   },
+  user_email_empty_message: {
+    ko: '회원님의 SNS 로그인 계정에 email이 설정되어있지 않습니다.\nEmail을 설정한 이후에 이용해주시길 바랍니다.',
+    en: 'Your SNS login account does not have an email address set.\nPlease set your email before proceeding.',
+    jp: 'ご利用のSNSログインアカウントにメールアドレスが設定されていません。\nメールアドレスを設定してからご利用ください。',
+    zh: '您的SNS登录账户未设置邮箱地址。\n请设置邮箱后再使用。',
+  },
   empty: {
     ko: '',
     en: '',
