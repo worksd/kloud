@@ -1414,6 +1414,12 @@ export const StringResource = {
     jp: 'ご利用のSNSログインアカウントにメールアドレスが設定されていません。\nメールアドレスを設定してからご利用ください。',
     zh: '您的SNS登录账户未设置邮箱地址。\n请设置邮箱后再使用。',
   },
+  no_purchase_history: {
+    ko: '아직 구매내역이 존재하지 않습니다.',
+    en: 'You don’t have any purchase history yet.',
+    jp: 'まだ購入履歴がありません',
+    zh: '您还没有任何购买记录',
+  },
   empty: {
     ko: '',
     en: '',
