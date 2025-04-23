@@ -81,14 +81,12 @@ export default async function LessonDetailForm({lesson}: {
           </div>
           {lesson.artist && <LessonArtistItem artist={lesson.artist}/>}
           {lesson.extraArtists && lesson.extraArtists.length > 0 && (
-            <div className="flex flex-col gap-5">
-              {lesson.extraArtists.map((artist, index) => (
+              lesson.extraArtists.map((artist, index) => (
                 <LessonArtistItem
                   key={artist.id || index}
                   artist={artist}
                 />
-              ))}
-            </div>
+              ))
           )}
         </div>
       </div>
