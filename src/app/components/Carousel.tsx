@@ -40,7 +40,7 @@ const CardList = ({lessons}: { lessons: GetLessonResponse[] }) => {
                   alt="썸네일"
                   fill
                   draggable={false}
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
 
                 {/* 그라데이션 오버레이 */}
