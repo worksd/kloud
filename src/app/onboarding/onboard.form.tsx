@@ -29,7 +29,7 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
   const router = useRouter();
   const [step, setStep] = useState<Step>('profile');
   const [selectedIdList, setSelectedIdList] = useState<number[]>([]);
-  const [nickName, setNickName] = useState<string | undefined>(undefined);
+  const [nickName, setNickName] = useState<string | undefined>(user.nickName);
   const [inputErrorMessage, setInputErrorMessage] = useState<string | null>(null);
 
   const [allChecked, setAllChecked] = useState(false); // 모든 체크박스 체크 상태
