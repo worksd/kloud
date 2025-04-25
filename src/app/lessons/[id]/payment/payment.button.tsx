@@ -3,7 +3,6 @@
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import { useCallback, useEffect, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { createTicketAction } from "@/app/lessons/[id]/payment/create.ticket.action";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
@@ -14,6 +13,10 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { useRouter } from "next/navigation";
 import { SimpleDialog } from "@/app/components/SimpleDialog";
 import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.record.detail";
+import { RequestAccountTransfer } from "@/app/endpoint/payment.record.endpoint";
+import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
+import { selectAndUsePassActioin } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 
 
 export const PaymentTypes = [
@@ -73,22 +76,17 @@ export default function PaymentButton({
       console.log(`${paymentId} 결제 성공해버렸어!`)
       setIsSubmitting(true);
       if (type.value == 'lesson') {
-        const res = await createTicketAction({paymentId: paymentId, lessonId: id, status: 'Paid'});
-        if ('id' in res) {
-          const pushRoute = KloudScreen.TicketDetail(res.id ?? 0, true)
-          const bottomMenuList = await getBottomMenuList();
-          const bootInfo = JSON.stringify({
-            bottomMenuList: bottomMenuList,
-            route: pushRoute,
-          });
-          window.KloudEvent?.navigateMain(bootInfo);
-        } else {
-          const dialogInfo = await createDialog('Simple', res.message)
-          window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
-        }
+        const res = await getPaymentRecordDetail({paymentId: paymentId});
+        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.ticket?.id ?? 0, true) : null
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: pushRoute,
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
       } else if (type.value == 'passPlan') {
-        const res = await createPassAction({paymentId: paymentId, passPlanId: id, status: 'Active'});
-        const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.id ?? 0) : null
+        const res = await getPaymentRecordDetail({paymentId: paymentId});
+        const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.pass?.id ?? 0) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
           bottomMenuList: bottomMenuList,
@@ -219,15 +217,12 @@ export default function PaymentButton({
       const paymentId = generatePaymentId({type: type, id: id});
       if (data.id == 'AccountTransfer') {
         if (type.value == 'lesson') {
-
-          const res = await createTicketAction({
+          const res = await requestAccountTransferAction({
             paymentId: paymentId,
-            lessonId: id,
-            status: 'Pending',
             depositor: depositor,
           });
           if ('id' in res) {
-            const route = KloudScreen.TicketDetail(res.id, true)
+            const route = KloudScreen.TicketDetail(res.ticket?.id ?? 0, true)
             if (appVersion == '' && route) {
               router.replace(route)
             } else {
@@ -244,12 +239,10 @@ export default function PaymentButton({
           }
 
         } else if (type.value == 'passPlan') {
-          const res = await createPassAction({
-            passPlanId: id,
+          const res = await requestAccountTransferAction({
             paymentId: paymentId,
-            status: 'Pending',
             depositor: depositor,
-          })
+          });
           if ('id' in res) {
             const pushRoute = KloudScreen.MyPassDetail(res.id)
             if (appVersion == '') {
@@ -267,12 +260,9 @@ export default function PaymentButton({
             window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
         }
-      } else if (data.id == 'UsePass') {
-        const res = await createTicketAction({
-          paymentId: paymentId,
-          lessonId: id,
-          passId: selectedPass?.id ?? 0,
-          status: 'Paid',
+      } else if (data.id == 'UsePass' && selectedPass?.id) {
+        const res = await selectAndUsePassActioin({
+          passId: selectedPass?.id,
         });
         if ('id' in res) {
           const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, true) : null

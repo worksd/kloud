@@ -76,3 +76,8 @@ export const CreatePass: Endpoint<CreatePassRequest, GetPassResponse> = {
   path: `/passes`,
   bodyParams: ['passPlanId', 'paymentId', 'depositor', 'status']
 }
+
+export const UsePass: Endpoint<GetPassRequest, TicketResponse> = {
+  method: 'post',
+  path: (e) => `/passes/${e.id}/use`,
+}

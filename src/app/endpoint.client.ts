@@ -1,4 +1,3 @@
-import { ClientOptions } from "@/app/api.client";
 import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
 import { cookies, headers } from "next/headers";
