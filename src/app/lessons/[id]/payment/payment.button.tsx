@@ -8,15 +8,13 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { createPassAction } from "@/app/passPlans/[id]/payment/create.pass.action";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { useRouter } from "next/navigation";
 import { SimpleDialog } from "@/app/components/SimpleDialog";
 import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.record.detail";
-import { RequestAccountTransfer } from "@/app/endpoint/payment.record.endpoint";
 import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
-import { selectAndUsePassActioin } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
+import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 
 
 export const PaymentTypes = [
@@ -260,9 +258,10 @@ export default function PaymentButton({
             window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
         }
-      } else if (data.id == 'UsePass' && selectedPass?.id) {
-        const res = await selectAndUsePassActioin({
+      } else if (data.id == 'UsePass' && selectedPass?.id && type.value == 'lesson') {
+        const res = await selectAndUsePassAction({
           passId: selectedPass?.id,
+          lessonId: id,
         });
         if ('id' in res) {
           const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, true) : null

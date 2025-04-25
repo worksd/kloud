@@ -51,6 +51,11 @@ export type CreatePassRequest = {
   depositor?: string,
 }
 
+export type UsePassRequest = {
+  passId: number
+  lessonId: number
+}
+
 export type PassOrder = 'upcoming' | 'newest'
 export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending'
 
@@ -77,7 +82,8 @@ export const CreatePass: Endpoint<CreatePassRequest, GetPassResponse> = {
   bodyParams: ['passPlanId', 'paymentId', 'depositor', 'status']
 }
 
-export const UsePass: Endpoint<GetPassRequest, TicketResponse> = {
+export const UsePass: Endpoint<UsePassRequest, TicketResponse> = {
   method: 'post',
-  path: (e) => `/passes/${e.id}/use`,
+  path: (e) => `/passes/${e.passId}/use`,
+  bodyParams: ['lessonId']
 }

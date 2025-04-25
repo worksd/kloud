@@ -1,7 +1,7 @@
 'use server'
 import { api } from "@/app/api.client";
 
-export const selectAndUsePassActioin = async ({passId}: {passId: number}) => {
-  const res = await api.pass.use({id: passId})
+export const selectAndUsePassAction = async ({passId, lessonId}: {passId: number, lessonId: number}) => {
+  const res = await api.pass.use({ passId, lessonId})
   return res;
 }
