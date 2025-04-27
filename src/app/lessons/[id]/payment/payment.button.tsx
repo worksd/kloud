@@ -242,7 +242,7 @@ export default function PaymentButton({
             depositor: depositor,
           });
           if ('id' in res) {
-            const pushRoute = KloudScreen.MyPassDetail(res.id)
+            const pushRoute = KloudScreen.MyPassDetail(res.pass?.id ?? 0)
             if (appVersion == '') {
               router.replace(pushRoute)
             } else {
