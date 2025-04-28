@@ -269,12 +269,16 @@ export default function PaymentButton({
         });
         if ('id' in res) {
           const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, true) : null
-          const bottomMenuList = await getBottomMenuList();
-          const bootInfo = JSON.stringify({
-            bottomMenuList: bottomMenuList,
-            route: pushRoute,
-          });
-          window.KloudEvent?.navigateMain(bootInfo);
+          if (appVersion == '') {
+            router.replace(pushRoute ?? '/')
+          } else {
+            const bottomMenuList = await getBottomMenuList();
+            const bootInfo = JSON.stringify({
+              bottomMenuList: bottomMenuList,
+              route: pushRoute,
+            });
+            window.KloudEvent?.navigateMain(bootInfo);
+          }
         } else {
           const dialog = await createDialog('PaymentFail', res.message)
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
