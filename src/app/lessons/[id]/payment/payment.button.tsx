@@ -181,8 +181,12 @@ export default function PaymentButton({
           }
         }
       } else if (method === 'pass') {
-        const dialogInfo = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
-        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+        const dialog = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
+        if (appVersion == '' && dialog) {
+          setWebDialogInfo(dialog)
+        } else {
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
       }
     } finally {
       setIsSubmitting(false);
