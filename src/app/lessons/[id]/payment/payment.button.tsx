@@ -68,6 +68,7 @@ export default function PaymentButton({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
+  const [isVerified, setIsVerified] = useState(user?.phone || user?.emailVerified == true);
   const router = useRouter();
 
   const onPaymentSuccess = async ({paymentId}: { paymentId: string }) => {
@@ -108,14 +109,19 @@ export default function PaymentButton({
       return;
     }
 
-    if (!user.phone && user.emailVerified == false) {
+    if (!isVerified) {
       setIsSubmitting(false);
-      if (appVersion == '') {
-        router.push(KloudScreen.Certification)
+      const res = await getUserAction()
+      if (res && 'id' in res && (res.phone || res.emailVerified == true)) {
+        setIsVerified(true);
       } else {
-        window.KloudEvent?.fullSheet(KloudScreen.Certification)
+        if (appVersion == '') {
+          router.push(KloudScreen.Certification)
+        } else {
+          window.KloudEvent?.fullSheet(KloudScreen.Certification)
+        }
+        return;
       }
-      return;
     }
 
     const paymentId = generatePaymentId({type: type, id: id})
