@@ -81,7 +81,7 @@ export const PurchaseStudioPassForm = ({studio}: { studio: GetStudioResponse | n
           onClick: () => {
             window.KloudEvent?.push(KloudScreen.PassPayment(passPlan?.id ?? 0))
           }
-        }} disabled={false}>
+        }} disabled={passPlan == null}>
           <TranslatableText titleResource={'purchase_pass_title'}/>
         </CommonSubmitButton>
       </div>
