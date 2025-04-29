@@ -67,7 +67,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           id={payment.lesson?.id ?? 0}
           price={payment.totalPrice}
           title={payment.lesson?.title ?? ''}
-          userId={payment.user.id}
+          user={payment.user}
           depositor={depositor}
           disabled={selectedMethod == undefined}
         />

@@ -15,6 +15,7 @@ import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.record.detail";
 import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
+import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 
 
 export const PaymentTypes = [
@@ -46,21 +47,21 @@ export default function PaymentButton({
                                         type,
                                         price,
                                         title,
-                                        userId,
                                         os,
                                         method,
                                         depositor,
-                                        disabled
+                                        disabled,
+  user
                                       }: {
   appVersion: string;
   id: number,
   selectedPass?: GetPassResponse,
-  userId: number,
   type: PaymentType,
   price: number,
   title: string,
   os: string,
   method?: PaymentMethodType,
+  user?: GetUserResponse,
   depositor: string,
   disabled: boolean,
 }) {
@@ -102,12 +103,13 @@ export default function PaymentButton({
   }
 
   const handlePayment = useCallback(async () => {
-    const user = await getUserAction()
+    setIsSubmitting(true);
     if (!user || !('id' in user)) {
       return;
     }
 
     if (!user.phone && user.emailVerified == false) {
+      setIsSubmitting(false);
       if (appVersion == '') {
         router.push(KloudScreen.Certification)
       } else {
@@ -119,12 +121,12 @@ export default function PaymentButton({
     const paymentId = generatePaymentId({type: type, id: id})
 
     if (price == 0) {
+      setIsSubmitting(false);
       await onPaymentSuccess({paymentId: paymentId})
       return
     }
 
     try {
-      setIsSubmitting(true);
       if (method === 'credit') {
         if (appVersion == '') {
           const mobileWebPaymentRequest: PaymentRequest = {
@@ -136,7 +138,7 @@ export default function PaymentButton({
             totalAmount: price,
             currency: "CURRENCY_KRW",
             customer: {
-              fullName: `${userId}`
+              fullName: `${user.id}`
             },
             redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
           }
@@ -150,7 +152,7 @@ export default function PaymentButton({
             method: 'credit',
             type: type,
             price: price,
-            userId: `${userId}`,
+            userId: `${user.id}`,
           } : {
             paymentId: paymentId,
             pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
@@ -159,7 +161,7 @@ export default function PaymentButton({
             type: type,
             amount: `${price}`,
             method: 'credit',
-            userId: `${userId}`,
+            userId: `${user.id}`,
             userCode: process.env.NEXT_PUBLIC_USER_CODE,
           }
           window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
