@@ -34,6 +34,8 @@ export type GetStudioResponse = {
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
+    schedules?: GetLessonResponse[];
+    day?: number;
 };
 
 export type GetMyStudioResponse = {

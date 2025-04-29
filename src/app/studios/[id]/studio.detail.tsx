@@ -10,6 +10,7 @@ import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { StudioFollowButton } from "@/app/studios/[id]/StudioFollowButton";
 import { translate } from "@/utils/translate";
 import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchaseSubmitButton";
+import { TimeTable } from "@/app/studios/timetable/TimeTable";
 
 export const StudioDetailForm = async ({id}: { id: number }) => {
 
@@ -123,10 +124,15 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
           )}
         </section>
 
+        {studio.schedules && studio.schedules.length > 0 &&
+          <TimeTable lessons={studio.schedules ?? []} todayIndex={studio.day ?? 0}/>
+        }
+
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
           <div className="mt-4">
-            <LessonGridSection studioId={studio.id} title={await translate('ongoing_lessons')} lessons={studio?.lessons ?? []}
+            <LessonGridSection studioId={studio.id} title={await translate('ongoing_lessons')}
+                               lessons={studio?.lessons ?? []}
             />
           </div>
         </div>
