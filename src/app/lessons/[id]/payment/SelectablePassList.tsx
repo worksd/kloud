@@ -50,7 +50,7 @@ const SelectablePassItem = ({pass, isSelected, onSelect}: {
       <div className="flex flex-row items-center text-center font-bold text-xl ">
         <h2 className="tracking-tight">{pass.passPlan?.name}</h2>
         {pass.remainingCount &&
-          <div>({pass.remainingCount}{mounted ? t('remaining_count') : ''})</div>
+          <div className={'tracking-tight'}>({pass.remainingCount}{mounted ? t('remaining_count') : ''})</div>
         }
       </div>
     </div>

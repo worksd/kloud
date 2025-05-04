@@ -3,6 +3,7 @@ import { pick } from "@/app/pick";
 import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
 import { localeKey, userIdKey } from "@/shared/cookies.key";
+import * as util from "node:util";
 
 type QueryParams = Record<string, any> | URLSearchParams;
 
@@ -92,7 +93,7 @@ export abstract class EndpointClient {
 
     const response = await fetch(fullUrl, options);
     const jsonResponse = await response.json();
-    console.log(`Response(userId : ${userId} : :`, jsonResponse);
+    console.log(`Response(userId: ${userId}):`, util.inspect(jsonResponse, { depth: null, colors: true }));
     return jsonResponse;
   }
 }

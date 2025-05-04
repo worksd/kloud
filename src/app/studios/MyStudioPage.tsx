@@ -23,6 +23,9 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
   if ('studio' in res) {
     const hasPremiumPass = res.passes.find((value) => value.passPlan?.tier == PassPlanTier.Premium) != null
     const backgroundColor = hasPremiumPass ? 'bg-[#FBFBFF]' : 'bg-gray-100'
+    const borderColor =
+      hasPremiumPass ? 'border-[#E1CBFE]' : 'border-[#F1F3F6]'
+
     return (
       <div className={'flex flex-col overflow-y-auto no-scrollbar pb-10'}>
         <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
@@ -34,7 +37,7 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
         <div className={'mb-5'}>
           <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(res.studio.id)}>
             <div
-              className={`${backgroundColor} border borderColor rounded-[16px] p-4 mx-4 shadow-sm active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none`}>
+              className={`${backgroundColor} border ${borderColor} rounded-[16px] p-4 mx-4 shadow-sm active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none`}>
               <div className="flex flex-row justify-between items-center">
                 <div className="flex items-center space-x-4">
                   <CircleImage imageUrl={res.studio.profileImageUrl} size={28}/>
