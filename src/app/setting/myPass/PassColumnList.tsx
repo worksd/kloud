@@ -47,9 +47,11 @@ export const ActivePassItem = ({ pass }: { pass: GetPassResponse }) => {
   const borderColor =
     pass.passPlan?.tier === PassPlanTier.Premium ? 'border-[#E1CBFE]' : 'border-[#F1F3F6]'
 
+  const backgroundColor = pass.passPlan?.tier === PassPlanTier.Premium ? 'bg-[#FBFBFF]' : 'bg-white'
+
   return (
     <div
-      className={`bg-white rounded-2xl p-6 border ${borderColor} active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none`}
+      className={`${backgroundColor} rounded-2xl p-6 border ${borderColor} active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none`}
       onClick={() => window.KloudEvent.push(KloudScreen.MyPassDetail(pass.id))}
     >
       <div className="flex justify-between items-center space-x-4">
