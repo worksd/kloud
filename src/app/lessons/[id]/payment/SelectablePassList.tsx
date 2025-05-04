@@ -1,5 +1,4 @@
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { useEffect, useState } from "react";
 import { useLocale } from "@/hooks/useLocale";
 
@@ -33,7 +32,7 @@ const SelectablePassItem = ({pass, isSelected, onSelect}: {
   isSelected: boolean,
   onSelect: () => void
 }) => {
-  const { t } = useLocale();
+  const {t} = useLocale();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -49,7 +48,10 @@ const SelectablePassItem = ({pass, isSelected, onSelect}: {
       onClick={onSelect}
     >
       <div className="flex flex-row items-center text-center font-bold text-xl ">
-        <h2 className="tracking-tight">{pass.passPlan?.name} ({pass.remainingCount}{mounted ? t('remaining_count') : ''})</h2>
+        <h2 className="tracking-tight">{pass.passPlan?.name}</h2>
+        {pass.remainingCount &&
+          <h2>({pass.remainingCount}{mounted ? t('remaining_count') : ''})</h2>
+        }
       </div>
     </div>
   )
