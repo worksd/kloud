@@ -11,6 +11,7 @@ import { translate } from "@/utils/translate";
 import { getStudioInfoAction } from "@/app/studios/getStudioInfoAction";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
+import { TodayLessonWrapper } from "@/app/studios/TodayLessonWrapper";
 
 export default async function MyStudioPage({studioId}: { studioId?: string }) {
   console.log(`studioId = ${studioId}`)
@@ -55,6 +56,9 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
         ))}
         {res.passes && res.passes.length > 0 &&
           <PassBand title={await translate('my_pass')} passes={res.passes ?? []}/>
+        }
+        {res.myTodayLesson &&
+          <TodayLessonWrapper lesson={res.myTodayLesson}/>
         }
       </div>
     )

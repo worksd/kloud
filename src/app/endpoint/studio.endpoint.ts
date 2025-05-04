@@ -45,6 +45,7 @@ export type GetMyStudioResponse = {
   schedules?: GetLessonResponse[];
   day: number;
   bands: GetBandResponse[];
+  myTodayLesson?: GetLessonResponse;
 }
 
 export type StudioFollowResponse = {
