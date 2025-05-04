@@ -14,6 +14,7 @@ export type GetPaymentResponse = {
   methods: GetPaymentMethodResponse[];
   lesson?: GetLessonResponse;
   passPlan?: GetPassPlanResponse;
+  paymentId: string;
 }
 
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {

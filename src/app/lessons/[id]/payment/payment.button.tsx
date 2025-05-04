@@ -51,7 +51,8 @@ export default function PaymentButton({
                                         method,
                                         depositor,
                                         disabled,
-  user
+                                        paymentId,
+                                        user
                                       }: {
   appVersion: string;
   id: number,
@@ -64,6 +65,7 @@ export default function PaymentButton({
   user?: GetUserResponse,
   depositor: string,
   disabled: boolean,
+  paymentId: string,
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,8 +125,6 @@ export default function PaymentButton({
         return;
       }
     }
-
-    const paymentId = generatePaymentId({type: type, id: id})
 
     if (price == 0) {
       setIsSubmitting(false);
@@ -224,7 +224,6 @@ export default function PaymentButton({
   const onConfirmDialog = async (data: DialogInfo) => {
     try {
       setIsSubmitting(true);
-      const paymentId = generatePaymentId({type: type, id: id});
       if (data.id == 'AccountTransfer') {
         if (type.value == 'lesson') {
           const res = await requestAccountTransferAction({
@@ -331,22 +330,4 @@ export default function PaymentButton({
       }
     </div>
   );
-}
-
-const generatePaymentId = ({type, id}: { type: PaymentType, id: number }): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const dateStr = `${year}${month}${day}`;
-
-  // 10자리 랜덤 문자열 생성 (알파벳 대문자 + 숫자)
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const randomStr = Array.from(
-    {length: 10},
-    () => characters.charAt(Math.floor(Math.random() * characters.length))
-  ).join('');
-
-  // 학원번호-날짜-랜덤문자열
-  return `${type.prefix}-${id}-${dateStr}-${randomStr}`;
 }

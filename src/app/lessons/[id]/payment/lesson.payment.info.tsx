@@ -70,6 +70,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           user={payment.user}
           depositor={depositor}
           disabled={selectedMethod == undefined}
+          paymentId={payment.paymentId}
         />
       </div>
     </div>
