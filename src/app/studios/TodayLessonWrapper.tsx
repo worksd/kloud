@@ -1,22 +1,23 @@
 'use client'
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useEffect } from "react";
+import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 
-export const TodayLessonWrapper = ({lesson}: { lesson: GetLessonResponse }) => {
+export const TodayLessonWrapper = ({ticket}: { ticket: TicketResponse }) => {
 
   //TODO: 테스트 데이터 지우기
   useEffect(() => {
     const dialogInfo = {
       id: '',
-      route: '',
+      route: `/tickets/${ticket.id}`,
       hideForeverMessage: '',
-      imageUrl: lesson.thumbnailUrl,
+      imageUrl: ticket.lesson?.thumbnailUrl,
       imageRatio: 0.7,
-      ctaButtonText: lesson.title + ' 바로가기',
+      ctaButtonText: ticket.lesson?.title + ' 바로가기',
       type: 'IMAGE',
     }
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
-  }, [lesson.thumbnailUrl, lesson.title])
+  }, [ticket.id, ticket.lesson?.thumbnailUrl, ticket.lesson?.title])
 
   return (
     <div/>

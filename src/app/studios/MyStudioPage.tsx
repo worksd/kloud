@@ -57,8 +57,8 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
         {res.passes && res.passes.length > 0 &&
           <PassBand title={await translate('my_pass')} passes={res.passes ?? []}/>
         }
-        {res.myTodayLesson &&
-          <TodayLessonWrapper lesson={res.myTodayLesson}/>
+        {res.myTodayTicket &&
+          <TodayLessonWrapper ticket={res.myTodayTicket}/>
         }
       </div>
     )
