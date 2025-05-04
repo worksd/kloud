@@ -1,9 +1,8 @@
 'use client'
 
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassResponse, PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { KloudScreen, NO_DATA_ID } from "@/shared/kloud.screen";
-import RightArrowIcon from "../../../../public/assets/right-arrow.svg"
-import { CircleImage } from "@/app/components/CircleImage";
+import PremiumTierIcon from "../../../../public/assets/ic_premium_pass_plan.svg"
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useEffect, useState } from "react";
 import { PassItem } from "@/app/setting/myPass/action/PassItem";
@@ -44,14 +43,20 @@ export const PassColumnList = ({
   }
 }
 
-export const ActivePassItem = ({pass}: { pass: GetPassResponse }) => {
+export const ActivePassItem = ({ pass }: { pass: GetPassResponse }) => {
+  const borderColor =
+    pass.passPlan?.tier === PassPlanTier.Premium ? 'border-[#E1CBFE]' : 'border-[#F1F3F6]'
+
   return (
     <div
-      className="bg-white rounded-2xl p-6 border active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none"
-      onClick={() => window.KloudEvent.push(KloudScreen.MyPassDetail(pass.id))}>
+      className={`bg-white rounded-2xl p-6 border ${borderColor} active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none`}
+      onClick={() => window.KloudEvent.push(KloudScreen.MyPassDetail(pass.id))}
+    >
       <div className="flex justify-between items-center space-x-4">
         <PassItem pass={pass}/>
-        <RightArrowIcon/>
+        {pass.passPlan?.tier === PassPlanTier.Premium &&
+          <PremiumTierIcon/>
+        }
       </div>
     </div>
   )

@@ -23,6 +23,9 @@ export type GetPassPlanResponse = {
   isPopular: boolean,
   usageLimit?: number,
   expireDateStamp?: string,
+  type: 'Count' | 'Unlimited',
+  tier: PassPlanTier,
+  tag?: string,
 }
 
 export type GetPassPlansResponse = {
@@ -86,4 +89,9 @@ export const UsePass: Endpoint<UsePassRequest, TicketResponse> = {
   method: 'post',
   path: (e) => `/passes/${e.passId}/use`,
   bodyParams: ['lessonId']
+}
+
+export enum PassPlanTier {
+  Basic = 0,
+  Premium = 1,
 }

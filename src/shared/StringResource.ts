@@ -1420,6 +1420,12 @@ export const StringResource = {
     jp: 'まだ購入履歴がありません',
     zh: '您还没有任何购买记录',
   },
+  popular_pass: {
+    ko: '인기 패스',
+    en: 'Popular Pass',
+    jp: '人気パス',
+    zh: '热门通行证',
+  },
   empty: {
     ko: '',
     en: '',

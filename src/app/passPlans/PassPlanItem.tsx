@@ -2,6 +2,7 @@
 
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { useLocale } from "@/hooks/useLocale";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 export const PassPlanItem = ({item, isSelected, onClickAction}: {
   item: GetPassPlanResponse,
@@ -19,11 +20,9 @@ export const PassPlanItem = ({item, isSelected, onClickAction}: {
       }}>
 
       {item.isPopular ?
-        <div className={`text-sm font-bold px-3 py-1 rounded-tl-[7px] rounded-br-[8px] w-[84px] mb-3
+        <TranslatableText className={`text-sm font-bold px-3 py-1 rounded-tl-[7px] rounded-br-[8px] w-[84px] mb-3
           transition-colors duration-300 ease-in-out
-          ${isSelected ? 'text-white bg-black' : 'text-[#86898C] bg-[#F2F4F6] group-hover:bg-gray-300'}`}>
-          인기 패스
-        </div> : <div className="pt-4"/>
+          ${isSelected ? 'text-white bg-black' : 'text-[#86898C] bg-[#F2F4F6] group-hover:bg-gray-300'}`} titleResource={'popular_pass'}/>: <div className="pt-4"/>
       }
 
       {/* Title & Price Container */}
