@@ -27,6 +27,8 @@ export type GetLessonResponse = {
     ticket?: TicketResponse;
     extraArtists?: GetArtistResponse[];
     dday?: string;
+    buttonTitle: string;
+    buttonRoute: string;
 };
 
 export type GetStudioRoomResponse = {

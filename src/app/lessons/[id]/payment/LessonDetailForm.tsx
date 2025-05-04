@@ -6,8 +6,9 @@ import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonInfoSection } from "@/app/lessons/[id]/lesson.info.section";
 import { translate } from "@/utils/translate";
-import { LessonPaymentButton } from "@/app/lessons/[id]/lesson.payment.button";
 import React from "react";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { CommonSubmitButton } from "@/app/components/buttons";
 
 export default async function LessonDetailForm({lesson}: {
   lesson: GetLessonResponse,
@@ -93,7 +94,16 @@ export default async function LessonDetailForm({lesson}: {
 
       {/* 결제 페이지 이동 버튼 */}
       <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-        <LessonPaymentButton lesson={lesson}/>
+        <NavigateClickWrapper
+          method="push"
+          route={lesson.buttonRoute}
+        >
+          <CommonSubmitButton
+            disabled={!lesson.buttonRoute}
+          >
+            {lesson.buttonTitle}
+          </CommonSubmitButton>
+        </NavigateClickWrapper>
       </div>
     </div>
   );
