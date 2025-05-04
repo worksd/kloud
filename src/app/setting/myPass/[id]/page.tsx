@@ -11,6 +11,9 @@ import { CommonSubmitButton } from "@/app/components/buttons";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
+import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
+
 
 export default async function MyPassDetailPage({params}: {
   params: Promise<{ id: number }>
@@ -23,22 +26,39 @@ export default async function MyPassDetailPage({params}: {
           <DynamicHeader title={pass.passPlan?.name}/>
         </div>
 
-        <div className={'px-4 mt-5'}>
-          <PassItem pass={pass} endDate={pass.endDate}/>
-          {pass.status == 'Pending' &&
-            <AccountTransferComponent
-              depositor={pass.passPlan?.studio?.depositor}
-              bank={pass.passPlan?.studio?.bank}
-              accountNumber={pass.passPlan?.studio?.accountNumber}
-              price={pass.passPlan?.price}
-            />
-          }
-        </div>
-        <div className={"text-[12px] text-[#A4A4A4] font-paperlogy ml-4 mb-4"}>
-          {pass.paymentId}
-        </div>
-        <Divider/>
+        <div className={'flex flex-row justify-between items-center px-4'}>
+          <div className={'flex flex-col'}>
+            <div className={'mt-5'}>
+              <div className={'flex flex-row'}>
+                <PassItem pass={pass} endDate={pass.endDate}/>
+              </div>
 
+              {pass.status == 'Pending' &&
+                <AccountTransferComponent
+                  depositor={pass.passPlan?.studio?.depositor}
+                  bank={pass.passPlan?.studio?.bank}
+                  accountNumber={pass.passPlan?.studio?.accountNumber}
+                  price={pass.passPlan?.price}
+                />
+              }
+            </div>
+            {/*<div className={"text-[12px] text-[#A4A4A4] font-paperlogy ml-4 mb-4"}>*/}
+            {/*  {pass.paymentId}*/}
+            {/*</div>*/}
+          </div>
+          {pass.passPlan?.tier == PassPlanTier.Premium && <PremiumTierIcon/>}
+        </div>
+
+        <div className={'ml-4 mt-4 mb-4 text-[12px] text-[#A4A4A4] font-paperlogy'}>
+          {/*//TODO: 문구 수정*/}
+          {pass.passPlan?.type == 'Unlimited' && <div> · 클래스 무제한 수강(일부 클래스 제외)</div>}
+          {pass.passPlan?.tier == PassPlanTier.Premium && <div> · 클래스 신청 우선배치 </div>}
+          {pass.passPlan?.canPreSale == true && <div> · 일반 학생들보다 N시간 우선 예약 가능</div>}
+          {pass.passPlan?.tag && <div> · {pass.passPlan?.tag} 전용 클래스 수강 가능</div>}
+
+        </div>
+
+        <Divider/>
         <div className={'py-5'}>
           <PassTicketUsageHistory tickets={pass.tickets}/>
         </div>

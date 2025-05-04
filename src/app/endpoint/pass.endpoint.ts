@@ -26,6 +26,7 @@ export type GetPassPlanResponse = {
   type: 'Count' | 'Unlimited',
   tier: PassPlanTier,
   tag?: string,
+  canPreSale?: boolean,
 }
 
 export type GetPassPlansResponse = {
