@@ -39,8 +39,8 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 
 export const RequestAccountTransfer: Endpoint<RequestAccountTransfer, GetPaymentRecordResponse> = {
   method: 'post',
-  path: (e) => `/paymentRecords/${e.paymentId}/account-transfer`,
-  bodyParams: ['depositor']
+  path: (e) => `/paymentRecords/account-transfer`,
+  bodyParams: ['depositor', 'paymentId']
 }
 
 export enum PaymentRecordStatus {
