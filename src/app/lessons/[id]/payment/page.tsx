@@ -21,7 +21,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
   const res = await getLessonPaymentAction({id: id})
 
   if ('user' in res) {
-    if (res.lesson?.status != '예약 중') {
+    if (res.lesson?.status != '예약 중' && res.lesson?.status != '선예약 중') {
       return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
     }
     return (
