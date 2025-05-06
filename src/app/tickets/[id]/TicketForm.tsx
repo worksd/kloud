@@ -57,9 +57,11 @@ export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse,
           {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
 
           <div className={"absolute inset-x-0 px-6"}>
-            <div className={"mt-3 text-[24px] text-white font-bold font-paperlogy"}>
-              {ticket.rank}
-            </div>
+            {ticket.rank &&
+              <div className={"mt-3 text-[24px] text-white font-bold font-paperlogy"}>
+                {ticket.rank}
+              </div>
+            }
             <div className={"text-[12px] text-white font-bold font-paperlogy"}>
               {ticket.paymentId}
             </div>
