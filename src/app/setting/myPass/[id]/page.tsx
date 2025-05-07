@@ -53,7 +53,7 @@ export default async function MyPassDetailPage({params}: {
           {/*//TODO: 문구 수정*/}
           {pass.passPlan?.type == 'Unlimited' && <div> · 클래스 무제한 수강(일부 클래스 제외)</div>}
           {pass.passPlan?.tier == PassPlanTier.Premium && <div> · 클래스 신청 우선배치 </div>}
-          {pass.passPlan?.canPreSale == true && <div> · 일반 학생들보다 하루 전 우선 예약 가능</div>}
+          {pass.passPlan?.canPreSale == true && <div> · 일반 학생들보다 우선 예약 가능</div>}
           {pass.passPlan?.tag && <div> · {pass.passPlan?.tag} 전용 클래스 수강 가능</div>}
 
         </div>
