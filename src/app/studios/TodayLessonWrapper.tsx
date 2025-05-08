@@ -1,14 +1,13 @@
 'use client'
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { useEffect } from "react";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { hideDialogAction } from "@/app/home/hide.dialog.action";
 
 export const TodayLessonWrapper = ({ticket}: { ticket: TicketResponse }) => {
 
-  //TODO: 테스트 데이터 지우기
   useEffect(() => {
     const dialogInfo = {
-      id: 'TodayClass',
+      id: `${ticket.id}`,
       route: `/tickets/${ticket.id}`,
       hideForeverMessage: '오늘 하루 보지 않기',
       imageUrl: ticket.lesson?.thumbnailUrl,
@@ -18,6 +17,12 @@ export const TodayLessonWrapper = ({ticket}: { ticket: TicketResponse }) => {
     }
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }, [ticket.id, ticket.lesson?.thumbnailUrl, ticket.lesson?.title])
+
+  useEffect(() => {
+    window.onHideDialogConfirm = async (data: { id: string, clicked: boolean }) => {
+      await hideDialogAction({id: data.id, clicked: data.clicked})
+    }
+  }, [])
 
   return (
     <div/>
