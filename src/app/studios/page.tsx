@@ -9,6 +9,8 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import NotificationIcon from "../../../public/assets/ic_notification.svg";
 import HomeScreen from "@/app/home/home.screen";
+import { PassPurchaseButton } from "@/app/setting/PassPurchaseButton";
+import React from "react";
 
 export default async function StudioPage({
                                            searchParams
@@ -41,6 +43,9 @@ export default async function StudioPage({
           )}
         </div>
         <HomeScreen os={os}/>
+        <div className={'fixed bottom-4 right-4'}>
+          <PassPurchaseButton/>
+        </div>
       </div>
     );
   } else {

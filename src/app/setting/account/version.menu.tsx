@@ -20,7 +20,7 @@ export const VersionMenu = ({title, version}: { title: string, version: string }
   return (
     <div className={"flex flex-col"}>
       <div
-        className="flex justify-between items-center bg-white px-4 py-4 cursor-pointer border-gray-200 active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
+        className="flex justify-between items-center bg-white px-6 py-4 cursor-pointer border-gray-200 active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
         onClick={() => clickVersionMenu()}
       >
         <div className="text-gray-800">{title}</div>

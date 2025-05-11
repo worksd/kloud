@@ -827,6 +827,12 @@ export const StringResource = {
     jp: "パス券を購入する",
     zh: "购买通票"
   },
+  purchase_pass_simple: {
+    ko: "패스권 구매",
+    en: "Purchase Pass",
+    jp: "パス券を購入する",
+    zh: "购买通票"
+  },
   change_locale_dialog_title: {
     ko: "언어 변경",
     en: "Selected Language",
