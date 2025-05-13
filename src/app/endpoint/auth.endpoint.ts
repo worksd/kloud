@@ -1,4 +1,4 @@
-import { Endpoint } from "@/app/endpoint/index";
+import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
 import { UserStatus } from "@/entities/user/user.status";
 
@@ -36,6 +36,11 @@ export type PostAuthEmailParameter = {
   type: UserType,
 }
 
+export type PostComparePasswordParameter = {
+  password: string,
+}
+
+
 export type PostAuthLoginResponse = {
   accessToken: string,
   user: UserResponse,
@@ -55,6 +60,12 @@ export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthLoginRespon
   method: 'post',
   path: '/auth/sign-in',
   bodyParams: ['email', 'password', 'type'],
+}
+
+export const ComparePassword: Endpoint<PostComparePasswordParameter, SimpleResponse> = {
+  method: 'post',
+  path: '/auth/compare-password',
+  bodyParams: ['password'],
 }
 
 export type PostAuthEmailSignUpParameter = {

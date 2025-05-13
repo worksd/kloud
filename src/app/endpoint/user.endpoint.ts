@@ -15,6 +15,7 @@ export type GetUserResponse = {
   name?: string
   nickName?: string
   status: UserStatus
+  loginType: 'Email' |'Kakao' | 'Google' | 'Apple'
   profileImageUrl?: string
   deactivatedAt: string
   phone?: string
@@ -60,12 +61,13 @@ export type PatchUserParameter = {
   refundDepositor?: string
   emailVerified?: boolean,
   country?: string,
+  password?: string,
 }
 
 export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
-  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country'],
+  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country', 'password'],
   pathParams: ['id']
 }
 

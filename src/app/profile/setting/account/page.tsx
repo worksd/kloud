@@ -26,9 +26,11 @@ export default async function MyAccountPage() {
         label={'cell_phone_certificate'}/></NavigateClickWrapper>
       }
 
-      <NavigateClickWrapper method={'push'} route={KloudScreen.PasswordSetting}>
-        <MenuItem label={'change_password'}/>
-      </NavigateClickWrapper>
+      {user.loginType == 'Email' &&
+        <NavigateClickWrapper method={'push'} route={KloudScreen.PasswordSetting}>
+          <MenuItem label={'change_password'}/>
+        </NavigateClickWrapper>
+      }
 
     </div>
   }

@@ -1127,6 +1127,30 @@ export const StringResource = {
     jp: 'パスワード変更',
     zh: '修改密码',
   },
+  new_password: {
+    ko: '새 비밀번호',
+    en: 'New Password',
+    jp: '新しいパスワード',
+    zh: '新密码',
+  },
+  current_password: {
+    ko: '현재 비밀번호',
+    en: 'Current Password',
+    jp: '現在のパスワード',
+    zh: '当前密码',
+  },
+  confirm_password: {
+    ko: '비밀번호 확인',
+    en: 'Confirm Password',
+    jp: 'パスワード確認',
+    zh: '确认密码',
+  },
+  password_reset_complete: {
+    ko: '비밀번호 변경이 완료됐어요',
+    en: 'Your password has been successfully changed.',
+    jp: 'パスワードの変更が完了しました。',
+    zh: '密码已成功修改。'
+  },
   purchase_complete: {
     ko: '구매완료',
     en: 'Purchase Complete',

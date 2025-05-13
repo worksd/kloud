@@ -1,5 +1,6 @@
 import { EndpointClient } from "@/app/endpoint.client";
 import * as API from "./endpoint";
+import { ComparePassword } from "@/app/endpoint/auth.endpoint";
 
 
 export class ApiClient extends EndpointClient {
@@ -7,6 +8,7 @@ export class ApiClient extends EndpointClient {
   readonly auth = {
     token: this.endpointBuilder(API.Auth.GetAuthToken),
     email: this.endpointBuilder(API.Auth.PostAuthEmail),
+    comparePassword: this.endpointBuilder(API.Auth.ComparePassword),
     signUp: this.endpointBuilder(API.Auth.PostSignUpEmail),
     socialLogin: this.endpointBuilder(API.Auth.PostSocialLogin),
     sendEmailVerification: this.endpointBuilder(API.Auth.SendVerificationEmail),

@@ -16,6 +16,7 @@ export const updateUserAction = async ({
                                          refundDepositor,
                                          refundAccountBank,
                                          emailVerified,
+                                         password,
                                        }: {
   name?: string,
   nickName?: string,
@@ -26,6 +27,7 @@ export const updateUserAction = async ({
   refundAccountBank?: string;
   refundDepositor?: string;
   emailVerified?: boolean,
+  password?: string,
 }): Promise<{ success: boolean, errorCode?: string, errorMessage?: string, user?: GetUserResponse }> => {
 
   try {
@@ -43,6 +45,7 @@ export const updateUserAction = async ({
       refundAccountBank: refundAccountBank,
       refundDepositor: refundDepositor,
       emailVerified: emailVerified,
+      password: password,
     });
     if ('id' in res) {
       return {
