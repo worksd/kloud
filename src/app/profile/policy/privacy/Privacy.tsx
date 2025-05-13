@@ -1,10 +1,10 @@
 'use client';
 
-const Privacy = () => {
+const Privacy = ({locale}: {locale: string}) => {
   return (
     <div className="w-full h-[100dvh] bg-white">
       <iframe
-        src="https://hello.rawgraphy.com/privacy"
+        src={"https://hello.rawgraphy.com/" + locale + "/privacy"}
         className="w-full h-full border-none"
         title="Terms of Service"
         style={{

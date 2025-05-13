@@ -52,7 +52,7 @@ export default async function SettingPage({
           <MenuItem label="my_pass"/>
         </NavigateClickWrapper>
 
-        <NavigateClickWrapper method={'push'} route={KloudScreen.Terms}>
+        <NavigateClickWrapper method={'push'} route={KloudScreen.Policy}>
           <MenuItem label="terms_and_policy"/>
         </NavigateClickWrapper>
 

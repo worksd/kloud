@@ -155,6 +155,12 @@ export const StringResource = {
     jp: "個人情報同意",
     zh: "隐私协议"
   },
+  privacy_agreement: {
+    ko: "개인정보 처리방침",
+    en: "Privacy Policy",
+    jp: "個人情報保護方針",
+    zh: "隐私政策"
+  },
   change_profile_message: {
     ko: "프로필을 설정해주세요!",
     en: "Set up your profile!",
@@ -736,6 +742,12 @@ export const StringResource = {
     en: "Business Registration Number",
     jp: "事業者番号",
     zh: "营业执照号码"
+  },
+  business_info: {
+    ko: "사업자 정보",
+    en: "Business Information",
+    jp: "事業者情報",
+    zh: "营业执照信息"
   },
   business_name: {
     ko: "사업자명",
