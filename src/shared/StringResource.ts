@@ -216,13 +216,13 @@ export const StringResource = {
     zh: "昵称"
   },
   welcome_title: {
-    ko: "환영합니다! 🎉",
-    en: "Welcome! 🎉",
-    jp: "ようこそ！ 🎉",
-    zh: "欢迎! 🎉"
+    ko: "님 환영합니다!",
+    en: "Welcome!",
+    jp: "ようこそ！",
+    zh: "欢迎! "
   },
   welcome_message: {
-    ko: "Rawgraphy와 함께 멋진 순간을 만들어봐요.",
+    ko: "댄스 스튜디오를 마주하는 순간부터 수업을 듣는 순간까지, Rawgraphy입니다",
     en: "Create amazing moments with Rawgraphy.",
     jp: "Rawgraphyと一緒に素敵な瞬間を作りましょう。",
     zh: "和Rawgraphy一起创造美好瞬间。"
@@ -940,6 +940,30 @@ export const StringResource = {
     en: 'Pass Price',
     jp: 'パス料金',
     zh: '通行证价格',
+  },
+  do_certification: {
+    ko: '본인인증 하기',
+    en: 'Identity Verification',
+    jp: '本人確認',
+    zh: '身份认证',
+  },
+  skip: {
+    ko: '건너뛰기',
+    en: 'Skip',
+    jp: 'スキップ',
+    zh: '跳过',
+  },
+  skip_certification_title: {
+    ko: '잠깐, 본인인증을 나중에 하시겠어요?',
+    en: 'Wait, would you like to verify your identity later?',
+    jp: 'ちょっと待って、本人確認は後で行いますか？',
+    zh: '等等，您想稍后进行身份认证吗？',
+  },
+  skip_certification_message: {
+    ko: '수강권을 구매하기 위해선 본인인증이 필요해요',
+    en: 'Identity verification is required to purchase a course pass.',
+    jp: '受講パスを購入するには本人確認が必要です。',
+    zh: '购买课程通行证需要进行身份认证。',
   },
   certification: {
     ko: '본인인증',

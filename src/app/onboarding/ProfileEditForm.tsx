@@ -12,7 +12,7 @@ export const ProfileEditForm = ({isOnboarding, nickName, profileImageUrl, inputE
     <div className={'px-6 py-4'}>
       {/* 헤더 영역 */}
       {isOnboarding &&
-        <div>
+        <div className={'mb-4'}>
           <h1 className="text-2xl font-bold mb-2 text-black">
             <TranslatableText titleResource={'change_profile_message'}/>
           </h1>

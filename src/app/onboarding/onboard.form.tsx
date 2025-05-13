@@ -1,5 +1,5 @@
 'use client';
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { AgreementForm } from "@/app/onboarding/AgreementForm";
 import { ProfileEditForm } from "@/app/onboarding/ProfileEditForm";
 import { CommonSubmitButton } from "@/app/components/buttons";
@@ -14,8 +14,14 @@ import { useLocale } from "@/hooks/useLocale";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useRouter } from "next/navigation";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { OnboardCertification } from "@/app/onboarding/OnboardCertification";
+import { CertificationPage } from "@/app/certification/CertificationForm";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import Image from "next/image";
 
-type Step = 'profile' | 'agreement';
+type Step = 'profile' | 'agreement' | 'certification';
+
+const DELAY_TIME = 2000
 
 export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
   user: GetUserResponse,
@@ -26,7 +32,6 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
   const {t} = useLocale();
   const router = useRouter();
   const [step, setStep] = useState<Step>('profile');
-  const [selectedIdList, setSelectedIdList] = useState<number[]>([]);
   const [nickName, setNickName] = useState<string | undefined>(user.nickName);
   const [inputErrorMessage, setInputErrorMessage] = useState<string | null>(null);
 
@@ -37,11 +42,19 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
     all: false,
   });
 
+  const [certificationPage, setCertificationPage] = useState<CertificationPage>('certification');
+  const [code, setCode] = useState(0);
+  const [myCode, setMyCode] = useState("");
+  const [name, setName] = useState('');
+  const [rrn, setRrn] = useState('');
+  const [phone, setPhone] = useState('');
+  const isCertificationFormValid = !name || rrn.length < 7 || phone.length < 13 || myCode.length < 6;
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const headerTitle = {
     'profile': t('onboarding_profile'),
-    'favorite': t('onboarding_favorite_studio'),
+    'certification': t('do_certification'),
     'agreement': t('onboarding_agreement'),
   };
 
@@ -51,6 +64,8 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
         return !nickName || nickName.length === 0;
       case 'agreement':
         return !allChecked; // allCheckboxes 상태 추가 필요
+      case 'certification':
+        return isCertificationFormValid;
       default:
         return false;
     }
@@ -78,19 +93,41 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
     }
   };
 
+  const onClickSkip = async () => {
+    const dialog = await createDialog('SkipCertification')
+    window.KloudEvent.showDialog(JSON.stringify(dialog));
+  }
+
+  useEffect(() => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      setIsLoading(true);
+      setTimeout(async () => {
+        if (data.id == 'SkipCertification') {
+          const res = await updateUserAction({
+            nickName: nickName,
+          });
+
+          if (res.success && res.user?.status == UserStatus.Ready) {
+            if (appVersion == '') {
+              router.replace(returnUrl)
+            } else {
+              const bootInfo = JSON.stringify({
+                bottomMenuList: await getBottomMenuList(),
+                route: '',
+                withFcmToken: true,
+              });
+              window.KloudEvent?.navigateMain(bootInfo);
+            }
+          }
+        }
+      }, DELAY_TIME)
+    }
+  })
+
   const handleNickNameChanged = (value: string) => {
     setNickName(value)
     setInputErrorMessage(null)
   }
-
-  const handleSelectFavoriteStudio = (id: number) => {
-    setSelectedIdList(currentIds => {
-      const isSelected = currentIds.includes(id);
-      return isSelected
-        ? currentIds.filter(selectedId => selectedId !== id)
-        : [...currentIds, id];
-    });
-  };
 
   const onClickButton = async () => {
     hideKeyboard()
@@ -104,29 +141,41 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
         }
       } else {
       }
-    } else if (step === "agreement") {
+    } else if (step === 'agreement') {
+      setStep('certification')
+    } else if (step === "certification") {
       setIsLoading(true); // 로딩 시작
 
-      try {
-        const res = await updateUserAction({
-          nickName: nickName,
-        });
-
-        if (res.success && res.user?.status == UserStatus.Ready) {
-          if (appVersion == '') {
-            router.replace(returnUrl)
-          } else {
-            const bootInfo = JSON.stringify({
-              bottomMenuList: await getBottomMenuList(),
-              route: '',
-              withFcmToken: true,
+      setTimeout(async () => {
+        try {
+          if (code.toString() == myCode) {
+            const res = await updateUserAction({
+              nickName: nickName,
+              phone: phone,
+              name: name,
+              rrn: rrn,
             });
-            window.KloudEvent?.navigateMain(bootInfo);
+
+            if (res.success && res.user?.status == UserStatus.Ready) {
+              if (appVersion == '') {
+                router.replace(returnUrl)
+              } else {
+                const bootInfo = JSON.stringify({
+                  bottomMenuList: await getBottomMenuList(),
+                  route: '',
+                  withFcmToken: true,
+                });
+                window.KloudEvent?.navigateMain(bootInfo);
+              }
+            }
+          } else {
+            const dialogInfo = await createDialog('CertificationFail')
+            window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
           }
+        } finally {
+          setIsLoading(false); // 로딩 종료
         }
-      } finally {
-        setIsLoading(false); // 로딩 종료
-      }
+      }, DELAY_TIME)
     }
   }
 
@@ -139,6 +188,12 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
       }
     } else if (step === "agreement") {
       setStep("profile")
+    } else if (step === 'certification') {
+      if (certificationPage == 'foreigner') {
+        setCertificationPage('certification')
+      } else if (certificationPage == 'certification') {
+        setStep('agreement')
+      }
     }
   }
 
@@ -174,6 +229,24 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
               handleCheckboxChangeAction={handleCheckboxChange}
             />
           )}
+          {step == 'certification' && (
+            <OnboardCertification
+              appVersion={appVersion}
+              user={user}
+              page={certificationPage}
+              name={name}
+              rrn={rrn}
+              phone={phone}
+              setNameAction={setName}
+              setPhoneAction={setPhone}
+              setRrnAction={setRrn}
+              setPageAction={setCertificationPage}
+              setCodeAction={setCode}
+              setMyCodeAction={setMyCode}
+              code={code}
+              myCode={myCode}
+            />
+          )}
         </div>
       </div>
 
@@ -185,18 +258,36 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
             disabled: isNextButtonDisabled()
           }}
         >
-          {t('next')}
+          {step == 'certification' ? t('confirm') : t('next')}
         </CommonSubmitButton>
+        {step == 'certification' &&
+          <TranslatableText
+            titleResource={'skip'}
+            className={'flex justify-center text-[#787878] mt-3'}
+            onClick={onClickSkip}
+          />
+        }
       </div>
 
       {/* 로딩 오버레이 */}
       {isLoading && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center flex flex-col items-center">
-            {/* 스피너 */}
-            <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin mb-4"></div>
-            <TranslatableText className="text-lg font-semibold text-black" titleResource={'welcome_title'}/>
-            <TranslatableText className="text-lg font-semibold text-black" titleResource={'welcome_message'}/>
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center flex flex-col items-center mx-4">
+            <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 mb-3">
+              <Image
+                src={user.profileImageUrl ?? ''}
+                alt="studio logo"
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className={'flex flex-row text-[20px] font-bold text-black'}>
+              <div>{nickName}</div>
+              <TranslatableText titleResource={'welcome_title'}/>
+            </div>
+
+            <TranslatableText className="text-[14px] font-medium text-black text-center" titleResource={'welcome_message'}/>
           </div>
         </div>
       )}
