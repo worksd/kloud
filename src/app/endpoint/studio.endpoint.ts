@@ -31,7 +31,6 @@ export type GetStudioResponse = {
     depositor?: string;
     instagramAddress?: string;
     lessons?: GetLessonResponse[];
-    follow?: StudioFollowResponse;
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
@@ -47,10 +46,6 @@ export type GetMyStudioResponse = {
   day: number;
   bands: GetBandResponse[];
   myTodayTicket?: TicketResponse;
-}
-
-export type StudioFollowResponse = {
-  id: number;
 }
 
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {

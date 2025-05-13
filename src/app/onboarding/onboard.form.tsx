@@ -2,7 +2,6 @@
 import React, { ChangeEvent, useState } from "react";
 import { AgreementForm } from "@/app/onboarding/AgreementForm";
 import { ProfileEditForm } from "@/app/onboarding/ProfileEditForm";
-import { FavoriteStudioForm } from "@/app/onboarding/FavoriteStudioForm";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import ArrowLeftIcon from "../../../public/assets/left-arrow.svg";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
@@ -11,13 +10,12 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { UserStatus } from "@/entities/user/user.status";
 import { checkDuplicateNickName } from "@/app/onboarding/action/check.duplicate.nickname.action";
-import { followStudio } from "@/app/search/studio.follow.action";
 import { useLocale } from "@/hooks/useLocale";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useRouter } from "next/navigation";
 import { TranslatableText } from "@/utils/TranslatableText";
 
-type Step = 'profile' | 'favorite' | 'agreement';
+type Step = 'profile' | 'agreement';
 
 export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
   user: GetUserResponse,
@@ -51,8 +49,6 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
     switch (step) {
       case 'profile':
         return !nickName || nickName.length === 0;
-      case 'favorite':
-        return false;
       case 'agreement':
         return !allChecked; // allCheckboxes 상태 추가 필요
       default:
@@ -102,21 +98,16 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
       const res = await checkDuplicateNickName({nickName: nickName ?? ''})
       if ('success' in res) {
         if (res.success) {
-          setStep("favorite")
+          setStep("agreement")
         } else {
           setInputErrorMessage(t('duplicate_nick_name_message'))
         }
       } else {
       }
-    } else if (step === "favorite") {
-      setStep("agreement")
     } else if (step === "agreement") {
       setIsLoading(true); // 로딩 시작
 
       try {
-        for (const id of selectedIdList) {
-          await followStudio({studioId: id});
-        }
         const res = await updateUserAction({
           nickName: nickName,
         });
@@ -146,10 +137,8 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
       } else {
         window.KloudEvent?.clearAndPush(KloudScreen.Login(returnUrl))
       }
-    } else if (step === "favorite") {
-      setStep("profile")
     } else if (step === "agreement") {
-      setStep("favorite")
+      setStep("profile")
     }
   }
 
@@ -177,13 +166,6 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
               profileImageUrl={user?.profileImageUrl ?? ''}
               inputErrorMessage={inputErrorMessage}
               onNickNameChanged={handleNickNameChanged}
-            />
-          )}
-          {step === 'favorite' && (
-            <FavoriteStudioForm
-              studios={studios}
-              selectedIdList={selectedIdList}
-              onSelectStudioAction={handleSelectFavoriteStudio}
             />
           )}
           {step === 'agreement' && (

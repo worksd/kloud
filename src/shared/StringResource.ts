@@ -173,18 +173,6 @@ export const StringResource = {
     jp: "いつでも変更できます。自分だけのニックネームを作ってみましょう。",
     zh: "随时可以更改，取一个独特的昵称吧。"
   },
-  follow_studio_message: {
-    ko: "관심 학원을 팔로우해요",
-    en: "Follow your favorite studio",
-    jp: "興味のあるスタジオをフォローしましょう",
-    zh: "关注感兴趣的工作室"
-  },
-  follow_studio_description: {
-    ko: "어떤 스튜디오에 관심있으십니까?",
-    en: "Which studio are you interested in?",
-    jp: "どのスタジオに興味がありますか？",
-    zh: "您对哪些工作室感兴趣?"
-  },
   agreement_message: {
     ko: "서비스를 위해 동의해주세요!",
     en: "Please agree to continue!",
@@ -268,18 +256,6 @@ export const StringResource = {
     en: "More",
     jp: "もっと見る",
     zh: "查看更多"
-  },
-  following: {
-    ko: "팔로잉",
-    en: "Following",
-    jp: "フォロー中",
-    zh: "已关注"
-  },
-  follow: {
-    ko: "팔로우",
-    en: "Follow",
-    jp: "フォロー",
-    zh: "关注"
   },
   ticket: {
     ko: "레슨 수강권",
@@ -904,18 +880,6 @@ export const StringResource = {
     en: "Try taking a new class!",
     jp: "新しいクラスを受講してみましょう！",
     zh: "来体验新的课程吧!"
-  },
-  follow_success_message: {
-    ko: "팔로우하였습니다",
-    en: "You are now following",
-    jp: "フォローが完了しました",
-    zh: "已关注"
-  },
-  unfollow_success_message: {
-    ko: "팔로우 취소하였습니다",
-    en: "You have unfollowed",
-    jp: "フォローを解除しました",
-    zh: "已取消关注"
   },
   select_pass_ticket_studio_message: {
     ko: "패스를 구매할 스튜디오를 선택해주세요",
