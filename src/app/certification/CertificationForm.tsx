@@ -241,22 +241,22 @@ export const CertificationForm = ({appVersion, user, isFromPayment}: { appVersio
               <TranslatableText titleResource="cellphone_number" className="text-[14px] font-medium"/>
               <TranslatableText titleResource="required" className="text-[10px] text-[#E55B5B]"/>
             </div>
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex items-center gap-2 w-full">
               <input
                 id="phone"
                 type="tel"
                 value={phone}
-                disabled={isCodeSent}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder={mounted ? t('input_birthday_message') : ''}
-                className="flex-1 text-[14px] font-medium border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
+                className="flex-grow text-[14px] font-medium border border-gray-300 focus:border-black focus:outline-none rounded-md p-4 min-w-0"
               />
-              {!isCodeSent &&
+              {!isCodeSent && (
                 <TranslatableText
                   onClick={sendCertificationCode}
-                  className="bg-black text-white font-bold rounded-[8px] p-4 active:scale-[0.98] transition-all duration-150 select-none"
-                  titleResource={'submit_code'}/>
-              }
+                  className="text-[13px] bg-black text-white font-bold rounded-[8px] px-4 py-3 active:scale-[0.98] transition-all duration-150 select-none text-center whitespace-nowrap flex-shrink-0"
+                  titleResource="submit_code"
+                />
+              )}
             </div>
             {!isCodeSent &&
               <div
