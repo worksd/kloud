@@ -9,7 +9,7 @@ export async function SimpleHeader({titleResource}: {
 }) {
   return (
     <div className="fixed top-0 left-0 right-0 bg-white z-10">
-      <div className="relative grid grid-cols-[auto_1fr_auto] h-14 items-center px-4 gap-4">
+      <div className="relative grid grid-cols-[auto_1fr_auto] h-14 items-center px-6 gap-4">
         <div className="w-6"> {/* 뒤로가기 버튼 영역 고정 */}
           <NavigateClickWrapper method={'back'}>
             <button className="flex items-center justify-start text-black rounded-full">
@@ -36,7 +36,7 @@ export async function DynamicHeader({title}: {
 }) {
   return (
     <div className="fixed top-0 left-0 right-0 bg-white z-10">
-      <div className="relative grid grid-cols-[auto_1fr_auto] h-14 items-center px-4 gap-4">
+      <div className="relative grid grid-cols-[auto_1fr_auto] h-14 items-center px-6 gap-4">
         <div className="w-6"> {/* 뒤로가기 버튼 영역 고정 */}
           <NavigateClickWrapper method={'back'}>
             <button className="flex items-center justify-start text-black rounded-full">

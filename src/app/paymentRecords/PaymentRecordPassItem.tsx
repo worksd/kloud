@@ -1,6 +1,6 @@
 'use client'
 import { KloudScreen } from "@/shared/kloud.screen";
-import { PassItem } from "@/app/setting/myPass/action/PassItem";
+import { PassItem } from "@/app/profile/myPass/action/PassItem";
 import RightArrowIcon from "../../../public/assets/right-arrow.svg";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 

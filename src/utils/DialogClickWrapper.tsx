@@ -3,7 +3,7 @@
 import { createDialog, DialogId, DialogInfo } from "@/utils/dialog.factory";
 import { useEffect } from "react";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
-import { clearCookies } from "@/app/setting/clear.token.action";
+import { clearCookies } from "@/app/profile/clear.token.action";
 
 interface DialogClickItemProps {
   id: DialogId

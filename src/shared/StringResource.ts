@@ -1103,6 +1103,18 @@ export const StringResource = {
     jp: '利用情報',
     zh: '使用信息'
   },
+  complete: {
+    ko: '완료',
+    en: 'Complete',
+    jp: '完了',
+    zh: '完成',
+  },
+  change_password: {
+    ko: '비밀번호 변경',
+    en: 'Change Password',
+    jp: 'パスワード変更',
+    zh: '修改密码',
+  },
   purchase_complete: {
     ko: '구매완료',
     en: 'Purchase Complete',
@@ -1246,6 +1258,18 @@ export const StringResource = {
     jp: '口座管理',
     zh: '账户管理',
   },
+  my_account: {
+    ko: '내 계정',
+    en: 'My Account',
+    jp: 'マイアカウント',
+    zh: '我的账户',
+  },
+  cell_phone_certificate: {
+    ko: '휴대폰 본인인증',
+    en: 'Phone Verification',
+    jp: '携帯電話認証',       // 또는 本人確認（携帯）
+    zh: '手机认证',           // 또는 手机实名验证
+  },
   my_ticket_studio: {
     ko: '나의 수강 스튜디오',
     en: 'My Studio',
@@ -1272,13 +1296,13 @@ export const StringResource = {
   },
   empty_account_information_message: {
     ko: '계좌 정보가 입력되지 않았습니다',
-    en: 'No account information has been entered.',
+    en: 'No setting information has been entered.',
     jp: '口座情報が入力されていません。',
     zh: '尚未填写账户信息。',
   },
   refund_account_update_success_message: {
     ko: '환불 계좌 정보를 성공적으로 반영했습니다',
-    en: 'Refund account information has been updated successfully.',
+    en: 'Refund setting information has been updated successfully.',
     jp: '返金口座情報が正常に更新されました。',
     zh: '退款账户信息已成功更新。',
   },
@@ -1416,7 +1440,7 @@ export const StringResource = {
   },
   user_email_empty_message: {
     ko: '회원님의 SNS 로그인 계정에 email이 설정되어있지 않습니다.\nEmail을 설정한 이후에 이용해주시길 바랍니다.',
-    en: 'Your SNS login account does not have an email address set.\nPlease set your email before proceeding.',
+    en: 'Your SNS login setting does not have an email address set.\nPlease set your email before proceeding.',
     jp: 'ご利用のSNSログインアカウントにメールアドレスが設定されていません。\nメールアドレスを設定してからご利用ください。',
     zh: '您的SNS登录账户未设置邮箱地址。\n请设置邮箱后再使用。',
   },

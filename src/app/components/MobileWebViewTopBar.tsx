@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
-import { clearCookies } from "@/app/setting/clear.token.action";
+import { clearCookies } from "@/app/profile/clear.token.action";
 
 export const getStoreLink = ({os}: { os: string }) => {
   if (os == 'Android') {

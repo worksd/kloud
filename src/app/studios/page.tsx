@@ -9,7 +9,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import NotificationIcon from "../../../public/assets/ic_notification.svg";
 import HomeScreen from "@/app/home/home.screen";
-import { PassPurchaseButton } from "@/app/setting/PassPurchaseButton";
+import { PassPurchaseButton } from "@/app/profile/PassPurchaseButton";
 import React from "react";
 
 export default async function StudioPage({

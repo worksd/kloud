@@ -1,6 +1,6 @@
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import React from "react";
-import { ActivePassItem } from "@/app/setting/myPass/PassColumnList";
+import { ActivePassItem } from "@/app/profile/myPass/PassColumnList";
 
 export const PassRowList = ({ passes }: { passes: GetPassResponse[] }) => {
   return (

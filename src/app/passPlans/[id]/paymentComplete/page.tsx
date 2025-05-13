@@ -3,7 +3,7 @@ import React from "react";
 import { Props } from "@/app/studios/[id]/page";
 import LargeCircleCheckIcon from "../../../../../public/assets/ic_large_circle_check.svg"
 import { LessonBand } from "@/app/LessonBand";
-import { getPassAction } from "@/app/setting/myPass/action/getPassAction";
+import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 
 export default async function PassPaymentCompletePage({params}: Props) {

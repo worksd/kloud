@@ -6,7 +6,7 @@ import ShowPasswordIcon from "../../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../../public/assets/hide-password.svg"
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
-import { clearCookies } from "@/app/setting/clear.token.action";
+import { clearCookies } from "@/app/profile/clear.token.action";
 import { useLocale } from "@/hooks/useLocale";
 import { createDialog } from "@/utils/dialog.factory";
 import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
