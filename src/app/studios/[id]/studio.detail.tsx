@@ -1,16 +1,15 @@
 import { HeaderInDetail } from "@/app/components/headers";
 import Image from "next/image";
 import LocationIcon from "../../../../public/assets/location.svg";
-import PhoneIcon from "../../../../public/assets/phone.svg";
 import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import React from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
-import { StudioFollowButton } from "@/app/studios/[id]/StudioFollowButton";
 import { translate } from "@/utils/translate";
 import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchaseSubmitButton";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
+import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
 
 export const StudioDetailForm = async ({id}: { id: number }) => {
 
@@ -65,22 +64,15 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
 
       {/* 상세 영역 */}
       <div className="flex flex-col gap-2 mt-6">
-        <div className="flex flex-row items-center px-4 gap-2">
+        <div className="flex flex-row items-center px-6 gap-2">
           <LocationIcon className="flex-shrink-0"/>
           <div className="text-[#505356] text-[14px] font-medium">{studio.address}</div>
         </div>
 
-
-        {studio.phone && studio.phone.length > 0 && <div className="justify-start items-center gap-2 flex px-4">
-          <PhoneIcon className="flex-shrink-0"/>
-          <div className="text-center text-[#505356] text-[14px] font-medium leading-tight">{studio.phone}</div>
-        </div>}
-
-
-        {/*<div className="self-stretch px-6 justify-start items-center gap-2 inline-flex">*/}
-        {/*  {studio.instagramAddress && <InstagramIcon/>}*/}
-        {/*  {studio.youtubeUrl && <YoutubeIcon/>}*/}
-        {/*</div>*/}
+        <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex py-3">
+          {studio.instagramAddress && <StudioIcon type={'instagram'} url={studio.instagramAddress}/>}
+          {studio.youtubeUrl && <StudioIcon type={'youtube'} url={studio.youtubeUrl}/>}
+        </div>
 
         <section>
           {studio.announcements && studio.announcements.length > 0 && (
