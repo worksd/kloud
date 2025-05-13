@@ -3,8 +3,9 @@ import { CommonSubmitButton } from "@/app/components/buttons";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { useRouter } from "next/navigation";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 
-export const ForeignCertificationForm = ({email, appVersion}: { email: string, appVersion: string }) => {
+export const ForeignCertificationForm = ({email, appVersion, isFromPayment}: { email: string, appVersion: string, isFromPayment: boolean }) => {
 
   const [birthDate, setBirthDate] = React.useState<string>('');
   const [name, setName] = React.useState("");
@@ -52,10 +53,19 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
       emailVerified: true,
     })
     if (res.success && res.user?.emailVerified == true){
-      if (appVersion == '') {
-        router.back();
+      if (isFromPayment) {
+        if (appVersion == '') {
+          router.back()
+        } else {
+          window.KloudEvent?.back()
+        }
       } else {
-        window.KloudEvent?.back()
+        const bottomMenuList = await getBottomMenuList();
+        const bootInfo = JSON.stringify({
+          bottomMenuList: bottomMenuList,
+          route: '',
+        });
+        window.KloudEvent?.navigateMain(bootInfo);
       }
     }
   }, [birthDate, gender, country])

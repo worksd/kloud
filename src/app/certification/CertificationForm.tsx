@@ -273,7 +273,7 @@ export const CertificationForm = ({appVersion, user, isFromPayment}: { appVersio
       )}
 
       {page === 'foreigner' && (
-        <ForeignCertificationForm email={user.email} appVersion={appVersion}/>
+        <ForeignCertificationForm email={user.email} appVersion={appVersion} isFromPayment={isFromPayment}/>
       )}
     </div>
   );
