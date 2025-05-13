@@ -214,7 +214,7 @@ export const OnboardCertification = ({
               {!isCodeSent &&
                 <TranslatableText
                   onClick={sendCertificationCode}
-                  className="bg-black text-white font-bold rounded-[8px] p-4 active:scale-[0.98] transition-all duration-150 select-none"
+                  className="bg-black text-white font-bold rounded-[8px] px-4 py-3 active:scale-[0.98] transition-all duration-150 select-none text-center whitespace-nowrap flex-shrink-0"
                   titleResource={'submit_code'}/>
               }
             </div>
