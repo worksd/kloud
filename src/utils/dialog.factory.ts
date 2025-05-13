@@ -177,6 +177,14 @@ export async function createDialog(id: DialogId, message?: string, title?: strin
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
+  } else if (id == 'CertificationComplete') {
+    return {
+      id: 'CertificationComplete',
+      type: 'SIMPLE',
+      title: await translate('certification_complete_message'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm')
+    }
   }
 }
 
@@ -201,6 +209,7 @@ export type DialogId =
   | 'Simple'
   | 'AppUpgrade'
   | 'ForeignerVerificationRequest'
+  | 'CertificationComplete'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

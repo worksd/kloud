@@ -22,7 +22,7 @@ export default async function MyAccountPage() {
         <div className={'text-[#919191]'}>
           {user.phone}
         </div>
-      </div> : <NavigateClickWrapper method={'push'} route={KloudScreen.Certification}> <MenuItem
+      </div> : <NavigateClickWrapper method={'push'} route={KloudScreen.Certification(false)}> <MenuItem
         label={'cell_phone_certificate'}/></NavigateClickWrapper>
       }
 

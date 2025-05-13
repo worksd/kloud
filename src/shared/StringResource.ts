@@ -1007,6 +1007,30 @@ export const StringResource = {
     jp: '本人確認のため、情報を入力してください。',
     zh: '请填写信息进行身份认证。',
   },
+  input_personal_information_message: {
+    ko: '수강권 결제를 하기위해선 본인인증이 필요해요',
+    en: 'Identity verification is required to complete the course payment.',
+    jp: 'コースの支払いを完了するためには本人確認が必要です。',
+    zh: '完成课程付款需要进行身份验证。',
+  },
+  certification_complete_message: {
+    ko: '본인인증이 완료되었어요',
+    en: 'Identity verification is complete.',
+    jp: '本人確認が完了しました。',
+    zh: '身份验证已完成。',
+  },
+  resend_code: {
+    ko: '인증번호 재발송',
+    en: 'Resend Code',
+    jp: '認証コードを再送信',
+    zh: '重新发送验证码',
+  },
+  resend_code_message: {
+    ko: '인증번호를 재발송했습니다.',
+    en: 'The verification code has been resent.',
+    jp: '認証コードを再送信しました。',
+    zh: '验证码已重新发送。',
+  },
   name: {
     ko: '이름',
     en: 'Name',

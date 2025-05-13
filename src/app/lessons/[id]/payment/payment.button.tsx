@@ -118,9 +118,9 @@ export default function PaymentButton({
         setIsVerified(true);
       } else {
         if (appVersion == '') {
-          router.push(KloudScreen.Certification)
+          router.push(KloudScreen.Certification(true))
         } else {
-          window.KloudEvent?.fullSheet(KloudScreen.Certification)
+          window.KloudEvent?.fullSheet(KloudScreen.Certification(true))
         }
         return;
       }

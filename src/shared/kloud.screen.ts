@@ -17,7 +17,7 @@ export const KloudScreen = {
   Tickets: '/tickets',
   PaymentRecords: '/paymentRecords',
   Maintenance: '/maintenance',
-  Certification: '/certification',
+  Certification: (isFromPayment: boolean) => `/certification?isFromPayment=${isFromPayment}`,
   ProfileSetting: '/profile/setting',
   ProfileEdit: '/profile/profileEdit',
   RefundAccountSetting: '/profile/setting/refund',
