@@ -177,14 +177,6 @@ export async function createDialog(id: DialogId, message?: string, title?: strin
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
-  } else if (id == 'ResetPasswordComplete') {
-    return {
-      id: 'ResetPasswordComplete',
-      type: 'SIMPLE',
-      title: await translate('password_reset_complete'),
-      message: message ?? '',
-      confirmTitle: await translate('confirm')
-    }
   }
 }
 
@@ -209,7 +201,6 @@ export type DialogId =
   | 'Simple'
   | 'AppUpgrade'
   | 'ForeignerVerificationRequest'
-  | 'ResetPasswordComplete'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

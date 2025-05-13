@@ -371,6 +371,12 @@ export const StringResource = {
     jp: "プロフィール編集",
     zh: "编辑个人资料"
   },
+  edit_profile_complete: {
+    ko: "프로필 수정이 완료됐어요",
+    en: "Your profile has been successfully updated.",
+    jp: "プロフィールの更新が完了しました。",
+    zh: "个人资料已成功更新。"
+  },
   notification: {
     ko: "알림",
     en: "Notifications",

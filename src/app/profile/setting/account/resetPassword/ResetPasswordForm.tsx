@@ -13,6 +13,7 @@ import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { checkPassword } from "@/app/profile/setting/account/resetPassword/compare.password.action";
+import { translate } from "@/utils/translate";
 
 type ResetPasswordPage = 'current' | 'new'
 
@@ -63,7 +64,7 @@ export const ResetPasswordForm = () => {
       })
       setIsSubmitting(false);
       if (res.success) {
-        const dialog = await createDialog('ResetPasswordComplete')
+        const dialog = await createDialog('Simple', await translate('password_reset_complete'))
         window.KloudEvent.showDialog(JSON.stringify(dialog))
       } else {
         const dialog = await createDialog('Simple', '알 수 없는 에러가 발생했습니다')
@@ -74,13 +75,14 @@ export const ResetPasswordForm = () => {
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.id == 'ResetPasswordComplete') {
+      if (data.id == 'Simple') {
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
           bottomMenuList: bottomMenuList,
           route: '',
         });
-        window.KloudEvent?.navigateMain(bootInfo);      }
+        window.KloudEvent?.navigateMain(bootInfo);
+      }
     }
   }, []);
 

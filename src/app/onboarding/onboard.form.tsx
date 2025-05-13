@@ -172,6 +172,7 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
         <div className="flex-1">
           {step === 'profile' && (
             <ProfileEditForm
+              isOnboarding={true}
               nickName={nickName || ''}
               profileImageUrl={user?.profileImageUrl ?? ''}
               inputErrorMessage={inputErrorMessage}

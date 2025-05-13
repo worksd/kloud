@@ -1,28 +1,29 @@
 import Image from "next/image";
-import { useLocale } from "@/hooks/useLocale";
-import { useEffect, useState } from "react";
 import { TranslatableText } from "@/utils/TranslatableText";
 
-export const ProfileEditForm = ({nickName, profileImageUrl, inputErrorMessage, onNickNameChanged}: {
+export const ProfileEditForm = ({isOnboarding, nickName, profileImageUrl, inputErrorMessage, onNickNameChanged}: {
+  isOnboarding: boolean,
   nickName: string,
   profileImageUrl: string,
   inputErrorMessage: string | null,
   onNickNameChanged: (nickName: string) => void
 }) => {
   return (
-    <div className="fixed inset-0 bg-white">
+    <div className={'px-6 py-4'}>
       {/* 헤더 영역 */}
-      <div className="p-6 mt-14">
-        <h1 className="text-2xl font-bold mb-2 text-black">
-          <TranslatableText titleResource={'change_profile_message'}/>
-        </h1>
-        <div className="text-gray-600">
-          <TranslatableText titleResource={'change_profile_description'}/>
+      {isOnboarding &&
+        <div>
+          <h1 className="text-2xl font-bold mb-2 text-black">
+            <TranslatableText titleResource={'change_profile_message'}/>
+          </h1>
+          <div className="text-gray-600">
+            <TranslatableText titleResource={'change_profile_description'}/>
+          </div>
         </div>
-      </div>
+      }
 
       {/* 컨텐츠 영역 */}
-      <div className="p-6 pt-2 flex flex-row space-x-4">
+      <div className="flex flex-row space-x-4">
         {/* 프로필 이미지 업로드 */}
         <div className="flex justify-center mb-2">
           <div className="relative w-20 h-20 rounded-full bg-gray-100 overflow-hidden cursor-pointer">

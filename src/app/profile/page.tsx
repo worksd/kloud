@@ -7,6 +7,7 @@ import React from "react";
 import SettingIcon from "../../../public/assets/ic_setting.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
+import { translate } from "@/utils/translate";
 
 export default async function SettingPage({
                                             searchParams
@@ -44,6 +45,13 @@ export default async function SettingPage({
             <div className="text-gray-500">{user.email}</div>
           </div>
         </div>
+
+        <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+          <div
+            className="flex border mx-4 mb-5 justify-center py-3 rounded-[8px] border-[#E8E8E8] text-[#505356] font-medium active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none">
+            {await translate('edit_profile')}
+          </div>
+        </NavigateClickWrapper>
         <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
           <MenuItem label="payment_records"/>
         </NavigateClickWrapper>
