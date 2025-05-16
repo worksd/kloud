@@ -116,8 +116,8 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
           )}
         </section>
 
-        {studio.schedules && studio.schedules.length > 0 &&
-          <TimeTable lessons={studio.schedules ?? []} todayIndex={studio.day ?? 0}/>
+        {studio.timeTable && studio.timeTable.days.length > 1 &&
+          <TimeTable timeTable={studio.timeTable} today={studio.day}/>
         }
 
         <div>
@@ -131,7 +131,7 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
       </div>
 
       {studio.passPlans && studio.passPlans.length > 0 &&
-        <div className="left-0 w-full h-fit fixed bottom-2 px-6">
+        <div className="left-0 w-full h-fit fixed bottom-0 px-6 py-1 bg-white">
           <PassPlanPurchaseSubmitButton studioId={studio.id}/>
         </div>
       }

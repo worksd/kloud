@@ -35,6 +35,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.Studio.ListStudios),
     me: this.endpointBuilder(API.Studio.Me),
     my: this.endpointBuilder(API.Studio.My),
+    timeTable: this.endpointBuilder(API.Studio.TimeTable),
   }
 
   readonly ticket = {

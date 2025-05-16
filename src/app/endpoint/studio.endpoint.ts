@@ -34,18 +34,43 @@ export type GetStudioResponse = {
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
-    schedules?: GetLessonResponse[];
-    day?: number;
+    timeTable?: GetTimeTableResponse;
+    day: string;
 };
 
 export type GetMyStudioResponse = {
   studio: GetStudioResponse;
   announcement: GetAnnouncementResponse;
   passes: GetPassResponse[];
-  schedules?: GetLessonResponse[];
-  day: number;
+  timeTable?: GetTimeTableResponse;
+  day: string;
   bands: GetBandResponse[];
   myTodayTicket?: TicketResponse;
+}
+
+export type GetTimeTableResponse = {
+  days: string[];
+  cells: GetTimeTableCellResponse[]
+  title: string;
+  description: string;
+  studioId: number;
+  nextDate?: string;
+  prevDate?: string;
+  baseDate?: string;
+}
+
+export type GetTimeTableParameter = {
+  baseDate: string;
+  studioId: number;
+}
+
+export type GetTimeTableCellResponse = {
+  column: number
+  row: number
+  length: number
+  time: string
+  type: 'time' | 'lesson'
+  lesson: GetLessonResponse
 }
 
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
@@ -72,4 +97,11 @@ export const Me: Endpoint<IdParameter, GetMyStudioResponse> = {
 export const My: Endpoint<object, GetStudioListResponse> = {
   method: 'get',
   path: `/studios/my`,
+}
+
+export const TimeTable: Endpoint<GetTimeTableParameter, GetTimeTableResponse> = {
+  method: 'get',
+  path: (e) => `/studios/${e.studioId}/time-table`,
+  pathParams: ['studioId'],
+  queryParams: ['baseDate']
 }

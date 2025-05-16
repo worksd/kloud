@@ -14,7 +14,7 @@ export const StudioIcon = ({type, url}: { type: StudioIconType, url: string }) =
   }
 
   return <div
-    className={'border border-[#F7F8F9] rounded-full p-2.5 active:scale-[0.98] active:bg-gray-100 transition-all duration-150'}
+    className="w-11 h-11 flex items-center justify-center border border-b-emerald-200 rounded-full p-2.5 active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
     onClick={handleClickIcon}
   >
     {type === 'instagram' && <InstagramIcon/>}

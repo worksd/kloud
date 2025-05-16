@@ -49,9 +49,11 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
             </div>
           </NavigateClickWrapper>
         </div>
-        <div className={'my-4'}>
-          <TimeTable lessons={res.schedules ?? []} todayIndex={res.day}/>
-        </div>
+        {res.timeTable && res.timeTable.days.length > 1 &&
+          <div className={'my-4'}>
+            <TimeTable timeTable={res.timeTable ?? []} today={res.day}/>
+          </div>
+        }
 
         {res.bands.map((value) => (
           <LessonBand
