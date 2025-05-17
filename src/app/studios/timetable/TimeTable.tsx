@@ -14,6 +14,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
   const maxRow = Math.max(...currentTimeTable.cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
   const onClickPrev = async () => {
+    window.KloudEvent.sendHapticFeedback()
     const newTable = await getTimeTableAction({
       baseDate: currentTimeTable.prevDate ?? '',
       studioId: currentTimeTable.studioId,
@@ -24,6 +25,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
   }
 
   const onClickNext = async () => {
+    window.KloudEvent.sendHapticFeedback()
     const newTable = await getTimeTableAction({
       baseDate: currentTimeTable.nextDate ?? '',
       studioId: currentTimeTable.studioId,
