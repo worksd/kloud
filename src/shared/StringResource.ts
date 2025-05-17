@@ -743,6 +743,12 @@ export const StringResource = {
     jp: "通信販売業登録番号",
     zh: "电子商务登记号"
   },
+  customer_center: {
+    ko: "고객센터",
+    en: "Customer Center",
+    jp: "カスタマーセンター",
+    zh: "客服中心"
+  },
   representative: {
     ko: "대표자명",
     en: "Representative",
