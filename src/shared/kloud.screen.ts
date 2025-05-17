@@ -24,7 +24,7 @@ export const KloudScreen = {
   MyAccount: '/profile/setting/account',
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
   MyPass: '/profile/myPass',
-  MyPassDetail: (id: number) => `/setting/myPass/${id}`,
+  MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   SignOut: '/profile/setting/signOut',
   LanguageSetting: '/profile/setting/language',
   PasswordSetting: '/profile/setting/account/resetPassword',
@@ -39,7 +39,7 @@ export const KloudScreen = {
   StudioDetail: (id: number) => `/studios/${id}`,
 
   LanguageSettingSheet: '/profile/setting/language/sheet',
-  StudioSettingSheet: '/studios/profile/sheet'
+  StudioSettingSheet: '/studios/setting/sheet'
 } as const;
 
 export const isAuthScreen = (endpoint: string) => {
