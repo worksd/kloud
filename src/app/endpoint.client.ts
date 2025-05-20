@@ -93,7 +93,7 @@ export abstract class EndpointClient {
 
     const response = await fetch(fullUrl, options);
     const jsonResponse = await response.json();
-    console.log(`Response(userId: ${userId}):`, util.inspect(jsonResponse, { depth: null, colors: true }));
+    console.log(`Response(userId: ${userId}):`, util.inspect(jsonResponse, { depth: null, colors: false }));
     return jsonResponse;
   }
 }

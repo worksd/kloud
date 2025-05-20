@@ -250,7 +250,5 @@ export const createAccountTransferMessage = async ({
     .replace('{price}', new Intl.NumberFormat('ko-KR').format(price))
     .replace('{depositor}', depositor);
 
-  console.log(transformMessage)
-
   return createDialog('AccountTransfer', transformMessage);
 };

@@ -16,7 +16,6 @@ import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { getHideDialogIdListAction } from "@/app/studios/get.hide.dialog.id.list.action";
 
 export default async function MyStudioPage({studioId}: { studioId?: string }) {
-  console.log(`studioId = ${studioId}`)
   if (!studioId) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
