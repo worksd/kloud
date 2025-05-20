@@ -37,21 +37,37 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
 
   return (
     <div className="flex flex-col px-1">
-      <div className="flex flex-row items-center gap-x-2 px-4">
-        {currentTimeTable.prevDate &&
-          <div onClick={onClickPrev}>
+      <div className="flex flex-row items-center px-4 w-full justify-between">
+        {currentTimeTable.prevDate ? (
+          <div
+            onClick={onClickPrev}
+            className="relative w-10 h-10 flex items-center justify-center overflow-hidden rounded-full transition-all duration-200 active:bg-gray-200"
+          >
+            <span
+              className="absolute inset-0 scale-0 rounded-full bg-black opacity-10 group-active:scale-150 transition-transform duration-300 ease-out"></span>
             <BackwardIcon/>
           </div>
-        }
-        <div className="flex flex-col items-center justify-center text-start">
+        ) : (
+          <div className="w-[40px]"/> // placeholder to keep center aligned
+        )}
+
+        <div className="flex flex-col items-center justify-center text-center flex-grow">
           <h2 className="text-[20px] text-black font-bold">{currentTimeTable.title}</h2>
           <div className="mb-2 text-gray-700 text-[12px] font-paperlogy">{currentTimeTable.description}</div>
         </div>
-        {currentTimeTable.nextDate &&
-          <div onClick={onClickNext}>
+
+        {currentTimeTable.nextDate ? (
+          <div
+            onClick={onClickNext}
+            className="relative w-10 h-10 flex items-center justify-center overflow-hidden rounded-full transition-all duration-200 active:bg-gray-200"
+          >
+            <span
+              className="absolute inset-0 scale-0 rounded-full bg-black opacity-10 group-active:scale-150 transition-transform duration-300 ease-out"></span>
             <ForwardIcon/>
           </div>
-        }
+        ) : (
+          <div className="w-[40px]"/>
+        )}
       </div>
       <div
         className="grid w-full px-1 text-center text-[14px] font-medium text-black"
@@ -62,11 +78,11 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
         }}
       >
         {/* 요일 헤더 */}
-        {currentTimeTable.days.map((day, i) => (
+        {currentTimeTable.days.map((value, i) => (
           <div
-            key={day}
+            key={value.day}
             className={`py-2 rounded-lg font-paperlogy ${
-              day === today
+              value.isToday
                 ? 'bg-black text-white'
                 : 'bg-gray-300 text-black'
             }`}
@@ -75,7 +91,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
               gridRowStart: 1,
             }}
           >
-            {day}
+            {value.day}
           </div>
         ))}
 

@@ -49,7 +49,7 @@ export type GetMyStudioResponse = {
 }
 
 export type GetTimeTableResponse = {
-  days: string[];
+  days: GetTimeTableDayResponse[];
   cells: GetTimeTableCellResponse[]
   title: string;
   description: string;
@@ -57,6 +57,11 @@ export type GetTimeTableResponse = {
   nextDate?: string;
   prevDate?: string;
   baseDate?: string;
+}
+
+export type GetTimeTableDayResponse = {
+  day: string;
+  isToday: boolean;
 }
 
 export type GetTimeTableParameter = {

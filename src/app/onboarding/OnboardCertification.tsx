@@ -6,10 +6,10 @@ import { TranslatableText } from "@/utils/TranslatableText";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { useLocale } from "@/hooks/useLocale";
-import { ForeignCertificationForm } from "@/app/certification/ForeignCertificationForm";
 import { translate } from "@/utils/translate";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { CertificationPage } from "@/app/certification/CertificationForm";
+import { OnboardingForeignCertificationForm } from "@/app/onboarding/OnboaradingForeignCertificationForm";
 
 type OnboardCertificationProps = {
   appVersion: string;
@@ -20,6 +20,12 @@ type OnboardCertificationProps = {
   phone: string;
   rrn: string;
   myCode: string;
+  birthDate: string;
+  gender: string;
+  country: string;
+  setBirthDateAction: (value: string) => void;
+  setGenderAction: (value: string) => void;
+  setCountryAction: (value: string) => void;
   setNameAction: (name: string) => void;
   setPhoneAction: (phone: string) => void;
   setRrnAction: (rrn: string) => void;
@@ -37,17 +43,24 @@ export const OnboardCertification = ({
                                        name,
                                        phone,
                                        rrn,
+                                       birthDate,
+                                       gender,
+                                       country,
                                        setNameAction,
                                        setPhoneAction,
                                        setRrnAction,
                                        setCodeAction,
                                        setMyCodeAction,
-                                       setPageAction
+                                       setPageAction,
+                                       setBirthDateAction,
+                                       setGenderAction,
+                                       setCountryAction
                                      }: OnboardCertificationProps) => {
 
 
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const {t} = useLocale();
 
   useEffect(() => {
@@ -81,6 +94,8 @@ export const OnboardCertification = ({
   const sendCertificationCode = async () => {
 
     try {
+      if (isSending) return;
+      setIsSending(true);
       const newCode = Math.floor(100000 + Math.random() * 900000);
       const res = await sendVerificationSMS({phone: phone.replace(/-/g, ''), code: newCode});
 
@@ -97,6 +112,8 @@ export const OnboardCertification = ({
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -112,6 +129,7 @@ export const OnboardCertification = ({
       }
     }
   }, []);
+
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -214,7 +232,13 @@ export const OnboardCertification = ({
               {!isCodeSent && (
                 <TranslatableText
                   onClick={sendCertificationCode}
-                  className="text-[13px] bg-black text-white font-bold rounded-[8px] px-4 py-3 active:scale-[0.98] transition-all duration-150 select-none text-center whitespace-nowrap flex-shrink-0"
+                  className={`
+    text-[13px] bg-black text-white font-bold rounded-[8px] px-4 py-3
+    transition-all duration-150 select-none text-center whitespace-nowrap flex-shrink-0
+    ${phone.length > 0 && name.length > 0 && rrn.length > 0
+                    ? "active:scale-[0.98] cursor-pointer"
+                    : "opacity-50 pointer-events-none cursor-default"}
+  `}
                   titleResource="submit_code"
                 />
               )}
@@ -232,7 +256,16 @@ export const OnboardCertification = ({
       )}
 
       {page === 'foreigner' && (
-        <ForeignCertificationForm email={user.email} appVersion={appVersion} isFromPayment={false}/>
+        <OnboardingForeignCertificationForm
+          email={user.email}
+          name={name}
+          setName={setNameAction}
+          birthDate={birthDate}
+          setBirthDate={setBirthDateAction}
+          country={country}
+          setCountry={setCountryAction}
+          gender={gender}
+          setGender={setGenderAction}/>
       )}
     </div>
   );

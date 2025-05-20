@@ -50,6 +50,13 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
   const [phone, setPhone] = useState('');
   const isCertificationFormValid = !name || rrn.length < 7 || phone.length < 13 || myCode.length < 6;
 
+  /**
+   * For Foreigner
+   */
+  const [gender, setGender] = useState('');
+  const [country, setCountry] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const headerTitle = {
@@ -63,9 +70,9 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
       case 'profile':
         return !nickName || nickName.length === 0;
       case 'agreement':
-        return !allChecked; // allCheckboxes 상태 추가 필요
+        return !allChecked;
       case 'certification':
-        return isCertificationFormValid;
+        return certificationPage == 'certification' ? isCertificationFormValid : birthDate == '' || gender == '' || country == '';
       default:
         return false;
     }
@@ -100,12 +107,14 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      setIsLoading(true);
-      setTimeout(async () => {
-        if (data.id == 'SkipCertification') {
+
+      if (data.id == 'SkipCertification') {
+        setIsLoading(true);
+        setTimeout(async () => {
           const res = await updateUserAction({
             nickName: nickName,
           });
+
 
           if (res.success && res.user?.status == UserStatus.Ready) {
             if (appVersion == '') {
@@ -119,8 +128,11 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
               window.KloudEvent?.navigateMain(bootInfo);
             }
           }
-        }
-      }, DELAY_TIME)
+        }, DELAY_TIME)
+      }
+      else if (data.id == 'ForeignerVerificationRequest') {
+        await onClickForeignVerification()
+      }
     }
   })
 
@@ -144,11 +156,17 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
     } else if (step === 'agreement') {
       setStep('certification')
     } else if (step === "certification") {
-      setIsLoading(true); // 로딩 시작
 
-      setTimeout(async () => {
-        try {
-          if (code.toString() == myCode) {
+      if (certificationPage == 'certification') {
+        if (code.toString() != myCode) {
+          const dialogInfo = await createDialog('CertificationFail')
+          window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+          return
+        }
+        setIsLoading(true); // 로딩 시작
+
+        setTimeout(async () => {
+          try {
             const res = await updateUserAction({
               nickName: nickName,
               phone: phone,
@@ -168,14 +186,14 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
                 window.KloudEvent?.navigateMain(bootInfo);
               }
             }
-          } else {
-            const dialogInfo = await createDialog('CertificationFail')
-            window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+          } finally {
+            setIsLoading(false); // 로딩 종료
           }
-        } finally {
-          setIsLoading(false); // 로딩 종료
-        }
-      }, DELAY_TIME)
+        }, DELAY_TIME)
+      }
+      else if (certificationPage == 'foreigner') {
+        await showCertificationDialog()
+      }
     }
   }
 
@@ -194,6 +212,77 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
       } else if (certificationPage == 'certification') {
         setStep('agreement')
       }
+    }
+  }
+
+  const showCertificationDialog = async () => {
+    if (appVersion === '') {
+      await onClickForeignVerification();
+      return;
+    }
+
+    const confirmationDialogText = ({
+                                      birthDate,
+                                      email,
+                                      country,
+                                      gender,
+                                      name,
+                                    }: {
+      birthDate: string;
+      email: string;
+      country: string;
+      gender: string;
+      name: string;
+    }): string => {
+      const genderText = gender === 'M' ? 'Male' : 'Female';
+
+      return `
+🤔 Are you ready to verify yourself?
+
+Please confirm that the following information is correct:
+
+- Name: ${name}
+- Birthday: ${birthDate}
+- Email: ${email}
+- Country: ${country}
+- Gender: ${genderText}
+
+If everything looks good, tap the [Confirm] button below to complete your verification.
+⚠️ If the information is inaccurate, access to the service may be restricted.
+`.trim();
+    };
+
+    const message = confirmationDialogText({ birthDate, email: user.email, country, gender, name });
+    const dialog = await createDialog('ForeignerVerificationRequest', message);
+
+    window.KloudEvent.showDialog(JSON.stringify(dialog));
+  };
+
+
+  const onClickForeignVerification = async () => {
+    const [year, month, day] = birthDate.split('-'); // ['1999', '05', '13']
+    const yy = year.slice(-2); // '99'
+    const genderCode = (() => {
+      const y = parseInt(year, 10);
+      if (y >= 2000) return gender === 'M' ? '3' : '4';
+      if (y >= 1900) return gender === 'M' ? '1' : '2';
+      return gender === 'M' ? '9' : '0'; // 1800년대 fallback
+    })();
+
+    const rrn = `${yy}${month}${day}${genderCode}`;
+    const res = await updateUserAction({
+      rrn,
+      country,
+      name,
+      emailVerified: true,
+    })
+    if (res.success && res.user?.emailVerified == true) {
+      const bottomMenuList = await getBottomMenuList();
+      const bootInfo = JSON.stringify({
+        bottomMenuList: bottomMenuList,
+        route: '',
+      });
+      window.KloudEvent?.navigateMain(bootInfo);
     }
   }
 
@@ -237,12 +326,18 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
               name={name}
               rrn={rrn}
               phone={phone}
+              birthDate={birthDate}
+              gender={gender}
+              country={country}
               setNameAction={setName}
               setPhoneAction={setPhone}
               setRrnAction={setRrn}
               setPageAction={setCertificationPage}
               setCodeAction={setCode}
               setMyCodeAction={setMyCode}
+              setBirthDateAction={setBirthDate}
+              setGenderAction={setGender}
+              setCountryAction={setCountry}
               code={code}
               myCode={myCode}
             />
@@ -287,7 +382,8 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
               <TranslatableText titleResource={'welcome_title'}/>
             </div>
 
-            <TranslatableText className="text-[14px] font-medium text-black text-center" titleResource={'welcome_message'}/>
+            <TranslatableText className="text-[14px] font-medium text-black text-center"
+                              titleResource={'welcome_message'}/>
           </div>
         </div>
       )}

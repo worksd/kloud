@@ -17,4 +17,3 @@ export default async function TicketDetail({params, searchParams}: {
     return <Loading/>;
   }
 }
-
