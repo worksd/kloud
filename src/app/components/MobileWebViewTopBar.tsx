@@ -20,18 +20,19 @@ export const getStoreLink = ({os}: { os: string }) => {
   return null;
 };
 
-export const MobileWebViewTopBar = ({returnUrl, os, isLogin} : {returnUrl: string, os: string, isLogin: boolean}) => {
+export const MobileWebViewTopBar = ({returnUrl, os, isLogin} : {returnUrl?: string, os: string, isLogin: boolean}) => {
 
   const router = useRouter()
+  const loginQuery = returnUrl ? `?returnUrl=${returnUrl}` : '';
 
   const handleLogin = () => {
-    router.push(KloudScreen.Login(returnUrl));
+    router.push(KloudScreen.Login(loginQuery));
   };
 
   const handleLogout = async () => {
     await unregisterDeviceAction()
     await clearCookies();
-    router.replace(KloudScreen.Login(returnUrl))
+    router.replace(KloudScreen.Login(loginQuery))
   };
 
 

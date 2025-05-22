@@ -11,7 +11,7 @@ import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
-const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl: string}) => {
+const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl?: string}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prevCodeRef = useRef<string | null>(null);

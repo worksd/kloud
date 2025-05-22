@@ -7,10 +7,14 @@ import InstagramIcon from "@/../public/assets/instagram-colored.svg"
 export type StudioIconType = 'instagram' | 'youtube'
 
 
-export const StudioIcon = ({type, url}: { type: StudioIconType, url: string }) => {
+export const StudioIcon = ({type, url, appVersion}: { type: StudioIconType, url: string, appVersion: string }) => {
 
   const handleClickIcon = () => {
-    window.KloudEvent.openExternalBrowser(url)
+    if (appVersion !== '') {
+      window.KloudEvent.openExternalBrowser(url);
+    } else {
+      window.open(url, '_blank');
+    }
   }
 
   return <div

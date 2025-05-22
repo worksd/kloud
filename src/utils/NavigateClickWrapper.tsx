@@ -39,7 +39,8 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
           }
         } else {
           if (method === 'push' && route) {
-            router.push(route + '?returnUrl=' + returnUrl);
+            const query = returnUrl ? `?returnUrl=${returnUrl}` : '';
+            router.push(route + query);
           } else if (method == 'back') {
             router.back();
           }

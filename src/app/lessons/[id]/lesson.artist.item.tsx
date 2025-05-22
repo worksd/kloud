@@ -3,7 +3,17 @@ import Image from "next/image";
 import { GetArtistResponse } from "@/app/endpoint/lesson.endpoint";
 import InstagramIcon from "../../../../public/assets/instagram-colored.svg"
 
-export const LessonArtistItem = ({artist}: { artist: GetArtistResponse }) => {
+export const LessonArtistItem = ({artist, appVersion}: { artist: GetArtistResponse, appVersion: string }) => {
+
+  const handleInstagramClick = () => {
+    const url = `https://www.instagram.com/${artist.instagramAddress}`;
+    if (appVersion !== '') {
+      window.KloudEvent.openExternalBrowser(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <div className="self-stretch h-9 px-6 flex-col justify-start items-start gap-4 flex">
       <div className="self-stretch justify-between items-center inline-flex">
@@ -21,7 +31,7 @@ export const LessonArtistItem = ({artist}: { artist: GetArtistResponse }) => {
         {artist.instagramAddress && (
           <div
             className={'w-[24px] h-[24px]'}
-            onClick={() => window.KloudEvent.openExternalBrowser(`https://www.instagram.com/${artist.instagramAddress}`)}>
+            onClick={handleInstagramClick}>
             <InstagramIcon />
           </div>
         )}

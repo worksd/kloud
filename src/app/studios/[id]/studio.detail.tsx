@@ -11,7 +11,7 @@ import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchas
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
 
-export const StudioDetailForm = async ({id}: { id: number }) => {
+export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
   const studio = await getStudioDetail(id);
 
@@ -70,8 +70,8 @@ export const StudioDetailForm = async ({id}: { id: number }) => {
         </div>
 
         <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex py-3">
-          {studio.instagramAddress && <StudioIcon type={'instagram'} url={studio.instagramAddress}/>}
-          {studio.youtubeUrl && <StudioIcon type={'youtube'} url={studio.youtubeUrl}/>}
+          {studio.instagramAddress && <StudioIcon type={'instagram'} url={studio.instagramAddress} appVersion={appVersion}/>}
+          {studio.youtubeUrl && <StudioIcon type={'youtube'} url={studio.youtubeUrl} appVersion={appVersion}/>}
         </div>
 
         <section>
