@@ -2,7 +2,7 @@
 import { api } from "@/app/api.client";
 
 export async function getJumbotronList() {
-  const res = await api.lesson.listPopular({});
+  const res = await api.lesson.listJumbotron({});
 
   if ('lessons' in res) {
     return {

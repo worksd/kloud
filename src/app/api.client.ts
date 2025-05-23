@@ -1,6 +1,7 @@
 import { EndpointClient } from "@/app/endpoint.client";
 import * as API from "./endpoint";
 import { ComparePassword } from "@/app/endpoint/auth.endpoint";
+import { GetJumbotronLessons } from "@/app/endpoint/lesson.endpoint";
 
 
 export class ApiClient extends EndpointClient {
@@ -24,7 +25,7 @@ export class ApiClient extends EndpointClient {
   
   readonly lesson = {
     get: this.endpointBuilder(API.Lesson.GetLesson),
-    listPopular: this.endpointBuilder(API.Lesson.GetPopularLessons),
+    listJumbotron: this.endpointBuilder(API.Lesson.GetJumbotronLessons),
     listStudioLessons: this.endpointBuilder(API.Lesson.ListStudioLessons),
     listStageBands: this.endpointBuilder(API.Lesson.ListStageBands),
     listOngoingLessons: this.endpointBuilder(API.Lesson.ListOngoingLessons),
