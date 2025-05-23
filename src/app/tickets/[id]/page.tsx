@@ -5,12 +5,15 @@ import { QrCodeDialogScreen } from "@/app/tickets/[id]/QrCodeDialog";
 
 export default async function TicketDetail({params, searchParams}: {
   params: Promise<{ id: number }>,
-  searchParams: Promise<{ isJustPaid: string }>
+  searchParams: Promise<{ isJustPaid: string, inviteCode: string }>
 }) {
-  const ticket = await api.ticket.get({id: (await params).id});
+  const {isJustPaid, inviteCode} = await searchParams
+  const ticket = inviteCode.length == 10 ?
+    await api.ticket.getInviteTicket({inviteCode})
+    : await api.ticket.get({id: (await params).id});
   if ('id' in ticket) {
     return <div>
-      <TicketForm isJustPaid={(await searchParams).isJustPaid} ticket={ticket}/>
+      <TicketForm isJustPaid={isJustPaid} ticket={ticket}/>
       <QrCodeDialogScreen qrCodeUrl={ticket.qrCodeUrl}/>
     </div>
   } else {

@@ -20,6 +20,10 @@ export type TicketResponse = {
   qrCodeUrl?: string;
 }
 
+export type GetInviteTicketParameter = {
+  inviteCode: string;
+}
+
 export type CreateTicketParameter = {
   paymentId: string;
   lessonId: number;
@@ -36,6 +40,12 @@ export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
 export const GetTicket: Endpoint<IdParameter, TicketResponse> = {
   method: 'get',
   path: (e) => `/tickets/${e.id}`,
+}
+
+export const GetInviteTicket: Endpoint<GetInviteTicketParameter, TicketResponse> = {
+  method: 'get',
+  path: (e) => `/tickets/${e.inviteCode}/one-time`,
+  pathParams: ['inviteCode']
 }
 
 export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
