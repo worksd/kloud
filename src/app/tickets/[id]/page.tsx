@@ -13,7 +13,7 @@ export default async function TicketDetail({params, searchParams}: {
     : await api.ticket.get({id: (await params).id});
   if ('id' in ticket) {
     return <div>
-      <TicketForm isJustPaid={isJustPaid} ticket={ticket}/>
+      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode}/>
       <QrCodeDialogScreen qrCodeUrl={ticket.qrCodeUrl}/>
     </div>
   } else {

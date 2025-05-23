@@ -10,14 +10,16 @@ import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { translate } from "@/utils/translate";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
-export async function TicketForm({ticket, isJustPaid}: { ticket: TicketResponse, isJustPaid: string }) {
+export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: TicketResponse, isJustPaid: string, inviteCode: string }) {
   const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
   return (
     <div className="flex flex-col bg-white">
       {/* Header */}
-      <div className="flex justify-between items-center mb-14">
-        <SimpleHeader titleResource="ticket"/>
-      </div>
+      {!inviteCode &&
+        <div className="flex justify-between items-center mb-14">
+          <SimpleHeader titleResource="ticket"/>
+        </div>
+      }
 
       <div className="flex flex-col p-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
