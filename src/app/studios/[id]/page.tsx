@@ -22,7 +22,7 @@ export default async function StudioDetail({params, searchParams}: Props) {
         isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
         returnUrl={KloudScreen.StudioDetail(id)}
       />}
-      <StudioDetailForm id={id}/>
+      <StudioDetailForm id={id} appVersion={appVersion}/>
     </div>
 
   )

@@ -10,8 +10,9 @@ import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { CommonSubmitButton } from "@/app/components/buttons";
 
-export default async function LessonDetailForm({lesson}: {
+export default async function LessonDetailForm({lesson, appVersion}: {
   lesson: GetLessonResponse,
+  appVersion: string,
 }) {
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
@@ -80,12 +81,13 @@ export default async function LessonDetailForm({lesson}: {
             <div
               className="grow shrink basis-0 text-black text-[16px] font-bold leading-snug">{await translate('lesson_artist_information')}</div>
           </div>
-          {lesson.artist && <LessonArtistItem artist={lesson.artist}/>}
+          {lesson.artist && <LessonArtistItem artist={lesson.artist} appVersion={appVersion}/>}
           {lesson.extraArtists && lesson.extraArtists.length > 0 && (
               lesson.extraArtists.map((artist, index) => (
                 <LessonArtistItem
                   key={artist.id || index}
                   artist={artist}
+                  appVersion={appVersion}
                 />
               ))
           )}

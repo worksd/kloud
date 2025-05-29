@@ -42,7 +42,7 @@ export default async function LessonDetailPage({params, searchParams}: {
         isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
         returnUrl={KloudScreen.LessonDetail(lessonId)}
       />}
-      <LessonDetailForm lesson={res} />
+      <LessonDetailForm lesson={res} appVersion={appVersion}/>
     </div>
 
   )

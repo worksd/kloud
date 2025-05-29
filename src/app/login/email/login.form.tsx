@@ -12,7 +12,7 @@ import { createDialog } from "@/utils/dialog.factory";
 import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
 import { useRouter } from "next/navigation";
 
-export const LoginForm = ({appVersion, returnUrl}: { appVersion: string, returnUrl: string }) => {
+export const LoginForm = ({appVersion, returnUrl}: { appVersion: string, returnUrl?: string }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -35,10 +35,11 @@ export const LoginForm = ({appVersion, returnUrl}: { appVersion: string, returnU
   }
 
   const onClickSignUp = () => {
+    const signUpQuery = returnUrl ? `?returnUrl=${returnUrl}` : ''
     if (window.KloudEvent) {
-      window.KloudEvent?.push(KloudScreen.SignUp(returnUrl))
+      window.KloudEvent?.push(KloudScreen.SignUp(signUpQuery))
     } else {
-      router.push(KloudScreen.SignUp(returnUrl))
+      router.push(KloudScreen.SignUp(signUpQuery))
     }
   }
 
@@ -48,8 +49,13 @@ export const LoginForm = ({appVersion, returnUrl}: { appVersion: string, returnU
       password: password,
     })
     if ('status' in res) {
+      console.log(res);
       if (appVersion == '') {
-        router.replace(returnUrl);
+        if (returnUrl) {
+          router.replace(returnUrl);
+        } else {
+          router.replace('/');
+        }
       } else {
         await LoginAuthNavigation({
           status: res.status,
