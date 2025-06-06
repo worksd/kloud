@@ -77,6 +77,7 @@ export default function PaymentButton({
     try {
       console.log(`${paymentId} 결제 성공해버렸어!`)
       setIsSubmitting(true);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       if (type.value == 'lesson') {
         const res = await getPaymentRecordDetail({paymentId: paymentId});
         const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.ticket?.id ?? 0, true) : null
@@ -108,6 +109,7 @@ export default function PaymentButton({
   const handlePayment = useCallback(async () => {
     setIsSubmitting(true);
     if (!user || !('id' in user)) {
+      setIsSubmitting(false);
       return;
     }
 
@@ -308,17 +310,13 @@ export default function PaymentButton({
   return (
     <div>
       <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
-        {isSubmitting ? (
-          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-        ) : (
-          <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-            {mounted
-              ? method == 'pass'
-                ? t('use_pass')
-                : `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}`
-              : ''}
-          </p>
-        )}
+        <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
+          {mounted
+            ? method == 'pass'
+              ? t('use_pass')
+              : `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}`
+            : ''}
+        </p>
       </CommonSubmitButton>
       {webDialogInfo != null && <SimpleDialog
         dialogInfo={webDialogInfo}
@@ -328,6 +326,11 @@ export default function PaymentButton({
         }}
         onClickCancelAction={() => setWebDialogInfo(null)}/>
       }
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"/>
+        </div>
+      )}
     </div>
   );
 }

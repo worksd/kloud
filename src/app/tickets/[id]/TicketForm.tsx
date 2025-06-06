@@ -64,11 +64,11 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: Tic
                 {ticket.rank}
               </div>
             }
-            <div className={"text-[12px] text-white font-bold font-paperlogy"}>
-              {ticket.paymentId}
-            </div>
             <div className={"text-[26px] text-white font-bold"}>
               {ticket.lesson?.title}
+            </div>
+            <div className={"text-[12px] text-white font-bold font-paperlogy"}>
+              {ticket.paymentId}
             </div>
             <div className="mt-3 w-full h-[1px] bg-[#f7f8f9]"/>
             <div className="mt-3 grid gap-y-2">
