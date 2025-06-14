@@ -80,6 +80,12 @@ export class ApiClient extends EndpointClient {
     get: this.endpointBuilder(API.PaymentRecord.GetPaymentRecordDetail),
     requestAccountTransfer: this.endpointBuilder(API.PaymentRecord.RequestAccountTransfer),
   }
+
+  readonly billing = {
+    get: this.endpointBuilder(API.Billing.List),
+    create: this.endpointBuilder(API.Billing.Create),
+    delete: this.endpointBuilder(API.Billing.Delete),
+  }
 }
 
 export interface ClientOptions {
