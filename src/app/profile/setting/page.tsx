@@ -20,14 +20,18 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>
       </NavigateClickWrapper>
-      <NavigateClickWrapper method={'push'} route={KloudScreen.RefundAccountSetting}>
-        <MenuItem label="edit_refund_account"/>
+
+      {/*<DialogClickWrapper id={"UnderDevelopment"}>*/}
+      {/*  <MenuItem label="notification_setting"/>*/}
+      {/*</DialogClickWrapper>*/}
+      <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentMethodSetting}>
+        <MenuItem label="payment_method_management"/>
       </NavigateClickWrapper>
-      <DialogClickWrapper id={"UnderDevelopment"}>
-        <MenuItem label="notification_setting"/>
-      </DialogClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting"/>
+      </NavigateClickWrapper>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.RefundAccountSetting}>
+        <MenuItem label="edit_refund_account"/>
       </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}

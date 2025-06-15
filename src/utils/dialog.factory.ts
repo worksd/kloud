@@ -4,7 +4,7 @@ import { translate } from "@/utils/translate";
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
 
-export async function createDialog(id: DialogId, message?: string, title?: string,): Promise<DialogInfo | undefined> {
+export async function createDialog(id: DialogId, message?: string, title?: string, customData?: string): Promise<DialogInfo | undefined> {
   const userId = (await cookies()).get(userIdKey)?.value
   console.log(`userId = ${ userId } DialogId = ${id} message = ${message} title = ${title}`)
   if (id == 'Logout') {
@@ -194,6 +194,16 @@ export async function createDialog(id: DialogId, message?: string, title?: strin
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
+  } else if (id == 'DeleteBillingCard') {
+    return {
+      id: 'DeleteBillingCard',
+      type: 'YESORNO',
+      title: await translate('delete_billing_card_title'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      customData: customData,
+    }
   }
 }
 
@@ -220,6 +230,7 @@ export type DialogId =
   | 'ForeignerVerificationRequest'
   | 'CertificationComplete'
   | 'SkipCertification'
+  | 'DeleteBillingCard'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
@@ -230,6 +241,7 @@ export type DialogInfo = {
   route?: string
   confirmTitle?: string
   cancelTitle?: string
+  customData?: string
 }
 
 export const createAccountTransferMessage = async ({

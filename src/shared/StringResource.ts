@@ -815,6 +815,12 @@ export const StringResource = {
     jp: "言語設定",
     zh: "语言设置"
   },
+  payment_method_management: {
+    ko: "결제 수단 관리",
+    en: "Payment Method Management",
+    jp: "支払い方法の管理",
+    zh: "支付方式管理"
+  },
   no_lessons: {
     ko: "진행중인 수업이 없습니다",
     en: "No ongoing lessons.",
@@ -1480,6 +1486,12 @@ export const StringResource = {
     en: 'Popular Pass',
     jp: '人気パス',
     zh: '热门通行证',
+  },
+  delete_billing_card_title: {
+    ko: '결제 수단을 삭제하시겠습니까?',
+    en: 'Would you like to delete the payment method below?',
+    jp: '以下の支払い方法を削除しますか？',
+    zh: '您要删除以下的支付方式吗？',
   },
   do_not_capture_qr: {
     ko: '해당 QR코드는 입장용입니다.\n캡처하거나 공유할 경우 입장이 제한될 수 있습니다.',

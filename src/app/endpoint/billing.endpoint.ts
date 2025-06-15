@@ -1,8 +1,11 @@
 import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 
+export type ListBillingResponse = {
+  billings: GetBillingResponse[]
+}
+
 export type GetBillingResponse = {
   billingKey: string;
-  userId: number;
   cardNumber: string;
   cardName: string;
 }
@@ -19,7 +22,7 @@ export type DeleteBillingRequest = {
   billingKey: string;
 }
 
-export const List: Endpoint<object, GetBillingResponse> = {
+export const List: Endpoint<object, ListBillingResponse> = {
   method: 'get',
   path: '/billing',
 }
@@ -27,9 +30,11 @@ export const List: Endpoint<object, GetBillingResponse> = {
 export const Create: Endpoint<CreateBillingRequest, GetBillingResponse> = {
   method: 'post',
   path: '/billing',
+  bodyParams: ['birthOrBusinessRegistrationNumber','cardNumber','passwordTwoDigits','expiryYear', 'expiryMonth']
 }
 
 export const Delete: Endpoint<DeleteBillingRequest, SimpleResponse> = {
   method: 'delete',
-  path: '/billing',
+  path: `/billing`,
+  bodyParams: ['billingKey'],
 }

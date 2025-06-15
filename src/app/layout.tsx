@@ -66,6 +66,7 @@ declare global {
     closeBottomSheet: () => void;
     changeWebEndpoint: (endpoint: string) => void;
     openExternalBrowser: (url: string) => void;
+    refresh: (endpoint: string) => void;
 
     onKakaoLoginSuccess: (data: { code: string }) => void;
     onAppleLoginSuccess: (data: { code: string, name: string }) => void;
@@ -75,5 +76,6 @@ declare global {
     onDialogConfirm: (data: DialogInfo) => void;
     onHideDialogConfirm: (data: { id: string, clicked: boolean }) => void;
     onFcmTokenComplete: (data: { fcmToken: string, udid: string }) => void;
+    onReload: (data: { route: string }) => void;
   }
 }
