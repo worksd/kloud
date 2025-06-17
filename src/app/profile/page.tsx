@@ -52,12 +52,17 @@ export default async function SettingPage({
             {await translate('edit_profile')}
           </div>
         </NavigateClickWrapper>
-        <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
-          <MenuItem label="payment_records"/>
-        </NavigateClickWrapper>
 
         <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
           <MenuItem label="my_pass"/>
+        </NavigateClickWrapper>
+
+        <NavigateClickWrapper method={'push'} route={KloudScreen.MySubscription}>
+          <MenuItem label="my_subscription"/>
+        </NavigateClickWrapper>
+
+        <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
+          <MenuItem label="payment_records"/>
         </NavigateClickWrapper>
 
         <NavigateClickWrapper method={'push'} route={KloudScreen.Policy}>

@@ -1,14 +1,18 @@
 'use client'
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { useLocale } from "@/hooks/useLocale";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassList";
 import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import Logo from "../../../../../public/assets/logo_black.svg";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/BillingCardForm";
 
 export const PaymentMethodComponent = ({
                                          paymentOptions,
                                          passes,
+                                         cards,
                                          selectedPass,
                                          selectPass,
                                          selectedMethod,
@@ -18,6 +22,7 @@ export const PaymentMethodComponent = ({
                                        }: {
   paymentOptions: GetPaymentMethodResponse[],
   passes?: GetPassResponse[],
+  cards?: GetBillingResponse[],
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
   selectedMethod?: PaymentMethodType,
@@ -52,9 +57,14 @@ export const PaymentMethodComponent = ({
               onChange={() => selectPaymentMethodAction(option.type)}
               className="w-5 h-5 accent-black cursor-pointer"
             />
-            <div className="flex-grow text-sm font-medium text-left text-black">
-              {option.name}
-            </div>
+            {option.type == 'billing' ? <div className="relative flex items-center h-6 text-black">
+                <Logo className="scale-[0.5] origin-left"/>
+                <div className="absolute left-[100px] font-bold font-paperlogy text-[14px]">Pay</div>
+              </div> :
+              <div className="flex-grow text-sm font-medium text-left text-black">
+                {option.name}
+              </div>
+            }
           </label>
 
           {passes && passes.length > 0 && selectedMethod == 'pass' && option.type == 'pass' && selectPass && selectedPass &&
@@ -80,10 +90,14 @@ export const PaymentMethodComponent = ({
               </div>
             </div>
           }
+          {selectedMethod === 'billing' && option.type == 'billing' && cards &&
+            <SelectableBillingList billingCards={cards}/>
+          }
 
         </div>
-      )): (
-        <TranslatableText className={'text-black font-medium text-center'} titleResource={'no_available_payment_method'}></TranslatableText>
+      )) : (
+        <TranslatableText className={'text-black font-medium text-center'}
+                          titleResource={'no_available_payment_method'}></TranslatableText>
       )}
     </div>
   )

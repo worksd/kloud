@@ -264,7 +264,7 @@ export const StringResource = {
     zh: "课程票"
   },
   payment_records: {
-    ko: "구매내역",
+    ko: "결제내역",
     en: "Purchase History",
     jp: "購入履歴",
     zh: "购买记录"
@@ -900,10 +900,16 @@ export const StringResource = {
     zh: "请选择要购买通票的工作室"
   },
   my_pass: {
-    ko: "내 패스권",
+    ko: "패스권",
     en: "My Pass",
     jp: "私のパス",
     zh: "我的通票"
+  },
+  my_subscription: {
+    ko: "정기결제",
+    en: "My Subscription",
+    jp: "マイサブスクリプション",
+    zh: "我的订阅"
   },
   select_purchase_pass_plan_studio: {
     ko: '패스를 구매할 스튜디오를 선택해 주세요',

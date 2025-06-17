@@ -24,6 +24,7 @@ export const KloudScreen = {
   MyAccount: '/profile/setting/account',
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
   MyPass: '/profile/myPass',
+  MySubscription: '/profile/mySubscription',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   SignOut: '/profile/setting/signOut',
   LanguageSetting: '/profile/setting/language',

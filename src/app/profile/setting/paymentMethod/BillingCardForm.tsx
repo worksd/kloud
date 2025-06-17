@@ -5,7 +5,6 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
 import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { translate } from "@/utils/translate";
 
 export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
@@ -22,7 +21,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.id == 'DeleteBillingCard') {
         setIsDeleting(true); // ✅ 삭제 시작
-        const res = await deleteBillingAction({ billingKey: data.customData ?? ''})
+        const res = await deleteBillingAction({billingKey: data.customData ?? ''})
         if ('success' in res && res.success) {
           await new Promise(resolve => setTimeout(resolve, 1000));
           await loadCards()
@@ -33,13 +32,13 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
     }
   }, []);
 
-  const showDeleteDialog = async ({card} : {card: GetBillingResponse}) => {
+  const showDeleteDialog = async ({card}: { card: GetBillingResponse }) => {
     const dialog = await createDialog(`DeleteBillingCard`, `${card.cardName} (${card.cardNumber})`, undefined, card.billingKey);
     window.KloudEvent.showDialog(JSON.stringify(dialog))
   }
 
   useEffect(() => {
-    window.onReload = async (data: ({route: string})) => {
+    window.onReload = async (data: ({ route: string })) => {
       await loadCards()
     }
   }, [])
@@ -65,7 +64,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
           </div>
         ) : (
           <BillingCardList cards={newCards} onDelete={async (card: GetBillingResponse) => {
-            await showDeleteDialog({ card })
+            await showDeleteDialog({card})
           }}/>
         )}
       </div>
@@ -150,4 +149,20 @@ function BillingCard({
 
     </div>
   )
+}
+
+export const SelectableBillingList = ({billingCards}: {
+  billingCards: GetBillingResponse[],
+}) => {
+  return (<div className="w-full overflow-x-auto scrollbar-hide">
+    <div className="flex flex-row min-w-min space-x-4 px-4 py-4">
+      {billingCards.map((card) => (
+        <BillingCard
+          key={card.billingKey}
+          cardName={card.cardName}
+          cardNumber={card.cardNumber}
+        />
+      ))}
+    </div>
+  </div>)
 }

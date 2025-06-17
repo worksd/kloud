@@ -29,6 +29,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
       <div className="flex flex-col gap-y-4">
         <PaymentMethodComponent
           passes={payment.user.passes}
+          cards={payment.cards}
           selectedPass={selectedPass}
           selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
           paymentOptions={payment.methods}
