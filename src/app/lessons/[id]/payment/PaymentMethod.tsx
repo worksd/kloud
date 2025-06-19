@@ -5,7 +5,6 @@ import { useLocale } from "@/hooks/useLocale";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassList";
 import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
-import Logo from "../../../../../public/assets/logo_black.svg";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/BillingCardForm";
 
@@ -16,6 +15,8 @@ export const PaymentMethodComponent = ({
                                          selectedPass,
                                          selectPass,
                                          selectedMethod,
+                                         selectedBillingCard,
+                                         selectBillingCard,
                                          selectPaymentMethodAction,
                                          depositor,
                                          setDepositorAction
@@ -25,6 +26,8 @@ export const PaymentMethodComponent = ({
   cards?: GetBillingResponse[],
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
+  selectedBillingCard?: GetBillingResponse,
+  selectBillingCard?: (billing: GetBillingResponse) => void,
   selectedMethod?: PaymentMethodType,
   selectPaymentMethodAction: (method: PaymentMethodType) => void,
   depositor: string,
@@ -57,14 +60,9 @@ export const PaymentMethodComponent = ({
               onChange={() => selectPaymentMethodAction(option.type)}
               className="w-5 h-5 accent-black cursor-pointer"
             />
-            {option.type == 'billing' ? <div className="relative flex items-center h-6 text-black">
-                <Logo className="scale-[0.5] origin-left"/>
-                <div className="absolute left-[100px] font-bold font-paperlogy text-[14px]">Pay</div>
-              </div> :
-              <div className="flex-grow text-sm font-medium text-left text-black">
-                {option.name}
-              </div>
-            }
+            <div className="flex-grow text-sm font-medium text-left text-black">
+              {option.name}
+            </div>
           </label>
 
           {passes && passes.length > 0 && selectedMethod == 'pass' && option.type == 'pass' && selectPass && selectedPass &&
@@ -90,8 +88,12 @@ export const PaymentMethodComponent = ({
               </div>
             </div>
           }
-          {selectedMethod === 'billing' && option.type == 'billing' && cards &&
-            <SelectableBillingList billingCards={cards}/>
+          {selectedMethod === 'billing' && option.type == 'billing' && cards && selectBillingCard &&
+            <SelectableBillingList
+              billingCards={cards}
+              selectedBillingKey={selectedBillingCard}
+              onSelectAction={selectBillingCard}
+            />
           }
 
         </div>

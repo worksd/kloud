@@ -1,6 +1,7 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { PaymentItemType } from "@/app/endpoint/payment.endpoint";
 
 export type GetPaymentRecordListResponse = {
   paymentRecords: GetPaymentRecordResponse[];
@@ -23,7 +24,8 @@ export type PaymentIdParameter = {
 }
 
 export type RequestAccountTransfer = {
-  paymentId: string;
+  item: PaymentItemType;
+  itemId: number;
   depositor: string
 }
 
@@ -40,7 +42,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const RequestAccountTransfer: Endpoint<RequestAccountTransfer, GetPaymentRecordResponse> = {
   method: 'post',
   path: (e) => `/paymentRecords/account-transfer`,
-  bodyParams: ['depositor', 'paymentId']
+  bodyParams: ['depositor', 'itemId', 'item']
 }
 
 export enum PaymentRecordStatus {

@@ -6,8 +6,10 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 
 export type GetPaymentRequest = {
   itemId: number
-  item: 'lesson' | 'pass-plan'
+  item: PaymentItemType
 }
+
+export type PaymentItemType = 'lesson' | 'pass-plan'
 
 export type GetPaymentResponse = {
   user: GetUserResponse;

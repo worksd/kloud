@@ -33,7 +33,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
   }, []);
 
   const showDeleteDialog = async ({card}: { card: GetBillingResponse }) => {
-    const dialog = await createDialog(`DeleteBillingCard`, `${card.cardName} (${card.cardNumber})`, undefined, card.billingKey);
+    const dialog = await createDialog({id: `DeleteBillingCard`, message: `${card.cardName} (${card.cardNumber})`, customData: card.billingKey});
     window.KloudEvent.showDialog(JSON.stringify(dialog))
   }
 
@@ -151,18 +151,39 @@ function BillingCard({
   )
 }
 
-export const SelectableBillingList = ({billingCards}: {
-  billingCards: GetBillingResponse[],
+export const SelectableBillingList = ({
+                                        billingCards,
+                                        selectedBillingKey,
+                                        onSelectAction,
+                                      }: {
+  billingCards: GetBillingResponse[];
+  selectedBillingKey: GetBillingResponse | undefined;
+  onSelectAction: (billingKey: GetBillingResponse) => void;
 }) => {
-  return (<div className="w-full overflow-x-auto scrollbar-hide">
-    <div className="flex flex-row min-w-min space-x-4 px-4 py-4">
-      {billingCards.map((card) => (
-        <BillingCard
+  return (
+    <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide mt-4">
+      {billingCards.map((card, index) => (
+        <div
           key={card.billingKey}
-          cardName={card.cardName}
-          cardNumber={card.cardNumber}
-        />
+          className={`snap-start ${
+            index === billingCards.length - 1 ? 'pr-6' : ''
+          } ${index === 0 ? 'pl-4' : ''} min-w-[calc(100vw-32px)]`}
+        >
+          <div
+            onClick={() => onSelectAction(card)}
+            className={`cursor-pointer transition-all duration-200 ${
+              selectedBillingKey === card
+                ? 'ring-2 ring-primary'
+                : ''
+            }`}
+          >
+            <BillingCard
+              cardName={card.cardName}
+              cardNumber={card.cardNumber}
+            />
+          </div>
+        </div>
       ))}
     </div>
-  </div>)
-}
+  );
+};

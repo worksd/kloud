@@ -57,7 +57,9 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
                        id={payment.passPlan?.id ?? 0}
                        disabled={false}
                        appVersion={appVersion}
-                       method={selectedMethod} depositor={depositor} user={payment.user}
+                       method={selectedMethod}
+                       depositor={depositor}
+                       user={payment.user}
                        paymentId={payment.paymentId}/>
       </div>
     </div>

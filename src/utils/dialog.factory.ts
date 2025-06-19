@@ -4,9 +4,14 @@ import { translate } from "@/utils/translate";
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
 
-export async function createDialog(id: DialogId, message?: string, title?: string, customData?: string): Promise<DialogInfo | undefined> {
+export async function createDialog({id, message, title, customData}: {
+  id: DialogId,
+  message?: string,
+  title?: string,
+  customData?: string
+}): Promise<DialogInfo | undefined> {
   const userId = (await cookies()).get(userIdKey)?.value
-  console.log(`userId = ${ userId } DialogId = ${id} message = ${message} title = ${title}`)
+  console.log(`userId = ${userId} DialogId = ${id} message = ${message} title = ${title}`)
   if (id == 'Logout') {
     return {
       id: id,
@@ -204,6 +209,24 @@ export async function createDialog(id: DialogId, message?: string, title?: strin
       cancelTitle: await translate('cancel'),
       customData: customData,
     }
+  } else if (id == 'RequestBillingKeyPayment') {
+    return {
+      id: 'RequestBillingKeyPayment',
+      type: 'YESORNO',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      customData: customData,
+    }
+  } else if (id == 'BillingKeyNotFound') {
+    return {
+      id: 'BillingKeyNotFound',
+      type: 'SIMPLE',
+      title: await translate('billing_card_not_found'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm')
+    }
   }
 }
 
@@ -231,6 +254,8 @@ export type DialogId =
   | 'CertificationComplete'
   | 'SkipCertification'
   | 'DeleteBillingCard'
+  | 'RequestBillingKeyPayment'
+  | 'BillingKeyNotFound'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
@@ -262,5 +287,5 @@ export const createAccountTransferMessage = async ({
     .replace('{price}', new Intl.NumberFormat('ko-KR').format(price))
     .replace('{depositor}', depositor);
 
-  return createDialog('AccountTransfer', transformMessage);
+  return createDialog({id: 'AccountTransfer', message: transformMessage});
 };

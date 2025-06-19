@@ -86,6 +86,10 @@ export class ApiClient extends EndpointClient {
     create: this.endpointBuilder(API.Billing.Create),
     delete: this.endpointBuilder(API.Billing.Delete),
   }
+
+  readonly subscription = {
+    create: this.endpointBuilder(API.Subscription.Create)
+  }
 }
 
 export interface ClientOptions {

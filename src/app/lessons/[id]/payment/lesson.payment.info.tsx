@@ -8,12 +8,17 @@ import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation"
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 
 export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPaymentResponse, os: string, appVersion: string }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(undefined);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
-  );  const [depositor, setDepositor] = useState("");
+  );
+  const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
+    payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
+  )
+  const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
 
   const handleSelectMethod = (method: PaymentMethodType) => {
@@ -31,6 +36,8 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           passes={payment.user.passes}
           cards={payment.cards}
           selectedPass={selectedPass}
+          selectedBillingCard={selectedBillingCard}
+          selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
           selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
           paymentOptions={payment.methods}
           selectedMethod={selectedMethod}
@@ -63,6 +70,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           method={selectedMethod}
           os={os}
           appVersion={appVersion}
+          selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
           type={{value: 'lesson', prefix: 'LT'}}
           id={payment.lesson?.id ?? 0}

@@ -1505,6 +1505,12 @@ export const StringResource = {
     jp: 'このQRコードは入場用です。\nスクリーンショットや共有をすると、入場が制限される場合があります。',
     zh: '此二维码仅用于入场。\n截屏或分享可能会导致无法入场。',
   },
+  billing_card_not_found: {
+    ko: '내 결제수단을 선택해주세요',
+    en: 'Please select your billing method',
+    jp: 'お支払い方法を選択してください',
+    zh: '请选择您的支付方式',
+  },
   empty: {
     ko: '',
     en: '',

@@ -16,6 +16,8 @@ import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.re
 import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 
 
 export const PaymentTypes = [
@@ -38,12 +40,14 @@ type PaymentInfo = {
   price?: number
   amount?: string
   userCode?: string
+  customData?: string
 }
 
 export default function PaymentButton({
                                         appVersion,
                                         id,
                                         selectedPass,
+                                        selectedBilling,
                                         type,
                                         price,
                                         title,
@@ -57,6 +61,7 @@ export default function PaymentButton({
   appVersion: string;
   id: number,
   selectedPass?: GetPassResponse,
+  selectedBilling?: GetBillingResponse,
   type: PaymentType,
   price: number,
   title: string,
@@ -107,13 +112,16 @@ export default function PaymentButton({
   }
 
   const handlePayment = useCallback(async () => {
+
     setIsSubmitting(true);
     if (!user || !('id' in user)) {
+      console.log('user 없음')
       setIsSubmitting(false);
       return;
     }
 
     if (!isVerified) {
+      console.log('not verified')
       setIsSubmitting(false);
       const res = await getUserAction()
       if (res && 'id' in res && (res.phone || res.emailVerified == true)) {
@@ -129,6 +137,7 @@ export default function PaymentButton({
     }
 
     if (price == 0) {
+      console.log('price 0 won')
       setIsSubmitting(false);
       await onPaymentSuccess({paymentId: paymentId})
       return
@@ -171,12 +180,14 @@ export default function PaymentButton({
             method: 'credit',
             userId: `${user.id}`,
             userCode: process.env.NEXT_PUBLIC_USER_CODE,
+            customData: '',
           }
+          console.log('paymentInfo', paymentInfo)
           window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
         }
       } else if (method === 'account_transfer') {
         if (depositor.length === 0) {
-          const dialog = await createDialog('EmptyDepositor')
+          const dialog = await createDialog({id: 'EmptyDepositor'})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         } else {
           const dialog = await createAccountTransferMessage({
@@ -191,10 +202,26 @@ export default function PaymentButton({
           }
         }
       } else if (method === 'pass') {
-        const dialog = await createDialog('UsePass', `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`)
+        const dialog = await createDialog({
+          id: 'UsePass',
+          message: `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
+        })
         if (appVersion == '' && dialog) {
           setWebDialogInfo(dialog)
         } else {
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
+      } else if (method == 'billing') {
+        if (selectedBilling) {
+          const dialog = await createDialog({
+            id: 'RequestBillingKeyPayment',
+            message: `해당 상품은 매월 자동으로 결제되는 정기결제 상품입니다.\n 상품명: ${title}\n• 결제금액: ${price}원\n결제를 진행하시겠습니까?`,
+            title: `${title}을(를) 정기결제하시겠어요?`,
+            customData: selectedBilling.billingKey
+          })
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        } else {
+          const dialog = await createDialog({id: 'BillingKeyNotFound'})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       }
@@ -218,7 +245,7 @@ export default function PaymentButton({
 
   useEffect(() => {
     window.onErrorInvoked = async (data: { code: string }) => {
-      const dialog = await createDialog('PaymentFail')
+      const dialog = await createDialog({id: 'PaymentFail'})
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     }
   }, [])
@@ -229,7 +256,8 @@ export default function PaymentButton({
       if (data.id == 'AccountTransfer') {
         if (type.value == 'lesson') {
           const res = await requestAccountTransferAction({
-            paymentId: paymentId,
+            item: 'lesson',
+            itemId: id,
             depositor: depositor,
           });
           if ('id' in res) {
@@ -245,13 +273,14 @@ export default function PaymentButton({
               window.KloudEvent?.navigateMain(bootInfo);
             }
           } else {
-            const dialogInfo = await createDialog('Simple', res.message)
+            const dialogInfo = await createDialog({id: 'Simple', message: res.message})
             window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
           }
 
         } else if (type.value == 'passPlan') {
           const res = await requestAccountTransferAction({
-            paymentId: paymentId,
+            item: 'pass-plan',
+            itemId: id,
             depositor: depositor,
           });
           if ('id' in res) {
@@ -267,7 +296,7 @@ export default function PaymentButton({
               window.KloudEvent?.navigateMain(bootInfo);
             }
           } else {
-            const dialog = await createDialog('PaymentFail', res.message)
+            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
             window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
         }
@@ -289,9 +318,22 @@ export default function PaymentButton({
             window.KloudEvent?.navigateMain(bootInfo);
           }
         } else {
-          const dialog = await createDialog('PaymentFail', res.message)
+          const dialog = await createDialog({id: 'PaymentFail', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
+      } else if (data.id == 'RequestBillingKeyPayment') {
+        const res = await createSubscriptionAction({item: 'lesson', itemId: id, billingKey: data.customData ?? ''})
+        if ('subscription' in res && 'schedulePaymentRecord' in res && 'paymentId' in res ) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
+          const bottomMenuList = await getBottomMenuList();
+          const bootInfo = JSON.stringify({
+            bottomMenuList: bottomMenuList,
+            route: KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId),
+          });
+          window.KloudEvent?.navigateMain(bootInfo);
+        } else {
+          const dialog = await createDialog({id: 'PaymentFail', message: res.message})
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));        }
       }
     } catch (e) {
       setIsSubmitting(false)
