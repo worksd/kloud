@@ -1,7 +1,7 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { PaymentItemType } from "@/app/endpoint/payment.endpoint";
+import { PaymentItemType, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 
 export type GetPaymentRecordListResponse = {
   paymentRecords: GetPaymentRecordResponse[];
@@ -11,12 +11,13 @@ export type GetPaymentRecordResponse = {
   id: number
   status: PaymentRecordStatus
   paymentId: string
-  method: string;
+  paymentMethodLabel: string;
+  methodType: PaymentMethodType;
   createdAt: string;
   amount: number;
-  depositor: string;
-  ticket?: TicketResponse
-  pass?: GetPassResponse
+  depositor?: string;
+  productName: string;
+  receiptUrl?: string;
 }
 
 export type PaymentIdParameter = {
@@ -49,4 +50,5 @@ export enum PaymentRecordStatus {
   Pending = 'Pending',
   Completed = 'Completed',
   Cancelled = 'Cancelled',
+  Settled = 'Settled'
 }

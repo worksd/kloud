@@ -85,7 +85,7 @@ export default function PaymentButton({
       await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       if (type.value == 'lesson') {
         const res = await getPaymentRecordDetail({paymentId: paymentId});
-        const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.ticket?.id ?? 0, true) : null
+        const pushRoute = 'paymentId' in res ? KloudScreen.PaymentRecordDetail(paymentId) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
           bottomMenuList: bottomMenuList,
@@ -94,7 +94,7 @@ export default function PaymentButton({
         window.KloudEvent?.navigateMain(bootInfo);
       } else if (type.value == 'passPlan') {
         const res = await getPaymentRecordDetail({paymentId: paymentId});
-        const pushRoute = 'id' in res ? KloudScreen.PassPaymentComplete(res.pass?.id ?? 0) : null
+        const pushRoute = 'id' in res ? KloudScreen.PaymentRecordDetail(paymentId) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
           bottomMenuList: bottomMenuList,
@@ -261,7 +261,7 @@ export default function PaymentButton({
             depositor: depositor,
           });
           if ('id' in res) {
-            const route = KloudScreen.TicketDetail(res.ticket?.id ?? 0, true)
+            const route = KloudScreen.PaymentRecordDetail(paymentId)
             if (appVersion == '' && route) {
               router.replace(route)
             } else {
@@ -284,7 +284,7 @@ export default function PaymentButton({
             depositor: depositor,
           });
           if ('id' in res) {
-            const pushRoute = KloudScreen.MyPassDetail(res.pass?.id ?? 0)
+            const pushRoute = KloudScreen.PaymentRecordDetail(paymentId)
             if (appVersion == '') {
               router.replace(pushRoute)
             } else {

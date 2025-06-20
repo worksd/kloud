@@ -3,6 +3,7 @@ import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { TicketItem } from "@/app/tickets/ticket.item";
 import { PaymentRecordPassItem } from "@/app/paymentRecords/PaymentRecordPassItem";
 import { translate } from "@/utils/translate";
+import { PaymentRecordItem } from "@/app/paymentRecords/PaymentRecordItem";
 
 export default async function PaymentRecordsPage() {
   const res = await getPaymentRecordsAction({});
@@ -13,19 +14,11 @@ export default async function PaymentRecordsPage() {
         <div className="flex justify-between items-center mb-14">
           <SimpleHeader titleResource="payment_records"/>
         </div>
-        <div className={'text-black'}>
+        <div className={'flex flex-col'}>
           {res.paymentRecords && res.paymentRecords.length > 0 ?
 
             res.paymentRecords.map((paymentRecord, idx) => {
-              if (paymentRecord.pass != null) {
-                return <PaymentRecordPassItem pass={paymentRecord.pass} key={idx}/>
-              }
-
-              if (paymentRecord.ticket != null) {
-                return <TicketItem item={paymentRecord.ticket} key={idx}/>
-              }
-
-              return null;
+              return <PaymentRecordItem paymentRecord={paymentRecord} key={idx} />
             })
             : <div className={'text-black items-center text-center mt-40 font-medium'}>
               {await translate('no_purchase_history')}

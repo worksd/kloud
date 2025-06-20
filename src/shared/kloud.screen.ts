@@ -41,6 +41,7 @@ export const KloudScreen = {
   LessonPayment: (id: number) => `/lessons/${id}/payment`,
   TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
   StudioDetail: (id: number) => `/studios/${id}`,
+  PaymentRecordDetail: (paymentId: string) => `/paymentRecords/${paymentId}`,
 
   LanguageSettingSheet: '/profile/setting/language/sheet',
   StudioSettingSheet: '/studios/setting/sheet'

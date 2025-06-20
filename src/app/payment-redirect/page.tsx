@@ -21,15 +21,15 @@ export default async function PaymentRedirectPage({searchParams}:
   if (message) {
     return <div>{message}</div>
   } else {
-    if (type == 'LT') {
-      const res = await getPaymentRecordDetail({paymentId: paymentId});
-      const route = 'id' in res ? KloudScreen.TicketDetail(res.ticket?.id ?? 0, true) : null
-      if (route) redirect(route)
-    } else if (type == 'LP') {
-      const res = await getPaymentRecordDetail({paymentId: paymentId});
-      const route = 'id' in res ? KloudScreen.PassPaymentComplete(res.pass?.id ?? 0) : null
-      if (route) redirect(route)
-    }
+    // if (type == 'LT') {
+    //   const res = await getPaymentRecordDetail({paymentId: paymentId});
+    //   const route = 'id' in res ? KloudScreen.TicketDetail(res.ticket?.id ?? 0, true) : null
+    //   if (route) redirect(route)
+    // } else if (type == 'LP') {
+    //   const res = await getPaymentRecordDetail({paymentId: paymentId});
+    //   const route = 'id' in res ? KloudScreen.PassPaymentComplete(res.pass?.id ?? 0) : null
+    //   if (route) redirect(route)
+    // }
     return <div>잘못된 결제ID입니다 ID: {paymentId}</div>
   }
 
