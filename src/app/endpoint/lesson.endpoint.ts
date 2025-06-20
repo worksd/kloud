@@ -29,6 +29,9 @@ export type GetLessonResponse = {
     dday?: string;
     buttonTitle: string;
     buttonRoute: string;
+    paymentType?: 'Subscription' | 'Default'
+    days?: string;
+    description?: string;
 };
 
 export type GetStudioRoomResponse = {

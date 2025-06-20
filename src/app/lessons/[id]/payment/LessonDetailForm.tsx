@@ -76,13 +76,15 @@ export default async function LessonDetailForm({lesson, appVersion}: {
         </div>
 
         {/* 강사 */}
-        <div className="self-stretch flex-col justify-start items-start gap-5 flex">
-          <div className="self-stretch h-7 px-6 justify-center items-center gap-5 inline-flex">
-            <div
-              className="grow shrink basis-0 text-black text-[16px] font-bold leading-snug">{await translate('lesson_artist_information')}</div>
+        <div className="self-stretch flex-col justify-start items-start flex">
+          <div className="flex flex-col self-stretch px-6">
+            <div className="text-black text-[18px] font-bold">{await translate('lesson_information')}</div>
+            <div className={'text-black mt-7 font-bold text-[16px]'}>강사</div>
           </div>
-          {lesson.artist && <LessonArtistItem artist={lesson.artist} appVersion={appVersion}/>}
-          {lesson.extraArtists && lesson.extraArtists.length > 0 && (
+
+          <div className={'self-stretch flex-col justify-start items-start flex gap-2 mt-2.5'}>
+            {lesson.artist && <LessonArtistItem artist={lesson.artist} appVersion={appVersion}/>}
+            {lesson.extraArtists && lesson.extraArtists.length > 0 && (
               lesson.extraArtists.map((artist, index) => (
                 <LessonArtistItem
                   key={artist.id || index}
@@ -90,7 +92,19 @@ export default async function LessonDetailForm({lesson, appVersion}: {
                   appVersion={appVersion}
                 />
               ))
-          )}
+            )}
+          </div>
+
+          {lesson.description &&
+            <div className={'flex flex-col'}>
+              <div className="w-full h-1 bg-[#f7f8f9] mt-5"/>
+              <div className={'mt-2.5 px-6'}>
+                <div className={'text-black font-bold text-[16px] '}>수업 설명</div>
+                <div
+                  className="grow shrink basis-0 text-black text-[14px] leading-snug mt-2.5">{lesson.description}</div>
+              </div>
+            </div>
+          }
         </div>
       </div>
 

@@ -659,11 +659,11 @@ export const StringResource = {
     jp: "入金金額",
     zh: "汇款金额"
   },
-  lesson_artist_information: {
-    ko: "강사 정보",
-    en: "Artist Information",
-    jp: "講師情報",
-    zh: "讲师信息"
+  lesson_information: {
+    ko: "수업 정보",
+    en: "Lecture Information",
+    jp: "講義情報",
+    zh: "课程信息"
   },
   account_transfer: {
     ko: "계좌이체",
