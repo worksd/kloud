@@ -1,11 +1,13 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { LessonLevels, LessonTypes } from "@/entities/lesson/lesson";
+import { LessonLevels, LessonType } from "@/entities/lesson/lesson";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 
 export type GetLessonParameter = {
     id: number;
 };
+
+export type LessonGenre = 'Breaking' | 'Choreography'
 
 export type GetLessonResponse = {
     id: number;
@@ -17,7 +19,7 @@ export type GetLessonResponse = {
     startTime?: string;
     saleDate?: string;
     duration?: number;
-    type?: LessonTypes;
+    type?: LessonType;
     price?: number;
     level?: LessonLevels;
     artist?: GetArtistResponse;
@@ -32,6 +34,7 @@ export type GetLessonResponse = {
     paymentType?: 'Subscription' | 'Default'
     days?: string;
     description?: string;
+    genre?: LessonGenre;
 };
 
 export type GetStudioRoomResponse = {

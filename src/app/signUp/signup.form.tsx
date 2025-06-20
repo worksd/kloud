@@ -69,7 +69,7 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(res.errorMessage ?? '')
       } else {
-        const dialogInfo = await createDialog('SignUpFail', res.errorMessage)
+        const dialogInfo = await createDialog({id: 'SignUpFail', message: res.errorMessage})
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     }

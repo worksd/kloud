@@ -19,7 +19,7 @@ export const LoginAuthNavigation = async ({status, message, window}: {status?: U
   else if (status == UserStatus.New) {
     window.KloudEvent?.clearAndPush(KloudScreen.Onboard(''))
   } else {
-    const dialogInfo = await createDialog('LoginFail', message)
+    const dialogInfo = await createDialog({id: 'LoginFail', message})
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
   }
 }

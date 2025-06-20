@@ -52,12 +52,12 @@ export const CertificationForm = ({appVersion, user, isFromPayment}: { appVersio
         rrn: rrn,
       })
       if (res.success) {
-        const dialog = await createDialog('CertificationComplete')
+        const dialog = await createDialog({id: 'CertificationComplete'})
         window.KloudEvent.showDialog(JSON.stringify(dialog))
       }
     }
     else {
-      const dialogInfo = await createDialog('CertificationFail')
+      const dialogInfo = await createDialog({id: 'CertificationFail'})
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
   }
@@ -82,13 +82,13 @@ export const CertificationForm = ({appVersion, user, isFromPayment}: { appVersio
 
       if (res) {
         if (code != 0) {
-          const resendDialog = await createDialog('Simple', await translate('resend_code_message'))
+          const resendDialog = await createDialog({id: 'Simple', message: await translate('resend_code_message')})
           window.KloudEvent.showDialog(JSON.stringify(resendDialog))
         }
         setIsCodeSent(true);
         setCode(newCode);
       } else {
-        const dialog = await createDialog('CertificationMismatch');
+        const dialog = await createDialog({id: 'CertificationMismatch'});
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } catch (e) {

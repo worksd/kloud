@@ -3,8 +3,8 @@ import React from "react";
 import { PaymentRecordDetailForm } from "@/app/paymentRecords/[id]/PaymentRecordDetailForm";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
-export default async function PaymentRecordDetailPage({params}: { params: { id: string } }) {
-  const paymentId = params.id;
+export default async function PaymentRecordDetailPage({params}: { params: Promise<{ id: string }> }) {
+  const paymentId = (await params).id;
   const paymentRecord = await getPaymentRecordDetail({paymentId});
 
   if (!('paymentId' in paymentRecord)) {

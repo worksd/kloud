@@ -101,7 +101,7 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
   };
 
   const onClickSkip = async () => {
-    const dialog = await createDialog('SkipCertification')
+    const dialog = await createDialog({id: 'SkipCertification'})
     window.KloudEvent.showDialog(JSON.stringify(dialog));
   }
 
@@ -159,7 +159,7 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
 
       if (certificationPage == 'certification') {
         if (code.toString() != myCode) {
-          const dialogInfo = await createDialog('CertificationFail')
+          const dialogInfo = await createDialog({id: 'CertificationFail'})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
           return
         }
@@ -253,7 +253,7 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
     };
 
     const message = confirmationDialogText({ birthDate, email: user.email, country, gender, name });
-    const dialog = await createDialog('ForeignerVerificationRequest', message);
+    const dialog = await createDialog({id: 'ForeignerVerificationRequest', message: message});
 
     window.KloudEvent.showDialog(JSON.stringify(dialog));
   };

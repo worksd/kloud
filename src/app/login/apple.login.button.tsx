@@ -1,6 +1,6 @@
 'use client';
 import AppleLogo from "../../../public/assets/logo_apple.svg"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { appleLoginAction } from "@/app/login/action/apple.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { TranslatableText } from "@/utils/TranslatableText";
@@ -20,15 +20,13 @@ const AppleLoginButton = () => {
         })
       } else {
         if (res.errorCode == ExceptionResponseCode.APPLE_LOGIN_FAILED) {
-          const dialog = await createDialog('Simple', await translate('apple_login_failed'))
+          const dialog = await createDialog({id: 'Simple', message: await translate('apple_login_failed')})
           window.KloudEvent.showDialog(JSON.stringify(dialog))
-        }
-        else if (res.errorCode == ExceptionResponseCode.USER_EMAIL_EMPTY) {
-          const dialog = await createDialog('Simple', await translate('user_email_empty_message'))
+        } else if (res.errorCode == ExceptionResponseCode.USER_EMAIL_EMPTY) {
+          const dialog = await createDialog({id: 'Simple', message: await translate('user_email_empty_message')})
           window.KloudEvent.showDialog(JSON.stringify(dialog))
-        }
-        else {
-          const dialog = await createDialog('Simple', res.errorMessage)
+        } else {
+          const dialog = await createDialog({id: 'Simple', message: res.errorMessage})
           window.KloudEvent.showDialog(JSON.stringify(dialog))
         }
       }

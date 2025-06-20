@@ -101,13 +101,13 @@ export const OnboardCertification = ({
 
       if (res) {
         if (code != 0) {
-          const resendDialog = await createDialog('Simple', await translate('resend_code_message'))
+          const resendDialog = await createDialog({id: 'Simple', message: await translate('resend_code_message')})
           window.KloudEvent.showDialog(JSON.stringify(resendDialog))
         }
         setIsCodeSent(true);
         setCodeAction(newCode);
       } else {
-        const dialog = await createDialog('CertificationMismatch');
+        const dialog = await createDialog({id : 'CertificationMismatch'});
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } catch (e) {

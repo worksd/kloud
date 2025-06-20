@@ -17,7 +17,7 @@ export const SplashScreen = ({os}: { os: string }) => {
       }
       const res = await authToken()
       if (res.code == 'APP_UPGRADE_REQUIRED') {
-        const dialog = await createDialog('AppUpgrade', res.errorTitle)
+        const dialog = await createDialog({id: 'AppUpgrade', message: res.errorTitle})
         window.KloudEvent.showDialog(JSON.stringify(dialog))
         return;
       }

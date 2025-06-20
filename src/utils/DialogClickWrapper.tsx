@@ -24,7 +24,7 @@ export function DialogClickWrapper({ id, children }: DialogClickItemProps) {
   return (
     <div
       onClick={async () => {
-        const dialogInfo = await createDialog(id)
+        const dialogInfo = await createDialog({ id} )
         if (dialogInfo) {
           window.KloudEvent.showDialog(JSON.stringify(dialogInfo))
         }

@@ -22,7 +22,7 @@ export const RefundAccountEditForm = ({
 
   const handleClickSubmit = async () => {
     if (refundAccountBank.length == 0 || refundAccountDepositor.length == 0 || refundAccountNumber.length == 0) {
-      const dialog = await createDialog('EmptyAccountInformation')
+      const dialog = await createDialog({id: 'EmptyAccountInformation'})
       window.KloudEvent.showDialog(JSON.stringify(dialog));
       return;
     }
@@ -33,7 +33,7 @@ export const RefundAccountEditForm = ({
     })
 
     if (res.success) {
-      const dialog = await createDialog('RefundAccountUpdateSuccess')
+      const dialog = await createDialog({id: 'RefundAccountUpdateSuccess'})
       window.KloudEvent.showDialog(JSON.stringify(dialog));
     }
   }

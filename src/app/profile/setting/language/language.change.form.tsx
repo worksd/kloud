@@ -17,7 +17,10 @@ export const LanguageChangeForm = ({locale}: { locale: Locale }) => {
   };
 
   const handleClickSubmit = async () => {
-    const dialog = await createDialog('ChangeLocale', `\n${(await getLocaleText({ currentLocale }))}\n\n ${await translate('change_locale_dialog_message')}`);
+    const dialog = await createDialog({
+      id: 'ChangeLocale',
+      message: `\n${(await getLocaleText({currentLocale}))}\n\n ${await translate('change_locale_dialog_message')}`
+    });
     window.KloudEvent.showDialog(JSON.stringify(dialog));
   };
 

@@ -1,7 +1,7 @@
 'use server'
 import { HeaderInDetail } from "@/app/components/headers";
 import { StudioProfileImage } from "@/app/lessons/[id]/StudioProfileImage";
-import { LessonTypes, LessonTypesDisplay } from "@/entities/lesson/lesson";
+import { LessonType, LessonTypesDisplay } from "@/entities/lesson/lesson";
 import { LessonArtistItem } from "@/app/lessons/[id]/lesson.artist.item";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonInfoSection } from "@/app/lessons/[id]/lesson.info.section";
@@ -58,7 +58,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
                 <div
                   className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
                   <div
-                    className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[lesson.type ?? LessonTypes.PopUp]}</div>
+                    className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[lesson.type ?? LessonType.PopUp]}</div>
                 </div>
               </div>
             </div>

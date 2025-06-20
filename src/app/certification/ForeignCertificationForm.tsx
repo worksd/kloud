@@ -75,7 +75,7 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
       await onClickSubmit()
     } else {
       const message = confirmationDialogText({birthDate, email, country, gender, name})
-      const dialog = await createDialog('ForeignerVerificationRequest', message)
+      const dialog = await createDialog({id: 'ForeignerVerificationRequest', message: message})
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
   }

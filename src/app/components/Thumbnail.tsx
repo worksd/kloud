@@ -23,7 +23,7 @@ export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222 }:
         alt="썸네일"
         fill
         draggable={false}
-        className="object-cover rounded-[16px]"
+        className="object-cover rounded-[8px]"
         sizes={width ? `${width}px` : "100vw"}
       />
     </div>

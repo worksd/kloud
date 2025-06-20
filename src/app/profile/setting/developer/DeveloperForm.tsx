@@ -45,7 +45,7 @@ export const DeveloperForm = () => {
   };
 
   const handleRestart = async () => {
-    const dialog = await createDialog('ChangeEndpoint', `${selectedServer.label}로 테스트 환경을 바꾸시겠습니까?`)
+    const dialog = await createDialog({id: 'ChangeEndpoint', message: `${selectedServer.label}로 테스트 환경을 바꾸시겠습니까?`})
     window.KloudEvent.showDialog(JSON.stringify(dialog))
   }
 

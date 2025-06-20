@@ -1,11 +1,13 @@
-export enum LessonTypes {
+export enum LessonType {
   PopUp = "PopUp",
   Regular = "Regular",
+  Workshop = "Workshop",
 }
 
 export enum LessonTypesDisplay {
     PopUp = "팝업",
     Regular = "정규",
+  Workshop = '워크샵'
 }
 
 export enum LessonLevels {

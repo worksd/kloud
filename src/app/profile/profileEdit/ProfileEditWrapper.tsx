@@ -25,7 +25,7 @@ export const ProfileEditWrapper = ({user}: { user: GetUserResponse }) => {
       if (duplicateRes.success) {
         const res = await updateUserAction({nickName})
         if (res.success) {
-          const dialog = await createDialog('Simple', undefined, await translate('edit_profile_complete'))
+          const dialog = await createDialog({id: 'Simple', title: await translate('edit_profile_complete')})
           window.KloudEvent.showDialog(JSON.stringify(dialog))
         }
       } else {

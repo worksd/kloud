@@ -68,7 +68,7 @@ export const LoginForm = ({appVersion, returnUrl}: { appVersion: string, returnU
       } else if (res.errorCode === ExceptionResponseCode.USER_EMAIL_NOT_FOUND) {
         setEmailErrorMessage(res.errorMessage ?? '');
       } else {
-        const dialogInfo = await createDialog('LoginFail', res.errorMessage)
+        const dialogInfo = await createDialog({ id: 'LoginFail', message: res.errorMessage})
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
     }

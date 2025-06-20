@@ -57,11 +57,11 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
             }
             else {
               if (res.errorCode == ExceptionResponseCode.USER_EMAIL_EMPTY) {
-                const dialog = await createDialog('Simple', await translate('user_email_empty_message'))
+                const dialog = await createDialog({id: 'Simple', message: await translate('user_email_empty_message')})
                 window.KloudEvent.showDialog(JSON.stringify(dialog))
               }
               else {
-                const dialog = await createDialog('Simple', res.errorMessage)
+                const dialog = await createDialog({id: 'Simple', message: res.errorMessage})
                 window.KloudEvent.showDialog(JSON.stringify(dialog))
               }
             }

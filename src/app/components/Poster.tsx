@@ -5,6 +5,9 @@ import { formatDateTime } from "@/utils/date.format";
 import Image from "next/image";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { translate } from "@/utils/translate";
+import { LessonGenreLabel, LessonTypeLabel } from "@/app/components/LessonGenreLabel";
+import { LessonGenre } from "@/app/endpoint/lesson.endpoint";
+import { LessonType } from "@/entities/lesson/lesson";
 
 export async function Poster({
                                id,
@@ -13,7 +16,9 @@ export async function Poster({
                                startTime,
                                title,
                                width,
-                               dday
+                               dday,
+                               genre,
+                               type,
                              }: {
   id: number,
   posterUrl: string,
@@ -22,6 +27,8 @@ export async function Poster({
   width?: number
   title?: string,
   dday?: string,
+  genre?: LessonGenre,
+  type?: LessonType,
 }) {
   const formatTime = await formatDateTime(startTime)
   return (
@@ -36,6 +43,12 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
+          {genre && <div className={'absolute py-1 px-1 top-0 right-0 text-black'}>
+            <LessonGenreLabel genre={genre}/>
+          </div>}
+          {type && <div className={'absolute py-1 px-1 top-0 left-0 text-black'}>
+            <LessonTypeLabel type={type}/>
+          </div>}
           {dday ? (
             <div
               className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">

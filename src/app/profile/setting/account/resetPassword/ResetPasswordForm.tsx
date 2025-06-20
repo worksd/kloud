@@ -64,10 +64,10 @@ export const ResetPasswordForm = () => {
       })
       setIsSubmitting(false);
       if (res.success) {
-        const dialog = await createDialog('Simple', await translate('password_reset_complete'))
+        const dialog = await createDialog({id: 'Simple', message: await translate('password_reset_complete')})
         window.KloudEvent.showDialog(JSON.stringify(dialog))
       } else {
-        const dialog = await createDialog('Simple', '알 수 없는 에러가 발생했습니다')
+        const dialog = await createDialog({id: 'Simple', message: '알 수 없는 에러가 발생했습니다'})
         window.KloudEvent.showDialog(JSON.stringify(dialog))
       }
     }
