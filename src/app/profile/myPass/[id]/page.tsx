@@ -63,16 +63,6 @@ export default async function MyPassDetailPage({params}: {
           <PassTicketUsageHistory tickets={pass.tickets}/>
         </div>
 
-        <Divider/>
-        <div className={'py-5'}>
-          <PurchaseInformation price={pass.passPlan?.price ?? 0} titleResource={'pass_price_amount'}/>
-        </div>
-        <Divider/>
-        <div className={'py-5 px-6 space-y-6'}>
-          {pass.passPlan?.studio && <SellerInformation studio={pass.passPlan.studio}/>}
-          <RefundInformation/>
-        </div>
-
         {pass.status == 'Active' &&
           <div className={"sticky bottom-0 px-6"}>
             <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(pass.passPlan?.studio?.id ?? 0)}>

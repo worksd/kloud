@@ -1,27 +1,22 @@
-import Image from "next/image";
 import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.record.detail";
+import React from "react";
+import { PaymentRecordDetailForm } from "@/app/paymentRecords/[id]/PaymentRecordDetailForm";
+import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 
-export default async function PaymentRecordDetailPage({params}: { params: Promise<{ id: string }> }) {
-  const paymentId = (await params).id
-  const paymentRecord = (await getPaymentRecordDetail({paymentId}))
+export default async function PaymentRecordDetailPage({params}: { params: { id: string } }) {
+  const paymentId = params.id;
+  const paymentRecord = await getPaymentRecordDetail({paymentId});
 
-  if ('paymentId' in paymentRecord) {
-    return (
-      <div className={'flex flex-col'}>
-        <div className={'text-black'}>Hello World </div>
-        {paymentRecord.receiptUrl &&
-          <iframe
-            src="https://dashboard.tosspayments.com/receipt/sales-slip?transactionId=a5J9nJezoqMozwksvH3HbnsSoNWToINGHI1nNe1lPhcA8Bn5tKLyOTv4uDTW%2BVBC&ref=PX"
-            style={{
-              width: '100%',
-              height: '1000px',
-              border: 'none',
-              overflow: 'hidden',
-            }}
-            scrolling="no"
-          />
-        }
-      </div>
-    )
+  if (!('paymentId' in paymentRecord)) {
+    return <div className="text-center mt-10 text-gray-500">결제 정보를 찾을 수 없습니다.</div>;
   }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-14 px-6">
+        <SimpleHeader titleResource="payment_records"/>
+      </div>
+      <PaymentRecordDetailForm paymentRecord={paymentRecord}/>
+    </div>
+  );
 }

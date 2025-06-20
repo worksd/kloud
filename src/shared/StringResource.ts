@@ -713,6 +713,12 @@ export const StringResource = {
     jp: "販売者情報",
     zh: "卖家信息"
   },
+  card_information: {
+    ko: "신용/체크카드 매출전표",
+    en: "Card Sales Slip",
+    jp: "クレジット／デビットカード売上票",
+    zh: "信用卡/借记卡销售单"
+  },
   refund_information: {
     ko: "환불 안내",
     en: "Refund Policy",

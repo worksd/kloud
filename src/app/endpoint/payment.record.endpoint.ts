@@ -2,6 +2,7 @@ import { Endpoint } from "@/app/endpoint/index";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { PaymentItemType, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetPaymentRecordListResponse = {
   paymentRecords: GetPaymentRecordResponse[];
@@ -17,7 +18,11 @@ export type GetPaymentRecordResponse = {
   amount: number;
   depositor?: string;
   productName: string;
+  productImageUrl?: string;
+  productRoute?: string;
   receiptUrl?: string;
+  studio?: GetStudioResponse;
+  productDescription?: string;
 }
 
 export type PaymentIdParameter = {
