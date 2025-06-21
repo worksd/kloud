@@ -88,7 +88,9 @@ export class ApiClient extends EndpointClient {
   }
 
   readonly subscription = {
-    create: this.endpointBuilder(API.Subscription.Create)
+    create: this.endpointBuilder(API.Subscription.Create),
+    list: this.endpointBuilder(API.Subscription.List),
+    get: this.endpointBuilder(API.Subscription.Get),
   }
 }
 

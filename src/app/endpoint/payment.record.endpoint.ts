@@ -23,6 +23,7 @@ export type GetPaymentRecordResponse = {
   receiptUrl?: string;
   studio?: GetStudioResponse;
   productDescription?: string;
+  paymentScheduledAt?: string;
 }
 
 export type PaymentIdParameter = {

@@ -1,6 +1,6 @@
 'use client'
 import { LessonGenre } from "@/app/endpoint/lesson.endpoint";
-import { LessonType } from "@/entities/lesson/lesson";
+import { LessonLevels, LessonType } from "@/entities/lesson/lesson";
 
 export const LessonGenreLabel = ({ genre }: { genre: LessonGenre }) => {
   let labelText: string | undefined = undefined;
@@ -31,3 +31,19 @@ export const LessonTypeLabel = ({ type }: { type: LessonType }) => {
     </div>
   );
 };
+
+export const LessonLevelLabel = ({ level} : {level: LessonLevels}) => {
+  let labelText: string | undefined = undefined;
+
+  if (level === LessonLevels.Advanced) labelText = '고급';
+  else if (level === LessonLevels.Beginner) labelText = '초급';
+  else if (level == LessonLevels.Basic) labelText = '기본';
+
+  if (!labelText) return null;
+
+  return (
+    <div className="inline-block px-1 py-0.5 rounded-[4px] text-[12px] font-paperlogy bg-black text-white shadow-sm backdrop-blur-sm">
+      {labelText}
+    </div>
+  );
+}

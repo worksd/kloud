@@ -113,7 +113,6 @@ export default function PaymentButton({
 
   const handlePayment = useCallback(async () => {
 
-    setIsSubmitting(true);
     if (!user || !('id' in user)) {
       console.log('user 없음')
       setIsSubmitting(false);
@@ -122,7 +121,6 @@ export default function PaymentButton({
 
     if (!isVerified) {
       console.log('not verified')
-      setIsSubmitting(false);
       const res = await getUserAction()
       if (res && 'id' in res && (res.phone || res.emailVerified == true)) {
         setIsVerified(true);
@@ -137,97 +135,92 @@ export default function PaymentButton({
     }
 
     if (price == 0) {
-      console.log('price 0 won')
-      setIsSubmitting(false);
       await onPaymentSuccess({paymentId: paymentId})
       return
     }
 
-    try {
-      if (method === 'credit') {
-        if (appVersion == '') {
-          const mobileWebPaymentRequest: PaymentRequest = {
-            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-            channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-            paymentId: paymentId,
-            orderName: title,
-            payMethod: 'CARD',
-            totalAmount: price,
-            currency: "CURRENCY_KRW",
-            customer: {
-              fullName: `${user.id}`
-            },
-            redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
-          }
-          await requestPayment(mobileWebPaymentRequest)
-        } else {
-          const paymentInfo: PaymentInfo = os == 'Android' ? {
-            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-            channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-            paymentId: paymentId,
-            orderName: title,
-            method: 'credit',
-            type: type,
-            price: price,
-            userId: `${user.id}`,
-          } : {
-            paymentId: paymentId,
-            pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
-            scheme: 'iamport',
-            orderName: title,
-            type: type,
-            amount: `${price}`,
-            method: 'credit',
-            userId: `${user.id}`,
-            userCode: process.env.NEXT_PUBLIC_USER_CODE,
-            customData: '',
-          }
-          console.log('paymentInfo', paymentInfo)
-          window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
+    if (method === 'credit') {
+      if (appVersion == '') {
+        const mobileWebPaymentRequest: PaymentRequest = {
+          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+          paymentId: paymentId,
+          orderName: title,
+          payMethod: 'CARD',
+          totalAmount: price,
+          currency: "CURRENCY_KRW",
+          customer: {
+            fullName: `${user.id}`
+          },
+          redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
         }
-      } else if (method === 'account_transfer') {
-        if (depositor.length === 0) {
-          const dialog = await createDialog({id: 'EmptyDepositor'})
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
-        } else {
-          const dialog = await createAccountTransferMessage({
-            title,
-            price,
-            depositor,
-          })
-          if (appVersion == '' && dialog) {
-            setWebDialogInfo(dialog)
-          } else {
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
-          }
+        await requestPayment(mobileWebPaymentRequest)
+      } else {
+        const paymentInfo: PaymentInfo = os == 'Android' ? {
+          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+          paymentId: paymentId,
+          orderName: title,
+          method: 'credit',
+          type: type,
+          price: price,
+          userId: `${user.id}`,
+        } : {
+          paymentId: paymentId,
+          pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
+          scheme: 'iamport',
+          orderName: title,
+          type: type,
+          amount: `${price}`,
+          method: 'credit',
+          userId: `${user.id}`,
+          userCode: process.env.NEXT_PUBLIC_USER_CODE,
+          customData: '',
         }
-      } else if (method === 'pass') {
-        const dialog = await createDialog({
-          id: 'UsePass',
-          message: `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
+        console.log('paymentInfo', paymentInfo)
+        window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
+      }
+    } else if (method === 'account_transfer') {
+      if (depositor.length === 0) {
+        const dialog = await createDialog({id: 'EmptyDepositor'})
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      } else {
+        const dialog = await createAccountTransferMessage({
+          title,
+          price,
+          depositor,
         })
         if (appVersion == '' && dialog) {
           setWebDialogInfo(dialog)
         } else {
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
-      } else if (method == 'billing') {
-        if (selectedBilling) {
-          const dialog = await createDialog({
-            id: 'RequestBillingKeyPayment',
-            message: `해당 상품은 매월 자동으로 결제되는 정기결제 상품입니다.\n 상품명: ${title}\n• 결제금액: ${price}원\n결제를 진행하시겠습니까?`,
-            title: `${title}을(를) 정기결제하시겠어요?`,
-            customData: selectedBilling.billingKey
-          })
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
-        } else {
-          const dialog = await createDialog({id: 'BillingKeyNotFound'})
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
-        }
       }
-    } finally {
-      setIsSubmitting(false);
+    } else if (method === 'pass') {
+      const dialog = await createDialog({
+        id: 'UsePass',
+        message: `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
+      })
+      if (appVersion == '' && dialog) {
+        setWebDialogInfo(dialog)
+      } else {
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      }
+    } else if (method == 'billing') {
+      if (selectedBilling) {
+        const dialog = await createDialog({
+          id: 'RequestBillingKeyPayment',
+          message: `해당 상품은 매월 자동으로 결제되는 정기결제 상품입니다.\n 상품명: ${title}\n• 결제금액: ${price}원\n결제를 진행하시겠습니까? ${selectedBilling.cardName}`,
+          title: `${title}을(를) 정기결제하시겠어요?`,
+          customData: selectedBilling.billingKey
+        })
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      } else {
+        const dialog = await createDialog({id: 'BillingKeyNotFound'})
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      }
     }
+
   }, [id, method, depositor, selectedPass]);
 
   const {t} = useLocale()
@@ -323,7 +316,7 @@ export default function PaymentButton({
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
         const res = await createSubscriptionAction({item: 'lesson', itemId: id, billingKey: data.customData ?? ''})
-        if ('subscription' in res && 'schedulePaymentRecord' in res && 'paymentId' in res ) {
+        if ('subscription' in res && 'schedulePaymentRecord' in res && 'paymentId' in res) {
           await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
           const bottomMenuList = await getBottomMenuList();
           const bootInfo = JSON.stringify({
@@ -333,7 +326,8 @@ export default function PaymentButton({
           window.KloudEvent?.navigateMain(bootInfo);
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));        }
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
       }
     } catch (e) {
       setIsSubmitting(false)

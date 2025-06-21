@@ -49,7 +49,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
         {/* + 버튼 */}
         <button
           onClick={() => {
-            window.KloudEvent.showBottomSheet(KloudScreen.PaymentMethodAddSheet)
+            window.KloudEvent.showBottomSheet(KloudScreen.PaymentMethodAddSheet(KloudScreen.PaymentMethodSetting))
           }}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition"
           aria-label="카드 추가"
@@ -120,66 +120,27 @@ function BillingCardList({
   )
 }
 
-function BillingCard({
-                       cardName,
-                       cardNumber,
-                       onDelete,
-                     }: {
-  cardName: string
-  cardNumber: string
-  onDelete?: () => void
-}) {
-  const maskedNumber = `${cardNumber.slice(0, 4)} ${cardNumber.slice(4, 8)} **** ${cardNumber.slice(-4)}`
-  return (
-    <div
-      className="relative bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-4 shadow-md flex items-center justify-between">
-      <div className="space-y-1">
-        <div className="text-lg font-semibold text-white">{cardName}</div>
-        <div className="text-sm text-neutral-400 tracking-widest">{maskedNumber}</div>
-      </div>
-
-      {onDelete && (
-        <button
-          onClick={onDelete}
-          className="absolute top-4 right-4 text-xs text-red-400 hover:text-red-300 font-bold"
-        >
-          삭제
-        </button>
-      )}
-
-    </div>
-  )
-}
-
 export const SelectableBillingList = ({
                                         billingCards,
                                         selectedBillingKey,
                                         onSelectAction,
                                       }: {
   billingCards: GetBillingResponse[];
-  selectedBillingKey: GetBillingResponse | undefined;
+  selectedBillingKey?: GetBillingResponse;
   onSelectAction: (billingKey: GetBillingResponse) => void;
 }) => {
   return (
-    <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide mt-4">
+    <div className="flex flex-col mt-2 space-y-2">
       {billingCards.map((card, index) => (
-        <div
-          key={card.billingKey}
-          className={`snap-start ${
-            index === billingCards.length - 1 ? 'pr-6' : ''
-          } ${index === 0 ? 'pl-4' : ''} min-w-[calc(100vw-32px)]`}
-        >
+        <div key={card.billingKey}>
           <div
             onClick={() => onSelectAction(card)}
-            className={`cursor-pointer transition-all duration-200 ${
-              selectedBillingKey === card
-                ? 'ring-2 ring-primary'
-                : ''
-            }`}
+            className="cursor-pointer transition-all duration-200"
           >
             <BillingCard
               cardName={card.cardName}
               cardNumber={card.cardNumber}
+              isSelected={selectedBillingKey?.billingKey === card.billingKey}
             />
           </div>
         </div>
@@ -187,3 +148,46 @@ export const SelectableBillingList = ({
     </div>
   );
 };
+function BillingCard({
+                       cardName,
+                       cardNumber,
+                       onDelete,
+                       isSelected,
+                     }: {
+  cardName: string;
+  cardNumber: string;
+  onDelete?: () => void;
+  isSelected?: boolean;
+}) {
+  const maskedNumber = `${cardNumber.slice(0, 4)} ${cardNumber.slice(4, 8)} **** ${cardNumber.slice(-4)}`;
+
+  return (
+    <div
+      className={`relative rounded-2xl px-6 py-4 shadow-md flex items-center justify-between transition-all duration-200 text-black
+        ${isSelected
+        ? 'border-2 border-black bg-white'
+        : ''
+      }`}
+    >
+      <div className="space-y-1">
+        <div className={`text-lg font-semibold`}>
+          {cardName}
+        </div>
+        <div className={`text-sm tracking-widest ${isSelected ? 'text-neutral-600' : 'text-neutral-400'}`}>
+          {maskedNumber}
+        </div>
+      </div>
+
+      {onDelete && (
+        <div className="flex justify-end">
+          <button
+            onClick={onDelete}
+            className="text-xs text-red-400 hover:text-red-300 font-bold"
+          >
+            삭제
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

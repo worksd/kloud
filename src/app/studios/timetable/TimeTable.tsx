@@ -77,24 +77,37 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
           gap: '4px'
         }}
       >
-        {/* 요일 헤더 */}
         {currentTimeTable.days.map((value, i) => (
           <div
             key={value.day}
-            className={`py-2 rounded-lg font-paperlogy ${
-              value.isToday
-                ? 'bg-black text-white'
-                : 'bg-gray-300 text-black'
+            className={`rounded-lg font-paperlogy text-center flex flex-col items-center justify-${
+              value.date ? 'start' : 'center'
+            } ${
+              value.isToday ? 'bg-black text-white' : 'bg-gray-300 text-black'
             }`}
             style={{
               gridColumnStart: i + 1,
               gridRowStart: 1,
+              paddingTop: '0.25rem',
+              paddingBottom: '0.25rem',
+              height: '100%',
             }}
           >
-            {value.day}
+            {value.date && value.date.length > 1 && (
+              <div className="text-[10px] leading-none mb-[2px] text-gray-500">
+                {value.date.split('-')[2]}
+              </div>
+            )}
+            <div
+              className={`text-[12px] leading-tight ${
+                value.day === 'SAT' ? 'text-blue-500' :
+                  value.day === 'SUN' ? 'text-red-500' : ''
+              }`}
+            >
+              {value.day}
+            </div>
           </div>
         ))}
-
         {/* timetable cell */}
         {currentTimeTable.cells.length > 0 ? (
           currentTimeTable.cells.map((item, i) => (

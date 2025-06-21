@@ -719,6 +719,12 @@ export const StringResource = {
     jp: "クレジット／デビットカード売上票",
     zh: "信用卡/借记卡销售单"
   },
+  subscription_list: {
+    ko: "정기결제 목록",
+    en: "Subscription List",
+    jp: "定期購入一覧",
+    zh: "订阅列表"
+  },
   refund_information: {
     ko: "환불 안내",
     en: "Refund Policy",

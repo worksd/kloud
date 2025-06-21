@@ -61,6 +61,7 @@ export type GetTimeTableResponse = {
 
 export type GetTimeTableDayResponse = {
   day: string;
+  date: string;
   isToday: boolean;
 }
 

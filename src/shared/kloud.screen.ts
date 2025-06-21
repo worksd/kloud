@@ -30,7 +30,7 @@ export const KloudScreen = {
   SignOut: '/profile/setting/signOut',
   LanguageSetting: '/profile/setting/language',
   PaymentMethodSetting: '/profile/setting/paymentMethod',
-  PaymentMethodAddSheet : '/profile/setting/paymentMethod/sheet',
+  PaymentMethodAddSheet : (baseRoute: string) =>`/profile/setting/paymentMethod/sheet?baseRoute=${baseRoute}`,
   PasswordSetting: '/profile/setting/account/resetPassword',
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',

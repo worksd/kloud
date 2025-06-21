@@ -9,6 +9,7 @@ import { translate } from "@/utils/translate";
 import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { CommonSubmitButton } from "@/app/components/buttons";
+import { LessonGenreLabel, LessonLevelLabel, LessonTypeLabel } from "@/app/components/LessonGenreLabel";
 
 export default async function LessonDetailForm({lesson, appVersion}: {
   lesson: GetLessonResponse,
@@ -51,15 +52,9 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             <div className="self-stretch justify-between items-start inline-flex">
               {lesson.studio && <StudioProfileImage studio={lesson.studio}/>}
               <div className="justify-center items-start gap-[3px] flex">
-                <div
-                  className="self-stretch px-2 py-1 bg-black rounded-xl justify-center items-center gap-2.5 inline-flex">
-                  <div className="text-white text-xs font-medium leading-none">{lesson.level}</div>
-                </div>
-                <div
-                  className="self-stretch px-2 py-1 rounded-xl border border-[#d7dadd] justify-center items-center gap-2.5 inline-flex">
-                  <div
-                    className="text-[#86898c] text-xs font-medium leading-none">{LessonTypesDisplay[lesson.type ?? LessonType.PopUp]}</div>
-                </div>
+                {lesson.level && <LessonLevelLabel level={lesson.level}/>}
+                {lesson.type && <LessonTypeLabel type={lesson.type}/>}
+                {lesson.genre && <LessonGenreLabel genre={lesson.genre}/>}
               </div>
             </div>
             <div className="self-stretch justify-start items-center gap-2 inline-flex">
@@ -96,7 +91,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           </div>
 
           {lesson.description &&
-            <div className={'flex flex-col'}>
+            <div className={'flex flex-col w-full'}>
               <div className="w-full h-1 bg-[#f7f8f9] mt-5"/>
               <div className={'mt-2.5 px-6'}>
                 <div className={'text-black font-bold text-[16px] '}>수업 설명</div>

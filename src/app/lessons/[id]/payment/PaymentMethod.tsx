@@ -7,6 +7,7 @@ import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassLis
 import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/BillingCardForm";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export const PaymentMethodComponent = ({
                                          paymentOptions,
@@ -16,6 +17,7 @@ export const PaymentMethodComponent = ({
                                          selectPass,
                                          selectedMethod,
                                          selectedBillingCard,
+  handleAddPaymentMethod,
                                          selectBillingCard,
                                          selectPaymentMethodAction,
                                          depositor,
@@ -26,6 +28,7 @@ export const PaymentMethodComponent = ({
   cards?: GetBillingResponse[],
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
+  handleAddPaymentMethod?: () => void,
   selectedBillingCard?: GetBillingResponse,
   selectBillingCard?: (billing: GetBillingResponse) => void,
   selectedMethod?: PaymentMethodType,
@@ -39,6 +42,7 @@ export const PaymentMethodComponent = ({
     setMounted(true);
   }, []);
   if (!mounted) return;
+
   return (
     <div className="flex flex-col gap-y-4 px-6">
 
@@ -88,12 +92,22 @@ export const PaymentMethodComponent = ({
               </div>
             </div>
           }
-          {selectedMethod === 'billing' && option.type == 'billing' && cards && selectBillingCard &&
-            <SelectableBillingList
-              billingCards={cards}
-              selectedBillingKey={selectedBillingCard}
-              onSelectAction={selectBillingCard}
-            />
+          {selectedMethod === 'billing' && option.type == 'billing' && selectBillingCard &&
+            <div className={'flex flex-col'}>
+              <SelectableBillingList
+                billingCards={cards ?? []}
+                selectedBillingKey={selectedBillingCard}
+                onSelectAction={selectBillingCard}
+              />
+              <button
+                onClick={handleAddPaymentMethod} // 함수는 필요 시 너가 정의
+                className="mt-2 py-2 rounded-xl border border-dashed border-gray-400 text-gray-600 text-sm hover:bg-gray-100 transition"
+              >
+                + 결제수단 추가
+              </button>
+            </div>
+
+
           }
 
         </div>

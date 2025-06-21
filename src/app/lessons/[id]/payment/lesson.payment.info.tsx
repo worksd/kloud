@@ -9,6 +9,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPaymentResponse, os: string, appVersion: string }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(undefined);
@@ -36,6 +37,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           passes={payment.user.passes}
           cards={payment.cards}
           selectedPass={selectedPass}
+          handleAddPaymentMethod={() => window.KloudEvent.showBottomSheet(KloudScreen.PaymentMethodAddSheet(KloudScreen.LessonPayment(payment.lesson?.id ?? 0)))}
           selectedBillingCard={selectedBillingCard}
           selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
           selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}

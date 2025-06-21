@@ -1,5 +1,5 @@
 'use server'
-import ArrowLeftIcon from "../../../../public/assets/left-arrow.svg";
+import ArrowLeftIcon from "../../../../public/assets/ic_simple_left_arrow.svg";
 import { StringResourceKey } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
@@ -19,7 +19,7 @@ export async function SimpleHeader({titleResource}: {
         </div>
 
         {titleResource && (
-          <h1 className="text-center text-[16px] font-bold text-black truncate">
+          <h1 className="text-xl font-semibold text-black truncate">
             {await translate(titleResource)}
           </h1>
         )}
