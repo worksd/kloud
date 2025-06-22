@@ -1,5 +1,6 @@
 import { getSubscriptionDetailAction } from "@/app/profile/mySubscription/action/get.subscription.detail.action";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 export default async function MySubscriptionDetailPage({params}: {
   params: Promise<{ id: string }>
@@ -68,18 +69,14 @@ export default async function MySubscriptionDetailPage({params}: {
   }
 }
 
-
 type UpcomingPayment = {
   subscriptionId: string;
   productName: string;
   nextPaymentDate: string;
-  studio?: {
-    id: number;
-    name: string;
-  };
+  studio?: GetStudioResponse;
 };
 
-export function UpcomingPaymentCard({payment}: { payment: UpcomingPayment }) {
+const UpcomingPaymentCard = ({payment}: { payment: UpcomingPayment }) => {
   const {subscriptionId, productName, nextPaymentDate, studio} = payment;
 
   return (
