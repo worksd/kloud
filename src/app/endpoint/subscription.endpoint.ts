@@ -30,6 +30,16 @@ export type CreateSubscriptionResponse = {
   subscription: GetSubscriptionResponse;
 }
 
+export type SimpleSubscriptionResponse = {
+  subscriptionId: string
+}
+
+export type CancelSubscriptionParameter = {
+  subscriptionId: string
+  reason: string
+  requester: string
+}
+
 export const List: Endpoint<object, ListSubscriptionResponse> = {
   method: 'get',
   path: '/subscription',
@@ -45,4 +55,11 @@ export const Create: Endpoint<CreateSubscriptionParameter, CreateSubscriptionRes
   method: 'post',
   path: '/subscription',
   bodyParams: ['item', 'itemId', 'billingKey'],
+}
+
+export const Cancel: Endpoint<CancelSubscriptionParameter, SimpleSubscriptionResponse> = {
+  method: 'delete',
+  path: (e) => `/subscription/${e.subscriptionId}`,
+  pathParams: ['subscriptionId'],
+  bodyParams: ['reason', 'requester']
 }

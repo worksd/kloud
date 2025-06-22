@@ -1523,6 +1523,18 @@ export const StringResource = {
     jp: 'お支払い方法を選択してください',
     zh: '请选择您的支付方式',
   },
+  cancel_subscription_complete_message: {
+    ko: '정기결제가 성공적으로 취소되었습니다',
+    en: 'Your subscription has been successfully canceled',
+    jp: '定期購入が正常にキャンセルされました',
+    zh: '您的订阅已成功取消',
+  },
+  cancel_subscription_fail_message: {
+    ko: '정기결제 취소에 실패했습니다. 다시 시도해주세요',
+    en: 'Failed to cancel the subscription. Please try again.',
+    jp: '定期購入のキャンセルに失敗しました。もう一度お試しください。',
+    zh: '取消订阅失败。请重试。',
+  },
   empty: {
     ko: '',
     en: '',

@@ -1,51 +1,64 @@
 export const KloudScreen = {
+  /** 공통 */
   Splash: '/splash',
   Main: '/main',
+  Maintenance: '/maintenance',
+
+  /** 온보딩 / 인증 */
   Onboard: (returnUrl: string) => `/onboarding?returnUrl=${returnUrl}`,
   Login: (query: string) => `/login${query}`,
   LoginEmail: (query: string) => `/login/email${query}`,
   LoginDeactivate: '/login/deactivate',
   SignUp: (query: string) => `/signUp${query}`,
-  Home: '/home',
-  Notification: '/notifications',
+  Certification: (isFromPayment: boolean) => `/certification?isFromPayment=${isFromPayment}`,
+
+  /** 프로필 관련 */
+  ProfileSetting: '/profile/setting',
+  ProfileEdit: '/profile/profileEdit',
+  MyAccount: '/profile/setting/account',
+  PasswordSetting: '/profile/setting/account/resetPassword',
+  RefundAccountSetting: '/profile/setting/refund',
+  PaymentMethodSetting: '/profile/setting/paymentMethod',
+  PaymentMethodAddSheet: (baseRoute: string) => `/profile/setting/paymentMethod/sheet?baseRoute=${baseRoute}`,
+  LanguageSetting: '/profile/setting/language',
+  LanguageSettingSheet: '/profile/setting/language/sheet',
+  SignOut: '/profile/setting/signOut',
+  DeveloperSetting: '/profile/setting/developer',
+  DeveloperAuthentication: '/profile/setting/developer/authentication',
+  BusinessInfo: '/profile/setting/businessInfo',
+
+  /** 결제 (Pass, Subscription, Records, Tickets) */
+  PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
+  PassPayment: (id: number) => `/passPlans/${id}/payment`,
+  PassPaymentComplete: (id: number) => `/passPlans/${id}/paymentComplete`,
+  MyPass: '/profile/myPass',
+  MyPassDetail: (id: number) => `/profile/myPass/${id}`,
+  MySubscription: '/profile/mySubscription',
+  MySubscriptionDetail: (id: string) => `/profile/mySubscription/${id}`,
+  CancelSubscription: (id: string) => `/profile/mySubscription/${id}/cancel`,
+  Tickets: '/tickets',
+  TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
+  PaymentRecords: '/paymentRecords',
+  PaymentRecordDetail: (paymentId: string) => `/paymentRecords/${paymentId}`,
+
+  /** 레슨 */
+  LessonDetail: (id: number) => `/lessons/${id}`,
+  LessonPayment: (id: number) => `/lessons/${id}/payment`,
+
+  /** 스튜디오 */
   Studios: '/studios',
+  StudioDetail: (id: number) => `/studios/${id}`,
+  StudioLessons: (id: number) => `/studios/${id}/lessons`,
+  StudioSettingSheet: '/studios/setting/sheet',
+
+  /** 정책 / 문의 / 알림 */
   Policy: '/profile/policy',
   Privacy: '/profile/policy/privacy',
   Terms: '/profile/policy/terms',
-  BusinessInfo: '/profile/setting/businessInfo',
   Inquiry: '/profile/inquiry',
-  Tickets: '/tickets',
-  PaymentRecords: '/paymentRecords',
-  Maintenance: '/maintenance',
-  Certification: (isFromPayment: boolean) => `/certification?isFromPayment=${isFromPayment}`,
-  ProfileSetting: '/profile/setting',
-  ProfileEdit: '/profile/profileEdit',
-  RefundAccountSetting: '/profile/setting/refund',
-  MyAccount: '/profile/setting/account',
-  PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
-  MyPass: '/profile/myPass',
-  MySubscription: '/profile/mySubscription',
-  MyPassDetail: (id: number) => `/profile/myPass/${id}`,
-  MySubscriptionDetail: (id: string) => `/profile/mySubscription/${id}`,
-  SignOut: '/profile/setting/signOut',
-  LanguageSetting: '/profile/setting/language',
-  PaymentMethodSetting: '/profile/setting/paymentMethod',
-  PaymentMethodAddSheet : (baseRoute: string) =>`/profile/setting/paymentMethod/sheet?baseRoute=${baseRoute}`,
-  PasswordSetting: '/profile/setting/account/resetPassword',
-  DeveloperSetting: '/profile/setting/developer',
-  DeveloperAuthentication: '/profile/setting/developer/authentication',
-  PassPayment: (id: number) => `/passPlans/${id}/payment`,
-  StudioLessons: (id: number) => `/studios/${id}/lessons`,
-  PassPaymentComplete: (id: number) => `/passPlans/${id}/paymentComplete`,
-  LessonDetail: (id: number) => `/lessons/${id}`,
-  LessonPayment: (id: number) => `/lessons/${id}/payment`,
-  TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
-  StudioDetail: (id: number) => `/studios/${id}`,
-  PaymentRecordDetail: (paymentId: string) => `/paymentRecords/${paymentId}`,
-
-  LanguageSettingSheet: '/profile/setting/language/sheet',
-  StudioSettingSheet: '/studios/setting/sheet'
+  Notification: '/notifications',
 } as const;
+
 
 export const isAuthScreen = (endpoint: string) => {
   return (endpoint.includes('/lessons/') && endpoint.includes('/payment'));

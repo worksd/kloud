@@ -91,6 +91,7 @@ export class ApiClient extends EndpointClient {
     create: this.endpointBuilder(API.Subscription.Create),
     list: this.endpointBuilder(API.Subscription.List),
     get: this.endpointBuilder(API.Subscription.Get),
+    cancel: this.endpointBuilder(API.Subscription.Cancel),
   }
 }
 
