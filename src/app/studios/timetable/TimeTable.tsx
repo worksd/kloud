@@ -94,7 +94,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
             }}
           >
             {value.date && value.date.length > 1 && (
-              <div className="text-[10px] leading-none mb-[2px] text-gray-500">
+              <div className="text-[10px] leading-none mb-[2px] text-gray-500 font-paperlogy">
                 {value.date.split('-')[2]}
               </div>
             )}
