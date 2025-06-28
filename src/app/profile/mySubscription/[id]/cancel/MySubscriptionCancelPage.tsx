@@ -9,7 +9,6 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/cancel/cancel.subscription.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 
-
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
   '가격이 너무 비싸요',
@@ -18,7 +17,49 @@ const cancelReasons = [
   '기타',
 ];
 
-export default function MySubscriptionCancelForm({subscription} : {subscription: GetSubscriptionResponse}) {
+const SubscriptionSummaryCard = ({ subscription }: { subscription: GetSubscriptionResponse }) => {
+  const { productName, productImageUrl, status, startDate, endDate, schedulePaymentRecord } = subscription;
+
+  const statusText = {
+    Active: '진행 중',
+    Cancelled: '취소됨',
+    Failed: '실패',
+  }[status];
+
+  const statusColor = {
+    Active: 'bg-green-100 text-green-700',
+    Cancelled: 'bg-gray-100 text-gray-600',
+    Failed: 'bg-red-100 text-red-700',
+  }[status];
+
+  return (
+    <div className="border rounded-xl bg-white shadow-sm mb-6 overflow-hidden">
+      {productImageUrl && (
+        <img src={productImageUrl} alt={productName} className="w-full h-40 object-cover" />
+      )}
+      <div className="p-4 text-black space-y-2">
+        <div className="flex justify-between items-center">
+          <div className="text-base font-semibold">{productName}</div>
+          <div className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>{statusText}</div>
+        </div>
+
+        {startDate && endDate && (
+          <div className="text-sm text-gray-700">
+            {startDate} ~ {endDate}
+          </div>
+        )}
+
+        {schedulePaymentRecord?.paymentScheduledAt && (
+          <div className="text-sm text-gray-700">
+            다음 결제일: <span className="font-medium">{schedulePaymentRecord.paymentScheduledAt}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default function MySubscriptionCancelForm({ subscription }: { subscription: GetSubscriptionResponse }) {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
 
   const handleReasonSelect = (reason: string) => {
@@ -27,36 +68,40 @@ export default function MySubscriptionCancelForm({subscription} : {subscription:
 
   const handleCancelSubscription = async () => {
     if (!selectedReason) return;
-    const res = await cancelSubscriptionAction({subscriptionId: subscription.subscriptionId, reason: selectedReason})
-    if ('subscriptionId' in res) {
-      const dialog = await createDialog({id: 'Simple', title: await translate('cancel_subscription_complete_message')})
-      window.KloudEvent.showDialog(JSON.stringify(dialog))
-    } else {
-      const dialog = await createDialog({id: 'Simple', title: await translate('cancel_subscription_fail_message')})
-      window.KloudEvent.showDialog(JSON.stringify(dialog))
-    }
+    const res = await cancelSubscriptionAction({
+      subscriptionId: subscription.subscriptionId,
+      reason: selectedReason,
+    });
+
+    const dialog = await createDialog({
+      id: 'Simple',
+      title: await translate(
+        'subscriptionId' in res
+          ? 'cancel_subscription_complete_message'
+          : 'cancel_subscription_fail_message'
+      ),
+    });
+
+    window.KloudEvent?.showDialog(JSON.stringify(dialog));
   };
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.message == await translate('cancel_subscription_complete_message')) {
-        const pushRoute = KloudScreen.MySubscriptionDetail(subscription.subscriptionId)
+      if (data.message === (await translate('cancel_subscription_complete_message'))) {
+        const pushRoute = KloudScreen.MySubscriptionDetail(subscription.subscriptionId);
         const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList: bottomMenuList,
-          route: pushRoute,
-        });
+        const bootInfo = JSON.stringify({ bottomMenuList, route: pushRoute });
         window.KloudEvent?.navigateMain(bootInfo);
       }
-    }
+    };
   }, []);
 
   return (
     <div className="max-w-xl mx-auto p-6 text-black">
+      <SubscriptionSummaryCard subscription={subscription} />
+
       <h2 className="text-xl font-semibold mb-4">정기결제 취소</h2>
-      <p className="text-sm text-gray-600 mb-6">
-        정기결제를 취소하려는 이유를 선택해주세요.
-      </p>
+      <p className="text-sm text-gray-600 mb-6">정기결제를 취소하려는 이유를 선택해주세요.</p>
 
       <div className="space-y-3">
         {cancelReasons.map((reason) => (
@@ -81,9 +126,7 @@ export default function MySubscriptionCancelForm({subscription} : {subscription:
                   : 'bg-[#22222233] border-white'
               }`}
             >
-              {selectedReason === reason && (
-                <CheckIcon size={14} className="text-white" />
-              )}
+              {selectedReason === reason && <CheckIcon size={14} className="text-white" />}
             </div>
             <span className="ml-4 text-[14px] text-[#222222]">{reason}</span>
           </label>

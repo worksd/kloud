@@ -137,6 +137,12 @@ export const StringResource = {
     jp: "不明なエラーが発生しました",
     zh: "发生未知错误"
   },
+  setting: {
+    ko: '설정',
+    en: 'Setting',
+    jp: '設定',
+    zh: '设置'
+  },
   onboarding_profile: {
     ko: "프로필 설정",
     en: "Profile Setup",
@@ -520,6 +526,12 @@ export const StringResource = {
     en: "View My Lesson Ticket",
     jp: "私の受講券を見る",
     zh: "查看我的课程票"
+  },
+  my_tickets: {
+    ko: '수강권',
+    en: 'My Lesson Tickets',
+    jp: '私の受講券',
+    zh: '我的课程票'
   },
   purchase_ticket: {
     ko: "수강권 결제하기",

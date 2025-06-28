@@ -35,7 +35,7 @@ export const KloudScreen = {
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   MySubscription: '/profile/mySubscription',
   MySubscriptionDetail: (id: string) => `/profile/mySubscription/${id}`,
-  CancelSubscription: (id: string) => `/profile/mySubscription/${id}/cancel`,
+  MySubscriptionCancel: (id: string) => `/profile/mySubscription/${id}/cancel`,
   Tickets: '/tickets',
   TicketDetail: (id: number, isJustPaid: boolean) => `/tickets/${id}?isJustPaid=${isJustPaid}`,
   PaymentRecords: '/paymentRecords',

@@ -53,6 +53,10 @@ export default async function SettingPage({
           </div>
         </NavigateClickWrapper>
 
+        <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
+          <MenuItem label={'my_tickets'}/>
+        </NavigateClickWrapper>
+
         <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
           <MenuItem label="my_pass"/>
         </NavigateClickWrapper>
@@ -64,16 +68,6 @@ export default async function SettingPage({
         <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
           <MenuItem label="payment_records"/>
         </NavigateClickWrapper>
-
-        <NavigateClickWrapper method={'push'} route={KloudScreen.Policy}>
-          <MenuItem label="terms_and_policy"/>
-        </NavigateClickWrapper>
-
-        {os === 'Android' &&
-          <NavigateClickWrapper method={'push'} route={KloudScreen.Inquiry}>
-            <MenuItem label="inquiry"/>
-          </NavigateClickWrapper>
-        }
       </div>
     );
   }

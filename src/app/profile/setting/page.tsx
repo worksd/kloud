@@ -10,12 +10,13 @@ import { translate } from "@/utils/translate";
 export default async function AccountSetting({
                                                searchParams
                                              }: {
-  searchParams: Promise<{ appVersion: string }>
+  searchParams: Promise<{ appVersion: string, os: string }>
 }) {
+  const { os } = await searchParams
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white mx-auto py-8 ">
       <div className="flex justify-between items-center mb-14">
-        <DynamicHeader title=''/>
+        <SimpleHeader titleResource='setting'/>
       </div>
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>
@@ -39,6 +40,16 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.BusinessInfo}>
         <MenuItem label={'business_info'}/>
       </NavigateClickWrapper>
+
+      <NavigateClickWrapper method={'push'} route={KloudScreen.Policy}>
+        <MenuItem label="terms_and_policy"/>
+      </NavigateClickWrapper>
+
+      {os === 'Android' &&
+        <NavigateClickWrapper method={'push'} route={KloudScreen.Inquiry}>
+          <MenuItem label="inquiry"/>
+        </NavigateClickWrapper>
+      }
 
       <DialogClickWrapper id={"Logout"}>
         <MenuItem label="log_out"/>

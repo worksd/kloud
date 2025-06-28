@@ -11,7 +11,7 @@ export type GetSubscriptionResponse = {
   studio?: GetStudioResponse;
   startDate?: string;
   endDate?: string;
-  scheduledPaymentRecord?: GetPaymentRecordResponse;
+  schedulePaymentRecord?: GetPaymentRecordResponse;
 }
 
 export type ListSubscriptionResponse = {

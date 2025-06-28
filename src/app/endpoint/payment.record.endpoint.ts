@@ -13,7 +13,7 @@ export type GetPaymentRecordResponse = {
   status: PaymentRecordStatus
   paymentId: string
   paymentMethodLabel: string;
-  methodType: PaymentMethodType;
+  methodType?: PaymentMethodType;
   createdAt: string;
   amount: number;
   depositor?: string;
@@ -56,5 +56,6 @@ export enum PaymentRecordStatus {
   Pending = 'Pending',
   Completed = 'Completed',
   Cancelled = 'Cancelled',
-  Settled = 'Settled'
+  Settled = 'Settled',
+  Scheduled = 'Scheduled',
 }

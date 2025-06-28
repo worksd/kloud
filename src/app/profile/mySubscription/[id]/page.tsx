@@ -1,6 +1,8 @@
 import { getSubscriptionDetailAction } from "@/app/profile/mySubscription/action/get.subscription.detail.action";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function MySubscriptionDetailPage({params}: {
   params: Promise<{ id: string }>
@@ -56,15 +58,24 @@ export default async function MySubscriptionDetailPage({params}: {
             </div>
           </div>
         </div>
-        {subscription.scheduledPaymentRecord &&
-          <UpcomingPaymentCard payment={{
-            subscriptionId: subscription.subscriptionId,
-            studio,
-            nextPaymentDate: subscription.scheduledPaymentRecord?.paymentScheduledAt ?? '',
-            productName: subscription.productName,
-          }}/>
+
+        {subscription.schedulePaymentRecord &&
+          <div>
+            <UpcomingPaymentCard payment={{
+              subscriptionId: subscription.subscriptionId,
+              studio,
+              nextPaymentDate: subscription.schedulePaymentRecord?.paymentScheduledAt ?? '',
+              productName: subscription.productName,
+            }}/>
+            <NavigateClickWrapper route={KloudScreen.MySubscriptionCancel(subscription.subscriptionId)} method={'push'}>
+              <div className="text-xs text-gray-400 mt-2 text-right">
+                정기결제 해지하기
+              </div>
+            </NavigateClickWrapper>
+          </div>
         }
       </div>
+
     );
   }
 }
@@ -77,25 +88,14 @@ type UpcomingPayment = {
 };
 
 const UpcomingPaymentCard = ({payment}: { payment: UpcomingPayment }) => {
-  const {subscriptionId, productName, nextPaymentDate, studio} = payment;
+  const {nextPaymentDate} = payment;
 
   return (
-    <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-white text-black">
-      <div className="flex justify-between items-start mb-2">
-        <h2 className="text-lg font-medium">{productName}</h2>
-        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-            예정 결제일
-          </span>
+    <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-white text-black mt-4">
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-semibold text-gray-900">다음 결제일</span>
+        <span className="text-sm text-gray-700">{nextPaymentDate}</span>
       </div>
-
-      {studio && (
-        <p className="text-sm text-gray-600 mb-1">
-          스튜디오: <span className="font-medium">{studio.name}</span>
-        </p>
-      )}
-
-      <p className="text-sm text-gray-700 mb-1">결제일: <span className="font-medium">{nextPaymentDate}</span></p>
-      <p className="text-xs text-gray-400">구독 ID: {subscriptionId}</p>
     </div>
   );
-}
+};
