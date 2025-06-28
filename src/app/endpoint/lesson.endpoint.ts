@@ -19,9 +19,9 @@ export type GetLessonResponse = {
     startTime?: string;
     saleDate?: string;
     duration?: number;
-    type?: LessonType;
+    type?: string;
     price?: number;
-    level?: LessonLevels;
+    level?: string;
     artist?: GetArtistResponse;
     studio?: GetStudioResponse;
     currentStudentCount?: number;
@@ -34,7 +34,7 @@ export type GetLessonResponse = {
     paymentType?: 'Subscription' | 'Default'
     days?: string;
     description?: string;
-    genre?: LessonGenre;
+    genre?: string;
 };
 
 export type GetStudioRoomResponse = {

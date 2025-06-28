@@ -8,6 +8,7 @@ const statusLabelMap: Record<PaymentRecordStatus, string> = {
   Cancelled: "결제 취소",
   Pending: "결제 대기",
   Settled: "결제 완료",
+  Scheduled: '다음 결제',
 };
 
 export const PaymentRecordItem = async ({

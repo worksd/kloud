@@ -26,9 +26,9 @@ export async function LessonBand({title, lessons, type}: {
                 width={167}
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}
-                title={item.title ?? ''}
+                title={item.title}
                 startTime={item.startTime ?? ''}
-                studioLogoUrl={item.studio?.profileImageUrl}
+                studio={item.studio}
                 dday={item.dday}
                 genre={item.genre}
                 type={item.type}

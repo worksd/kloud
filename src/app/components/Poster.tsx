@@ -5,14 +5,13 @@ import { formatDateTime } from "@/utils/date.format";
 import Image from "next/image";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { translate } from "@/utils/translate";
-import { LessonGenreLabel, LessonTypeLabel } from "@/app/components/LessonGenreLabel";
-import { LessonGenre } from "@/app/endpoint/lesson.endpoint";
-import { LessonType } from "@/entities/lesson/lesson";
+import { LessonLabel, LessonPosterTypeLabel } from "@/app/components/LessonLabel";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 export async function Poster({
                                id,
                                posterUrl,
-                               studioLogoUrl,
+                               studio,
                                startTime,
                                title,
                                width,
@@ -22,13 +21,13 @@ export async function Poster({
                              }: {
   id: number,
   posterUrl: string,
-  studioLogoUrl?: string,
+  studio?: GetStudioResponse,
   startTime: string,
   width?: number
   title?: string,
   dday?: string,
-  genre?: LessonGenre,
-  type?: LessonType,
+  genre?: string,
+  type?: string,
 }) {
   const formatTime = await formatDateTime(startTime)
   return (
@@ -43,50 +42,64 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
-          {genre && <div className={'absolute py-1 px-1 top-0 right-0 text-black'}>
-            <LessonGenreLabel genre={genre}/>
-          </div>}
-          {type && <div className={'absolute py-1 px-1 top-0 left-0 text-black'}>
-            <LessonTypeLabel type={type}/>
-          </div>}
-          {dday ? (
-            <div
-              className="absolute py-1 px-2 bottom-0 right-0 mb-2 mr-2 text-white bg-[#00000099] text-[12px] text-center font-semibold rounded-[999px]">
-              {dday}
-            </div>
-          ) : (
+          {type &&
+            <LessonPosterTypeLabel label={type}/>
+          }
+          {!dday &&
             <div
               className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">
               {await translate('finish')}
             </div>
+          }
+        </div>
+        {/* 텍스트 영역 */}
+        <div className="w-full mt-2">
+          {/* 프로필 이미지가 여기로 이동 */}
+          {studio && studio.profileImageUrl && (
+            <div className="flex items-center gap-1 mb-1">
+              <Image
+                className="w-[24px] h-[24px] rounded-[20px] border"
+                style={{
+                  borderColor: '#F7F8F9',
+                  borderWidth: '1px',
+                }}
+                src={studio.profileImageUrl}
+                alt="스튜디오 로고"
+                width={24}
+                height={24}
+              />
+              {studio.name && (
+                <span className="text-[12px] font-medium" style={{color: '#484B4D'}}>
+              {studio.name}
+              </span>
+              )}
+            </div>
           )}
 
-          {studioLogoUrl && <Image
-            className="absolute left-0 top-0 mt-2 ml-2 w-[24px] h-[24px] rounded-full flex-shrink-0"
-            src={studioLogoUrl}
-            alt={'로고 URL'}
-            width={24}
-            height={24}
-          />}
-        </div>
-
-        <div className="ml-1 w-full">
+          {/* 타이틀 */}
           <div
-            className="body-400 mt-2"
+            className="text-black font-bold text-[14px]"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
+              overflow: 'hidden',
             }}
           >
             {title}
           </div>
-          {title &&
-            <div className="body-200 text-gray-500 truncate">
+
+          {/* 날짜 + 요일 + 시간 */}
+          {title && (
+            <div className="body-200 text-gray-500 text-[12px] truncate font-medium">
               {`${formatTime.date}(${await translate(formatTime.dayOfWeek)}) ${formatTime.time}`}
             </div>
-          }
+          )}
+          {genre && (
+            <div className="mt-1">
+              <LessonLabel label={genre}/>
+            </div>
+          )}
         </div>
       </div>
     </NavigateClickWrapper>

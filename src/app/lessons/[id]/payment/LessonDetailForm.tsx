@@ -9,7 +9,7 @@ import { translate } from "@/utils/translate";
 import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import { LessonGenreLabel, LessonLevelLabel, LessonTypeLabel } from "@/app/components/LessonGenreLabel";
+import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from "@/app/components/LessonLabel";
 
 export default async function LessonDetailForm({lesson, appVersion}: {
   lesson: GetLessonResponse,
@@ -52,9 +52,9 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             <div className="self-stretch justify-between items-start inline-flex">
               {lesson.studio && <StudioProfileImage studio={lesson.studio}/>}
               <div className="justify-center items-start gap-[3px] flex">
-                {lesson.level && <LessonLevelLabel level={lesson.level}/>}
-                {lesson.type && <LessonTypeLabel type={lesson.type}/>}
-                {lesson.genre && <LessonGenreLabel genre={lesson.genre}/>}
+                {lesson.level && <LessonLevelLabel label={lesson.level}/>}
+                {lesson.type && <LessonTypeLabel label={lesson.type}/>}
+                {lesson.genre && <LessonLabel label={lesson.genre}/>}
               </div>
             </div>
             <div className="self-stretch justify-start items-center gap-2 inline-flex">
