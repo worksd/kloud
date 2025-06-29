@@ -14,11 +14,16 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
   const maxRow = Math.max(...currentTimeTable.cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
   const onClickPrev = async () => {
-    window.KloudEvent.sendHapticFeedback()
+    window.KloudEvent.sendHapticFeedback();
+
+    const prevBaseDate = new Date(currentTimeTable.baseDate);
+    prevBaseDate.setDate(prevBaseDate.getDate() - 7);
+
     const newTable = await getTimeTableAction({
-      baseDate: currentTimeTable.prevDate ?? '',
+      baseDate: prevBaseDate.toISOString().split('T')[0], // 'YYYY-MM-DD'
       studioId: currentTimeTable.studioId,
-    })
+    });
+
     if ('days' in newTable && newTable.days.length > 1) {
       setCurrentTimeTable(newTable);
     }
@@ -26,10 +31,12 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
 
   const onClickNext = async () => {
     window.KloudEvent.sendHapticFeedback()
+    const nextBaseDate = new Date(currentTimeTable.baseDate);
+    nextBaseDate.setDate(nextBaseDate.getDate() + 7);
     const newTable = await getTimeTableAction({
-      baseDate: currentTimeTable.nextDate ?? '',
+      baseDate: nextBaseDate.toISOString(), // 또는 원하는 포맷으로
       studioId: currentTimeTable.studioId,
-    })
+    });
     if ('days' in newTable && newTable.days.length > 1) {
       setCurrentTimeTable(newTable);
     }
@@ -37,37 +44,27 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
 
   return (
     <div className="flex flex-col px-1">
-      <div className="flex flex-row items-center px-4 w-full justify-between">
-        {currentTimeTable.prevDate ? (
-          <div
-            onClick={onClickPrev}
-            className="relative w-10 h-10 flex items-center justify-center overflow-hidden rounded-full transition-all duration-200 active:bg-gray-200"
-          >
-            <span
-              className="absolute inset-0 scale-0 rounded-full bg-black opacity-10 group-active:scale-150 transition-transform duration-300 ease-out"></span>
-            <BackwardIcon/>
-          </div>
-        ) : (
-          <div className="w-[40px]"/> // placeholder to keep center aligned
-        )}
+      <div className="flex flex-row items-center justify-center gap-3 px-4 w-full pb-2">
 
-        <div className="flex flex-col items-center justify-center text-center flex-grow">
-          <h2 className="text-[20px] text-black font-bold">{currentTimeTable.title}</h2>
-          <div className="mb-2 text-gray-700 text-[12px] font-paperlogy">{currentTimeTable.description}</div>
+        <div
+          onClick={onClickPrev}
+          className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
+        >
+          <BackwardIcon/>
         </div>
 
-        {currentTimeTable.nextDate ? (
-          <div
-            onClick={onClickNext}
-            className="relative w-10 h-10 flex items-center justify-center overflow-hidden rounded-full transition-all duration-200 active:bg-gray-200"
-          >
-            <span
-              className="absolute inset-0 scale-0 rounded-full bg-black opacity-10 group-active:scale-150 transition-transform duration-300 ease-out"></span>
-            <ForwardIcon/>
-          </div>
-        ) : (
-          <div className="w-[40px]"/>
-        )}
+        <div className="flex flex-col items-center justify-center text-center">
+          <h2 className="text-[16px] text-black font-bold">{currentTimeTable.title}</h2>
+          <div className={'text-[#BCBCBC] text-[10px] font-paperlogy'}>{currentTimeTable.description}</div>
+        </div>
+
+
+        <div
+          onClick={onClickNext}
+          className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
+        >
+          <ForwardIcon/>
+        </div>
       </div>
       <div
         className="grid w-full px-1 text-center text-[14px] font-medium text-black"
@@ -80,11 +77,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
         {currentTimeTable.days.map((value, i) => (
           <div
             key={value.day}
-            className={`rounded-lg font-paperlogy text-center flex flex-col items-center justify-${
-              value.date ? 'start' : 'center'
-            } ${
-              value.isToday ? 'bg-black text-white' : 'bg-gray-300 text-black'
-            }`}
+            className={`text-center flex flex-col items-center justify`}
             style={{
               gridColumnStart: i + 1,
               gridRowStart: 1,
@@ -93,19 +86,24 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
               height: '100%',
             }}
           >
+            {value.day != 'TIME' &&
+              <div
+                className={`text-[12px] text-[#7A7A7A] font-paperlogy`}
+              >
+                {value.day}
+              </div>
+            }
             {value.date && value.date.length > 1 && (
-              <div className="text-[10px] leading-none mb-[2px] text-gray-500 font-paperlogy">
+              <div
+                className={`
+      text-[14px] leading-none font-paperlogy mt-[6px] mb-[2px]
+      w-6 h-6 flex items-center justify-center mx-auto
+      ${value.isToday ? 'bg-black text-white rounded-full' : 'text-[#BCBCBC]'}
+    `}
+              >
                 {value.date.split('-')[2]}
               </div>
             )}
-            <div
-              className={`text-[12px] leading-tight ${
-                value.day === 'SAT' ? 'text-blue-500' :
-                  value.day === 'SUN' ? 'text-red-500' : ''
-              }`}
-            >
-              {value.day}
-            </div>
           </div>
         ))}
         {/* timetable cell */}
@@ -143,7 +141,8 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
                     />
                   </div>
                   <div
-                    className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1"
+                    className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
+             overflow-hidden text-ellipsis whitespace-nowrap"
                   >
                     {item.lesson?.artist?.nickName ?? item.lesson.title}
                   </div>

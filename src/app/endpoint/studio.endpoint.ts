@@ -54,9 +54,7 @@ export type GetTimeTableResponse = {
   title: string;
   description: string;
   studioId: number;
-  nextDate?: string;
-  prevDate?: string;
-  baseDate?: string;
+  baseDate: string;
 }
 
 export type GetTimeTableDayResponse = {
