@@ -20,13 +20,13 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.id == 'DeleteBillingCard') {
-        setIsDeleting(true); // ✅ 삭제 시작
+        setIsDeleting(true);
         const res = await deleteBillingAction({billingKey: data.customData ?? ''})
-        if ('success' in res && res.success) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        if ('deletedAt' in res) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
           await loadCards()
         }
-        setIsDeleting(false); // ✅ 삭제 완료
+        setIsDeleting(false);
 
       }
     }
@@ -163,31 +163,24 @@ function BillingCard({
 
   return (
     <div
-      className={`relative rounded-2xl px-6 py-4 shadow-md flex items-center justify-between transition-all duration-200 text-black
-        ${isSelected
-        ? 'border-2 border-black bg-white'
-        : ''
-      }`}
+      className={`relative rounded-2xl px-6 py-4 shadow-sm transition-all duration-200 text-black border
+        ${isSelected ? 'border-black bg-white' : 'border-gray-200 bg-gray-50'}`}
     >
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          className="absolute top-2 right-4 bottom-2 text-xs text-red-500 font-bold"
+        >
+          삭제
+        </button>
+      )}
+
       <div className="space-y-1">
-        <div className={`text-lg font-semibold`}>
-          {cardName}
-        </div>
+        <div className="text-lg font-semibold">{cardName}</div>
         <div className={`text-sm tracking-widest ${isSelected ? 'text-neutral-600' : 'text-neutral-400'}`}>
           {maskedNumber}
         </div>
       </div>
-
-      {onDelete && (
-        <div className="flex justify-end">
-          <button
-            onClick={onDelete}
-            className="text-xs text-red-400 hover:text-red-300 font-bold"
-          >
-            삭제
-          </button>
-        </div>
-      )}
     </div>
   );
 }

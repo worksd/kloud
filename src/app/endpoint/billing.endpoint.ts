@@ -18,6 +18,10 @@ export type CreateBillingRequest = {
   passwordTwoDigits: string;
 }
 
+export type DeleteBillingResponse = {
+  deletedAt: string
+}
+
 export type DeleteBillingRequest = {
   billingKey: string;
 }
@@ -33,7 +37,7 @@ export const Create: Endpoint<CreateBillingRequest, GetBillingResponse> = {
   bodyParams: ['birthOrBusinessRegistrationNumber','cardNumber','passwordTwoDigits','expiryYear', 'expiryMonth']
 }
 
-export const Delete: Endpoint<DeleteBillingRequest, SimpleResponse> = {
+export const Delete: Endpoint<DeleteBillingRequest, DeleteBillingResponse> = {
   method: 'delete',
   path: `/billing`,
   bodyParams: ['billingKey'],

@@ -24,7 +24,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
   const handleSubmit = async () => {
     const res = await addBillingAction(form)
     if ('billingKey' in res) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
       window.KloudEvent.closeBottomSheet()
       window.KloudEvent.refresh(baseRoute)
     }
