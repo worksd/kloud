@@ -5,6 +5,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
 import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
@@ -59,8 +60,8 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
 
         {newCards.length === 0 ? (
           <div className="text-center text-gray-500 mt-20">
-            <p className="text-[22px] font-bold text-black">등록된 결제 수단이 없습니다.</p>
-            <p className="text-sm mt-2">우측 하단 <span className="font-bold">+</span> 버튼을 눌러 추가해주세요.</p>
+            <TranslatableText titleResource={'no_registered_payment_method_message'} className="text-[22px] font-bold text-black"/>
+            <TranslatableText titleResource={'press_right_bottom_button_message'}/>
           </div>
         ) : (
           <BillingCardList cards={newCards} onDelete={async (card: GetBillingResponse) => {
@@ -91,7 +92,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               />
             </svg>
-            <span>결제 수단을 삭제하고 있습니다.</span>
+            <TranslatableText titleResource={'delete_payment_method_message'}/>
           </div>
         </div>
       )}
@@ -167,12 +168,12 @@ function BillingCard({
         ${isSelected ? 'border-black bg-white' : 'border-gray-200 bg-gray-50'}`}
     >
       {onDelete && (
-        <button
+        <TranslatableText
           onClick={onDelete}
           className="absolute top-2 right-4 bottom-2 text-xs text-red-500 font-bold"
+          titleResource={'delete'}
         >
-          삭제
-        </button>
+        </TranslatableText>
       )}
 
       <div className="space-y-1">

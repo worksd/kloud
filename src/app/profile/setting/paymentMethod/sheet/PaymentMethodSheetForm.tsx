@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
 import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
 
@@ -66,11 +67,12 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
 
   return (
     <main className="min-h-screen bg-white text-black px-5 py-8">
-      <h1 className="text-2xl font-bold mb-10 tracking-tight">결제 정보 입력</h1>
+      <TranslatableText className="text-2xl font-bold mb-10 tracking-tight"
+                        titleResource={'payment_information_input'}/>
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm text-gray-500 mb-1">카드 번호</label>
+          <TranslatableText className="block text-sm text-gray-500 mb-1" titleResource={'card_number_placeholder'}/>
           <input
             type="text"
             name="cardNumber"
@@ -85,7 +87,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-500 mb-1">유효기간</label>
+          <TranslatableText titleResource={'expiration_date'} className="block text-sm text-gray-500 mb-1"/>
           <div className="flex gap-3">
             <input
               type="text"
@@ -111,11 +113,12 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-500 mb-1">생년월일 또는 사업자등록번호</label>
+          <TranslatableText titleResource={'card_birthday_business_placeholder'}
+                            className="block text-sm text-gray-500 mb-1"/>
           <input
             type="text"
             name="birthOrBusinessRegistrationNumber"
-            placeholder="ex. 880101 또는 1234567890"
+            placeholder="ex. 880101 or 1234567890"
             inputMode="numeric"
             ref={birthRef}
             value={form.birthOrBusinessRegistrationNumber}
@@ -125,7 +128,8 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-500 mb-1">비밀번호 앞 2자리</label>
+          <TranslatableText titleResource={'card_password_two_digits_placeholder'}
+                            className="block text-sm text-gray-500 mb-1"/>
           <input
             type="password"
             name="passwordTwoDigits"
@@ -140,20 +144,17 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
       </div>
 
       <div className="mt-10 flex justify-between gap-4">
-        <button
+        <TranslatableText
           onClick={() => {
             window.KloudEvent.closeBottomSheet()
           }}
           className="w-1/2 py-3 rounded-xl bg-gray-100 text-gray-800 hover:bg-gray-200 transition"
-        >
-          취소
-        </button>
-        <button
+          titleResource={'cancel'}/>
+        <TranslatableText
           onClick={handleSubmit}
           className="w-1/2 py-3 rounded-xl bg-black text-white hover:bg-gray-900 transition"
-        >
-          제출
-        </button>
+          titleResource={'confirm'}
+        />
       </div>
     </main>
   )

@@ -407,6 +407,72 @@ export const StringResource = {
     jp: "本当に退会しますか？ 😢",
     zh: "确定要注销账户吗? 😢"
   },
+  delete: {
+    ko: "삭제",
+    en: "Delete",
+    jp: "削除",
+    zh: "删除"
+  },
+  delete_payment_method_message: {
+    ko: "결제 수단을 삭제하고 있습니다.",
+    en: "Deleting payment method.",
+    jp: "お支払い方法を削除しています。",
+    zh: "正在删除支付方式。"
+  },
+  no_registered_payment_method_message: {
+    ko: "등록된 결제 수단이 없습니다.",
+    en: "No registered payment method.",
+    jp: "登録されたお支払い方法がありません。",
+    zh: "没有已注册的支付方式。"
+  },
+  press_right_bottom_button_message: {
+    ko: "우측 하단 + 버튼을 눌러 추가해주세요.",
+    en: "Press the + button at the bottom right to add.",
+    jp: "右下の＋ボタンを押して追加してください。",
+    zh: "请点击右下角的 + 按钮添加。"
+  },
+  payment_information_input: {
+    ko: "결제 정보 입력",
+    en: "Enter payment information",
+    jp: "支払い情報の入力",
+    zh: "输入支付信息"
+  },
+  card_number_placeholder: {
+    ko: "카드 번호",
+    en: "Card number",
+    jp: "カード番号",
+    zh: "卡号"
+  },
+  card_expiry_year_placeholder: {
+    ko: "유효 년도 (YY)",
+    en: "Expiry Year (YY)",
+    jp: "有効年 (YY)",
+    zh: "有效年份 (YY)"
+  },
+  card_expiry_month_placeholder: {
+    ko: "유효 월 (MM)",
+    en: "Expiry Month (MM)",
+    jp: "有効月 (MM)",
+    zh: "有效月份 (MM)"
+  },
+  card_birthday_business_placeholder: {
+    ko: "생년월일 또는 사업자등록번호",
+    en: "Birthdate or Business Number",
+    jp: "生年月日または事業者番号",
+    zh: "出生日期或营业执照号"
+  },
+  card_password_two_digits_placeholder: {
+    ko: "비밀번호 앞 2자리",
+    en: "First 2 digits of card password",
+    jp: "カードパスワードの最初の2桁",
+    zh: "卡片密码前两位"
+  },
+  expiration_date: {
+    ko: "유효 기간",
+    en: "Expiration Date",
+    jp: "有効期限",
+    zh: "有效期限"
+  },
   sign_out_description: {
     ko: "회원님이 떠나신다니 너무 아쉬워요.\n탈퇴하시면 계정 정보와 활동 내역이 삭제되며, 한 달 이전에는 복구가 가능해요.",
     en: "We're sad to see you go.\nIf you delete your refund, your data and activity will be removed, but you can recover it within a month.",
