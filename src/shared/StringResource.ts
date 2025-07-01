@@ -455,11 +455,11 @@ export const StringResource = {
     jp: "有効月 (MM)",
     zh: "有效月份 (MM)"
   },
-  card_birthday_business_placeholder: {
-    ko: "생년월일 또는 사업자등록번호",
-    en: "Birthdate or Business Number",
-    jp: "生年月日または事業者番号",
-    zh: "出生日期或营业执照号"
+  card_birthday_placeholder: {
+    ko: "생년월일",
+    en: "Birthdate",
+    jp: "生年月日",
+    zh: "出生日期"
   },
   card_password_two_digits_placeholder: {
     ko: "비밀번호 앞 2자리",

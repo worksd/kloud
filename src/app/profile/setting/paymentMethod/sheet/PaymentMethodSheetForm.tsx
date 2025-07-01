@@ -113,12 +113,12 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <TranslatableText titleResource={'card_birthday_business_placeholder'}
+          <TranslatableText titleResource={'card_birthday_placeholder'}
                             className="block text-sm text-gray-500 mb-1"/>
           <input
             type="text"
             name="birthOrBusinessRegistrationNumber"
-            placeholder="ex. 880101 or 1234567890"
+            placeholder="ex. 880101"
             inputMode="numeric"
             ref={birthRef}
             value={form.birthOrBusinessRegistrationNumber}
