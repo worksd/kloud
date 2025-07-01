@@ -41,7 +41,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
     <section className="mb-6">
       <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
       <div className="flex justify-between text-base font-medium">
-        <span>{await translate('total_amount')}</span>
+        <span>{await translate('purchase_amount')}</span>
         <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')} </span>
       </div>
     </section>

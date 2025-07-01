@@ -1715,6 +1715,12 @@ export const StringResource = {
     jp: '支払い日時',
     zh: '付款日期和时间',
   },
+  purchase_amount: {
+    ko: '구매금액',
+    en: 'Purchase Amount',
+    jp: '購入金額',
+    zh: '购买金额',
+  },
   empty: {
     ko: '',
     en: '',

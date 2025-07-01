@@ -262,7 +262,7 @@ export default function PaymentButton({
             depositor: depositor,
           });
           if ('id' in res) {
-            const route = KloudScreen.PaymentRecordDetail(paymentId)
+            const route = KloudScreen.PaymentRecordDetail(res.paymentId)
             if (appVersion == '' && route) {
               router.replace(route)
             } else {
