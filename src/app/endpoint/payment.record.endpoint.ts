@@ -1,7 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { PaymentItemType, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetPaymentRecordListResponse = {
@@ -31,7 +29,7 @@ export type PaymentIdParameter = {
 }
 
 export type RequestAccountTransfer = {
-  item: PaymentItemType;
+  item: string;
   itemId: number;
   depositor: string
 }

@@ -3,13 +3,12 @@ import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
 
 export type GetPaymentRequest = {
   itemId: number
-  item: PaymentItemType
+  item: string
 }
-
-export type PaymentItemType = 'lesson' | 'pass-plan'
 
 export type GetPaymentResponse = {
   user: GetUserResponse;

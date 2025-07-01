@@ -1,9 +1,8 @@
 'use server'
-import { PaymentItemType } from "@/app/endpoint/payment.endpoint";
 import { api } from "@/app/api.client";
 
 export const createSubscriptionAction = async ({item, itemId, billingKey}: {
-  item: PaymentItemType,
+  item: string
   itemId: number,
   billingKey: string
 }) => {

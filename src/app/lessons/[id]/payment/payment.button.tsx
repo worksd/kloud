@@ -207,7 +207,7 @@ export default function PaymentButton({
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } else if (method == 'billing') {
-      if (selectedBilling) {
+      if (selectedBilling && selectedBilling.billingKey.length > 0) {
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
           title: `${title}을(를) 정기결제하시겠어요?`,
@@ -323,7 +323,7 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
-        const res = await createSubscriptionAction({item: 'lesson', itemId: id, billingKey: data.customData ?? ''})
+        const res = await createSubscriptionAction({item: type.value, itemId: id, billingKey: data.customData ?? ''})
         if ('subscription' in res && 'schedulePaymentRecord' in res && 'paymentId' in res) {
           await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
           const bottomMenuList = await getBottomMenuList();

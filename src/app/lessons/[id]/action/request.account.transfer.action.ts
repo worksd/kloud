@@ -1,9 +1,8 @@
 'use server'
 import { api } from "@/app/api.client";
-import { PaymentItemType } from "@/app/endpoint/payment.endpoint";
 
 export const requestAccountTransferAction = async ({item, itemId, depositor}: {
-  item: PaymentItemType,
+  item: string,
   itemId: number,
   depositor: string
 }) => {

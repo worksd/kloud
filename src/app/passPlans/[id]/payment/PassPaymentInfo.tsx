@@ -67,6 +67,7 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
                        method={selectedMethod}
                        depositor={depositor}
                        user={payment.user}
+                       selectedBilling={selectedBillingCard}
                        paymentId={payment.paymentId}/>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { PaymentItemType } from "@/app/endpoint/payment.endpoint";
 import { GetPaymentRecordResponse } from "@/app/endpoint/payment.record.endpoint";
 
 export type GetSubscriptionResponse = {
@@ -19,7 +18,7 @@ export type ListSubscriptionResponse = {
 }
 
 export type CreateSubscriptionParameter = {
-  item: PaymentItemType,
+  item: string,
   itemId: number
   billingKey: string
 }
@@ -45,7 +44,7 @@ export const List: Endpoint<object, ListSubscriptionResponse> = {
   path: '/subscription',
 }
 
-export const Get: Endpoint<{subscriptionId: string}, GetSubscriptionResponse> = {
+export const Get: Endpoint<{ subscriptionId: string }, GetSubscriptionResponse> = {
   method: 'get',
   path: (e) => `/subscription/${e.subscriptionId}`,
   pathParams: ['subscriptionId'],
