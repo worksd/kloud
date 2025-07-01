@@ -6,6 +6,7 @@ import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformat
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 
 export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   payment: GetPaymentResponse,
@@ -16,6 +17,9 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
   const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
+    payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
+  )
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -26,7 +30,10 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
     <div className={"flex flex-col justify-between"}>
       <PaymentMethodComponent
         paymentOptions={payment.methods}
+        cards={payment.cards}
         selectedMethod={selectedMethod}
+        selectedBillingCard={selectedBillingCard}
+        selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
         selectPaymentMethodAction={setSelectedMethod}
         depositor={depositor}
         setDepositorAction={setDepositor}
