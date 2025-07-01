@@ -28,7 +28,7 @@ export const LessonTypeLabel = ({type}: { type: LessonType }) => {
 
 
 export const LessonPosterTypeLabel = ({label}: { label: string }) => {
-
+  if (label == 'Default') return;
   return (
     <div
       className="absolute top-0 left-0 text-white text-[12px] font-bold py-[6px] pl-[12px] pr-[8px] rounded-tl-[16px] rounded-br-[10px] font-paperlogy"
