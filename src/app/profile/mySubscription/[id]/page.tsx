@@ -3,6 +3,7 @@ import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { translate } from "@/utils/translate";
 
 export default async function MySubscriptionDetailPage({params}: {
   params: Promise<{ id: string }>
@@ -40,20 +41,20 @@ export default async function MySubscriptionDetailPage({params}: {
             </div>
             {/* 날짜 표시 */}
             <div className="border-t pt-4 text-sm text-gray-700">
-              <div className="font-semibold mb-1">이용 기간</div>
+              <div className="font-semibold mb-1">{await translate('period')}</div>
               <div>{startDate} ~ {endDate}</div>
             </div>
 
             {studio && (
               <div className="border-t pt-4 text-sm text-gray-700 space-y-1">
-                <div className="font-semibold">소속 스튜디오</div>
+                <div className="font-semibold">{await translate('studio')}</div>
                 <div>{studio.name}</div>
                 {studio.address && <div className="text-gray-500">{studio.address}</div>}
               </div>
             )}
 
             <div className="border-t pt-4 text-sm text-gray-600">
-              <div className="font-semibold mb-1">구독 ID</div>
+              <div className="font-semibold mb-1">{await translate('subscription_id')}</div>
               <div className="text-xs text-gray-400">{subscription.subscriptionId}</div>
             </div>
           </div>
@@ -69,7 +70,7 @@ export default async function MySubscriptionDetailPage({params}: {
             }}/>
             <NavigateClickWrapper route={KloudScreen.MySubscriptionCancel(subscription.subscriptionId)} method={'push'}>
               <div className="text-xs text-gray-400 mt-2 text-right">
-                정기결제 해지하기
+                {await translate('cancel_subscription')}
               </div>
             </NavigateClickWrapper>
           </div>

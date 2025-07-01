@@ -8,6 +8,7 @@ import { translate } from "@/utils/translate";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/cancel/cancel.subscription.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { TranslatableText } from "@/utils/TranslatableText";
 
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
@@ -100,7 +101,7 @@ export default function MySubscriptionCancelForm({ subscription }: { subscriptio
     <div className="max-w-xl mx-auto p-6 text-black">
       <SubscriptionSummaryCard subscription={subscription} />
 
-      <p className="text-sm text-gray-600 mb-6">정기결제를 취소하려는 이유를 선택해주세요.</p>
+      <TranslatableText className="text-sm text-gray-600 mb-6" titleResource={'select_cancel_reason'}/>
 
       <div className="space-y-3">
         {cancelReasons.map((reason) => (
@@ -139,7 +140,7 @@ export default function MySubscriptionCancelForm({ subscription }: { subscriptio
           selectedReason ? 'bg-black hover:bg-gray-800' : 'bg-gray-300 cursor-not-allowed'
         }`}
       >
-        정기결제 취소하기
+        <TranslatableText titleResource={'cancel_subscription'}/>
       </button>
     </div>
   );

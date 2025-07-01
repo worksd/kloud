@@ -1,5 +1,3 @@
-'use client'
-
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
@@ -7,13 +5,12 @@ import React from "react";
 import { GetPaymentRecordResponse } from "@/app/endpoint/payment.record.endpoint";
 import { CardInformation } from "@/app/paymentRecords/[id]/CardInformation";
 import { useLocale } from "@/hooks/useLocale";
+import { translate } from "@/utils/translate";
 
-export const PaymentRecordDetailForm = ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
-  const {t} = useLocale()
+export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
   return <div className="p-5 bg-white min-h-screen text-gray-900">
-    {/* Header */}
     <section className="mb-6">
-      <h2 className="text-sm font-semibold mb-2">구매내역</h2>
+      <h2 className="text-sm font-semibold mb-2">{await translate('purchase_history')}</h2>
       <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute}>
         <div className="text-sm text-gray-900 border border-gray-100 rounded-xl p-4 shadow-sm bg-white">
 
@@ -35,17 +32,17 @@ export const PaymentRecordDetailForm = ({paymentRecord}: { paymentRecord: GetPay
 
 
           <div className="mt-4 border-t pt-3 text-xs text-gray-500">
-            결제번호 <span className="text-gray-400 font-medium">{paymentRecord.paymentId}</span>
+            {await translate('payment_id')} <span className="text-gray-400 font-medium">{paymentRecord.paymentId}</span>
           </div>
         </div>
       </NavigateClickWrapper>
     </section>
     {/* 결제내역 */}
     <section className="mb-6">
-      <h2 className="text-sm font-semibold mb-2">결제내역</h2>
+      <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
       <div className="flex justify-between text-base font-medium">
-        <span>이용요금</span>
-        <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{t('won')} </span>
+        <span>{await translate('total_amount')}</span>
+        <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')} </span>
       </div>
     </section>
 
@@ -54,15 +51,15 @@ export const PaymentRecordDetailForm = ({paymentRecord}: { paymentRecord: GetPay
     {/* 결제요금 */}
     <section className="space-y-3">
       <div className="flex justify-between text-base font-bold text-emerald-600">
-        <span>결제요금</span>
-        <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{t('won')}</span>
+        <span>{await translate('total_amount')}</span>
+        <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')}</span>
       </div>
       <div className="flex justify-between text-sm text-gray-400">
-        <span>결제수단</span>
+        <span>{await translate('payment_method')}</span>
         <span>{paymentRecord.paymentMethodLabel}</span>
       </div>
       <div className="flex justify-between text-sm text-gray-400">
-        <span>결제일시</span>
+        <span>{await translate('payment_datetime')}</span>
         <span>{paymentRecord.createdAt}</span>
       </div>
     </section>

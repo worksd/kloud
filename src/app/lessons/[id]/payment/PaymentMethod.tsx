@@ -103,7 +103,7 @@ export const PaymentMethodComponent = ({
                 onClick={handleAddPaymentMethod} // 함수는 필요 시 너가 정의
                 className="mt-2 py-2 rounded-xl border border-dashed border-gray-400 text-gray-600 text-sm hover:bg-gray-100 transition"
               >
-                + 결제수단 추가
+                <TranslatableText titleResource={'add_payment_method_button'}/>
               </button>
             </div>
 

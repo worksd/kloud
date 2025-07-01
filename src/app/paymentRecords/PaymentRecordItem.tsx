@@ -2,13 +2,15 @@ import { GetPaymentRecordResponse, PaymentRecordStatus } from "@/app/endpoint/pa
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { StringResourceKey } from "@/shared/StringResource";
+import { translate } from "@/utils/translate";
 
-const statusLabelMap: Record<PaymentRecordStatus, string> = {
-  Completed: "결제 완료",
-  Cancelled: "결제 취소",
-  Pending: "결제 대기",
-  Settled: "결제 완료",
-  Scheduled: '다음 결제',
+const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
+  Completed: 'payment_record_completed',
+  Cancelled: 'payment_record_cancelled',
+  Pending: 'payment_record_pending',
+  Settled: 'payment_record_completed',
+  Scheduled: 'payment_record_scheduled',
 };
 
 export const PaymentRecordItem = async ({
@@ -46,29 +48,29 @@ export const PaymentRecordItem = async ({
                     : "bg-gray-100 text-gray-500"
             }`}
           >
-            {statusLabelMap[paymentRecord.status]}
+            {await translate(statusLabelMap[paymentRecord.status])}
           </span>
         </div>
 
         {/* 디테일 */}
         <dl className="space-y-1 text-sm text-gray-700">
           <div className="flex justify-between">
-            <dt className="text-gray-500">결제 수단</dt>
+            <dt className="text-gray-500">{await translate('payment_method')}</dt>
             <dd className="text-right font-medium">
               {paymentRecord.paymentMethodLabel}
             </dd>
           </div>
 
           <div className="flex justify-between">
-            <dt className="text-gray-500">결제 금액</dt>
+            <dt className="text-gray-500">{await translate('total_amount')}</dt>
             <dd className="text-right font-semibold text-gray-900">
-              {paymentRecord.amount.toLocaleString()}원
+              {paymentRecord.amount.toLocaleString() + await translate('won')}
             </dd>
           </div>
 
           {paymentRecord.depositor && (
             <div className="flex justify-between">
-              <dt className="text-gray-500">입금자명</dt>
+              <dt className="text-gray-500">{await translate('depositor_name')}</dt>
               <dd className="text-right font-medium">{paymentRecord.depositor}</dd>
             </div>
           )}
