@@ -19,7 +19,7 @@ export type GetLessonResponse = {
     startTime?: string;
     saleDate?: string;
     duration?: number;
-    type?: string;
+    type?: LessonType;
     price?: number;
     level?: string;
     artist?: GetArtistResponse;

@@ -53,7 +53,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
               {lesson.studio && <StudioProfileImage studio={lesson.studio}/>}
               <div className="justify-center items-start gap-[3px] flex">
                 {lesson.level && <LessonLevelLabel label={lesson.level}/>}
-                {lesson.type && <LessonTypeLabel label={lesson.type}/>}
+                {lesson.type && <LessonTypeLabel type={lesson.type}/>}
                 {lesson.genre && <LessonLabel label={lesson.genre}/>}
               </div>
             </div>

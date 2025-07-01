@@ -1,3 +1,4 @@
+'use client'
 import { TranslatableText } from "@/utils/TranslatableText";
 import ArrowUpIcon from "../../../../public/assets/arrow-up.svg";
 import ArrowDownIcon from "../../../../public/assets/arrow-down.svg";
