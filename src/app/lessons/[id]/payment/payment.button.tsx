@@ -210,10 +210,18 @@ export default function PaymentButton({
       if (selectedBilling) {
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
-          message: `해당 상품은 매월 자동으로 결제되는 정기결제 상품입니다.\n 상품명: ${title}\n• 결제금액: ${price}원\n결제를 진행하시겠습니까? ${selectedBilling.cardName}`,
           title: `${title}을(를) 정기결제하시겠어요?`,
-          customData: selectedBilling.billingKey
-        })
+          message: [
+            `해당 상품은 매월 자동으로 결제되는 정기결제 상품입니다.`,
+            `상품명: ${title}`,
+            `결제 금액: ${price.toLocaleString()}원`,
+            `결제 수단: ${selectedBilling.cardName}`,
+            ``,
+            `결제를 진행하시겠습니까?`
+          ].join('\n'),
+          customData: selectedBilling.billingKey,
+        });
+
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       } else {
         const dialog = await createDialog({id: 'BillingKeyNotFound'})

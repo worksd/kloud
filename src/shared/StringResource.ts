@@ -1613,6 +1613,30 @@ export const StringResource = {
     jp: '定期購入のキャンセルに失敗しました。もう一度お試しください。',
     zh: '取消订阅失败。请重试。',
   },
+  regular: {
+    ko: '정규',
+    en: 'Regular',
+    jp: 'レギュラー',
+    zh: '常规课',
+  },
+  workshop: {
+    ko: '워크샵',
+    en: 'Workshop',
+    jp: 'ワークショップ',
+    zh: '工作坊',
+  },
+  audition: {
+    ko: '오디션',
+    en: 'Audition',
+    jp: 'オーディション',
+    zh: '试镜',
+  },
+  popup: {
+    ko: '팝업',
+    en: 'Popup',
+    jp: 'ポップアップ',
+    zh: '快闪课',
+  },
   empty: {
     ko: '',
     en: '',

@@ -95,7 +95,7 @@ export async function Poster({
               {`${formatTime.date}(${await translate(formatTime.dayOfWeek)}) ${formatTime.time}`}
             </div>
           )}
-          {genre && (
+          {genre && genre != 'Default' && (
             <div className="mt-1">
               <LessonLabel label={genre}/>
             </div>

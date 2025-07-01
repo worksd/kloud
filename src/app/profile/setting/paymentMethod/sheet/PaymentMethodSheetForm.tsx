@@ -148,11 +148,11 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
           onClick={() => {
             window.KloudEvent.closeBottomSheet()
           }}
-          className="w-1/2 py-3 rounded-xl bg-gray-100 text-gray-800 hover:bg-gray-200 transition"
+          className="w-1/2 py-3 rounded-xl bg-gray-100 text-gray-800 hover:bg-gray-200 transition text-center"
           titleResource={'cancel'}/>
         <TranslatableText
           onClick={handleSubmit}
-          className="w-1/2 py-3 rounded-xl bg-black text-white hover:bg-gray-900 transition"
+          className="w-1/2 py-3 rounded-xl bg-black text-white hover:bg-gray-900 transition text-center"
           titleResource={'confirm'}
         />
       </div>

@@ -97,7 +97,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
               <div
                 className={`
       text-[14px] leading-none font-paperlogy mt-[6px] mb-[2px]
-      w-6 h-6 flex items-center justify-center mx-auto
+      w-6 h-6 flex items-center justify-center mx-auto p-4
       ${value.isToday ? 'bg-black text-white rounded-full' : 'text-[#BCBCBC]'}
     `}
               >

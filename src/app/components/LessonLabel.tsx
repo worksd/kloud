@@ -1,25 +1,33 @@
 'use client'
-import { LessonGenre } from "@/app/endpoint/lesson.endpoint";
-import { LessonLevels, LessonType } from "@/entities/lesson/lesson";
+import { LessonType } from "@/entities/lesson/lesson";
+import { StringResourceKey } from "@/shared/StringResource";
+import { useLocale } from "@/hooks/useLocale";
 
-export const LessonLabel = ({ label }: { label: string }) => {
+export const LessonLabel = ({label}: { label: string }) => {
   return (
-    <div className="inline-block px-1 py-0.5 rounded-[6px] text-[12px] font-paperlogy bg-[#F5F5F8] text-[#707070] shadow-sm backdrop-blur-sm">
+    <div
+      className="inline-block px-1 py-0.5 rounded-[6px] text-[12px] font-paperlogy bg-[#F5F5F8] text-[#707070] shadow-sm backdrop-blur-sm">
       {label}
     </div>
   );
 };
 
-export const LessonTypeLabel = ({ label }: { label: string }) => {
+export const LessonTypeLabel = ({type}: { type: LessonType }) => {
+  const {t} = useLocale();
+  const labelKey = getLessonType({type});
+
+  if (!labelKey) return null;
 
   return (
-    <div className="inline-block px-1 py-0.5 rounded-[4px] text-[12px] font-paperlogy bg-[rgba(0,0,0,0.5)] text-white shadow-sm backdrop-blur-sm">
-      {label}
+    <div
+      className="inline-block px-1 py-0.5 rounded-[4px] text-[12px] font-paperlogy bg-[rgba(0,0,0,0.5)] text-white shadow-sm backdrop-blur-sm">
+      {t(labelKey)}
     </div>
   );
 };
 
-export const LessonPosterTypeLabel = ({ label }: { label: string }) => {
+
+export const LessonPosterTypeLabel = ({label}: { label: string }) => {
 
   return (
     <div
@@ -33,8 +41,32 @@ export const LessonPosterTypeLabel = ({ label }: { label: string }) => {
 
 export const LessonLevelLabel = ({label}: { label: string }) => {
   return (
-    <div className="inline-block px-1 py-0.5 rounded-[4px] text-[12px] font-paperlogy bg-black text-white shadow-sm backdrop-blur-sm">
+    <div
+      className="inline-block px-1 py-0.5 rounded-[4px] text-[12px] font-paperlogy bg-black text-white shadow-sm backdrop-blur-sm">
       {label}
     </div>
   );
 }
+
+const getLessonType = ({
+                         type,
+                       }: {
+  type: LessonType;
+}): StringResourceKey | undefined => {
+  if (type === LessonType.Regular) {
+    return 'regular';
+  } else if (type == LessonType.Audition) {
+    return 'audition';
+  } else if (type == LessonType.PopUp) {
+    return 'popup';
+  } else if (type == LessonType.Workshop) {
+    return 'workshop';
+  }
+
+  return undefined;
+};
+
+const getLessonGenre = ({genre}: { genre: string }) => {
+  if (genre == 'Default') return undefined;
+  else return genre;
+};

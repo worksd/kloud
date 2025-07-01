@@ -100,7 +100,6 @@ export default function MySubscriptionCancelForm({ subscription }: { subscriptio
     <div className="max-w-xl mx-auto p-6 text-black">
       <SubscriptionSummaryCard subscription={subscription} />
 
-      <h2 className="text-xl font-semibold mb-4">정기결제 취소</h2>
       <p className="text-sm text-gray-600 mb-6">정기결제를 취소하려는 이유를 선택해주세요.</p>
 
       <div className="space-y-3">

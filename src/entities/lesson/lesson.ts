@@ -2,6 +2,7 @@ export enum LessonType {
   PopUp = "PopUp",
   Regular = "Regular",
   Workshop = "Workshop",
+  Audition = "Audition",
 }
 
 export enum LessonTypesDisplay {
