@@ -24,7 +24,7 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: Tic
       <div className="flex flex-col p-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
-          {(ticket.status == 'Cancelled' || ticket.status == 'Used') &&
+          {(ticket.status == 'Cancelled' || ticket.status == 'Used' || ticket.status == 'Expired') &&
             <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
           {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
             title={ticket.lesson?.title}
@@ -119,7 +119,7 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: Tic
                 <StampCancel className="scale-75"/>
               </div>
             </div>}
-            {ticket.status == 'Used' && <div>
+            {ticket.status == 'Used' || ticket.status == 'Expired' && <div>
               <div className="overflow-hidden flex-shrink-0">
                 <StampUsed className={"scale-75"}/>
               </div>

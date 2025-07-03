@@ -60,7 +60,7 @@ export default async function MySubscriptionDetailPage({params}: {
           </div>
         </div>
 
-        {subscription.paymentScheduledAt &&
+        {subscription.paymentScheduledAt && subscription.status == 'Active' &&
           <div>
             <UpcomingPaymentCard payment={{
               subscriptionId: subscription.subscriptionId,
