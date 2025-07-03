@@ -60,12 +60,12 @@ export default async function MySubscriptionDetailPage({params}: {
           </div>
         </div>
 
-        {subscription.schedulePaymentRecord &&
+        {subscription.paymentScheduledAt &&
           <div>
             <UpcomingPaymentCard payment={{
               subscriptionId: subscription.subscriptionId,
               studio,
-              nextPaymentDate: subscription.schedulePaymentRecord?.paymentScheduledAt ?? '',
+              nextPaymentDate: subscription.paymentScheduledAt ?? '',
               productName: subscription.productName,
             }}/>
             <NavigateClickWrapper route={KloudScreen.MySubscriptionCancel(subscription.subscriptionId)} method={'push'}>

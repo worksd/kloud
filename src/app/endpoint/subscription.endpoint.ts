@@ -10,7 +10,7 @@ export type GetSubscriptionResponse = {
   studio?: GetStudioResponse;
   startDate?: string;
   endDate?: string;
-  schedulePaymentRecord?: GetPaymentRecordResponse;
+  paymentScheduledAt?: string;
 }
 
 export type ListSubscriptionResponse = {
