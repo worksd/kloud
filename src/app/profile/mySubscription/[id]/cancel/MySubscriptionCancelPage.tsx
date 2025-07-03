@@ -19,7 +19,7 @@ const cancelReasons = [
 ];
 
 const SubscriptionSummaryCard = ({ subscription }: { subscription: GetSubscriptionResponse }) => {
-  const { productName, productImageUrl, status, startDate, endDate, schedulePaymentRecord } = subscription;
+  const { productName, productImageUrl, status, startDate, endDate, paymentScheduledAt } = subscription;
 
   const statusText = {
     Active: '진행 중',
@@ -50,9 +50,9 @@ const SubscriptionSummaryCard = ({ subscription }: { subscription: GetSubscripti
           </div>
         )}
 
-        {schedulePaymentRecord?.paymentScheduledAt && (
+        {paymentScheduledAt && (
           <div className="text-sm text-gray-700">
-            다음 결제일: <span className="font-medium">{schedulePaymentRecord.paymentScheduledAt}</span>
+            다음 결제일: <span className="font-medium">{paymentScheduledAt}</span>
           </div>
         )}
       </div>
