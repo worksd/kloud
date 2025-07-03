@@ -170,7 +170,7 @@ function BillingCard({
       {onDelete && (
         <TranslatableText
           onClick={onDelete}
-          className="absolute top-2 right-4 bottom-2 text-xs text-red-500 font-bold"
+          className="absolute top-4 right-4 bottom-2 text-xs text-red-500 font-bold"
           titleResource={'delete'}
         >
         </TranslatableText>

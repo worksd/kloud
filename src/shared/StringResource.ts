@@ -461,6 +461,18 @@ export const StringResource = {
     jp: "生年月日",
     zh: "出生日期"
   },
+  lesson_description: {
+    ko: "수업 설명",
+    en: "Lesson Description",
+    jp: "授業の説明",
+    zh: "课程说明"
+  },
+  artist: {
+    ko: "강사",
+    en: "Instructor",
+    jp: "講師",
+    zh: "讲师"
+  },
   card_password_two_digits_placeholder: {
     ko: "비밀번호 앞 2자리",
     en: "First 2 digits of card password",

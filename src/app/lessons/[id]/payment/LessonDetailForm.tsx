@@ -54,7 +54,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
               <div className="justify-center items-start gap-[3px] flex">
                 {lesson.level && <LessonLevelLabel label={lesson.level}/>}
                 {lesson.type && <LessonTypeLabel type={lesson.type}/>}
-                {lesson.genre && <LessonLabel label={lesson.genre}/>}
+                {lesson.genre && lesson.genre != 'Default' && <LessonLabel label={lesson.genre}/>}
               </div>
             </div>
             <div className="self-stretch justify-start items-center gap-2 inline-flex">
@@ -74,7 +74,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
         <div className="self-stretch flex-col justify-start items-start flex">
           <div className="flex flex-col self-stretch px-6">
             <div className="text-black text-[18px] font-bold">{await translate('lesson_information')}</div>
-            <div className={'text-black mt-7 font-bold text-[16px]'}>강사</div>
+            <div className={'text-black mt-7 font-bold text-[16px]'}>{await translate('artist')}</div>
           </div>
 
           <div className={'self-stretch flex-col justify-start items-start flex gap-2 mt-2.5'}>
@@ -94,7 +94,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             <div className={'flex flex-col w-full'}>
               <div className="w-full h-1 bg-[#f7f8f9] mt-5"/>
               <div className={'mt-2.5 px-6'}>
-                <div className={'text-black font-bold text-[16px] '}>수업 설명</div>
+                <div className={'text-black font-bold text-[16px] '}>{await translate('lesson_description')}</div>
                 <div
                   className="grow shrink basis-0 text-black text-[14px] leading-snug mt-2.5">{lesson.description}</div>
               </div>
