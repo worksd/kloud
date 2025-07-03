@@ -59,5 +59,7 @@ export function convertStatusToMessage({status}: { status: string }): StringReso
   else if (status == 'Cancelled') return 'purchase_cancel'
   else if (status == 'Used') return 'used_complete'
   else if (status == 'Pending') return 'purchase_pending'
+  else if (status == 'Expired') return 'used_complete'
+    else if (status == 'Scheduled') return 'payment_record_scheduled'
   else return 'empty'
 }
