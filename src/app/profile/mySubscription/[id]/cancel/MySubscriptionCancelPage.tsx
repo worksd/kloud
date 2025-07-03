@@ -18,8 +18,8 @@ const cancelReasons = [
   '기타',
 ];
 
-const SubscriptionSummaryCard = ({ subscription }: { subscription: GetSubscriptionResponse }) => {
-  const { productName, productImageUrl, status, startDate, endDate, paymentScheduledAt } = subscription;
+const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscriptionResponse }) => {
+  const {productName, productImageUrl, status, startDate, endDate, paymentScheduledAt} = subscription;
 
   const statusText = {
     Active: '진행 중',
@@ -36,7 +36,7 @@ const SubscriptionSummaryCard = ({ subscription }: { subscription: GetSubscripti
   return (
     <div className="border rounded-xl bg-white shadow-sm mb-6 overflow-hidden">
       {productImageUrl && (
-        <img src={productImageUrl} alt={productName} className="w-full h-40 object-cover" />
+        <img src={productImageUrl} alt={productName} className="w-full h-40 object-cover"/>
       )}
       <div className="p-4 text-black space-y-2">
         <div className="flex justify-between items-center">
@@ -60,7 +60,7 @@ const SubscriptionSummaryCard = ({ subscription }: { subscription: GetSubscripti
   );
 };
 
-export default function MySubscriptionCancelForm({ subscription }: { subscription: GetSubscriptionResponse }) {
+export default function MySubscriptionCancelForm({subscription}: { subscription: GetSubscriptionResponse }) {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
 
   const handleReasonSelect = (reason: string) => {
@@ -88,18 +88,17 @@ export default function MySubscriptionCancelForm({ subscription }: { subscriptio
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.message === (await translate('cancel_subscription_complete_message'))) {
-        const pushRoute = KloudScreen.MySubscriptionDetail(subscription.subscriptionId);
-        const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({ bottomMenuList, route: pushRoute });
-        window.KloudEvent?.navigateMain(bootInfo);
-      }
+      // TODO: 다이얼로그 추가하면 if문으로 분기쳐야함
+      const pushRoute = KloudScreen.MySubscriptionDetail(subscription.subscriptionId);
+      const bottomMenuList = await getBottomMenuList();
+      const bootInfo = JSON.stringify({bottomMenuList, route: pushRoute});
+      window.KloudEvent?.navigateMain(bootInfo);
     };
   }, []);
 
   return (
     <div className="max-w-xl mx-auto p-6 text-black">
-      <SubscriptionSummaryCard subscription={subscription} />
+      <SubscriptionSummaryCard subscription={subscription}/>
 
       <TranslatableText className="text-sm text-gray-600 mb-6" titleResource={'select_cancel_reason'}/>
 
@@ -126,7 +125,7 @@ export default function MySubscriptionCancelForm({ subscription }: { subscriptio
                   : 'bg-[#22222233] border-white'
               }`}
             >
-              {selectedReason === reason && <CheckIcon size={14} className="text-white" />}
+              {selectedReason === reason && <CheckIcon size={14} className="text-white"/>}
             </div>
             <span className="ml-4 text-[14px] text-[#222222]">{reason}</span>
           </label>
