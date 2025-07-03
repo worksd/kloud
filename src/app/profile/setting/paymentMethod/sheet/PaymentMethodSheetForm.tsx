@@ -1,8 +1,10 @@
 'use client'
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
 import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import { translate } from "@/utils/translate";
 
 export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
 
@@ -14,6 +16,8 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
     passwordTwoDigits: '',
   })
 
+  const [isSubmitting, setIsSubmitting] = useState(false); // isSubmitting 상태 추가
+
   // refs for focusing
   const cardRef = useRef<HTMLInputElement>(null);
   const expiryYearRef = useRef<HTMLInputElement>(null);
@@ -23,13 +27,25 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
 
 
   const handleSubmit = async () => {
+    setIsSubmitting(true); // 제출 시작 시 isSubmitting true로 설정
     const res = await addBillingAction(form)
     if ('billingKey' in res) {
       await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
       window.KloudEvent.closeBottomSheet()
       window.KloudEvent.refresh(baseRoute)
+    } else {
+      const dialog = await createDialog({id: 'Simple', message: res.message ?? await translate('billing_register_fail')})
+      window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
+    setIsSubmitting(false); // 제출 완료 후 isSubmitting false로 설정
+
   }
+
+  useEffect(() => {
+    window.onDialogConfirm = async (dialogInfo: DialogInfo) => {
+
+    }
+  })
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, ''); // 숫자만 남기기
@@ -69,7 +85,12 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
     <main className="min-h-screen bg-white text-black px-5 py-8">
       <TranslatableText className="text-2xl font-bold mb-10 tracking-tight"
                         titleResource={'payment_information_input'}/>
-
+      {/* Dimmed Background and Spinner */}
+      {isSubmitting && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="w-12 h-12 border-4 border-t-4 border-gray-200 rounded-full animate-spin border-t-black"></div>
+        </div>
+      )}
       <div className="space-y-6">
         <div>
           <TranslatableText className="block text-sm text-gray-500 mb-1" titleResource={'card_number_placeholder'}/>
