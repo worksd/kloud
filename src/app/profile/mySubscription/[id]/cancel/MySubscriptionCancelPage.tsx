@@ -9,6 +9,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/cancel/cancel.subscription.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { StringResourceKey } from "@/shared/StringResource";
 
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
@@ -20,12 +21,6 @@ const cancelReasons = [
 
 const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscriptionResponse }) => {
   const {productName, productImageUrl, status, startDate, endDate, paymentScheduledAt} = subscription;
-
-  const statusText = {
-    Active: '진행 중',
-    Cancelled: '취소됨',
-    Failed: '실패',
-  }[status];
 
   const statusColor = {
     Active: 'bg-green-100 text-green-700',
@@ -41,7 +36,7 @@ const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscription
       <div className="p-4 text-black space-y-2">
         <div className="flex justify-between items-center">
           <div className="text-base font-semibold">{productName}</div>
-          <div className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>{statusText}</div>
+          <div className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>{status}</div>
         </div>
 
         {startDate && endDate && (

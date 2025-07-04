@@ -32,7 +32,7 @@ export default async function AccountSetting({
         <MenuItem label="language_setting"/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.RefundAccountSetting}>
-        <MenuItem label="edit_refund_account"/>
+        <MenuItem label="refund_account"/>
       </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}

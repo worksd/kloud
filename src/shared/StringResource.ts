@@ -1428,10 +1428,28 @@ export const StringResource = {
     zh: '您已成功完成实名认证。',
   },
   refund_account: {
-    ko: '환불 계좌',
+    ko: '환불 계좌 관리',
     en: 'Refund Account',
     jp: '返金口座',
     zh: '退款账户',
+  },
+  active: {
+    ko: '진행 중',
+    en: 'Active',
+    jp: '進行中',
+    zh: '进行中',
+  },
+  cancelled: {
+    ko: '취소됨',
+    en: 'Cancelled',
+    jp: 'キャンセル済み',
+    zh: '已取消',
+  },
+  failed: {
+    ko: '실패',
+    en: 'Failed',
+    jp: '失敗',
+    zh: '失败',
   },
   empty_account_information_message: {
     ko: '계좌 정보가 입력되지 않았습니다',

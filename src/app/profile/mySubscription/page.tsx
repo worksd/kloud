@@ -3,13 +3,14 @@ import { GetSubscriptionResponse } from "@/app/endpoint/subscription.endpoint";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { translate } from "@/utils/translate";
 
 export default async function MySubscriptionPage() {
   const res = await getSubscriptionList();
 
   const header = (
     <div className="flex justify-between items-center mb-14 px-6">
-      <SimpleHeader titleResource={'subscription_list'} />
+      <SimpleHeader titleResource={'subscription_list'}/>
     </div>
   );
 
@@ -40,14 +41,14 @@ export default async function MySubscriptionPage() {
     <div className="p-6 space-y-4 text-black">
       {header}
       {subscriptions.map((sub) => (
-        <SubscriptionCard key={sub.subscriptionId} subscription={sub} />
+        <SubscriptionCard key={sub.subscriptionId} subscription={sub}/>
       ))}
     </div>
   );
 }
 
-function SubscriptionCard({ subscription }: { subscription: GetSubscriptionResponse }) {
-  const { subscriptionId, productName, status, studio } = subscription;
+const SubscriptionCard = async ({subscription}: { subscription: GetSubscriptionResponse }) => {
+  const {subscriptionId, productName, status, studio} = subscription;
 
   const statusColor = {
     Active: "bg-green-100 text-green-800",
@@ -61,7 +62,10 @@ function SubscriptionCard({ subscription }: { subscription: GetSubscriptionRespo
         <div className="flex justify-between items-start mb-2 text-black">
           <h2 className="text-lg font-medium">{productName}</h2>
           <span className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
-            {status === "Active" ? "활성화됨" : status === "Cancelled" ? "취소됨" : "실패"}
+                        {status == 'Active' ? await translate('active') :
+                          status == 'Cancelled' ? await translate('cancelled') :
+                            status == 'Failed' ? await translate('failed') : ''
+                        }
           </span>
         </div>
         {studio && (

@@ -61,7 +61,7 @@ export const RefundAccountEditForm = ({
 
       <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 bg-white">
         <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
-          <TranslatableText titleResource={'edit_profile'}/>
+          <TranslatableText titleResource={'confirm'}/>
         </CommonSubmitButton>
       </div>
     </div>

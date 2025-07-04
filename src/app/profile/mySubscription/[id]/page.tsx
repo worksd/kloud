@@ -4,6 +4,7 @@ import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
+import { getSubscriptionStatus } from "@/app/profile/mySubscription/[id]/util";
 
 export default async function MySubscriptionDetailPage({params}: {
   params: Promise<{ id: string }>
@@ -35,7 +36,10 @@ export default async function MySubscriptionDetailPage({params}: {
           <div className="p-6 space-y-4">
             <div className="flex flex-col gap-2">
             <span className={`text-sm px-3 py-1 rounded-full font-medium w-fit ${statusColor}`}>
-              {status}
+              { status == 'Active' ? await translate('active') :
+                status == 'Cancelled' ? await translate('cancelled') :
+                  status == 'Failed' ? await translate('failed') : ''
+              }
             </span>
               <h2 className="text-xl font-bold">{productName}</h2>
             </div>
