@@ -94,7 +94,7 @@ export default function PaymentButton({
         window.KloudEvent?.navigateMain(bootInfo);
       } else if (type.value == 'passPlan') {
         const res = await getPaymentRecordDetail({paymentId: paymentId});
-        const pushRoute = 'id' in res ? KloudScreen.PaymentRecordDetail(paymentId) : null
+        const pushRoute = 'paymentId' in res ? KloudScreen.PaymentRecordDetail(paymentId) : null
         const bottomMenuList = await getBottomMenuList();
         const bootInfo = JSON.stringify({
           bottomMenuList: bottomMenuList,
