@@ -38,6 +38,7 @@ type PaymentInfo = {
   price?: number
   amount?: string
   userCode?: string
+  customData?: string
 }
 
 export default function PaymentButton({
@@ -161,6 +162,7 @@ export default function PaymentButton({
             type: type,
             price: price,
             userId: `${user.id}`,
+            customData: '',
           } : {
             paymentId: paymentId,
             pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
@@ -171,6 +173,7 @@ export default function PaymentButton({
             method: 'credit',
             userId: `${user.id}`,
             userCode: process.env.NEXT_PUBLIC_USER_CODE,
+            customData: '',
           }
           window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
         }
