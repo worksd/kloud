@@ -359,6 +359,12 @@ export const StringResource = {
     jp: "プロフィールの更新が完了しました。",
     zh: "个人资料已成功更新。"
   },
+  timetable_title: {
+    ko: "시간표",
+    en: "Timetable",
+    jp: "時間割",
+    zh: "课程表"
+  },
   notification: {
     ko: "알림",
     en: "Notifications",

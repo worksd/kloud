@@ -44,6 +44,11 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
 
   return (
     <div className="flex flex-col px-1">
+
+      <div className="flex py-3 px-4 ">
+        <TranslatableText titleResource={'timetable_title'} className="text-[20px] font-bold text-black"/>
+      </div>
+
       <div className="flex flex-row items-center justify-center gap-3 px-4 w-full pb-2">
 
         <div
