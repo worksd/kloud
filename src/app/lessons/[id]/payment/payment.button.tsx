@@ -263,7 +263,7 @@ export default function PaymentButton({
             itemId: id,
             depositor: depositor,
           });
-          if ('id' in res) {
+          if ('paymentId' in res) {
             const route = KloudScreen.PaymentRecordDetail(res.paymentId)
             if (appVersion == '' && route) {
               router.replace(route)
@@ -286,8 +286,8 @@ export default function PaymentButton({
             itemId: id,
             depositor: depositor,
           });
-          if ('id' in res) {
-            const pushRoute = KloudScreen.PaymentRecordDetail(paymentId)
+          if ('paymentId' in res) {
+            const pushRoute = KloudScreen.PaymentRecordDetail(res.paymentId);
             if (appVersion == '') {
               router.replace(pushRoute)
             } else {
@@ -308,8 +308,8 @@ export default function PaymentButton({
           passId: selectedPass?.id,
           lessonId: id,
         });
-        if ('id' in res) {
-          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, true) : null
+        if ('paymentId' in res) {
+          const pushRoute = 'paymentId' in res ? KloudScreen.PaymentRecordDetail(res.paymentId) : null
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
           } else {
