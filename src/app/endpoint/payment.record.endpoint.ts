@@ -55,5 +55,4 @@ export enum PaymentRecordStatus {
   Completed = 'Completed',
   Cancelled = 'Cancelled',
   Settled = 'Settled',
-  Scheduled = 'Scheduled',
 }

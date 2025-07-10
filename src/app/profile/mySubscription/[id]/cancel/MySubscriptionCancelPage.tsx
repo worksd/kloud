@@ -9,7 +9,6 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/cancel/cancel.subscription.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { TranslatableText } from "@/utils/TranslatableText";
-import { StringResourceKey } from "@/shared/StringResource";
 
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
@@ -36,18 +35,16 @@ const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscription
       <div className="p-4 text-black space-y-2">
         <div className="flex justify-between items-center">
           <div className="text-base font-semibold">{productName}</div>
-          <div className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>{status}</div>
+          <div className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
+            {status == 'Active' ? <TranslatableText titleResource={'active'}/> :
+            status == 'Cancelled' ? <TranslatableText titleResource={'cancelled'}/> :
+              status == 'Failed' ? <TranslatableText titleResource={'failed'}/> : ''
+          }</div>
         </div>
 
         {startDate && endDate && (
           <div className="text-sm text-gray-700">
             {startDate} ~ {endDate}
-          </div>
-        )}
-
-        {paymentScheduledAt && (
-          <div className="text-sm text-gray-700">
-            다음 결제일: <span className="font-medium">{paymentScheduledAt}</span>
           </div>
         )}
       </div>

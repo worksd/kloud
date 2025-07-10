@@ -10,7 +10,6 @@ const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
   Cancelled: 'payment_record_cancelled',
   Pending: 'payment_record_pending',
   Settled: 'payment_record_completed',
-  Scheduled: 'payment_record_scheduled',
 };
 
 export const PaymentRecordItem = async ({

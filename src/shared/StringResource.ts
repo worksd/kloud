@@ -1728,7 +1728,7 @@ export const StringResource = {
     zh: '付款待处理',
   },
   payment_record_scheduled: {
-    ko: '다음 결제',
+    ko: '다음 결제일',
     en: 'Next Payment',
     jp: '次回の支払い',
     zh: '下次付款',

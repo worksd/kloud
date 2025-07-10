@@ -92,13 +92,13 @@ type UpcomingPayment = {
   studio?: GetStudioResponse;
 };
 
-const UpcomingPaymentCard = ({payment}: { payment: UpcomingPayment }) => {
+const UpcomingPaymentCard = async ({payment}: { payment: UpcomingPayment }) => {
   const {nextPaymentDate} = payment;
 
   return (
     <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-white text-black mt-4">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-semibold text-gray-900">다음 결제일</span>
+        <span className="text-sm font-semibold text-gray-900">{await translate('payment_record_scheduled')}</span>
         <span className="text-sm text-gray-700">{nextPaymentDate}</span>
       </div>
     </div>
