@@ -24,7 +24,6 @@ export type CreateSubscriptionParameter = {
 }
 
 export type CreateSubscriptionResponse = {
-  schedulePaymentRecord: GetPaymentRecordResponse;
   paymentId: string;
   subscription: GetSubscriptionResponse;
 }

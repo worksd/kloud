@@ -18,6 +18,7 @@ import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePa
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
+import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 
 
 export const PaymentTypes = [
@@ -325,7 +326,7 @@ export default function PaymentButton({
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
         const res = await createSubscriptionAction({item: type.value, itemId: id, billingKey: data.customData ?? ''})
-        if ('subscription' in res && 'schedulePaymentRecord' in res && 'paymentId' in res) {
+        if ('subscription' in res) {
           await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
           const bottomMenuList = await getBottomMenuList();
           const bootInfo = JSON.stringify({
@@ -333,7 +334,7 @@ export default function PaymentButton({
             route: KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId),
           });
           window.KloudEvent?.navigateMain(bootInfo);
-        } else {
+        } else if (isGuinnessErrorCase(res)) {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }

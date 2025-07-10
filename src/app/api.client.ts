@@ -18,7 +18,6 @@ export class ApiClient extends EndpointClient {
   readonly user = {
     get: this.endpointBuilder(API.User.GetUser),
     update: this.endpointBuilder(API.User.UpdateUser),
-    me: this.endpointBuilder(API.User.Me),
     delete: this.endpointBuilder(API.User.DeleteUser),
     checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
   }

@@ -71,11 +71,6 @@ export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   pathParams: ['id']
 }
 
-export const Me: Endpoint<object, GetMeResponse> = {
-  method: 'get',
-  path: '/users/me',
-}
-
 export const DeleteUser: Endpoint<SignOutParameter, SimpleResponse> = {
   method: 'delete',
   path: `/users`,

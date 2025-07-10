@@ -6,6 +6,8 @@ import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.bi
 import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { getLocaleText, translate } from "@/utils/translate";
 
 export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
@@ -26,6 +28,12 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
         if ('deletedAt' in res) {
           await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
           await loadCards()
+        } else if (isGuinnessErrorCase(res)) {
+          const dialog = await createDialog({
+            id: 'Simple',
+            title: res.message
+          })
+          window.KloudEvent.showDialog(JSON.stringify(dialog));
         }
         setIsDeleting(false);
 
