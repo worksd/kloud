@@ -165,6 +165,7 @@ export default function PaymentButton({
           type: type,
           price: price,
           userId: `${user.id}`,
+          customData: '',
         } : {
           paymentId: paymentId,
           pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
