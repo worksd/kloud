@@ -308,8 +308,8 @@ export default function PaymentButton({
           passId: selectedPass?.id,
           lessonId: id,
         });
-        if ('paymentId' in res) {
-          const pushRoute = 'paymentId' in res ? KloudScreen.PaymentRecordDetail(res.paymentId) : null
+        if ('id' in res) {
+          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, false) : null
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
           } else {
