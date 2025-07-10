@@ -92,7 +92,7 @@ export default function MySubscriptionCancelForm({subscription}: { subscription:
   }, []);
 
   return (
-    <div className="max-w-xl mx-auto p-6 text-black">
+    <div className="max-w-xl p-4 text-black">
       <SubscriptionSummaryCard subscription={subscription}/>
 
       <TranslatableText className="text-sm text-gray-600 mb-6" titleResource={'select_cancel_reason'}/>
