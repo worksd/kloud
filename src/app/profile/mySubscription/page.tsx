@@ -59,21 +59,21 @@ const SubscriptionCard = async ({subscription}: { subscription: GetSubscriptionR
   return (
     <NavigateClickWrapper method={'push'} route={KloudScreen.MySubscriptionDetail(subscriptionId)}>
       <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-white">
-        <div className="flex justify-between items-start mb-2 text-black">
-          <h2 className="text-lg font-medium">{productName}</h2>
-          <span className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
+        <div className="flex flex-col justify-between items-start mb-2 text-black">
+            <span className={`text-xs px-2 mb-2 py-1 rounded-full ${statusColor}`}>
                         {status == 'Active' ? await translate('active') :
                           status == 'Cancelled' ? await translate('cancelled') :
                             status == 'Failed' ? await translate('failed') : ''
                         }
           </span>
+          <h2 className="text-lg font-medium">{productName}</h2>
         </div>
         {studio && (
           <p className="text-sm text-gray-600 mb-1">
-            스튜디오: <span className="font-medium">{studio.name}</span>
+            <span className="font-medium">{studio.name}</span>
           </p>
         )}
-        <p className="text-xs text-gray-400">정기결제 ID: {subscriptionId}</p>
+        <p className="text-xs text-gray-400">ID: {subscriptionId}</p>
       </div>
     </NavigateClickWrapper>
   );
