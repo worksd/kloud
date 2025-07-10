@@ -11,9 +11,7 @@ import { translate } from "@/utils/translate";
 import { getStudioInfoAction } from "@/app/studios/getStudioInfoAction";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
-import { TodayLessonWrapper } from "@/app/studios/TodayLessonWrapper";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
-import { getHideDialogIdListAction } from "@/app/studios/get.hide.dialog.id.list.action";
 
 export default async function MyStudioPage({studioId}: { studioId?: string }) {
   if (!studioId) {
@@ -64,9 +62,6 @@ export default async function MyStudioPage({studioId}: { studioId?: string }) {
         ))}
         {res.passes && res.passes.length > 0 &&
           <PassBand title={await translate('my_pass')} passes={res.passes ?? []}/>
-        }
-        {res.myTodayTicket && !((await getHideDialogIdListAction()).includes(res.myTodayTicket.id)) &&
-          <TodayLessonWrapper ticket={res.myTodayTicket}/>
         }
       </div>
     )
