@@ -25,8 +25,8 @@ export default async function NoMyStudioPage() {
           dangerouslySetInnerHTML={{__html: (await translate('studio_recommendation')).replace(/\n/g, '<br />')}}
         />
         <ul className="flex flex-col space-y-4 mt-4">
-          {(res.studios ?? []).map((item) => (
-            <StudioItem key={item.id} item={item}/>
+          {(res.studios ?? []).slice(0, 5).map((item) => (
+            <StudioItem key={item.id} item={item} />
           ))}
         </ul>
       </div>
