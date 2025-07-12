@@ -199,10 +199,12 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
 
   const onClickBack = () => {
     if (step === "profile") {
-      if (appVersion == '') {
-        router.replace(KloudScreen.Login(returnUrl))
+      const target = KloudScreen.Login(returnUrl || '')
+
+      if (appVersion === '') {
+        router.replace(target)
       } else {
-        window.KloudEvent?.clearAndPush(KloudScreen.Login(returnUrl))
+        window.KloudEvent?.clearAndPush(target)
       }
     } else if (step === "agreement") {
       setStep("profile")
