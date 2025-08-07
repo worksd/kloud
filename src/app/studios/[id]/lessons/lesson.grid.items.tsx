@@ -13,7 +13,7 @@ export const LessonGridItems = async ({ lessons }: { lessons: GetLessonResponse[
             posterUrl={lesson.thumbnailUrl ?? lesson.artist?.profileImageUrl ?? ''}
             studio={lesson.studio}
             title={lesson.title ?? ''}
-            startTime={lesson.startTime ?? ''}
+            date={lesson.date ?? ''}
             width={undefined}
             dday={lesson.dday}
           />

@@ -12,7 +12,7 @@ export async function Poster({
                                id,
                                posterUrl,
                                studio,
-                               startTime,
+                               date,
                                title,
                                width,
                                dday,
@@ -22,14 +22,13 @@ export async function Poster({
   id: number,
   posterUrl: string,
   studio?: GetStudioResponse,
-  startTime: string,
+  date: string,
   width?: number
   title?: string,
   dday?: string,
   genre?: string,
   type?: string,
 }) {
-  const formatTime = await formatDateTime(startTime)
   return (
     <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(id)}>
       <div
@@ -92,7 +91,7 @@ export async function Poster({
           {/* 날짜 + 요일 + 시간 */}
           {title && (
             <div className="body-200 text-gray-500 text-[12px] truncate font-medium">
-              {`${formatTime.date}(${await translate(formatTime.dayOfWeek)}) ${formatTime.time}`}
+              {date}
             </div>
           )}
           {genre && genre != 'Default' && (

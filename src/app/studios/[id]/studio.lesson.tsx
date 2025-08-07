@@ -30,7 +30,7 @@ const LessonCardInStudio = (data: GetLessonResponse) => {
       </div>
       <div className="px-1 flex-col justify-start items-start gap-1 flex">
         <div className="self-stretch text-black text-sm font-bold leading-tight">{data.title}</div>
-        <div className="self-stretch text-[#86898c] text-xs font-medium leading-none">{data.startTime}</div>
+        <div className="self-stretch text-[#86898c] text-xs font-medium leading-none">{data.date}</div>
       </div>
     </button>
   );

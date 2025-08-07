@@ -5,7 +5,6 @@ import { getLessonPaymentAction } from "@/app/lessons/[id]/payment/payment.detai
 import { cookies } from "next/headers";
 import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
 import React from "react";
-import { FormattedDate } from "@/app/lessons/[id]/payment/FormattedDate";
 import { LessonPaymentInfo } from "@/app/lessons/[id]/payment/lesson.payment.info";
 import { CircleImage } from "@/app/components/CircleImage";
 import { translate } from "@/utils/translate";
@@ -59,7 +58,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
                 </div>
               </div>
               <div className={"flex flex-row items-center mb-1"}>
-                <FormattedDate startTime={res.lesson?.startTime ?? ''}/>
+                <p className="text-[#86898C] text-[14px] font-medium">{res.lesson.date}</p>
                 <p className="text-[#86898C] text-[12px] font-medium">
                   /{res.lesson?.duration} {await translate('minutes')}
                 </p>

@@ -16,7 +16,7 @@ export type GetLessonResponse = {
     limit?: number;
     title?: string;
     thumbnailUrl?: string;
-    startTime?: string;
+    date?: string;
     saleDate?: string;
     duration?: number;
     type?: LessonType;

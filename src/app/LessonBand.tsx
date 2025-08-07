@@ -27,7 +27,7 @@ export async function LessonBand({title, lessons, type}: {
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}
                 title={item.title}
-                startTime={item.startTime ?? ''}
+                date={item.date ?? ''}
                 studio={item.studio}
                 dday={item.dday}
                 genre={item.genre}
@@ -39,7 +39,7 @@ export async function LessonBand({title, lessons, type}: {
               <RecommendPoster
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}
-                startTime={item.startTime ?? ''}
+                date={item.date ?? ''}
                 title={item.title ?? ''}
               />
             }

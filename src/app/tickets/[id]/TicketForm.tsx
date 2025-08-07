@@ -11,7 +11,6 @@ import { translate } from "@/utils/translate";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
 export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: TicketResponse, isJustPaid: string, inviteCode: string }) {
-  const startTime = await formatDateTime(ticket.lesson?.startTime ?? '');
   return (
     <div className="flex flex-col bg-white">
       {/* Header */}
@@ -71,18 +70,10 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: Tic
               {ticket.paymentId}
             </div>
             <div className="mt-3 w-full h-[1px] bg-[#f7f8f9]"/>
-            <div className="mt-3 grid gap-y-2">
+            <div className="mt-3 space-y-2 gap-y-2">
               <div>
                 <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('date')}</p>
-                <p className="text-white font-medium text-[18px]">{startTime.date}</p>
-              </div>
-              <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('day')}</p>
-                <p className="text-white font-medium text-[18px]">{await translate(startTime.dayOfWeek)}</p>
-              </div>
-              <div>
-                <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('start')}</p>
-                <p className="text-white font-medium text-[18px]">{startTime.time}</p>
+                <p className="text-white font-medium text-[18px]">{ticket.lesson?.date}</p>
               </div>
               <div>
                 <p className="text-[#D9D9E3] font-medium text-[12px]">{await translate('lesson_duration')}</p>

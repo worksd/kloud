@@ -8,14 +8,14 @@ export async function RecommendPoster({
                                         id,
                                         posterUrl,
                                         studioLogoUrl,
-                                        startTime,
+                                        date,
                                         title,
                                         width = 240
                                       }: {
   id: number,
   posterUrl: string,
   studioLogoUrl?: string,
-  startTime: string,
+  date: string,
   title?: string,
   width?: number
 }) {
