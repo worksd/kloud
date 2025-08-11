@@ -3,8 +3,6 @@ import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation"
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import React from "react";
 import { GetPaymentRecordResponse } from "@/app/endpoint/payment.record.endpoint";
-import { CardInformation } from "@/app/paymentRecords/[id]/CardInformation";
-import { useLocale } from "@/hooks/useLocale";
 import { translate } from "@/utils/translate";
 
 export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
@@ -69,9 +67,6 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
     <div className={'py-5 space-y-6'}>
       {paymentRecord.studio && <SellerInformation studio={paymentRecord.studio}/>}
       <RefundInformation/>
-      {paymentRecord.receiptUrl && (
-        <CardInformation receiptUrl={paymentRecord.receiptUrl}/>
-      )}
     </div>
 
   </div>
