@@ -78,15 +78,18 @@ export abstract class EndpointClient {
       'Content-Type': 'application/json', // Content-Type 추가
     };
 
+    const lessonId = this.extractLessonId(path);
+    const isGet = method.toUpperCase() === 'GET';
     const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
 
     const userId = (await cookies()).get(userIdKey)?.value
 
     const options: RequestInit = {
       method: method.toUpperCase(),
-      cache: 'no-store',
+      cache: isGet && lessonId ? 'force-cache' : 'no-store',
       headers: _headers,
-      ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) })
+      ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) }),
+      ...(isGet && lessonId ? { next: { revalidate: 60 * 30, tags: [`lesson:${lessonId}`] } } : {}),
     };
 
     console.log(`Request(userId : ${userId} : `, { url: fullUrl, options });
@@ -95,5 +98,10 @@ export abstract class EndpointClient {
     const jsonResponse = await response.json();
     console.log(`Response(userId: ${userId}):`, util.inspect(jsonResponse, { depth: null, colors: false }));
     return jsonResponse;
+  }
+
+  extractLessonId(path: string): string | null {
+    const m = path.match(/^\/lessons\/([^/?#]+)$/);
+    return m?.[1] ?? null;
   }
 }
