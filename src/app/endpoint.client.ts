@@ -4,8 +4,45 @@ import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
 import { localeKey, userIdKey } from "@/shared/cookies.key";
 import * as util from "node:util";
+import { revalidateTag } from "next/cache";
 
 type QueryParams = Record<string, any> | URLSearchParams;
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type CacheScope = "global" | "user";
+
+type CacheRule = {
+  /** 규칙 이름(로그/디버깅용) */
+  name: string;
+  /** 매칭할 경로 정규식 */
+  pattern: RegExp;
+  /** 캐시 TTL(sec) */
+  ttl: number;
+  /** 어떤 메서드에서 캐시를 적용할지 (기본 GET) */
+  methods?: HttpMethod[];
+  /** 이 메서드들로 들어오면 해당 태그 무효화 */
+  invalidatesOn?: HttpMethod[];
+  /** 태그 생성기: 정규식 match 결과와 컨텍스트로 태그 배열 생성 */
+  tags: (m: RegExpMatchArray, ctx: { userId?: string }) => string[];
+  /** 사용자 단위 캐시 분리 여부 (기본 global) */
+  scope?: CacheScope;
+  /** 캐시 요청에서 Authorization 제거 여부(기본 false) */
+  stripAuth?: boolean;
+};
+
+// === 규칙들만 추가/수정하면 됨 ===
+const CACHE_RULES: CacheRule[] = [
+  {
+    name: "lesson-detail",
+    // /lessons/숫자 만 매치 (뒤에 /, ?, # 허용)
+    pattern: /^\/lessons\/([0-9]+)(?:[\/?#]|$)$/,
+    ttl: 60 * 30, // 30분
+    methods: ["GET"],
+    invalidatesOn: ["PUT", "PATCH", "DELETE"],
+    tags: (m) => [`lesson:${m[1]}`],
+    scope: "global",
+    stripAuth: false,
+  },
+];
 
 export interface RequestParameters {
   path: string;
@@ -16,26 +53,36 @@ export interface RequestParameters {
 }
 
 function convertFromJsonToQuery(input: QueryParams | undefined) {
-  if (input === undefined || (typeof input === 'object' && Object.keys(input).length === 0)) {
-    return "";
-  }
-  return '?' + Object.entries(input)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-    .join('&');
+  if (!input || (typeof input === "object" && Object.keys(input).length === 0)) return "";
+  // 키 정렬로 안정화(중복 캐시 방지)
+  const entries = Object.entries(input as Record<string, any>).sort(([a], [b]) => a.localeCompare(b));
+  return (
+    "?" +
+    entries
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+      .join("&")
+  );
 }
 
+function matchCacheRule(path: string, method: string) {
+  const mth = method.toUpperCase() as HttpMethod;
+  for (const rule of CACHE_RULES) {
+    const m = path.match(rule.pattern);
+    if (!m) continue;
+    const applies = (rule.methods ?? ["GET"]).includes(mth) || (rule.invalidatesOn ?? []).includes(mth);
+    if (!applies) continue;
+    return { rule, match: m };
+  }
+  return null;
+}
 
 export abstract class EndpointClient {
-
   protected endpointBuilder<
     Parameter extends Record<string, any>,
     Response extends Record<string, any>
   >(endpoint: Endpoint<Parameter, Response | GuinnessErrorCase>) {
     return async (args: Parameter): Promise<Response | GuinnessErrorCase> => {
-      const path =
-        typeof endpoint.path === "string"
-          ? endpoint.path
-          : endpoint.path(args);
+      const path = typeof endpoint.path === "string" ? endpoint.path : endpoint.path(args);
 
       return this.request<Response>({
         path,
@@ -49,16 +96,16 @@ export abstract class EndpointClient {
 
   private async authAsHeaders(): Promise<Record<string, string>> {
     const defaultHeaders: Record<string, string> = {};
-    const accessToken = (await cookies()).get('accessToken')
+    const accessToken = (await cookies()).get("accessToken");
     if (accessToken?.value) {
-      defaultHeaders['Authorization'] = `Bearer ${accessToken.value}`
+      defaultHeaders["Authorization"] = `Bearer ${accessToken.value}`;
     }
-    const nextHeaders = await headers()
-    const version = nextHeaders.get('x-guinness-version')?.valueOf()
-    defaultHeaders['x-guinness-client'] = nextHeaders.get('x-guinness-client')?.valueOf() ?? ''
-    defaultHeaders['x-guinness-device-name'] = nextHeaders.get('x-guinness-device-name')?.valueOf() ?? ''
-    defaultHeaders['x-guinness-version'] = (!version || version == '') ? '1.0.0' : version // 여기다가만 넣어줘야 웹인지 앱인지 구분 가능함
-    defaultHeaders['x-guinness-locale'] = (await cookies()).get(localeKey)?.value ?? 'ko'
+    const nextHeaders = await headers();
+    const version = nextHeaders.get("x-guinness-version")?.valueOf();
+    defaultHeaders["x-guinness-client"] = nextHeaders.get("x-guinness-client")?.valueOf() ?? "";
+    defaultHeaders["x-guinness-device-name"] = nextHeaders.get("x-guinness-device-name")?.valueOf() ?? "";
+    defaultHeaders["x-guinness-version"] = !version || version === "" ? "1.0.0" : version; // 여기서만 웹/앱 구분
+    defaultHeaders["x-guinness-locale"] = (await cookies()).get(localeKey)?.value ?? "ko";
     return defaultHeaders;
   }
 
@@ -69,39 +116,69 @@ export abstract class EndpointClient {
                                         body,
                                         headers = {},
                                       }: RequestParameters): Promise<ResponseBody> {
+    const userId = (await cookies()).get(userIdKey)?.value;
     const url = `${process.env.GUINNESS_API_SERVER}${path}`;
-    const authHeaders = await this.authAsHeaders(); // await 추가
-
-    const _headers = {
-      ...authHeaders,
-      ...headers,
-      'Content-Type': 'application/json', // Content-Type 추가
-    };
-
-    const lessonId = this.extractLessonId(path);
-    const isGet = method.toUpperCase() === 'GET';
     const fullUrl = query ? `${url}${convertFromJsonToQuery(query)}` : url;
 
-    const userId = (await cookies()).get(userIdKey)?.value
-
-    const options: RequestInit = {
-      method: method.toUpperCase(),
-      cache: isGet && lessonId ? 'force-cache' : 'no-store',
-      headers: _headers,
-      ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) }),
-      ...(isGet && lessonId ? { next: { revalidate: 60 * 30, tags: [`lesson:${lessonId}`] } } : {}),
+    // 기본 헤더
+    const authHeaders = await this.authAsHeaders();
+    const baseHeaders: Record<string, string> = {
+      ...authHeaders,
+      ...headers,
+      "Content-Type": "application/json",
     };
 
-    console.log(`Request(userId : ${userId} : `, { url: fullUrl, options });
+    // 규칙 매칭
+    const hit = matchCacheRule(path, method);
+    const mth = method.toUpperCase() as HttpMethod;
 
-    const response = await fetch(fullUrl, options);
+    // 캐시 옵션 조립
+    const isGet = mth === "GET";
+    const cacheOptions: (RequestInit & { next?: { revalidate?: number; tags?: string[] } }) = {
+      method: mth,
+      headers: { ...baseHeaders },
+      cache: "no-store",
+      ...(body && Object.keys(body).length > 0 && { body: JSON.stringify(body) }),
+    };
+
+    if (hit && isGet && (hit.rule.methods ?? ["GET"]).includes("GET")) {
+      const tags = hit.rule.tags(hit.match, { userId });
+      if ((hit.rule.scope ?? "global") === "user" && userId) {
+        tags.push(`user:${userId}`);
+      }
+      if (hit.rule.stripAuth) {
+        // 공용 캐시 목적: 인증 헤더 제거(서버가 퍼블릭 엔드포인트일 때만 켜기)
+        delete (cacheOptions.headers as Record<string, string>)["Authorization"];
+      }
+      cacheOptions.cache = "force-cache";
+      cacheOptions.next = { revalidate: hit.rule.ttl, tags };
+    }
+
+    console.log(`Request(userId:${userId})`, {
+      url: fullUrl,
+      options: { ...cacheOptions, headers: "omitted" },
+    });
+
+    const response = await fetch(fullUrl, cacheOptions);
     const jsonResponse = await response.json();
-    console.log(`Response(userId: ${userId}):`, util.inspect(jsonResponse, { depth: null, colors: false }));
-    return jsonResponse;
-  }
 
-  extractLessonId(path: string): string | null {
-    const m = path.match(/^\/lessons\/([^/?#]+)$/);
-    return m?.[1] ?? null;
+    // 변경 메서드면 태그 무효화
+    if (hit && (hit.rule.invalidatesOn ?? []).includes(mth) && response.ok) {
+      const tags = hit.rule.tags(hit.match, { userId });
+      if ((hit.rule.scope ?? "global") === "user" && userId) {
+        tags.push(`user:${userId}`);
+      }
+      try {
+        tags.forEach((t) => revalidateTag(t));
+      } catch (e) {
+        console.warn("revalidateTag failed:", e);
+      }
+    }
+
+    console.log(
+      `Response(userId:${userId})`,
+      util.inspect(jsonResponse, { depth: null, colors: false })
+    );
+    return jsonResponse as ResponseBody;
   }
 }

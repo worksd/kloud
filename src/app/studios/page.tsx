@@ -42,7 +42,6 @@ export default async function StudioPage({
             <NoMyStudioPage/>
           )}
         </div>
-        <HomeScreen os={os}/>
         <div className={'fixed bottom-4 right-4'}>
           <PassPurchaseButton/>
         </div>
