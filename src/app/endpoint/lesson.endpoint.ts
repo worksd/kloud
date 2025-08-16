@@ -7,8 +7,6 @@ export type GetLessonParameter = {
     id: number;
 };
 
-export type LessonGenre = 'Breaking' | 'Choreography'
-
 export type GetLessonResponse = {
     id: number;
     code?: string;
@@ -31,11 +29,18 @@ export type GetLessonResponse = {
     dday?: string;
     buttonTitle: string;
     buttonRoute: string;
+    buttons: GetLessonButtonResponse[];
     paymentType?: 'Subscription' | 'Default'
     days?: string;
     description?: string;
     genre?: string;
 };
+
+export type GetLessonButtonResponse = {
+    title: string;
+    route?: string;
+    activateAt: string;
+}
 
 export type GetStudioRoomResponse = {
     id: number;

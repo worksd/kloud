@@ -10,11 +10,13 @@ import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from "@/app/components/LessonLabel";
+import { LessonDetailButton } from "@/app/lessons/[id]/LessonDetailButton";
 
 export default async function LessonDetailForm({lesson, appVersion}: {
   lesson: GetLessonResponse,
   appVersion: string,
 }) {
+
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
       {/* 헤더 */}
@@ -104,17 +106,9 @@ export default async function LessonDetailForm({lesson, appVersion}: {
       </div>
 
       {/* 결제 페이지 이동 버튼 */}
+
       <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-        <NavigateClickWrapper
-          method="push"
-          route={lesson.buttonRoute}
-        >
-          <CommonSubmitButton
-            disabled={!lesson.buttonRoute}
-          >
-            {lesson.buttonTitle}
-          </CommonSubmitButton>
-        </NavigateClickWrapper>
+        <LessonDetailButton buttons={lesson.buttons}/>
       </div>
     </div>
   );

@@ -10,8 +10,8 @@ export default async function EmailLogin({searchParams}: {
   console.log('appVersion ' + appVersion);
   return (
     <section className="min-h-screen bg-white flex flex-col">
-      <SimpleHeader/>
-      <Logo className="mx-auto mt-14"/>
+      <SimpleHeader titleResource={'email_login'}/>
+      <Logo className="mx-auto mt-28"/>
       <LoginForm appVersion={appVersion} returnUrl={returnUrl}/>
     </section>
   );

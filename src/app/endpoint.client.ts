@@ -7,10 +7,10 @@ import * as util from "node:util";
 import { revalidateTag } from "next/cache";
 
 type QueryParams = Record<string, any> | URLSearchParams;
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type CacheScope = "global" | "user";
 
-type CacheRule = {
+export type CacheRule = {
   /** 규칙 이름(로그/디버깅용) */
   name: string;
   /** 매칭할 경로 정규식 */
@@ -27,20 +27,22 @@ type CacheRule = {
   scope?: CacheScope;
   /** 캐시 요청에서 Authorization 제거 여부(기본 false) */
   stripAuth?: boolean;
+  familyTag?: string;
 };
 
 // === 규칙들만 추가/수정하면 됨 ===
-const CACHE_RULES: CacheRule[] = [
+export const CACHE_RULES: CacheRule[] = [
   {
     name: "lesson-detail",
     // /lessons/숫자 만 매치 (뒤에 /, ?, # 허용)
     pattern: /^\/lessons\/([0-9]+)(?:[\/?#]|$)$/,
-    ttl: 60 * 30, // 30분
+    ttl: 60, // 60초
     methods: ["GET"],
     invalidatesOn: ["PUT", "PATCH", "DELETE"],
     tags: (m) => [`lesson:${m[1]}`],
     scope: "global",
     stripAuth: false,
+    familyTag: "lesson",
   },
 ];
 
@@ -146,10 +148,11 @@ export abstract class EndpointClient {
       if ((hit.rule.scope ?? "global") === "user" && userId) {
         tags.push(`user:${userId}`);
       }
-      if (hit.rule.stripAuth) {
-        // 공용 캐시 목적: 인증 헤더 제거(서버가 퍼블릭 엔드포인트일 때만 켜기)
-        delete (cacheOptions.headers as Record<string, string>)["Authorization"];
+      if (hit.rule.familyTag) {
+        tags.push(hit.rule.familyTag);
       }
+
+      if (hit.rule.stripAuth) delete (cacheOptions.headers as Record<string, string>)["Authorization"];
       cacheOptions.cache = "force-cache";
       cacheOptions.next = { revalidate: hit.rule.ttl, tags };
     }

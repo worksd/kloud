@@ -1,12 +1,12 @@
 import { getJumbotronList } from "@/app/home/action/get.jumbotron.list";
 import CardList from "@/app/components/Carousel";
 import React from "react";
+import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
-export default async function PopularLessons() {
-  const res = await getJumbotronList()
+export const LessonJumbotrons = ({lessons} : {lessons: GetLessonResponse[]}) => {
   return (
     <section className="flex flex-col">
-      <CardList lessons={res.lessons?.slice(0,5) ?? []}/>
+      <CardList lessons={lessons}/>
     </section>
   )
 }

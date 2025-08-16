@@ -92,6 +92,11 @@ export class ApiClient extends EndpointClient {
     get: this.endpointBuilder(API.Subscription.Get),
     cancel: this.endpointBuilder(API.Subscription.Cancel),
   }
+
+  readonly home = {
+    getHome: this.endpointBuilder(API.Home.GetHome),
+    getStage: this.endpointBuilder(API.Home.GetStage),
+  }
 }
 
 export interface ClientOptions {
