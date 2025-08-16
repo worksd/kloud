@@ -17,10 +17,7 @@ export const DeveloperAuthenticationForm = ({os} : {os: string}) => {
         window.KloudEvent.push(KloudScreen.DeveloperSetting)
         window.KloudEvent.closeBottomSheet()
       } else if (os === 'iOS') {
-        window.KloudEvent.closeBottomSheet()
-        setTimeout(() => {
-          window.KloudEvent.push(KloudScreen.DeveloperSetting)
-        }, 1000)
+        window.KloudEvent.push(KloudScreen.DeveloperSetting)
       }
     }
   };
