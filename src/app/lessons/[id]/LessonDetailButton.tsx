@@ -2,6 +2,7 @@
 
 import { GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
 import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type IProps = {
   children: React.ReactNode;
@@ -54,9 +55,10 @@ function pickAvailableButton(
   return latest ? latest.btn : null;
 }
 
-export const LessonDetailButton = ({ buttons }: { buttons: GetLessonButtonResponse[] }) => {
+export const LessonDetailButton = ({ buttons, appVersion }: { buttons: GetLessonButtonResponse[], appVersion: string }) => {
 
   const [mounted, setMounted] = React.useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -84,7 +86,10 @@ export const LessonDetailButton = ({ buttons }: { buttons: GetLessonButtonRespon
 
   const handleOnClick = ({ route }: { route?: string }) => {
     if (!route) return;
-    if (typeof window !== 'undefined' && window.KloudEvent?.push) {
+    if (appVersion == '') {
+      router.push(route)
+    }
+    else if (typeof window !== 'undefined' && window.KloudEvent?.push) {
       window.KloudEvent.push(route);
     }
   };
