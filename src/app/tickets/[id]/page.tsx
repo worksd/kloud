@@ -8,13 +8,14 @@ export default async function TicketDetail({params, searchParams}: {
   searchParams: Promise<{ isJustPaid: string, inviteCode: string }>
 }) {
   const {isJustPaid, inviteCode} = await searchParams
+  console.log(process.env.GUINNESS_API_SERVER)
   const ticket = inviteCode && inviteCode.length == 10 ?
     await api.ticket.getInviteTicket({inviteCode})
     : await api.ticket.get({id: (await params).id});
   if ('id' in ticket) {
     return <div>
       <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode}/>
-      <QrCodeDialogScreen qrCodeUrl={ticket.qrCodeUrl}/>
+      <QrCodeDialogScreen qrCodeUrl={ticket.qrCodeUrl} ticketId={ticket.id} endpoint={process.env.GUINNESS_API_SERVER ?? ''}/>
     </div>
   } else {
     return <Loading/>;

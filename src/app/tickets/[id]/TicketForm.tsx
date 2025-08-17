@@ -1,4 +1,3 @@
-import { formatDateTime } from "@/utils/date.format";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import Image from "next/image";
 import { Thumbnail } from "@/app/components/Thumbnail";
@@ -10,7 +9,11 @@ import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { translate } from "@/utils/translate";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
-export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: TicketResponse, isJustPaid: string, inviteCode: string }) {
+export async function TicketForm({ticket, isJustPaid, inviteCode}: {
+  ticket: TicketResponse,
+  isJustPaid: string,
+  inviteCode: string
+}) {
   return (
     <div className="flex flex-col bg-white">
       {/* Header */}
@@ -105,21 +108,21 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: { ticket: Tic
                 />
               </div>
             </div>}
-            {ticket.status == 'Cancelled' && <div>
+            {ticket.status == 'Cancelled' &&
               <div className="overflow-hidden flex-shrink-0">
                 <StampCancel className="scale-75"/>
               </div>
-            </div>}
-            {ticket.status == 'Used' || ticket.status == 'Expired' && <div>
+            }
+            {(ticket.status == 'Used' || ticket.status == 'Expired') &&
               <div className="overflow-hidden flex-shrink-0">
-                <StampUsed className={"scale-75"}/>
+                <StampUsed className="scale-75"/>
               </div>
-            </div>}
-            {ticket.status == 'Pending' && <div>
+            }
+            {ticket.status == 'Pending' &&
               <div className="overflow-hidden flex-shrink-0">
                 <StampNotPaid className="scale-75"/>
               </div>
-            </div>}
+            }
           </div>
         </div>
 
