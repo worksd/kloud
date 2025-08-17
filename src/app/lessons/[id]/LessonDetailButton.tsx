@@ -1,7 +1,7 @@
 'use client'
 
 import { GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
-import React from "react";
+import React, { useEffect } from "react";
 
 type IProps = {
   children: React.ReactNode;
@@ -55,6 +55,14 @@ function pickAvailableButton(
 }
 
 export const LessonDetailButton = ({ buttons }: { buttons: GetLessonButtonResponse[] }) => {
+
+  const [mounted, setMounted] = React.useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    }, [])
+
+  if (!mounted) return null;
   if (!buttons || buttons.length === 0) {
     return (
       <CommonSubmitButton disabled>
