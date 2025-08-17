@@ -6,7 +6,7 @@ export const KloudScreen = {
 
   /** 온보딩 / 인증 */
   Onboard: (returnUrl: string) => `/onboarding?returnUrl=${returnUrl}`,
-  Login: (query: string) => `/login${query}`,
+  Login: (query: string) => `/login?${query}`,
   LoginEmail: (query: string) => `/login/email${query}`,
   LoginDeactivate: '/login/deactivate',
   SignUp: (query: string) => `/signUp${query}`,
