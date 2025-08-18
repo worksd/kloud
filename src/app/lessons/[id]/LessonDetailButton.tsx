@@ -27,30 +27,25 @@ const CommonSubmitButton = ({ children, disabled, originProps }: IProps) => {
   );
 };
 
-/** 'YYYY.MM.DD HH:mm:ss' -> ISO 로 변환하여 Date 안전 파싱 */
-function parseActivateAtToTime(activateAt: string): number {
-  // 예: '2025.08.15 17:13:00' -> '2025-08-15T17:13:00'
-  const iso = activateAt.replace(/\./g, '-').replace(' ', 'T');
-  const t = new Date(iso).getTime();
-  return Number.isFinite(t) ? t : NaN;
+function parseKstLocalToEpoch(activateAt: string): number {
+  const [d, t] = activateAt.trim().split(' ');
+  const [Y, M, D] = d.split('.').map(Number);
+  const [h, m, sStr] = t.split(':');
+  const hh = Number(h), mm = Number(m), ss = Number(sStr ?? 0);
+  // KST(= UTC+9) 로컬시각 -> UTC 로 변환: UTC = KST - 9h
+  return Date.UTC(Y, M - 1, D, hh - 9, mm, ss);
 }
 
-/** now 보다 과거(<=)인 것 중 가장 최근(max) 하나 선택 */
 function pickAvailableButton(
   buttons: GetLessonButtonResponse[],
-  now: Date
+  nowUtcMs: number
 ): GetLessonButtonResponse | null {
-  const nowTs = now.getTime();
   let latest: { btn: GetLessonButtonResponse; ts: number } | null = null;
 
   for (const btn of buttons) {
-    const ts = parseActivateAtToTime(btn.activateAt);
-    if (!Number.isFinite(ts)) continue;        // 파싱 실패 보호
-    if (ts <= nowTs) {
-      if (!latest || ts > latest.ts) {
-        latest = { btn, ts };
-      }
-    }
+    const ts = parseKstLocalToEpoch(btn.activateAt);
+    if (!Number.isFinite(ts) || ts > nowUtcMs) continue;
+    if (!latest || ts > latest.ts) latest = { btn, ts };
   }
   return latest ? latest.btn : null;
 }
@@ -73,8 +68,8 @@ export const LessonDetailButton = ({ buttons, appVersion }: { buttons: GetLesson
     );
   }
 
-  const now = new Date();
-  const availableButton = pickAvailableButton(buttons, now);
+  const nowUtc = Date.now(); // 이미 UTC(=GMT) 기준 epoch(ms)
+  const availableButton = pickAvailableButton(buttons, nowUtc);
 
   if (!availableButton) {
     return (
