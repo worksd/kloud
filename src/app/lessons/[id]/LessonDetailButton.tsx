@@ -50,14 +50,18 @@ function pickAvailableButton(
   return latest ? latest.btn : null;
 }
 
-export const LessonDetailButton = ({ buttons, appVersion }: { buttons: GetLessonButtonResponse[], appVersion: string }) => {
+export const LessonDetailButton = ({id, buttons, appVersion}: {
+  id: number,
+  buttons: GetLessonButtonResponse[],
+  appVersion: string
+}) => {
 
   const [mounted, setMounted] = React.useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
-    }, [])
+  }, [])
 
   if (!mounted) return null;
   if (!buttons || buttons.length === 0) {
@@ -79,7 +83,7 @@ export const LessonDetailButton = ({ buttons, appVersion }: { buttons: GetLesson
     );
   }
 
-  const handleOnClick = ({ route }: { route?: string }) => {
+  const handleOnClick = async ({ route }: { route?: string }) => {
     if (!route) return;
     if (appVersion == '') {
       router.push(route)

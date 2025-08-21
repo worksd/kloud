@@ -108,7 +108,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
       {/* 결제 페이지 이동 버튼 */}
 
       <div className="left-0 w-full h-fit fixed bottom-2 px-6">
-        <LessonDetailButton buttons={lesson.buttons} appVersion={appVersion}/>
+        <LessonDetailButton id={lesson.id} buttons={lesson.buttons} appVersion={appVersion}/>
       </div>
     </div>
   );

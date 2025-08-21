@@ -10,6 +10,7 @@ import { CircleImage } from "@/app/components/CircleImage";
 import { translate } from "@/utils/translate";
 import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { revalidateTag } from "next/cache";
 
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
@@ -18,7 +19,6 @@ export default async function LessonPaymentPage({params, searchParams}: {
   const { id } = await params
   const { appVersion, os } = await searchParams
   const res = await getLessonPaymentAction({id: id})
-
   if ('user' in res) {
     if (res.lesson?.status != '예약 중' && res.lesson?.status != '선예약 중') {
       return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>

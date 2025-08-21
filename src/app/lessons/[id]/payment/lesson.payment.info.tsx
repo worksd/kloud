@@ -25,11 +25,19 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
   const handleSelectMethod = (method: PaymentMethodType) => {
     setSelectedMethod(method);
   }
+  useEffect(() => {
+    fetch('/api/cache/purge-lesson', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ lessonId: payment.lesson?.id }),
+    })
+  }, [payment])
 
   useEffect(() => {
     setMounted(true);
   }, []);
   if (!mounted) return;
+
   return (
     <div className={"flex flex-col"}>
       <div className="flex flex-col gap-y-4">
