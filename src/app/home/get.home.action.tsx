@@ -1,6 +1,11 @@
 'use server'
 import { api } from "@/app/api.client";
+import { studioKey } from "@/shared/cookies.key";
+import { cookies } from "next/headers";
 
 export const getHomeAction = async () => {
-  return api.home.getHome({})
+  const studioId = (await cookies()).get(studioKey)?.value
+  return api.home.getHome({
+    studioId
+  })
 }

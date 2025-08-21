@@ -16,8 +16,13 @@ export type GetStagResponse = {
   jumbotrons: GetLessonResponse[];
 }
 
-export const GetHome: Endpoint<object, GetHomeResponse> = {
+export type GetHomeRequestParameter = {
+  studioId?: string;
+}
+
+export const GetHome: Endpoint<GetHomeRequestParameter, GetHomeResponse> = {
   method: 'get',
+  queryParams: ['studioId'],
   path: `/home`,
 }
 
