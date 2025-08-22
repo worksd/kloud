@@ -157,7 +157,7 @@ export default function PaymentButton({
         }
         await requestPayment(mobileWebPaymentRequest)
       } else {
-        const paymentInfo: PaymentInfo = os == 'Android' ? {
+        const paymentInfo: PaymentInfo = {
           storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
           channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
           paymentId: paymentId,
@@ -167,17 +167,10 @@ export default function PaymentButton({
           price: price,
           userId: `${user.id}`,
           customData: '',
-        } : {
-          paymentId: paymentId,
+          userCode: process.env.NEXT_PUBLIC_USER_CODE, // TODO: 이 밑으로는 나중에 V2 마이그레이션때 삭제
           pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
           scheme: 'iamport',
-          orderName: title,
-          type: type,
           amount: `${price}`,
-          method: 'credit',
-          userId: `${user.id}`,
-          userCode: process.env.NEXT_PUBLIC_USER_CODE,
-          customData: '',
         }
         console.log('paymentInfo', paymentInfo)
         window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
