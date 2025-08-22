@@ -1763,6 +1763,30 @@ export const StringResource = {
     jp: '購入金額',
     zh: '购买金额',
   },
+  edit: {
+    ko: '수정',
+    en: 'Edit',
+    jp: '編集',
+    zh: '编辑',
+  },
+  no_registered_refund_title: {
+    ko: '잠깐, 환불계좌를 등록안하셨나요?',
+    en: 'Wait, haven’t you registered a refund account?',
+    jp: 'ちょっと待って、返金口座を登録していませんか？',
+    zh: '等等，您还没有注册退款账户吗？',
+  },
+  no_registered_refund_desc: {
+    ko: '환불 발생 시 신속한 처리를 위해 환불계좌를 미리 등록해주세요.',
+    en: 'Please register your refund account in advance for prompt processing in case of a refund.',
+    jp: '返金が発生した場合に迅速に処理するため、返金口座を事前に登録してください。',
+    zh: '为确保退款时能够及时处理，请提前注册退款账户。',
+  },
+  go_registered_refund_button_title: {
+    ko: '환불계좌 등록하러 가기',
+    en: 'Go register refund account',
+    jp: '返金口座を登録しに行く',
+    zh: '去注册退款账户',
+  },
   empty: {
     ko: '',
     en: '',

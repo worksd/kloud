@@ -8,6 +8,7 @@ import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation"
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   payment: GetPaymentResponse,
@@ -33,6 +34,7 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   return (
     <div className={"flex flex-col justify-between"}>
       <PaymentMethodComponent
+        baseRoute={KloudScreen.PassPayment(payment.passPlan?.id ?? 0)}
         paymentOptions={payment.methods}
         cards={payment.cards}
         selectedMethod={selectedMethod}
@@ -42,6 +44,11 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
         selectPaymentMethodAction={setSelectedMethod}
         depositor={depositor}
         setDepositorAction={setDepositor}
+        refundAccount={{
+          holderName: payment.user.refundDepositor,
+          bankName: payment.user.refundAccountBank,
+          accountNumber: payment.user.refundAccountNumber
+        }}
       />
 
       <div className="py-5">

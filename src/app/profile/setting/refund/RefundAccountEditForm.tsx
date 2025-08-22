@@ -1,19 +1,23 @@
 'use client'
 import { InputComponent } from "@/app/components/InputComponent";
-import React from "react";
+import React, { useEffect } from "react";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
-import { createDialog } from "@/utils/dialog.factory";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 
 export const RefundAccountEditForm = ({
-                                      initialAccountNumber,
-                                      initialAccountBank,
-                                      initialAccountDepositor
-                                    }: {
+                                        initialAccountNumber,
+                                        initialAccountBank,
+                                        initialAccountDepositor,
+                                        baseRoute,
+  isFromBottomSheet
+                                      }: {
   initialAccountNumber?: string;
   initialAccountBank?: string;
   initialAccountDepositor?: string;
+  baseRoute?: string;
+  isFromBottomSheet?: boolean;
 }) => {
 
   const [refundAccountNumber, setRefundAccountNumber] = React.useState(initialAccountNumber ?? '');
@@ -38,31 +42,51 @@ export const RefundAccountEditForm = ({
     }
   }
 
-  return (
-    <div className={'flex flex-col px-4 space-y-2'}>
-      <InputComponent
-        isRequired={false}
-        labelResource={'refund_account_bank'}
-        placeholderResource={'input_refund_account_bank'}
-        value={refundAccountBank}
-        onValueChangeAction={(value: string) => setRefundAccountBank(value)}/>
-      <InputComponent
-        isRequired={false}
-        labelResource={'refund_account_number'}
-        placeholderResource={'input_refund_account_number'}
-        value={refundAccountNumber}
-        onValueChangeAction={(value: string) => setRefundAccountNumber(value)}/>
-      <InputComponent
-        isRequired={false}
-        labelResource={'refund_account_depositor'}
-        placeholderResource={'input_refund_account_depositor'}
-        value={refundAccountDepositor}
-        onValueChangeAction={(value: string) => setRefundAccountDepositor(value)}/>
+  useEffect(() => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      window.KloudEvent.refresh(baseRoute)
+      if (data.id == 'RefundAccountUpdateSuccess') {
+        if (isFromBottomSheet) {
+          window.KloudEvent.closeBottomSheet()
+        } else {
+          window.KloudEvent.back()
+        }
+      }
+    }
+  })
 
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 bg-white">
-        <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
-          <TranslatableText titleResource={'confirm'}/>
-        </CommonSubmitButton>
+  return (
+    <div className="flex flex-col bg-white">
+      {/* 입력 필드 영역 */}
+      <div className="flex flex-col px-4 space-y-2 pt-[24px] pb-[24px]">
+        <InputComponent
+          isRequired={false}
+          labelResource={'refund_account_bank'}
+          placeholderResource={'input_refund_account_bank'}
+          value={refundAccountBank}
+          onValueChangeAction={(value: string) => setRefundAccountBank(value)}
+        />
+        <InputComponent
+          isRequired={false}
+          labelResource={'refund_account_number'}
+          placeholderResource={'input_refund_account_number'}
+          value={refundAccountNumber}
+          onValueChangeAction={(value: string) => setRefundAccountNumber(value)}
+        />
+        <InputComponent
+          isRequired={false}
+          labelResource={'refund_account_depositor'}
+          placeholderResource={'input_refund_account_depositor'}
+          value={refundAccountDepositor}
+          onValueChangeAction={(value: string) => setRefundAccountDepositor(value)}
+        />
+
+        {/* 버튼 영역 (자연스럽게 아래쪽에 위치) */}
+        <div className="mt-[100px]">
+          <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
+            <TranslatableText titleResource={'confirm'}/>
+          </CommonSubmitButton>
+        </div>
       </div>
     </div>
   )

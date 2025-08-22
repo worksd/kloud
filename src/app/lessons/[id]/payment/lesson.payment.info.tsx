@@ -42,6 +42,7 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
     <div className={"flex flex-col"}>
       <div className="flex flex-col gap-y-4">
         <PaymentMethodComponent
+          baseRoute={KloudScreen.LessonPayment(payment.lesson?.id ?? 0)}
           passes={payment.user.passes}
           cards={payment.cards}
           selectedPass={selectedPass}
@@ -53,7 +54,13 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           selectedMethod={selectedMethod}
           selectPaymentMethodAction={handleSelectMethod}
           depositor={depositor}
-          setDepositorAction={setDepositor}/>
+          setDepositorAction={setDepositor}
+          refundAccount={{
+            holderName: payment.user.refundDepositor,
+            bankName: payment.user.refundAccountBank,
+            accountNumber: payment.user.refundAccountNumber
+          }}
+        />
       </div>
 
       <div className="py-5">
@@ -62,7 +69,6 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
 
       {/* 결제 정보 */}
       <PurchaseInformation price={payment.totalPrice} method={selectedMethod} titleResource={'lesson_price'}/>
-
 
       <div className="py-5">
         <div className="w-full h-3 bg-[#F7F8F9] "/>

@@ -22,7 +22,7 @@ export type GetUserResponse = {
   passes?: GetPassResponse[]
   refundAccountNumber?: string
   refundAccountBank?: string
-  refundAccountDepositor?: string
+  refundDepositor?: string
   emailVerified?: boolean
 }
 
