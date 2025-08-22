@@ -9,6 +9,7 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { checkDuplicateNickName } from "@/app/onboarding/action/check.duplicate.nickname.action";
+import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 
 export const ProfileEditWrapper = ({user}: { user: GetUserResponse }) => {
 
@@ -59,12 +60,12 @@ export const ProfileEditWrapper = ({user}: { user: GetUserResponse }) => {
       />
 
       <div className="fixed bottom-4 left-0 right-0 px-6">
-        <CommonSubmitButton
-          originProps={{onClick}}
+        <AsyncCommonSubmitButton
+          onClick={onClick}
           disabled={nickName?.length == 0 || nickName == user.nickName}
         >
           {t('confirm')}
-        </CommonSubmitButton>
+        </AsyncCommonSubmitButton>
       </div>
 
     </div>

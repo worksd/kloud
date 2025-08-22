@@ -9,6 +9,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/cancel/cancel.subscription.action";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { TranslatableText } from "@/utils/TranslatableText";
+import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
