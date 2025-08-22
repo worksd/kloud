@@ -7,6 +7,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
 export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   payment: GetPaymentResponse,
@@ -15,6 +16,9 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
   appVersion: string
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
+  const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
+    payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
+  );
   const [depositor, setDepositor] = useState("");
   const [mounted, setMounted] = useState(false);
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
@@ -33,6 +37,7 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
         cards={payment.cards}
         selectedMethod={selectedMethod}
         selectedBillingCard={selectedBillingCard}
+        selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
         selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
         selectPaymentMethodAction={setSelectedMethod}
         depositor={depositor}
@@ -62,7 +67,10 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
         <PaymentButton type={{value: 'passPlan', prefix: 'LP'}} os={os} title={payment.passPlan?.name ?? ''}
                        price={price}
                        id={payment.passPlan?.id ?? 0}
-                       disabled={false}
+                       disabled={
+                         !selectedMethod ||
+                         (selectedMethod === 'pass' && !selectedPass)
+                       }
                        appVersion={appVersion}
                        method={selectedMethod}
                        depositor={depositor}

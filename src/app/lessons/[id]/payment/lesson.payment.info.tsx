@@ -82,13 +82,16 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
           appVersion={appVersion}
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
-          type={{value: 'lesson', prefix: 'LT'}}
+          type={{ value: 'lesson', prefix: 'LT' }}
           id={payment.lesson?.id ?? 0}
           price={payment.totalPrice}
           title={payment.lesson?.title ?? ''}
           user={payment.user}
           depositor={depositor}
-          disabled={selectedMethod == undefined}
+          disabled={
+            !selectedMethod ||
+            (selectedMethod === 'pass' && !selectedPass)
+          }
           paymentId={payment.paymentId}
         />
       </div>
