@@ -115,7 +115,6 @@ export const OnboardForm = ({user, studios, appVersion, returnUrl}: {
             nickName: nickName,
           });
 
-
           if (res.success && res.user?.status == UserStatus.Ready) {
             if (appVersion == '') {
               router.replace(returnUrl)
@@ -277,6 +276,7 @@ If everything looks good, tap the [Confirm] button below to complete your verifi
       country,
       name,
       emailVerified: true,
+      nickName,
     })
     if (res.success && res.user?.emailVerified == true) {
       const bottomMenuList = await getBottomMenuList();
