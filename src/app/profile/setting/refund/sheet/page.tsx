@@ -26,7 +26,7 @@ export default async function RefundAccountEditSheetPage(
 
         <RefundAccountEditForm
           initialAccountBank={user.refundAccountBank}
-          initialAccountDepositor={user.refundDepositor}
+          initialAccountDepositor={user.refundAccountDepositor}
           initialAccountNumber={user.refundAccountNumber}
           baseRoute={baseRoute}
           isFromBottomSheet={true}

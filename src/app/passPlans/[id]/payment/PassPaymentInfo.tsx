@@ -45,7 +45,7 @@ export const PassPaymentInfo = ({payment, price, os, appVersion}: {
         depositor={depositor}
         setDepositorAction={setDepositor}
         refundAccount={{
-          holderName: payment.user.refundDepositor,
+          holderName: payment.user.refundAccountDepositor,
           bankName: payment.user.refundAccountBank,
           accountNumber: payment.user.refundAccountNumber
         }}
