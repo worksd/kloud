@@ -14,7 +14,7 @@ export default async function RefundAccountEditPage() {
         </div>
         <RefundAccountEditForm
           initialAccountBank={user.refundAccountBank}
-          initialAccountDepositor={user.refundDepositor}
+          initialAccountDepositor={user.refundAccountDepositor}
           initialAccountNumber={user.refundAccountNumber}
           baseRoute={KloudScreen.RefundAccountSetting}
           isFromBottomSheet={false}
