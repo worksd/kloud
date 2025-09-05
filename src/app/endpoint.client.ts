@@ -84,17 +84,33 @@ export abstract class EndpointClient {
     Response extends Record<string, any>
   >(endpoint: Endpoint<Parameter, Response | GuinnessErrorCase>) {
     return async (args: Parameter): Promise<Response | GuinnessErrorCase> => {
-      const path = typeof endpoint.path === "string" ? endpoint.path : endpoint.path(args);
+      const path =
+        typeof endpoint.path === 'string' ? endpoint.path : endpoint.path(args);
+
+      // ✅ undefined 제거 유틸
+      const clean = (obj: Record<string, any>) => {
+        return Object.fromEntries(
+          Object.entries(obj).filter(([_, v]) => v !== undefined)
+        );
+      };
+
+      const query = clean(
+        pick(args, endpoint.queryParams || ([] as any))
+      );
+      const body = clean(
+        pick(args, endpoint.bodyParams || ([] as any))
+      );
 
       return this.request<Response>({
         path,
         method: endpoint.method,
-        query: pick(args, endpoint.queryParams || ([] as any)),
-        body: pick(args, endpoint.bodyParams || ([] as any)),
+        query,
+        body,
         headers: endpoint.headers,
       });
     };
   }
+
 
   private async authAsHeaders(): Promise<Record<string, string>> {
     const defaultHeaders: Record<string, string> = {};
@@ -178,10 +194,12 @@ export abstract class EndpointClient {
       }
     }
 
-    console.log(
-      `Response(userId:${userId})`,
-      util.inspect(jsonResponse, { depth: null, colors: false })
-    );
+    if (process.env.NODE_ENV == 'production') {
+      console.log(
+        `Response(userId:${userId})`,
+        util.inspect(jsonResponse, {depth: null, colors: false})
+      );
+    }
     return jsonResponse as ResponseBody;
   }
 }
