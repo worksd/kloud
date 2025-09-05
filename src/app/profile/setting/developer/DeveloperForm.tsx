@@ -30,9 +30,6 @@ const CUSTOM_CONFIG: ServerConfig = {
   label: 'localhost / 사내망 서버',
   url: '',
 };
-
-const isDev = process.env.NODE_ENV !== 'production';
-
 export const DeveloperForm = () => {
   // 환경에 따른 기본 선택값
   const defaultSelected = useMemo<ServerConfig>(() => {
@@ -43,11 +40,11 @@ export const DeveloperForm = () => {
         : BASE_CONFIGS[0];
 
     // 개발환경이면 커스텀을 기본 선택 (직접 입력 유도)
-    return isDev ? CUSTOM_CONFIG : base;
+    return base;
   }, []);
 
   const SERVER_CONFIGS: ServerConfig[] = useMemo(
-    () => (isDev ? [...BASE_CONFIGS, CUSTOM_CONFIG] : BASE_CONFIGS),
+    () => ([...BASE_CONFIGS, CUSTOM_CONFIG]),
     [],
   );
 
@@ -133,7 +130,7 @@ export const DeveloperForm = () => {
           ))}
 
           {/* 개발환경 + 커스텀 선택 시 입력창 노출 */}
-          {isDev && selectedServer.type === 'custom' && (
+          {selectedServer.type === 'custom' && (
             <input
               value={customUrl}
               onChange={(e) => setCustomUrl(e.target.value)}
