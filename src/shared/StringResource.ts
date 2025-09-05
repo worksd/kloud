@@ -1787,6 +1787,12 @@ export const StringResource = {
     jp: '返金口座を登録しに行く',
     zh: '去注册退款账户',
   },
+  class_full_message: {
+    ko: '신청하려는 클래스의 정원이 가득찼습니다',
+    en: 'The class you are trying to register for is full',
+    jp: '申し込みたいクラスは定員に達しました',
+    zh: '您要报名的课程名额已满',
+  },
   empty: {
     ko: '',
     en: '',

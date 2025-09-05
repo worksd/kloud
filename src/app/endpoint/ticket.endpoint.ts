@@ -1,4 +1,4 @@
-import { Endpoint, NoParameter } from "@/app/endpoint/index";
+import { Endpoint, NoParameter, SimpleResponse } from "@/app/endpoint/index";
 import { GetStudioResponse, IdParameter } from "@/app/endpoint/studio.endpoint";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";

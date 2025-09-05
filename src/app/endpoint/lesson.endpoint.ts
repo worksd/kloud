@@ -1,4 +1,4 @@
-import { Endpoint } from "@/app/endpoint/index";
+import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 import { LessonLevels, LessonType } from "@/entities/lesson/lesson";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
@@ -76,6 +76,10 @@ export type GetBandListResponse = {
     bands: GetBandResponse[]
 }
 
+export type CheckTicketCapacityParameter = {
+    lessonId: number;
+}
+
 export type BandType = 'Default' | 'Recommendation'
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
@@ -103,6 +107,11 @@ export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListRe
 export const ListStageBands: Endpoint<object, GetBandListResponse> = {
     method: 'get',
     path: `/lessons/stage`,
+}
+
+export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {
+    method: 'get',
+    path: (e) => `/lessons/${e.lessonId}/capacity-check`
 }
 
 export enum LessonStatus {

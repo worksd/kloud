@@ -227,6 +227,14 @@ export async function createDialog({id, message, title, customData}: {
       message: message ?? '',
       confirmTitle: await translate('confirm')
     }
+  } else if (id == 'CapacityFull') {
+    return {
+      id: 'BillingKeyNotFound',
+      type: 'SIMPLE',
+      title: await translate('class_full_message'),
+      message: message ?? '',
+      confirmTitle: await translate('confirm')
+    }
   }
 }
 
@@ -256,6 +264,7 @@ export type DialogId =
   | 'DeleteBillingCard'
   | 'RequestBillingKeyPayment'
   | 'BillingKeyNotFound'
+  | 'CapacityFull'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

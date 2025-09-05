@@ -19,6 +19,7 @@ import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 
 
 export const PaymentTypes = [
@@ -141,40 +142,51 @@ export default function PaymentButton({
     }
 
     if (method === 'credit') {
-      if (appVersion == '') {
+      if (type.value !== 'lesson') return;
+
+      const capacityCheckResponse = await checkCapacityLessonAction({ lessonId: id });
+
+      if (!('success' in capacityCheckResponse && capacityCheckResponse.success)) {
+        const dialog = await createDialog({id: 'CapacityFull'})
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        return;
+      }
+
+      if (appVersion === '') {
         const mobileWebPaymentRequest: PaymentRequest = {
           storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
           channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-          paymentId: paymentId,
+          paymentId,
           orderName: title,
           payMethod: 'CARD',
           totalAmount: price,
-          currency: "CURRENCY_KRW",
-          customer: {
-            fullName: `${user.id}`
-          },
-          redirectUrl: (process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? '') + `?type=${type.value}&id=${id}`,
-        }
-        await requestPayment(mobileWebPaymentRequest)
-      } else {
-        const paymentInfo: PaymentInfo = {
-          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-          paymentId: paymentId,
-          orderName: title,
-          method: 'credit',
-          type: type,
-          price: price,
-          userId: `${user.id}`,
-          customData: '',
-          userCode: process.env.NEXT_PUBLIC_USER_CODE, // TODO: 이 밑으로는 나중에 V2 마이그레이션때 삭제
-          pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
-          scheme: 'iamport',
-          amount: `${price}`,
-        }
-        console.log('paymentInfo', paymentInfo)
-        window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
+          currency: 'CURRENCY_KRW',
+          customer: { fullName: `${user.id}` },
+          redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
+        };
+
+        await requestPayment(mobileWebPaymentRequest);
+        return;
       }
+
+      const paymentInfo: PaymentInfo = {
+        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+        paymentId,
+        orderName: title,
+        method: 'credit',
+        type,
+        price,
+        userId: `${user.id}`,
+        customData: '',
+        userCode: process.env.NEXT_PUBLIC_USER_CODE, // TODO: V2 마이그레이션 시 삭제 예정
+        pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
+        scheme: 'iamport',
+        amount: `${price}`,
+      };
+
+      console.log('paymentInfo', paymentInfo);
+      window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     } else if (method === 'account_transfer') {
       if (depositor.length === 0) {
         const dialog = await createDialog({id: 'EmptyDepositor'})
