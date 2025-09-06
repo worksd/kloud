@@ -34,6 +34,11 @@ export type RequestAccountTransfer = {
   depositor: string
 }
 
+export type CreateFreePaymentRecord = {
+  item: string;
+  itemId: number;
+}
+
 export const GetPaymentRecords: Endpoint<object, GetPaymentRecordListResponse> = {
   method: "get",
   path: `/paymentRecords`,
@@ -48,6 +53,12 @@ export const RequestAccountTransfer: Endpoint<RequestAccountTransfer, GetPayment
   method: 'post',
   path: (e) => `/paymentRecords/account-transfer`,
   bodyParams: ['depositor', 'itemId', 'item']
+}
+
+export const CreateFreePaymentRecord: Endpoint<CreateFreePaymentRecord, GetPaymentRecordResponse> = {
+  method: 'post',
+  path: '/paymentRecords/free',
+  bodyParams: ['item', 'itemId'],
 }
 
 export enum PaymentRecordStatus {

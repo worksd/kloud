@@ -31,7 +31,6 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
     const handleKakaoLogin = async () => {
       try {
         if (isSubmitting) {
-          console.log('Kakao Login: Is Submitting...')
           return;
         }
         setIsSubmitting(true);
@@ -40,7 +39,6 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
 
         if (code && state) {
           if (code === prevCodeRef.current) {
-            console.log(`Kakao Login Error: same code ${prevCodeRef.current}`)
             return;
           }
           prevCodeRef.current = code;

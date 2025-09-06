@@ -20,11 +20,12 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
+import { createFreePaymentRecord } from "@/app/lessons/[id]/payment/create.free.payment.record.action";
 
 
 export const PaymentTypes = [
-  {value: 'lesson', prefix: 'LT'},
-  {value: 'passPlan', prefix: 'LP'},
+  {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
+  {value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];
@@ -82,7 +83,6 @@ export default function PaymentButton({
 
   const onPaymentSuccess = async ({paymentId}: { paymentId: string }) => {
     try {
-      console.log(`${paymentId} 결제 성공해버렸어!`)
       setIsSubmitting(true);
       await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       if (type.value == 'lesson') {
@@ -116,13 +116,11 @@ export default function PaymentButton({
   const handlePayment = useCallback(async () => {
 
     if (!user || !('id' in user)) {
-      console.log('user 없음')
       setIsSubmitting(false);
       return;
     }
 
     if (!isVerified) {
-      console.log('not verified')
       const res = await getUserAction()
       if (res && 'id' in res && (res.phone || res.emailVerified == true)) {
         setIsVerified(true);
@@ -137,7 +135,23 @@ export default function PaymentButton({
     }
 
     if (price == 0) {
-      await onPaymentSuccess({paymentId: paymentId})
+      const res = await createFreePaymentRecord({item: type.apiValue, itemId: id})
+      if ('paymentId' in res) {
+        const route = KloudScreen.PaymentRecordDetail(res.paymentId)
+        if (appVersion == '' && route) {
+          router.replace(route)
+        } else {
+          const bottomMenuList = await getBottomMenuList();
+          const bootInfo = JSON.stringify({
+            bottomMenuList: bottomMenuList,
+            route: route,
+          });
+          window.KloudEvent?.navigateMain(bootInfo);
+        }
+      } else {
+        const dialog = await createDialog({id: 'Simple', message : res.message})
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      }
       return
     }
 
@@ -185,7 +199,6 @@ export default function PaymentButton({
         amount: `${price}`,
       };
 
-      console.log('paymentInfo', paymentInfo);
       window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     } else if (method === 'account_transfer') {
       if (depositor.length === 0) {

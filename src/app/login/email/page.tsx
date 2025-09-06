@@ -6,8 +6,6 @@ export default async function EmailLogin({searchParams}: {
   searchParams: Promise<{ appVersion: string, returnUrl?: string }>
 }) {
   const { returnUrl, appVersion } = await searchParams;
-  console.log('returnUrl ' + returnUrl);
-  console.log('appVersion ' + appVersion);
   return (
     <section className="min-h-screen bg-white flex flex-col">
       <SimpleHeader titleResource={'email_login'}/>

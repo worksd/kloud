@@ -7,9 +7,7 @@ import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export const LoginButtonForm = async ({os, appVersion, returnUrl}: { os: string, appVersion: string, returnUrl?: string}) => {
-  console.log(`login button form ${returnUrl}`)
   const loginEmailQuery = returnUrl ? `?returnUrl=${returnUrl}` : ''
-  console.log('query ' + loginEmailQuery)
   return (
     <section className="flex flex-col items-center justify-center">
       <div className="space-y-2 w-full p-2">

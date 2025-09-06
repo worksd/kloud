@@ -79,6 +79,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.PaymentRecord.GetPaymentRecords),
     get: this.endpointBuilder(API.PaymentRecord.GetPaymentRecordDetail),
     requestAccountTransfer: this.endpointBuilder(API.PaymentRecord.RequestAccountTransfer),
+    createFreePaymentRecord: this.endpointBuilder(API.PaymentRecord.CreateFreePaymentRecord),
   }
 
   readonly billing = {

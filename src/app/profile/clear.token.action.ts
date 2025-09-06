@@ -8,5 +8,4 @@ export async function clearCookies() {
   cookieStore.delete(accessTokenKey);
   cookieStore.delete(userIdKey);
   cookieStore.delete(udidKey);
-  console.log("----------------Clear Token-------------------")
-} 
+}
