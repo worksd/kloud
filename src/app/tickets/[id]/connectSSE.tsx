@@ -13,7 +13,7 @@ export const connectSSE = (
 
   const es = new EventSourcePolyfill(url, {
     headers: {
-      'x-guinness-device-name': 'asdf',
+      'x-guinness-device-name': 'SSE Device',
       'x-guinness-client': 'Android',
       'x-guinness-version': '2.0.0',
     },
@@ -28,6 +28,19 @@ export const connectSSE = (
   es.addEventListener('ticket.used', (e) => {
     const raw = (e as MessageEvent).data;
     console.log('[SSE] ticket.used event received:', raw);
+
+    try {
+      const parsed = JSON.parse(raw);
+      console.log('[SSE] parsed data:', parsed);
+      onMessage(parsed);
+    } catch {
+      onMessage(raw);
+    }
+  });
+
+  es.addEventListener('payment.completed', (e) => {
+    const raw = (e as MessageEvent).data;
+    console.log('[SSE] payment.completed event received:', raw);
 
     try {
       const parsed = JSON.parse(raw);

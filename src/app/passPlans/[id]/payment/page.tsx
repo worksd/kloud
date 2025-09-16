@@ -18,7 +18,12 @@ export default async function PassPayment({params, searchParams}: {
         </div>
         <CurrentPassPlan passPlan={res.passPlan}/>
         <div className="w-full h-3 bg-[#F7F8F9] mb-5"/>
-        <PassPaymentInfo payment={res} price={res.totalPrice} os={os} appVersion={appVersion}/>
+        <PassPaymentInfo
+          payment={res}
+          price={res.totalPrice}
+          url={process.env.GUINNESS_API_SERVER ?? ''}
+          appVersion={appVersion}
+        />
       </div>
     )
   }

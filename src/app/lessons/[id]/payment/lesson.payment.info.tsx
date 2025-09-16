@@ -11,7 +11,7 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
 
-export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPaymentResponse, os: string, appVersion: string }) => {
+export const LessonPaymentInfo = ({payment, url, appVersion}: { payment: GetPaymentResponse, url: string, appVersion: string }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(undefined);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
@@ -83,8 +83,8 @@ export const LessonPaymentInfo = ({payment, os, appVersion}: { payment: GetPayme
 
       <div className="left-0 w-full fixed bottom-2 px-6">
         <PaymentButton
+          url={url}
           method={selectedMethod}
-          os={os}
           appVersion={appVersion}
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}

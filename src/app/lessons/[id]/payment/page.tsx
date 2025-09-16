@@ -72,7 +72,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
           </div>
 
           <LessonPaymentInfo
-            os={os}
+            url={process.env.GUINNESS_API_SERVER ?? ''}
             appVersion={appVersion}
             payment={res}
           />

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { connectSSE } from "@/app/tickets/[id]/connectSSE";
 
-type Msg = { ticketId: number };
+export type SSEMessage = { ticketId?: number, paymentId?: string };
 
 type Status = 'idle' | 'connecting' | 'open' | 'error';
 
@@ -29,7 +29,7 @@ export default function TicketUsageSSEPage({
   endpoint: string;
 }) {
   const [status, setStatus] = useState<Status>('idle');
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useState<SSEMessage[]>([]);
   const sseRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function TicketUsageSSEPage({
     const es = connectSSE(
       `${endpoint}/tickets/${ticketId}/stream`,
       (data) => {
-        const msg = data as Msg;
+        const msg = data as SSEMessage;
         setMessages((prev) => [...prev, msg]);
 
         // ✅ 내 ticketId와 일치하면 바로 reload
