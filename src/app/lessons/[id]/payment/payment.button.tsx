@@ -259,7 +259,7 @@ export default function PaymentButton({
       setIsSubmitting(true);
       if (data.id == 'AccountTransfer') {
         const res = await requestAccountTransferAction({
-          item: 'lesson',
+          item: type.apiValue,
           itemId: id,
           depositor: depositor,
         });
