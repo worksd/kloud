@@ -1,14 +1,14 @@
 import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
 import RightArrowIcon from "../../../public/assets/right-arrow-black.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetBandLessonResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export const LessonGridSection = async ({studioId, title, lessons}: {
   studioId: number,
   title: string,
-  lessons: GetLessonResponse[]
+  lessons: GetBandLessonResponse[]
 }) => {
   return (
     <div className="w-screen pb-8">

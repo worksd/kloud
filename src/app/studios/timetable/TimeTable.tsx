@@ -135,11 +135,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
                 <div className="relative w-full h-full flex flex-col">
                   <div className="flex-1 relative w-full min-h-0">
                     <Image
-                      src={
-                        item.lesson.thumbnailUrl ??
-                        item.lesson.artist?.profileImageUrl ??
-                        ''
-                      }
+                      src={item.lesson.thumbnailUrl}
                       alt="lesson thumbnail"
                       fill
                       className="object-cover"
@@ -149,7 +145,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
                     className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
              overflow-hidden text-ellipsis whitespace-nowrap"
                   >
-                    {item.lesson?.artist?.nickName ?? item.lesson.title}
+                    {item.lesson.title}
                   </div>
                 </div>
               )}

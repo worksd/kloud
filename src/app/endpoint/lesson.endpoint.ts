@@ -48,7 +48,7 @@ export type GetStudioRoomResponse = {
     name: string;
 };
 export type LessonListResponse = {
-    lessons: GetLessonResponse[]
+    lessons: GetBandLessonResponse[]
 }
 
 export type GetArtistResponse = {
@@ -69,7 +69,23 @@ export type GetStudioLessonParameter = {
 export type GetBandResponse = {
     title: string;
     type: BandType;
-    lessons: GetLessonResponse[];
+    lessons: GetBandLessonResponse[];
+}
+
+export type GetBandLessonResponse = {
+    id: number;
+    title: string;
+    description: string;
+    studioImageUrl: string;
+    studioName: string;
+    thumbnailUrl: string;
+    label: GetLabelResponse;
+}
+
+export type GetLabelResponse = {
+    isEnded: boolean;
+    type?: LessonType;
+    genre?: string;
 }
 
 export type GetBandListResponse = {
@@ -78,6 +94,14 @@ export type GetBandListResponse = {
 
 export type CheckTicketCapacityParameter = {
     lessonId: number;
+}
+
+export type JumbotronResponse = {
+    id: number;
+    title: string;
+    description: string;
+    thumbnailUrl: string;
+    studioImageUrl: string;
 }
 
 export type BandType = 'Default' | 'Recommendation'
