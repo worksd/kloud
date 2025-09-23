@@ -1,5 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
@@ -30,7 +30,7 @@ export type GetStudioResponse = {
     representative?: string;
     depositor?: string;
     instagramAddress?: string;
-    lessons?: GetLessonResponse[];
+    lessons?: GetBandLessonResponse[];
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
@@ -42,7 +42,6 @@ export type GetMyStudioResponse = {
   studio: GetStudioResponse;
   announcement: GetAnnouncementResponse;
   passes: GetPassResponse[];
-  timeTable?: GetTimeTableResponse;
   day: string;
   bands: GetBandResponse[];
   myTodayTicket?: TicketResponse;
@@ -64,7 +63,7 @@ export type GetTimeTableDayResponse = {
 }
 
 export type GetTimeTableParameter = {
-  baseDate: string;
+  baseDate?: string;
   studioId: number;
 }
 
@@ -74,7 +73,13 @@ export type GetTimeTableCellResponse = {
   length: number
   time: string
   type: 'time' | 'lesson'
-  lesson: GetLessonResponse
+  lesson: GetTimeTableLessonResponse
+}
+
+export type GetTimeTableLessonResponse = {
+  title: string;
+  thumbnailUrl: string;
+  id: number;
 }
 
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {

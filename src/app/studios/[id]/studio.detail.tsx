@@ -10,6 +10,7 @@ import { translate } from "@/utils/translate";
 import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchaseSubmitButton";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
+import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -116,9 +117,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           )}
         </section>
 
-        {studio.timeTable && studio.timeTable.days.length > 1 &&
-          <TimeTable timeTable={studio.timeTable} today={studio.day}/>
-        }
+        <TimeTableServerComponent studioId={studio.id} day={studio.day}/>
 
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>

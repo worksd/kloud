@@ -4,11 +4,11 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
 import Image from "next/image";
 import { KloudScreen } from "@/shared/kloud.screen";
 
-const CardList = ({lessons}: { lessons: GetLessonResponse[] }) => {
+const CardList = ({lessons}: { lessons: JumbotronResponse[] }) => {
   const [currentCard, setCurrentCard] = useState<number>(0);
 
   return (
@@ -49,7 +49,7 @@ const CardList = ({lessons}: { lessons: GetLessonResponse[] }) => {
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                   <div className="w-[40px] h-[40px] rounded-full overflow-hidden flex-shrink-0 mb-2">
                     <img
-                      src={item.studio?.profileImageUrl}
+                      src={item.studioImageUrl}
                       alt={'스튜디오 이미지'}
                       className="w-full h-full object-cover"
                     />
@@ -58,7 +58,7 @@ const CardList = ({lessons}: { lessons: GetLessonResponse[] }) => {
                     {item.title ?? ''}
                   </h2>
                   <p className="text-[16px]">
-                    {item.artist?.nickName ?? ''}
+                    {item.description}
                   </p>
                 </div>
               </div>

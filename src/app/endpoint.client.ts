@@ -194,12 +194,12 @@ export abstract class EndpointClient {
       }
     }
 
-    if (process.env.NODE_ENV == 'production') {
+    // if (process.env.NODE_ENV == 'production') {
       console.log(
         `Response(userId:${userId})`,
         util.inspect(jsonResponse, {depth: null, colors: false})
       );
-    }
+    // }
     return jsonResponse as ResponseBody;
   }
 }

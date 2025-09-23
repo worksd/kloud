@@ -1,8 +1,8 @@
 'use server'
 import { Poster } from "@/app/components/Poster";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetBandLessonResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 
-export const LessonGridItems = async ({ lessons }: { lessons: GetLessonResponse[] }) => {
+export const LessonGridItems = async ({ lessons }: { lessons: GetBandLessonResponse[] }) => {
   return (
     <div className="w-full px-4 flex justify-center"> {/* 컨테이너 추가 */}
       <div className="grid grid-cols-2 gap-3 w-full"> {/* 최대 너비 제한 */}
@@ -10,12 +10,11 @@ export const LessonGridItems = async ({ lessons }: { lessons: GetLessonResponse[
           <Poster
             key={lesson.id}
             id={lesson.id}
-            posterUrl={lesson.thumbnailUrl ?? lesson.artist?.profileImageUrl ?? ''}
-            studio={lesson.studio}
+            posterUrl={lesson.thumbnailUrl}
             title={lesson.title ?? ''}
-            date={lesson.date ?? ''}
+            description={lesson.description ?? ''}
             width={undefined}
-            dday={lesson.dday}
+            label={lesson.label}
           />
         ))}
       </div>

@@ -12,6 +12,7 @@ import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse }) {
   if (!res) {
@@ -44,12 +45,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse }) 
           </div>
         </NavigateClickWrapper>
       </div>
-      {res.timeTable && res.timeTable.days.length > 1 &&
-        <div className={'my-4'}>
-          <TimeTable timeTable={res.timeTable ?? []} today={res.day}/>
-        </div>
-      }
-
+      <TimeTableServerComponent studioId={res.studio.id} day={res.day} />
       {res.bands.map((value) => (
         <LessonBand
           key={value.title}

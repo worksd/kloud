@@ -2,7 +2,6 @@ import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import React from "react";
 import { Props } from "@/app/studios/[id]/page";
 import LargeCircleCheckIcon from "../../../../../public/assets/ic_large_circle_check.svg"
-import { LessonBand } from "@/app/LessonBand";
 import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 
@@ -21,12 +20,6 @@ export default async function PassPaymentCompletePage({params}: Props) {
             <LargeCircleCheckIcon/>
             <div className="text-black text-[24px] font-medium">{res.passPlan?.name} 패스 구매를 완료했어요!</div>
             <div className="text-[16px] text-black">{studio.name} 스튜디오의 수업을 신청해보세요</div>
-
-            {'id' in studio && (
-              <div className="w-full mt-6">
-                <LessonBand lessons={studio.lessons ?? []} title={'패스권 추천 클래스'} type={'Default'}/>
-              </div>
-            )}
           </div>
         </div>
       )

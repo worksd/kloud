@@ -1,8 +1,6 @@
 'use server'
 
 import { api } from "@/app/api.client";
-import { cookies } from "next/headers";
-import { studioKey } from "@/shared/cookies.key";
 import { LessonJumbotrons } from "@/app/stage/LessonJumbotrons";
 import { LessonBandList } from "@/app/stage/LessonBandList";
 import { StudioItems } from "@/app/search/StudioItems";

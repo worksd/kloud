@@ -1,5 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetBandResponse, GetLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 
@@ -13,7 +13,7 @@ export type GetHomeResponse = {
 export type GetStagResponse = {
   bands: GetBandResponse[];
   studios: GetStudioResponse[];
-  jumbotrons: GetLessonResponse[];
+  jumbotrons: JumbotronResponse[];
 }
 
 export type GetHomeRequestParameter = {
