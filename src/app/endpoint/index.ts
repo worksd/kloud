@@ -33,3 +33,4 @@ export * as PaymentRecord from './payment.record.endpoint'
 export * as Billing from "./billing.endpoint"
 export * as Subscription from "./subscription.endpoint"
 export * as Home from "./home.endpoint"
+export * as Artist from "./artist.endpoint"

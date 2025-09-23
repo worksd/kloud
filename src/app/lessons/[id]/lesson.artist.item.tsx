@@ -1,6 +1,6 @@
 'use client'
 import Image from "next/image";
-import { GetArtistResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetArtistResponse } from "@/app/endpoint/artist.endpoint";
 import InstagramIcon from "../../../../public/assets/instagram-colored.svg"
 
 export const LessonArtistItem = ({artist, appVersion}: { artist: GetArtistResponse, appVersion: string }) => {

@@ -58,6 +58,9 @@ export const KloudScreen = {
   Terms: '/profile/policy/terms',
   Inquiry: '/profile/inquiry',
   Notification: '/notifications',
+
+  /** 아티스트 */
+  ArtistDetail: (id: number) => `/artists/${id}`,
 } as const;
 
 

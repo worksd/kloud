@@ -1,7 +1,8 @@
-import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
-import { LessonLevels, LessonType } from "@/entities/lesson/lesson";
-import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { Endpoint, SimpleResponse } from '@/app/endpoint/index';
+import { LessonType } from '@/entities/lesson/lesson';
+import { GetStudioResponse } from '@/app/endpoint/studio.endpoint';
+import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
+import { GetArtistResponse } from '@/app/endpoint/artist.endpoint';
 
 export type GetLessonParameter = {
     id: number;
@@ -49,15 +50,6 @@ export type GetStudioRoomResponse = {
 };
 export type LessonListResponse = {
     lessons: GetBandLessonResponse[]
-}
-
-export type GetArtistResponse = {
-    id: number;
-    name: string;
-    nickName: string;
-    profileImageUrl: string;
-    phone: string;
-    instagramAddress: string;
 }
 
 export type GetStudioLessonParameter = {
