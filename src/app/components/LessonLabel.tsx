@@ -65,8 +65,3 @@ const getLessonType = ({
 
   return undefined;
 };
-
-const getLessonGenre = ({genre}: { genre: string }) => {
-  if (genre == 'Default') return undefined;
-  else return genre;
-};
