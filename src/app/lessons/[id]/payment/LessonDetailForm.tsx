@@ -79,11 +79,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           </div>
 
           <div className={ 'self-stretch flex-col justify-start items-start flex gap-2 mt-2.5' }>
-            { lesson.artist && (
-              <NavigateClickWrapper method={ 'push' } route={ KloudScreen.ArtistDetail(lesson.artist.id) }>
-                <LessonArtistItem artist={ lesson.artist } appVersion={ appVersion }/>
-              </NavigateClickWrapper>
-            ) }
+            {lesson.artist && <LessonArtistItem artist={lesson.artist} appVersion={appVersion}/>}
             { lesson.extraArtists && lesson.extraArtists.length > 0 && (
               lesson.extraArtists.map((artist, index) => (
                 <NavigateClickWrapper key={ artist.id || index } method={ 'push' }
