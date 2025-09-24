@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import ArtistDetailForm from '@/app/artists/[id]/artist.detail.form';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
 
-export default async function ArtistDetailPage({ params }: { params: { id: string } }) {
-  const artistId = Number(params.id);
+export default async function ArtistDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const artistId = Number((await params).id);
   if (isNaN(artistId)) {
     notFound();
   }
