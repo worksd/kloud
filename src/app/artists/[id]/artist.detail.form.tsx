@@ -3,9 +3,9 @@
 import { GetArtistResponse } from '@/app/endpoint/artist.endpoint';
 import { HeaderInDetail } from '@/app/components/headers';
 import Image from 'next/image';
-import InstagramIcon from '../../../../public/assets/instagram-colored.svg';
 import ThumbsUpIcon from '../../../../public/assets/thumbs_up.svg';
 import { LessonBand } from '@/app/LessonBand';
+import { ArtistActionItem } from '@/app/artists/[id]/artist.action.item';
 
 // 간단한 프리젠테이션 컴포넌트들
 function GenreChips({genres}: { genres?: string[] | null }) {
@@ -14,7 +14,7 @@ function GenreChips({genres}: { genres?: string[] | null }) {
     <div className="flex flex-wrap gap-2 mt-2">
       { genres.map((g) => (
         <span
-          key={g}
+          key={ g }
           className="px-4 py-[10px] bg-[#F1F3F6] rounded-[100px] text-[14px] leading-[19.6px] font-medium text-black"
         >
           { g }
@@ -30,9 +30,9 @@ function BadgeList({badges}: { badges?: { type: string; label: string }[] | null
     <div className="mt-4 flex flex-col gap-2">
       { badges.map((b, i) => (
         <div key={ `${ b.type }-${ i }` } className="h-7 flex items-center gap-2">
-          {/* 아이콘 28x28 */}
-          <ThumbsUpIcon className="w-7 h-7 block" />
-          {/* 텍스트: 14px / 20px / Medium / #3E3E3E */}
+          {/* 아이콘 28x28 */ }
+          <ThumbsUpIcon className="w-7 h-7 block"/>
+          {/* 텍스트: 14px / 20px / Medium / #3E3E3E */ }
           <span className="text-[#3E3E3E] text-[14px] leading-[20px] font-medium">
             { b.label }
           </span>
@@ -51,10 +51,10 @@ function SummaryStats({
 
   return (
     <section className="w-full self-stretch">
-      {/* 섹션 제목: 18px, bold, 좌우 24px */}
+      {/* 섹션 제목: 18px, bold, 좌우 24px */ }
       <h2 className="px-6 text-[18px] leading-[25.2px] font-bold text-black">{ summary.title }</h2>
 
-      {/* 카드 컨테이너: 좌우 24px, 위여백 12px, 아이템 간 8px */}
+      {/* 카드 컨테이너: 좌우 24px, 위여백 12px, 아이템 간 8px */ }
       <div className="mt-3 px-6 w-full grid grid-cols-2 gap-2">
         { summary.elements.map((el) => {
           return (
@@ -63,7 +63,7 @@ function SummaryStats({
               className="bg-[#F7F8F9] rounded-[12px] p-4 flex flex-col justify-center items-center gap-[2px]"
             >
               <span className="text-[20px] leading-[30px] font-semibold text-black">{ el.label }</span>
-              {/* 캡션 */}
+              {/* 캡션 */ }
               <p className="text-[14px] leading-[20px] font-medium text-[#86898C]">{ el.key }</p>
             </div>
           );
@@ -86,6 +86,14 @@ export default async function ArtistDetailForm({artist, appVersion}: {
     }
   };
 
+  const handleSnsClick = (url: string) => {
+    if (appVersion !== '') {
+      window.KloudEvent.openExternalBrowser(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
   return (
     <div className="w-full min-h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
       {/* 헤더 */ }
@@ -103,32 +111,11 @@ export default async function ArtistDetailForm({artist, appVersion}: {
         />
         {/* 상단 그라데이션 (160px, 검정 40% -> 투명) */ }
         <div
-          className="absolute left-0 right-0 top-0 h-[160px] bg-gradient-to-b from-black/40 to-transparent pointer-events-none"/>
+          className="absolute left-0 right-0 top-0 h-[160px] bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-[1]"/>
         {/* 하단 그라데이션 (160px, 흰색 -> 투명) */ }
         <div
-          className="absolute left-0 right-0 bottom-0 h-[160px] bg-gradient-to-t from-white to-transparent pointer-events-none"/>
-        {/* 하단 오버레이: 닉네임 + SNS */ }
-        <div className="absolute inset-x-0 bottom-0 px-6 pb-[24px] flex flex-col items-start gap-3">
-
-          {/* 1행: 아티스트 닉네임 */}
-          <div
-            className="text-black text-[48px] leading-[72px] font-semibold"
-            style={{ letterSpacing: '-0.408px', fontFamily: 'SF Pro Text, ui-sans-serif, system-ui, -apple-system' }}
-          >
-            { artist.nickName }
-          </div>
-
-          {/* 2행: SNS 아이콘 (32px, gap 12px) */ }
-          <div className="w-full flex items-center gap-3">
-            { artist.instagramAddress && (
-              <div
-                className={ 'w-[24px] h-[24px]' }
-                onClick={ handleInstagramClick }>
-                <InstagramIcon/>
-              </div>
-            ) }
-          </div>
-        </div>
+          className="absolute left-0 right-0 bottom-0 h-[160px] bg-gradient-to-t from-white to-transparent pointer-events-none z-[1]"/>
+        <ArtistActionItem artist={ artist } appVersion={ appVersion }/>
       </div>
 
       {/* 본문 */ }

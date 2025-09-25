@@ -12,6 +12,8 @@ export type GetArtistResponse = {
   profileImageUrl: string;
   phone?: string;
   instagramAddress?: string;
+  youtubeAddress?: string;
+  tiktokAddress?: string;
   genres?: string[];
   description?: string;
   badges?: ArtistBadgeResponse[];
