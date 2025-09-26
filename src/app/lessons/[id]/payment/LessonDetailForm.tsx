@@ -6,10 +6,8 @@ import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { LessonInfoSection } from '@/app/lessons/[id]/lesson.info.section';
 import { translate } from '@/utils/translate';
 import React from 'react';
-import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from '@/app/components/LessonLabel';
 import { LessonDetailButton } from '@/app/lessons/[id]/LessonDetailButton';
-import { KloudScreen } from '@/shared/kloud.screen';
 
 export default async function LessonDetailForm({lesson, appVersion}: {
   lesson: GetLessonResponse,
@@ -79,16 +77,14 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           </div>
 
           <div className={ 'self-stretch flex-col justify-start items-start flex gap-2 mt-2.5' }>
-            {lesson.artist && <LessonArtistItem artist={lesson.artist} appVersion={appVersion}/>}
+            { lesson.artist && <LessonArtistItem artist={ lesson.artist } appVersion={ appVersion }/> }
             { lesson.extraArtists && lesson.extraArtists.length > 0 && (
               lesson.extraArtists.map((artist, index) => (
-                <NavigateClickWrapper key={ artist.id || index } method={ 'push' }
-                                      route={ KloudScreen.ArtistDetail(artist.id) }>
-                  <LessonArtistItem
-                    artist={ artist }
-                    appVersion={ appVersion }
-                  />
-                </NavigateClickWrapper>
+                <LessonArtistItem
+                  key={ artist.id || index }
+                  artist={ artist }
+                  appVersion={ appVersion }
+                />
               ))
             ) }
           </div>
