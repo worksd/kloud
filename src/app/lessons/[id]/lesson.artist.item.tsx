@@ -19,18 +19,16 @@ export const LessonArtistItem = ({artist, appVersion}: { artist: GetArtistRespon
   return (
     <div className="self-stretch h-9 px-6 flex-col justify-start items-start gap-4 flex">
       <div className="self-stretch justify-between items-center inline-flex">
-        <NavigateClickWrapper method={'push'} route={KloudScreen.ArtistDetail(artist.id)}>
-          <div className="flex items-center gap-3 cursor-pointer">
-            <Image
-              className="w-[36px] h-[36px] rounded-full overflow-hidden flex-shrink-0"
-              src={artist.profileImageUrl}
-              alt={`${artist?.nickName} 강사`}
-              width={36}
-              height={36}
-            />
-            <div className="text-black text-sm font-bold leading-tight">{artist.nickName}</div>
-          </div>
-        </NavigateClickWrapper>
+        <div className="flex items-center gap-3 cursor-pointer">
+          <Image
+            className="w-[36px] h-[36px] rounded-full overflow-hidden flex-shrink-0"
+            src={artist.profileImageUrl}
+            alt={`${artist?.nickName} 강사`}
+            width={36}
+            height={36}
+          />
+          <div className="text-black text-sm font-bold leading-tight">{artist.nickName}</div>
+        </div>
 
         {artist.instagramAddress && (
           <button
