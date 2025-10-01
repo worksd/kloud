@@ -55,7 +55,7 @@ export type LessonListResponse = {
 export type GetStudioLessonParameter = {
     studioId: number;
     page: number;
-    type: string;
+    all: boolean;
 }
 
 export type GetBandResponse = {
@@ -111,13 +111,13 @@ export const GetJumbotronLessons: Endpoint<object, LessonListResponse> = {
 export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons`,
-    queryParams: ['studioId', 'page', 'type']
+    queryParams: ['studioId', 'page', 'all']
 }
 
 export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons/ongoing`,
-    queryParams: ['studioId']
+    queryParams: ['studioId', 'all']
 }
 
 export const ListStageBands: Endpoint<object, GetBandListResponse> = {
