@@ -10,17 +10,18 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
 
-export const PassPaymentInfo = ({payment, price, url, appVersion}: {
+export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDepositor}: {
   payment: GetPaymentResponse,
   price: number,
   url: string,
-  appVersion: string
+  appVersion: string,
+  beforeDepositor: string,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
   );
-  const [depositor, setDepositor] = useState("");
+  const [depositor, setDepositor] = useState(beforeDepositor);
   const [mounted, setMounted] = useState(false);
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined

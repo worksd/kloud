@@ -3,7 +3,7 @@ import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { getLessonPaymentAction } from "@/app/lessons/[id]/payment/payment.detail.action";
 import { cookies } from "next/headers";
-import { accessTokenKey, userIdKey } from "@/shared/cookies.key";
+import { accessTokenKey, depositorKey, userIdKey } from "@/shared/cookies.key";
 import React from "react";
 import { LessonPaymentInfo } from "@/app/lessons/[id]/payment/lesson.payment.info";
 import { CircleImage } from "@/app/components/CircleImage";
@@ -75,6 +75,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
             url={process.env.GUINNESS_API_SERVER ?? ''}
             appVersion={appVersion}
             payment={res}
+            beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
           />
         </div>
       </div>

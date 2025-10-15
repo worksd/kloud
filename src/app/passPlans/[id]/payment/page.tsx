@@ -3,6 +3,8 @@ import { PassPaymentInfo } from "@/app/passPlans/[id]/payment/PassPaymentInfo";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { CurrentPassPlan } from "@/app/passPlans/[id]/payment/CurrentPassPlan";
 import { getPassPlanPaymentAction } from "@/app/passPlans/[id]/payment/get.pass.plan.payment.action";
+import { cookies } from "next/headers";
+import { depositorKey } from "@/shared/cookies.key";
 
 export default async function PassPayment({params, searchParams}: {
   params: Promise<{ id: number }>,
@@ -23,6 +25,7 @@ export default async function PassPayment({params, searchParams}: {
           price={res.totalPrice}
           url={process.env.GUINNESS_API_SERVER ?? ''}
           appVersion={appVersion}
+          beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
         />
       </div>
     )

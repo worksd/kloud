@@ -20,6 +20,7 @@ import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subsc
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 import { createFreePaymentRecord } from "@/app/lessons/[id]/payment/create.free.payment.record.action";
+import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
 
 export const PaymentTypes = [
   {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
@@ -265,6 +266,7 @@ export default function PaymentButton({
         });
         if ('paymentId' in res) {
           await onPaymentSuccess(res.paymentId)
+          await putDepositorNameAction({ depositor })
         } else {
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
