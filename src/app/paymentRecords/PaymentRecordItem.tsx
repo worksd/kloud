@@ -5,7 +5,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { StringResourceKey } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
 
-const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
+export const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
   Completed: 'payment_record_completed',
   Cancelled: 'payment_record_cancelled',
   Pending: 'payment_record_pending',

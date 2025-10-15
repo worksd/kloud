@@ -2,16 +2,30 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import React from "react";
-import { GetPaymentRecordResponse } from "@/app/endpoint/payment.record.endpoint";
+import { GetPaymentRecordResponse, PaymentRecordStatus } from "@/app/endpoint/payment.record.endpoint";
 import { translate } from "@/utils/translate";
+import { statusLabelMap } from "@/app/paymentRecords/PaymentRecordItem";
 
 export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
   return <div className="p-5 bg-white min-h-screen text-gray-900">
     <section className="mb-6">
       <h2 className="text-sm font-semibold mb-2">{await translate('purchase_history')}</h2>
       <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute}>
-        <div className="text-sm text-gray-900 border border-gray-100 rounded-xl p-4 shadow-sm bg-white">
-
+        <div className="flex flex-col text-sm text-gray-900 border border-gray-100 rounded-xl p-4 shadow-sm bg-white">
+          <span
+            className={`inline-flex w-fit items-center px-1 py-0.5 mb-2 rounded-md font-bold font-paperlogy ${
+              paymentRecord.status === PaymentRecordStatus.Completed ||
+              paymentRecord.status === PaymentRecordStatus.Settled
+                ? "bg-green-50 text-green-700"
+                : paymentRecord.status === PaymentRecordStatus.Cancelled
+                  ? "bg-red-50 text-red-600"
+                  : paymentRecord.status === PaymentRecordStatus.Pending
+                    ? "bg-yellow-50 text-yellow-700"
+                    : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            {await translate(statusLabelMap[paymentRecord.status])}
+          </span>
           <div className="flex items-start gap-4">
             {paymentRecord.productImageUrl && (
               <img
