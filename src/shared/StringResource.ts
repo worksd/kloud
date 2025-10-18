@@ -851,11 +851,11 @@ export const StringResource = {
     jp: "通信販売業登録番号",
     zh: "电子商务登记号"
   },
-  customer_center: {
-    ko: "고객센터",
-    en: "Customer Center",
-    jp: "カスタマーセンター",
-    zh: "客服中心"
+  customer_center_phone: {
+    ko: "고객센터 연락처",
+    en: "Help Center Contact",
+    jp: "カスタマーサポート連絡先",
+    zh: "客服中心联系方式",
   },
   representative: {
     ko: "대표자명",
@@ -881,6 +881,18 @@ export const StringResource = {
     jp: "事業所所在地",
     zh: "公司地址"
   },
+  customer_service_center_open_time: {
+    ko: '고객센터 운영시간',
+    en: 'Customer Service Center Hours',
+    jp: 'カスタマーサポートの営業時間',
+    zh: '客服中心工作时间',
+  },
+  help_center_open_time_value: {
+    ko: '월–토 13:00–22:00',
+    en: 'Mon–Sat 13:00–22:00',
+    jp: '月–土 13:00–22:00',
+    zh: '周一至周六 13:00–22:00',
+  },
   lesson_refund_message_1: {
     ko: "수강료 환불은 학원의 설립 및 과외교습에 관한 법률 시행령 제18조 제3항 별표 4에 의거 진행됩니다.",
     en: "Refunds are processed in accordance with Article 18, Paragraph 3, Appendix 4 of the Enforcement Decree of the Act on the Establishment and Extracurricular Tutoring of Private Institutes.",
@@ -894,22 +906,40 @@ export const StringResource = {
     zh: "但不同机构的退款政策可能不同，具体以各机构政策为准。"
   },
   lesson_refund_message_3: {
-    ko: "본 주문 내용 및 약관 내용을 확인하였으며, 예약에 동의합니다.",
-    en: "I have reviewed the order details and terms and agree to the reservation.",
-    jp: "本注文内容及び約款内容を確認し、予約に同意します。",
-    zh: "我已确认本订单及条款，并同意预订。"
+    ko: "본인은 주문 내용 및 이용 약관을 모두 확인하였으며, 예약에 동의합니다.\n" +
+      "로우그래피(주)는 통신판매중개업자로서 거래가 원활히 이루어질 수 있도록 결제 및 예약 시스템을 제공하며,\n" +
+      "판매자가 제공하는 상품·서비스 정보의 관리 및 고객 지원 업무를 수행합니다.",
+    en: "I have reviewed the order details and the terms of use and agree to the reservation.\n" +
+      "As an e-commerce intermediary, Rawgraphy Inc. provides the payment and reservation system so that transactions proceed smoothly,\n" +
+      "and manages product/service information provided by sellers and offers customer support.",
+    jp: "本注文内容および利用規約をすべて確認し、予約に同意します。\n" +
+      "Rawgraphy株式会社は通信販売の仲介者として、取引が円滑に進むよう決済・予約システムを提供し、\n" +
+      "販売者が提供する商品・サービス情報の管理およびカスタマーサポート業務を行います。",
+    zh: "我已确认全部订单内容及使用条款，并同意预订。\n" +
+      "Rawgraphy公司作为电商中介，为确保交易顺畅提供支付与预订系统，\n" +
+      "并负责管理卖方提供的商品/服务信息及客户支持工作。",
   },
+
   lesson_refund_message_4: {
-    ko: "로우그래피(주)는 통신판매중개자이며, 통신판매의 당사자가 아닙니다.",
-    en: "Rawgraphy Inc. is an intermediary and not a direct seller.",
-    jp: "Rawgraphy株式会社は通信販売仲介者であり、通信販売の当事者ではありません。",
-    zh: "Rawgraphy(株) 仅为中介，并非交易主体。"
+    ko: "다만, 개별 상품의 내용, 일정, 품질 등 실제 서비스 제공에 대한 1차적 책임은 판매자에게 있습니다.\n" +
+      "로우그래피(주)는 소비자 보호를 위해 분쟁 또는 불만 발생 시 신속한 중재와 처리를 지원하며,\n" +
+      "거래 확인 요청이 있을 경우 관련 정보를 성실히 회신할 의무가 있습니다.",
+    en: "However, the primary responsibility for the actual provision of services—including the content, schedule, and quality of each product—lies with the seller.\n" +
+      "For consumer protection, Rawgraphy Inc. supports prompt mediation and handling in the event of disputes or complaints,\n" +
+      "and has a duty to faithfully respond with relevant information when a transaction verification is requested.",
+    jp: "ただし、各商品の内容・日程・品質など実際の提供に関する一次的な責任は販売者にあります。\n" +
+      "消費者保護のため、Rawgraphy株式会社は紛争や苦情が発生した場合に迅速な調整・対応を支援し、\n" +
+      "取引確認の要請がある際には関連情報を誠実に回答する義務を負います。",
+    zh: "但各单项商品的内容、日程、品质等实际服务提供的第一责任主体为卖方。\n" +
+      "为保护消费者，Rawgraphy公司在发生纠纷或投诉时将提供迅速的协调与处理支持，\n" +
+      "并在收到交易核实请求时有义务如实回复相关信息。",
   },
+
   lesson_refund_message_5: {
-    ko: "상품, 상품 정보, 거래, 이용에 관한 의무와 책임은 판매자에게 있습니다.",
-    en: "The responsibility for products, product information, transactions, and usage lies with the seller.",
-    jp: "商品、商品情報、取引、利用に関する義務と責任は販売者にあります。",
-    zh: "产品、交易及服务责任归卖家所有。"
+    ko: "고객센터: 050-6774-3302 (운영시간: 월–토 13:00–22:00)",
+    en: "Customer Center: 050-6774-3302 (Hours: Mon–Sat 13:00–22:00)",
+    jp: "カスタマーサポート：050-6774-3302（営業時間：月–土 13:00–22:00）",
+    zh: "客服中心：050-6774-3302（服务时间：周一至周六 13:00–22:00）",
   },
   studio_announcement: {
     ko: "스튜디오 공지사항",

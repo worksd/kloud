@@ -10,7 +10,7 @@ export default async function BusinessInfoPage() {
       </div>
       <div className="flex justify-between">
         <span className="font-bold">{await translate('business_name')}</span>
-        <span>주식회사 웍스앤피플</span>
+        <span>로우그래피 주식회사</span>
       </div>
       <div className="flex justify-between">
         <span className="font-bold">{await translate('representative')}</span>
@@ -23,7 +23,7 @@ export default async function BusinessInfoPage() {
       <div className="flex justify-between">
         <span className="font-bold">{await translate('business_address')}</span>
         <span className="text-right">
-      서울시 중구 퇴계로 36길 2 비254호
+      서울시 중구 서소문로 136, 3층 301-302호 18호실
     </span>
       </div>
       <div className="flex justify-between">
@@ -31,7 +31,11 @@ export default async function BusinessInfoPage() {
         <span>2023-서울중구-1300</span>
       </div>
       <div className="flex justify-between">
-        <span className="font-bold">{await translate('customer_center')}</span>
+        <span className="font-bold">{await translate('customer_service_center_open_time')}</span>
+        <span>{await translate('help_center_open_time_value')}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="font-bold">{await translate('customer_center_phone')}</span>
         <span>050-6774-3302</span>
       </div>
     </div>
