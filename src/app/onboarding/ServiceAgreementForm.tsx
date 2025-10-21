@@ -1,8 +1,6 @@
-'use client'
-
 import { ChangeEvent } from "react";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { useLocale } from "@/hooks/useLocale";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
   checkboxes: {
@@ -24,10 +22,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
 
 
   return (
-    <div className="p-6">
-      <header className="flex items-center gap-2">
-        <h1 className="text-lg text-black font-semibold text-[24px]">{t('agreement_message')}</h1>
-      </header>
+    <div className="py-6">
 
       <main className="flex-1 space-y-4 mt-12">
         <div className="flex items-center justify-between border-b pb-4">

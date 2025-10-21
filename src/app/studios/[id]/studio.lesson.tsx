@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 const LessonCardInStudio = (data: GetLessonResponse) => {
   const handleClick = (() => {
-    window.KloudEvent?.push(KloudScreen.LessonDetail(data.id))
+    kloudNav.push(KloudScreen.LessonDetail(data.id))
   });
 
   return (

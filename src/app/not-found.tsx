@@ -1,6 +1,7 @@
 'use client'
 
 import Logo from "../../public/assets/logo_black.svg"
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export default function NotFound() {
   return (
@@ -24,7 +25,7 @@ export default function NotFound() {
         className="px-6 py-3 bg-black text-white rounded-lg font-semibold
           transition-transform duration-100 active:scale-[0.98]
           hover:bg-gray-800"
-        onClick={() => window.KloudEvent?.back()}
+        onClick={() => kloudNav.back()}
       >
         뒤로가기
       </div>

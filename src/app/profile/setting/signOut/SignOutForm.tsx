@@ -9,6 +9,7 @@ import { unregisterDeviceAction } from "@/app/home/action/unregister.device.acti
 import { useLocale } from "@/hooks/useLocale";
 import { StringResource, StringResourceKey } from "@/shared/StringResource";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 const reasons: StringResourceKey[] = [
   "sign_out_reason_no_contents",
@@ -31,7 +32,7 @@ export default function SignOutForm() {
   };
 
   const onClickBack = () => {
-    window.KloudEvent?.back()
+    kloudNav.back()
   }
 
   const onClickSignOut = async () => {

@@ -7,7 +7,6 @@ import StampNotPaid from "../../../../public/assets/stamp_not_paid.svg";
 import Logo from "../../../../public/assets/logo_white.svg";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { translate } from "@/utils/translate";
-import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 
 export async function TicketForm({ticket, isJustPaid, inviteCode}: {
   ticket: TicketResponse,
@@ -18,23 +17,16 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: {
     <div className="flex flex-col bg-white">
       {/* Header */}
       {!inviteCode &&
-        <div className="flex justify-between items-center mb-14">
+        <div className="flex justify-between items-center ">
           <SimpleHeader titleResource="ticket"/>
         </div>
       }
 
-      <div className="flex flex-col p-6">
+      <div className="flex flex-col px-6">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
-          {(ticket.status == 'Cancelled' || ticket.status == 'Used' || ticket.status == 'Expired') &&
+          {(ticket.status == 'Cancelled' || ticket.status == 'Used' || ticket.status == 'Expired' || ticket.status == 'Pending') &&
             <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
-          {ticket.status === 'Pending' && <div className={'flex flex-col mb-5'}><AccountTransferComponent
-            title={ticket.lesson?.title}
-            depositor={ticket.lesson?.studio?.depositor}
-            bank={ticket.lesson?.studio?.bank}
-            accountNumber={ticket.lesson?.studio?.accountNumber}
-            price={ticket.lesson?.price}
-          /></div>}
           <div className={"flex flex-row items-center"}>
             <Image
               className="w-[42px] h-[42px] rounded-full overflow-hidden flex-shrink-0 border border-[#F7F8F9]"

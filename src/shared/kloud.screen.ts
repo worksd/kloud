@@ -6,8 +6,10 @@ export const KloudScreen = {
 
   /** 온보딩 / 인증 */
   Onboard: (returnUrl: string) => `/onboarding?returnUrl=${returnUrl}`,
-  Login: (query: string) => `/login?${query}`,
+  Login: (query: string) => `/login${query}`,
+  LoginIntro: (query: string) => `/login/intro${query}`,
   LoginEmail: (query: string) => `/login/email${query}`,
+  LoginPhone: (query: string) => `/login/phone${query}`,
   LoginDeactivate: '/login/deactivate',
   SignUp: (query: string) => `/signUp${query}`,
   Certification: (isFromPayment: boolean) => `/certification?isFromPayment=${isFromPayment}`,
@@ -31,7 +33,6 @@ export const KloudScreen = {
   /** 결제 (Pass, Subscription, Records, Tickets) */
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
   PassPayment: (id: number) => `/passPlans/${id}/payment`,
-  PassPaymentComplete: (id: number) => `/passPlans/${id}/paymentComplete`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   MySubscription: '/profile/mySubscription',
@@ -51,6 +52,7 @@ export const KloudScreen = {
   StudioDetail: (id: number) => `/studios/${id}`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
   StudioSettingSheet: '/studios/setting/sheet',
+  HasPassStudioList: `/studios/passPlans`,
 
   /** 정책 / 문의 / 알림 */
   Policy: '/profile/policy',

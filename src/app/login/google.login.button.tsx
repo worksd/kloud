@@ -5,7 +5,7 @@ import { googleLoginAction } from "@/app/login/action/google.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { TranslatableText } from "@/utils/TranslatableText";
 
-const GoogleLoginButton = () => {
+const GoogleLoginButton = ({title}: {title: string}) => {
 
   useEffect(() => {
     window.onGoogleLoginSuccess = async (data: { code: string }) => {
@@ -28,14 +28,14 @@ const GoogleLoginButton = () => {
 
   return (
     <button
-      className={`relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full 
+      className={`relative flex items-center justify-center bg-white text-black text-lg font-semibold rounded-[16px] py-4 shadow-lg w-full 
             active:scale-[0.95] transition-transform duration-150 border border-gray-200`}
       onClick={googleLogin}
     >
       <span className="absolute left-4">
         <GoogleLogo/>
       </span>
-      <TranslatableText titleResource={'google_login'} className={"flex-1 text-center text-[16px]"}/>
+      <div className={"flex-1 text-center text-[16px]"}>{title}</div>
     </button>
   );
 };

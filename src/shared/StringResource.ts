@@ -11,29 +11,35 @@ export const StringResource = {
     jp: "ログイン",
     zh: "登录"
   },
-  kakao_login: {
-    ko: "카카오로 시작하기",
+  continue_with_kakao: {
+    ko: "Kakao로 계속하기",
     en: "Continue with Kakao",
-    jp: "カカオで始める",
-    zh: "使用Kakao开始"
+    jp: "カカオで続ける",
+    zh: "使用 Kakao 继续",
   },
-  apple_login: {
-    ko: "Apple로 시작하기",
+  continue_with_apple: {
+    ko: "Apple로 계속하기",
     en: "Continue with Apple",
-    jp: "Appleで始める",
-    zh: "使用Apple开始"
+    jp: "Appleで続ける",
+    zh: "使用 Apple 继续",
   },
-  email_login: {
-    ko: "이메일로 시작하기",
-    en: "Continue with Email",
-    jp: "メールで始める",
-    zh: "使用邮箱开始"
-  },
-  google_login: {
-    ko: "Google로 시작하기",
+  continue_with_google: {
+    ko: "Google로 계속하기",
     en: "Continue with Google",
-    jp: "Googleで始める",
-    zh: "使用Google开始"
+    jp: "Googleで続ける",
+    zh: "使用 Google 继续",
+  },
+  continue_with_phone: {
+    ko: "휴대폰 번호로 계속하기",
+    en: "Continue with phone number",
+    jp: "携帯電話番号で続ける",
+    zh: "使用手机号继续",
+  },
+  continue_with_email: {
+    ko: "이메일로 계속하기",
+    en: "Continue with email",
+    jp: "メールで続ける",
+    zh: "使用邮箱继续",
   },
   email: {
     ko: "이메일",
@@ -47,11 +53,23 @@ export const StringResource = {
     jp: "パスワード",
     zh: "密码"
   },
-  input_email_message: {
-    ko: "이메일을 입력해주세요",
-    en: "Please enter your email",
-    jp: "メールアドレスを入力してください",
-    zh: "请输入邮箱"
+  input_email_phone_message: {
+    ko: "이메일 또는 휴대폰 번호를 입력해주세요",
+    en: "Please enter your email or phone number.",
+    jp: "メールアドレスまたは電話番号を入力してください。",
+    zh: "请输入邮箱或手机号。"
+  },
+  phone_login_message: {
+    ko: '휴대폰 번호를 입력해주세요',
+    en: 'Please enter your phone number',
+    jp: '携帯電話番号を入力してください',
+    zh: '请输入手机号',
+  },
+  verification_code_message: {
+    ko: '인증 번호를 입력해주세요',
+    en: 'Please enter the verification code',
+    jp: '認証コードを入力してください',
+    zh: '请输入验证码',
   },
   input_password_message: {
     ko: "비밀번호를 입력해주세요",
@@ -180,7 +198,7 @@ export const StringResource = {
     zh: "随时可以更改，取一个独特的昵称吧。"
   },
   agreement_message: {
-    ko: "서비스를 위해 동의해주세요!",
+    ko: "서비스 이용에\n 꼭 필요한 동의들이에요",
     en: "Please agree to continue!",
     jp: "サービスの利用に同意してください！",
     zh: "请同意服务条款!"
@@ -791,12 +809,6 @@ export const StringResource = {
     jp: "受講券金額",
     zh: "课程价格"
   },
-  input_name_message: {
-    ko: "이름을 입력해 주세요",
-    en: "Please enter your name",
-    jp: "名前を入力してください",
-    zh: "请输入姓名"
-  },
   total_amount: {
     ko: "총 결제 금액",
     en: "Total Payment Amount",
@@ -1031,12 +1043,6 @@ export const StringResource = {
     jp: "新しいクラスを受講してみましょう！",
     zh: "来体验新的课程吧!"
   },
-  select_pass_ticket_studio_message: {
-    ko: "패스를 구매할 스튜디오를 선택해주세요",
-    en: "Choose a studio for your passPlans purchase",
-    jp: "パスを購入したいスタジオをお選びください",
-    zh: "请选择要购买通票的工作室"
-  },
   my_pass: {
     ko: "패스권",
     en: "My Pass",
@@ -1205,6 +1211,30 @@ export const StringResource = {
     jp: '携帯電話番号を入力してください。',
     zh: '请输入手机号。',
   },
+  input_name_message: {
+    ko: '이름을 입력해주세요',
+    en: 'Please enter your name',
+    jp: 'お名前を入力してください',
+    zh: '请输入姓名',
+  },
+  input_birth_message: {
+    ko: '생년월일을 입력해주세요',
+    en: 'Please enter your date of birth',
+    jp: '生年月日を入力してください',
+    zh: '请输入出生日期',
+  },
+  input_gender_message: {
+    ko: '성별을 입력해주세요',
+    en: 'Please select your gender',
+    jp: '性別を選択してください',
+    zh: '请选择性别',
+  },
+  input_nick_name_message: {
+    ko: '닉네임을 입력해주세요',
+    en: 'Please enter your nickname',
+    jp: 'ニックネームを入力してください',
+    zh: '请输入昵称',
+  },
   submitting: {
     ko: '전송중...',
     en: 'Submitting...',
@@ -1217,11 +1247,11 @@ export const StringResource = {
     jp: '認証番号を送信',
     zh: '发送验证码',
   },
-  input_six_code: {
-    ko: '문자로 받은\n인증번호 6자리를 입력해주세요',
-    en: 'Enter the 6-digit verification code\nreceived via SMS.',
-    jp: 'SMSで受信した\n6桁の認証番号を入力してください。',
-    zh: '请输入短信收到的\n6位验证码。',
+  placeholder_six_code: {
+    ko: '인증번호 6자리',
+    en: '6-digit verification code',
+    jp: '6桁の認証コード',
+    zh: '6位验证码',
   },
   certification_code_retry: {
     ko: '인증번호 재전송',
@@ -1578,10 +1608,10 @@ export const StringResource = {
     zh: '请输入通过邮件收到的6位验证码',
   },
   certification_code_mismatch: {
-    ko: '인증번호가 일치하지 않습니다',
-    en: 'The verification code does not match',
-    jp: '認証コードが一致しません',
-    zh: '验证码不匹配',
+    ko: '인증번호가 일치하지 않거나 유효시간이 지났습니다',
+    en: 'The verification code does not match or has expired',
+    jp: '認証コードが一致しないか、有効期限が切れています',
+    zh: '验证码不匹配或已过期',
   },
   are_you_foreigner: {
     ko: '외국인이신가요?',

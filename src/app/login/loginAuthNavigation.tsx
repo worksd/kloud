@@ -3,6 +3,7 @@ import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog } from "@/utils/dialog.factory";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const LoginAuthNavigation = async ({status, message, window}: {status?: UserStatus, message?: string, window: Window}) => {
   if (status == UserStatus.Ready) {
@@ -11,13 +12,13 @@ export const LoginAuthNavigation = async ({status, message, window}: {status?: U
       route: '',
       withFcmToken: true,
     });
-    window.KloudEvent?.navigateMain(bootInfo)
+    kloudNav.navigateMain(bootInfo)
   }
   else if (status == UserStatus.Deactivate) {
-    window.KloudEvent?.push(KloudScreen.LoginDeactivate)
+    await kloudNav.push(KloudScreen.LoginDeactivate)
   }
   else if (status == UserStatus.New) {
-    window.KloudEvent?.clearAndPush(KloudScreen.Onboard(''))
+    kloudNav.clearAndPush(KloudScreen.Onboard(''))
   } else {
     const dialogInfo = await createDialog({id: 'LoginFail', message})
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));

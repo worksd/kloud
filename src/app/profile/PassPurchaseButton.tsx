@@ -5,7 +5,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export async function PassPurchaseButton() {
   return (
-    <NavigateClickWrapper method={'push'} route={KloudScreen.PurchasePass(NO_DATA_ID)}>
+    <NavigateClickWrapper method={'push'} route={KloudScreen.HasPassStudioList}>
       <div
         className="flex flex-row w-full text-white px-4 py-3 rounded-[100px] items-center font-bold bg-[#2A2A2A] space-x-2.5 text-[14px] active:scale-[0.98] transition-all duration-150 select-none font-paperlogy">
         <WhiteTicketIcon/>

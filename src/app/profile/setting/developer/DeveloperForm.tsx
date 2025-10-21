@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import CheckIcon from '../../../../../public/assets/check_white.svg';
 import { createDialog, DialogInfo } from '@/utils/dialog.factory';
 import { KloudScreen } from '@/shared/kloud.screen';
+import { kloudNav } from "@/app/lib/kloudNav";
 
 type ServerConfig = {
   type: 'production' | 'test' | 'custom';
@@ -115,7 +116,7 @@ export const DeveloperForm = () => {
       if (data.id === 'ChangeEndpoint') {
         const urlToApply = resolveFinalUrl();
         window.KloudEvent.changeWebEndpoint(urlToApply);
-        window.KloudEvent.push(KloudScreen.Splash);
+        kloudNav.push(KloudScreen.Splash);
       }
     };
   }, [selectedServer, customUrl]);

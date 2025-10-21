@@ -14,6 +14,7 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { checkPassword } from "@/app/profile/setting/account/resetPassword/compare.password.action";
 import { translate } from "@/utils/translate";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 type ResetPasswordPage = 'current' | 'new'
 
@@ -81,7 +82,7 @@ export const ResetPasswordForm = () => {
           bottomMenuList: bottomMenuList,
           route: '',
         });
-        window.KloudEvent?.navigateMain(bootInfo);
+        kloudNav.navigateMain(bootInfo);
       }
     }
   }, []);

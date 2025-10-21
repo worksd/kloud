@@ -7,15 +7,26 @@ import HidePasswordIcon from "../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../public/assets/show-password.svg";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { signUpAction } from "@/app/signUp/signup.action";
-import { useLocale } from "@/hooks/useLocale";
-import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
 import { createDialog } from "@/utils/dialog.factory";
 import { UserStatus } from "@/entities/user/user.status";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { useRouter } from "next/navigation";
 
-export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, returnUrl: string}) => {
+type SignUpFormProps = {
+  appVersion: string;
+  returnUrl: string;
+  requireLabel: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  passwordLabel: string;
+  passwordPlaceholder: string;
+  buttonText: string;
+  passwordMinLengthText: string;
+  passwordEmailFormatText: string;
+  passwordRequirementsText: string;
+}
+
+export const SignupForm = (props: SignUpFormProps) => {
 
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -25,7 +36,6 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
   const [isEmailPatternValid, setIsEmailPatternValid] = useState(false);
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
   const [isPasswordPatternValid, setIsPasswordPatternValid] = useState(false);
-  const { t } = useLocale();
 
   const onEmailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmailErrorMessage('');
@@ -48,16 +58,16 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
 
     const res = await signUpAction({ email, password })
     if (res.success) {
-      if (appVersion == '') {
+      if (props.appVersion == '') {
         // TODO 스마트하게 바꿔보자..
         if (res.status == UserStatus.Ready) {
-          router.replace(returnUrl);
+          router.replace(props.returnUrl);
         }
         else if (res.status == UserStatus.Deactivate) {
           router.replace(KloudScreen.LoginDeactivate)
         }
         else if (res.status == UserStatus.New) {
-          router.replace(KloudScreen.Onboard(returnUrl))
+          router.replace(KloudScreen.Onboard(props.returnUrl))
         }
       } else {
         await LoginAuthNavigation({
@@ -86,8 +96,8 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
       <div className="flex flex-col p-6 justify-between">
         <div className="flex flex-col">
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium text-black"><TranslatableText titleResource={'email'}/></label>
-            <span className="text-[10px] font-normal text-[#E55B5B]"><TranslatableText titleResource={'required'}/></span>
+            <label className="text-[14px] font-medium text-black">{props.emailLabel}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{props.requireLabel}</span>
           </div>
           <input
             className="text-[14px] font-medium text-black border border-gray-300 focus:border-black focus:outline-none rounded-md p-4"
@@ -95,20 +105,20 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
             name="email"
             onChange={onEmailChanged}
             value={email}
-            placeholder={getTranslatedText({titleResource: 'input_email_message', text: t('input_email_message'), mounted: mounted})}
+            placeholder={props.emailPlaceholder}
           />
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isEmailPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isEmailPatternValid ? "text-black" : "text-gray-300"}`}>
-              <TranslatableText titleResource={'email_format'}/>
+              {props.passwordEmailFormatText}
             </span>
           </div>
           <div className="text-[#E55B5B] mt-2 text-[12px]">
             {emailErrorMessage}
           </div>
           <div className="flex items-center gap-1 mb-2 mt-5">
-            <label className="text-[14px] font-medium text-black" htmlFor="password"><TranslatableText titleResource={'password'}/></label>
-            <span className="text-[10px] font-normal text-[#E55B5B]"><TranslatableText titleResource={'required'}/></span>
+            <label className="text-[14px] font-medium text-black" htmlFor="password">{props.passwordLabel}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{props.requireLabel}</span>
           </div>
           <div className="relative mb-2">
             <input
@@ -118,7 +128,7 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
               name="password"
               value={password}
               onChange={onPasswordChanged}
-              placeholder={getTranslatedText({titleResource: 'input_password_message', text: t('input_password_message'), mounted: mounted})}
+              placeholder={props.passwordPlaceholder}
             />
             <button
               type="button"
@@ -132,14 +142,14 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordLengthValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordLengthValid ? "text-black" : "text-gray-300"}`}>
-              <TranslatableText titleResource={'password_min_length'}/>
+              {props.passwordMinLengthText}
             </span>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordPatternValid ? "text-black" : "text-gray-300"}`}>
-              <TranslatableText titleResource={'password_requirements'}/>
+              {props.passwordRequirementsText}
             </span>
           </div>
         </div>
@@ -153,7 +163,7 @@ export const SignupForm = ({appVersion, returnUrl} : {appVersion: string, return
                 : "bg-[#BCBFC2] text-white"
             }`}
             disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
-            <TranslatableText titleResource={'sign_up'}/>
+            {props.buttonText}
           </button>
         </div>
       </div>

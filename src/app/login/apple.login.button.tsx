@@ -8,7 +8,7 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 
-const AppleLoginButton = () => {
+const AppleLoginButton = ({title}: { title: string }) => {
   useEffect(() => {
     window.onAppleLoginSuccess = async (data: { code: string, name: string }) => {
       const res = await appleLoginAction({code: data.code, name: data.name})
@@ -40,7 +40,7 @@ const AppleLoginButton = () => {
   return (
     <button
       className={`relative flex items-center justify-center bg-black text-white text-lg font-semibold 
-        rounded-lg h-14 shadow-lg w-full
+        rounded-[16px] py-4 shadow-lg w-full
         active:scale-[0.95] transition-transform duration-150 select-none
         `}
       onClick={appleLogin}
@@ -48,7 +48,7 @@ const AppleLoginButton = () => {
       <span className="absolute left-4">
         <AppleLogo/>
       </span>
-      <TranslatableText className="flex-1 text-center text-[16px]" titleResource={'apple_login'}/>
+      <div className="flex-1 text-center text-[16px]">{title}</div>
     </button>
   );
 };

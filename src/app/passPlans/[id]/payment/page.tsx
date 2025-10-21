@@ -15,9 +15,11 @@ export default async function PassPayment({params, searchParams}: {
   if ('user' in res) {
     return (
       <div>
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource={'purchase_pass_title'}/>
-        </div>
+        {appVersion == '' &&
+          <div className="flex justify-between items-center mb-14">
+            <SimpleHeader titleResource={'purchase_pass_title'}/>
+          </div>
+        }
         <CurrentPassPlan passPlan={res.passPlan}/>
         <div className="w-full h-3 bg-[#F7F8F9] mb-5"/>
         <PassPaymentInfo

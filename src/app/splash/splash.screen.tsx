@@ -7,6 +7,7 @@ import { UserStatus } from "@/entities/user/user.status";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const SplashScreen = ({os}: { os: string }) => {
   useEffect(() => {
@@ -31,16 +32,21 @@ export const SplashScreen = ({os}: { os: string }) => {
             ? KloudScreen.Main
             : status == UserStatus.Deactivate ? KloudScreen.LoginDeactivate : KloudScreen.Login('')
 
-
-      if (route == KloudScreen.Main) {
+      if (status == UserStatus.New) {
+        kloudNav.clearAndPush(KloudScreen.Onboard(''))
+      }
+      else if (status == UserStatus.Ready) {
         const bootInfo = JSON.stringify({
           bottomMenuList: await getBottomMenuList(),
           route: '',
           withFcmToken: true,
         });
         window.KloudEvent?.navigateMain(bootInfo)
+      }
+      else if (status == UserStatus.Deactivate) {
+        kloudNav.clearAndPush(KloudScreen.LoginDeactivate)
       } else {
-        window.KloudEvent?.clearAndPush(route)
+        kloudNav.clearAndPush(KloudScreen.Login(''))
       }
     }, 1000)
   }, []);

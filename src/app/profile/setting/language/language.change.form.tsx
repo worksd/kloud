@@ -8,6 +8,7 @@ import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { changeLocale, getLocaleText, translate } from "@/utils/translate";
 import { TranslatableText } from "@/utils/TranslatableText";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const LanguageChangeForm = ({locale}: { locale: Locale }) => {
   const [currentLocale, setCurrentLocale] = useState<Locale>(locale);
@@ -29,7 +30,7 @@ export const LanguageChangeForm = ({locale}: { locale: Locale }) => {
       if (currentLocale) {
         await changeLocale(currentLocale)
       }
-      window.KloudEvent?.clearAndPush(KloudScreen.Splash)
+      kloudNav.clearAndPush(KloudScreen.Splash)
     }
   }, [currentLocale]);
 

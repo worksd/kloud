@@ -7,12 +7,13 @@ import "swiper/css/pagination";
 import { GetLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
 import Image from "next/image";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 const CardList = ({lessons}: { lessons: JumbotronResponse[] }) => {
   const [currentCard, setCurrentCard] = useState<number>(0);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="">
       <Swiper
         simulateTouch={true}
         grabCursor={true}
@@ -32,7 +33,9 @@ const CardList = ({lessons}: { lessons: JumbotronResponse[] }) => {
               <div
                 className={`w-full aspect-[390/441] relative`}
                 onClick={() => {
-                  window.KloudEvent.push(KloudScreen.LessonDetail(item.id))
+                  kloudNav.push(KloudScreen.LessonDetail(item.id), {
+                    ignoreSafeArea: true
+                  })
                 }}
               >
                 <Image

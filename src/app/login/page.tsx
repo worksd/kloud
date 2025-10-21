@@ -1,7 +1,9 @@
-import { LoginButtonForm } from "@/app/login/login.button.form";
+import { LargeKloudButton, LoginButtonForm } from "@/app/login/login.button.form";
 import { ChangeLocaleButton } from "@/app/login/change.locale.button";
-import { getLocale } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import { DevTapLogo } from "@/app/login/DevTapToGo";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function Login({
                                       searchParams,
@@ -18,16 +20,23 @@ export default async function Login({
 
   return (
     <section
-      className="w-screen min-h-screen bg-white flex flex-col items-center relative"
+      className="w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-5"
       style={{ paddingTop: '100px' }}
     >
-      {appVersion != '' && <ChangeLocaleButton currentLocale={(await getLocale())} />}
-
-      <DevTapLogo />
-
-      <div className="mt-auto justify-center items-center w-full max-w-sm mb-8 bg-white">
-        <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl} />
+      {/* ⬇️ 가운데 배치 */}
+      <div className="flex-1 w-full flex justify-center pt-56">
+        <DevTapLogo />
       </div>
+
+      {appVersion !== '' && (
+        <div className={'mb-6'}>
+          <ChangeLocaleButton currentLocale={await getLocale()}/>
+        </div>
+      )}
+      <NavigateClickWrapper method={'push'} route={KloudScreen.LoginIntro('')}>
+        <LargeKloudButton title={await translate('do_start')}/>
+      </NavigateClickWrapper>
+
     </section>
   );
 }

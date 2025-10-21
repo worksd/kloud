@@ -37,7 +37,6 @@ export default async function SettingPage({
               width={40}
               height={40}
               className="w-full h-full object-cover"
-
             />
           </div>
           <div className="flex flex-col px-4">

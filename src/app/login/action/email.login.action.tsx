@@ -5,10 +5,10 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { RoutePageParams } from "@/app/login/action/google.login.action";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
 
-const emailLoginAction = async ({email, password}: { email: string, password: string }): Promise<RoutePageParams> => {
+const emailLoginAction = async ({emailOrPhone, password}: { emailOrPhone: string, password: string }): Promise<RoutePageParams> => {
   try {
     const res = await api.auth.email({
-      email: email,
+      emailOrPhone,
       password: password,
       type: UserType.Default,
     });

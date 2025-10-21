@@ -15,7 +15,7 @@ export type GetUserResponse = {
   name?: string
   nickName?: string
   status: UserStatus
-  loginType: 'Email' |'Kakao' | 'Google' | 'Apple'
+  loginType: 'Email' |'Kakao' | 'Google' | 'Apple' | 'Phone'
   profileImageUrl?: string
   deactivatedAt: string
   phone?: string

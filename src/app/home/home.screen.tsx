@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { hideDialogAction } from "@/app/home/hide.dialog.action";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 /**
  * 첫번째 탭
@@ -36,9 +37,9 @@ export default function HomeScreen({os, data}: { os: string, data: GetHomeRespon
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.route) {
         if (os === 'Android') {
-          window.KloudEvent.push(data.route)
+          kloudNav.push(data.route)
         } else if (os === 'iOS') {
-          window.KloudEvent.rootNext(data.route)
+          kloudNav.rootNext(data.route)
         }
       }
     }
@@ -53,14 +54,4 @@ export default function HomeScreen({os, data}: { os: string, data: GetHomeRespon
   return (
     <div/>
   );
-}
-
-function generateRandomString(length: number = 15): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    const randomIdx = Math.floor(Math.random() * chars.length);
-    result += chars[randomIdx];
-  }
-  return result;
 }

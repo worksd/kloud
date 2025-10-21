@@ -2,11 +2,29 @@
 import { useEffect, useRef, useState } from "react";
 import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
 import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 
-export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
+export const PaymentMethodSheetForm = ({
+                                         title,
+                                         baseRoute,
+                                         cardNumberPlaceholderText,
+                                         expirationDateText,
+                                         cardBirthdayText,
+                                         cardPasswordTwoDigitsText,
+                                         cancelText,
+                                         confirmText
+                                       }: {
+  title: string,
+  baseRoute: string,
+  cardNumberPlaceholderText: string,
+  expirationDateText: string,
+  cardBirthdayText: string,
+  cardPasswordTwoDigitsText: string,
+  cancelText: string,
+  confirmText: string
+}) => {
+
 
   const [form, setForm] = useState<CreateBillingRequest>({
     cardNumber: '',
@@ -34,7 +52,10 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
       window.KloudEvent.closeBottomSheet()
       window.KloudEvent.refresh(baseRoute)
     } else {
-      const dialog = await createDialog({id: 'Simple', message: res.message ?? await translate('billing_register_fail')})
+      const dialog = await createDialog({
+        id: 'Simple',
+        message: res.message ?? await translate('billing_register_fail')
+      })
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
     setIsSubmitting(false); // 제출 완료 후 isSubmitting false로 설정
@@ -83,8 +104,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
 
   return (
     <main className="min-h-screen bg-white text-black px-5 py-8">
-      <TranslatableText className="text-2xl font-bold mb-10 tracking-tight"
-                        titleResource={'payment_information_input'}/>
+      <div className="text-2xl font-bold mb-10 tracking-tight">{title}</div>
       {/* Dimmed Background and Spinner */}
       {isSubmitting && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -93,7 +113,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
       )}
       <div className="space-y-6">
         <div>
-          <TranslatableText className="block text-sm text-gray-500 mb-1" titleResource={'card_number_placeholder'}/>
+          <div className="block text-sm text-gray-500 mb-1">{cardNumberPlaceholderText}</div>
           <input
             type="text"
             name="cardNumber"
@@ -108,7 +128,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <TranslatableText titleResource={'expiration_date'} className="block text-sm text-gray-500 mb-1"/>
+          <div className="block text-sm text-gray-500 mb-1">{expirationDateText}</div>
           <div className="flex gap-3">
             <input
               type="text"
@@ -134,8 +154,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <TranslatableText titleResource={'card_birthday_placeholder'}
-                            className="block text-sm text-gray-500 mb-1"/>
+          <div className="block text-sm text-gray-500 mb-1">{cardBirthdayText}</div>
           <input
             type="text"
             name="birthOrBusinessRegistrationNumber"
@@ -149,8 +168,7 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
         </div>
 
         <div>
-          <TranslatableText titleResource={'card_password_two_digits_placeholder'}
-                            className="block text-sm text-gray-500 mb-1"/>
+          <div className="block text-sm text-gray-500 mb-1">{cardPasswordTwoDigitsText}</div>
           <input
             type="password"
             name="passwordTwoDigits"
@@ -165,17 +183,16 @@ export const PaymentMethodSheetForm = ({baseRoute}: { baseRoute: string }) => {
       </div>
 
       <div className="mt-10 flex justify-between gap-4">
-        <TranslatableText
+        <div
           onClick={() => {
             window.KloudEvent.closeBottomSheet()
           }}
           className="w-1/2 py-3 rounded-xl bg-gray-100 text-gray-800 hover:bg-gray-200 transition text-center"
-          titleResource={'cancel'}/>
-        <TranslatableText
+          >{cancelText}</div>
+        <div
           onClick={handleSubmit}
           className="w-1/2 py-3 rounded-xl bg-black text-white hover:bg-gray-900 transition text-center"
-          titleResource={'confirm'}
-        />
+        >{confirmText}</div>
       </div>
     </main>
   )

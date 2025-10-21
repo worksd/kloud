@@ -21,6 +21,7 @@ import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 import { createFreePaymentRecord } from "@/app/lessons/[id]/payment/create.free.payment.record.action";
 import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const PaymentTypes = [
   {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
@@ -77,7 +78,6 @@ export default function PaymentButton({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
-  const [isVerified, setIsVerified] = useState(user?.phone || user?.emailVerified == true);
   const router = useRouter();
   const sseRef = useRef<EventSource | null>(null);
 
@@ -88,7 +88,7 @@ export default function PaymentButton({
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
       const bottomMenuList = await getBottomMenuList();
       const bootInfo = JSON.stringify({ bottomMenuList, route: pushRoute });
-      window.KloudEvent?.navigateMain(bootInfo);
+      kloudNav.navigateMain(bootInfo);
     } catch (e) {
       console.log(e);
       const dialog = await createDialog({ id: 'PaymentFail' });
@@ -104,20 +104,6 @@ export default function PaymentButton({
       return;
     }
 
-    if (!isVerified) {
-      const res = await getUserAction()
-      if (res && 'id' in res && (res.phone || res.emailVerified == true)) {
-        setIsVerified(true);
-      } else {
-        if (appVersion == '') {
-          router.push(KloudScreen.Certification(true))
-        } else {
-          window.KloudEvent?.fullSheet(KloudScreen.Certification(true))
-        }
-        return;
-      }
-    }
-
     if (price == 0) {
       const res = await createFreePaymentRecord({item: type.apiValue, itemId: id})
       if ('paymentId' in res) {
@@ -130,7 +116,7 @@ export default function PaymentButton({
             bottomMenuList: bottomMenuList,
             route: route,
           });
-          window.KloudEvent?.navigateMain(bootInfo);
+          kloudNav.navigateMain(bootInfo);
         }
       } else {
         const dialog = await createDialog({id: 'Simple', message: res.message})

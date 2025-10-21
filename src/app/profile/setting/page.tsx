@@ -14,10 +14,7 @@ export default async function AccountSetting({
 }) {
   const { os } = await searchParams
   return (
-    <div className="flex flex-col w-screen min-h-screen bg-white mx-auto py-8 ">
-      <div className="flex justify-between items-center mb-14">
-        <SimpleHeader titleResource='setting'/>
-      </div>
+    <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>
       </NavigateClickWrapper>

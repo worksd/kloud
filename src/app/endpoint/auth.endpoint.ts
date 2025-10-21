@@ -31,7 +31,7 @@ export const GetAuthToken: Endpoint<
 }
 
 export type PostAuthEmailParameter = {
-  email: string,
+  emailOrPhone: string,
   password: string,
   type: UserType,
 }
@@ -52,14 +52,19 @@ export type UserResponse = {
   status: UserStatus;
 }
 
-export type VerifyCodeResponse = {
+export type SendPhoneVerificationCodeParameter = {
+  phone: string;
+  countryCode: string;
+}
+
+export type VerifyCodeParameter = {
   code: string;
 }
 
 export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthLoginResponse> = {
   method: 'post',
   path: '/auth/sign-in',
-  bodyParams: ['email', 'password', 'type'],
+  bodyParams: ['emailOrPhone', 'password', 'type'],
 }
 
 export const ComparePassword: Endpoint<PostComparePasswordParameter, SimpleResponse> = {
@@ -86,7 +91,19 @@ export const PostSocialLogin: Endpoint<SnsLoginParameter, PostAuthLoginResponse>
   bodyParams: ['provider', 'token', 'name', 'code'],
 }
 
-export const SendVerificationEmail: Endpoint<object, VerifyCodeResponse> = {
+export const SendVerificationEmail: Endpoint<object, VerifyCodeParameter> = {
   method: 'post',
   path: '/auth/email-certificate',
+}
+
+export const SendPhoneVerification: Endpoint<SendPhoneVerificationCodeParameter, object> = {
+  method: 'post',
+  path: '/auth/phone-certificate',
+  bodyParams: ['phone', 'countryCode'],
+}
+
+export const CheckPhoneVerification: Endpoint<VerifyCodeParameter, SimpleResponse> = {
+  method: 'post',
+  path: '/auth/check-certificate',
+  bodyParams: ['code']
 }

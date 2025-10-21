@@ -1,31 +1,19 @@
-import { PurchasePassForm } from "@/app/passPlans/PurchasePassForm";
-import { getStudioList } from "@/app/home/action/get.studio.list.action";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { PurchaseStudioPassForm } from "@/app/passPlans/PurchaseStudioPassForm";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { NO_DATA_ID } from "@/shared/kloud.screen";
+import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
+import { translate } from "@/utils/translate";
 
 export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId: number }> }) {
   const {studioId} = await searchParams;
-  const res = await getStudioList({hasPass: true})
+  const studioRes = await getStudioDetail(studioId);
+  const res = await getPassPlanListAction({studioId});
 
-  if (studioId != NO_DATA_ID) {
-    const studio = await getStudioDetail(studioId);
-    if ('id' in studio) {
-      return <div className={'flex flex-col'}>
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource="purchase_pass"/>
-        </div>
-        <PurchaseStudioPassForm studio={studio}/>
-      </div>
-    }
-  } else if ('studios' in res) {
+  if ('passPlans' in res && 'id' in studioRes) {
     return (
-      <PurchasePassForm studios={res.studios ?? []}/>
-    )
-  } else {
-    return (
-      <div className={'text-black'}>{res.errorMessage}</div>
+      <PurchaseStudioPassForm
+        title={studioRes.name + await translate('purchase_pass')}
+        passPlans={res.passPlans}
+        popularPassPlan={res.passPlans?.find((value) => value.isPopular) ?? res.passPlans[0]}/>
     )
   }
 }

@@ -7,6 +7,7 @@ import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { UserStatus } from "@/entities/user/user.status";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const LoginDeactivateScreen = ({user}: {user: GetUserResponse}) => {
   const handleActivate = async () => {
@@ -17,7 +18,7 @@ export const LoginDeactivateScreen = ({user}: {user: GetUserResponse}) => {
         route: '',
         withFcmToken: true,
       });
-      window.KloudEvent?.navigateMain(bootInfo)
+      kloudNav.navigateMain(bootInfo)
     }
   }
   return (

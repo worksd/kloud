@@ -5,6 +5,7 @@ import {
 } from "@/app/profile/setting/developer/authentication/authenticate.developer.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import CloseIcon from "../../../../../../public/assets/ic_close.svg";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const DeveloperAuthenticationForm = ({os} : {os: string}) => {
   const [password, setPassword] = useState('');
@@ -14,10 +15,10 @@ export const DeveloperAuthenticationForm = ({os} : {os: string}) => {
     if (await authenticateDeveloperAction({password})) {
       setPassword('')
       if (os === 'Android') {
-        window.KloudEvent.push(KloudScreen.DeveloperSetting)
+        kloudNav.push(KloudScreen.DeveloperSetting)
         window.KloudEvent.closeBottomSheet()
       } else if (os === 'iOS') {
-        window.KloudEvent.push(KloudScreen.DeveloperSetting)
+        kloudNav.push(KloudScreen.DeveloperSetting)
       }
     }
   };

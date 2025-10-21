@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import LeftArrow from "../../../../public/assets/left-arrow.svg";
 import ShareArrow from "../../../../public/assets/share-arrow.svg";
 import { HeaderBlurButton } from "../buttons";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 interface IProps {
     title?: string;
@@ -37,7 +38,7 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
     const router = useRouter();
     const onClickBack = () => {
         if (window.KloudEvent) {
-            window.KloudEvent.back();
+            kloudNav.back();
         } else {
             router.back();
         }
@@ -52,9 +53,7 @@ const HeaderInDetail = ({ title, shareData }: IProps) => {
       >
           {/* 왼쪽 버튼 */}
           <div className="justify-self-start">
-              <HeaderBlurButton isBlur={isScrolled} originProps={{onClick: onClickBack}}>
-                  <LeftArrow alt="back icon"/>
-              </HeaderBlurButton>
+
           </div>
 
           {/* 가운데 타이틀 */}

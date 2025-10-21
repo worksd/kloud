@@ -14,6 +14,9 @@ export const ChangeLocaleSheetItem = ({selectedLanguage, locale}: {
     <NavigateClickWrapper method={isSelected ? 'closeBottomSheet' : 'clearAndPush'}
                           route={isSelected ? undefined : KloudScreen.Login('')} // TODO: 웹에서도 외국어 대응시 returnUrl 넣어주기
                           locale={locale}
+                          option={{
+                            ignoreSafeArea: true
+                          }}
                           action={'changeLocale'}>
       <li
         className={`flex items-center justify-between w-full p-4 rounded-lg text-lg font-medium border transition-transform duration-100 active:scale-[0.98]

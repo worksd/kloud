@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { TranslatableText } from "@/utils/TranslatableText";
+import React from "react";
 
 export const ProfileEditForm = ({isOnboarding, nickName, profileImageUrl, inputErrorMessage, onNickNameChanged}: {
   isOnboarding: boolean,
@@ -9,7 +10,7 @@ export const ProfileEditForm = ({isOnboarding, nickName, profileImageUrl, inputE
   onNickNameChanged: (nickName: string) => void
 }) => {
   return (
-    <div className={'px-6 py-4'}>
+    <div className={'px-6'}>
       {/* 헤더 영역 */}
       {isOnboarding &&
         <div className={'mb-4'}>
@@ -24,18 +25,14 @@ export const ProfileEditForm = ({isOnboarding, nickName, profileImageUrl, inputE
 
       {/* 컨텐츠 영역 */}
       <div className="flex flex-row space-x-4">
-        {/* 프로필 이미지 업로드 */}
-        <div className="flex justify-center mb-2">
-          <div className="relative w-20 h-20 rounded-full bg-gray-100 overflow-hidden cursor-pointer">
-            {profileImageUrl !== '' &&
-              <Image
-                src={profileImageUrl ?? ''}
-                alt='프로필 사진'
-                fill
-                className="object-cover"
-              />
-            }
-          </div>
+        <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
+          <Image
+            src={profileImageUrl ?? ''}
+            alt="studio logo"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* 닉네임 입력 */}

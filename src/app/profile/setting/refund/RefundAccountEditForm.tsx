@@ -5,6 +5,7 @@ import { CommonSubmitButton } from "@/app/components/buttons";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const RefundAccountEditForm = ({
                                         initialAccountNumber,
@@ -49,7 +50,7 @@ export const RefundAccountEditForm = ({
         if (isFromBottomSheet) {
           window.KloudEvent.closeBottomSheet()
         } else {
-          window.KloudEvent.back()
+          kloudNav.back()
         }
       }
     }

@@ -3,6 +3,7 @@
 import { GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 type IProps = {
   children: React.ReactNode;
@@ -89,7 +90,7 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
       router.push(route)
     }
     else if (typeof window !== 'undefined' && window.KloudEvent?.push) {
-      window.KloudEvent.push(route);
+      await kloudNav.push(route);
     }
   };
 

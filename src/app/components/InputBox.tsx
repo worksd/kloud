@@ -1,30 +1,46 @@
-import { Dispatch, SetStateAction } from "react";
+'use client'
 
-interface inputBoxProps {
-  width: string;
-  height: string;
-  placeholder?: string;
-  id?: string;
+import { Ref } from "react";
+
+export const CommonLoginInputBox = ({
+                                      value,
+                                      placeholder,
+                                      handleChangeAction,
+                                      maxLength,
+                                      inputMode,
+                                      ref,
+                                    }: {
   value: string;
-  setValue: Dispatch<SetStateAction<string>>;
-  handleChange: (e: any) => void;
-  handleKeyDown?: (e: any) => void;
-}
-const InputBox = ({width, height, placeholder, handleChange, handleKeyDown, value, setValue, id}: inputBoxProps) => {
+  placeholder?: string;
+  handleChangeAction: (value: string) => void;
+  maxLength?: number;
+  inputMode?: "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search" | undefined;
+  ref?: Ref<HTMLInputElement>;
+}) => {
+
   return (
-    <div className="relative flex items-center">
+    <div
+      className="
+      relative w-full rounded-[16px] border border-gray-200 bg-white px-4 py-3 shadow-sm
+      transition-[border-color,box-shadow] duration-200
+      focus-within:border-black
+    "
+    >
       <input
+        ref={ref}
         type="text"
-        className={
-          `input-box flex justify-center items-center text-[#fff] text-[1.333rem] pl-[2rem] pr-[4.3rem] bg-[#212121] border-[0.083rem] border-solid rounded-[0.25rem] cursor-pointer border-[#212121] focus:border-[#888888] outline-0 ${width} ${height} `
-        }
-        id={id || ''}
+        inputMode={inputMode}
+        className="w-full bg-transparent pr-12 text-[16px] font-medium text-black placeholder:text-[#8B95A1] outline-none"
         placeholder={placeholder}
         value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (!maxLength || v.length <= maxLength) {
+            handleChangeAction(v);
+          }
+        }}
       />
     </div>
   );
+
 };
-export default InputBox;

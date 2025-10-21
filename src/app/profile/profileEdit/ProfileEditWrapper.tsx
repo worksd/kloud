@@ -10,6 +10,7 @@ import { translate } from "@/utils/translate";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { checkDuplicateNickName } from "@/app/onboarding/action/check.duplicate.nickname.action";
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const ProfileEditWrapper = ({user}: { user: GetUserResponse }) => {
 
@@ -44,7 +45,7 @@ export const ProfileEditWrapper = ({user}: { user: GetUserResponse }) => {
           bottomMenuList: bottomMenuList,
           route: '',
         });
-        window.KloudEvent?.navigateMain(bootInfo);
+        kloudNav.navigateMain(bootInfo);
       }
     }
   }, []);

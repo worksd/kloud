@@ -5,22 +5,63 @@ import KakaoLoginButton from "@/app/login/kakao.login.button";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import MobileLogo from "../../../public/assets/ic_mobile.svg";
+import { EmailLoginButton } from "@/app/login/email.login.button";
+import { PhoneLoginButton } from "@/app/login/phone.login.button";
 
-export const LoginButtonForm = async ({os, appVersion, returnUrl}: { os: string, appVersion: string, returnUrl?: string}) => {
-  const loginEmailQuery = returnUrl ? `?returnUrl=${returnUrl}` : ''
+export const LoginButtonForm = async ({ os, appVersion, returnUrl }: {
+  os: string,
+  appVersion: string,
+  returnUrl?: string
+}) => {
+  const loginEmailQuery = returnUrl ? `?returnUrl=${returnUrl}` : '';
+
   return (
-    <section className="flex flex-col items-center justify-center">
-      <div className="space-y-2 w-full p-2">
-        {os === 'iOS' && appVersion != '' && <AppleLoginButton/>}
-        {os === 'Android' && appVersion != '' && <GoogleLoginButton/>}
-        <KakaoLoginButton appVersion={appVersion} callbackUrl={returnUrl}/>
+    <section className="flex flex-col items-center justify-center space-y-2 w-full px-2">
+      {os === 'iOS' && appVersion !== '' && (
+        <AppleLoginButton title={await translate('continue_with_apple')} />
+      )}
+      {os === 'Android' && appVersion !== '' && (
+        <GoogleLoginButton title={await translate('continue_with_google')} />
+      )}
+      <KakaoLoginButton
+        appVersion={appVersion}
+        callbackUrl={returnUrl}
+        title={await translate('continue_with_kakao')}
+      />
+      <div className="w-full self-stretch">
+        <NavigateClickWrapper
+          method="push"
+          route={KloudScreen.LoginPhone(loginEmailQuery)}
+          returnUrl={returnUrl}>
+          <PhoneLoginButton/>
+        </NavigateClickWrapper>
       </div>
-      <NavigateClickWrapper method={'push'} route={KloudScreen.LoginEmail(loginEmailQuery)} returnUrl={returnUrl}>
-        <div className="text-[#86898C] text-[14px] cursor-pointer mt-12">
-          {await translate('email_login')}
-        </div>
-      </NavigateClickWrapper>
+      <div className="w-full self-stretch">
+        <NavigateClickWrapper
+          method="push"
+          route={KloudScreen.LoginEmail(loginEmailQuery)}
+          returnUrl={returnUrl}>
+          <EmailLoginButton/>
+        </NavigateClickWrapper>
+      </div>
 
     </section>
+  );
+};
+
+export const LargeKloudButton = async ({ title }: { title: string }) => {
+  return (
+    <div className="relative w-screen px-4">
+      <div
+        className="
+          flex items-center justify-center
+          w-full rounded-[16px] bg-black text-white text-[16px] font-medium shadow-lg
+          py-4 select-none transition-transform duration-150 active:scale-[0.98]
+        "
+      >
+        {title}
+      </div>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
-const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callbackUrl?: string}) => {
+const KakaoLoginButton = ({title, appVersion, callbackUrl} : {title: string, appVersion: string, callbackUrl?: string}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prevCodeRef = useRef<string | null>(null);
@@ -93,7 +93,7 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
 
   return (
     <button
-      className={`relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-lg h-14 shadow-lg w-full 
+      className={`relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-[16px] py-4 shadow-lg w-full 
             active:scale-[0.95] transition-transform duration-150 select-none'}
       `}
       onClick={kakaoLogin}
@@ -102,7 +102,7 @@ const KakaoLoginButton = ({appVersion, callbackUrl} : {appVersion: string, callb
       <span className="absolute left-4">
         <KakaoLogo/>
       </span>
-      <TranslatableText className={'flex-1 text-center text-[16px]'} titleResource={'kakao_login'}/>
+      <div className={'flex-1 text-center text-[16px]'}>{title}</div>
     </button>
   );
 };

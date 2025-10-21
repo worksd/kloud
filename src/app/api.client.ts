@@ -11,6 +11,8 @@ export class ApiClient extends EndpointClient {
     signUp: this.endpointBuilder(API.Auth.PostSignUpEmail),
     socialLogin: this.endpointBuilder(API.Auth.PostSocialLogin),
     sendEmailVerification: this.endpointBuilder(API.Auth.SendVerificationEmail),
+    sendPhoneVerification: this.endpointBuilder(API.Auth.SendPhoneVerification),
+    checkPhoneVerification: this.endpointBuilder(API.Auth.CheckPhoneVerification),
   }
 
   readonly user = {

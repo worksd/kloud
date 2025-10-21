@@ -8,6 +8,7 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { getLocaleText, translate } from "@/utils/translate";
+import { BankOrCardIcon } from "@/app/components/Bank";
 
 export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
@@ -172,22 +173,25 @@ function BillingCard({
 
   return (
     <div
-      className={`relative rounded-2xl px-6 py-4 shadow-sm transition-all duration-200 text-black border
+      className={`relative rounded-2xl shadow-sm transition-all duration-200 text-black border
         ${isSelected ? 'border-black bg-white' : 'border-gray-200 bg-gray-50'}`}
     >
       {onDelete && (
         <TranslatableText
           onClick={onDelete}
-          className="absolute top-4 right-4 bottom-2 text-xs text-red-500 font-bold"
+          className="absolute top-4 right-4 bottom-1 text-xs text-red-500 font-bold"
           titleResource={'delete'}
         >
         </TranslatableText>
       )}
 
-      <div className="space-y-1">
-        <div className="text-lg font-semibold">{cardName}</div>
-        <div className={`text-sm tracking-widest ${isSelected ? 'text-neutral-600' : 'text-neutral-400'}`}>
-          {maskedNumber}
+      <div className="flex flex-row items-center justify-items-center">
+        <BankOrCardIcon name={cardName} scale={50}/>
+        <div className={'flex flex-col'}>
+          <div className="text-lg font-semibold">{cardName}</div>
+          <div className={`text-sm tracking-widest ${isSelected ? 'text-neutral-600' : 'text-neutral-400'}`}>
+            {maskedNumber}
+          </div>
         </div>
       </div>
     </div>

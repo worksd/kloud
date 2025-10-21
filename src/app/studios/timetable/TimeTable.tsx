@@ -8,6 +8,7 @@ import { GetTimeTableResponse } from "@/app/endpoint/studio.endpoint";
 import BackwardIcon from "../../../../public/assets/ic_simple_left_arrow.svg"
 import ForwardIcon from "../../../../public/assets/ic_simple_right_arrow.svg"
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse, today: string }) => {
   const [currentTimeTable, setCurrentTimeTable] = useState<GetTimeTableResponse>(timeTable)
@@ -118,7 +119,9 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
               key={i}
               onClick={() =>
                 item.type === 'lesson' &&
-                window.KloudEvent.push(KloudScreen.LessonDetail(item.lesson.id))
+                kloudNav.push(KloudScreen.LessonDetail(item.lesson.id), {
+                  ignoreSafeArea: true
+                })
               }
               className={`rounded-[8px] border overflow-hidden shadow-sm hover:shadow-md transition-all duration-150
                 ${item.type === 'lesson' ? 'aspect-[1/1.5] active:scale-[0.97] cursor-pointer' : ''}

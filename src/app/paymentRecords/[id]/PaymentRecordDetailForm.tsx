@@ -5,8 +5,10 @@ import React from "react";
 import { GetPaymentRecordResponse, PaymentRecordStatus } from "@/app/endpoint/payment.record.endpoint";
 import { translate } from "@/utils/translate";
 import { statusLabelMap } from "@/app/paymentRecords/PaymentRecordItem";
+import { BankOrCardIcon } from "@/app/components/Bank";
 
 export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
+
   return <div className="p-5 bg-white min-h-screen text-gray-900">
     <section className="mb-6">
       <h2 className="text-sm font-semibold mb-2">{await translate('purchase_history')}</h2>
@@ -49,32 +51,60 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
         </div>
       </NavigateClickWrapper>
     </section>
+    {paymentRecord.status === PaymentRecordStatus.Pending && (
+      <div className="rounded-xl border border-gray-100 bg-white/80 shadow-sm p-1 flex flex-col">
+        <div className={'ml-4 mt-2 text-[13px] font-bold'}>계좌이체 정보</div>
+        <div className="flex items-center gap-1">
+          {/* 아이콘 배지 */}
+          <div className="">
+            <BankOrCardIcon name={paymentRecord.studio?.bank ?? ''} scale={75} />
+          </div>
+
+          {/* 텍스트 영역 */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-gray-500 truncate">{paymentRecord.studio?.bank || '은행'}</span>
+            </div>
+
+            <div className="mt-0.5 text-[15px] font-semibold text-black tracking-wider tabular-nums">
+              {paymentRecord.studio?.accountNumber || '—'}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     {/* 결제내역 */}
-    <section className="mb-6">
-      <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
-      <div className="flex justify-between text-base font-medium">
-        <span>{await translate('purchase_amount')}</span>
-        <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')} </span>
-      </div>
-    </section>
+    {(paymentRecord.status === PaymentRecordStatus.Completed || paymentRecord.status === PaymentRecordStatus.Cancelled) && (
+      <div>
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
+          <div className="flex justify-between text-base font-medium">
+            <span>{await translate('purchase_amount')}</span>
+            <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')} </span>
+          </div>
+        </section>
 
-    <hr className="my-4"/>
+        <hr className="my-4"/>
 
-    {/* 결제요금 */}
-    <section className="space-y-3">
-      <div className="flex justify-between text-base font-bold text-emerald-600">
-        <span>{await translate('total_amount')}</span>
-        <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')}</span>
+        {/* 결제요금 */}
+        <section className="space-y-3">
+          <div className="flex justify-between text-base font-bold text-emerald-600">
+            <span>{await translate('total_amount')}</span>
+            <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')}</span>
+          </div>
+          <div className="flex justify-between text-sm text-gray-400">
+            <span>{await translate('payment_method')}</span>
+            <span>{paymentRecord.paymentMethodLabel}</span>
+          </div>
+          <div className="flex justify-between text-sm text-gray-400">
+            <span>{await translate('payment_datetime')}</span>
+            <span>{paymentRecord.createdAt}</span>
+          </div>
+        </section>
       </div>
-      <div className="flex justify-between text-sm text-gray-400">
-        <span>{await translate('payment_method')}</span>
-        <span>{paymentRecord.paymentMethodLabel}</span>
-      </div>
-      <div className="flex justify-between text-sm text-gray-400">
-        <span>{await translate('payment_datetime')}</span>
-        <span>{paymentRecord.createdAt}</span>
-      </div>
-    </section>
+    )}
+
+
 
     <hr className="my-4"/>
 

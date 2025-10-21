@@ -3,7 +3,6 @@
 import { GetArtistResponse } from '@/app/endpoint/artist.endpoint';
 import { HeaderInDetail } from '@/app/components/headers';
 import Image from 'next/image';
-import ThumbsUpIcon from '../../../../public/assets/thumbs_up.svg';
 import { LessonBand } from '@/app/LessonBand';
 import { ArtistActionItem } from '@/app/artists/[id]/artist.action.item';
 
@@ -31,7 +30,7 @@ function BadgeList({badges}: { badges?: { type: string; label: string }[] | null
       { badges.map((b, i) => (
         <div key={ `${ b.type }-${ i }` } className="h-7 flex items-center gap-2">
           {/* 아이콘 28x28 */ }
-          <ThumbsUpIcon className="w-7 h-7 block"/>
+          {/*<ThumbsUpIcon className="w-7 h-7 block"/>*/}
           {/* 텍스트: 14px / 20px / Medium / #3E3E3E */ }
           <span className="text-[#3E3E3E] text-[14px] leading-[20px] font-medium">
             { b.label }
