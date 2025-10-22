@@ -50,7 +50,7 @@ export const QrCodeDialogScreen = ({
           >
             <KloudQRCode qrCodeUrl={qrCodeUrl} />
 
-            <div className="bg-white text-black text-sm font-semibold text-center w-[330px] py-3 rounded-xl shadow-md mt-4">
+            <div className="bg-white text-black text-sm font-semibold text-center w-[330px] py-3 rounded-xl shadow-md mt-4 whitespace-pre-line">
               {message}
             </div>
 
