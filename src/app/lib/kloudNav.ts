@@ -105,7 +105,7 @@ const applyTitle = async (route: string) => {
     return await translate('sign_up')
   } else if (route.startsWith(KloudScreen.HasPassStudioList)) {
     return ''
-  } else if (route.startsWith('/passPlans')) {
+  } else if (route.startsWith('/passPlans?studioId')) {
     return ''
   } else if (route == (KloudScreen.ProfileSetting)) {
     return await translate('setting')
@@ -127,8 +127,7 @@ const applyTitle = async (route: string) => {
     return await translate('service_terms_agreement')
   } else if (route == KloudScreen.ProfileEdit) {
     return await translate('edit_profile')
-  }
-  else if (route.startsWith(KloudScreen.LoginIntro(''))) {
+  } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
   } else if (route.startsWith('/tickets') && !route.startsWith('/tickets/')) {
     return await translate('ticket')
@@ -138,6 +137,10 @@ const applyTitle = async (route: string) => {
     return await translate('my_subscription')
   } else if (route.startsWith(KloudScreen.PaymentRecords)) {
     return await translate('payment_records')
+  } else if (route.includes('/payment')) {
+    return await translate('payment')
+  } else if (route.includes('lessons') && route.includes('studios')) {
+    return await translate('ongoing_lessons')
   }
   else return undefined
 }

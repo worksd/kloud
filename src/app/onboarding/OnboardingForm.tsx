@@ -60,6 +60,7 @@ export const OnboardingForm = ({
                                  completeMessage,
                                  confirmText,
                                  phoneVerificationSteps,
+                                 failSignUpText,
                                }: {
   user: GetUserResponse,
   inputNameMessage: string,
@@ -69,6 +70,7 @@ export const OnboardingForm = ({
   confirmText: string,
   agreementMessage: string,
   completeMessage: string,
+  failSignUpText: string,
   phoneVerificationSteps: PhoneVerificationStepConfig[],
 }) => {
   const [isNameInputVisible, setIsNameInputVisible] = useState(true);
@@ -119,27 +121,23 @@ export const OnboardingForm = ({
       const bottomMenuList = await getBottomMenuList();
       const bootInfo = JSON.stringify({bottomMenuList, route: ''});
       kloudNav.navigateMain(bootInfo)
-    }
-    else if (step == 'agreement') {
+    } else if (step == 'agreement') {
       setStep('complete')
-    }
-    else if (step == 'code') {
+    } else if (step == 'code') {
       const res = await checkVerificationCodeAction({code, phone, countryCode})
       if ('accessToken' in res) {
         setStep('agreement')
       } else {
         // TODO: 다이얼로그 띄워주게 구현
       }
-    }
-    else if (step == 'phone') {
+    } else if (step == 'phone') {
       await sendVerificationSMS({phone, countryCode})
       flushSync(() => {
         setStep('code');
         setCode('');
       });
       focusField('code')
-    }
-    else if (isNickNameInputVisible) {
+    } else if (isNickNameInputVisible) {
       const res = await updateUserAction({
         name,
         nickName,
@@ -150,7 +148,7 @@ export const OnboardingForm = ({
         if ('success' in res && res.success) {
           setStep('agreement');
         } else if ('errorMessage' in res && res.errorMessage) {
-          const dialog = await createDialog({ id: 'Simple', message: res.errorMessage });
+          const dialog = await createDialog({id: 'Simple', message: res.errorMessage});
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else {
@@ -160,25 +158,22 @@ export const OnboardingForm = ({
           });
           focusField('phone')
         } else if ('errorMessage' in res && res.errorMessage) {
-          const dialog = await createDialog({ id: 'Simple', message: res.errorMessage });
+          const dialog = await createDialog({id: 'Simple', message: res.errorMessage, title: failSignUpText});
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
 
       }
-    }
-    else if (isGenderInputVisible) {
+    } else if (isGenderInputVisible) {
       flushSync(() => {
         setIsNickNameInputVisible(true);
       });
       focusField('nickname');
-    }
-    else if (isBirthInputVisible) {
+    } else if (isBirthInputVisible) {
       flushSync(() => {
         setIsGenderInputVisible(true);
       });
       focusField('gender');
-    }
-    else if (isNameInputVisible) {
+    } else if (isNameInputVisible) {
       flushSync(() => {
         setIsBirthInputVisible(true);
       });
@@ -240,14 +235,21 @@ export const OnboardingForm = ({
       }
     } else if (step == 'complete') {
       setStep('agreement')
-    } else if (step =='onboard') {
+    } else if (step == 'onboard') {
       kloudNav.clearAndPush(KloudScreen.Login(''))
     }
   };
 
 
   const focusField = (key: 'name' | 'birth' | 'gender' | 'nickname' | 'code' | 'phone') => {
-    const map = {name: nameRef, birth: birthRef, gender: null, nickname: nickRef, code: codeRef, phone: phoneRef} as const;
+    const map = {
+      name: nameRef,
+      birth: birthRef,
+      gender: null,
+      nickname: nickRef,
+      code: codeRef,
+      phone: phoneRef
+    } as const;
     map[key]?.current?.focus({preventScroll: true});
   };
 
@@ -256,7 +258,7 @@ export const OnboardingForm = ({
     const target =
       currentOnboardField === 'name' ? nameRef.current :
         currentOnboardField === 'birth' ? birthRef.current :
-            currentOnboardField === 'nickname' ? nickRef.current : null;
+          currentOnboardField === 'nickname' ? nickRef.current : null;
 
     if (target) {
       const id = requestAnimationFrame(() => target.focus());
@@ -386,15 +388,17 @@ export const OnboardingForm = ({
                 countryCode={countryCode}
                 onChangeCountryCodeAction={(v: string) => setCountryCode(v)}
                 onChangePhoneAction={(value: string) => {
-                setPhone(value);
-              }}/>
+                  setPhone(value);
+                }}/>
               <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center">
                 {/* 위쪽 경계 살짝 분리용 그라데이션 (옵션) */}
-                <div className="pointer-events-none h-4 w-full bg-gradient-to-t from-white to-transparent" />
+                <div className="pointer-events-none h-4 w-full bg-gradient-to-t from-white to-transparent"/>
 
                 <button
                   type="button"
-                  onClick={() => {setStep('agreement')}}
+                  onClick={() => {
+                    setStep('agreement')
+                  }}
                   className={[
                     'mb-4 rounded-full px-5',
                     'h-11 min-h-[44px]', // 모바일 터치 타깃 확보

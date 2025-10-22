@@ -9,9 +9,6 @@ export default async function StudioLessons({params}: Props) {
   if ('lessons' in res) {
     return (
       <div className="flex flex-col w-full">
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource="ongoing_lessons"/>
-        </div>
         <LessonGridItems lessons={res.lessons}/>
       </div>
     )

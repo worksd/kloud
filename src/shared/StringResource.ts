@@ -53,11 +53,11 @@ export const StringResource = {
     jp: "パスワード",
     zh: "密码"
   },
-  input_email_phone_message: {
-    ko: "이메일 또는 휴대폰 번호를 입력해주세요",
-    en: "Please enter your email or phone number.",
-    jp: "メールアドレスまたは電話番号を入力してください。",
-    zh: "请输入邮箱或手机号。"
+  input_email_message: {
+    ko: "이메일을 입력해주세요",
+    en: "Please enter your email.",
+    jp: "メールアドレスを入力してください。",
+    zh: "请输入邮箱。"
   },
   phone_login_message: {
     ko: '휴대폰 번호를 입력해주세요',

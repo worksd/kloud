@@ -5,13 +5,22 @@ import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { PassPlanItem } from "@/app/passPlans/PassPlanItem";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export const PurchaseStudioPassForm = ({passPlans, popularPassPlan, title}: {
+export const PurchaseStudioPassForm = ({
+                                         passPlans,
+                                         popularPassPlan,
+                                         title,
+                                         purchasePassInformationText,
+                                         passRefundPolicyText,
+                                         purchasePassText
+                                       }: {
   passPlans: GetPassPlanResponse[],
   popularPassPlan: GetPassPlanResponse,
-  title: string
+  title: string,
+  purchasePassInformationText: string,
+  passRefundPolicyText: string,
+  purchasePassText: string
 }) => {
 
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
@@ -33,17 +42,17 @@ export const PurchaseStudioPassForm = ({passPlans, popularPassPlan, title}: {
         </ul>
       )}
       <div className={"flex flex-col bg-[#F7F8F9] p-6 text-[#86898C] space-y-4"}>
-        <TranslatableText className={"font-bold text-[16px]"} titleResource={'purchase_pass_information'}/>
-        <TranslatableText className={"text-[14px]"} titleResource={'pass_refund_policy'}/>
+        <div className={"font-bold text-[16px]"}>{purchasePassInformationText}</div>
+        <div className={"text-[14px] whitespace-pre-line"}>{passRefundPolicyText}</div>
       </div>
 
-      <div className={"sticky bottom-0 px-6"}>
+      <div className={"sticky bottom-3 px-6"}>
         <CommonSubmitButton originProps={{
           onClick: () => {
             kloudNav.push(KloudScreen.PassPayment(passPlan?.id ?? 0))
           }
         }} disabled={passPlan == null}>
-          <TranslatableText titleResource={'purchase_pass_title'}/>
+          <div>{purchasePassText}</div>
         </CommonSubmitButton>
       </div>
 

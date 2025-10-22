@@ -14,7 +14,7 @@ export default async function EmailLogin({searchParams}: {
         returnUrl={returnUrl}
         emailLabel={await translate('email')}
         passwordLabel={await translate('password')}
-        emailPlaceholder={await translate('input_email_phone_message')}
+        emailPlaceholder={await translate('input_email_message')}
         passwordPlaceholder={await translate('input_password_message')}
         buttonText={await translate('do_start')}
         noMemberSignUpText={await translate('not_member_sign_up')}

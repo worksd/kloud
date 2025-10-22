@@ -10,7 +10,7 @@ import { changeLocale, getLocaleText, translate } from "@/utils/translate";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export const LanguageChangeForm = ({locale}: { locale: Locale }) => {
+export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, confirmText: string }) => {
   const [currentLocale, setCurrentLocale] = useState<Locale>(locale);
 
   const handleChangeLocale = async (newLocale: Locale) => {
@@ -88,7 +88,7 @@ export const LanguageChangeForm = ({locale}: { locale: Locale }) => {
 
       <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 bg-white">
         <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
-          <TranslatableText titleResource={'confirm'}/>
+          {confirmText}
         </CommonSubmitButton>
       </div>
     </div>

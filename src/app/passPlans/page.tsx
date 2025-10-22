@@ -13,7 +13,11 @@ export default async function PassPage({searchParams}: { searchParams: Promise<{
       <PurchaseStudioPassForm
         title={studioRes.name + await translate('purchase_pass')}
         passPlans={res.passPlans}
-        popularPassPlan={res.passPlans?.find((value) => value.isPopular) ?? res.passPlans[0]}/>
+        popularPassPlan={res.passPlans?.find((value) => value.isPopular) ?? res.passPlans[0]}
+        passRefundPolicyText={await translate('pass_refund_policy')}
+        purchasePassText={await translate('purchase_pass')}
+        purchasePassInformationText={await translate('purchase_pass_information')}
+      />
     )
   }
 }

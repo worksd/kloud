@@ -3,7 +3,6 @@
 import { GetPassResponse, PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { KloudScreen, NO_DATA_ID } from "@/shared/kloud.screen";
 import PremiumTierIcon from "../../../../public/assets/ic_premium_pass_plan.svg"
-import { TranslatableText } from "@/utils/TranslatableText";
 import { PassItem } from "@/app/profile/myPass/action/PassItem";
 import { kloudNav } from "@/app/lib/kloudNav";
 
@@ -11,7 +10,13 @@ export const PassColumnList = ({
                                  passItems,
                                  isActivePass,
                                  noItemMessage,
-                               }: { passItems: GetPassResponse[], isActivePass: boolean, noItemMessage: string }) => {
+                                 goPurchasePassText,
+                               }: {
+  passItems: GetPassResponse[],
+  isActivePass: boolean,
+  noItemMessage: string,
+  goPurchasePassText?: string
+}) => {
   if (passItems && passItems.length > 0) {
     return (
       <div className={"flex flex-col text-black"}>
@@ -30,10 +35,9 @@ export const PassColumnList = ({
       <div className={'flex flex-col justify-center pt-36 items-center space-y-4 text-center'}>
         {isActivePass && <div
           className={'text-[14px] text-black font-bold border rounded-full border-black px-4 py-3 active:scale-[0.98] active:bg-gray-100 transition-transform duration-150 text-center'}
-          onClick={() => kloudNav.push(KloudScreen.PurchasePass(NO_DATA_ID))}><TranslatableText
-          titleResource={'go_purchase_pass_title'}/></div>}
+          onClick={() => kloudNav.push(KloudScreen.HasPassStudioList)}>{goPurchasePassText}</div>}
         <div
-          className={'text-[#85898C] font-medium text-[16px] text-center'}>
+          className={'text-[#85898C] font-medium text-[16px] text-center whitespace-pre-line'}>
           {noItemMessage}
         </div>
       </div>

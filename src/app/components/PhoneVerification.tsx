@@ -60,7 +60,7 @@ export function PhoneVerification({
   }, [open]);
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md mx-auto overflow-x-hidden">
       <div ref={wrapRef} className="relative">
         <div className="flex items-center gap-3 w-full rounded-[20px] border border-gray-300 p-4 shadow-sm bg-white">
           <button

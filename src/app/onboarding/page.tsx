@@ -24,6 +24,7 @@ export default async function Onboarding({searchParams}: {
         phoneVerificationSteps={await getPhoneVerificationSteps()}
         agreementMessage={await translate('agreement_message')}
         completeMessage={await translate('complete')}
+        failSignUpText={await translate('fail_sign_up')}
       />
     )
   }

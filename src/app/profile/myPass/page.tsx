@@ -9,6 +9,7 @@ export default async function MyPassPage() {
       <div className="flex flex-col h-screen">
         <MyPassForm
           passes={res.passes}
+          goPurchasePassText={await translate('go_purchase_pass_title')}
           myActivePassesText={await translate('my_active_passes')}
           myUsedPassesText={await translate('my_used_passes')}
           noActiveMessageText={await translate('no_active_passes_message')}

@@ -6,12 +6,13 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 
 type PassTabType = 'active' | 'used'
 
-export const MyPassForm = ({passes, myActivePassesText, myUsedPassesText, noActiveMessageText, noUsedMessageText}: {
+export const MyPassForm = ({passes, myActivePassesText, myUsedPassesText, noActiveMessageText, noUsedMessageText, goPurchasePassText}: {
   passes: GetPassResponse[],
   myActivePassesText: string,
   myUsedPassesText: string,
   noActiveMessageText: string,
   noUsedMessageText: string,
+  goPurchasePassText: string,
 }) => {
   const [currentTab, setCurrentTab] = useState<PassTabType>('active')
   const activePasses = passes.filter(value => value.status == 'Active' || value.status == 'Pending')
@@ -47,7 +48,7 @@ export const MyPassForm = ({passes, myActivePassesText, myUsedPassesText, noActi
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-4">
         {currentTab === 'active' ? (
-          <PassColumnList passItems={activePasses} isActivePass={true} noItemMessage={noActiveMessageText}/>
+          <PassColumnList passItems={activePasses} isActivePass={true} noItemMessage={noActiveMessageText} goPurchasePassText={goPurchasePassText}/>
         ) : (
           <PassColumnList passItems={notActivePasses} isActivePass={false} noItemMessage={noUsedMessageText}/>
         )}

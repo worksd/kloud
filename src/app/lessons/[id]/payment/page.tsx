@@ -34,10 +34,6 @@ export default async function LessonPaymentPage({params, searchParams}: {
             returnUrl={KloudScreen.LessonPayment(id)}
           />}
 
-        <div className="flex justify-between items-center mb-14 px-6">
-          <SimpleHeader titleResource="payment"/>
-        </div>
-
         <div className="flex flex-col">
           {/* 수업 정보 */}
           <div className="flex gap-4 w-full px-6 items-center">

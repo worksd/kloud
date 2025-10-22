@@ -14,7 +14,7 @@ export default async function EmailSignUpPage({searchParams}: { searchParams: Pr
         appVersion={appVersion}
         requireLabel={await translate('required')}
         emailLabel={await translate('email')}
-        emailPlaceholder={await translate('input_email_phone_message')}
+        emailPlaceholder={await translate('input_email_message')}
         passwordLabel={await translate('password')}
         passwordPlaceholder={await translate('input_password_message')}
         buttonText={await translate('sign_up')}
