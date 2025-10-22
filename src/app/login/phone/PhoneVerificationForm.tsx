@@ -14,6 +14,7 @@ import { translate } from "@/utils/translate";
 import { UserStatus } from "@/entities/user/user.status";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
+import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -106,13 +107,11 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
 
       {/* 하단 고정 버튼 */}
       <div className="fixed left-0 right-0 pb-6 px-6 bg-white/70">
-        <CommonSubmitButton
+        <AsyncCommonSubmitButton
           disabled={disabled}
-          originProps={{
-            onClick: handleOnClick
-          }}>
+          onClick={handleOnClick}>
           {steps.find((value) => value.id == step)?.buttonText}
-        </CommonSubmitButton>
+        </AsyncCommonSubmitButton>
       </div>
     </div>
   );

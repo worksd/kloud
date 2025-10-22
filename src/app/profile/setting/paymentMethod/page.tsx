@@ -7,9 +7,6 @@ export default async function PaymentMethodPage() {
   if ('billings' in res) {
     return (
       <div>
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource="payment_method_management"/>
-        </div>
         <BillingCardForm cards={res.billings}/>
       </div>
 

@@ -7,7 +7,6 @@ export default async function TermPage() {
   const locale = (await cookies()).get(localeKey)?.value ?? 'ko'
   return (
     <div>
-      <SimpleHeader titleResource={'service_terms_agreement'}/>
       <Term locale={locale}/>
     </div>
   )

@@ -8,10 +8,6 @@ export default async function PolicyPage() {
 
   return (
     <div className={'flex flex-col'}>
-      <div className="flex justify-between items-center mb-14 px-6">
-        <SimpleHeader titleResource="terms_and_policy"/>
-      </div>
-
       <div className={'mt-4'}>
         <NavigateClickWrapper method={'push'} route={KloudScreen.Terms}>
           <MenuItem label={'service_terms_agreement'}/>

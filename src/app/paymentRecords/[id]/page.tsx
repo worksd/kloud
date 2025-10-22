@@ -14,9 +14,6 @@ export default async function PaymentRecordDetailPage({params}: { params: Promis
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-14 px-6">
-        <SimpleHeader titleResource="payment_records"/>
-      </div>
       <PaymentRecordDetailForm paymentRecord={paymentRecord}/>
     </div>
   );

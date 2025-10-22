@@ -22,9 +22,6 @@ export default async function MyPassDetailPage({params}: {
   if ('id' in pass) {
     return (
       <div className={"flex flex-col min-h-screen"}>
-        <div className="flex justify-between items-center mb-14">
-          <DynamicHeader title={pass.passPlan?.name}/>
-        </div>
 
         <div className={'flex flex-row justify-between items-center px-4'}>
           <div className={'flex flex-col'}>

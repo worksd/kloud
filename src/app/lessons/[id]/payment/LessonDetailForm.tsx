@@ -26,10 +26,9 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             'absolute left-3 z-10',
             // 큰 터치 타깃 + 반투명 배경
             'inline-flex h-10 w-10 items-center justify-center rounded-full',
-            'backdrop-blur text-white shadow',
+            'backdrop-blur text-white shadow mt-10',
           ].join(' ')}
           // iOS safe-area 보정 + 기본 12px 마진
-          style={{top: 'max(env(safe-area-inset-top, 0px), 36px)'}}
         >
           <LeftArrow className="h-5 w-5"/>
         </button>

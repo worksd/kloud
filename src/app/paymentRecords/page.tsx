@@ -11,9 +11,6 @@ export default async function PaymentRecordsPage() {
   if ('paymentRecords' in res) {
     return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource="payment_records"/>
-        </div>
         <div className={'flex flex-col'}>
           {res.paymentRecords && res.paymentRecords.length > 0 ?
 

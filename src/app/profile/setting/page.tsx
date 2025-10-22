@@ -12,16 +12,12 @@ export default async function AccountSetting({
                                              }: {
   searchParams: Promise<{ appVersion: string, os: string }>
 }) {
-  const { os } = await searchParams
+  const { os, appVersion } = await searchParams
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>
       </NavigateClickWrapper>
-
-      {/*<DialogClickWrapper id={"UnderDevelopment"}>*/}
-      {/*  <MenuItem label="notification_setting"/>*/}
-      {/*</DialogClickWrapper>*/}
       <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentMethodSetting}>
         <MenuItem label="payment_method_management"/>
       </NavigateClickWrapper>
@@ -33,7 +29,7 @@ export default async function AccountSetting({
       </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}
-        version={(await searchParams).appVersion}/>
+        version={appVersion}/>
       <NavigateClickWrapper method={'push'} route={KloudScreen.BusinessInfo}>
         <MenuItem label={'business_info'}/>
       </NavigateClickWrapper>

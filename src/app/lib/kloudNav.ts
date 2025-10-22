@@ -107,10 +107,37 @@ const applyTitle = async (route: string) => {
     return ''
   } else if (route.startsWith('/passPlans')) {
     return ''
-  } else if (route.startsWith(KloudScreen.ProfileSetting)) {
+  } else if (route == (KloudScreen.ProfileSetting)) {
     return await translate('setting')
-  } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
+  } else if (route == KloudScreen.MyAccount) {
+    return await translate('my_account')
+  } else if (route == KloudScreen.PaymentMethodSetting) {
+    return await translate('payment_method_management')
+  } else if (route == KloudScreen.LanguageSetting) {
+    return await translate('language_setting')
+  } else if (route == KloudScreen.RefundAccountSetting) {
+    return await translate('refund_account')
+  } else if (route == KloudScreen.BusinessInfo) {
+    return await translate('business_info')
+  } else if (route == KloudScreen.Policy) {
+    return await translate('terms_and_policy')
+  } else if (route == KloudScreen.Privacy) {
+    return await translate('service_privacy_agreement')
+  } else if (route == KloudScreen.Terms) {
+    return await translate('service_terms_agreement')
+  } else if (route == KloudScreen.ProfileEdit) {
+    return await translate('edit_profile')
+  }
+  else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
+  } else if (route.startsWith('/tickets') && !route.startsWith('/tickets/')) {
+    return await translate('ticket')
+  } else if (route.startsWith(KloudScreen.MyPass)) {
+    return await translate('my_pass')
+  } else if (route.startsWith(KloudScreen.MySubscription)) {
+    return await translate('my_subscription')
+  } else if (route.startsWith(KloudScreen.PaymentRecords)) {
+    return await translate('payment_records')
   }
   else return undefined
 }

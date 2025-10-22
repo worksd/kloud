@@ -8,7 +8,6 @@ export default async function PrivacyPage() {
 
   return (
     <div>
-      <SimpleHeader titleResource={'service_privacy_agreement'}/>
       <Privacy locale={locale}/>
     </div>
   )

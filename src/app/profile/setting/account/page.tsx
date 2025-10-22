@@ -10,9 +10,6 @@ export default async function MyAccountPage() {
   const user = await getUserAction();
   if (user && 'id' in user) {
     return <div className={'flex flex-col'}>
-      <div className="flex justify-between items-center mb-14 px-6">
-        <SimpleHeader titleResource={'my_account'}/>
-      </div>
 
       {user.phone ? <div className={'flex flex-col px-6 text-black py-4 space-y-1 font-medium'}>
         <div className={'flex flex-row space-x-1 items-center'}>

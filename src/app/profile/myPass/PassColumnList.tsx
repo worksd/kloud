@@ -4,18 +4,14 @@ import { GetPassResponse, PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { KloudScreen, NO_DATA_ID } from "@/shared/kloud.screen";
 import PremiumTierIcon from "../../../../public/assets/ic_premium_pass_plan.svg"
 import { TranslatableText } from "@/utils/TranslatableText";
-import { useEffect, useState } from "react";
 import { PassItem } from "@/app/profile/myPass/action/PassItem";
 import { kloudNav } from "@/app/lib/kloudNav";
 
 export const PassColumnList = ({
-                           passItems,
-                           isActivePass,
-                         }: { passItems: GetPassResponse[], isActivePass: boolean }) => {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, [])
+                                 passItems,
+                                 isActivePass,
+                                 noItemMessage,
+                               }: { passItems: GetPassResponse[], isActivePass: boolean, noItemMessage: string }) => {
   if (passItems && passItems.length > 0) {
     return (
       <div className={"flex flex-col text-black"}>
@@ -30,21 +26,22 @@ export const PassColumnList = ({
       </div>
     )
   } else {
-    if (!mounted) return;
     return (
       <div className={'flex flex-col justify-center pt-36 items-center space-y-4 text-center'}>
         {isActivePass && <div
           className={'text-[14px] text-black font-bold border rounded-full border-black px-4 py-3 active:scale-[0.98] active:bg-gray-100 transition-transform duration-150 text-center'}
           onClick={() => kloudNav.push(KloudScreen.PurchasePass(NO_DATA_ID))}><TranslatableText
           titleResource={'go_purchase_pass_title'}/></div>}
-        <TranslatableText titleResource={isActivePass ? 'no_active_passes_message' : 'no_used_passes_message'}
-                          className={'text-[#85898C] font-medium text-[16px] text-center'}/>
+        <div
+          className={'text-[#85898C] font-medium text-[16px] text-center'}>
+          {noItemMessage}
+        </div>
       </div>
     )
   }
 }
 
-export const ActivePassItem = ({ pass }: { pass: GetPassResponse }) => {
+export const ActivePassItem = ({pass}: { pass: GetPassResponse }) => {
   const borderColor =
     pass.passPlan?.tier === PassPlanTier.Premium ? 'border-[#E1CBFE]' : 'border-[#F1F3F6]'
 

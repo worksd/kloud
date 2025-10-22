@@ -8,17 +8,10 @@ import { translate } from "@/utils/translate";
 export default async function MySubscriptionPage() {
   const res = await getSubscriptionList();
 
-  const header = (
-    <div className="flex justify-between items-center mb-14 px-6">
-      <SimpleHeader titleResource={'subscription_list'}/>
-    </div>
-  );
-
   // subscriptions 키가 아예 없을 경우 (API 실패 등)
   if (!('subscriptions' in res)) {
     return (
       <div className="p-6 text-center text-gray-500">
-        {header}
         정기결제 정보를 불러올 수 없습니다.
       </div>
     );
@@ -30,7 +23,6 @@ export default async function MySubscriptionPage() {
   if (subscriptions.length === 0) {
     return (
       <div className="p-6 text-center text-gray-500">
-        {header}
         현재 활성화된 정기결제가 없습니다.
       </div>
     );
@@ -39,7 +31,6 @@ export default async function MySubscriptionPage() {
   // 정기결제 목록이 있을 경우
   return (
     <div className="p-6 space-y-4 text-black">
-      {header}
       {subscriptions.map((sub) => (
         <SubscriptionCard key={sub.subscriptionId} subscription={sub}/>
       ))}

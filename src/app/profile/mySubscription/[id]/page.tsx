@@ -22,9 +22,6 @@ export default async function MySubscriptionDetailPage({params}: {
 
     return (
       <div className="max-w-2xl mx-auto px-4 py-6 text-black">
-        <div className="px-6 mb-14">
-          <SimpleHeader titleResource={'my_subscription'}/>
-        </div>
         <div className="rounded-2xl shadow-md border border-gray-200 bg-white overflow-hidden">
           {productImageUrl && (
             <img

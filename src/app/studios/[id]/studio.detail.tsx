@@ -11,6 +11,8 @@ import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchas
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import LeftArrow from "../../../../public/assets/left-arrow.svg";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -21,8 +23,20 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar">
       {/* 헤더 */}
-      <HeaderInDetail title={studio.name}/>
-
+      <NavigateClickWrapper method={'back'}>
+        <button
+          type="button"
+          aria-label="뒤로가기"
+          className={[
+            'absolute left-3 z-10',
+            // 큰 터치 타깃 + 반투명 배경
+            'inline-flex h-10 w-10 items-center justify-center rounded-full',
+            'backdrop-blur text-white shadow mt-10',
+          ].join(' ')}
+        >
+          <LeftArrow className="h-5 w-5"/>
+        </button>
+      </NavigateClickWrapper>
       {/* 수업 썸네일 */}
       <div
         style={{backgroundImage: `url(${studio.coverImageUrl ?? studio.profileImageUrl})`}}

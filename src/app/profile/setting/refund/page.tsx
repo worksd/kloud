@@ -9,9 +9,6 @@ export default async function RefundAccountEditPage() {
   if (user != null && 'id' in user) {
     return (
       <div className={'flex flex-col'}>
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource={'refund_account'}/>
-        </div>
         <RefundAccountEditForm
           initialAccountBank={user.refundAccountBank}
           initialAccountDepositor={user.refundAccountDepositor}
