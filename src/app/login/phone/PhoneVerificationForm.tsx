@@ -11,6 +11,9 @@ import { checkVerificationCodeAction } from "@/app/login/phone/check.verificatio
 import { KloudScreen } from "@/shared/kloud.screen";
 import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
+import { UserStatus } from "@/entities/user/user.status";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
+import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -42,9 +45,9 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
       setCode('');
       await sendVerificationSMS({phone, countryCode})
     } else if (step === 'code') {
-      const res = await checkVerificationCodeAction({code})
-      if ('success' in res && res.success) {
-        kloudNav.clearAndPush(KloudScreen.Onboard(''))
+      const res = await checkVerificationCodeAction({code, phone, countryCode})
+      if ('accessToken' in res && res.accessToken) {
+        await LoginAuthNavigation({status: res.user.status, window})
       } else {
         const resendDialog = await createDialog({id: 'Simple', message: await translate('certification_code_mismatch'), title: await translate('certification')})
         window.KloudEvent.showDialog(JSON.stringify(resendDialog))

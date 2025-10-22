@@ -124,8 +124,8 @@ export const OnboardingForm = ({
       setStep('complete')
     }
     else if (step == 'code') {
-      const res = await checkVerificationCodeAction({code})
-      if ('success' in res && res.success) {
+      const res = await checkVerificationCodeAction({code, phone, countryCode})
+      if ('accessToken' in res) {
         setStep('agreement')
       } else {
         // TODO: 다이얼로그 띄워주게 구현
