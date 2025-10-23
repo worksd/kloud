@@ -85,6 +85,17 @@ export const kloudNav = {
   navigateMain(bootInfo?: unknown) {
     if (isMobile()) (window as any).KloudEvent.navigateMain(bootInfo);
   },
+
+  async fullSheet(route: string) {
+    if (isMobile()) (window as any).KloudEvent.fullSheet(
+      JSON.stringify({
+        route: route,
+        ignoreSafeArea: applyIgnoreSafeArea(route),
+        title: await applyTitle(route),
+        withClose: true
+      })
+    );
+  }
 };
 
 

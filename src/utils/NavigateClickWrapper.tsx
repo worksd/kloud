@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { kloudNav, KloudNavOptions } from "@/app/lib/kloudNav";
 
 interface NavigateClickItemProps {
-  method: 'push' | 'back' | 'clearAndPush' | 'closeBottomSheet' | 'showBottomSheet' | 'navigateMain',
+  method: 'push' | 'back' | 'clearAndPush' | 'closeBottomSheet' | 'showBottomSheet' | 'navigateMain' | 'fullSheet',
   action?: 'changeLocale',
   locale?: Locale,
   route?: string;
@@ -38,6 +38,8 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
             window.KloudEvent?.showBottomSheet(route);
           } else if (method === 'navigateMain') {
             kloudNav.navigateMain(bootInfo);
+          } else if (method == 'fullSheet' && route) {
+            kloudNav.fullSheet(route)
           }
         } else {
           if (method === 'push' && route) {
@@ -45,6 +47,8 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
             router.push(route + query);
           } else if (method == 'back') {
             router.back();
+          } else {
+
           }
         }
       }}

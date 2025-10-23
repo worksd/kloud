@@ -1,20 +1,17 @@
 'use client'
 
 import { PhoneVerification } from "@/app/components/PhoneVerification";
-import { useEffect, useState } from "react";
-import CommonSubmitButton from "../../components/buttons/CommonSubmitButton";
+import { useEffect, useRef, useState } from "react";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import BackIcon from "../../../../public/assets/ic_back.svg";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { VerificationCodeForm } from "@/app/login/phone/VerificationCodeForm";
 import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
-import { UserStatus } from "@/entities/user/user.status";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
+import { flushSync } from "react-dom";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -31,6 +28,21 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
   const [countryCode, setCountryCode] = useState<string>('KR');
   const [code, setCode] = useState<string>('')
   const [disabled, setDisabled] = useState<boolean>(true);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const el = phoneRef.current;
+      if (!el) return;
+      try {
+        el.focus({ preventScroll: true } as any);
+      } catch {
+        el.focus(); // fallback
+      }
+    }, 300); // 300~500ms 권장 (1초까지는 보통 필요 없음)
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (step == 'phone') {
@@ -42,15 +54,28 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
 
   const handleOnClick = async () => {
     if (step === 'phone') {
-      setStep('code');
-      setCode('');
-      await sendVerificationSMS({phone, countryCode})
+      const res = await sendVerificationSMS({phone, countryCode})
+
+      if ('success' in res && res.success) {
+        flushSync(() => {
+          setStep('code');
+          setCode('');
+        });
+        codeRef?.current?.focus();
+      } else {
+        // TODO: 실패 다이얼로그 띄워주기
+      }
+
     } else if (step === 'code') {
       const res = await checkVerificationCodeAction({code, phone, countryCode})
       if ('accessToken' in res && res.accessToken) {
         await LoginAuthNavigation({status: res.user.status, window})
       } else {
-        const resendDialog = await createDialog({id: 'Simple', message: await translate('certification_code_mismatch'), title: await translate('certification')})
+        const resendDialog = await createDialog({
+          id: 'Simple',
+          message: await translate('certification_code_mismatch'),
+          title: await translate('certification')
+        })
         window.KloudEvent.showDialog(JSON.stringify(resendDialog))
       }
     }
@@ -83,6 +108,7 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
         {step === 'phone' && (
           <div className="mt-9">
             <PhoneVerification
+              ref={phoneRef}
               phone={phone}
               countryCode={countryCode}
               onChangeCountryCodeAction={(value: string) => setCountryCode(value)}
@@ -94,6 +120,7 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
         {step === 'code' && (
           <div className="mt-9">
             <VerificationCodeForm
+              ref={codeRef}
               placeholder={steps.find((value) => value.id == 'code')?.placeholder ?? ''}
               value={code}
               handleChangeAction={(value: string) => {

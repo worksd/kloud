@@ -71,7 +71,6 @@ export function PhoneVerification({
             aria-expanded={open}
           >
             <span className="text-xl leading-none">{selected.flag}</span>
-            {/* 디자인이 82+ 형식이면 아래처럼 유지, +82로 바꾸려면 `+{selected.dial}` */}
             <span className="text-[17px] text-black font-semibold tracking-tight">
               {selected.dial}+
             </span>
