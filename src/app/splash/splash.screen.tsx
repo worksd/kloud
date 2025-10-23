@@ -23,15 +23,6 @@ export const SplashScreen = ({os}: { os: string }) => {
         return;
       }
       const status = res.status
-
-      const route = !status
-        ? KloudScreen.Login('')
-        : status === UserStatus.New
-          ? KloudScreen.Onboard('')
-          : status === UserStatus.Ready
-            ? KloudScreen.Main
-            : status == UserStatus.Deactivate ? KloudScreen.LoginDeactivate : KloudScreen.Login('')
-
       if (status == UserStatus.New) {
         kloudNav.clearAndPush(KloudScreen.Onboard(''))
       }

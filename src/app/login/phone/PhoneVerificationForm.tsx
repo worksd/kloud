@@ -12,6 +12,7 @@ import { translate } from "@/utils/translate";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 import { flushSync } from "react-dom";
+import { loginSuccessAction } from "@/app/login/action/login.success.action";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -69,6 +70,10 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
     } else if (step === 'code') {
       const res = await checkVerificationCodeAction({code, phone, countryCode})
       if ('accessToken' in res && res.accessToken) {
+        await loginSuccessAction({
+          accessToken: res.accessToken,
+          userId: res.user.id,
+        })
         await LoginAuthNavigation({status: res.user.status, window})
       } else {
         const resendDialog = await createDialog({
