@@ -98,7 +98,7 @@ export const SendVerificationEmail: Endpoint<object, VerifyCodeParameter> = {
   path: '/auth/email-certificate',
 }
 
-export const SendPhoneVerification: Endpoint<SendPhoneVerificationCodeParameter, SimpleResponse> = {
+export const SendPhoneVerification: Endpoint<SendPhoneVerificationCodeParameter, { code: string, ttl: number }> = {
   method: 'post',
   path: '/auth/phone-certificate',
   bodyParams: ['phone', 'countryCode'],

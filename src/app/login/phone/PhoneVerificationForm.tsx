@@ -57,7 +57,7 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
     if (step === 'phone') {
       const res = await sendVerificationSMS({phone, countryCode})
 
-      if ('success' in res && res.success) {
+      if ('code' in res && res.code) {
         flushSync(() => {
           setStep('code');
           setCode('');
