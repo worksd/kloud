@@ -130,16 +130,22 @@ export const OnboardingForm = ({
       const res = await checkVerificationCodeAction({code, phone, countryCode})
       if ('accessToken' in res) {
         setStep('agreement')
-      } else {
-        // TODO: 다이얼로그 띄워주게 구현
+      } else if ('message' in res && res.message) {
+        const dialog = await createDialog({id: 'Simple', message: res.message});
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } else if (step == 'phone') {
-      await sendVerificationSMS({phone, countryCode, isNew: true})
-      flushSync(() => {
-        setStep('code');
-        setCode('');
-      });
-      focusField('code')
+      const res = await sendVerificationSMS({phone, countryCode, isNew: true})
+      if ('ttl' in res) {
+        flushSync(() => {
+          setStep('code');
+          setCode('');
+        });
+        focusField('code')
+      } else if ('message' in res && res.message) {
+        const dialog = await createDialog({id: 'Simple', message: res.message});
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      }
     } else if (isNickNameInputVisible) {
       const res = await updateUserAction({
         name,

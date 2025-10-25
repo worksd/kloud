@@ -58,14 +58,15 @@ export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVer
     if (step === 'phone') {
       const res = await sendVerificationSMS({phone, countryCode, isNew: false})
 
-      if ('code' in res && res.code) {
+      if ('ttl' in res) {
         flushSync(() => {
           setStep('code');
           setCode('');
         });
         codeRef?.current?.focus();
-      } else {
-        // TODO: 실패 다이얼로그 띄워주기
+      } else if ('message' in res && res.message) {
+        const dialog = await createDialog({id: 'Simple', message: res.message});
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
 
     } else if (step === 'code') {
