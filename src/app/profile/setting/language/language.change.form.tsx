@@ -6,9 +6,9 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CheckIcon from "../../../../../public/assets/check_white.svg";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { changeLocale, getLocaleText, translate } from "@/utils/translate";
-import { TranslatableText } from "@/utils/TranslatableText";
+import { changeLocale, translate } from "@/utils/translate";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { LOCALE_MAP } from "@/app/components/LocaleMap";
 
 export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, confirmText: string }) => {
   const [currentLocale, setCurrentLocale] = useState<Locale>(locale);
@@ -20,7 +20,7 @@ export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, conf
   const handleClickSubmit = async () => {
     const dialog = await createDialog({
       id: 'ChangeLocale',
-      message: `\n${(await getLocaleText({currentLocale}))}\n\n ${await translate('change_locale_dialog_message')}`
+      message: `\n${LOCALE_MAP[currentLocale].emoji} ${LOCALE_MAP[currentLocale].name}\n\n ${await translate('change_locale_dialog_message')}`
     });
     window.KloudEvent.showDialog(JSON.stringify(dialog));
   };

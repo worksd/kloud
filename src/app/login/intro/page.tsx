@@ -1,9 +1,5 @@
-import { LargeKloudButton, LoginButtonForm } from "@/app/login/login.button.form";
+import { LoginButtonForm } from "@/app/login/login.button.form";
 import { DevTapLogo } from "@/app/login/DevTapToGo";
-import { ChangeLocaleButton } from "@/app/login/change.locale.button";
-import { getLocale, translate } from "@/utils/translate";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function LoginIntroPage({
                                                searchParams,
@@ -17,20 +13,20 @@ export default async function LoginIntroPage({
   }>;
 }) {
 
-  const { os, appVersion, returnUrl } = await searchParams;
+  const {os, appVersion, returnUrl} = await searchParams;
 
 
   return (
     <section
       className="w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-4"
-      style={{ paddingTop: '100px' }}
+      style={{paddingTop: '100px'}}
     >
       {/* ⬇️ 가운데 배치 */}
       <div className="flex-1 w-full flex justify-center pt-56">
-        <DevTapLogo />
+        <DevTapLogo/>
       </div>
 
-      <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl} />
+      <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl}/>
 
     </section>
 

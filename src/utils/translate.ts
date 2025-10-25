@@ -23,28 +23,3 @@ export const changeLocale = async (newLocale: Locale) => {
     sameSite: 'lax',
   })
 };
-
-type LocaleInfo = {
-  emoji: string;
-  name: string;
-};
-
-const LOCALE_MAP: Record<Locale, LocaleInfo> = {
-  ko: { emoji: '🇰🇷', name: '한국어' },
-  en: { emoji: '🇺🇸', name: 'English' },
-  jp: { emoji: '🇯🇵', name: '日本語' },
-  zh: { emoji: '🇨🇳', name: '中文' }
-} as const;
-
-export const getLocaleText = async ({ currentLocale }: { currentLocale: Locale }): Promise<string> => {
-  const localeInfo = LOCALE_MAP[currentLocale];
-  return `${localeInfo.emoji} ${localeInfo.name}`;
-};
-
-export const getLocaleEmoji = async (locale: Locale): Promise<string> => {
-  return LOCALE_MAP[locale].emoji;
-};
-
-export const getLocaleName = async (locale: Locale): Promise<string> => {
-  return LOCALE_MAP[locale].name;
-};

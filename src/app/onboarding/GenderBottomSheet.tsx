@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 
 type Gender = 'male' | 'female';
 
@@ -21,58 +21,69 @@ export function GenderBottomSheet({
   const isSelected = (g: Gender) => value === g;
 
   return (
-    <div>
-      {open && (
-        <div className="fixed inset-0 z-[100]">
-          {/* Dim */}
-          <motion.button
-            type="button"
-            aria-label="닫기"
-            onClick={onCloseAction}
-            className="absolute inset-0 bg-black/50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-          {/* Sheet */}
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white shadow-xl"
-            initial={{ y: 40, opacity: 0.98 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 40, opacity: 0.98 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Drag handle */}
-            <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-gray-300" />
-            {/* Header */}
-            <div className="px-5 pt-3 pb-2">
-              <div className="text-[18px] font-bold text-black">{title}</div>
-            </div>
-
-            {/* Options */}
-            <div className="px-4 pb-6 space-y-3">
-              <OptionButton
-                label="여성"
-                selected={isSelected('female')}
-                onClick={() => onSelectAction('female')}
-              />
-              <OptionButton
-                label="남성"
-                selected={isSelected('male')}
-                onClick={() => onSelectAction('male')}
-              />
-              {/* 하단 여백(홈 인디케이터 고려 — env 안 쓰고 적당한 패딩) */}
-              <div className="h-1" />
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
+    <CommonBottomSheet open={open} onCloseAction={onCloseAction}>
+      <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-gray-300"/>
+      <div className="px-5 pt-3 pb-2">
+        <div className="text-[18px] font-bold text-black">{title}</div>
+      </div>
+      <div className="px-4 pb-6 space-y-3">
+        <OptionButton
+          label="여성"
+          selected={isSelected('female')}
+          onClick={() => onSelectAction('female')}
+        />
+        <OptionButton
+          label="남성"
+          selected={isSelected('male')}
+          onClick={() => onSelectAction('male')}
+        />
+        <div className="h-1"/>
+      </div>
+    </CommonBottomSheet>
   );
 }
+
+export const CommonBottomSheet = ({
+                                    open,
+                                    onCloseAction,
+                                    children,
+                                  }: {
+  open: boolean;
+  onCloseAction: () => void;
+  children: React.ReactNode;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100]">
+      {/* Backdrop */}
+      <motion.button
+        type="button"
+        aria-label="닫기"
+        onClick={onCloseAction}
+        className="absolute inset-0 bg-black/50 z-[100] pointer-events-auto"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
+
+      {/* Sheet */}
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        className="absolute inset-x-0 bottom-0 z-[101] rounded-t-3xl bg-white shadow-xl pointer-events-auto"
+        initial={{ y: 40, opacity: 0.98 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 40, opacity: 0.98 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+};
+
 
 function OptionButton({
                         label,
@@ -105,10 +116,10 @@ function OptionButton({
           stroke="currentColor"
           strokeWidth="2"
         >
-          <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ) : (
-        <span className="h-5 w-5" />
+        <span className="h-5 w-5"/>
       )}
     </button>
   );

@@ -27,7 +27,7 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
 
         if (window.KloudEvent) {
           if (method === 'push' && route) {
-            await kloudNav.push(route)
+            kloudNav.push(route)
           } else if (method == 'back') {
             kloudNav.back()
           } else if (method == 'clearAndPush' && route) {

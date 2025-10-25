@@ -30,7 +30,7 @@ export default async function Login({
 
       {appVersion !== '' && (
         <div className={'mb-6'}>
-          <ChangeLocaleButton currentLocale={await getLocale()}/>
+          <ChangeLocaleButton currentLocale={await getLocale()} selectLanguageText={await translate('select_language')}/>
         </div>
       )}
       <NavigateClickWrapper method={'push'} route={KloudScreen.LoginIntro('')}>

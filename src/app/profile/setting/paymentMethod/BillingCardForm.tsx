@@ -7,7 +7,6 @@ import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { getLocaleText, translate } from "@/utils/translate";
 import { BankOrCardIcon } from "@/app/components/Bank";
 
 export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
