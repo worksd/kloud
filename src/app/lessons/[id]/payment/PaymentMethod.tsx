@@ -8,6 +8,8 @@ import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/paym
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/BillingCardForm";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { BankOrCardIcon } from "@/app/components/Bank";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 type RefundAccount = {
   bankName?: string;
@@ -61,7 +63,7 @@ export const PaymentMethodComponent = ({
   };
 
   const goRefundAccount = () => {
-    window.KloudEvent?.showBottomSheet(KloudScreen.RefundAccountSettingSheet(baseRoute));
+    kloudNav.push(KloudScreen.RefundAccountSetting);
   };
 
   return (
@@ -135,10 +137,9 @@ export const PaymentMethodComponent = ({
                   {/* 본문 영역 */}
                   <div className="flex items-start gap-3 p-4">
                     {/* 아이콘 */}
-                    <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
-                      <span aria-hidden className="text-lg">₩</span>
-                    </div>
-
+                    {refundAccount.bankName && (
+                      <BankOrCardIcon name={refundAccount.bankName} scale={100}/>
+                    )}
                     {/* 계좌 정보 */}
                     <div className="flex-1">
                       <div className="flex items-center gap-2">

@@ -30,6 +30,13 @@ export default async function RefundAccountEditSheetPage(
           initialAccountNumber={user.refundAccountNumber}
           baseRoute={baseRoute}
           isFromBottomSheet={true}
+          confirmText={await translate('confirm')}
+          refundBankText={await translate('refund_account_bank')}
+          refundBankPlaceholder={await translate('input_refund_account_bank')}
+          refundAccountText={await translate('refund_account_number')}
+          refundAccountPlaceholder={await translate('input_refund_account_number')}
+          refundDepositorText={await translate('refund_account_depositor')}
+          refundDepositorPlaceholder={await translate('input_refund_account_depositor')}
         />
       </div>
     );

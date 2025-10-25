@@ -35,7 +35,7 @@ export const BANK_ICONS = {
   kb: IconKB,
   kdb: IconKDB,
   saemaul: IconSaemaul,
-  nh: IconNH,
+  nonghyup: IconNH,
   post: IconPost,
   rado: IconRaDo,            // 무엇인지 확실치 않으면 이름 바꿔줄게
   sbi: IconSBI,
@@ -53,7 +53,7 @@ export const BANK_ICONS = {
 
 export type BankCode = keyof typeof BANK_ICONS;
 
-function pickBankKey(raw: string): BankCode | undefined {
+export function pickBankKey(raw: string): BankCode | undefined {
   const name = (raw ?? '').toLowerCase();
   const compact = name.replace(/[\s-]+/g, '');
 
@@ -64,7 +64,7 @@ function pickBankKey(raw: string): BankCode | undefined {
   if (['hana', 'keb', '하나'].some(has)) return 'hana';
   if (['woori', '우리'].some(has)) return 'woori';
   if (['ibk', '기업'].some(has)) return 'ibk';
-  if (['nh', 'nonghyup', '농협'].some(has)) return 'nh';
+  if (['nonghyup', '농협'].some(has)) return 'nonghyup';
   if (['kakaobank', 'kakao', '카카오'].some(has)) return 'kakaobank';
   if (['kbank', '케이뱅크', '케뱅'].some(has)) return 'kbank';
   if (['toss', '토스'].some(has)) return 'toss';
@@ -78,7 +78,7 @@ function pickBankKey(raw: string): BankCode | undefined {
   if (['bnk', 'busan', '부산', '경남', 'gyeongnam', 'kyongnam'].some(has)) return 'bnk';
   if (['sbi'].some(has)) return 'sbi';
   if (['im'].some(has)) return 'im';
-  if (['광주', '전북'].some(has)) return 'rado'; // 무엇인지 확정되면 변경
+  if (['rado', '광주', '전북'].some(has)) return 'rado'; // 무엇인지 확정되면 변경
   if (['현대', 'Hyundai'].some(has)) return 'hyundai';
   if (['BC', '비씨'].some(has)) return 'bc';
   if (['삼성', 'Samsung', 'samsung'].some(has)) return 'samsung';

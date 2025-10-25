@@ -1,94 +1,170 @@
 'use client'
+import React, { useEffect, useState } from "react";
 import { InputComponent } from "@/app/components/InputComponent";
-import React, { useEffect } from "react";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { kloudNav } from "@/app/lib/kloudNav";
+import { BankSelectBottomSheet } from "@/app/components/BankSheet";
+import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
 
 export const RefundAccountEditForm = ({
                                         initialAccountNumber,
-                                        initialAccountBank,
+                                        initialAccountBank,           // 초기 은행명(라벨) 문자열이 들어온다고 가정
                                         initialAccountDepositor,
                                         baseRoute,
-  isFromBottomSheet
+                                        isFromBottomSheet,
+                                        confirmText,
+                                        refundBankText,
+                                        refundBankPlaceholder,
+                                        refundAccountText,
+                                        refundAccountPlaceholder,
+                                        refundDepositorText,
+                                        refundDepositorPlaceholder,
                                       }: {
   initialAccountNumber?: string;
   initialAccountBank?: string;
   initialAccountDepositor?: string;
   baseRoute?: string;
   isFromBottomSheet?: boolean;
+  confirmText?: string;
+  refundBankText: string;
+  refundBankPlaceholder: string;
+  refundAccountText: string;
+  refundAccountPlaceholder: string;
+  refundDepositorText: string;
+  refundDepositorPlaceholder: string;
 }) => {
+  // ✅ 상태: 은행명(라벨) / 계좌번호 / 예금주
+  const [refundAccountBank, setRefundAccountBank] = useState(initialAccountBank ?? "");
+  const [refundAccountNumber, setRefundAccountNumber] = useState(initialAccountNumber ?? "");
+  const [refundAccountDepositor, setRefundAccountDepositor] = useState(initialAccountDepositor ?? "");
 
-  const [refundAccountNumber, setRefundAccountNumber] = React.useState(initialAccountNumber ?? '');
-  const [refundAccountBank, setRefundAccountBank] = React.useState(initialAccountBank ?? '');
-  const [refundAccountDepositor, setRefundAccountDepositor] = React.useState(initialAccountDepositor ?? '');
-
+  // ✅ 상태: 은행 선택 바텀시트
+  const [isBankSheetOpen, setIsBankSheetOpen] = useState(false);
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+    () => pickBankKey(initialAccountBank ?? '')
+  );
   const handleClickSubmit = async () => {
-    if (refundAccountBank.length == 0 || refundAccountDepositor.length == 0 || refundAccountNumber.length == 0) {
-      const dialog = await createDialog({id: 'EmptyAccountInformation'})
+    const bank = refundAccountBank.trim();
+    const depositor = refundAccountDepositor.trim();
+    const number = refundAccountNumber.trim();
+
+    if (bank.length === 0 || depositor.length === 0 || number.length === 0) {
+      const dialog = await createDialog({id: "EmptyAccountInformation"});
       window.KloudEvent.showDialog(JSON.stringify(dialog));
       return;
     }
+
     const res = await updateUserAction({
-      refundAccountBank,
-      refundAccountNumber: refundAccountNumber.replace('-', ''),
-      refundDepositor: refundAccountDepositor,
-    })
+      refundAccountBank: bank,                       // ⚠️ 서버가 코드가 아니라 "라벨"을 원한다면 이대로 사용
+      refundAccountNumber: number.replace(/-/g, ""), // 모든 하이픈 제거
+      refundDepositor: depositor,
+    });
 
     if (res.success) {
-      const dialog = await createDialog({id: 'RefundAccountUpdateSuccess'})
+      const dialog = await createDialog({id: "RefundAccountUpdateSuccess"});
       window.KloudEvent.showDialog(JSON.stringify(dialog));
     }
-  }
+  };
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      window.KloudEvent.refresh(baseRoute)
-      if (data.id == 'RefundAccountUpdateSuccess') {
-        if (isFromBottomSheet) {
-          window.KloudEvent.closeBottomSheet()
-        } else {
-          kloudNav.back()
-        }
-      }
-    }
-  })
+    };
+  }, [baseRoute, isFromBottomSheet]);
 
   return (
-    <div className="flex flex-col bg-white">
-      {/* 입력 필드 영역 */}
-      <div className="flex flex-col px-4 space-y-2 pt-[24px] pb-[24px]">
+    <div className="flex min-h-[100dvh] flex-col bg-white pt-24">
+      {/* 본문 */}
+      <div className="flex flex-col px-4 space-y-2 pt-[24px] pb-[16px]">
+        <button
+          type="button"
+          onClick={() => setIsBankSheetOpen(true)}
+          className={[
+            "w-full rounded-xl border border-gray-200 px-4 py-3 text-left",
+            "flex items-center justify-between hover:bg-gray-50 transition",
+          ].join(" ")}
+          aria-label={refundBankText}
+        >
+          {/* 왼쪽: 아이콘 + 텍스트 */}
+          <div className="flex items-center gap-3">
+            {/* 아이콘 박스 */}
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white">
+              {selectedBankCode ? (
+                <BankOrCardIcon name={selectedBankCode} scale={50}/>
+              ) : (
+                // 기본(플레이스홀더) 아이콘
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-6 w-6 text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path d="M3 10l9-6 9 6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M4 10h16v8H4z" strokeLinecap="round"/>
+                  <path d="M7 14h0M12 14h0M17 14h0" strokeLinecap="round"/>
+                </svg>
+              )}
+            </div>
+
+            {/* 라벨/값 */}
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-500">{refundBankText}</span>
+              <span className={refundAccountBank ? "text-black" : "text-gray-400"}>
+        {refundAccountBank || refundBankPlaceholder}
+      </span>
+            </div>
+          </div>
+
+          {/* 오른쪽: 화살표 */}
+          <svg
+            viewBox="0 0 24 24"
+            className="h-5 w-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
         <InputComponent
-          isRequired={false}
-          labelResource={'refund_account_bank'}
-          placeholderResource={'input_refund_account_bank'}
-          value={refundAccountBank}
-          onValueChangeAction={(value: string) => setRefundAccountBank(value)}
-        />
-        <InputComponent
-          isRequired={false}
-          labelResource={'refund_account_number'}
-          placeholderResource={'input_refund_account_number'}
+          label={refundAccountText}
+          placeholder={refundAccountPlaceholder}
           value={refundAccountNumber}
           onValueChangeAction={(value: string) => setRefundAccountNumber(value)}
         />
+
         <InputComponent
-          isRequired={false}
-          labelResource={'refund_account_depositor'}
-          placeholderResource={'input_refund_account_depositor'}
+          label={refundDepositorText}
+          placeholder={refundDepositorPlaceholder}
           value={refundAccountDepositor}
           onValueChangeAction={(value: string) => setRefundAccountDepositor(value)}
         />
-
-        {/* 버튼 영역 (자연스럽게 아래쪽에 위치) */}
-        <div className="mt-[100px]">
-          <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
-            <TranslatableText titleResource={'confirm'}/>
-          </CommonSubmitButton>
-        </div>
       </div>
+
+      {/* 남는 공간을 먹는 스페이서 */}
+      <div className="flex-1"/>
+
+      {/* 하단 버튼 (안전영역 포함) */}
+      <div className="px-4 pb-[calc(env(safe-area-inset-bottom)+24px)]">
+        <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
+          {confirmText ?? "확인"}
+        </CommonSubmitButton>
+      </div>
+
+      <BankSelectBottomSheet
+        open={isBankSheetOpen}
+        selected={selectedBankCode}
+        onClose={() => setIsBankSheetOpen(false)}
+        onSelect={(code, label) => {
+          setSelectedBankCode(code);
+          setRefundAccountBank(label);
+          setIsBankSheetOpen(false);
+        }}
+        title={refundBankText}
+      />
     </div>
-  )
-}
+  );
+
+};
