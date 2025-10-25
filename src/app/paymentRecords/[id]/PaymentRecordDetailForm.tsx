@@ -5,7 +5,8 @@ import React from "react";
 import { GetPaymentRecordResponse, PaymentRecordStatus } from "@/app/endpoint/payment.record.endpoint";
 import { translate } from "@/utils/translate";
 import { statusLabelMap } from "@/app/paymentRecords/PaymentRecordItem";
-import { BankOrCardIcon } from "@/app/components/Bank";
+import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
+import { PaymentMethodLabel } from "@/app/components/PaymentMethodLabel";
 
 export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
 
@@ -96,14 +97,8 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
             <span>{await translate('payment_method')}</span>
 
             <span className="flex items-center gap-1.5 text-gray-600">
-              {paymentRecord.paymentMethodLabel && (
-                <span className="inline-flex h-4 w-4 items-center justify-center">
-                  {/* BankOrCardIcon은 스케일만 주고, 부모 박스로 크기 제어 */}
-                  <BankOrCardIcon name={paymentRecord.paymentMethodLabel} scale={80}/>
-                </span>
-              )}
-              {paymentRecord.paymentMethodLabel}
-  </span>
+              <PaymentMethodLabel paymentMethod={paymentRecord.paymentMethodLabel}/>
+            </span>
           </div>
           <div className="flex justify-between text-sm text-gray-400">
             <span>{await translate('payment_datetime')}</span>

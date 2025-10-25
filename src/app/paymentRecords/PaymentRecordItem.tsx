@@ -4,6 +4,7 @@ import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { StringResourceKey } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
+import { PaymentMethodLabel } from "@/app/components/PaymentMethodLabel";
 
 export const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
   Completed: 'payment_record_completed',
@@ -56,7 +57,7 @@ export const PaymentRecordItem = async ({
           <div className="flex justify-between">
             <dt className="text-gray-500">{await translate('payment_method')}</dt>
             <dd className="text-right font-medium">
-              {paymentRecord.paymentMethodLabel}
+              <PaymentMethodLabel paymentMethod={paymentRecord.paymentMethodLabel}/>
             </dd>
           </div>
 
