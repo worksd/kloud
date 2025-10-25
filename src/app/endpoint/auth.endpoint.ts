@@ -31,7 +31,7 @@ export const GetAuthToken: Endpoint<
 }
 
 export type PostAuthEmailParameter = {
-  emailOrPhone: string,
+  email: string,
   password: string,
   type: UserType,
 }
@@ -66,7 +66,7 @@ export type VerifyCodeParameter = {
 export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthLoginResponse> = {
   method: 'post',
   path: '/auth/sign-in',
-  bodyParams: ['emailOrPhone', 'password', 'type'],
+  bodyParams: ['email', 'password', 'type'],
 }
 
 export const ComparePassword: Endpoint<PostComparePasswordParameter, SimpleResponse> = {

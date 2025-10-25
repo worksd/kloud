@@ -5,8 +5,6 @@ import ShowPasswordIcon from "../../../../../../public/assets/show-password.svg"
 import React, { useEffect, useState } from "react";
 import { useLocale } from "@/hooks/useLocale";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import emailLoginAction from "@/app/login/action/email.login.action";
-import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../../../../public/assets/check.svg";
 import { updateUserAction } from "@/app/onboarding/update.user.action";

@@ -27,7 +27,7 @@ type LoginFormProps = {
 export const LoginForm = (props: LoginFormProps) => {
 
   const [showPassword, setShowPassword] = useState(false);
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
@@ -36,7 +36,7 @@ export const LoginForm = (props: LoginFormProps) => {
   }
 
   const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmailOrPhone(e.target.value);
+    setEmail(e.target.value);
   }
 
   const onClickSignUp = async () => {
@@ -49,7 +49,7 @@ export const LoginForm = (props: LoginFormProps) => {
 
   const onClickLogin = async () => {
     const res = await emailLoginAction({
-      emailOrPhone: emailOrPhone,
+      email: email,
       password: password,
     })
     if ('status' in res) {
@@ -88,7 +88,7 @@ export const LoginForm = (props: LoginFormProps) => {
     }
   }, []);
 
-  const isFormValid = emailOrPhone.trim() !== "" && password.trim() !== "";
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
     <div className="fixed inset-0 bg-white overscroll-none">
@@ -110,7 +110,7 @@ export const LoginForm = (props: LoginFormProps) => {
                   id="email"
                   name="email"
                   onChange={onEmailChange}
-                  value={emailOrPhone}
+                  value={email}
                   placeholder={props.emailPlaceholder}
                   autoComplete="email"
                 />
