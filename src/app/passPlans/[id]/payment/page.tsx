@@ -5,6 +5,7 @@ import { CurrentPassPlan } from "@/app/passPlans/[id]/payment/CurrentPassPlan";
 import { getPassPlanPaymentAction } from "@/app/passPlans/[id]/payment/get.pass.plan.payment.action";
 import { cookies } from "next/headers";
 import { depositorKey } from "@/shared/cookies.key";
+import { getLocale } from "@/utils/translate";
 
 export default async function PassPayment({params, searchParams}: {
   params: Promise<{ id: number }>,
@@ -23,6 +24,7 @@ export default async function PassPayment({params, searchParams}: {
         <CurrentPassPlan passPlan={res.passPlan}/>
         <div className="w-full h-3 bg-[#F7F8F9] mb-5"/>
         <PassPaymentInfo
+          locale={await getLocale()}
           payment={res}
           price={res.totalPrice}
           url={process.env.GUINNESS_API_SERVER ?? ''}

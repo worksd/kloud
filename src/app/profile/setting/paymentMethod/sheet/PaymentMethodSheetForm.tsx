@@ -3,28 +3,20 @@ import { useEffect, useRef, useState } from "react";
 import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
 import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { translate } from "@/utils/translate";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
+import CloseIcon from "@/../public/assets/ic_close.svg"
+import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 
 export const PaymentMethodSheetForm = ({
-                                         title,
-                                         baseRoute,
-                                         cardNumberPlaceholderText,
-                                         expirationDateText,
-                                         cardBirthdayText,
-                                         cardPasswordTwoDigitsText,
-                                         cancelText,
-                                         confirmText
+                                         locale,
+                                         onCloseAction,
+                                         onSuccessAction,
                                        }: {
-  title: string,
-  baseRoute: string,
-  cardNumberPlaceholderText: string,
-  expirationDateText: string,
-  cardBirthdayText: string,
-  cardPasswordTwoDigitsText: string,
-  cancelText: string,
-  confirmText: string
+  locale: Locale,
+  onCloseAction: () => void,
+  onSuccessAction: () => void,
 }) => {
-
 
   const [form, setForm] = useState<CreateBillingRequest>({
     cardNumber: '',
@@ -33,9 +25,6 @@ export const PaymentMethodSheetForm = ({
     birthOrBusinessRegistrationNumber: '',
     passwordTwoDigits: '',
   })
-
-  const [isSubmitting, setIsSubmitting] = useState(false); // isSubmitting 상태 추가
-
   // refs for focusing
   const cardRef = useRef<HTMLInputElement>(null);
   const expiryYearRef = useRef<HTMLInputElement>(null);
@@ -43,23 +32,19 @@ export const PaymentMethodSheetForm = ({
   const birthRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-
   const handleSubmit = async () => {
-    setIsSubmitting(true); // 제출 시작 시 isSubmitting true로 설정
     const res = await addBillingAction(form)
     if ('billingKey' in res) {
       await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
-      window.KloudEvent.closeBottomSheet()
-      window.KloudEvent.refresh(baseRoute)
+      onSuccessAction()
+      onCloseAction()
     } else {
       const dialog = await createDialog({
         id: 'Simple',
-        message: res.message ?? await translate('billing_register_fail')
+        message: res.message ?? ''
       })
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
-    setIsSubmitting(false); // 제출 완료 후 isSubmitting false로 설정
-
   }
 
   useEffect(() => {
@@ -103,17 +88,25 @@ export const PaymentMethodSheetForm = ({
 
 
   return (
-    <main className="min-h-screen bg-white text-black px-5 py-8">
-      <div className="text-2xl font-bold mb-10 tracking-tight">{title}</div>
-      {/* Dimmed Background and Spinner */}
-      {isSubmitting && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="w-12 h-12 border-4 border-t-4 border-gray-200 rounded-full animate-spin border-t-black"></div>
+    <main className="bg-white text-black px-5 py-8 rounded-[16px]">
+      <div className="flex items-center justify-between">
+        <div className="text-2xl font-bold tracking-tight">
+          {getLocaleString({ locale, key: 'payment_information_input' })}
         </div>
-      )}
-      <div className="space-y-6">
+
+        <button
+          type="button"
+          onClick={onCloseAction}
+          aria-label="close">
+          <CloseIcon className="h-5 w-5 text-black" />
+        </button>
+      </div>
+      <div className="space-y-6 mt-4">
         <div>
-          <div className="block text-sm text-gray-500 mb-1">{cardNumberPlaceholderText}</div>
+          <div className="block text-sm text-gray-500 mb-1">{getLocaleString({
+            locale,
+            key: 'card_number_placeholder'
+          })}</div>
           <input
             type="text"
             name="cardNumber"
@@ -128,7 +121,7 @@ export const PaymentMethodSheetForm = ({
         </div>
 
         <div>
-          <div className="block text-sm text-gray-500 mb-1">{expirationDateText}</div>
+          <div className="block text-sm text-gray-500 mb-1">{getLocaleString({locale, key: 'expiration_date'})}</div>
           <div className="flex gap-3">
             <input
               type="text"
@@ -154,7 +147,10 @@ export const PaymentMethodSheetForm = ({
         </div>
 
         <div>
-          <div className="block text-sm text-gray-500 mb-1">{cardBirthdayText}</div>
+          <div className="block text-sm text-gray-500 mb-1">{getLocaleString({
+            locale,
+            key: 'card_birthday_placeholder'
+          })}</div>
           <input
             type="text"
             name="birthOrBusinessRegistrationNumber"
@@ -168,7 +164,10 @@ export const PaymentMethodSheetForm = ({
         </div>
 
         <div>
-          <div className="block text-sm text-gray-500 mb-1">{cardPasswordTwoDigitsText}</div>
+          <div className="block text-sm text-gray-500 mb-1">{getLocaleString({
+            locale,
+            key: 'card_password_two_digits_placeholder'
+          })}</div>
           <input
             type="password"
             name="passwordTwoDigits"
@@ -183,16 +182,11 @@ export const PaymentMethodSheetForm = ({
       </div>
 
       <div className="mt-10 flex justify-between gap-4">
-        <div
-          onClick={() => {
-            window.KloudEvent.closeBottomSheet()
-          }}
-          className="w-1/2 py-3 rounded-xl bg-gray-100 text-gray-800 hover:bg-gray-200 transition text-center"
-          >{cancelText}</div>
-        <div
-          onClick={handleSubmit}
-          className="w-1/2 py-3 rounded-xl bg-black text-white hover:bg-gray-900 transition text-center"
-        >{confirmText}</div>
+        <AsyncCommonSubmitButton disabled={form.passwordTwoDigits.length < 2} onClick={() => handleSubmit()}>
+          <div className={'text-white'}>
+            {getLocaleString({locale, key: 'confirm'})}
+          </div>
+        </AsyncCommonSubmitButton>
       </div>
     </main>
   )

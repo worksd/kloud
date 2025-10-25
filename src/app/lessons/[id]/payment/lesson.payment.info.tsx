@@ -9,9 +9,15 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { KloudScreen } from "@/shared/kloud.screen";
+import { Locale } from "@/shared/StringResource";
 
-export const LessonPaymentInfo = ({payment, url, appVersion, beforeDepositor}: { payment: GetPaymentResponse, url: string, appVersion: string, beforeDepositor: string }) => {
+export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepositor}: {
+  payment: GetPaymentResponse,
+  url: string,
+  appVersion: string,
+  beforeDepositor: string,
+  locale: Locale
+}) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(undefined);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
@@ -28,8 +34,8 @@ export const LessonPaymentInfo = ({payment, url, appVersion, beforeDepositor}: {
   useEffect(() => {
     fetch('/api/cache/purge-lesson', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ lessonId: payment.lesson?.id }),
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({lessonId: payment.lesson?.id}),
     })
   }, [payment])
 
@@ -42,11 +48,10 @@ export const LessonPaymentInfo = ({payment, url, appVersion, beforeDepositor}: {
     <div className={"flex flex-col"}>
       <div className="flex flex-col gap-y-4">
         <PaymentMethodComponent
-          baseRoute={KloudScreen.LessonPayment(payment.lesson?.id ?? 0)}
+          locale={locale}
           passes={payment.user.passes}
-          cards={payment.cards}
+          initialCards={payment.cards ?? []}
           selectedPass={selectedPass}
-          handleAddPaymentMethod={() => window.KloudEvent.showBottomSheet(KloudScreen.PaymentMethodAddSheet(KloudScreen.LessonPayment(payment.lesson?.id ?? 0)))}
           selectedBillingCard={selectedBillingCard}
           selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
           selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
@@ -88,7 +93,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, beforeDepositor}: {
           appVersion={appVersion}
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
-          type={{ value: 'lesson', prefix: 'LT', apiValue: 'lesson' }}
+          type={{value: 'lesson', prefix: 'LT', apiValue: 'lesson'}}
           id={payment.lesson?.id ?? 0}
           price={payment.totalPrice}
           title={payment.lesson?.title ?? ''}

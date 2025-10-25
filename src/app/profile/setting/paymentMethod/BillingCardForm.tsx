@@ -1,18 +1,19 @@
 'use client'
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
 import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { TranslatableText } from "@/utils/TranslatableText";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { BankOrCardIcon } from "@/app/components/Bank";
+import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMethodBottomSheet";
+import { Locale } from "@/shared/StringResource";
 
-export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
+export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], locale: Locale }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
-
+  const [open, setOpen] = useState(false);
 
   const loadCards = async () => {
 
@@ -58,7 +59,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
         {/* + 버튼 */}
         <button
           onClick={() => {
-            window.KloudEvent.showBottomSheet(KloudScreen.PaymentMethodAddSheet(KloudScreen.PaymentMethodSetting))
+            setOpen(true);
           }}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition"
           aria-label="카드 추가"
@@ -67,7 +68,7 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
         </button>
 
         {newCards.length === 0 ? (
-          <div className="text-center text-gray-500 mt-20">
+          <div className="text-center text-gray-500 mt-60">
             <TranslatableText titleResource={'no_registered_payment_method_message'} className="text-[22px] font-bold text-black"/>
             <TranslatableText titleResource={'press_right_bottom_button_message'}/>
           </div>
@@ -103,6 +104,9 @@ export const BillingCardForm = ({cards}: { cards: GetBillingResponse[] }) => {
             <TranslatableText titleResource={'delete_payment_method_message'}/>
           </div>
         </div>
+      )}
+      {open && (
+        <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)} onSuccessAction={() => loadCards()}/>
       )}
     </main>
   )

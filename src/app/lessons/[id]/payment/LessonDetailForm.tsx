@@ -28,7 +28,6 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             'inline-flex h-10 w-10 items-center justify-center rounded-full',
             'backdrop-blur text-white shadow mt-10',
           ].join(' ')}
-          // iOS safe-area 보정 + 기본 12px 마진
         >
           <LeftArrow className="h-5 w-5"/>
         </button>

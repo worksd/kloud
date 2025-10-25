@@ -10,6 +10,10 @@ import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/Billi
 import { KloudScreen } from "@/shared/kloud.screen";
 import { BankOrCardIcon } from "@/app/components/Bank";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { PaymentMethodAddButton } from "@/app/components/popup/PaymentMethodBottomSheet";
+import { Locale } from "@/shared/StringResource";
+import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
+import { getLocaleString } from "@/app/components/locale";
 
 type RefundAccount = {
   bankName?: string;
@@ -18,28 +22,26 @@ type RefundAccount = {
 };
 
 export const PaymentMethodComponent = ({
-                                         baseRoute,
+                                         locale,
                                          paymentOptions,
                                          passes,
-                                         cards,
+                                         initialCards,
                                          selectedPass,
                                          selectPass,
                                          selectedMethod,
                                          selectedBillingCard,
-                                         handleAddPaymentMethod,
                                          selectBillingCard,
                                          selectPaymentMethodAction,
                                          depositor,
                                          setDepositorAction,
                                          refundAccount,
                                        }: {
-  baseRoute: string;
+  locale: Locale,
   paymentOptions: GetPaymentMethodResponse[],
   passes?: GetPassResponse[],
-  cards?: GetBillingResponse[],
+  initialCards: GetBillingResponse[],
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
-  handleAddPaymentMethod?: () => void,
   selectedBillingCard?: GetBillingResponse,
   selectBillingCard?: (billing: GetBillingResponse) => void,
   selectedMethod?: PaymentMethodType,
@@ -48,10 +50,6 @@ export const PaymentMethodComponent = ({
   setDepositorAction: (value: string) => void,
   refundAccount?: RefundAccount | null,
 }) => {
-  const [mounted, setMounted] = useState(false);
-  const {t} = useLocale();
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
 
   const maskAccount = (num: string) => {
     // 숫자만 추출 후 뒤 4자리만 노출
@@ -62,9 +60,18 @@ export const PaymentMethodComponent = ({
     return masked.replace(/(.{4})/g, "$1 ").trim();
   };
 
+  const [cards, setCards] = useState<GetBillingResponse[]>(initialCards)
+
   const goRefundAccount = () => {
     kloudNav.push(KloudScreen.RefundAccountSetting);
   };
+
+  const handleOnSuccessAddBillingCard = async () => {
+    const res = await getBillingListAction()
+    if ('billings' in res) {
+      setCards(res.billings)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-y-4 px-6">
@@ -107,7 +114,7 @@ export const PaymentMethodComponent = ({
                 </div>
                 <input
                   type="text"
-                  placeholder={mounted ? t('input_name_message') : ''}
+                  placeholder={getLocaleString({locale, key: 'input_name_message'})}
                   className="border border-gray-300 rounded-lg p-4 text-[14px] w-full disabled:bg-gray-100
                              focus:border-black focus:text-black focus:outline-none"
                   value={depositor}
@@ -167,8 +174,10 @@ export const PaymentMethodComponent = ({
                       <span aria-hidden className="text-base">!</span>
                     </div>
                     <div className="flex-1">
-                      <TranslatableText titleResource={'no_registered_refund_title'} className="text-sm font-semibold text-[#6B3A00]"/>
-                      <TranslatableText titleResource={'no_registered_refund_desc'} className="text-xs text-[#8C4A10] mt-1"/>
+                      <TranslatableText titleResource={'no_registered_refund_title'}
+                                        className="text-sm font-semibold text-[#6B3A00]"/>
+                      <TranslatableText titleResource={'no_registered_refund_desc'}
+                                        className="text-xs text-[#8C4A10] mt-1"/>
                       <button
                         type="button"
                         onClick={goRefundAccount}
@@ -193,12 +202,7 @@ export const PaymentMethodComponent = ({
                 selectedBillingKey={selectedBillingCard}
                 onSelectAction={selectBillingCard}
               />
-              <button
-                onClick={handleAddPaymentMethod}
-                className="mt-2 py-2 rounded-xl border border-dashed border-gray-400 text-gray-600 text-sm hover:bg-gray-100 transition"
-              >
-                <TranslatableText titleResource="add_payment_method_button"/>
-              </button>
+              <PaymentMethodAddButton locale={locale} onSuccessAction={() => handleOnSuccessAddBillingCard()}/>
             </div>
           )}
         </div>

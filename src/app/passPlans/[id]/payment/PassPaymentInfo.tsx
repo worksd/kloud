@@ -9,12 +9,14 @@ import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.en
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { Locale } from "@/shared/StringResource";
 
-export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDepositor}: {
+export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDepositor, locale}: {
   payment: GetPaymentResponse,
   price: number,
   url: string,
   appVersion: string,
+  locale: Locale,
   beforeDepositor: string,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
@@ -35,9 +37,9 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
   return (
     <div className={"flex flex-col justify-between"}>
       <PaymentMethodComponent
-        baseRoute={KloudScreen.PassPayment(payment.passPlan?.id ?? 0)}
+        locale={locale}
         paymentOptions={payment.methods}
-        cards={payment.cards}
+        initialCards={payment.cards ?? []}
         selectedMethod={selectedMethod}
         selectedBillingCard={selectedBillingCard}
         selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}

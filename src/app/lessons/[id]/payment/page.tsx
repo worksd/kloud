@@ -1,23 +1,23 @@
 import { notFound } from "next/navigation";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { getLessonPaymentAction } from "@/app/lessons/[id]/payment/payment.detail.action";
 import { cookies } from "next/headers";
-import { accessTokenKey, depositorKey, userIdKey } from "@/shared/cookies.key";
+import { accessTokenKey, depositorKey } from "@/shared/cookies.key";
 import React from "react";
 import { LessonPaymentInfo } from "@/app/lessons/[id]/payment/lesson.payment.info";
 import { CircleImage } from "@/app/components/CircleImage";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { revalidateTag } from "next/cache";
+import BackIcon from "@/../public/assets/ic_back.svg"
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
   searchParams: Promise<{ os: string, appVersion: string }>
 }) {
-  const { id } = await params
-  const { appVersion, os } = await searchParams
+  const {id} = await params
+  const {appVersion, os} = await searchParams
   const res = await getLessonPaymentAction({id: id})
   if ('user' in res) {
     if (res.lesson?.status != '예약 중' && res.lesson?.status != '선예약 중') {
@@ -34,6 +34,15 @@ export default async function LessonPaymentPage({params, searchParams}: {
             returnUrl={KloudScreen.LessonPayment(id)}
           />}
 
+        <div className="sticky top-0 z-50 bg-white">
+          <div className="pt-16 pb-4 px-5">
+            <NavigateClickWrapper method={'back'}>
+              <BackIcon />
+            </NavigateClickWrapper>
+          </div>
+        </div>
+
+
         <div className="flex flex-col">
           {/* 수업 정보 */}
           <div className="flex gap-4 w-full px-6 items-center">
@@ -43,7 +52,8 @@ export default async function LessonPaymentPage({params, searchParams}: {
             <div className="flex flex-col gap-1 min-w-0">
               <p className="text-base font-bold text-left text-[#131517] break-words">{res.lesson?.title}</p>
               <div className="flex items-top gap-2">
-                {res.lesson?.studio?.profileImageUrl && <CircleImage size={20} imageUrl={res.lesson.studio.profileImageUrl}/>}
+                {res.lesson?.studio?.profileImageUrl &&
+                  <CircleImage size={20} imageUrl={res.lesson.studio.profileImageUrl}/>}
                 <div className={"flex flex-col items-start"}>
                   <span className="font-medium text-[14px] text-[#86898c]">
                     {res.lesson?.studio?.name}
@@ -72,6 +82,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
             appVersion={appVersion}
             payment={res}
             beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+            locale={await getLocale()}
           />
         </div>
       </div>
