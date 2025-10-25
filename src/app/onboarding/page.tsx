@@ -8,10 +8,7 @@ export default async function Onboarding({searchParams}: {
   searchParams: Promise<{ appVersion: string, returnUrl: string }>
 }) {
 
-  const res = await getStudioList({})
   const user = await getUserAction();
-  const {returnUrl, appVersion} = await searchParams;
-
   if (user && 'id' in user) {
     return (
       <OnboardingForm
