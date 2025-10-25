@@ -134,7 +134,7 @@ export const OnboardingForm = ({
         // TODO: 다이얼로그 띄워주게 구현
       }
     } else if (step == 'phone') {
-      await sendVerificationSMS({phone, countryCode})
+      await sendVerificationSMS({phone, countryCode, isNew: true})
       flushSync(() => {
         setStep('code');
         setCode('');

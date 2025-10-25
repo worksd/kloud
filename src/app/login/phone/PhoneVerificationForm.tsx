@@ -56,7 +56,7 @@ export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVer
 
   const handleOnClick = async () => {
     if (step === 'phone') {
-      const res = await sendVerificationSMS({phone, countryCode})
+      const res = await sendVerificationSMS({phone, countryCode, isNew: false})
 
       if ('code' in res && res.code) {
         flushSync(() => {

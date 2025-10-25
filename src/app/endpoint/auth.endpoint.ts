@@ -55,6 +55,7 @@ export type UserResponse = {
 export type SendPhoneVerificationCodeParameter = {
   phone: string;
   countryCode: string;
+  isNew: boolean;
 }
 
 export type VerifyCodeParameter = {
@@ -101,7 +102,7 @@ export const SendVerificationEmail: Endpoint<object, VerifyCodeParameter> = {
 export const SendPhoneVerification: Endpoint<SendPhoneVerificationCodeParameter, { code: string, ttl: number }> = {
   method: 'post',
   path: '/auth/phone-certificate',
-  bodyParams: ['phone', 'countryCode'],
+  bodyParams: ['phone', 'countryCode', 'isNew'],
 }
 
 export const CheckPhoneVerification: Endpoint<VerifyCodeParameter, PostAuthLoginResponse> = {
