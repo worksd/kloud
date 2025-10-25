@@ -19,6 +19,9 @@ import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog } from "@/utils/dialog.factory";
+import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -57,10 +60,10 @@ export const OnboardingForm = ({
                                  inputGenderMessage,
                                  inputNickNameMessage,
                                  agreementMessage,
-                                 completeMessage,
                                  confirmText,
                                  phoneVerificationSteps,
                                  failSignUpText,
+                                 locale
                                }: {
   user: GetUserResponse,
   inputNameMessage: string,
@@ -69,9 +72,9 @@ export const OnboardingForm = ({
   inputNickNameMessage: string,
   confirmText: string,
   agreementMessage: string,
-  completeMessage: string,
   failSignUpText: string,
   phoneVerificationSteps: PhoneVerificationStepConfig[],
+  locale: Locale,
 }) => {
   const [isNameInputVisible, setIsNameInputVisible] = useState(true);
   const [isBirthInputVisible, setIsBirthInputVisible] = useState(false);
@@ -209,7 +212,10 @@ export const OnboardingForm = ({
       return agreementMessage;
     }
     if (step === 'complete') {
-      return completeMessage;
+      return getLocaleString({
+        locale,
+        key: 'sign_up_complete_message_1'
+      }) + '\n' + (name ?? nickName) + getLocaleString({locale, key: 'sign_up_complete_message_2'}) + '\n';
     }
     return '';
   }, [
@@ -312,7 +318,7 @@ export const OnboardingForm = ({
 
         <div className="pt-16 pb-6">
 
-          <div className="text-black font-bold text-[22px]">
+          <div className="text-black font-bold text-[22px] whitespace-pre-line">
             {message}
           </div>
 
@@ -380,6 +386,11 @@ export const OnboardingForm = ({
               </AnimatePresence>
             </div>
           )}
+          {step == 'complete' && (
+            <div className="w-full flex justify-center mt-20">
+              <CircleCloseIcon className="scale-75"/>
+            </div>
+          )}
           {step === 'phone' && (
             <div className="mt-9">
               <PhoneVerification
@@ -430,6 +441,8 @@ export const OnboardingForm = ({
               <AgreementForm checkboxes={checkboxes} handleCheckboxChangeAction={handleCheckboxChange}/>
             </div>
           )}
+
+
         </div>
 
         {/* 하단 고정 버튼 */}

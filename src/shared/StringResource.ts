@@ -461,6 +461,18 @@ export const StringResource = {
     jp: "支払い情報の入力",
     zh: "输入支付信息"
   },
+  sign_up_complete_message_1: {
+    ko: "가입 완료!",
+    en: "Sign-up complete!",
+    jp: "登録が完了しました！",
+    zh: "注册完成！"
+  },
+  sign_up_complete_message_2: {
+    ko: "님 환영해요",
+    en: "welcome!",
+    jp: "さん、ようこそ！",
+    zh: "，欢迎您！"
+  },
   card_number_placeholder: {
     ko: "카드 번호",
     en: "Card number",

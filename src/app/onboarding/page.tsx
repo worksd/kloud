@@ -1,7 +1,7 @@
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getStudioList } from "@/app/home/action/get.studio.list.action";
 import { OnboardingForm } from "@/app/onboarding/OnboardingForm";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import { getPhoneVerificationSteps } from "@/app/login/action/get.phone.verification.steps";
 
 export default async function Onboarding({searchParams}: {
@@ -23,8 +23,8 @@ export default async function Onboarding({searchParams}: {
         inputNickNameMessage={await translate('input_nick_name_message')}
         phoneVerificationSteps={await getPhoneVerificationSteps()}
         agreementMessage={await translate('agreement_message')}
-        completeMessage={await translate('complete')}
         failSignUpText={await translate('fail_sign_up')}
+        locale={await getLocale()}
       />
     )
   }
