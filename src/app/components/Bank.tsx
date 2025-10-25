@@ -96,12 +96,6 @@ export const BankOrCardIcon = ({ name, scale }: { name: string, scale: number })
   }
   // 기본 아이콘(없을 때)
   return (
-    <span
-      className="inline-flex w-6 h-6 items-center justify-center text-lg leading-none"
-      aria-label={name || 'bank'}
-      role="img"
-    >
-      🏦
-    </span>
+    <div/>
   );
 };

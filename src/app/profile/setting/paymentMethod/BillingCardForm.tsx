@@ -184,8 +184,8 @@ function BillingCard({
         </TranslatableText>
       )}
 
-      <div className="flex flex-row items-center justify-items-center">
-        <BankOrCardIcon name={cardName} scale={50}/>
+      <div className="flex flex-row items-center justify-items-center p-4 space-x-2">
+        <BankOrCardIcon name={cardName} scale={100}/>
         <div className={'flex flex-col'}>
           <div className="text-lg font-semibold">{cardName}</div>
           <div className={`text-sm tracking-widest ${isSelected ? 'text-neutral-600' : 'text-neutral-400'}`}>
