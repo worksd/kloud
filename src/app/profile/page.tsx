@@ -29,7 +29,7 @@ export default async function SettingPage({
           </NavigateClickWrapper>
         </div>
 
-        <div className={"flex flex-row w-full items-start ml-6 mb-5"}>
+        <div className={"flex flex-row w-full ml-6 mb-5 items-center"}>
           <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
             <Image
               src={user.profileImageUrl ?? ''}
@@ -39,10 +39,16 @@ export default async function SettingPage({
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="flex flex-col px-4">
-            <div className="font-bold text-lg text-black">{user.nickName}</div>
-            <div className="text-gray-500">{user.email}</div>
-          </div>
+          {(has(user.nickName) || has(user.email)) && (
+            <div className="flex flex-col px-4">
+              {has(user.nickName) && (
+                <div className="font-bold text-lg text-black">{user.nickName}</div>
+              )}
+              {has(user.email) && (
+                <div className="text-gray-500">{user.email}</div>
+              )}
+            </div>
+          )}
         </div>
 
         <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
@@ -71,3 +77,5 @@ export default async function SettingPage({
     );
   }
 };
+
+const has = (s?: string | null) => !!s && s.trim().length > 0;
