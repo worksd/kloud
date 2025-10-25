@@ -394,6 +394,7 @@ export const OnboardingForm = ({
           {step === 'phone' && (
             <div className="mt-9">
               <PhoneVerification
+                locale={locale}
                 ref={phoneRef}
                 phone={phone}
                 countryCode={countryCode}

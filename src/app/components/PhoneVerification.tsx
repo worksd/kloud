@@ -3,6 +3,10 @@
 import { Ref, useEffect, useMemo, useRef, useState } from 'react';
 import BottomArrowIcon from "@/../public/assets/ic_arrow_bottom.svg"
 import { COUNTRIES } from "@/app/certification/COUNTRIES";
+import { CommonBottomSheet } from "@/app/onboarding/GenderBottomSheet";
+import { getLocaleString } from "@/app/components/locale";
+import CloseIcon from "../../../public/assets/ic_close.svg";
+import { Locale } from "@/shared/StringResource";
 
 /** ---------- Country Spec & Dataset ---------- */
 
@@ -24,12 +28,14 @@ export function PhoneVerification({
                                     countryCode,
                                     onChangePhoneAction,
                                     onChangeCountryCodeAction,
+                                    locale,
                                   }: {
   ref?: Ref<HTMLInputElement>;
   phone: string;
   countryCode: string;
   onChangePhoneAction: (phone: string) => void;
   onChangeCountryCodeAction: (countryCode: string) => void;
+  locale: Locale,
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -39,14 +45,12 @@ export function PhoneVerification({
     [countryCode]
   );
 
-  // 표시용 값: KR이면 스페이스 포맷, 아니면 그대로
   const displayPhone = useMemo(
     () => (selected.key === 'KR' ? formatKR(phone) : phone),
     [selected.key, phone]
   );
 
   const onPhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 상태에는 항상 숫자만 저장
     onChangePhoneAction(onlyDigits(e.target.value));
   };
 
@@ -61,14 +65,12 @@ export function PhoneVerification({
 
   return (
     <div className="w-full max-w-md mx-auto overflow-x-hidden">
-      <div ref={wrapRef} className="relative">
+      <div ref={wrapRef} className="relative overflow-visible">
         <div className="flex items-center gap-3 w-full rounded-[20px] border border-gray-300 p-4 shadow-sm bg-white">
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
             className="flex items-center gap-2 pr-2 border-r border-gray-200"
-            aria-haspopup="listbox"
-            aria-expanded={open}
           >
             <span className="text-xl leading-none">{selected.flag}</span>
             <span className="text-[17px] text-black font-semibold tracking-tight">
@@ -88,37 +90,53 @@ export function PhoneVerification({
         </div>
 
         {open && (
-          <div
-            className="absolute z-10 mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-64 overflow-auto">
-            {['아메리카', '아시아', '중동', '오세아니아', '유럽'].map((group) => (
-              <div key={group}>
-                <div className="px-3 py-1 text-[11px] font-semibold text-gray-500 sticky top-0 bg-white">
-                  {group}
-                </div>
-                {COUNTRIES.filter((c) => c.region === group).map((c) => (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => {
-                      onChangeCountryCodeAction(c.dial);
-                      setOpen(false);
-                    }}
-                    className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                    role="option"
-                    aria-selected={c.key === selected.key}
-                  >
-                    <span className="text-xl leading-none">{c.flag}</span>
-                    <span className="text-sm text-gray-900">{c.nameKo}</span>
-                    <span className="ml-auto text-sm font-semibold text-gray-700">
-                      +{c.dial}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ))}
-          </div>
+          <DialogSelectionBottomSheet open={open} onCloseAction={() => setOpen(false)}
+                                      onClickAction={onChangeCountryCodeAction} locale={locale}/>
         )}
       </div>
     </div>
   );
 }
+
+const DialogSelectionBottomSheet = ({open, onCloseAction, onClickAction, locale}: {
+  open: boolean;
+  onCloseAction: () => void,
+  onClickAction: (value: string) => void,
+  locale: Locale
+}) => {
+  return (
+    <CommonBottomSheet open={open} onCloseAction={onCloseAction}>
+        <div className="">
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <div className="text-[18px] font-bold text-black">{getLocaleString({locale, key: 'select_country'})}</div>
+            <button
+              type="button"
+              aria-label="닫기"
+              onClick={onCloseAction}
+              className="p-2 -m-2 text-gray-500"
+            >
+              <CloseIcon/>
+            </button>
+          </div>
+        <div className="p-2 overflow-y-auto max-h-[60vh]">
+          {COUNTRIES.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => {
+                onClickAction(c.key)
+                onCloseAction()
+              }}
+              className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+            >
+              <span className="text-xl leading-none">{c.flag}</span>
+              <span className="text-sm text-gray-900">{c.nameKo}</span>
+              <span className="ml-auto text-sm font-semibold text-gray-700">+{c.dial}</span>
+            </button>
+          ))}
+        </div>
+        ))
+      </div>
+    </CommonBottomSheet>
+  );
+};

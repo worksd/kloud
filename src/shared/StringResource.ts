@@ -1019,6 +1019,12 @@ export const StringResource = {
     jp: "言語選択",
     zh: "选择语言"
   },
+  select_country: {
+    "ko": "국가 선택",
+    "en": "Select Country",
+    "jp": "国選択",
+    "zh": "选择国家"
+  },
   depositor_name: {
     ko: "입금자명",
     en: "Depositor Name",

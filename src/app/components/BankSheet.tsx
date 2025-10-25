@@ -72,7 +72,7 @@ export function BankSelectBottomSheet({
       </div>
 
       {/* 3열 그리드 리스트 */}
-      <div className="max-h-[60dvh] overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+      <div className="max-h-[60dvh] overflow-y-auto px-4 pb-[16px]">
         <div className="grid grid-cols-3 gap-3">
           {BANK_KEYS.map((code) => {
             const isSelected = selected === code;
@@ -114,61 +114,5 @@ export function BankSelectBottomSheet({
         </div>
       </div>
     </CommonBottomSheet>
-  );
-}
-
-/** 트리거 버튼 + 시트 조합 예시 */
-export function BankPicker({
-                             value,
-                             onChange,
-                             placeholder = '은행을 선택하세요',
-                           }: {
-  value?: BankCode;
-  onChange: (code: BankCode, label: string) => void;
-  placeholder?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const label = value ? BANK_LABELS[value] : '';
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={[
-          'w-full rounded-xl border border-gray-200 px-4 py-3 text-left',
-          'flex items-center justify-between hover:bg-gray-50 transition',
-        ].join(' ')}
-      >
-        <div className="flex items-center space-x-3">
-          <div className="w-6 h-6 flex items-center justify-center">
-            {value ? <BankOrCardIcon name={value} scale={100}/> : <span className="w-6 h-6"/>}
-          </div>
-          <span className={value ? 'text-black' : 'text-gray-400'}>
-            {value ? label : placeholder}
-          </span>
-        </div>
-        <svg
-          viewBox="0 0 24 24"
-          className="h-5 w-5 text-gray-400"
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-
-      <BankSelectBottomSheet
-        open={open}
-        selected={value}
-        onClose={() => setOpen(false)}
-        onSelect={(code, label) => {
-          onChange(code, label);
-          setOpen(false);
-        }}
-      />
-    </div>
   );
 }

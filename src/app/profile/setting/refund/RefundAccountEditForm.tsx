@@ -143,11 +143,9 @@ export const RefundAccountEditForm = ({
         />
       </div>
 
-      {/* 남는 공간을 먹는 스페이서 */}
       <div className="flex-1"/>
 
-      {/* 하단 버튼 (안전영역 포함) */}
-      <div className="px-4 pb-[calc(env(safe-area-inset-bottom)+24px)]">
+      <div className="px-4 pb-[24px]">
         <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
           {confirmText ?? "확인"}
         </CommonSubmitButton>

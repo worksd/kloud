@@ -13,6 +13,7 @@ import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 import { flushSync } from "react-dom";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
+import { Locale } from "@/shared/StringResource";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -22,7 +23,7 @@ export type PhoneVerificationStepConfig = {
   placeholder?: string;
 }
 
-export default function PhoneVerificationForm({steps}: { steps: PhoneVerificationStepConfig[] }) {
+export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVerificationStepConfig[], locale: Locale }) {
 
   const [step, setStep] = useState<PhoneVerificationStep>('phone');
   const [phone, setPhone] = useState('')
@@ -113,6 +114,7 @@ export default function PhoneVerificationForm({steps}: { steps: PhoneVerificatio
         {step === 'phone' && (
           <div className="mt-9">
             <PhoneVerification
+              locale={locale}
               ref={phoneRef}
               phone={phone}
               countryCode={countryCode}
