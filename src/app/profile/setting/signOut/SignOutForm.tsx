@@ -53,7 +53,7 @@ export default function SignOutForm() {
           sessionStorage.clear();
           window.KloudEvent?.clearToken()
           window.KloudEvent?.showToast('성공적으로 회원탈퇴하였습니다.')
-          window.KloudEvent.clearAndPush(data.route)
+          kloudNav.clearAndPush(data.route)
         }
       }
     }

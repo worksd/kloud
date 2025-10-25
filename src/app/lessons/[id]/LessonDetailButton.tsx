@@ -73,7 +73,7 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
     );
   }
 
-  const nowUtc = Date.now(); // 이미 UTC(=GMT) 기준 epoch(ms)
+  const nowUtc = Date.now();
   const availableButton = pickAvailableButton(buttons, nowUtc);
 
   if (!availableButton) {
@@ -85,11 +85,7 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
   }
 
   const handleOnClick = async ({ route }: { route?: string }) => {
-    if (!route) return;
-    if (appVersion == '') {
-      router.push(route)
-    }
-    else if (typeof window !== 'undefined' && window.KloudEvent?.push) {
+    if (route) {
       await kloudNav.push(route);
     }
   };

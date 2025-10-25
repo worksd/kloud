@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 import { useLocale } from "@/hooks/useLocale";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
   checkboxes: {
@@ -13,11 +14,11 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
   const { t } = useLocale()
 
   const onClickTerms = () => {
-    window.KloudEvent?.push(KloudScreen.Terms)
+    kloudNav.push(KloudScreen.Terms)
   }
 
   const onClickPrivacy = () => {
-    window.KloudEvent?.push(KloudScreen.Privacy)
+    kloudNav.push(KloudScreen.Privacy)
   }
 
 

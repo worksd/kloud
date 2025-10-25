@@ -13,7 +13,7 @@ export const SplashScreen = ({os}: { os: string }) => {
   useEffect(() => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
-        window.KloudEvent?.clearAndPush(KloudScreen.Maintenance)
+        kloudNav.clearAndPush(KloudScreen.Maintenance)
         return;
       }
       const res = await authToken()
