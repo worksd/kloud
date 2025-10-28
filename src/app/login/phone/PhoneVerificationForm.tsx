@@ -129,8 +129,8 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.id == 'Simple') {
-        kloudNav.back()
+      if (data.id == 'CertificationComplete') {
+        kloudNav.navigateMain({route: KloudScreen.MyAccount})
       }
       else if (data.id == 'ChangePhoneNumber') {
         await sendSmsVerification()
