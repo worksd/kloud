@@ -16,6 +16,8 @@ import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { Locale } from "@/shared/StringResource";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
+import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -60,20 +62,37 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
     }
   }, [phone, step, code])
 
+  const sendSmsVerification = async () => {
+    const errorTitle = await translate('send_code_fail_title')
+    const res = await sendVerificationSMS({phone, countryCode, isNew: false})
+    if ('ttl' in res) {
+      flushSync(() => {
+        setStep('code');
+        setCode('');
+      });
+      codeRef?.current?.focus();
+    } else if ('message' in res && res.message) {
+      const dialog = await createDialog({id: 'Simple', message: res.message, title: errorTitle});
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    }
+  }
+
   const handleOnClick = async () => {
     if (step === 'phone') {
-      const res = await sendVerificationSMS({phone, countryCode, isNew: false})
-      if ('ttl' in res) {
-        flushSync(() => {
-          setStep('code');
-          setCode('');
-        });
-        codeRef?.current?.focus();
-      } else if ('message' in res && res.message) {
-        const title = await translate('send_code_fail_title')
-        const dialog = await createDialog({id: 'Simple', message: res.message, title});
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      const errorTitle = await translate('send_code_fail_title')
+      const duplicateCheck = await checkDuplicateUser({phone})
+      if ('success' in duplicateCheck && duplicateCheck.success) {
+        await sendSmsVerification()
+      } else if ('message' in duplicateCheck) {
+        if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
+          const dialog = await createDialog({id: 'Simple', message: duplicateCheck.message, title: errorTitle});
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
+          const dialog = await createDialog({id: 'ChangePhoneNumber'})
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
       }
+
 
     } else if (step === 'code') {
       if (isFromLogin) {
@@ -93,7 +112,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
           window.KloudEvent.showDialog(JSON.stringify(resendDialog))
         }
       } else {
-        const res = await updateUserAction({ phone, countryCode, code })
+        const res = await updateUserAction({phone, countryCode, code})
         if ('success' in res && res.success) {
           const completeDialog = await createDialog({
             id: 'CertificationComplete',
@@ -111,6 +130,9 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
         await kloudNav.navigateMain({
           route: KloudScreen.MyAccount
         })
+      }
+      else if (data.id == 'ChangePhoneNumber') {
+        await sendSmsVerification()
       }
     }
   })

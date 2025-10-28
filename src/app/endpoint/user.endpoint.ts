@@ -79,8 +79,8 @@ export const DeleteUser: Endpoint<SignOutParameter, SimpleResponse> = {
   bodyParams: ['reason']
 }
 
-export const CheckDuplicate: Endpoint<{ nickName: string}, SimpleResponse> = {
+export const CheckDuplicate: Endpoint<{ nickName?: string, phone?: string}, SimpleResponse> = {
   method: 'post',
   path: '/users/duplicate-check',
-  bodyParams: ['nickName']
+  bodyParams: ['nickName', 'phone']
 }

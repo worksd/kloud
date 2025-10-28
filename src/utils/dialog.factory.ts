@@ -235,6 +235,15 @@ export async function createDialog({id, message, title, customData}: {
       message: message ?? '',
       confirmTitle: await translate('confirm')
     }
+  } else if (id == 'ChangePhoneNumber') {
+    return {
+      id: 'ChangePhoneNumber',
+      type: 'YESORNO',
+      title: await translate('send_code_fail_title'),
+      message: await translate('another_phone_exists'),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
   }
 }
 
@@ -265,6 +274,7 @@ export type DialogId =
   | 'RequestBillingKeyPayment'
   | 'BillingKeyNotFound'
   | 'CapacityFull'
+  | 'ChangePhoneNumber'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
