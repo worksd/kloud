@@ -299,7 +299,7 @@ export const OnboardingForm = ({
       }
 
     }
-  }, [])
+  }, [phone, countryCode, sendSmsCode])
 
 
   const disabled = useMemo(() => {
