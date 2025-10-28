@@ -79,21 +79,23 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
 
   const handleOnClick = async () => {
     if (step === 'phone') {
-      const errorTitle = await translate('send_code_fail_title')
-      const duplicateCheck = await checkDuplicateUser({phone})
-      if ('success' in duplicateCheck && duplicateCheck.success) {
-        await sendSmsVerification()
-      } else if ('message' in duplicateCheck) {
-        if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
-          const dialog = await createDialog({id: 'Simple', message: duplicateCheck.message, title: errorTitle});
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
-        } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
-          const dialog = await createDialog({id: 'ChangePhoneNumber'})
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      if (!isFromLogin) {
+        const errorTitle = await translate('send_code_fail_title')
+        const duplicateCheck = await checkDuplicateUser({phone})
+        if ('success' in duplicateCheck && duplicateCheck.success) {
+          await sendSmsVerification()
+        } else if ('message' in duplicateCheck) {
+          if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
+            const dialog = await createDialog({id: 'Simple', message: duplicateCheck.message, title: errorTitle});
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
+            const dialog = await createDialog({id: 'ChangePhoneNumber'})
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          }
         }
+      } else {
+        await sendSmsVerification()
       }
-
-
     } else if (step === 'code') {
       if (isFromLogin) {
         const res = await checkVerificationCodeAction({code, phone, countryCode})
