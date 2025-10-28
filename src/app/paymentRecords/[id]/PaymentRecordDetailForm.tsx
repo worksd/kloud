@@ -10,9 +10,8 @@ import { PaymentMethodLabel } from "@/app/components/PaymentMethodLabel";
 
 export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
 
-  return <div className="p-5 bg-white min-h-screen text-gray-900">
-    <section className="mb-6">
-      <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
+  return <div className="px-5 bg-white min-h-screen text-gray-900">
+    <section className="mb-2">
       <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute}>
         <div className="flex flex-col text-sm text-gray-900 border border-gray-100 rounded-xl p-4 shadow-sm bg-white">
           <span
@@ -54,11 +53,11 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
     </section>
     {paymentRecord.status === PaymentRecordStatus.Pending && (
       <div className="rounded-xl border border-gray-100 bg-white/80 shadow-sm p-1 flex flex-col">
-        <div className={'ml-4 mt-2 text-[13px] font-bold'}>계좌이체 정보</div>
+        <div className={'ml-4 mt-2 text-[13px] font-bold'}>{await translate('account_transfer_information')}</div>
         <div className="flex items-center gap-1">
           {/* 아이콘 배지 */}
-          <div className="">
-            <BankOrCardIcon name={paymentRecord.studio?.bank ?? ''} scale={75}/>
+          <div className="pl-4 pt-2 pr-2 pb-2">
+            <BankOrCardIcon name={paymentRecord.studio?.bank ?? ''} scale={100}/>
           </div>
 
           {/* 텍스트 영역 */}
@@ -77,14 +76,6 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
     {/* 결제내역 */}
     {(paymentRecord.status === PaymentRecordStatus.Completed || paymentRecord.status === PaymentRecordStatus.Cancelled) && (
       <div>
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
-          <div className="flex justify-between text-base font-medium">
-            <span>{await translate('purchase_amount')}</span>
-            <span>{new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{await translate('won')} </span>
-          </div>
-        </section>
-
         <hr className="my-4"/>
 
         {/* 결제요금 */}

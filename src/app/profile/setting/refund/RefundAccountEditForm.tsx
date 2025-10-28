@@ -73,9 +73,9 @@ export const RefundAccountEditForm = ({
   }, [baseRoute, isFromBottomSheet]);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-white pt-24">
+    <div className="flex min-h-[100dvh] flex-col bg-white">
       {/* 본문 */}
-      <div className="flex flex-col px-4 space-y-2 pt-[24px] pb-[16px]">
+      <div className="flex flex-col px-4 space-y-4 pb-[16px]">
         <button
           type="button"
           onClick={() => setIsBankSheetOpen(true)}

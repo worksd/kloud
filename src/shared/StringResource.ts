@@ -1829,6 +1829,12 @@ export const StringResource = {
     jp: '購入履歴',
     zh: '购买记录',
   },
+  account_transfer_information: {
+    ko: '계좌이체 정보',
+    en: 'Account Transfer Information',
+    jp: '口座振込情報',
+    zh: '银行转账信息',
+  },
   payment_id: {
     ko: '결제번호',
     en: 'Payment ID',

@@ -13,7 +13,7 @@ const CardList = ({lessons}: { lessons: JumbotronResponse[] }) => {
   const [currentCard, setCurrentCard] = useState<number>(0);
 
   return (
-    <div className="">
+    <div className="relative overflow-hidden">
       <Swiper
         simulateTouch={true}
         grabCursor={true}
@@ -33,9 +33,7 @@ const CardList = ({lessons}: { lessons: JumbotronResponse[] }) => {
               <div
                 className={`w-full aspect-[390/441] relative`}
                 onClick={() => {
-                  kloudNav.push(KloudScreen.LessonDetail(item.id), {
-                    ignoreSafeArea: true
-                  })
+                  kloudNav.push(KloudScreen.LessonDetail(item.id))
                 }}
               >
                 <Image

@@ -78,10 +78,10 @@ export default function PaymentButton({
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   const router = useRouter();
 
-  const onPaymentSuccess = useCallback(async (paymentId: string) => {
+  const onPaymentSuccess = useCallback(async ({paymentId, delay}: { paymentId: string, delay: number }) => {
     try {
       setIsSubmitting(true);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
+      await new Promise(resolve => setTimeout(resolve, delay)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
       await kloudNav.navigateMain({route: pushRoute});
     } catch (e) {
@@ -220,7 +220,7 @@ export default function PaymentButton({
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
-      await onPaymentSuccess(data.paymentId)
+      await onPaymentSuccess({paymentId: data.paymentId, delay: 2000})
     }
   }, [onPaymentSuccess, selectedPass])
 
@@ -242,7 +242,7 @@ export default function PaymentButton({
           depositor: depositor,
         });
         if ('paymentId' in res) {
-          await onPaymentSuccess(res.paymentId)
+          await onPaymentSuccess({paymentId: res.paymentId, delay: 0})
           await putDepositorNameAction({depositor})
         } else {
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
