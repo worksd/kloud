@@ -119,9 +119,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
               key={i}
               onClick={() =>
                 item.type === 'lesson' &&
-                kloudNav.push(KloudScreen.LessonDetail(item.lesson.id), {
-                  ignoreSafeArea: true
-                })
+                kloudNav.push(KloudScreen.LessonDetail(item.lesson.id))
               }
               className={`rounded-[8px] border overflow-hidden shadow-sm hover:shadow-md transition-all duration-150
                 ${item.type === 'lesson' ? 'aspect-[1/1.5] active:scale-[0.97] cursor-pointer' : ''}
