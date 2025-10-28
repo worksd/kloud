@@ -125,7 +125,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
 
   return (
     <div className="fixed inset-0 bg-white overflow-hidden px-6">
-      <div className={'pt-4'} onClick={handleOnClickBack}>
+      <div className={'pt-16'} onClick={handleOnClickBack}>
         <BackIcon/>
       </div>
       {/* 위 컨텐츠: 버튼과 겹치지 않도록 아래 여백만 확보 */}
