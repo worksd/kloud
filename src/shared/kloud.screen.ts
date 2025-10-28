@@ -12,7 +12,7 @@ export const KloudScreen = {
   LoginPhone: (query: string) => `/login/phone${query}`,
   LoginDeactivate: '/login/deactivate',
   SignUp: (query: string) => `/signUp${query}`,
-  Certification: (isFromPayment: boolean) => `/certification?isFromPayment=${isFromPayment}`,
+  Certification: `/certification`,
 
   /** 프로필 관련 */
   ProfileSetting: '/profile/setting',
@@ -20,9 +20,7 @@ export const KloudScreen = {
   MyAccount: '/profile/setting/account',
   PasswordSetting: '/profile/setting/account/resetPassword',
   RefundAccountSetting: '/profile/setting/refund',
-  RefundAccountSettingSheet: (baseRoute: string) => `/profile/setting/refund/sheet?baseRoute=${baseRoute}`,
   PaymentMethodSetting: '/profile/setting/paymentMethod',
-  PaymentMethodAddSheet: (baseRoute: string) => `/profile/setting/paymentMethod/sheet?baseRoute=${baseRoute}`,
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
   SignOut: '/profile/setting/signOut',

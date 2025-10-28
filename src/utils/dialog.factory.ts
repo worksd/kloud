@@ -186,7 +186,7 @@ export async function createDialog({id, message, title, customData}: {
     return {
       id: 'CertificationComplete',
       type: 'SIMPLE',
-      title: await translate('certification_complete_message'),
+      title: await translate('certification_complete_title'),
       message: message ?? '',
       confirmTitle: await translate('confirm')
     }

@@ -437,6 +437,12 @@ export const StringResource = {
     jp: "削除",
     zh: "删除"
   },
+  complete_certification_title: {
+    ko: '본인 인증 완료',
+    en: 'Identity verification completed',
+    jp: '本人確認が完了しました',
+    zh: '身份验证已完成',
+  },
   delete_payment_method_message: {
     ko: "결제 수단을 삭제하고 있습니다.",
     en: "Deleting payment method.",
@@ -1181,7 +1187,7 @@ export const StringResource = {
     jp: 'コースの支払いを完了するためには本人確認が必要です。',
     zh: '完成课程付款需要进行身份验证。',
   },
-  certification_complete_message: {
+  certification_complete_title: {
     ko: '본인인증이 완료되었어요',
     en: 'Identity verification is complete.',
     jp: '本人確認が完了しました。',
@@ -1870,6 +1876,12 @@ export const StringResource = {
     en: 'The class you are trying to register for is full',
     jp: '申し込みたいクラスは定員に達しました',
     zh: '您要报名的课程名额已满',
+  },
+  send_code_fail_title: {
+    ko: '인증번호 전송 실패',
+    en: 'Failed to send verification code',
+    jp: '認証コードの送信に失敗しました',
+    zh: '发送验证码失败',
   },
   empty: {
     ko: '',

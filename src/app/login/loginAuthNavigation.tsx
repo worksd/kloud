@@ -7,12 +7,7 @@ import { kloudNav } from "@/app/lib/kloudNav";
 
 export const LoginAuthNavigation = async ({status, message, window}: {status?: UserStatus, message?: string, window: Window}) => {
   if (status == UserStatus.Ready) {
-    const bootInfo = JSON.stringify({
-      bottomMenuList: await getBottomMenuList(),
-      route: '',
-      withFcmToken: true,
-    });
-    kloudNav.navigateMain(bootInfo)
+    await kloudNav.navigateMain({})
   }
   else if (status == UserStatus.Deactivate) {
     await kloudNav.push(KloudScreen.LoginDeactivate)

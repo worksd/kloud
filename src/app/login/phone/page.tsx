@@ -6,7 +6,7 @@ export default async function PhoneLoginPage() {
 
   return (
     <div className={'min-h-screen w-full flex flex-col'}>
-      <PhoneVerificationForm steps={await getPhoneVerificationSteps()} locale={await getLocale()}/>
+      <PhoneVerificationForm steps={await getPhoneVerificationSteps()} locale={await getLocale()} isFromLogin={true}/>
     </div>
   )
 }

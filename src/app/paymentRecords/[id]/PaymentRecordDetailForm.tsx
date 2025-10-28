@@ -12,7 +12,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
 
   return <div className="p-5 bg-white min-h-screen text-gray-900">
     <section className="mb-6">
-      <h2 className="text-sm font-semibold mb-2">{await translate('purchase_history')}</h2>
+      <h2 className="text-sm font-semibold mb-2">{await translate('payment_records')}</h2>
       <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute}>
         <div className="flex flex-col text-sm text-gray-900 border border-gray-100 rounded-xl p-4 shadow-sm bg-white">
           <span

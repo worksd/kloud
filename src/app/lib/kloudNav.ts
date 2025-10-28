@@ -3,6 +3,7 @@
 
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
+import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 
 type NavMethod =
   | 'push'
@@ -82,7 +83,15 @@ export const kloudNav = {
     if (isMobile()) (window as any).KloudEvent.showBottomSheet(route);
   },
 
-  navigateMain(bootInfo?: unknown) {
+  async navigateMain({route}: { route?: string }) {
+    const bottomMenuList = await getBottomMenuList();
+    const bootInfo = JSON.stringify({
+      bottomMenuList,
+      routeInfo: {
+        route,
+        title: await applyTitle(route ?? ''),
+      }
+    })
     if (isMobile()) (window as any).KloudEvent.navigateMain(bootInfo);
   },
 
@@ -107,7 +116,6 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     (route.startsWith('/studios') && !route.includes('passPlans')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
-    route.startsWith(KloudScreen.RefundAccountSetting) ||
     (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans')))
 }
 
@@ -152,13 +160,20 @@ const applyTitle = async (route: string) => {
     return await translate('payment_records')
   } else if (route.includes('lessons') && route.includes('studios')) {
     return await translate('ongoing_lessons')
-  }
-  else return undefined
+  } else return undefined
 }
 
 // 타입 보강 (선택)
 declare global {
   interface Window {
     kloudNav?: typeof kloudNav;
+  }
+}
+
+export type BootInfo = {
+  bottomMenuList: string
+  routeInfo: {
+    route?: string,
+    title?: string,
   }
 }

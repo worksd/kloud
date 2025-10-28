@@ -1,10 +1,8 @@
 "use client";
 
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { getUserAction } from "@/app/onboarding/action/get.user.action";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { useLocale } from "@/hooks/useLocale";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
@@ -79,19 +77,16 @@ export default function PaymentButton({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   const router = useRouter();
-  const sseRef = useRef<EventSource | null>(null);
 
   const onPaymentSuccess = useCallback(async (paymentId: string) => {
     try {
       setIsSubmitting(true);
       await new Promise(resolve => setTimeout(resolve, 2000)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({ bottomMenuList, route: pushRoute });
-      kloudNav.navigateMain(bootInfo);
+      await kloudNav.navigateMain({route: pushRoute});
     } catch (e) {
       console.log(e);
-      const dialog = await createDialog({ id: 'PaymentFail' });
+      const dialog = await createDialog({id: 'PaymentFail'});
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     } finally {
       setIsSubmitting(false);
@@ -111,12 +106,7 @@ export default function PaymentButton({
         if (appVersion == '' && route) {
           router.replace(route)
         } else {
-          const bottomMenuList = await getBottomMenuList();
-          const bootInfo = JSON.stringify({
-            bottomMenuList: bottomMenuList,
-            route: route,
-          });
-          kloudNav.navigateMain(bootInfo);
+          await kloudNav.navigateMain({route});
         }
       } else {
         const dialog = await createDialog({id: 'Simple', message: res.message})
@@ -253,7 +243,7 @@ export default function PaymentButton({
         });
         if ('paymentId' in res) {
           await onPaymentSuccess(res.paymentId)
-          await putDepositorNameAction({ depositor })
+          await putDepositorNameAction({depositor})
         } else {
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
@@ -264,16 +254,11 @@ export default function PaymentButton({
           lessonId: id,
         });
         if ('id' in res) {
-          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, false) : null
+          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, false) : undefined
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
           } else {
-            const bottomMenuList = await getBottomMenuList();
-            const bootInfo = JSON.stringify({
-              bottomMenuList: bottomMenuList,
-              route: pushRoute,
-            });
-            window.KloudEvent?.navigateMain(bootInfo);
+            await kloudNav.navigateMain({route: pushRoute});
           }
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
@@ -283,12 +268,8 @@ export default function PaymentButton({
         const res = await createSubscriptionAction({item: type.value, itemId: id, billingKey: data.customData ?? ''})
         if ('subscription' in res) {
           await new Promise(resolve => setTimeout(resolve, 2000));
-          const bottomMenuList = await getBottomMenuList();
-          const bootInfo = JSON.stringify({
-            bottomMenuList: bottomMenuList,
-            route: KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId),
-          });
-          window.KloudEvent?.navigateMain(bootInfo);
+          const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId)
+          await kloudNav.navigateMain({route});
         } else if (isGuinnessErrorCase(res)) {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));

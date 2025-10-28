@@ -58,7 +58,6 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
 }) => {
 
   const [mounted, setMounted] = React.useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);

@@ -75,12 +75,7 @@ export const ResetPasswordForm = () => {
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.id == 'Simple') {
-        const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList: bottomMenuList,
-          route: '',
-        });
-        kloudNav.navigateMain(bootInfo);
+        await kloudNav.navigateMain({});
       }
     }
   }, []);

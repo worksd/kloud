@@ -35,7 +35,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
           />}
 
         <div className="sticky top-0 z-50 bg-white">
-          <div className="pt-16 pb-4 px-5">
+          <div className="pt-12 pb-4 px-5">
             <NavigateClickWrapper method={'back'}>
               <BackIcon />
             </NavigateClickWrapper>

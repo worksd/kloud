@@ -22,6 +22,7 @@ import { createDialog } from "@/utils/dialog.factory";
 import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { translate } from "@/utils/translate";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -121,18 +122,13 @@ export const OnboardingForm = ({
 
   const handleOnClick = async () => {
     if (step == 'complete') {
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({bottomMenuList, route: ''});
-      kloudNav.navigateMain(bootInfo)
+      await kloudNav.navigateMain({})
     } else if (step == 'agreement') {
       setStep('complete')
     } else if (step == 'code') {
-      const res = await checkVerificationCodeAction({code, phone, countryCode})
-      if ('accessToken' in res) {
+      const res = await updateUserAction({ phone, countryCode, code })
+      if ('success' in res && res.success) {
         setStep('agreement')
-      } else if ('message' in res && res.message) {
-        const dialog = await createDialog({id: 'Simple', message: res.message});
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } else if (step == 'phone') {
       const res = await sendVerificationSMS({phone, countryCode, isNew: true})

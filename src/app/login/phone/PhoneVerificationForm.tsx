@@ -7,13 +7,15 @@ import BackIcon from "../../../../public/assets/ic_back.svg";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { VerificationCodeForm } from "@/app/login/phone/VerificationCodeForm";
 import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
-import { createDialog } from "@/utils/dialog.factory";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 import { flushSync } from "react-dom";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { Locale } from "@/shared/StringResource";
+import { updateUserAction } from "@/app/onboarding/update.user.action";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -23,7 +25,11 @@ export type PhoneVerificationStepConfig = {
   placeholder?: string;
 }
 
-export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVerificationStepConfig[], locale: Locale }) {
+export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
+  steps: PhoneVerificationStepConfig[],
+  locale: Locale,
+  isFromLogin: boolean
+}) {
 
   const [step, setStep] = useState<PhoneVerificationStep>('phone');
   const [phone, setPhone] = useState('')
@@ -38,7 +44,7 @@ export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVer
       const el = phoneRef.current;
       if (!el) return;
       try {
-        el.focus({ preventScroll: true } as any);
+        el.focus({preventScroll: true} as any);
       } catch {
         el.focus(); // fallback
       }
@@ -57,7 +63,6 @@ export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVer
   const handleOnClick = async () => {
     if (step === 'phone') {
       const res = await sendVerificationSMS({phone, countryCode, isNew: false})
-
       if ('ttl' in res) {
         flushSync(() => {
           setStep('code');
@@ -65,32 +70,48 @@ export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVer
         });
         codeRef?.current?.focus();
       } else if ('message' in res && res.message) {
-        const dialog = await createDialog({id: 'Simple', message: res.message});
+        const title = await translate('send_code_fail_title')
+        const dialog = await createDialog({id: 'Simple', message: res.message, title});
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
 
     } else if (step === 'code') {
-      const res = await checkVerificationCodeAction({code, phone, countryCode})
-      if ('accessToken' in res && res.accessToken) {
-        await loginSuccessAction({
-          accessToken: res.accessToken,
-          userId: res.user.id,
-        })
-        await LoginAuthNavigation({status: res.user.status, window})
+      if (isFromLogin) {
+        const res = await checkVerificationCodeAction({code, phone, countryCode})
+        if ('accessToken' in res && res.accessToken) {
+          await loginSuccessAction({
+            accessToken: res.accessToken,
+            userId: res.user.id,
+          })
+          await LoginAuthNavigation({status: res.user.status, window})
+        } else {
+          const resendDialog = await createDialog({
+            id: 'Simple',
+            message: await translate('certification_code_mismatch'),
+            title: await translate('certification')
+          })
+          window.KloudEvent.showDialog(JSON.stringify(resendDialog))
+        }
       } else {
-        const resendDialog = await createDialog({
-          id: 'Simple',
-          message: await translate('certification_code_mismatch'),
-          title: await translate('certification')
-        })
-        window.KloudEvent.showDialog(JSON.stringify(resendDialog))
+        const res = await updateUserAction({ phone, countryCode, code })
+        if ('success' in res && res.success) {
+          const completeDialog = await createDialog({
+            id: 'CertificationComplete',
+            message: await translate('certification_success_message'),
+          })
+          window.KloudEvent.showDialog(JSON.stringify(completeDialog))
+        }
       }
     }
   }
 
   useEffect(() => {
-    window.onDialogConfirm = async () => {
-
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      if (data.id == 'Simple') {
+        await kloudNav.navigateMain({
+          route: KloudScreen.MyAccount
+        })
+      }
     }
   })
 
@@ -104,7 +125,7 @@ export default function PhoneVerificationForm({steps, locale}: { steps: PhoneVer
 
   return (
     <div className="fixed inset-0 bg-white overflow-hidden px-6">
-      <div className={'pt-16'} onClick={handleOnClickBack}>
+      <div className={'pt-4'} onClick={handleOnClickBack}>
         <BackIcon/>
       </div>
       {/* 위 컨텐츠: 버튼과 겹치지 않도록 아래 여백만 확보 */}

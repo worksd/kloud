@@ -5,14 +5,17 @@ import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
 import { UserType } from "@/entities/user/user.type";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
+import { COUNTRIES } from "@/app/certification/COUNTRIES";
 
 export const updateUserAction = async ({
                                          name,
                                          nickName,
                                          phone,
+  code,
                                          birth,
                                          gender,
                                          country,
+                                         countryCode,
                                          refundAccountNumber,
                                          refundDepositor,
                                          refundAccountBank,
@@ -22,6 +25,8 @@ export const updateUserAction = async ({
   name?: string,
   nickName?: string,
   phone?: string,
+  code?: string,
+  countryCode?: string,
   country?: string,
   birth?: string,
   gender?: 'male' | 'female' | '',
@@ -48,6 +53,8 @@ export const updateUserAction = async ({
       refundDepositor: refundDepositor,
       emailVerified: emailVerified,
       password: password,
+      countryCode: COUNTRIES.find((value) => value.key == countryCode)?.dial ?? '82',
+      code: code,
     });
     if ('id' in res) {
       return {
@@ -70,7 +77,7 @@ export const updateUserAction = async ({
 }
 
 const getRrnByBirthAndGender = (
-  { birth, gender }: { birth?: string; gender?: 'male' | 'female' | '' }
+  {birth, gender}: { birth?: string; gender?: 'male' | 'female' | '' }
 ): string | undefined => {
   // 형식 체크
   if (!birth || !gender || !/^\d{8}$/.test(birth)) {

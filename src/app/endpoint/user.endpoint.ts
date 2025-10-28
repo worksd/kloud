@@ -62,12 +62,14 @@ export type PatchUserParameter = {
   emailVerified?: boolean,
   country?: string,
   password?: string,
+  countryCode?: string,
+  code?: string,
 }
 
 export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
-  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country', 'password'],
+  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country', 'password', 'countryCode', 'code'],
   pathParams: ['id']
 }
 

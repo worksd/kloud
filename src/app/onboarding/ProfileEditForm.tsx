@@ -35,12 +35,7 @@ export const ProfileEditForm = ({
   useEffect(() => {
     window.onDialogConfirm = async (dialogInfo: DialogInfo) => {
       if (dialogInfo.id === "Simple") {
-        const bottomMenuList = await getBottomMenuList();
-        const bootInfo = JSON.stringify({
-          bottomMenuList,
-          route: "",
-        });
-        kloudNav.navigateMain(bootInfo);
+        await kloudNav.navigateMain({});
       }
     };
   }, []);

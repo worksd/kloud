@@ -27,12 +27,7 @@ export const SplashScreen = ({os}: { os: string }) => {
         kloudNav.clearAndPush(KloudScreen.Onboard(''))
       }
       else if (status == UserStatus.Ready) {
-        const bootInfo = JSON.stringify({
-          bottomMenuList: await getBottomMenuList(),
-          route: '',
-          withFcmToken: true,
-        });
-        window.KloudEvent?.navigateMain(bootInfo)
+        await kloudNav.navigateMain({})
       }
       else if (status == UserStatus.Deactivate) {
         kloudNav.clearAndPush(KloudScreen.LoginDeactivate)

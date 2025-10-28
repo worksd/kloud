@@ -13,12 +13,7 @@ export const LoginDeactivateScreen = ({user}: {user: GetUserResponse}) => {
   const handleActivate = async () => {
     const res = await updateUserAction({})
     if (res.success && res.user?.status == UserStatus.Ready) {
-      const bootInfo = JSON.stringify({
-        bottomMenuList: await getBottomMenuList(),
-        route: '',
-        withFcmToken: true,
-      });
-      kloudNav.navigateMain(bootInfo)
+      await kloudNav.navigateMain({})
     }
   }
   return (

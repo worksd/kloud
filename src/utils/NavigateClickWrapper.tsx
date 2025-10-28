@@ -16,7 +16,7 @@ interface NavigateClickItemProps {
   option?: KloudNavOptions;
 }
 
-export function NavigateClickWrapper({ method, route, action, locale, returnUrl, bootInfo, children }: NavigateClickItemProps) {
+export function NavigateClickWrapper({ method, route, action, locale, returnUrl, children }: NavigateClickItemProps) {
   const router = useRouter()
   return (
     <div
@@ -37,7 +37,7 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
           } else if (method === 'showBottomSheet') {
             window.KloudEvent?.showBottomSheet(route);
           } else if (method === 'navigateMain') {
-            kloudNav.navigateMain(bootInfo);
+            await kloudNav.navigateMain({route});
           } else if (method == 'fullSheet' && route) {
             kloudNav.fullSheet(route)
           }
