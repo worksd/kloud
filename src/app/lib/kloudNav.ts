@@ -116,7 +116,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     (route.startsWith('/studios') && !route.includes('passPlans')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
-    (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans')))
+    (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans'))) ||
+    route.startsWith(KloudScreen.Certification)
 }
 
 const applyTitle = async (route: string) => {
