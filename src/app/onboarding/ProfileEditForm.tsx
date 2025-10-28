@@ -29,12 +29,19 @@ export const ProfileEditForm = ({
         title: await translate("edit_profile_complete"),
       });
       window.KloudEvent.showDialog(JSON.stringify(dialog));
+    } else if (res.errorMessage) {
+      const dialog = await createDialog({
+        id: "Simple",
+        title: await translate("edit_profile"),
+        message: res.errorMessage,
+      });
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
     }
   };
 
   useEffect(() => {
     window.onDialogConfirm = async (dialogInfo: DialogInfo) => {
-      if (dialogInfo.id === "Simple") {
+      if (dialogInfo.title === await translate('edit_profile_complete')) {
         await kloudNav.navigateMain({});
       }
     };
