@@ -116,6 +116,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       } else {
         const res = await updateUserAction({phone, countryCode, code})
         if ('success' in res && res.success) {
+          setStep('code')
           const completeDialog = await createDialog({
             id: 'CertificationComplete',
             message: await translate('certification_success_message'),
@@ -129,9 +130,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.id == 'Simple') {
-        await kloudNav.navigateMain({
-          route: KloudScreen.MyAccount
-        })
+        kloudNav.back()
       }
       else if (data.id == 'ChangePhoneNumber') {
         await sendSmsVerification()
