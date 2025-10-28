@@ -18,11 +18,13 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
-import { createDialog } from "@/utils/dialog.factory";
+import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { translate } from "@/utils/translate";
+import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
+import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -120,6 +122,20 @@ export const OnboardingForm = ({
     setAllChecked(updatedCheckboxes.terms && updatedCheckboxes.privacy);
   };
 
+  const sendSmsCode = async () => {
+    const res = await sendVerificationSMS({phone, countryCode, isNew: true})
+    if ('ttl' in res) {
+      flushSync(() => {
+        setStep('code');
+        setCode('');
+      });
+      focusField('code')
+    } else if ('message' in res && res.message) {
+      const dialog = await createDialog({id: 'Simple', message: res.message});
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    }
+  }
+
   const handleOnClick = async () => {
     if (step == 'complete') {
       await kloudNav.navigateMain({})
@@ -131,16 +147,18 @@ export const OnboardingForm = ({
         setStep('agreement')
       }
     } else if (step == 'phone') {
-      const res = await sendVerificationSMS({phone, countryCode, isNew: true})
-      if ('ttl' in res) {
-        flushSync(() => {
-          setStep('code');
-          setCode('');
-        });
-        focusField('code')
-      } else if ('message' in res && res.message) {
-        const dialog = await createDialog({id: 'Simple', message: res.message});
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      const errorTitle = await translate('send_code_fail_title')
+      const duplicateCheck = await checkDuplicateUser({phone})
+      if ('success' in duplicateCheck && duplicateCheck.success) {
+        await sendSmsCode()
+      } else if ('message' in duplicateCheck) {
+        if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
+          const dialog = await createDialog({id: 'Simple', message: duplicateCheck.message, title: errorTitle});
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
+          const dialog = await createDialog({id: 'ChangePhoneNumber'})
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
       }
     } else if (isNickNameInputVisible) {
       const res = await updateUserAction({
@@ -275,7 +293,10 @@ export const OnboardingForm = ({
   }, [step, currentOnboardField]);
 
   useEffect(() => {
-    window.onDialogConfirm = () => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      if (data.id == 'ChangePhoneNumber') {
+        await sendSmsCode()
+      }
 
     }
   }, [])
