@@ -41,10 +41,7 @@ export const LoginForm = (props: LoginFormProps) => {
 
   const onClickSignUp = async () => {
     const signUpQuery = props.returnUrl ? `?returnUrl=${props.returnUrl}` : ''
-    await kloudNav.push(KloudScreen.SignUp(signUpQuery), {
-      ignoreSafeArea: true,
-      title: props.signUpTitle,
-    })
+    await kloudNav.push(KloudScreen.SignUp(signUpQuery))
   }
 
   const onClickLogin = async () => {
@@ -70,17 +67,6 @@ export const LoginForm = (props: LoginFormProps) => {
       window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
     }
   }
-
-
-  useEffect(() => {
-    const clear = async () => {
-      await clearCookies();
-      localStorage.clear();
-      sessionStorage.clear();
-      window.KloudEvent?.clearToken()
-    }
-    clear();
-  }, []);
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {

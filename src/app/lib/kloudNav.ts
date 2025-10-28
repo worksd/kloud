@@ -33,10 +33,8 @@ const withReturnUrl = (route: string, returnUrl?: string) =>
 
 /** 공용 네비게이션 객체 */
 export const kloudNav = {
-  async push(route: string, opts: KloudNavOptions = {}) {
-    const {returnUrl, router} = opts;
-    const finalRoute = withReturnUrl(route, returnUrl);
-
+  async push(route: string) {
+    const finalRoute = withReturnUrl(route);
     if (isMobile()) {
       (window as any).KloudEvent.push(
         JSON.stringify({
@@ -46,12 +44,6 @@ export const kloudNav = {
         })
       );
       return;
-    }
-
-    if (router) {
-      router.push(finalRoute);
-    } else if (typeof window !== 'undefined') {
-      window.location.assign(finalRoute);
     }
   },
 

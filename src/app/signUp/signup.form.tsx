@@ -70,7 +70,6 @@ export const SignupForm = (props: SignUpFormProps) => {
           router.replace(KloudScreen.Onboard(props.returnUrl))
         }
       } else {
-        await
         await LoginAuthNavigation({
           status: res.status,
           window: window,
