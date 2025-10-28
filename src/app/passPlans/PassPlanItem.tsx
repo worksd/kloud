@@ -1,15 +1,15 @@
 'use client'
 
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
-import { useLocale } from "@/hooks/useLocale";
-import { TranslatableText } from "@/utils/TranslatableText";
+import { getLocaleString } from "@/app/components/locale";
+import { Locale } from "@/shared/StringResource";
 
-export const PassPlanItem = ({item, isSelected, onClickAction}: {
+export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
   item: GetPassPlanResponse,
   isSelected: boolean,
+  locale: Locale,
   onClickAction: (item: GetPassPlanResponse) => void
 }) => {
-  const {t} = useLocale();
   return (
     <div
       className={`group flex flex-col w-full border rounded-[8px] font-bold space-x-2.5 text-[14px] select-none
@@ -19,12 +19,16 @@ export const PassPlanItem = ({item, isSelected, onClickAction}: {
         onClickAction(item);
       }}>
 
-      {item.isPopular ?
-        <TranslatableText className={`text-sm font-bold px-3 py-1 rounded-tl-[7px] rounded-br-[8px] w-[84px] mb-3
-          transition-colors duration-300 ease-in-out
-          ${isSelected ? 'text-white bg-black' : 'text-[#86898C] bg-[#F2F4F6] group-hover:bg-gray-300'}`} titleResource={'popular_pass'}/>: <div className="pt-4"/>
-      }
-
+      {item.isPopular ? (
+        <div
+          className={`self-start w-fit text-sm font-bold px-3 py-1 rounded-tl-[7px] rounded-br-[7px] mb-3
+      ${isSelected ? 'text-white bg-black' : 'text-[#86898C] bg-[#F2F4F6]'}`}
+        >
+          {getLocaleString({ locale, key: 'popular_pass' })}
+        </div>
+      ) : (
+        <div className="pt-4" />
+      )}
       {/* Title & Price Container */}
       <div className="flex items-center justify-between w-full pl-2 pr-6 pb-4">
         <div className={'flex flex-col'}>
@@ -39,7 +43,7 @@ export const PassPlanItem = ({item, isSelected, onClickAction}: {
         </div>
 
         <div className="text-right transition-colors duration-300 ease-in-out">
-          {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)} {t('won')}
+          {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)} {getLocaleString({locale, key: 'won'})}
         </div>
       </div>
     </div>

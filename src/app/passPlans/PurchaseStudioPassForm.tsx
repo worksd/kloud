@@ -6,6 +6,7 @@ import { PassPlanItem } from "@/app/passPlans/PassPlanItem";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { Locale } from "@/shared/StringResource";
 
 export const PurchaseStudioPassForm = ({
                                          passPlans,
@@ -13,7 +14,8 @@ export const PurchaseStudioPassForm = ({
                                          title,
                                          purchasePassInformationText,
                                          passRefundPolicyText,
-                                         purchasePassText
+                                         purchasePassText,
+                                         locale,
                                        }: {
   passPlans: GetPassPlanResponse[],
   popularPassPlan: GetPassPlanResponse,
@@ -21,6 +23,7 @@ export const PurchaseStudioPassForm = ({
   purchasePassInformationText: string,
   passRefundPolicyText: string,
   purchasePassText: string
+  locale: Locale,
 }) => {
 
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
@@ -34,6 +37,7 @@ export const PurchaseStudioPassForm = ({
             <PassPlanItem
               key={item.id}
               item={item}
+              locale={locale}
               isSelected={passPlan ? passPlan.id === item.id : passPlans.find(p => p.isPopular)?.id === item.id}
               onClickAction={(item: GetPassPlanResponse) => {
                 setPassPlan(item)

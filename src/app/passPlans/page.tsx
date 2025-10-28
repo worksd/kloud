@@ -1,7 +1,7 @@
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { PurchaseStudioPassForm } from "@/app/passPlans/PurchaseStudioPassForm";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 
 export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId: number }> }) {
   const {studioId} = await searchParams;
@@ -17,6 +17,7 @@ export default async function PassPage({searchParams}: { searchParams: Promise<{
         passRefundPolicyText={await translate('pass_refund_policy')}
         purchasePassText={await translate('purchase_pass')}
         purchasePassInformationText={await translate('purchase_pass_information')}
+        locale={await getLocale()}
       />
     )
   }

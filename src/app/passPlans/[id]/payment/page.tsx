@@ -6,6 +6,8 @@ import { getPassPlanPaymentAction } from "@/app/passPlans/[id]/payment/get.pass.
 import { cookies } from "next/headers";
 import { depositorKey } from "@/shared/cookies.key";
 import { getLocale } from "@/utils/translate";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import BackIcon from "../../../../../public/assets/ic_back.svg";
 
 export default async function PassPayment({params, searchParams}: {
   params: Promise<{ id: number }>,
@@ -21,6 +23,13 @@ export default async function PassPayment({params, searchParams}: {
             <SimpleHeader titleResource={'purchase_pass_title'}/>
           </div>
         }
+        <div className="sticky top-0 z-50 bg-white">
+          <div className="pt-12 pb-4 px-5">
+            <NavigateClickWrapper method={'back'}>
+              <BackIcon />
+            </NavigateClickWrapper>
+          </div>
+        </div>
         <CurrentPassPlan passPlan={res.passPlan}/>
         <div className="w-full h-3 bg-[#F7F8F9] mb-5"/>
         <PassPaymentInfo

@@ -2,14 +2,16 @@
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { PassPlanItem } from "@/app/passPlans/PassPlanItem";
 import React from "react";
+import { Locale } from "@/shared/StringResource";
 
 export type PassPlanEventDetail = {
   passPlanId: string;
 }
 
-export const PassPlanSheet = ({passPlans, currentPassPlanId}: {
+export const PassPlanSheet = ({passPlans, currentPassPlanId, locale}: {
   passPlans: GetPassPlanResponse[],
-  currentPassPlanId: string
+  currentPassPlanId: string,
+  locale: Locale,
 }) => {
 
   const handleClickPassPlan = (item: GetPassPlanResponse) => {
@@ -28,6 +30,7 @@ export const PassPlanSheet = ({passPlans, currentPassPlanId}: {
     <ul className="flex flex-col p-6 space-y-4 mt-4">
       {passPlans.map((item) => (
         <PassPlanItem
+          locale={locale}
           key={item.id}
           item={item}
           isSelected={currentPassPlanId == `${item.id}`}
