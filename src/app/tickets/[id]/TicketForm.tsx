@@ -16,13 +16,13 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: {
   return (
     <div className="flex flex-col bg-white">
       {/* Header */}
-      {!inviteCode &&
+      {inviteCode &&
         <div className="flex justify-between items-center ">
           <SimpleHeader titleResource="ticket"/>
         </div>
       }
 
-      <div className="flex flex-col px-6">
+      <div className="flex flex-col px-6 pt-20">
         <div className="flex flex-col mt-5 rounded-[16px] bg-black p-6 items-start">
 
           {(ticket.status == 'Cancelled' || ticket.status == 'Used' || ticket.status == 'Expired' || ticket.status == 'Pending') &&
@@ -52,9 +52,9 @@ export async function TicketForm({ticket, isJustPaid, inviteCode}: {
           <div className="absolute inset-0 bg-black/65 rounded-[16px]"/>
           {ticket.status != 'Paid' && <div className="absolute inset-0 bg-white/65 rounded-[16px]"/>}
 
-          <div className={"absolute inset-x-0 px-6"}>
+          <div className={"absolute inset-x-0 px-6 pt-4"}>
             {ticket.rank &&
-              <div className={"mt-3 text-[24px] text-white font-bold font-paperlogy"}>
+              <div className={"text-[24px] text-white font-bold font-paperlogy"}>
                 {ticket.rank}
               </div>
             }

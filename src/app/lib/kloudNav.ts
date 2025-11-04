@@ -145,7 +145,7 @@ const applyTitle = async (route: string) => {
     return await translate('edit_profile')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
-  } else if (route.startsWith('/tickets') && !route.startsWith('/tickets/')) {
+  } else if (route.startsWith('/tickets')) {
     return await translate('ticket')
   } else if (route.startsWith(KloudScreen.MyPass)) {
     return await translate('my_pass')
