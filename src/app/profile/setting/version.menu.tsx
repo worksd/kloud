@@ -1,6 +1,7 @@
 'use client'
 import React, { useRef, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const VersionMenu = ({title, version}: { title: string, version: string }) => {
 
@@ -12,7 +13,7 @@ export const VersionMenu = ({title, version}: { title: string, version: string }
 
     // 5번 클릭 달성시 개발자 모드 활성화
     if (clickCountRef.current === 5) {
-      window.KloudEvent.showBottomSheet(KloudScreen.DeveloperAuthentication);
+      kloudNav.showBottomSheet(KloudScreen.DeveloperAuthentication);
       clickCountRef.current = 0; // 카운트 초기화
     }
   }

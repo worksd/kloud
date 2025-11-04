@@ -1,23 +1,10 @@
-'use client'
-
 import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { saveStudioIdAction } from "@/app/studios/save.studio.id.action";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import CheckIcon from "../../../../../public/assets/ic_check_black.svg"
 
-
-export const StudioSheetItem = ({item, isSelected}: { item: GetStudioResponse, isSelected: boolean }) => {
-  const handleOnClickStudio = async () => {
-    await saveStudioIdAction({studioId: item.id})
-    const bootInfo = JSON.stringify({
-      bottomMenuList: await getBottomMenuList(),
-      route: '',
-    })
-    window.KloudEvent?.navigateMain(bootInfo);
-  }
-  return <div onClick={handleOnClickStudio}>
+export const StudioSheetItem = async ({item, isSelected}: { item: GetStudioResponse, isSelected: boolean }) => {
+  return <div>
     <div
       className="px-6 py-4 active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none">
       <div className="flex items-center justify-between w-full max-w-md rounded-lg">

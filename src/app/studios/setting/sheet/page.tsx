@@ -1,3 +1,4 @@
+'use server'
 import { api } from "@/app/api.client";
 import React from "react";
 import { StudioSheetItem } from "@/app/studios/setting/sheet/StudioSheetItem";
@@ -6,11 +7,8 @@ import CloseIcon from "../../../../../public/assets/ic_close.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
-
-
 export default async function StudioSettingSheetPage() {
   const res = await api.studio.my({});
-
   if ('studios' in res) {
     return (
       <div>
@@ -31,7 +29,10 @@ export default async function StudioSettingSheetPage() {
           ))
         }
       </div>
+    );
+  } else {
+    return (
+      <div className={'text-black'}>스튜디오가 존재하지 않습니다</div>
     )
-      ;
   }
 }

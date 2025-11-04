@@ -34,8 +34,8 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
             kloudNav.clearAndPush(route)
           } else if (method == 'closeBottomSheet') {
             window.KloudEvent?.closeBottomSheet();
-          } else if (method === 'showBottomSheet') {
-            window.KloudEvent?.showBottomSheet(route);
+          } else if (method === 'showBottomSheet' && route) {
+            kloudNav?.showBottomSheet(route);
           } else if (method === 'navigateMain') {
             await kloudNav.navigateMain({route});
           } else if (method == 'fullSheet' && route) {

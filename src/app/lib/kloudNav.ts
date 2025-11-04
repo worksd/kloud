@@ -72,7 +72,9 @@ export const kloudNav = {
   },
 
   showBottomSheet(route: string) {
-    if (isMobile()) (window as any).KloudEvent.showBottomSheet(route);
+    if (isMobile()) (window as any).KloudEvent.showBottomSheet(JSON.stringify({
+      route
+    }));
   },
 
   async navigateMain({route}: { route?: string }) {
