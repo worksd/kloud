@@ -82,7 +82,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
         <RefundInformation/>
       </div>
 
-      <div className="left-0 w-full fixed bottom-6 px-6">
+      <div className="left-0 w-full fixed bottom-2 px-6">
         <PaymentButton
           url={url}
           method={selectedMethod}

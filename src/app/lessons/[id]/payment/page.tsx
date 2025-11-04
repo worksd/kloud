@@ -34,14 +34,6 @@ export default async function LessonPaymentPage({params, searchParams}: {
             returnUrl={KloudScreen.LessonPayment(id)}
           />}
 
-        <div className="sticky top-0 z-50 bg-white">
-          <div className="pt-12 pb-4 px-5">
-            <NavigateClickWrapper method={'back'}>
-              <BackIcon />
-            </NavigateClickWrapper>
-          </div>
-        </div>
-
 
         <div className="flex flex-col">
           {/* 수업 정보 */}

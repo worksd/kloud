@@ -101,16 +101,14 @@ export const kloudNav = {
   }
 };
 
-
 const applyIgnoreSafeArea = (route: string): boolean => {
   return (route.startsWith(KloudScreen.Login(''))) ||
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
-    route.startsWith('/lessons') ||
+    (route.startsWith('/lessons/') && !route.includes('/payment')) ||
     (route.startsWith('/studios') && !route.includes('passPlans')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
-    (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans'))) ||
     route.startsWith(KloudScreen.Certification)
 }
 
@@ -155,7 +153,10 @@ const applyTitle = async (route: string) => {
     return await translate('payment_records')
   } else if (route.includes('lessons') && route.includes('studios')) {
     return await translate('ongoing_lessons')
-  } else return undefined
+  } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans'))) {
+    return await translate('payment')
+  }
+  else return undefined
 }
 
 // 타입 보강 (선택)

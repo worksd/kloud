@@ -75,7 +75,7 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
       </div>
 
 
-      <div className="px-6 mt-4 bottom-6 sticky">
+      <div className="px-6 mt-4 bottom-2 sticky">
         <PaymentButton
           url={url}
           type={{value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'}}
