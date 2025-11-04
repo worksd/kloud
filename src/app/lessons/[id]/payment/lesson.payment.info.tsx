@@ -18,6 +18,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
   beforeDepositor: string,
   locale: Locale
 }) => {
+  const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(undefined);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
@@ -26,7 +27,6 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
   )
   const [depositor, setDepositor] = useState(beforeDepositor);
-  const [mounted, setMounted] = useState(false);
 
   const handleSelectMethod = (method: PaymentMethodType) => {
     setSelectedMethod(method);
@@ -39,18 +39,14 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
     })
   }, [payment])
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  if (!mounted) return;
-
   return (
     <div className={"flex flex-col"}>
       <div className="flex flex-col gap-y-4">
         <PaymentMethodComponent
           locale={locale}
           passes={payment.user.passes}
-          initialCards={payment.cards ?? []}
+          cards={cards ?? []}
+          onCardsChangeAction={(cards) => setCards(cards)}
           selectedPass={selectedPass}
           selectedBillingCard={selectedBillingCard}
           selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}

@@ -19,6 +19,7 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
   locale: Locale,
   beforeDepositor: string,
 }) => {
+  const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>("credit");
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes && payment.user.passes.length > 0 ? payment.user.passes[0] : undefined
@@ -39,7 +40,8 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
       <PaymentMethodComponent
         locale={locale}
         paymentOptions={payment.methods}
-        initialCards={payment.cards ?? []}
+        cards={payment.cards ?? []}
+        onCardsChangeAction={(cards) => setCards(cards)}
         selectedMethod={selectedMethod}
         selectedBillingCard={selectedBillingCard}
         selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}

@@ -38,10 +38,18 @@ export const PaymentMethodSheetForm = ({
       await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
       onSuccessAction()
       onCloseAction()
-    } else {
+    } else if ('pgMessage' in res){
       const dialog = await createDialog({
         id: 'Simple',
-        message: res.message ?? ''
+        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
+        message: res.pgMessage
+      })
+      window.KloudEvent.showDialog(JSON.stringify(dialog))
+    } else if ('message' in res) {
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
+        message: res.message
       })
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }

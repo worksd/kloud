@@ -187,7 +187,7 @@ export default function PaymentButton({
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } else if (method == 'billing') {
-      if (selectedBilling && selectedBilling.billingKey.length > 0) {
+      if (selectedBilling && selectedBilling.billingKey) {
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
           title: `${title}을(를) 정기결제하시겠어요?`,
@@ -209,7 +209,7 @@ export default function PaymentButton({
       }
     }
 
-  }, [id, method, depositor, selectedPass]);
+  }, [id, method, depositor, selectedPass, selectedBilling]);
 
   const {t} = useLocale()
   const [mounted, setMounted] = useState(false);

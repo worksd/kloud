@@ -5,9 +5,10 @@ export type ListBillingResponse = {
 }
 
 export type GetBillingResponse = {
-  billingKey: string;
-  cardNumber: string;
-  cardName: string;
+  billingKey?: string;
+  cardNumber?: string;
+  cardName?: string;
+  pgMessage?: string;
 }
 
 export type CreateBillingRequest = {

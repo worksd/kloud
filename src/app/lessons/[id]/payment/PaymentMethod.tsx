@@ -1,7 +1,5 @@
 'use client'
-import React, { useEffect, useState } from "react";
-import { TranslatableText } from "@/utils/TranslatableText";
-import { useLocale } from "@/hooks/useLocale";
+import React from "react";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassList";
 import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
@@ -25,7 +23,8 @@ export const PaymentMethodComponent = ({
                                          locale,
                                          paymentOptions,
                                          passes,
-                                         initialCards,
+                                         cards,
+                                         onCardsChangeAction,
                                          selectedPass,
                                          selectPass,
                                          selectedMethod,
@@ -39,7 +38,8 @@ export const PaymentMethodComponent = ({
   locale: Locale,
   paymentOptions: GetPaymentMethodResponse[],
   passes?: GetPassResponse[],
-  initialCards: GetBillingResponse[],
+  cards: GetBillingResponse[],
+  onCardsChangeAction: (billing: GetBillingResponse[]) => void,
   selectedPass?: GetPassResponse,
   selectPass?: (pass: GetPassResponse) => void,
   selectedBillingCard?: GetBillingResponse,
@@ -60,8 +60,6 @@ export const PaymentMethodComponent = ({
     return masked.replace(/(.{4})/g, "$1 ").trim();
   };
 
-  const [cards, setCards] = useState<GetBillingResponse[]>(initialCards)
-
   const goRefundAccount = () => {
     kloudNav.push(KloudScreen.RefundAccountSetting);
   };
@@ -69,14 +67,14 @@ export const PaymentMethodComponent = ({
   const handleOnSuccessAddBillingCard = async () => {
     const res = await getBillingListAction()
     if ('billings' in res) {
-      setCards(res.billings)
+      onCardsChangeAction(res.billings)
     }
   }
 
   return (
     <div className="flex flex-col gap-y-4 px-6">
       <div className="text-base font-bold text-left text-black">
-        <TranslatableText titleResource="payment_method"/>
+        <div>{getLocaleString({locale, key: 'payment_method'})}</div>
       </div>
 
       {paymentOptions.length > 0 ? paymentOptions.map((option) => (
@@ -108,9 +106,14 @@ export const PaymentMethodComponent = ({
               {/* 예금주 입력 */}
               <div className="flex flex-col space-y-2">
                 <div className="flex items-center gap-1">
-                  <TranslatableText className="text-black text-base text-left font-bold"
-                                    titleResource="depositor_name"/>
-                  <TranslatableText titleResource="required" className="text-[#E55B5B] text-[14px] font-medium"/>
+                  <div className="text-black text-base text-left font-bold">{getLocaleString({
+                    locale,
+                    key: 'depositor_name'
+                  })}</div>
+                  <div className="text-[#E55B5B] text-[14px] font-medium">{getLocaleString({
+                    locale,
+                    key: 'required'
+                  })}</div>
                 </div>
                 <input
                   type="text"
@@ -129,7 +132,7 @@ export const PaymentMethodComponent = ({
                   <div className="px-4 pt-3 pb-2 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-gray-900">
-                        <TranslatableText titleResource="refund_account"/>
+                        {getLocaleString({locale, key: 'refund_account'})}
                       </span>
                     </div>
                     <button
@@ -137,7 +140,7 @@ export const PaymentMethodComponent = ({
                       onClick={goRefundAccount}
                       className="text-xs font-medium px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-50 transition"
                     >
-                      <TranslatableText titleResource="edit"/>
+                      <div>{getLocaleString({locale, key: 'edit'})}</div>
                     </button>
                   </div>
 
@@ -174,10 +177,14 @@ export const PaymentMethodComponent = ({
                       <span aria-hidden className="text-base">!</span>
                     </div>
                     <div className="flex-1">
-                      <TranslatableText titleResource={'no_registered_refund_title'}
-                                        className="text-sm font-semibold text-[#6B3A00]"/>
-                      <TranslatableText titleResource={'no_registered_refund_desc'}
-                                        className="text-xs text-[#8C4A10] mt-1"/>
+                      <div className="text-sm font-semibold text-[#6B3A00]">{getLocaleString({
+                        locale,
+                        key: 'no_registered_refund_title'
+                      })}</div>
+                      <div className="text-xs text-[#8C4A10] mt-1">{getLocaleString({
+                        locale,
+                        key: 'no_registered_refund_desc'
+                      })}</div>
                       <button
                         type="button"
                         onClick={goRefundAccount}
@@ -185,7 +192,7 @@ export const PaymentMethodComponent = ({
                                    bg-black text-white hover:opacity-90 active:scale-[0.98] transition"
                         aria-label="환불계좌 등록하러 가기"
                       >
-                        <TranslatableText titleResource={'go_registered_refund_button_title'}/>
+                        {getLocaleString({locale, key: 'go_registered_refund_button_title'})}
                       </button>
                     </div>
                   </div>
@@ -207,7 +214,10 @@ export const PaymentMethodComponent = ({
           )}
         </div>
       )) : (
-        <TranslatableText className="text-black font-medium text-center" titleResource="no_available_payment_method"/>
+        <div className="text-black font-medium text-center">{getLocaleString({
+          locale,
+          key: 'no_available_payment_method'
+        })}</div>
       )}
     </div>
   );

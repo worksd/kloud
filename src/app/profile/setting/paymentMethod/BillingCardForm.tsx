@@ -124,8 +124,8 @@ function BillingCardList({
       {cards.map(card => (
         <BillingCard
           key={card.billingKey}
-          cardNumber={card.cardNumber}
-          cardName={card.cardName}
+          cardNumber={card.cardNumber ?? ''}
+          cardName={card.cardName ?? ''}
           onDelete={() => onDelete(card)}
         />
       ))}
@@ -151,8 +151,8 @@ export const SelectableBillingList = ({
             className="cursor-pointer transition-all duration-200"
           >
             <BillingCard
-              cardName={card.cardName}
-              cardNumber={card.cardNumber}
+              cardName={card.cardName ?? ''}
+              cardNumber={card.cardNumber ?? ''}
               isSelected={selectedBillingKey?.billingKey === card.billingKey}
             />
           </div>

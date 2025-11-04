@@ -6,7 +6,7 @@ export default async function PaymentMethodPage() {
   const res = await getBillingListAction()
   if ('billings' in res) {
     return (
-      <div className={'pt-24'}>
+      <div className={'pt-0'}>
         <BillingCardForm cards={res.billings}
                          locale={await getLocale()}
         />

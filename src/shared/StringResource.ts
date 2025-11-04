@@ -1721,6 +1721,12 @@ export const StringResource = {
     jp: 'お支払い方法を選択してください',
     zh: '请选择您的支付方式',
   },
+  billing_register_fail_title: {
+    ko: '결제수단 등록 실패',
+    en: 'Payment Method Registration Failed',
+    jp: 'お支払い方法の登録に失敗しました',
+    zh: '支付方式注册失败',
+  },
   billing_register_fail: {
     ko: '결제수단 등록에 실패했습니다',
     en: 'Failed to register billing method',
