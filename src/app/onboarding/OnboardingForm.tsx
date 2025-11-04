@@ -388,7 +388,7 @@ export const OnboardingForm = ({
                       ref={birthRef}
                       value={formatBirthDisplay(birth)}               // 표시용 포맷
                       handleChangeAction={(v: string) => setBirth(onlyDigits(v))} // 숫자만 저장
-                      placeholder="yyyy.MM.dd"
+                      placeholder="ex) 2004.07.15"
                       inputMode={'numeric'}
                     />
                   </motion.div>
