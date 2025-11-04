@@ -155,6 +155,8 @@ const applyTitle = async (route: string) => {
     return await translate('ongoing_lessons')
   } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans'))) {
     return await translate('payment')
+  } else if (route.includes('resetPassword')) {
+    return await translate('change_password')
   }
   else return undefined
 }

@@ -1,5 +1,4 @@
 'use client'
-import { getTranslatedText, TranslatableText } from "@/utils/TranslatableText";
 import HidePasswordIcon from "../../../../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../../../../public/assets/show-password.svg";
 import React, { useEffect, useState } from "react";
@@ -9,14 +8,15 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../../../../public/assets/check.svg";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { checkPassword } from "@/app/profile/setting/account/resetPassword/compare.password.action";
 import { translate } from "@/utils/translate";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 type ResetPasswordPage = 'current' | 'new'
 
-export const ResetPasswordForm = () => {
+export const ResetPasswordForm = ({locale} : {locale: Locale}) => {
 
   const [page, setPage] = useState<ResetPasswordPage>('current');
   const [oldPassword, setOldPassword] = React.useState<string>('');
@@ -80,19 +80,13 @@ export const ResetPasswordForm = () => {
     }
   }, []);
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <div className={'flex flex-col'}>
 
       {page == 'current' &&
         <div className="relative mb-2">
           <div className="flex items-center gap-2 mb-2">
-            <label className="text-[14px] font-normal text-black"><TranslatableText
-              titleResource={'current_password'}/></label>
+            <label className="text-[14px] font-normal text-black">{getLocaleString({locale, key: 'current_password'})}</label>
           </div>
           <div className="relative">
             <div className="flex items-center border border-gray-300 rounded-[8px] focus-within:border-black">
@@ -103,11 +97,7 @@ export const ResetPasswordForm = () => {
                 name="password"
                 value={oldPassword}
                 onChange={onOldPasswordChange}
-                placeholder={getTranslatedText({
-                  titleResource: 'input_password_message',
-                  text: t('input_password_message'),
-                  mounted: mounted
-                })}
+                placeholder={getLocaleString({locale, key: 'input_password_message'})}
               />
               <button
                 type="button"
@@ -127,10 +117,8 @@ export const ResetPasswordForm = () => {
       {page == 'new' &&
         <div>
           <div className="flex items-center gap-1 mb-2">
-            <label className="text-[14px] font-medium text-black" htmlFor="password"><TranslatableText
-              titleResource={'new_password'}/></label>
-            <span className="text-[10px] font-normal text-[#E55B5B]"><TranslatableText
-              titleResource={'required'}/></span>
+            <label className="text-[14px] font-medium text-black" htmlFor="password">{getLocaleString({locale, key: 'new_password'})}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{getLocaleString({locale, key: 'required'})}</span>
           </div>
           <div className="relative mb-2">
             <input
@@ -140,11 +128,7 @@ export const ResetPasswordForm = () => {
               name="password"
               value={newPassword}
               onChange={onNewPasswordChanged}
-              placeholder={getTranslatedText({
-                titleResource: 'input_password_message',
-                text: t('input_password_message'),
-                mounted: mounted
-              })}
+              placeholder={getLocaleString({locale, key: 'input_password_message'})}
             />
             <button
               type="button"
@@ -158,22 +142,20 @@ export const ResetPasswordForm = () => {
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordLengthValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordLengthValid ? "text-black" : "text-gray-300"}`}>
-              <TranslatableText titleResource={'password_min_length'}/>
+              {getLocaleString({locale, key: 'password_min_length'})}
             </span>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
             <CheckIcon className={`${isPasswordPatternValid ? "stroke-black" : "stroke-gray-300"}`}/>
             <span className={`text-[12px] ${isPasswordPatternValid ? "text-black" : "text-gray-300"}`}>
-              <TranslatableText titleResource={'password_requirements'}/>
+              {getLocaleString({locale, key: 'password_requirements'})}
             </span>
           </div>
 
           <div className="flex items-center gap-1 mb-2 mt-5">
-            <label className="text-[14px] font-medium text-black" htmlFor="password"><TranslatableText
-              titleResource={'confirm_password'}/></label>
-            <span className="text-[10px] font-normal text-[#E55B5B]"><TranslatableText
-              titleResource={'required'}/></span>
+            <label className="text-[14px] font-medium text-black" htmlFor="password">{getLocaleString({locale, key: 'confirm_password'})}</label>
+            <span className="text-[10px] font-normal text-[#E55B5B]">{getLocaleString({locale, key: 'required'})}</span>
           </div>
           <div className="relative mb-2">
             <input
@@ -183,11 +165,7 @@ export const ResetPasswordForm = () => {
               name="password"
               value={newConfirmPassword}
               onChange={onConfirmPasswordChanged}
-              placeholder={getTranslatedText({
-                titleResource: 'input_password_message',
-                text: t('input_password_message'),
-                mounted: mounted
-              })}
+              placeholder={getLocaleString({locale, key: 'input_password_message'})}
             />
             <button
               type="button"
