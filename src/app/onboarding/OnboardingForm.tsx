@@ -123,7 +123,7 @@ export const OnboardingForm = ({
   };
 
   const sendSmsCode = async () => {
-    const res = await sendVerificationSMS({phone, countryCode, isNew: true})
+    const res = await sendVerificationSMS({phone, countryCode})
     if ('ttl' in res) {
       flushSync(() => {
         setStep('code');

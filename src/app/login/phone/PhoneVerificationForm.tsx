@@ -64,7 +64,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
 
   const sendSmsVerification = async () => {
     const errorTitle = await translate('send_code_fail_title')
-    const res = await sendVerificationSMS({phone, countryCode, isNew: false})
+    const res = await sendVerificationSMS({phone, countryCode})
     if ('ttl' in res) {
       flushSync(() => {
         setStep('code');
