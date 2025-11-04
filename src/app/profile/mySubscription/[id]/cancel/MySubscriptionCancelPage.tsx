@@ -10,6 +10,7 @@ import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/canc
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { TranslatableText } from "@/utils/TranslatableText";
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
@@ -83,9 +84,7 @@ export default function MySubscriptionCancelForm({subscription}: { subscription:
     window.onDialogConfirm = async (data: DialogInfo) => {
       // TODO: 다이얼로그 추가하면 if문으로 분기쳐야함
       const pushRoute = KloudScreen.MySubscriptionDetail(subscription.subscriptionId);
-      const bottomMenuList = await getBottomMenuList();
-      const bootInfo = JSON.stringify({bottomMenuList, route: pushRoute});
-      window.KloudEvent?.navigateMain(bootInfo);
+      kloudNav?.navigateMain({route: pushRoute});
     };
   }, []);
 

@@ -9,9 +9,6 @@ export default async function MySubscriptionCancelPage({params}: { params: Promi
   if ('subscriptionId' in subscription) {
     return (
       <div className={'flex flex-col'}>
-        <div className="flex justify-between items-center mb-14">
-          <SimpleHeader titleResource={'cancel_subscription'}/>
-        </div>
         <MySubscriptionCancelForm subscription={subscription}/>
       </div>
     )
