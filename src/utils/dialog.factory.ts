@@ -239,8 +239,8 @@ export async function createDialog({id, message, title, customData}: {
     return {
       id: 'ChangePhoneNumber',
       type: 'YESORNO',
-      title: await translate('send_code_fail_title'),
-      message: await translate('another_phone_exists'),
+      title: await translate('another_phone_exists_title'),
+      message: await translate('another_phone_exists_message'),
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }

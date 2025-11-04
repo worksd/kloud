@@ -1889,11 +1889,17 @@ export const StringResource = {
     jp: '認証コードの送信に失敗しました',
     zh: '发送验证码失败',
   },
-  another_phone_exists: {
-    ko: '이미 다른 계정에서 사용중인 번호입니다.\n본인인증을 진행하시겠습니까?',
-    en: 'This phone number is already in use by another account.\nWould you like to proceed with identity verification?',
-    jp: 'この電話番号は既に別のアカウントで使用されています。\n本人確認を続行しますか？',
-    zh: '该手机号已被其他账号使用。\n是否继续进行身份验证？',
+  another_phone_exists_title: {
+    ko: '이미 다른 계정에서 사용 중인 번호입니다',
+    en: 'This phone number is already used by another account',
+    jp: 'この電話番号は既に他のアカウントで使用されています',
+    zh: '该手机号已被其他账号使用',
+  },
+  another_phone_exists_message: {
+    ko: '이전 계정에서의 인증을 해제하고 본인인증을 진행하시겠습니까?',
+    en: 'Would you like to deactivate the verification on the previous account and proceed with identity verification?',
+    jp: '以前のアカウントの認証を解除して本人確認を続行しますか？',
+    zh: '是否解除之前账号的认证并继续进行身份验证？',
   },
   empty: {
     ko: '',

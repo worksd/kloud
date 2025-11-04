@@ -19,7 +19,7 @@ export default async function LoginIntroPage({
   return (
     <section
       className="w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-5">
-      <div className="flex-1 w-full flex justify-center pt-24">
+      <div className="flex-1 w-full flex justify-center pt-36">
         <DevTapLogo />
       </div>
 

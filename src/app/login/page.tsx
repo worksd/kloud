@@ -21,10 +21,9 @@ export default async function Login({
   return (
     <section
       className="w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-5"
-      style={{ paddingTop: '100px' }}
     >
       {/* ⬇️ 가운데 배치 */}
-      <div className="flex-1 w-full flex justify-center pt-24">
+      <div className="flex-1 w-full flex justify-center pt-36">
         <DevTapLogo />
       </div>
 
