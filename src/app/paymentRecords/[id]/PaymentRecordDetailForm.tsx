@@ -67,7 +67,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
             </div>
 
             <div className="mt-0.5 text-[15px] font-semibold text-black tracking-wider tabular-nums">
-              {paymentRecord.studio?.accountNumber || '—'}
+              {paymentRecord.studio?.accountNumber || '—'}({paymentRecord.studio?.depositor})
             </div>
           </div>
         </div>
