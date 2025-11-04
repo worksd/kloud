@@ -24,7 +24,7 @@ export default async function Login({
       style={{ paddingTop: '100px' }}
     >
       {/* ⬇️ 가운데 배치 */}
-      <div className="flex-1 w-full flex justify-center pt-56">
+      <div className="flex-1 w-full flex justify-center pt-24">
         <DevTapLogo />
       </div>
 
