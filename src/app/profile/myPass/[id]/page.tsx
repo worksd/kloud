@@ -8,7 +8,7 @@ import Divider from "@/app/studios/[id]/studio.divider";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
@@ -27,7 +27,7 @@ export default async function MyPassDetailPage({params}: {
           <div className={'flex flex-col'}>
             <div className={'mt-5'}>
               <div className={'flex flex-row'}>
-                <PassItem pass={pass} endDate={pass.endDate}/>
+                <PassItem pass={pass} endDate={pass.endDate} locale={await getLocale()} />
               </div>
 
               {pass.status == 'Pending' &&
@@ -39,9 +39,6 @@ export default async function MyPassDetailPage({params}: {
                 />
               }
             </div>
-            {/*<div className={"text-[12px] text-[#A4A4A4] font-paperlogy ml-4 mb-4"}>*/}
-            {/*  {pass.paymentId}*/}
-            {/*</div>*/}
           </div>
           {pass.passPlan?.tier == PassPlanTier.Premium && <PremiumTierIcon/>}
         </div>
@@ -57,7 +54,7 @@ export default async function MyPassDetailPage({params}: {
 
         <Divider/>
         <div className={'py-5'}>
-          <PassTicketUsageHistory tickets={pass.tickets}/>
+          <PassTicketUsageHistory tickets={pass.tickets} locale={await getLocale()}/>
         </div>
 
         {pass.status == 'Active' &&

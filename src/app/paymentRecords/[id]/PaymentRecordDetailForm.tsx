@@ -5,10 +5,14 @@ import React from "react";
 import { GetPaymentRecordResponse, PaymentRecordStatus } from "@/app/endpoint/payment.record.endpoint";
 import { translate } from "@/utils/translate";
 import { statusLabelMap } from "@/app/paymentRecords/PaymentRecordItem";
-import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
+import { BankOrCardIcon } from "@/app/components/Bank";
 import { PaymentMethodLabel } from "@/app/components/PaymentMethodLabel";
+import { Locale } from "@/shared/StringResource";
 
-export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: GetPaymentRecordResponse }) => {
+export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
+  paymentRecord: GetPaymentRecordResponse,
+  locale: Locale
+}) => {
 
   return <div className="px-5 bg-white min-h-screen text-gray-900">
     <section className="mb-2">
@@ -103,8 +107,8 @@ export const PaymentRecordDetailForm = async ({paymentRecord}: { paymentRecord: 
     <hr className="my-4"/>
 
     <div className={'py-5 space-y-6'}>
-      {paymentRecord.studio && <SellerInformation studio={paymentRecord.studio}/>}
-      <RefundInformation/>
+      {paymentRecord.studio && <SellerInformation studio={paymentRecord.studio} locale={locale}/>}
+      <RefundInformation locale={locale}/>
     </div>
 
   </div>

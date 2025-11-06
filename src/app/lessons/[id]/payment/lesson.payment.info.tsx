@@ -69,7 +69,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
       </div>
 
       {/* 결제 정보 */}
-      <PurchaseInformation price={payment.totalPrice} method={selectedMethod} titleResource={'lesson_price'}/>
+      <PurchaseInformation price={payment.totalPrice} method={selectedMethod} titleResource={'lesson_price'} locale={locale} />
 
       <div className="py-5">
         <div className="w-full h-3 bg-[#F7F8F9] "/>
@@ -77,9 +77,9 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
 
       <div className="flex flex-col px-6 space-y-4">
         {/* 판매자 정보 */}
-        {payment.lesson?.studio && <SellerInformation studio={payment.lesson.studio}/>}
+        {payment.lesson?.studio && <SellerInformation studio={payment.lesson.studio} locale={locale}/>}
         {/* 환불 안내 */}
-        <RefundInformation/>
+        <RefundInformation locale={locale}/>
       </div>
 
       <div className="left-0 w-full fixed bottom-2 px-6">

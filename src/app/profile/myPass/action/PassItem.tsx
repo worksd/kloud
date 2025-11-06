@@ -1,10 +1,11 @@
 'use client'
 import { CircleImage } from "@/app/components/CircleImage";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { DdayText } from "@/app/components/DdayText";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
-export const PassItem = ({pass, endDate}: { pass: GetPassResponse, endDate?: string }) => {
+export const PassItem = ({pass, endDate, locale}: { pass: GetPassResponse, endDate?: string, locale: Locale }) => {
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -22,7 +23,7 @@ export const PassItem = ({pass, endDate}: { pass: GetPassResponse, endDate?: str
                 <div className="flex items-center space-x-2 text-[#A4A4A4] font-medium">
                   <div className="flex flex-row items-center">
                     <div>{pass.remainingCount}</div>
-                    <TranslatableText titleResource="remaining_count"/>
+                    <div>{getLocaleString({locale, key: 'remaining_count'})}</div>
                   </div>
                   <span>|</span>
                 </div>
@@ -34,37 +35,37 @@ export const PassItem = ({pass, endDate}: { pass: GetPassResponse, endDate?: str
                 <div className={'flex flex-row space-x-0.5'}>
                   <span className={'text-[#A4A4A4] font-medium'}>|</span>
                   <span className={'text-[#A4A4A4] font-medium'}>{endDate}</span>
-                  <TranslatableText className={'text-[#A4A4A4] font-medium'} titleResource={'until'}/>
+                  <div className={'text-[#A4A4A4] font-medium'}>{getLocaleString({locale, key: 'until'})}</div>
                 </div>
               }
 
             </div>
           }
           {
-          pass.status == 'Pending' &&
+            pass.status == 'Pending' &&
             <div className="flex items-center space-x-2 text-gray-500">
-              <TranslatableText className={'text-[#FF434F] font-bold'} titleResource={'pending_account_transfer'}/>
+              <div className={'text-[#FF434F] font-bold'}>{getLocaleString({locale, key: 'pending_account_transfer'})}</div>
             </div>
           }
           {
             pass.status == 'Done' &&
             <div className="text-[12px] flex items-center space-x-2 text-gray-500">
-              <TranslatableText className={'font-bold'} titleResource={'used_complete'}/>
+              <div className={'font-bold'}>{getLocaleString({locale, key: 'used_complete'})}</div>
               <span className={'text-[#A4A4A4] font-medium'}>|</span>
               <div className={'flex flex-row space-x-0.5'}>
                 <span className={'text-[#A4A4A4] font-medium'}>{pass.endDate}</span>
-                <TranslatableText className={'text-[#A4A4A4] font-medium'} titleResource={'until'}/>
+                <div className={'text-[#A4A4A4] font-medium'}>{getLocaleString({locale, key: 'until'})}</div>
               </div>
             </div>
           }
           {
             pass.status == 'Expired' &&
             <div className="text-[12px] flex items-center space-x-2 text-gray-500">
-              <TranslatableText className={'font-bold'} titleResource={'expired'}/>
+              <div className={'font-bold'}>{getLocaleString({locale, key: 'expired'})}</div>
               <span className={'text-[#A4A4A4] font-medium'}>|</span>
               <div className={'flex flex-row space-x-0.5'}>
                 <span className={'text-[#A4A4A4] font-medium'}>{pass.endDate}</span>
-                <TranslatableText className={'text-[#A4A4A4] font-medium'} titleResource={'until'}/>
+                <div className={'text-[#A4A4A4] font-medium'}>{getLocaleString({locale, key: 'until'})}</div>
               </div>
             </div>
           }

@@ -4,11 +4,11 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
 import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { BankOrCardIcon } from "@/app/components/Bank";
 import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMethodBottomSheet";
 import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], locale: Locale }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
@@ -43,7 +43,11 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
   }, []);
 
   const showDeleteDialog = async ({card}: { card: GetBillingResponse }) => {
-    const dialog = await createDialog({id: `DeleteBillingCard`, message: `${card.cardName} (${card.cardNumber})`, customData: card.billingKey});
+    const dialog = await createDialog({
+      id: `DeleteBillingCard`,
+      message: `${card.cardName} (${card.cardNumber})`,
+      customData: card.billingKey
+    });
     window.KloudEvent.showDialog(JSON.stringify(dialog))
   }
 
@@ -69,11 +73,17 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
 
         {newCards.length === 0 ? (
           <div className="text-center text-gray-500 mt-60">
-            <TranslatableText titleResource={'no_registered_payment_method_message'} className="text-[22px] font-bold text-black"/>
-            <TranslatableText titleResource={'press_right_bottom_button_message'}/>
+            <div className="text-[22px] font-bold text-black">{getLocaleString({
+              locale,
+              key: 'no_registered_payment_method_message'
+            })}</div>
+            <div>{getLocaleString({locale, key: 'press_right_bottom_button_message'})}</div>
           </div>
         ) : (
-          <BillingCardList cards={newCards} onDelete={async (card: GetBillingResponse) => {
+          <BillingCardList
+            cards={newCards}
+            locale={locale}
+            onDelete={async (card: GetBillingResponse) => {
             await showDeleteDialog({card})
           }}/>
         )}
@@ -101,12 +111,13 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               />
             </svg>
-            <TranslatableText titleResource={'delete_payment_method_message'}/>
+            <div>{getLocaleString({locale, key: 'delete_payment_method_message'})}</div>
           </div>
         </div>
       )}
       {open && (
-        <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)} onSuccessAction={() => loadCards()}/>
+        <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)}
+                                     onSuccessAction={() => loadCards()}/>
       )}
     </main>
   )
@@ -114,9 +125,11 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
 
 function BillingCardList({
                            cards,
+                           locale,
                            onDelete,
                          }: {
   cards: GetBillingResponse[]
+  locale: Locale
   onDelete: (card: GetBillingResponse) => void
 }) {
   return (
@@ -127,6 +140,7 @@ function BillingCardList({
           cardNumber={card.cardNumber ?? ''}
           cardName={card.cardName ?? ''}
           onDelete={() => onDelete(card)}
+          locale={locale}
         />
       ))}
     </div>
@@ -137,10 +151,12 @@ export const SelectableBillingList = ({
                                         billingCards,
                                         selectedBillingKey,
                                         onSelectAction,
+                                        locale,
                                       }: {
   billingCards: GetBillingResponse[];
   selectedBillingKey?: GetBillingResponse;
   onSelectAction: (billingKey: GetBillingResponse) => void;
+  locale: Locale;
 }) => {
   return (
     <div className="flex flex-col mt-2 space-y-2">
@@ -151,6 +167,7 @@ export const SelectableBillingList = ({
             className="cursor-pointer transition-all duration-200"
           >
             <BillingCard
+              locale={locale}
               cardName={card.cardName ?? ''}
               cardNumber={card.cardNumber ?? ''}
               isSelected={selectedBillingKey?.billingKey === card.billingKey}
@@ -161,16 +178,19 @@ export const SelectableBillingList = ({
     </div>
   );
 };
+
 function BillingCard({
                        cardName,
                        cardNumber,
                        onDelete,
                        isSelected,
+                       locale,
                      }: {
   cardName: string;
   cardNumber: string;
   onDelete?: () => void;
   isSelected?: boolean;
+  locale: Locale;
 }) {
   const maskedNumber = `${cardNumber.slice(0, 4)} ${cardNumber.slice(4, 8)} **** ${cardNumber.slice(-4)}`;
 
@@ -180,12 +200,12 @@ function BillingCard({
         ${isSelected ? 'border-black bg-white' : 'border-gray-200 bg-gray-50'}`}
     >
       {onDelete && (
-        <TranslatableText
+        <div
           onClick={onDelete}
           className="absolute top-4 right-4 bottom-1 text-xs text-red-500 font-bold"
-          titleResource={'delete'}
         >
-        </TranslatableText>
+          {getLocaleString({locale, key: 'delete'})}
+        </div>
       )}
 
       <div className="flex flex-row items-center justify-items-center p-4 space-x-2">

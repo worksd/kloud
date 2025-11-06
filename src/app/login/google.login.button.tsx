@@ -3,7 +3,6 @@ import GoogleLogo from "../../../public/assets/logo_google.svg";
 import { useEffect } from "react";
 import { googleLoginAction } from "@/app/login/action/google.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
-import { TranslatableText } from "@/utils/TranslatableText";
 
 const GoogleLoginButton = ({title}: {title: string}) => {
 

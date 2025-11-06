@@ -3,7 +3,6 @@ import KakaoLogo from "../../../public/assets/logo_kakao.svg";
 import { useEffect, useRef, useState } from "react";
 import { kakaoLoginAction } from "@/app/login/action/kakao.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";

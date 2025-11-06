@@ -1,11 +1,15 @@
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { TicketItem } from "@/app/tickets/ticket.item";
-import { TranslatableText } from "@/utils/TranslatableText";
+import { getLocaleString } from "@/app/components/locale";
+import { Locale } from "@/shared/StringResource";
 
-export const PassTicketUsageHistory = ({tickets}: { tickets?: TicketResponse[] }) => {
+export const PassTicketUsageHistory = ({tickets, locale}: { tickets?: TicketResponse[], locale: Locale }) => {
   return (
     <div className="flex flex-col">
-      <TranslatableText className={'text-[16px] font-medium text-black ml-6'} titleResource={'usage_information'}/>
+      <div className={'text-[16px] font-medium text-black ml-6'}>{getLocaleString({
+        locale,
+        key: 'usage_information'
+      })}</div>
       {tickets && tickets.length > 0 ?
         tickets.map((item) => (
           <TicketItem
@@ -14,10 +18,9 @@ export const PassTicketUsageHistory = ({tickets}: { tickets?: TicketResponse[] }
           />
         )) :
         <div className="flex justify-center w-full">
-          <TranslatableText
+          <div
             className="py-10 font-medium text-[14px] text-center text-[#86898C]"
-            titleResource="no_used_pass"
-          />
+          >{getLocaleString({locale, key: 'no_used_pass'})}</div>
         </div>
       }
     </div>

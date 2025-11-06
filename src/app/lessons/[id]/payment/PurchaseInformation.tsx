@@ -1,12 +1,12 @@
 'use client'
 
 import { useLocale } from "@/hooks/useLocale";
-import { TranslatableText } from "@/utils/TranslatableText";
-import { StringResourceKey } from "@/shared/StringResource";
+import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { useEffect, useState } from "react";
 import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { getLocaleString } from "@/app/components/locale";
 
-export const PurchaseInformation = ({price, method, titleResource} : { price: number, method?: PaymentMethodType, titleResource: StringResourceKey}) => {
+export const PurchaseInformation = ({price, method, titleResource, locale} : { price: number, method?: PaymentMethodType, titleResource: StringResourceKey, locale: Locale}) => {
   const { t } = useLocale();
   const [mounted, setMounted] = useState(false)
 
@@ -16,11 +16,11 @@ export const PurchaseInformation = ({price, method, titleResource} : { price: nu
 
   return (
     <div className="flex flex-col gap-y-4 px-6">
-      <TranslatableText titleResource={'payment_information'} className="text-base font-bold text-left text-black"/>
+      <div className="text-base font-bold text-left text-black">{getLocaleString({locale, key: 'payment_information'})}</div>
 
       <div className="flex flex-col gap-y-2">
         <div className="flex justify-between text-sm font-medium text-center text-black">
-          <TranslatableText titleResource={titleResource}/>
+          <div>{getLocaleString({locale, key: titleResource})}</div>
           <p>{new Intl.NumberFormat("ko-KR").format(price)} {mounted ? t('won') : ''}</p>
         </div>
       </div>
@@ -28,7 +28,7 @@ export const PurchaseInformation = ({price, method, titleResource} : { price: nu
       <div className="w-full h-px bg-[#D7DADD]"/>
 
       <div className="flex justify-between text-base font-bold text-center text-black">
-        <TranslatableText titleResource={'total_amount'}/>
+        <div>{getLocaleString({locale, key: 'total_amount'})}</div>
         <p>{new Intl.NumberFormat("ko-KR").format(method == 'pass' ? 0 : price)} {mounted ? t('won') : ''}</p>
       </div>
     </div>

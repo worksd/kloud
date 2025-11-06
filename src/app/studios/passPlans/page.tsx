@@ -1,4 +1,3 @@
-import { TranslatableText } from "@/utils/TranslatableText";
 import { StudioArrowItem } from "@/app/passPlans/StudioArrowItem";
 import React from "react";
 import { getStudioList } from "@/app/home/action/get.studio.list.action";
@@ -18,10 +17,8 @@ export default async function StudioPassPlansPage() {
               <StudioArrowItem key={item.id} item={item}/>
             ))}
           </ul> : <div className="flex justify-center items-center h-64">
-            <TranslatableText
-              className="text-black text-center text-base"
-              titleResource="no_studio_pass_plan_message"
-            />
+            <div
+              className="text-black text-center text-base">{await translate('no_studio_pass_plan_message')}</div>
           </div>}
       </div>
     )

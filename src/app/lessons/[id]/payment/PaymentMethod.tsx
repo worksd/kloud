@@ -208,6 +208,7 @@ export const PaymentMethodComponent = ({
                 billingCards={cards ?? []}
                 selectedBillingKey={selectedBillingCard}
                 onSelectAction={selectBillingCard}
+                locale={locale}
               />
               <PaymentMethodAddButton locale={locale} onSuccessAction={() => handleOnSuccessAddBillingCard()}/>
             </div>

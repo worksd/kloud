@@ -7,7 +7,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import ArrowRightIcon from "../../../public/assets/gray_right_arrow.svg"
 import { PassBand } from "@/app/studios/PassBand";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
@@ -55,7 +55,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse }) 
         />
       ))}
       {res.passes && res.passes.length > 0 &&
-        <PassBand title={await translate('my_pass')} passes={res.passes ?? []}/>
+        <PassBand title={await translate('my_pass')} passes={res.passes ?? []} locale={await getLocale()}/>
       }
     </div>
   )

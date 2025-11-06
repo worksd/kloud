@@ -60,7 +60,7 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
         <div className="w-full h-[1px] bg-[#F7F8F9] "/>
       </div>
 
-      <PurchaseInformation price={price} titleResource={'pass_plan_price'}/>
+      <PurchaseInformation price={price} titleResource={'pass_plan_price'} locale={locale}/>
 
       <div className="py-5">
         <div className="w-full h-3 bg-[#F7F8F9] "/>
@@ -68,10 +68,10 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
 
       <div className="flex flex-col gap-y-5 px-6">
         {/* 판매자 정보 */}
-        {payment.passPlan?.studio && <SellerInformation studio={payment.passPlan.studio}/>}
+        {payment.passPlan?.studio && <SellerInformation studio={payment.passPlan.studio} locale={locale}/>}
 
         {/* 환불 안내 */}
-        <RefundInformation/>
+        <RefundInformation locale={locale}/>
       </div>
 
 

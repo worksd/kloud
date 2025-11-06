@@ -1,10 +1,10 @@
 'use client'
 
-import { TranslatableText } from "@/utils/TranslatableText";
 import React from "react";
 import { CommonBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { Locale } from "@/shared/StringResource";
 import { PaymentMethodSheetForm } from "@/app/profile/setting/paymentMethod/sheet/PaymentMethodSheetForm";
+import { getLocaleString } from "@/app/components/locale";
 
 export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Locale, onSuccessAction: () => void }) => {
 
@@ -20,7 +20,7 @@ export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Loca
         onClick={handleAddPaymentMethod}
         className="mt-2 w-full block px-4 py-2 rounded-xl border border-dashed border-gray-400 text-gray-600 text-sm hover:bg-gray-100 transition"
       >
-        <TranslatableText titleResource="add_payment_method_button"/>
+        <div>{getLocaleString({locale, key: 'add_payment_method_button'})}</div>
       </button>
       {open && (
         <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)} onSuccessAction={onSuccessAction}/>

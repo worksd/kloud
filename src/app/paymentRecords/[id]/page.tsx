@@ -2,7 +2,7 @@ import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.re
 import React from "react";
 import { PaymentRecordDetailForm } from "@/app/paymentRecords/[id]/PaymentRecordDetailForm";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 
 export default async function PaymentRecordDetailPage({params}: { params: Promise<{ id: string }> }) {
   const paymentId = (await params).id;
@@ -14,7 +14,7 @@ export default async function PaymentRecordDetailPage({params}: { params: Promis
 
   return (
     <div>
-      <PaymentRecordDetailForm paymentRecord={paymentRecord}/>
+      <PaymentRecordDetailForm paymentRecord={paymentRecord} locale={await getLocale()}/>
     </div>
   );
 }

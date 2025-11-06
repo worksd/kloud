@@ -3,7 +3,6 @@ import AppleLogo from "../../../public/assets/logo_apple.svg"
 import { useEffect } from "react";
 import { appleLoginAction } from "@/app/login/action/apple.login.action";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";

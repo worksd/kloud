@@ -7,10 +7,9 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { cancelSubscriptionAction } from "@/app/profile/mySubscription/[id]/cancel/cancel.subscription.action";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
-import { TranslatableText } from "@/utils/TranslatableText";
-import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 const cancelReasons = [
   '서비스가 더 이상 필요하지 않아요',
@@ -20,7 +19,7 @@ const cancelReasons = [
   '기타',
 ];
 
-const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscriptionResponse }) => {
+const SubscriptionSummaryCard = ({subscription, locale}: { subscription: GetSubscriptionResponse, locale: Locale }) => {
   const {productName, productImageUrl, status, startDate, endDate, paymentScheduledAt} = subscription;
 
   const statusColor = {
@@ -38,9 +37,9 @@ const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscription
         <div className="flex justify-between items-center">
           <div className="text-base font-semibold">{productName}</div>
           <div className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
-            {status == 'Active' ? <TranslatableText titleResource={'active'}/> :
-            status == 'Cancelled' ? <TranslatableText titleResource={'cancelled'}/> :
-              status == 'Failed' ? <TranslatableText titleResource={'failed'}/> : ''
+            {status == 'Active' ? <div>{getLocaleString({locale, key :'active'})}</div> :
+            status == 'Cancelled' ? <div>{getLocaleString({locale, key :'cancelled'})}</div> :
+              status == 'Failed' ? <div>{getLocaleString({locale, key :'failed'})}</div> : ''
           }</div>
         </div>
 
@@ -54,7 +53,7 @@ const SubscriptionSummaryCard = ({subscription}: { subscription: GetSubscription
   );
 };
 
-export default function MySubscriptionCancelForm({subscription}: { subscription: GetSubscriptionResponse }) {
+export default function MySubscriptionCancelForm({subscription, locale}: { subscription: GetSubscriptionResponse, locale: Locale }) {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
 
   const handleReasonSelect = (reason: string) => {
@@ -90,9 +89,9 @@ export default function MySubscriptionCancelForm({subscription}: { subscription:
 
   return (
     <div className="max-w-xl p-4 text-black">
-      <SubscriptionSummaryCard subscription={subscription}/>
+      <SubscriptionSummaryCard subscription={subscription} locale={locale} />
 
-      <TranslatableText className="text-sm text-gray-600 mb-6" titleResource={'select_cancel_reason'}/>
+      <div className="text-sm text-gray-600 mb-6">{getLocaleString({locale, key: 'select_cancel_reason'})}</div>
 
       <div className="space-y-3">
         {cancelReasons.map((reason) => (
@@ -131,7 +130,7 @@ export default function MySubscriptionCancelForm({subscription}: { subscription:
           selectedReason ? 'bg-black hover:bg-gray-800' : 'bg-gray-300 cursor-not-allowed'
         }`}
       >
-        <TranslatableText titleResource={'cancel_subscription'}/>
+        <div>{getLocaleString({locale, key: 'cancel_subscription'})}</div>
       </button>
     </div>
   );

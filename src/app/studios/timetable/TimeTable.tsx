@@ -3,14 +3,19 @@
 import Image from 'next/image';
 import { KloudScreen } from "@/shared/kloud.screen";
 import React, { useState } from "react";
-import { TranslatableText } from "@/utils/TranslatableText";
 import { GetTimeTableResponse } from "@/app/endpoint/studio.endpoint";
 import BackwardIcon from "../../../../public/assets/ic_simple_left_arrow.svg"
 import ForwardIcon from "../../../../public/assets/ic_simple_right_arrow.svg"
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { getLocaleString } from "@/app/components/locale";
+import { Locale } from "@/shared/StringResource";
 
-export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse, today: string }) => {
+export const TimeTable = ({timeTable, today, locale}: {
+  timeTable: GetTimeTableResponse,
+  today: string,
+  locale: Locale
+}) => {
   const [currentTimeTable, setCurrentTimeTable] = useState<GetTimeTableResponse>(timeTable)
   const maxRow = Math.max(...currentTimeTable.cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
@@ -47,7 +52,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
     <div className="flex flex-col px-1">
 
       <div className="flex py-3 px-4 ">
-        <TranslatableText titleResource={'timetable_title'} className="text-[20px] font-bold text-black"/>
+        <div className="text-[20px] font-bold text-black">{getLocaleString({locale, key: 'timetable_title'})}</div>
       </div>
 
       <div className="flex flex-row items-center justify-center gap-3 px-4 w-full pb-2">
@@ -160,7 +165,7 @@ export const TimeTable = ({timeTable, today}: { timeTable: GetTimeTableResponse,
             className="col-span-full mt-4"
             style={{gridRowStart: 2, gridColumnStart: 1}}
           >
-            <TranslatableText titleResource={'no_this_week_lessons'}/>
+            <div>{getLocaleString({locale, key: 'no_this_week_lessons'})}</div>
           </div>
         )}
       </div>
