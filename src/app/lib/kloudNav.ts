@@ -106,7 +106,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
     (route.startsWith('/lessons/') && !route.includes('/payment')) ||
-    (route.startsWith('/studios') && !route.includes('passPlans')) ||
+    (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
     route.startsWith(KloudScreen.Certification)
