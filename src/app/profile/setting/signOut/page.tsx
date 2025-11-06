@@ -1,6 +1,7 @@
 import React from "react";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import SignOutForm from "@/app/profile/setting/signOut/SignOutForm";
+import { getLocale } from "@/utils/translate";
 
 export default async function SignOut({
                                                searchParams
@@ -12,7 +13,7 @@ export default async function SignOut({
       <div className="flex justify-between items-center mb-14">
         <SimpleHeader titleResource="sign_out"/>
       </div>
-      <SignOutForm/>
+      <SignOutForm locale={await getLocale()}/>
     </div>
   )
 }

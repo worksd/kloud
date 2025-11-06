@@ -97,7 +97,12 @@ export const PaymentMethodComponent = ({
 
           {/* PASS 목록 */}
           {passes && passes.length > 0 && selectedMethod === 'pass' && option.type === 'pass' && selectPass && selectedPass &&
-            <SelectablePassList passItems={passes} onSelect={selectPass} selectedPassId={selectedPass.id}/>
+            <SelectablePassList
+              passItems={passes}
+              onSelect={selectPass}
+              selectedPassId={selectedPass.id}
+              locale={locale}
+            />
           }
 
           {/* 계좌이체 섹션 */}

@@ -1,6 +1,5 @@
 'use client'
-import React, { useEffect, useState } from "react";
-import { useLocale } from "@/hooks/useLocale";
+import React from "react";
 
 export const InputComponent = ({
                                  label,
@@ -15,12 +14,6 @@ export const InputComponent = ({
   value: string,
   onValueChangeAction: (value: string) => void,
 }) => {
-  const {t} = useLocale();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, [])
-  if (!mounted) return;
   return (
     <div className={'text-black'}>
       {/* 이름 입력 */}

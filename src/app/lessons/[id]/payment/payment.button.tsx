@@ -3,7 +3,6 @@
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import { useCallback, useEffect, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { useLocale } from "@/hooks/useLocale";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
@@ -20,6 +19,8 @@ import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capa
 import { createFreePaymentRecord } from "@/app/lessons/[id]/payment/create.free.payment.record.action";
 import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { getLocaleString } from "@/app/components/locale";
+import { Locale } from "@/shared/StringResource";
 
 export const PaymentTypes = [
   {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
@@ -45,7 +46,6 @@ type PaymentInfo = {
 }
 
 export default function PaymentButton({
-                                        url,
                                         appVersion,
                                         id,
                                         selectedPass,
@@ -57,9 +57,9 @@ export default function PaymentButton({
                                         depositor,
                                         disabled,
                                         paymentId,
-                                        user
+                                        user,
+                                        locale,
                                       }: {
-  url: string;
   appVersion: string;
   id: number,
   selectedPass?: GetPassResponse,
@@ -72,6 +72,7 @@ export default function PaymentButton({
   depositor: string,
   disabled: boolean,
   paymentId: string,
+  locale: Locale,
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -211,13 +212,6 @@ export default function PaymentButton({
 
   }, [id, method, depositor, selectedPass, selectedBilling]);
 
-  const {t} = useLocale()
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
       await onPaymentSuccess({paymentId: data.paymentId, delay: 2000})
@@ -293,11 +287,13 @@ export default function PaymentButton({
     <div>
       <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
         <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-          {mounted
-            ? method == 'pass'
-              ? t('use_pass')
-              : `${new Intl.NumberFormat("ko-KR").format(price)}${t('won')} ${t('payment')}`
-            : ''}
+          {method == 'pass'
+            ? getLocaleString({locale, key: 'use_pass'})
+            : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
+              locale,
+              key: 'won'
+            })} ${getLocaleString({locale, key: 'payment'})}`
+          }
         </p>
       </CommonSubmitButton>
       {webDialogInfo != null && <SimpleDialog

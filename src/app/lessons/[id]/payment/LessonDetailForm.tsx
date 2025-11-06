@@ -3,7 +3,7 @@ import { StudioProfileImage } from '@/app/lessons/[id]/StudioProfileImage';
 import { LessonArtistItem } from '@/app/lessons/[id]/lesson.artist.item';
 import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { LessonInfoSection } from '@/app/lessons/[id]/lesson.info.section';
-import { translate } from '@/utils/translate';
+import { getLocale, translate } from '@/utils/translate';
 import React from 'react';
 import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from '@/app/components/LessonLabel';
 import { LessonDetailButton } from '@/app/lessons/[id]/LessonDetailButton';
@@ -51,7 +51,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
               {lesson.studio && <StudioProfileImage studio={lesson.studio}/>}
               <div className="justify-center items-start gap-[3px] flex">
                 {lesson.level && <LessonLevelLabel label={lesson.level}/>}
-                {lesson.type && <LessonTypeLabel type={lesson.type}/>}
+                {lesson.type && <LessonTypeLabel type={lesson.type} locale={await getLocale()}/>}
                 {lesson.genre && lesson.genre != 'Default' && <LessonLabel label={lesson.genre}/>}
               </div>
             </div>

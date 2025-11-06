@@ -84,7 +84,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
 
       <div className="left-0 w-full fixed bottom-2 px-6">
         <PaymentButton
-          url={url}
+          locale={locale}
           method={selectedMethod}
           appVersion={appVersion}
           selectedBilling={selectedBillingCard}

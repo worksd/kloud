@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import CheckIcon from "../../../../../public/assets/check_white.svg"
-import { KloudScreen } from "@/shared/kloud.screen";
 import { clearCookies } from "@/app/profile/clear.token.action";
 import { deleteUserAction } from "@/app/profile/sign.out.action";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
-import { useLocale } from "@/hooks/useLocale";
-import { StringResource, StringResourceKey } from "@/shared/StringResource";
+import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { getLocaleString } from "@/app/components/locale";
 
 const reasons: StringResourceKey[] = [
   "sign_out_reason_no_contents",
@@ -19,8 +18,7 @@ const reasons: StringResourceKey[] = [
   "guitar",
 ];
 
-export default function SignOutForm() {
-  const { t } = useLocale();
+export default function SignOutForm({locale}: { locale: Locale }) {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [otherReason, setOtherReason] = useState("");
 
@@ -61,12 +59,15 @@ export default function SignOutForm() {
 
   return (
     <div className="flex flex-col p-6 bg-white rounded-lg max-w-md mx-auto">
-      <h2 className="text-xl font-bold text-black">{t("sign_out_title")}</h2>
+      <h2 className="text-xl font-bold text-black">{getLocaleString({locale, key: 'sign_out_title'})}</h2>
       <p className="text-gray-500 mt-2">
-        {t("sign_out_description")}
+        {getLocaleString({locale, key: "sign_out_description"})}
       </p>
 
-      <h3 className="font-bold mt-6 text-[16px] text-black">{t('sign_out_reason_question')}</h3>
+      <h3 className="font-bold mt-6 text-[16px] text-black">{getLocaleString({
+        locale,
+        key: 'sign_out_reason_question'
+      })}</h3>
 
       <div className="mt-4 space-y-2">
         {reasons.map((reason) => (
@@ -93,7 +94,7 @@ export default function SignOutForm() {
                 <CheckIcon/>
               )}
             </div>
-            <span className="ml-4 text-[14px] text-[#222222]">{t(reason)}</span>
+            <span className="ml-4 text-[14px] text-[#222222]">{getLocaleString({locale, key: reason})}</span>
           </label>
         ))}
       </div>
@@ -102,7 +103,7 @@ export default function SignOutForm() {
         <textarea
           className="w-full mt-3 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-black text-[14px] text-black touch-action-manipulation"
           style={{touchAction: "manipulation"}}
-          placeholder={t('sign_out_reason_placeholder')}
+          placeholder={getLocaleString({locale, key: 'sign_out_reason_placeholder'})}
           value={otherReason}
           onChange={(e) => setOtherReason(e.target.value)}
         />
@@ -114,14 +115,14 @@ export default function SignOutForm() {
           className="flex-1 py-3 px-5 border border-gray-400 rounded-lg text-gray-700
                active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
         >
-          {t('continue_use')}
+          {getLocaleString({locale, key: 'continue_use'})}
         </button>
         <button
           onClick={onClickSignOut}
           className="flex-1 py-3 px-5 bg-black text-white rounded-lg
                active:scale-[0.98] active:bg-gray-900 transition-all duration-150"
         >
-          {t('do_sign_out')}
+          {getLocaleString({locale, key: 'do_sign_out'})}
         </button>
       </div>
     </div>

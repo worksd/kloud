@@ -462,7 +462,7 @@ export const OnboardingForm = ({
           )}
           {step === 'agreement' && (
             <div className="mt-9">
-              <AgreementForm checkboxes={checkboxes} handleCheckboxChangeAction={handleCheckboxChange}/>
+              <AgreementForm checkboxes={checkboxes} handleCheckboxChangeAction={handleCheckboxChange} locale={locale}/>
             </div>
           )}
 

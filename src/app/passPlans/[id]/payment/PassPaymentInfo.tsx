@@ -8,7 +8,6 @@ import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation"
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { Locale } from "@/shared/StringResource";
 
 export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDepositor, locale}: {
@@ -77,7 +76,7 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
 
       <div className="px-6 mt-4 bottom-2 sticky">
         <PaymentButton
-          url={url}
+          locale={locale}
           type={{value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'}}
           title={payment.passPlan?.name ?? ''}
           price={price}

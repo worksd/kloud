@@ -2,7 +2,6 @@
 import HidePasswordIcon from "../../../../../../public/assets/hide-password.svg";
 import ShowPasswordIcon from "../../../../../../public/assets/show-password.svg";
 import React, { useEffect, useState } from "react";
-import { useLocale } from "@/hooks/useLocale";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../../../../public/assets/check.svg";
@@ -29,8 +28,6 @@ export const ResetPasswordForm = ({locale} : {locale: Locale}) => {
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const {t} = useLocale();
 
   const onOldPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOldPassword(e.target.value);
@@ -194,9 +191,9 @@ export const ResetPasswordForm = ({locale} : {locale: Locale}) => {
           {isSubmitting ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>
           ) : page === 'current' ? (
-            t('next')
+            getLocaleString({locale, key: 'next'})
           ) : (
-            t('confirm')
+            getLocaleString({locale, key: 'confirm'})
           )}
         </CommonSubmitButton>
       </div>

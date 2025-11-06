@@ -1,7 +1,7 @@
 'use client'
 import { LessonType } from "@/entities/lesson/lesson";
-import { StringResourceKey } from "@/shared/StringResource";
-import { useLocale } from "@/hooks/useLocale";
+import { Locale, StringResourceKey } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 export const LessonLabel = ({label}: { label: string }) => {
   return (
@@ -12,8 +12,7 @@ export const LessonLabel = ({label}: { label: string }) => {
   );
 };
 
-export const LessonTypeLabel = ({type}: { type: LessonType }) => {
-  const {t} = useLocale();
+export const LessonTypeLabel = ({type, locale}: { type: LessonType, locale: Locale }) => {
   const labelKey = getLessonType({type});
 
   if (!labelKey) return null;
@@ -21,7 +20,7 @@ export const LessonTypeLabel = ({type}: { type: LessonType }) => {
   return (
     <div
       className="inline-block px-1 py-0.5 rounded-[4px] text-[12px] font-paperlogy bg-[rgba(0,0,0,0.5)] text-white shadow-sm backdrop-blur-sm">
-      {t(labelKey)}
+      {getLocaleString({locale, key: labelKey})}
     </div>
   );
 };

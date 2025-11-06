@@ -1,15 +1,17 @@
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { useEffect, useState } from "react";
-import { useLocale } from "@/hooks/useLocale";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 export const SelectablePassList = ({
                                      passItems,
                                      onSelect,
                                      selectedPassId,
+                                     locale,
                                    }: {
   passItems: GetPassResponse[],
   onSelect: (pass: GetPassResponse) => void,
   selectedPassId: number | null
+  locale: Locale,
 }) => {
   return (
     <div className="w-full overflow-x-auto scrollbar-hide">
@@ -20,6 +22,7 @@ export const SelectablePassList = ({
             pass={item}
             isSelected={selectedPassId === item.id}
             onSelect={() => onSelect(item)}
+            locale={locale}
           />
         ))}
       </div>
@@ -27,17 +30,12 @@ export const SelectablePassList = ({
   );
 };
 
-const SelectablePassItem = ({pass, isSelected, onSelect}: {
+const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
   pass: GetPassResponse,
   isSelected: boolean,
+  locale: Locale,
   onSelect: () => void
 }) => {
-  const {t} = useLocale();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, [])
-  if (!mounted) return null;
   return (
     <div
       className={`bg-white rounded-3xl p-6 flex-shrink-0 transition-all duration-200 select-none cursor-pointer 
@@ -50,7 +48,10 @@ const SelectablePassItem = ({pass, isSelected, onSelect}: {
       <div className="flex flex-row items-center text-center font-bold text-xl ">
         <h2 className="tracking-tight">{pass.passPlan?.name}</h2>
         {pass.remainingCount &&
-          <div className={'tracking-tight'}>({pass.remainingCount}{mounted ? t('remaining_count') : ''})</div>
+          <div className={'tracking-tight'}>({pass.remainingCount}{getLocaleString({
+            locale,
+            key: 'remaining_count'
+          })})</div>
         }
       </div>
     </div>

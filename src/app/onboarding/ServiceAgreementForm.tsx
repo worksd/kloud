@@ -1,17 +1,17 @@
 import { ChangeEvent } from "react";
-import { useLocale } from "@/hooks/useLocale";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
-export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
+export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: {
   checkboxes: {
     terms: boolean,
     privacy: boolean,
     all: boolean,
-  }, handleCheckboxChangeAction: (e: ChangeEvent<HTMLInputElement>) => void
+  }, handleCheckboxChangeAction: (e: ChangeEvent<HTMLInputElement>) => void,
+  locale: Locale,
 }) => {
-
-  const { t } = useLocale()
 
   const onClickTerms = () => {
     kloudNav.push(KloudScreen.Terms)
@@ -27,7 +27,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
 
       <main className="flex-1 space-y-4 mt-12">
         <div className="flex items-center justify-between border-b pb-4">
-          <span className="text-lg text-black font-bold">{t('all_agreement')}</span>
+          <span className="text-lg text-black font-bold">{getLocaleString({locale, key: 'all_agreement'})}</span>
           <input
             type="checkbox"
             name="all"
@@ -41,7 +41,10 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
           <div className="flex items-center justify-between">
             <div className="flex flex-row items-center gap-1 mb-1 mr-2">
                   <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}
-                        onClick={onClickTerms}>{t('service_terms_agreement_required')}</span>
+                        onClick={onClickTerms}>{getLocaleString({
+                    locale,
+                    key: 'service_terms_agreement_required'
+                  })}</span>
               <RightArrow isChecked={checkboxes.terms}/>
             </div>
             <input
@@ -56,7 +59,10 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction}: {
           <div className="flex items-center justify-between">
             <div className="flex flex-row items-center gap-1 mb-1 mr-2">
                   <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}
-                        onClick={onClickPrivacy}>{t('service_privacy_agreement_required')}</span>
+                        onClick={onClickPrivacy}>{getLocaleString({
+                    locale,
+                    key: 'service_privacy_agreement_required'
+                  })}</span>
               <RightArrow isChecked={checkboxes.privacy}/>
             </div>
             <input

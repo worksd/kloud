@@ -41,7 +41,7 @@ export const LoginForm = (props: LoginFormProps) => {
 
   const onClickSignUp = async () => {
     const signUpQuery = props.returnUrl ? `?returnUrl=${props.returnUrl}` : ''
-    await kloudNav.push(KloudScreen.SignUp(signUpQuery))
+    kloudNav.push(KloudScreen.SignUp(signUpQuery))
   }
 
   const onClickLogin = async () => {

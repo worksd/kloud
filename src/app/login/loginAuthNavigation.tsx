@@ -10,7 +10,7 @@ export const LoginAuthNavigation = async ({status, message, window}: {status?: U
     await kloudNav.navigateMain({})
   }
   else if (status == UserStatus.Deactivate) {
-    await kloudNav.push(KloudScreen.LoginDeactivate)
+    kloudNav.push(KloudScreen.LoginDeactivate)
   }
   else if (status == UserStatus.New) {
     kloudNav.clearAndPush(KloudScreen.Onboard(''))

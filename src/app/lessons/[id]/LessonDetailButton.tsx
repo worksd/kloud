@@ -2,7 +2,6 @@
 
 import { GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { kloudNav } from "@/app/lib/kloudNav";
 
 type IProps = {
@@ -57,13 +56,6 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
   appVersion: string
 }) => {
 
-  const [mounted, setMounted] = React.useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, [])
-
-  if (!mounted) return null;
   if (!buttons || buttons.length === 0) {
     return (
       <CommonSubmitButton disabled>
