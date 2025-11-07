@@ -1836,8 +1836,8 @@ export const StringResource = {
     zh: '购买记录',
   },
   account_transfer_information: {
-    ko: '계좌이체 정보',
-    en: 'Account Transfer Information',
+    ko: '스튜디오 계좌이체 정보',
+    en: 'Studio Account Transfer Information',
     jp: '口座振込情報',
     zh: '银行转账信息',
   },
