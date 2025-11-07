@@ -77,7 +77,7 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
 
   const handleOnClick = async ({ route }: { route?: string }) => {
     if (route) {
-      await kloudNav.push(route);
+      kloudNav.push(route);
     }
   };
 
