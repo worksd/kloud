@@ -81,7 +81,7 @@ export const kloudNav = {
     const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList,
-      routeInfo: JSON.stringify({
+      route: JSON.stringify({
         route,
         title: await applyTitle(route ?? ''),
       })
