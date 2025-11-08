@@ -81,10 +81,10 @@ export const kloudNav = {
     const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList,
-      routeInfo: {
+      routeInfo: JSON.stringify({
         route,
         title: await applyTitle(route ?? ''),
-      }
+      })
     })
     if (isMobile()) (window as any).KloudEvent.navigateMain(bootInfo);
   },
