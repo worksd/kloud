@@ -12,11 +12,9 @@ import { VerificationCodeForm } from "@/app/login/phone/VerificationCodeForm";
 import { flushSync } from "react-dom";
 import { AgreementForm } from "@/app/onboarding/ServiceAgreementForm";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { GenderBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
-import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"
@@ -142,7 +140,7 @@ export const OnboardingForm = ({
     } else if (step == 'agreement') {
       setStep('complete')
     } else if (step == 'code') {
-      const res = await updateUserAction({ phone, countryCode, code })
+      const res = await updateUserAction({phone, countryCode, code})
       if ('success' in res && res.success) {
         setStep('agreement')
       }

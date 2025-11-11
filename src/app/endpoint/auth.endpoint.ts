@@ -61,6 +61,7 @@ export type VerifyCodeParameter = {
   code: string;
   phone: string;
   countryCode: string;
+  isAdmin: boolean;
 }
 
 export const PostAuthEmail: Endpoint<PostAuthEmailParameter, PostAuthLoginResponse> = {
@@ -107,7 +108,7 @@ export const SendPhoneVerification: Endpoint<SendPhoneVerificationCodeParameter,
 export const CheckPhoneVerification: Endpoint<VerifyCodeParameter, PostAuthLoginResponse> = {
   method: 'post',
   path: '/auth/phone-login',
-  bodyParams: ['code', 'phone', 'countryCode']
+  bodyParams: ['code', 'phone', 'countryCode', 'isAdmin']
 }
 
 export type SendPhoneVerificationResponse = {

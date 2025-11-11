@@ -98,7 +98,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       }
     } else if (step === 'code') {
       if (isFromLogin) {
-        const res = await checkVerificationCodeAction({code, phone, countryCode})
+        const res = await checkVerificationCodeAction({code, phone, countryCode, isAdmin: false})
         if ('accessToken' in res && res.accessToken) {
           await loginSuccessAction({
             accessToken: res.accessToken,
