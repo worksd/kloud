@@ -54,7 +54,7 @@ export default async function MyPassDetailPage({params}: {
 
         <Divider/>
         <div className={'py-5'}>
-          <PassTicketUsageHistory tickets={pass.tickets} locale={await getLocale()}/>
+          <PassTicketUsageHistory tickets={pass.tickets}/>
         </div>
 
         {pass.status == 'Active' &&
