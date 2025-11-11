@@ -1,3 +1,5 @@
+'use client'
+
 import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
@@ -5,7 +7,7 @@ import CheckIcon from "../../../../../public/assets/ic_check_black.svg"
 import { saveStudioIdAction } from "@/app/studios/save.studio.id.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export const StudioSheetItem = async ({item, isSelected}: { item: GetStudioResponse, isSelected: boolean }) => {
+export const StudioSheetItem = ({item, isSelected}: { item: GetStudioResponse, isSelected: boolean }) => {
   const handleOnClickStudio = async () => {
     await saveStudioIdAction({studioId: item.id})
     await kloudNav.navigateMain({})
