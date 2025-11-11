@@ -2,9 +2,15 @@ import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import CheckIcon from "../../../../../public/assets/ic_check_black.svg"
+import { saveStudioIdAction } from "@/app/studios/save.studio.id.action";
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export const StudioSheetItem = async ({item, isSelected}: { item: GetStudioResponse, isSelected: boolean }) => {
-  return <div>
+  const handleOnClickStudio = async () => {
+    await saveStudioIdAction({studioId: item.id})
+    await kloudNav.navigateMain({})
+  }
+  return <div onClick={handleOnClickStudio}>
     <div
       className="px-6 py-4 active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none">
       <div className="flex items-center justify-between w-full max-w-md rounded-lg">
