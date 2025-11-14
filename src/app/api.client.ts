@@ -103,6 +103,10 @@ export class ApiClient extends EndpointClient {
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
   }
+
+  readonly studentParentConnection = {
+      connectParent: this.endpointBuilder(API.StudentConnection.CreateParentConnection)
+  }
 }
 
 export interface ClientOptions {
