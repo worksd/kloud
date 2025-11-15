@@ -39,6 +39,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           alt={lesson?.title ?? 'thumbnail'}
           fill
           className="object-cover"
+          quality={60}
         />
       </div>
 

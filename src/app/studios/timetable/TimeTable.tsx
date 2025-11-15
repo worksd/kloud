@@ -145,6 +145,7 @@ export const TimeTable = ({timeTable, today, locale}: {
                       alt="lesson thumbnail"
                       fill
                       className="object-cover"
+                      quality={50}
                     />
                   </div>
                   <div
