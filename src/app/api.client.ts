@@ -20,6 +20,7 @@ export class ApiClient extends EndpointClient {
     update: this.endpointBuilder(API.User.UpdateUser),
     delete: this.endpointBuilder(API.User.DeleteUser),
     checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
+    connectParent: this.endpointBuilder(API.User.CreateParentConnection)
   }
 
   readonly lesson = {
@@ -102,10 +103,6 @@ export class ApiClient extends EndpointClient {
 
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
-  }
-
-  readonly studentParentConnection = {
-      connectParent: this.endpointBuilder(API.StudentConnection.CreateParentConnection)
   }
 }
 

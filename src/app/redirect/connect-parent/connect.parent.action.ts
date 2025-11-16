@@ -6,5 +6,5 @@ export const connectParentAction = async ({studentUserId, parentPhone, parentNam
     parentPhone: string,
     parentName?: string
 }) => {
-    return await api.studentParentConnection.connectParent({studentUserId, parentPhone, parentName})
+    return await api.user.connectParent({studentUserId, parentPhone, parentName})
 }

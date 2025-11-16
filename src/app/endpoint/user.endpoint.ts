@@ -66,6 +66,12 @@ export type PatchUserParameter = {
   code?: string,
 }
 
+export type CreateParentConnectionParameter = {
+  studentUserId: number,
+  parentPhone: string,
+  parentName?: string,
+}
+
 export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
@@ -83,4 +89,10 @@ export const CheckDuplicate: Endpoint<{ nickName?: string, phone?: string}, Simp
   method: 'post',
   path: '/users/duplicate-check',
   bodyParams: ['nickName', 'phone']
+}
+
+export const CreateParentConnection: Endpoint<CreateParentConnectionParameter, SimpleResponse> = {
+  method: "post",
+  path: `/studentParentUserConnection`,
+  bodyParams: ['studentUserId', 'parentName', 'parentPhone']
 }
