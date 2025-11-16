@@ -93,6 +93,6 @@ export const CheckDuplicate: Endpoint<{ nickName?: string, phone?: string}, Simp
 
 export const CreateParentConnection: Endpoint<CreateParentConnectionParameter, SimpleResponse> = {
   method: "post",
-  path: `/studentParentUserConnection`,
+  path: (e) => `/users/${e.studentUserId}/connect-parent`,
   bodyParams: ['studentUserId', 'parentName', 'parentPhone']
 }
