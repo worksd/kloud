@@ -113,9 +113,6 @@ export default async function ConnectParentPage({ searchParams }: {
               <div className="mt-6">
                 {baseDetails}
               </div>
-              <div className="mt-6 flex items-center justify-end">
-                <a href="/redirect/connect-parent" className="inline-flex items-center rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700">다시 시도</a>
-              </div>
             </Body>
           </Card>
         </Shell>
@@ -132,9 +129,6 @@ export default async function ConnectParentPage({ searchParams }: {
           />
           <Body>
             {baseDetails}
-            <div className="mt-6 flex items-center justify-end">
-              <a href="/redirect/connect-parent" className="inline-flex items-center rounded-xl bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800">다시 시도</a>
-            </div>
           </Body>
         </Card>
       </Shell>
