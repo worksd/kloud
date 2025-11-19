@@ -16,7 +16,7 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { GenderBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
-import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
+import { phoneLoginAction } from "@/app/login/phone/phoneLoginAction";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"

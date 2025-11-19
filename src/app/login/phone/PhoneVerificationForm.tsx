@@ -6,7 +6,7 @@ import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import BackIcon from "../../../../public/assets/ic_back.svg";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { VerificationCodeForm } from "@/app/login/phone/VerificationCodeForm";
-import { checkVerificationCodeAction } from "@/app/login/phone/check.verification.code.action";
+import { phoneLoginAction } from "@/app/login/phone/phoneLoginAction";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
@@ -98,7 +98,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       }
     } else if (step === 'code') {
       if (isFromLogin) {
-        const res = await checkVerificationCodeAction({code, phone, countryCode})
+        const res = await phoneLoginAction({code, phone, countryCode})
         if ('accessToken' in res && res.accessToken) {
           await loginSuccessAction({
             accessToken: res.accessToken,
