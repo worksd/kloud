@@ -8,6 +8,7 @@ import { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
 export type GetPaymentRequest = {
   itemId: number
   item: string
+  targetUserId?: number
 }
 
 export type GetPaymentResponse = {
@@ -23,7 +24,7 @@ export type GetPaymentResponse = {
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   method: "get",
   path: `/payment`,
-  queryParams: ['itemId', 'item']
+  queryParams: ['itemId', 'item', 'targetUserId']
 };
 
 

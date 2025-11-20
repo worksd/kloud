@@ -2,7 +2,7 @@ import {notFound} from "next/navigation";
 import {Thumbnail} from "@/app/components/Thumbnail";
 import {getLessonPaymentAction} from "@/app/lessons/[id]/payment/payment.detail.action";
 import {cookies} from "next/headers";
-import {depositorKey} from "@/shared/cookies.key";
+import {depositorKey, userIdKey} from "@/shared/cookies.key";
 import React from "react";
 import {LessonPaymentInfo} from "@/app/lessons/[id]/payment/lesson.payment.info";
 import {CircleImage} from "@/app/components/CircleImage";
@@ -10,12 +10,13 @@ import {getLocale, translate} from "@/utils/translate";
 
 export default async function LessonPaymentPage({params, searchParams}: {
   params: Promise<{ id: number }>,
-  searchParams: Promise<{ os: string, appVersion: string }>
+  searchParams: Promise<{ os: string, appVersion: string, targetUserId?: number }>
 }) {
   const {id} = await params
-  const {appVersion, os} = await searchParams
-  const res = await getLessonPaymentAction({id: id})
-  if ('user' in res) {
+  const {appVersion, targetUserId} = await searchParams
+  const res = await getLessonPaymentAction({id: id, targetUserId })
+  const cookieValue = (await cookies()).get(userIdKey)?.value;
+  const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;  if ('user' in res) {
     if (res.lesson?.status != '예약 중' && res.lesson?.status != '선예약 중') {
       return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
     }
@@ -61,6 +62,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
                 payment={res}
                 beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
                 locale={await getLocale()}
+                actualPayerUserId={actualPayerUserId}
             />
           </div>
         </div>

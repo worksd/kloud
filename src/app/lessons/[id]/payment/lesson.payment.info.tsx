@@ -11,11 +11,12 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale } from "@/shared/StringResource";
 
-export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepositor}: {
+export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepositor, actualPayerUserId}: {
   payment: GetPaymentResponse,
   url: string,
   appVersion: string,
   beforeDepositor: string,
+  actualPayerUserId?: number,
   locale: Locale
 }) => {
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
@@ -100,6 +101,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
             (selectedMethod === 'pass' && !selectedPass)
           }
           paymentId={payment.paymentId}
+          actualPayerUserId={actualPayerUserId}
         />
       </div>
     </div>

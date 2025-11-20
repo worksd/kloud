@@ -58,6 +58,7 @@ export default function PaymentButton({
                                         disabled,
                                         paymentId,
                                         user,
+                                        actualPayerUserId,
                                         locale,
                                       }: {
   appVersion: string;
@@ -72,6 +73,7 @@ export default function PaymentButton({
   depositor: string,
   disabled: boolean,
   paymentId: string,
+  actualPayerUserId?: number,
   locale: Locale,
 }) {
 
@@ -140,7 +142,7 @@ export default function PaymentButton({
           customer: {fullName: `${user.id}`},
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
           customData: {
-            actualPayerUserId: 361 // TODO 하드코딩 수정
+            actualPayerUserId
           }
         };
 
