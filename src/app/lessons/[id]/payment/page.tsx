@@ -25,9 +25,7 @@ export default async function LessonPaymentPage({params, searchParams}: {
     }
     return (
       <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
-        {/* 백 헤더 */}
-
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${appVersion === "" ? "p-4" : ""}`}>
           {/* 수업 정보 */}
           <div className="flex gap-4 w-full px-6 items-center">
             <Thumbnail url={res.lesson?.thumbnailUrl ?? ''} width={86}

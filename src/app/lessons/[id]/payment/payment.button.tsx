@@ -84,7 +84,8 @@ export default function PaymentButton({
       setIsSubmitting(true);
       await new Promise(resolve => setTimeout(resolve, delay)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
-      await kloudNav.navigateMain({route: pushRoute});
+      if (appVersion !== '')  await kloudNav.navigateMain({route: pushRoute});
+      else router.replace(pushRoute)
     } catch (e) {
       console.log(e);
       const dialog = await createDialog({id: 'PaymentFail'});
