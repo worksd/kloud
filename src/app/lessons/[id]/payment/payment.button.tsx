@@ -139,6 +139,9 @@ export default function PaymentButton({
           currency: 'CURRENCY_KRW',
           customer: {fullName: `${user.id}`},
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
+          customData: {
+            actualPayerUserId: 361 // TODO 하드코딩 수정
+          }
         };
 
         await requestPayment(mobileWebPaymentRequest);
