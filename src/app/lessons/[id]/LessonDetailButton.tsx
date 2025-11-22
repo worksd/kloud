@@ -3,6 +3,7 @@
 import { GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
 import React, { useEffect } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
+import {useRouter} from "next/navigation";
 
 type IProps = {
   children: React.ReactNode;
@@ -56,6 +57,8 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
   appVersion: string
 }) => {
 
+  const router = useRouter();
+
   if (!buttons || buttons.length === 0) {
     return (
       <CommonSubmitButton disabled>
@@ -77,7 +80,11 @@ export const LessonDetailButton = ({id, buttons, appVersion}: {
 
   const handleOnClick = async ({ route }: { route?: string }) => {
     if (route) {
-      kloudNav.push(route);
+      if (appVersion === '') {
+        router.push(route)
+      } else {
+        kloudNav.push(route);
+      }
     }
   };
 
