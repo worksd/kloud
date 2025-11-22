@@ -6,12 +6,12 @@ import { translate } from "@/utils/translate";
 
 export default async function TicketDetail({params, searchParams}: {
   params: Promise<{ id: number }>,
-  searchParams: Promise<{ isJustPaid: string, inviteCode: string }>
+  searchParams: Promise<{ isJustPaid: string, inviteCode: string, isParent: boolean }>
 }) {
-  const {isJustPaid, inviteCode} = await searchParams
+  const {isJustPaid, inviteCode, isParent} = await searchParams
   const ticket = inviteCode && inviteCode.length == 10 ?
     await api.ticket.getInviteTicket({inviteCode})
-    : await api.ticket.get({id: (await params).id});
+    : await api.ticket.get({id: (await params).id, isParent});
   if ('id' in ticket) {
     return <div>
       <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode}/>

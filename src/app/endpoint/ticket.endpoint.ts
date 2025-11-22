@@ -37,14 +37,20 @@ export type CheckDupliateTicketParameter = {
   lessonId: number;
 }
 
+export type GetTicketParameter = {
+  id: number;
+  isParent: boolean;
+}
+
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
   method: 'get',
   path: `/tickets`,
 };
 
-export const GetTicket: Endpoint<IdParameter, TicketResponse> = {
+export const GetTicket: Endpoint<GetTicketParameter, TicketResponse> = {
   method: 'get',
   path: (e) => `/tickets/${e.id}`,
+  queryParams: ['isParent']
 }
 
 export const GetInviteTicket: Endpoint<GetInviteTicketParameter, TicketResponse> = {
