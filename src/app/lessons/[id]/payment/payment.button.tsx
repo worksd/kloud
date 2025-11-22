@@ -84,11 +84,10 @@ export default function PaymentButton({
   const onPaymentSuccess = useCallback(async ({paymentId, delay}: { paymentId: string, delay: number }) => {
     try {
       setIsSubmitting(true);
-      await new Promise(resolve => setTimeout(resolve, delay)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
+      await new Promise(resolve => setTimeout(resolve, delay));
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
-      console.log(`pushRoute = ${pushRoute} appVersion = ${appVersion}`)
-      if (appVersion !== '')  await kloudNav.navigateMain({route: pushRoute});
-      else router.replace(pushRoute)
+      if (appVersion === '') router.replace(pushRoute) ;
+      else await kloudNav.navigateMain({route: pushRoute});
     } catch (e) {
       console.log(e);
       const dialog = await createDialog({id: 'PaymentFail'});
