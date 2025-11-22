@@ -240,6 +240,7 @@ export default function PaymentButton({
           item: type.apiValue,
           itemId: id,
           depositor: depositor,
+          targetUserId: user?.id,
         });
         if ('paymentId' in res) {
           await onPaymentSuccess({paymentId: res.paymentId, delay: 0})
