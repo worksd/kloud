@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     console.log(url.searchParams)
     const res = await getDynamicCommon({ path: `/tickets/duplicate-check?userId=${targetUserId}&lessonId=${itemId}`})
     if ('id' in res) {
-      redirect(KloudScreen.TicketDetail(res.id, false))
+      redirect(KloudScreen.TicketDetail(res.id, true))
     }
   }
 
