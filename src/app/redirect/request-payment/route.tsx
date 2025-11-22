@@ -12,13 +12,14 @@ export async function GET(req: NextRequest) {
   const phone = url.searchParams.get('phone') ?? ''
   const countryCode = url.searchParams.get('countryCode') ?? 'KR'
   const redirectUrl = url.searchParams.get('redirectUrl') ?? '/'
-  const duplicateCheckUrl = url.searchParams.get('duplicateCheckUrl')
+  const itemId = url.searchParams.get('itemId')
+  const targetUserId = url.searchParams.get('targetUserId')
 
   const dial = COUNTRIES.find(v => v.key === countryCode)?.dial ?? '82'
 
-  if (duplicateCheckUrl) {
+  if (itemId) {
     console.log(url.searchParams)
-    const res = await getDynamicCommon({ path: duplicateCheckUrl})
+    const res = await getDynamicCommon({ path: `/tickets/duplicate-check?userId=${targetUserId}&lessonId=${itemId}`})
     if ('id' in res) {
       redirect(KloudScreen.TicketDetail(res.id, false))
     }
