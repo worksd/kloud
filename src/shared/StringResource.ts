@@ -1805,6 +1805,12 @@ export const StringResource = {
     jp: '支払い完了',
     zh: '付款完成',
   },
+  payment_record_failed: {
+    ko: '결제 실패',
+    en: 'Payment Failed',
+    jp: '支払い失敗',
+    zh: '付款失败',
+  },
   payment_record_cancelled: {
     ko: '결제 취소',
     en: 'Payment Cancelled',
