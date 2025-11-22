@@ -6,7 +6,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { useRouter } from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import { SimpleDialog } from "@/app/components/SimpleDialog";
 import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
@@ -86,7 +86,7 @@ export default function PaymentButton({
       setIsSubmitting(true);
       await new Promise(resolve => setTimeout(resolve, delay));
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
-      if (appVersion === '') router.replace(pushRoute) ;
+      if (appVersion === '') redirect(pushRoute) ;
       else await kloudNav.navigateMain({route: pushRoute});
     } catch (e) {
       console.log(e);
