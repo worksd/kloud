@@ -1,7 +1,7 @@
 "use client";
 
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
-import { useCallback, useEffect, useState } from "react";
+import {startTransition, useCallback, useEffect, useState} from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
@@ -81,26 +81,39 @@ export default function PaymentButton({
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   const router = useRouter();
 
-  const onPaymentSuccess = useCallback(async ({paymentId, delay}: { paymentId: string, delay: number }) => {
+  const onPaymentSuccess = useCallback(async ({ paymentId, delay }: { paymentId: string; delay: number }) => {
     try {
       setIsSubmitting(true);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((r) => setTimeout(r, delay));
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
       const isWeb = !appVersion?.trim();
       if (isWeb) {
-        router.replace(pushRoute);
+        const href = '/' + String(pushRoute).replace(/^\/+/, '');
+        setIsSubmitting(false);
+        startTransition(() => {
+          router.push(href);
+        });
+        setTimeout(() => {
+          if (window.location.pathname !== href) {
+            router.refresh();
+          }
+        }, 0);
+        setTimeout(() => {
+          if (window.location.pathname !== href) {
+            window.location.assign(href);
+          }
+        }, 100);
       } else {
         await kloudNav.navigateMain({ route: pushRoute });
       }
     } catch (e) {
       console.log(e);
-      const dialog = await createDialog({id: 'PaymentFail'});
+      const dialog = await createDialog({ id: 'PaymentFail' });
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     } finally {
       setIsSubmitting(false);
     }
   }, [router, appVersion]);
-
   const handlePayment = useCallback(async () => {
     if (!user || !('id' in user)) {
       setIsSubmitting(false);
