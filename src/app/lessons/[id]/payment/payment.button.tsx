@@ -86,8 +86,12 @@ export default function PaymentButton({
       setIsSubmitting(true);
       await new Promise(resolve => setTimeout(resolve, delay));
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
-      if (appVersion === '') redirect(pushRoute) ;
-      else await kloudNav.navigateMain({route: pushRoute});
+      const isWeb = !appVersion?.trim();
+      if (isWeb) {
+        router.replace(pushRoute);
+      } else {
+        await kloudNav.navigateMain({ route: pushRoute });
+      }
     } catch (e) {
       console.log(e);
       const dialog = await createDialog({id: 'PaymentFail'});
