@@ -58,9 +58,9 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
           depositor={depositor}
           setDepositorAction={setDepositor}
           refundAccount={{
-            holderName: payment.user.refundAccountDepositor,
-            bankName: payment.user.refundAccountBank,
-            accountNumber: payment.user.refundAccountNumber
+            holderName: payment.refundAccountDepositor,
+            bankName: payment.refundAccountBank,
+            accountNumber: payment.refundAccountNumber
           }}
         />
       </div>

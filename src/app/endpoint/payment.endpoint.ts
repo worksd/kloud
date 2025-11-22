@@ -19,6 +19,9 @@ export type GetPaymentResponse = {
   lesson?: GetLessonResponse;
   passPlan?: GetPassPlanResponse;
   paymentId: string;
+  refundAccountNumber?: string
+  refundAccountBank?: string
+  refundAccountDepositor?: string
 }
 
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
