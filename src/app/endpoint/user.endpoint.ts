@@ -55,7 +55,8 @@ export type PatchUserParameter = {
   nickName?: string
   type: UserType
   phone?: string
-  rrn?: string
+  birth?: string
+  gender?: string
   refundAccountNumber?: string
   refundAccountBank?: string
   refundDepositor?: string
@@ -75,7 +76,7 @@ export type CreateParentConnectionParameter = {
 export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
-  bodyParams: ['name', 'nickName', 'type', 'phone', 'rrn', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country', 'password', 'countryCode', 'code'],
+  bodyParams: ['name', 'nickName', 'type', 'phone', 'birth', 'gender', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country', 'password', 'countryCode', 'code'],
   pathParams: ['id']
 }
 
