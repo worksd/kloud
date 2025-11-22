@@ -86,6 +86,7 @@ export default function PaymentButton({
       setIsSubmitting(true);
       await new Promise(resolve => setTimeout(resolve, delay)); // 웹훅이 서버에 결제내역을 등록할때까지 딜레이
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
+      console.log(`pushRoute = ${pushRoute} appVersion = ${appVersion}`)
       if (appVersion !== '')  await kloudNav.navigateMain({route: pushRoute});
       else router.replace(pushRoute)
     } catch (e) {
@@ -95,7 +96,7 @@ export default function PaymentButton({
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [router, appVersion]);
 
   const handlePayment = useCallback(async () => {
     if (!user || !('id' in user)) {
