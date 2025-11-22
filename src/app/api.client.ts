@@ -45,6 +45,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.Ticket.ListTickets),
     create: this.endpointBuilder(API.Ticket.CreateTicket),
     getInviteTicket: this.endpointBuilder(API.Ticket.GetInviteTicket),
+    checkDuplicate: this.endpointBuilder(API.Ticket.CheckDuplicateTicket),
   }
 
   readonly question = {
@@ -103,6 +104,10 @@ export class ApiClient extends EndpointClient {
 
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
+  }
+
+  readonly common = {
+    get: this.endpointBuilder(API.DynamicRoute.DynamicGET)
   }
 }
 

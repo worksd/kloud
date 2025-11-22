@@ -32,6 +32,11 @@ export type CreateTicketParameter = {
   passId?: number;
 }
 
+export type CheckDupliateTicketParameter = {
+  userId: number;
+  lessonId: number;
+}
+
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
   method: 'get',
   path: `/tickets`,
@@ -52,6 +57,12 @@ export const CreateTicket: Endpoint<CreateTicketParameter, TicketResponse> = {
   method: 'post',
   path: `/tickets`,
   bodyParams: ['paymentId', 'lessonId', 'status', 'depositor', 'passId']
+}
+
+export const CheckDuplicateTicket: Endpoint<CheckDupliateTicketParameter, TicketResponse> = {
+  method: 'get',
+  path: '/tickets/duplicate-check',
+  queryParams: ['userId', 'lessonId']
 }
 
 export function convertStatusToMessage({status}: { status: string }): StringResourceKey {
