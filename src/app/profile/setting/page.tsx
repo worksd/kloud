@@ -6,6 +6,7 @@ import { DialogClickWrapper } from "@/utils/DialogClickWrapper";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
+import { KioskMenu } from "@/app/profile/setting/KioskMenu";
 
 export default async function AccountSetting({
                                                searchParams
@@ -51,6 +52,7 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.SignOut}>
         <MenuItem label="sign_out"/>
       </NavigateClickWrapper>
+      <KioskMenu/>
     </div>
   )
 }

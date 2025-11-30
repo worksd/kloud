@@ -58,15 +58,26 @@ export type GetStudioLessonParameter = {
     all: boolean;
 }
 
+export type GetStudioLessonsByDateParameter = {
+    studioId: number;
+    date: string;
+    isAdmin: boolean;
+}
+
 export type GetBandResponse = {
     title: string;
     type: BandType;
     lessons: GetBandLessonResponse[];
 }
 
+export type GetLessonListResponse = {
+  lessons: GetLessonResponse[];
+}
+
 export type GetBandLessonResponse = {
     id: number;
     title: string;
+    status: LessonStatus;
     description: string;
     studioImageUrl: string;
     studioName: string;
@@ -118,6 +129,12 @@ export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListRe
     method: 'get',
     path: `/lessons/ongoing`,
     queryParams: ['studioId', 'all']
+}
+
+export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, GetLessonListResponse> = {
+    method: 'get',
+    path: `/lessons`,
+    queryParams: ['studioId', 'date', 'isAdmin']
 }
 
 export const ListStageBands: Endpoint<object, GetBandListResponse> = {
