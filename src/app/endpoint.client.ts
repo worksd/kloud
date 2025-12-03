@@ -122,6 +122,7 @@ export abstract class EndpointClient {
     const version = nextHeaders.get("x-guinness-version")?.valueOf();
     defaultHeaders["x-guinness-client"] = nextHeaders.get("x-guinness-client")?.valueOf() ?? "";
     defaultHeaders["x-guinness-device-name"] = nextHeaders.get("x-guinness-device-name")?.valueOf() ?? "";
+    defaultHeaders["x-guinness-device-id"] = nextHeaders.get('x-guinness-device-id')?.valueOf() ?? "";
     defaultHeaders["x-guinness-version"] = !version || version === "" ? "1.0.0" : version; // 여기서만 웹/앱 구분
     defaultHeaders["x-guinness-locale"] = (await cookies()).get(localeKey)?.value ?? "ko";
     return defaultHeaders;
