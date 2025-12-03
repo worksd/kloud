@@ -107,7 +107,6 @@ export default function PaymentButton({
         await kloudNav.navigateMain({ route: pushRoute });
       }
     } catch (e) {
-      console.log(e);
       const dialog = await createDialog({ id: 'PaymentFail' });
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     } finally {
@@ -243,7 +242,6 @@ export default function PaymentButton({
 
   useEffect(() => {
     window.onErrorInvoked = async (data: { code: string }) => {
-      console.log(JSON.stringify(data));
       const dialog = await createDialog({id: 'PaymentFail'})
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     }

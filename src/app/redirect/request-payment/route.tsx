@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
   const dial = COUNTRIES.find(v => v.key === countryCode)?.dial ?? '82'
 
   if (itemId) {
-    console.log(url.searchParams)
     const res = await getDynamicCommon({ path: `/tickets/duplicate-check?userId=${targetUserId}&lessonId=${itemId}`})
     if ('id' in res) {
       redirect(KloudScreen.TicketDetail(res.id, true))

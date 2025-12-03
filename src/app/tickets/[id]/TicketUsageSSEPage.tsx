@@ -44,7 +44,6 @@ export default function TicketUsageSSEPage({
 
         // ✅ 내 ticketId와 일치하면 바로 reload
         if (msg?.ticketId === ticketId) {
-          console.log(`[SSE] my ticketId(${ticketId}) used → reload`);
           window.location.reload();
         }
       },

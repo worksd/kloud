@@ -174,9 +174,9 @@ export abstract class EndpointClient {
       cacheOptions.next = { revalidate: hit.rule.ttl, tags };
     }
 
-    console.log(`Request(userId:${userId})`, {
+    console.log(`Request(userId=${userId})`, {
       url: fullUrl,
-      options: { ...cacheOptions, headers: "omitted" },
+      options: { ...cacheOptions },
     });
 
     const response = await fetch(fullUrl, cacheOptions);
@@ -197,7 +197,7 @@ export abstract class EndpointClient {
 
     // if (process.env.NODE_ENV == 'production') {
       console.log(
-        `Response(userId:${userId})`,
+        `Response(userId=${userId})`,
         util.inspect(jsonResponse, {depth: null, colors: false})
       );
     // }
