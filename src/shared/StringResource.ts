@@ -924,16 +924,16 @@ export const StringResource = {
     zh: '周一至周六 13:00–22:00',
   },
   lesson_refund_message_1: {
-    ko: "수강료 환불은 학원의 설립 및 과외교습에 관한 법률 시행령 제18조 제3항 별표 4에 의거 진행됩니다.",
-    en: "Refunds are processed in accordance with Article 18, Paragraph 3, Appendix 4 of the Enforcement Decree of the Act on the Establishment and Extracurricular Tutoring of Private Institutes.",
-    jp: "受講料の返金は、学院の設立及び課外教習に関する法律施行令第18条第3項別表4に基づき進められます。",
-    zh: "课程退款将依据《私立教育机构法》执行。"
+    ko: "수강료 환불은 [「학원의 설립·운영 및 과외교습에 관한 법률 시행규칙」 제18조 제3항 [별표 4]](https://www.law.go.kr/LSW//lsBylInfoPLinkR.do?lsiSeq=262551&lsNm=학원의+설립ㆍ운영+및+과외교습에+관한+법률+시행령&bylNo=0004&bylBrNo=00&bylCls=BE&bylEfYd=20240517&bylEfYdYn=Y)에 따라 진행됩니다.\n패스권의 경우, 만료기간이 남아 있고 잔여 횟수가 존재하는 경우에만 환불 신청이 가능하며, 구매 금액에서 기 이용한 수업 금액의 총합을 차감한 후 환불이 이뤄집니다.",
+    en: "Tuition refunds are processed in accordance with Article 18, Paragraph 3, Appendix 4 of the Enforcement Rule of the Act on the Establishment and Operation of Private Teaching Institutes. For pass products, refunds are only available if both the validity period remains and there are unused sessions. The refund amount is calculated by deducting the total cost of the sessions already used from the original purchase amount.",
+    jp: "受講料の返金は、「学院の設立・運営および課外授業に関する法律施行規則」第18条第3項別表4に基づいて行われます。パスの場合、有効期間が残っており未使用の回数がある場合にのみ返金申請が可能で、購入金額から既に利用した授業の総額を差し引いて返金されます。",
+    zh: "课程退款将依据《私立教育机构设立与运营及课外辅导相关法律施行规则》第18条第3款附表4执行。通票产品仅在有效期剩余且仍有未使用次数的情况下可申请退款。退款金额为购买金额扣除已使用课程总费用后的余额。"
   },
   lesson_refund_message_2: {
-    ko: "다만, 입점사별로 환불정책이 다를 경우 입점사의 환불 정책에 따라 환불이 진행됩니다.",
-    en: "However, if the refund policy differs by the vendor, refunds will be handled according to the vendor's refund policy.",
-    jp: "ただし、入店社別に返金ポリシーが異なる場合は、入店社の返金ポリシーに従って返金が進められます。",
-    zh: "但不同机构的退款政策可能不同，具体以各机构政策为准。"
+    ko: "로우그래피는 수업일 기준 전일까지 취소 및 환불이 가능하도록 관련 기능을 제공하고 있습니다.\n환불 접수 및 처리와 관련된 문의는 이용 중인 스튜디오로 연락하여 안내를 받아주시기 바랍니다.",
+    en: "Rawgraphy provides features that allow cancellations and refunds until the day before the class date. For inquiries regarding refund requests or processing, please contact the studio you are using.",
+    jp: "Rawgraphy では、授業日の前日までキャンセルおよび返金が可能となる機能を提供しています。返金申請および処理に関するお問い合わせは、ご利用中のスタジオまでご連絡ください。",
+    zh: "Rawgraphy 提供可在课程日期前一天进行取消和退款的功能。有关退款申请和处理的相关咨询，请联系您正在使用的工作室。"
   },
   lesson_refund_message_3: {
     ko: "본인은 주문 내용 및 이용 약관을 모두 확인하였으며, 예약에 동의합니다.\n" +
