@@ -149,6 +149,11 @@ html, body {
   white-space: nowrap;
   animation: scroll-reverse 10s linear infinite;
 }
+.animate-scroll-reverse-slow {
+  display: flex;
+  white-space: nowrap;
+  animation: scroll-reverse 180s linear infinite;
+}
 
 /* Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
