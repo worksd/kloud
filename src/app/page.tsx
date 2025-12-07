@@ -1,5 +1,5 @@
 import Logo from "../../public/assets/logo_black.svg"
-import { Metadata } from 'next'
+import { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
   title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
@@ -16,8 +16,12 @@ export const metadata: Metadata = {
     title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
     description: '댄스 스튜디오 예약을 손쉽게, Rawgraphy와 함께하세요',
   },
-  viewport: 'width=device-width, initial-scale=1.0',
   robots: 'index, follow',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
 }
 export default async function Main() {
   return (

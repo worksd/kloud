@@ -189,6 +189,7 @@ export abstract class EndpointClient {
         tags.push(`user:${userId}`);
       }
       try {
+        // @ts-ignore - Next.js 16 type definition issue
         tags.forEach((t) => revalidateTag(t));
       } catch (e) {
         console.warn("revalidateTag failed:", e);

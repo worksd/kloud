@@ -5,11 +5,12 @@ import { accessTokenKey } from "@/shared/cookies.key";
 import { isAuthScreen, KloudScreen } from "@/shared/kloud.screen";
 
 // This function can be marked `async` if using `await` inside
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const url = request.nextUrl
   const { os, ua, device } = userAgent(request)
   const cookie = await cookies()
-  const { appVersion, deviceId } = extractKloudInfo(ua)
+
+  const appVersion = extractKloudVersion(ua) ?? ''
   // URL 파라미터 설정
   url.searchParams.set('os', os.name ?? '')
   url.searchParams.set('appVersion', appVersion)
@@ -21,7 +22,6 @@ export async function middleware(request: NextRequest) {
   response.headers.set('x-guinness-client', appVersion != '' ? `${os.name}` : 'Web')
   response.headers.set('x-guinness-version', appVersion)
   response.headers.set('x-guinness-device-name', `${device.model}(${device.vendor}/${os.version})`)
-  response.headers.set('x-guinness-device-id', deviceId ?? '')
 
   if (appVersion == '' && isAuthScreen(url.pathname) && !cookie.get(accessTokenKey)?.value) {
     const loginUrl = new URL(KloudScreen.Login(url.pathname), request.url);
@@ -32,31 +32,22 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-function extractKloudInfo(userAgent: string): { appVersion: string; deviceId: string | null } {
+function extractKloudVersion(userAgent: string): string | null {
   try {
-    // 버전만 있는 경우와 version + deviceId 모두 커버
-    const regex = /KloudNativeClient\/([0-9]+(?:\.[0-9]+)*)(?:\/([a-zA-Z0-9-]+))?/;
+    // kloudNativeClient/ 다음에 오는 버전 번호를 찾습니다
+    const regex = /KloudNativeClient\/([0-9]+(?:\.[0-9]+)*)/;
     const match = userAgent.match(regex);
 
     if (!match) {
-      return {
-        appVersion: '',
-        deviceId: '',
-      };
+      return null;
     }
 
-    const appVersion = match[1];
-    const deviceId = match[2] ?? null;
-
-    return { appVersion, deviceId };
+    return match[1]; // 버전 번호만 반환 (예: "1.0.1")
   } catch (error) {
-    return {
-      appVersion: '',
-      deviceId: '',
-    };
+    return null;
   }
 }
-// 모든 경로에 대해 미들웨어 실행
+// 모든 경로에 대해 proxy 실행
 export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
