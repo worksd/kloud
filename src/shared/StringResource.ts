@@ -924,7 +924,7 @@ export const StringResource = {
     zh: '周一至周六 13:00–22:00',
   },
   lesson_refund_message_1: {
-    ko: "수강료 환불은 [「학원의 설립·운영 및 과외교습에 관한 법률 시행규칙」 제18조 제3항 [별표 4]](https://www.law.go.kr/LSW//lsBylInfoPLinkR.do?lsiSeq=262551&lsNm=학원의+설립ㆍ운영+및+과외교습에+관한+법률+시행령&bylNo=0004&bylBrNo=00&bylCls=BE&bylEfYd=20240517&bylEfYdYn=Y)에 따라 진행됩니다.\n패스권의 경우, 만료기간이 남아 있고 잔여 횟수가 존재하는 경우에만 환불 신청이 가능하며, 구매 금액에서 기 이용한 수업 금액의 총합을 차감한 후 환불이 이뤄집니다.",
+    ko: "수강료 환불은 [「학원의 설립·운영 및 과외교습에 관한 법률 시행규칙」 제18조 제3항 [별표 4]]에 따라 진행됩니다.\n패스권의 경우, 만료기간이 남아 있고 잔여 횟수가 존재하는 경우에만 환불 신청이 가능하며, 구매 금액에서 기 이용한 수업 금액의 총합을 차감한 후 환불이 이뤄집니다.",
     en: "Tuition refunds are processed in accordance with Article 18, Paragraph 3, Appendix 4 of the Enforcement Rule of the Act on the Establishment and Operation of Private Teaching Institutes. For pass products, refunds are only available if both the validity period remains and there are unused sessions. The refund amount is calculated by deducting the total cost of the sessions already used from the original purchase amount.",
     jp: "受講料の返金は、「学院の設立・運営および課外授業に関する法律施行規則」第18条第3項別表4に基づいて行われます。パスの場合、有効期間が残っており未使用の回数がある場合にのみ返金申請が可能で、購入金額から既に利用した授業の総額を差し引いて返金されます。",
     zh: "课程退款将依据《私立教育机构设立与运营及课外辅导相关法律施行规则》第18条第3款附表4执行。通票产品仅在有效期剩余且仍有未使用次数的情况下可申请退款。退款金额为购买金额扣除已使用课程总费用后的余额。"
