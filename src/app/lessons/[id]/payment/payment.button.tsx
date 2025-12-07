@@ -202,7 +202,7 @@ export default function PaymentButton({
     } else if (method === 'pass') {
       const dialog = await createDialog({
         id: 'UsePass',
-        message: `\n구매상품 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
+        message: `\n구매 패스권 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
       })
       if (appVersion == '' && dialog) {
         setWebDialogInfo(dialog)
@@ -215,8 +215,8 @@ export default function PaymentButton({
           id: 'RequestBillingKeyPayment',
           title: `${title}을(를) 정기결제하시겠어요?`,
           message: [
-            `해당 상품은 매월 자동으로 결제되는 정기결제 상품입니다.\n`,
-            `상품명: ${title}\n`,
+            `해당 수업은 매월 자동으로 결제되는 정기결제 수업입니다.\n`,
+            `수업명: ${title}\n`,
             `결제 금액: ${price.toLocaleString()}원`,
             `결제 수단: ${selectedBilling.cardName}`,
             ``,

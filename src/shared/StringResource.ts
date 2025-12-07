@@ -1410,7 +1410,7 @@ export const StringResource = {
     "zh": "- 通行证有效期：通行证自购买之日起在特定期限内有效。如果在有效期内未完成所有课程，剩余课程将自动失效且不予退款。对于有课程次数限制的通行证，可在有效期内预约任意日期的课程。对于无限次通行证，只有在课程日期处于有效期内时才能预约。\n\n- 课程安排及变更：课程安排可能会在未事先通知的情况下变更。如无法适应变更后的课程时间，则可能无法安排其他课程。请定期查看课程安排更新。\n\n- 通行证不可转让：购买的通行证仅限本人使用，不得转让或出售给他人。如发现转让或出售行为，通行证可能会被作废。\n\n- 退款政策：通行证购买后的退款由服务提供方负责。如需退款，请直接联系服务提供方。\n\n- 其他条件：关于通行证使用的其他条件可能会依据与服务提供方的协议有所不同，变更事项将提前通知。详情请参阅使用条款。"
   },
   account_transfer_dialog_message: {
-    ko: '구매상품 : {title}\n결제금액 : {price}원\n\n입금자명: {depositor}\n\n(실제 입금자명과 다를 경우 확인이 어려울 수 있습니다)',
+    ko: '구매 : {title}\n결제금액 : {price}원\n\n입금자명: {depositor}\n\n(실제 입금자명과 다를 경우 확인이 어려울 수 있습니다)',
     en: 'Product : {title}\nAmount : KRW {price}\n\nDepositor Name: {depositor}\n\n(Verification may be difficult if the actual depositor name is different)',
     jp: '購入商品 : {title}\n決済金額 : {price}ウォン\n\n入金者名: {depositor}\n\n(実際の入金者名と異なる場合、確認が難しい場合があります)',
     zh: '购买商品 : {title}\n支付金额 : {price}韩元\n\n存款人姓名: {depositor}\n\n(如果与实际存款人姓名不符，可能难以确认)'
