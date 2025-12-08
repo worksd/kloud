@@ -10,36 +10,12 @@ import Logo from "../../../../public/assets/logo_white.svg";
 import TicketGgodari from "../../../../public/assets/ticket-ggodari.svg";
 import {TicketResponse} from "@/app/endpoint/ticket.endpoint";
 import {QRCodeCanvas} from 'qrcode.react';
-import {useEffect, useState} from "react";
-import {translate} from "@/utils/translate";
-import {formatDateTime} from "@/utils/date.format";
 
 export function TicketForm({ticket, isJustPaid, inviteCode}: {
   ticket: TicketResponse,
   isJustPaid: string,
   inviteCode: string
 }) {
-  const [formattedDateTime, setFormattedDateTime] = useState<{
-    time: string;
-    date: string,
-    dayOfWeek: string
-  } | null>(null);
-
-  useEffect(() => {
-    async function formatDate() {
-      if (ticket.lesson?.date) {
-        const dateTimeStr = ticket.lesson.date;
-        const result = await formatDateTime(dateTimeStr);
-        const dayOfWeekText = await translate(result.dayOfWeek);
-        setFormattedDateTime({
-          ...result,
-          dayOfWeek: dayOfWeekText
-        });
-      }
-    }
-
-    formatDate();
-  }, [ticket.lesson?.date]);
 
   return (
       <div className="relative w-full h-screen overflow-hidden bg-white">
@@ -80,7 +56,8 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
               ) : <div></div>}
             </div>
 
-            <div className="absolute bottom-0 left-0 w-full h-[540px] pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent"/>
+            <div
+                className="absolute bottom-0 left-0 w-full h-[540px] pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent"/>
 
             {/* 티켓 내용 */}
             <div className="relative h-full flex flex-col gap-[32px] px-6 pt-8 pb-10">
@@ -92,34 +69,14 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
 
                 {/* 수업 정보 */}
                 <div className="flex flex-col gap-[10px]">
-                  <div className="flex flex-col gap-[6px]">
+                  <div className="flex flex-col">
                     <h1 className="text-[24px] text-white font-bold leading-[1.4]">
                       {ticket.lesson?.title}
                     </h1>
-                    <div className="flex items-center gap-3">
-                      {formattedDateTime && (
-                          <>
-                            <div className="flex items-center gap-1">
-                              <p className="text-[20px] text-white font-bold">
-                                {formattedDateTime.date}
-                              </p>
-                              <p className="text-[16px] text-white/60 font-medium">
-                                ({formattedDateTime.dayOfWeek})
-                              </p>
-                            </div>
-                            <p className="text-[16px] text-white/60 font-medium">/</p>
-                            <div className="flex items-center gap-1">
-                              <p className="text-[20px] text-white font-bold">
-                                {formattedDateTime.time}
-                              </p>
-                              {ticket.lesson?.duration && (
-                                  <p className="text-[16px] text-white/60 font-medium">
-                                    ({ticket.lesson.duration}분)
-                                  </p>
-                              )}
-                            </div>
-                          </>
-                      )}
+                    <div className="flex items-center">
+                      <p className="text-[18px] text-[#FFFFFFCC] font-semibold">
+                        {ticket.lesson?.date}
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col gap-[10px]">
@@ -175,34 +132,34 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
                   </div>
                 </div>
 
-                 {/* QR코드 또는 스탬프 */}
-                 <div
-                     className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
-                       ticket.status === 'Paid' && ticket.qrCodeUrl ? 'bg-white' : ''
-                     }`}>
-                   {ticket.status === 'Paid' && ticket.qrCodeUrl ? (
-                       <div>
-                         <QRCodeCanvas
-                             value={ticket.qrCodeUrl}
-                             size={84}
-                             className="w-full h-full"
-                         />
-                       </div>
- 
-                   ) : (
-                       <div className="flex items-center justify-center relative">
-                         {ticket.status === 'Cancelled' && (
-                             <StampCancel className="scale-50"/>
-                         )}
-                         {(ticket.status === 'Used' || ticket.status === 'Expired') && (
-                             <StampUsed className="scale-50"/>
-                         )}
-                         {ticket.status === 'Pending' && (
-                             <StampNotPaid className="scale-50"/>
-                         )}
-                       </div>
-                   )}
-                 </div>
+                {/* QR코드 또는 스탬프 */}
+                <div
+                    className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
+                        ticket.status === 'Paid' && ticket.qrCodeUrl ? 'bg-white' : ''
+                    }`}>
+                  {ticket.status === 'Paid' && ticket.qrCodeUrl ? (
+                      <div>
+                        <QRCodeCanvas
+                            value={ticket.qrCodeUrl}
+                            size={84}
+                            className="w-full h-full"
+                        />
+                      </div>
+
+                  ) : (
+                      <div className="flex items-center justify-center relative">
+                        {ticket.status === 'Cancelled' && (
+                            <StampCancel className="scale-50"/>
+                        )}
+                        {(ticket.status === 'Used' || ticket.status === 'Expired') && (
+                            <StampUsed className="scale-50"/>
+                        )}
+                        {ticket.status === 'Pending' && (
+                            <StampNotPaid className="scale-50"/>
+                        )}
+                      </div>
+                  )}
+                </div>
               </div>
             </div>
 
