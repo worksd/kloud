@@ -35,7 +35,17 @@ export type GetLessonResponse = {
     days?: string;
     description?: string;
     genre?: string;
+    formattedDate?: GetFormattedDateResponse;
 };
+
+export type GetFormattedDateResponse = {
+  type: 'oneTime' | 'subscription';
+  date?: string;
+  weekday?: string;
+  startTime: string;
+  endTime: string;
+  daysOfWeek?: string;
+}
 
 export type GetLessonButtonResponse = {
     title: string;
