@@ -244,15 +244,15 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
             {/* Rawgraphy 롤링밴드 (Paid일 때만) */}
             {ticket.status === 'Paid' && (
                 <div
-                    className="absolute bottom-0 left-0 w-full h-[28px] bg-black overflow-hidden flex items-center gap-5">
+                    className="absolute bottom-0 left-0 w-full h-[20px] bg-black overflow-hidden flex items-center gap-5">
                   <div className="flex animate-scroll-reverse-slow">
                     <div className="flex shrink-0">
                       {Array(2).fill(null).map((_, index) => (
                           <div key={index} className="flex">
                             {Array(50).fill(null).map((_, i) => (
                                 <div key={`logo-${index}-${i}`}
-                                     className="w-[200px] h-[24px] flex-shrink-0 flex items-center">
-                                  <Logo className="w-full h-full scale-75"/>
+                                     className="w-[190px] h-[30px] flex-shrink-0 flex items-center">
+                                  <Logo className="w-full h-full scale-50"/>
                                 </div>
                             ))}
                           </div>
