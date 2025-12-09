@@ -60,7 +60,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
   };
 
   return (
-      <div className="relative w-full h-screen overflow-y-auto bg-white">
+      <div className={`relative w-full h-screen overflow-y-auto ${ticket.status === 'Cancelled' ? 'overflow-x-hidden' : ''} bg-white ticket-container`} style={{ overscrollBehaviorY: 'none' }}>
         {/* 배경 이미지 및 Backdrop Blur */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 -inset-[10%]">
@@ -85,11 +85,11 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
         )}
 
         {/* 티켓 카드 */}
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-20 pb-[40px]">
+        <div className={`relative z-10 flex flex-col items-center justify-center min-h-screen pt-32 ${ticket.status != 'Paid' ? 'pb-[5px]' : 'pb-[40px]'}`}>
           <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : ''}`}>
 
             {/* 티켓 배경 이미지 - divider까지 */}
-            <div className={`absolute top-0 left-0 right-0 ${ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : 'rounded-t-[20px]'} overflow-hidden`} style={{ height: 'calc(100% - 200px)' }}>
+            <div className={`absolute top-0 left-0 right-0 rounded-t-[20px] overflow-hidden`} style={{ height: 'calc(100% - 200px)' }}>
               {ticket.lesson?.thumbnailUrl ? (
                   <>
                     <Image
@@ -106,18 +106,17 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
             </div>
 
             {/* divider 아래 검은색 배경 */}
-            <div className={`absolute bottom-0 left-0 right-0 h-[200px] bg-black ${ticket.status === 'Cancelled' ? '' : 'rounded-b-[20px]'}`} />
+            <div className={`absolute bottom-0 left-0 right-0 h-[200px] bg-black`} />
 
             {/* 티켓 내용 */}
-            <div className="relative h-full flex flex-col gap-[16px] px-6 pt-8 pb-10">
-              {/* 티켓 ID */}
+            <div className={`relative h-full flex flex-col gap-6 px-6 pt-8 ${ticket.status === 'Paid' ? 'pb-10' : 'pb-0'}`}>
               <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
                 <button
                   onClick={handleCopyPaymentId}
                   className="flex items-center gap-2 text-[12px] text-white/70 font-medium leading-[1.4] mb-0 hover:text-white/90 transition-colors active:opacity-70"
                 >
                   <Copy className="w-3 h-3 flex-shrink-0" />
-                  <span>{ticket.paymentId}</span>
+                  <span className={'font-paperlogy'}>{ticket.paymentId}</span>
                   {copied && (
                     <span className="text-[10px] text-white/50 ml-1">복사됨</span>
                   )}
@@ -126,17 +125,17 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
                 {/* 수업 정보 */}
                 <div className="flex flex-col gap-[10px]">
                   <div className="flex flex-col">
-                    <h1 className="text-[24px] text-white font-bold leading-[1.4] mb-4">
+                    <h1 className="text-[24px] text-white font-bold leading-[1.4] mb-1">
                       {ticket.lesson?.title}
                     </h1>
                     <div className="flex flex-row gap-1 items-center">
                       {/* 날짜 or 반복 요일 */}
                       {ticket.lesson?.formattedDate?.type === 'oneTime' ? (
                           <div className="flex items-center gap-1">
-                            <p className="text-[18px] text-white font-bold">
+                            <p className="text-[18px] text-white font-bold font-paperlogy">
                               {ticket.lesson?.formattedDate?.date}
                             </p>
-                            <p className="text-[16px] text-[#FFFFFF80] font-normal">
+                            <p className="text-[13px] text-[#FFFFFF80] font-bold">
                               ({ticket.lesson?.formattedDate?.weekday})
                             </p>
                           </div>
@@ -149,8 +148,8 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
                       )}
 
                       {/* 시간 영역 */}
-                      <div className="flex items-center gap-2 ml-3">
-                        <p className="text-[28px] text-[#FFD438] font-bold leading-none">
+                      <div className="flex items-center gap-2 ml-3 font-paperlogy">
+                        <p className="text-[30px] text-[#FFD438] font-bold leading-none">
                           {ticket.lesson?.formattedDate?.startTime}
                         </p>
                         <p className="text-[16px] text-[#FFFFFF80] font-medium leading-none">
@@ -184,13 +183,12 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
               </div>
 
               {/* 사용자 정보 및 QR코드/스탬프 */}
-              <div className="flex items-end gap-4">
+              <div className="flex items-end">
                 {/* 사용자 정보 */}
                 <div className="flex-1 flex flex-col gap-2 relative">
                   {/* Dim 오버레이 */}
-                  <div className="absolute inset-0 bg-black/30 rounded-[8px] -z-10"/>
                   <div
-                      className="w-10 h-10 rounded-full overflow-hidden border border-[rgba(245,247,250,0.3)] flex-shrink-0">
+                      className="w-10 h-10 rounded-full overflow-hidden border flex-shrink-0">
                     {ticket.user?.profileImageUrl && (
                         <Image
                             src={ticket.user.profileImageUrl}
