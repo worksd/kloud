@@ -37,4 +37,4 @@ export type GetPaymentMethodResponse = {
   name: string;
 }
 
-export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing'
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin'

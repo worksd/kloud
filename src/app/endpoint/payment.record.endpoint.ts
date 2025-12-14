@@ -22,6 +22,12 @@ export type GetPaymentRecordResponse = {
   studio?: GetStudioResponse;
   productDescription?: string;
   paymentScheduledAt?: string;
+  cancelledAt?: string;
+  confirmedAt?: string;
+  refoundAccountNumber?: string;
+  refundAccountBank?: string;
+  refundDepositor?: string;
+  isRefundable?: boolean;
 }
 
 export type PaymentIdParameter = {
@@ -60,6 +66,37 @@ export const CreateFreePaymentRecord: Endpoint<CreateFreePaymentRecord, GetPayme
   method: 'post',
   path: '/paymentRecords/free',
   bodyParams: ['item', 'itemId'],
+}
+
+export type RefundPassResponse = {
+  usedCount?: number;
+  totalCount?: number;
+  usedLessons?: Array<{
+    id: number;
+    name: string;
+    imageUrl?: string;
+    date?: string;
+  }>;
+}
+
+export type GetRefundPreviewResponse = {
+  paymentId: string;
+  productName: string;
+  methodType: PaymentMethodType;
+  amount: number;
+  refundAmount: number;
+  refundAccountNumber?: string | null;
+  refundAccountBank?: string | null;
+  refundDepositor?: string | null;
+  cardNumber?: string | null;
+  methodLabel?: string | null;
+  pass?: RefundPassResponse;
+  refundReconsiderMessage: string;
+}
+
+export const GetRefundPreview: Endpoint<PaymentIdParameter, GetRefundPreviewResponse> = {
+  method: 'get',
+  path: (e) => `/paymentRecords/${e.paymentId}/refund-preview`,
 }
 
 export enum PaymentRecordStatus {

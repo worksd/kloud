@@ -113,6 +113,12 @@ export const StringResource = {
     jp: "キャンセル",
     zh: "取消"
   },
+  do_cancel: {
+    ko: "취소하기",
+    en: "Cancel",
+    jp: "キャンセルする",
+    zh: "取消"
+  },
   email_format: {
     ko: "이메일 주소 형식",
     en: "Email format",
@@ -1073,6 +1079,18 @@ export const StringResource = {
     jp: "私のパス",
     zh: "我的通票"
   },
+  pass_plan_information: {
+    ko: "패스권 정보",
+    en: "Pass Plan Information",
+    jp: "パス情報",
+    zh: "通行证信息"
+  },
+  lesson_ticket_information: {
+    ko: "수강권 정보",
+    en: "Lesson Ticket Information",
+    jp: "レッスンチケット情報",
+    zh: "课程票信息"
+  },
   my_subscription: {
     ko: "정기결제",
     en: "My Subscription",
@@ -1854,7 +1872,7 @@ export const StringResource = {
     zh: '付款编号',
   },
   payment_datetime: {
-    ko: '결제일시',
+    ko: '결제 일시',
     en: 'Payment Date & Time',
     jp: '支払い日時',
     zh: '付款日期和时间',
@@ -1918,6 +1936,204 @@ export const StringResource = {
     en: '',
     jp: '',
     zh: '',
+  },
+  payment_record_detail_title: {
+    ko: '결제 내역',
+    en: 'Payment History',
+    jp: '決済履歴',
+    zh: '支付记录'
+  },
+  payment_information_title: {
+    ko: '결제 정보',
+    en: 'Payment Information',
+    jp: '決済情報',
+    zh: '支付信息'
+  },
+  payment_amount: {
+    ko: '결제 금액',
+    en: 'Payment Amount',
+    jp: '決済金額',
+    zh: '支付金额'
+  },
+  confirmation_datetime: {
+    ko: '확인 일시',
+    en: 'Confirmation Date & Time',
+    jp: '確認日時',
+    zh: '确认日期和时间'
+  },
+  cancellation_information: {
+    ko: '취소 정보',
+    en: 'Cancellation Information',
+    jp: 'キャンセル情報',
+    zh: '取消信息'
+  },
+  refund_amount: {
+    ko: '환불 금액',
+    en: 'Refund Amount',
+    jp: '返金金額',
+    zh: '退款金额'
+  },
+  refund_will_be_processed: {
+    ko: '환불될 예정이에요',
+    en: 'Will be refunded',
+    jp: '返金予定です',
+    zh: '将退款'
+  },
+  total_used_count: {
+    ko: '총 {count}회 사용했어요',
+    en: 'Used {count} times in total',
+    jp: '合計{count}回使用しました',
+    zh: '共使用了{count}次'
+  },
+  refund_information_title: {
+    ko: '환불 정보',
+    en: 'Refund Information',
+    jp: '返金情報',
+    zh: '退款信息'
+  },
+  deducted_amount: {
+    ko: '차감 금액',
+    en: 'Deducted Amount',
+    jp: '差引金額',
+    zh: '扣除金额'
+  },
+  refund_criteria: {
+    ko: '환불 기준',
+    en: 'Refund Criteria',
+    jp: '返金基準',
+    zh: '退款标准'
+  },
+  refund_reason_date: {
+    ko: '반환사유 발생일',
+    en: 'Refund Reason Date',
+    jp: '返金理由発生日',
+    zh: '退款原因日期'
+  },
+  refund_amount_label: {
+    ko: '반환금액',
+    en: 'Refund Amount',
+    jp: '返金額',
+    zh: '退款金额'
+  },
+  lesson_time_one_third_before: {
+    ko: '총 교습 시간의 1/3 경과 전',
+    en: 'Before 1/3 of total lesson time',
+    jp: '総授業時間の1/3経過前',
+    zh: '总授课时间的1/3之前'
+  },
+  refund_two_thirds_after_deduction: {
+    ko: '이용 금액 차감 후 2/3 환불',
+    en: '2/3 refund after deducting usage amount',
+    jp: '利用金額差引後2/3返金',
+    zh: '扣除使用金额后2/3退款'
+  },
+  lesson_time_one_half_before: {
+    ko: '총 교습 시간의 1/2 경과 전',
+    en: 'Before 1/2 of total lesson time',
+    jp: '総授業時間の1/2経過前',
+    zh: '总授课时间的1/2之前'
+  },
+  refund_one_half_after_deduction: {
+    ko: '이용 금액 차감 후 1/2 환불',
+    en: '1/2 refund after deducting usage amount',
+    jp: '利用金額差引後1/2返金',
+    zh: '扣除使用金额后1/2退款'
+  },
+  lesson_time_one_half_after: {
+    ko: '총 교습 시간의 1/2 경과 후',
+    en: 'After 1/2 of total lesson time',
+    jp: '総授業時間の1/2経過後',
+    zh: '总授课时间的1/2之后'
+  },
+  refund_not_available: {
+    ko: '환불 불가',
+    en: 'Refund Not Available',
+    jp: '返金不可',
+    zh: '不可退款'
+  },
+  lesson_time_calculation_note: {
+    ko: '총 교습 시간은 결제 당시 안내된 이용 기간을 기준으로 산정됩니다.',
+    en: 'Total lesson time is calculated based on the usage period informed at the time of payment.',
+    jp: '総授業時間は、決済時に案内された利用期間を基準に算出されます。',
+    zh: '总授课时间以付款时告知的使用期限为准计算。'
+  },
+  pass_refund_note: {
+    ko: '패스권은 사용 완료된 수강권의 금액을 제외하고 환불기준에 적용된 금액으로 환불이 진행됩니다.',
+    en: 'Pass products are refunded based on the refund criteria amount, excluding the amount of completed lesson tickets.',
+    jp: 'パス権は、使用完了した受講券の金額を除き、返金基準に適用された金額で返金が進行されます。',
+    zh: '通行证退款时，将扣除已完成的课程券金额，按退款标准金额进行退款。'
+  },
+  expected_refund_amount: {
+    ko: '환불 예상 금액',
+    en: 'Expected Refund Amount',
+    jp: '返金予定金額',
+    zh: '预计退款金额'
+  },
+  refund_method: {
+    ko: '환불 수단',
+    en: 'Refund Method',
+    jp: '返金手段',
+    zh: '退款方式'
+  },
+  refund_processing_time_note: {
+    ko: '카드사에 따라, 환불까지 1-3영업일 정도 소요될 수 있습니다',
+    en: 'Depending on the card company, refunds may take 1-3 business days.',
+    jp: 'カード会社により、返金まで1〜3営業日程度かかる場合があります',
+    zh: '根据发卡机构，退款可能需要1-3个工作日'
+  },
+  refund_reason: {
+    ko: '환불 사유',
+    en: 'Refund Reason',
+    jp: '返金理由',
+    zh: '退款原因'
+  },
+  refund_reason_placeholder: {
+    ko: '환불 사유를 선택해 주세요',
+    en: 'Please select a refund reason',
+    jp: '返金理由を選択してください',
+    zh: '请选择退款原因'
+  },
+  do_refund: {
+    ko: '환불하기',
+    en: 'Request Refund',
+    jp: '返金する',
+    zh: '申请退款'
+  },
+  cancellation_datetime: {
+    ko: '취소 일시',
+    en: 'Cancellation Date & Time',
+    jp: 'キャンセル日時',
+    zh: '取消日期和时间'
+  },
+  cancellation_reason: {
+    ko: '취소 사유',
+    en: 'Cancellation Reason',
+    jp: 'キャンセル理由',
+    zh: '取消原因'
+  },
+  cancellation_reason_student_request: {
+    ko: '수강생 요청으로 인한 취소',
+    en: 'Cancelled by student request',
+    jp: '受講生の要望によるキャンセル',
+    zh: '因学生要求而取消'
+  },
+  refund_notice_studio: {
+    ko: '환불은 스튜디오에서 직접 환불이 이뤄집니다',
+    en: 'Refunds are processed directly by the studio',
+    jp: '返金はスタジオで直接行われます',
+    zh: '退款由工作室直接处理'
+  },
+  refund_guide: {
+    ko: '환불안내',
+    en: 'Refund Guide',
+    jp: '返金案内',
+    zh: '退款指南'
+  },
+  payment_card: {
+    ko: '결제 카드',
+    en: 'Payment Card',
+    jp: '決済カード',
+    zh: '支付卡'
   }
 }
 

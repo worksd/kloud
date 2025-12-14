@@ -160,3 +160,20 @@ html, body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(0);
+  animation: ripple-animation 0.6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}

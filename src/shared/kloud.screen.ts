@@ -40,6 +40,7 @@ export const KloudScreen = {
   TicketDetail: (id: number, isParent: boolean) => `/tickets/${id}?isParent=${isParent}`,
   PaymentRecords: '/paymentRecords',
   PaymentRecordDetail: (paymentId: string) => `/paymentRecords/${paymentId}`,
+  PaymentRecordRefund: (paymentId: string) => `/paymentRecords/refund/${paymentId}`,
 
   /** 레슨 */
   LessonDetail: (id: number) => `/lessons/${id}`,

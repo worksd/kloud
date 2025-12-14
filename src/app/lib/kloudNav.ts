@@ -150,7 +150,11 @@ const applyTitle = async (route: string) => {
   } else if (route.startsWith(KloudScreen.MySubscription)) {
     return await translate('my_subscription')
   } else if (route.includes('/paymentRecords')) {
-    return await translate('payment_records')
+    if (route.includes('/refund')) {
+      return await translate('do_refund')
+    } else {
+      return await translate('payment_records')
+    }
   } else if (route.includes('lessons') && route.includes('studios')) {
     return await translate('ongoing_lessons')
   } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans'))) {
