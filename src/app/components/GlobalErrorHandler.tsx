@@ -25,8 +25,12 @@ export function GlobalErrorHandler() {
           error,
           context: {
             pathname: window.location.pathname,
+            route: window.location.pathname + window.location.search,
             userAgent: navigator.userAgent,
             timestamp: new Date().toISOString(),
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
           },
         }),
       }).catch(console.error);
@@ -50,6 +54,7 @@ export function GlobalErrorHandler() {
           error,
           context: {
             pathname: window.location.pathname,
+            route: window.location.pathname + window.location.search,
             userAgent: navigator.userAgent,
             timestamp: new Date().toISOString(),
           },

@@ -28,8 +28,11 @@ export default function Error({ error, reset }: ErrorProps) {
             },
             context: {
               pathname: window.location.pathname,
+              route: window.location.pathname + window.location.search,
               userAgent: navigator.userAgent,
               timestamp: new Date().toISOString(),
+              statusCode: error.digest ? parseInt(error.digest) : undefined,
+              digest: error.digest,
             },
           }),
         });

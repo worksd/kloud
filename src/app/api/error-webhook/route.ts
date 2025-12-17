@@ -12,9 +12,15 @@ export async function POST(req: NextRequest) {
 
     await sendErrorToDiscord(errorObj, {
       pathname: context?.pathname,
+      route: context?.route || context?.pathname,
       userAgent: context?.userAgent,
       timestamp: context?.timestamp,
       stack: error.stack,
+      statusCode: context?.statusCode,
+      filename: context?.filename,
+      lineno: context?.lineno,
+      colno: context?.colno,
+      digest: error.digest || context?.digest,
     });
 
     return NextResponse.json({ success: true }, { status: 200 });
