@@ -81,6 +81,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.PaymentRecord.GetPaymentRecords),
     get: this.endpointBuilder(API.PaymentRecord.GetPaymentRecordDetail),
     getRefundPreview: this.endpointBuilder(API.PaymentRecord.GetRefundPreview),
+    requestRefund: this.endpointBuilder(API.PaymentRecord.RequestRefund),
     requestAccountTransfer: this.endpointBuilder(API.PaymentRecord.RequestAccountTransfer),
     createFreePaymentRecord: this.endpointBuilder(API.PaymentRecord.CreateFreePaymentRecord),
   }
