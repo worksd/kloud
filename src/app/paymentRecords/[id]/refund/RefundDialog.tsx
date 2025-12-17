@@ -20,6 +20,12 @@ export const RefundDialog = ({ refundReconsiderMessage }: { refundReconsiderMess
     }
   }, [refundReconsiderMessage]);
 
+  useEffect(() => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+
+    }
+  })
+
   return null;
 };
 

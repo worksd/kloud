@@ -846,10 +846,10 @@ export const StringResource = {
     zh: "卖家信息"
   },
   card_information: {
-    ko: "신용/체크카드 매출전표",
-    en: "Card Sales Slip",
-    jp: "クレジット／デビットカード売上票",
-    zh: "信用卡/借记卡销售单"
+    ko: "카드 정보",
+    en: "Card Information",
+    jp: "カード情報",
+    zh: "卡片信息"
   },
   subscription_list: {
     ko: "정기결제 목록",

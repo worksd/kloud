@@ -8,7 +8,7 @@ import {Locale} from "@/shared/StringResource";
 import {GetStudioResponse} from "@/app/endpoint/studio.endpoint";
 import Image from "next/image";
 import {RefundDialog} from "./RefundDialog";
-import {RefundReasonInput} from "./RefundReasonInput";
+import {RefundFormActions} from "./RefundFormActions";
 import {RefundAccountSection} from "./RefundAccountSection";
 import {RefundMethodTitle} from "./RefundMethodTitle";
 
@@ -22,6 +22,13 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
   const deductedAmount = refundPreview.amount - refundPreview.refundAmount;
   const usedCount = refundPreview.pass?.usedCount || 0;
   const usedLessons = refundPreview.pass?.usedLessons || [];
+
+  // 카드 번호 포맷팅: 4자리마다 "-" 추가 (모든 문자 포함)
+  const formatCardNumber = (cardNumber: string) => {
+    // 기존 하이픈 제거 후 모든 문자를 4자리씩 그룹화
+    const withoutHyphens = cardNumber.replace(/-/g, '');
+    return withoutHyphens.match(/.{1,4}/g)?.join('-') || withoutHyphens;
+  };
 
   return (
       <div className="bg-white min-h-screen">
@@ -99,27 +106,16 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
               <p className="text-[12px] text-[#6d7882]">{refundPreview.productName}</p>
             </div>
 
-            {/* 결제수단 */}
-            {refundPreview.methodLabel && (
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] font-medium text-black">{await translate('payment_method')}</span>
-                <div className="flex items-center gap-1">
-                  {refundPreview.methodType === 'credit' && (
-                    <BankOrCardIcon name={refundPreview.methodLabel} scale={100} />
-                  )}
-                  <span className="text-[14px] font-medium text-[#191f28]">{refundPreview.methodLabel}</span>
-                </div>
-              </div>
-            )}
-
             {/* 차감 금액 */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] font-medium text-black">{await translate('deducted_amount')}</span>
-                <span className="text-[14px] font-medium text-black text-right">
-                -{new Intl.NumberFormat("ko-KR").format(deductedAmount)}{await translate('won')}
-              </span>
-              </div>
+              {deductedAmount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] font-medium text-black">{await translate('deducted_amount')}</span>
+                    <span className="text-[14px] font-medium text-black text-right">
+                      {deductedAmount > 0 ? '-' : ''}{new Intl.NumberFormat("ko-KR").format(deductedAmount)}{await translate('won')}
+                    </span>
+                  </div>
+              )}
               {/* 환불 기준 */}
               <div className="bg-[#f9f9fb] rounded-[8px] p-3">
                 <p className="text-[12px] font-bold text-[#6d7882] mb-2">{await translate('refund_criteria')}</p>
@@ -189,10 +185,21 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
             <RefundMethodTitle refundPreview={refundPreview} locale={locale} />
           </div>
           <div className="flex flex-col gap-4 mt-6">
+            {refundPreview.methodType === 'credit' && refundPreview.methodLabel && (
+              <div className="flex items-center justify-between">
+                <span className="text-[14px] font-medium text-black">{await translate('refund_method')}</span>
+                <div className="flex items-center gap-1">
+                  <BankOrCardIcon name={refundPreview.methodLabel} scale={75} />
+                  <span className="text-[14px] font-medium text-[#191f28]">{refundPreview.methodLabel}</span>
+                </div>
+              </div>
+            )}
             {refundPreview.cardNumber && (
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
-                  <span className="text-[14px] font-medium text-[#191f28] text-right">{refundPreview.cardNumber}</span>
+                  <span className="text-[14px] font-medium text-[#191f28] text-right">
+                    {formatCardNumber(refundPreview.cardNumber)}
+                  </span>
                 </div>
             )}
             {(refundPreview.methodType === 'account_transfer' || refundPreview.methodType === 'admin') && (
@@ -216,10 +223,8 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
 
-        {/* 환불 사유 */}
-        <div className="px-5 py-5">
-          <RefundReasonInput locale={locale}/>
-        </div>
+        {/* 환불 사유 및 환불하기 버튼 */}
+        <RefundFormActions locale={locale} />
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
@@ -230,13 +235,6 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
             {studio && <SellerInformation studio={studio} locale={locale}/>}
             <RefundInformation locale={locale} paymentId={refundPreview.paymentId} isRefundable={false}/>
           </div>
-        </div>
-
-        {/* 환불하기 버튼 */}
-        <div className="fixed bottom-0 left-0 right-0 p-5 bg-white border-t border-gray-200 pb-[50px]">
-          <button className="w-full h-14 bg-[#b1b8be] rounded-[16px] flex items-center justify-center">
-            <span className="text-[16px] font-medium text-white">{await translate('do_refund')}</span>
-          </button>
         </div>
       </div>
   );
