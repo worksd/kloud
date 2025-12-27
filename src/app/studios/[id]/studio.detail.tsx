@@ -13,6 +13,7 @@ import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import LeftArrow from "../../../../public/assets/left-arrow.svg";
+import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -21,7 +22,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
   if (!('id' in studio)) return notFound();
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar">
+    <ScrollContainer className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar studio-detail-container">
       {/* 헤더 */}
       <NavigateClickWrapper method={'back'}>
         <button
@@ -149,6 +150,6 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
         </div>
       }
 
-    </div>
+    </ScrollContainer>
   );
 }

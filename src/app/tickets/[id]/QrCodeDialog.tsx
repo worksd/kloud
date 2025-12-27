@@ -19,17 +19,6 @@ export const QrCodeDialogScreen = ({
 
   return (
     <>
-      {/* 플로팅 버튼 */}
-      {qrCodeUrl && (
-        <button
-          type="button"
-          onClick={() => setIsDialogVisible(true)}
-          className="fixed bottom-8 right-6 z-40 bg-black rounded-full p-3 active:scale-[0.98] transition"
-        >
-          <QRCode />
-        </button>
-      )}
-
       {/* 오버레이 (언마운트하지 않고 페이드) */}
       <div
         className={`

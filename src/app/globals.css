@@ -149,6 +149,37 @@ html, body {
   white-space: nowrap;
   animation: scroll-reverse 10s linear infinite;
 }
+.animate-scroll-reverse-slow {
+  display: flex;
+  white-space: nowrap;
+  animation: scroll-reverse 180s linear infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes rainbow-border {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -215;
+  }
+}
+
+.animate-rainbow-border {
+  animation: rainbow-border 2s linear infinite;
+}
 
 /* Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
