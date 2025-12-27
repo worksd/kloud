@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { hideDialogAction } from "@/app/home/hide.dialog.action";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
@@ -13,9 +13,14 @@ import { kloudNav } from "@/app/lib/kloudNav";
  */
 
 export default function HomeScreen({os, data}: { os: string, data: GetHomeResponse }) {
+  const hasShownDialog = useRef(false);
+
   useEffect(() => {
+    if (hasShownDialog.current) return;
+    
     try {
       if (data.events.length > 0) {
+        hasShownDialog.current = true;
         const randomIndex = Math.floor(Math.random() * data.events.length);
         const event = data.events[randomIndex];
         const dialogInfo = {

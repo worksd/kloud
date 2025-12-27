@@ -35,16 +35,17 @@ export const MobileWebViewTopBar = ({returnUrl, os, isLogin} : {returnUrl?: stri
     router.replace(KloudScreen.Login(loginQuery))
   };
 
-
   return (
-    <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm flex justify-between items-center px-4 z-50">
-      <StoreButton os={os} className="relative top-0 left-0"/>
-      <AuthButton
-        isLoggedIn={isLogin}
-        onLogin={handleLogin}
-        onLogout={handleLogout}
-      />
-    </div>
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm flex justify-between items-center px-4 z-50">
+        <StoreButton os={os} className="relative top-0 left-0"/>
+        {returnUrl &&
+            <AuthButton
+                isLoggedIn={isLogin}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
+            />
+        }
+      </div>
   )
 }
 
