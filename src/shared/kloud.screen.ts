@@ -27,6 +27,7 @@ export const KloudScreen = {
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',
   BusinessInfo: '/profile/setting/businessInfo',
+  Kiosk: '/profile/setting/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,

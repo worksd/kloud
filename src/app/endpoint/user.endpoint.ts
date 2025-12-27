@@ -28,8 +28,14 @@ export type GetUserResponse = {
 
 export type GetMeResponse = {
   id: number
-  lessons?: GetLessonResponse[],
-  announcements: GetAnnouncementResponse[],
+  email: string
+  status: UserStatus
+  type: UserType
+  profileImageUrl?: string
+  name?: string
+  nickName?: string
+  phone?: string
+  studio?: GetStudioResponse
 }
 
 export type GetAnnouncementResponse = {
@@ -47,6 +53,11 @@ export const GetUser: Endpoint<GetUserParameter, GetUserResponse> = {
   method: 'get',
   path: (e) => `/users/${e.id}`,
   pathParams: ['id']
+}
+
+export const GetMe: Endpoint<object, GetMeResponse> = {
+  method: 'get',
+  path: `/me`,
 }
 
 export type PatchUserParameter = {

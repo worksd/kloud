@@ -875,6 +875,12 @@ export const StringResource = {
     jp: "事業者情報",
     zh: "营业执照信息"
   },
+  kiosk: {
+    ko: "키오스크",
+    en: "Kiosk",
+    jp: "キオスク",
+    zh: "自助服务终端"
+  },
   business_name: {
     ko: "사업자명",
     en: "Business Name",

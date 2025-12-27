@@ -1,5 +1,6 @@
 import { EndpointClient } from '@/app/endpoint.client';
 import * as API from './endpoint';
+import {GetMe} from "@/app/endpoint/user.endpoint";
 
 
 export class ApiClient extends EndpointClient {
@@ -17,6 +18,7 @@ export class ApiClient extends EndpointClient {
 
   readonly user = {
     get: this.endpointBuilder(API.User.GetUser),
+    me: this.endpointBuilder(API.User.GetMe),
     update: this.endpointBuilder(API.User.UpdateUser),
     delete: this.endpointBuilder(API.User.DeleteUser),
     checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
@@ -29,6 +31,7 @@ export class ApiClient extends EndpointClient {
     listStudioLessons: this.endpointBuilder(API.Lesson.ListStudioLessons),
     listStageBands: this.endpointBuilder(API.Lesson.ListStageBands),
     listOngoingLessons: this.endpointBuilder(API.Lesson.ListOngoingLessons),
+    listByDate: this.endpointBuilder(API.Lesson.ListStudioLessonsByDate),
     checkCapacity: this.endpointBuilder(API.Lesson.CheckCapacity),
   }
 
