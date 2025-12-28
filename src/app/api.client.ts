@@ -111,6 +111,10 @@ export class ApiClient extends EndpointClient {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
   }
 
+  readonly membership = {
+    listPlans: this.endpointBuilder(API.Membership.GetMembershipPlans),
+  }
+
   readonly common = {
     get: this.endpointBuilder(API.DynamicRoute.DynamicGET)
   }

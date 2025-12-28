@@ -12,6 +12,15 @@ export type GetStudioListParameter = {
   hasPass?: boolean;
 }
 
+export type StudioBannerResponse = {
+  id: number;
+  studioId: number;
+  imageUrl: string;
+  endDate: string;
+  description?: string;
+  route: string;
+}
+
 export type GetStudioResponse = {
     id: number;
     name: string;
@@ -35,6 +44,7 @@ export type GetStudioResponse = {
     passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
     timeTable?: GetTimeTableResponse;
+    banners?: StudioBannerResponse[];
     day: string;
 };
 

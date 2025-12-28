@@ -91,48 +91,83 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
         </div>
 
         <section>
-          {studio.announcements && studio.announcements.length > 0 && (
-            <div className="flex flex-col">
-              <div className="p-4">
-                <div className="text-[20px] text-black font-bold">
-                  {await translate('studio_announcement')}
-                </div>
-              </div>
-              {studio.announcements && studio.announcements.length > 0 && (
-                <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-                  {studio.announcements.map((item: GetAnnouncementResponse) => (
-                    <div
-                      key={item.id}
-                      className="min-w-[calc(100vw-32px)] snap-start pl-4"
-                    >
-                      <div className="bg-[#F7F8F9] p-4 rounded-2xl mb-8 flex flex-col">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
-                              <img
-                                src={studio.profileImageUrl}
-                                alt="스튜디오"
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <span className="font-bold text-black text-[14px]">
-                              {studio.name}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-[#667085] mt-2 text-[14px]">
-                          {item.body}
-                        </p>
-                      </div>
+          {studio.banners && studio.banners.length > 0 && (
+              <div className="flex flex-col">
+                {studio.banners && studio.banners.length > 0 && (
+                    <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
+                      {studio.banners.map((banner) => {
+                        const isExpired = new Date(banner.endDate) < new Date();
+                        if (isExpired) return null;
+
+                        return (
+                            <NavigateClickWrapper
+                                key={banner.id}
+                                method="push"
+                                route={banner.route}
+                            >
+                              <div className="min-w-[calc(100vw-32px)] snap-start pl-4">
+                                <div className="w-full aspect-[32/9] relative rounded-2xl mb-2 overflow-hidden">
+                                  <Image
+                                      src={banner.imageUrl}
+                                      alt={banner.description || '배너'}
+                                      fill
+                                      className="object-cover"
+                                  />
+                                </div>
+                              </div>
+                            </NavigateClickWrapper>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
           )}
         </section>
 
+
         <TimeTableServerComponent studioId={studio.id} day={studio.day}/>
+
+        <section>
+          {studio.announcements && studio.announcements.length > 0 && (
+              <div className="flex flex-col">
+                <div className="p-4">
+                  <div className="text-[20px] text-black font-bold">
+                    {await translate('studio_announcement')}
+                  </div>
+                </div>
+                {studio.announcements && studio.announcements.length > 0 && (
+                    <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
+                      {studio.announcements.map((item: GetAnnouncementResponse) => (
+                          <div
+                              key={item.id}
+                              className="min-w-[calc(100vw-32px)] snap-start pl-4"
+                          >
+                            <div className="bg-[#F7F8F9] p-4 rounded-2xl flex flex-col">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
+                                    <img
+                                        src={studio.profileImageUrl}
+                                        alt="스튜디오"
+                                        className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <span className="font-bold text-black text-[14px]">
+                              {studio.name}
+                            </span>
+                                </div>
+                              </div>
+                              <p className="text-[#667085] mt-2 text-[14px]">
+                                {item.body}
+                              </p>
+                            </div>
+                          </div>
+                      ))}
+                    </div>
+                )}
+              </div>
+          )}
+        </section>
 
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
