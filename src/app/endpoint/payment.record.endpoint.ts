@@ -23,6 +23,7 @@ export type GetPaymentRecordResponse = {
   productDescription?: string;
   paymentScheduledAt?: string;
   cancelledAt?: string;
+  cancelReason?: string;
   confirmedAt?: string;
   refoundAccountNumber?: string;
   refundAccountBank?: string;

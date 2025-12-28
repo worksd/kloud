@@ -2117,12 +2117,6 @@ export const StringResource = {
     jp: 'キャンセル理由',
     zh: '取消原因'
   },
-  cancellation_reason_student_request: {
-    ko: '수강생 요청으로 인한 취소',
-    en: 'Cancelled by student request',
-    jp: '受講生の要望によるキャンセル',
-    zh: '因学生要求而取消'
-  },
   refund_notice_studio: {
     ko: '환불은 스튜디오에서 직접 환불이 이뤄집니다',
     en: 'Refunds are processed directly by the studio',

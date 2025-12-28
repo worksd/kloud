@@ -185,11 +185,14 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                   )}
 
                   {/* 취소 사유 */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-medium text-black">{await translate('cancellation_reason')}</span>
-                    <span
-                        className="text-[14px] font-medium text-[#191f28]">{await translate('cancellation_reason_student_request')}</span>
-                  </div>
+                  {paymentRecord.cancelReason &&
+                      <div className="flex items-center justify-between">
+                          <span
+                              className="text-[14px] font-medium text-black">{await translate('cancellation_reason')}</span>
+                          <span
+                              className="text-[14px] font-medium text-[#191f28]">{paymentRecord.cancelReason}</span>
+                      </div>
+                  }
 
                   {/* 환불 계좌 */}
                   {paymentRecord.refundAccountBank && (
