@@ -102,12 +102,13 @@ export const GetRefundPreview: Endpoint<PaymentIdParameter, GetRefundPreviewResp
 export type RequestRefundRequest = {
   paymentId: string;
   reason: string;
+  requester: 'CUSTOMER';
 }
 
 export const RequestRefund: Endpoint<RequestRefundRequest, GetPaymentRecordResponse> = {
   method: 'delete',
   path: (e) => `/paymentRecords/${e.paymentId}/cancel`,
-  bodyParams: ['reason']
+  bodyParams: ['reason', 'requester']
 }
 
 export enum PaymentRecordStatus {
