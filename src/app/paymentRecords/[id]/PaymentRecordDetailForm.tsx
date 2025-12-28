@@ -207,9 +207,15 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                       </div>
                   )}
                 </div>
-                <p className="text-[12px] font-medium text-[#6d7882] mt-4">
-                  {await translate('refund_notice_studio')}
-                </p>
+                {paymentRecord.methodType === 'credit' ? (
+                    <p className="text-[12px] font-medium text-[#6d7882] mt-4">
+                      {await translate('refund_processing_time_note')}
+                    </p>
+                ) : (paymentRecord.methodType === 'admin' || paymentRecord.methodType === 'account_transfer') ? (
+                    <p className="text-[12px] font-medium text-[#6d7882] mt-4">
+                      {await translate('refund_notice_studio')}
+                    </p>
+                ) : null}
               </div>
             </>
         )}
