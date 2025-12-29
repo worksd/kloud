@@ -11,7 +11,6 @@ export default async function MembershipPage({searchParams}: {
   if ('membershipPlans' in res) {
     return (
       <MembershipPlanListForm
-        title="멤버십 플랜"
         membershipPlans={res.membershipPlans}
         locale={await getLocale()}
       />

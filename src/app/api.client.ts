@@ -113,6 +113,7 @@ export class ApiClient extends EndpointClient {
 
   readonly membership = {
     listPlans: this.endpointBuilder(API.Membership.GetMembershipPlans),
+    get: this.endpointBuilder(API.Membership.GetMembership),
   }
 
   readonly common = {

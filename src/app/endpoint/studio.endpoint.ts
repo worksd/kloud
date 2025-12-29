@@ -3,6 +3,7 @@ import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import {GetMembershipResponse} from "@/app/endpoint/membership.endpoint";
 
 export type IdParameter = {
   id: number;
@@ -55,6 +56,7 @@ export type GetMyStudioResponse = {
   day: string;
   bands: GetBandResponse[];
   myTodayTicket?: TicketResponse;
+  membership?: GetMembershipResponse;
 }
 
 export type GetTimeTableResponse = {

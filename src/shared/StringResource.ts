@@ -1103,6 +1103,12 @@ export const StringResource = {
     jp: "マイサブスクリプション",
     zh: "我的订阅"
   },
+  my_membership: {
+    ko: "멤버십",
+    en: "My Membership",
+    jp: "マイメンバーシップ",
+    zh: "我的会员"
+  },
   select_purchase_pass_plan_studio: {
     ko: '패스를 구매할 스튜디오를 선택해 주세요',
     en: 'Please select a studio to purchase a pass',

@@ -13,6 +13,8 @@ import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
+import { GetMembershipResponse } from "@/app/endpoint/membership.endpoint";
+import { MembershipBand } from "@/app/home/MembershipBand";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse }) {
   if (!res) {
@@ -45,6 +47,9 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse }) 
           </div>
         </NavigateClickWrapper>
       </div>
+      {res.membership && (
+        <MembershipBand membership={res.membership} locale={await getLocale()} />
+      )}
       <TimeTableServerComponent studioId={res.studio.id} day={res.day} />
       {res.bands.map((value) => (
         <LessonBand

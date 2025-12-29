@@ -34,6 +34,7 @@ export const KloudScreen = {
   PassPayment: (id: number) => `/passPlans/${id}/payment`,
   Membership: (studioId?: number) => studioId ? `/membership?studioId=${studioId}` : '/membership',
   MembershipPayment: (id: number) => `/membership/${id}/payment`,
+  MembershipDetail: (id: number) => `/profile/membership/${id}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   MySubscription: '/profile/mySubscription',
