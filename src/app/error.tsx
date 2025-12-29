@@ -1,9 +1,53 @@
 'use client'
 
+import { useEffect } from "react";
 import Logo from "../../public/assets/logo_black.svg"
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export default function Error() {
+type ErrorProps = {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
+export default function Error({ error, reset }: ErrorProps) {
+  useEffect(() => {
+    // Discord 웹훅으로 에러 전송
+    const sendError = async () => {
+      try {
+        const response = await fetch('/api/error-webhook', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            error: {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+              digest: error.digest,
+            },
+            context: {
+              pathname: window.location.pathname,
+              route: window.location.pathname + window.location.search,
+              userAgent: navigator.userAgent,
+              timestamp: new Date().toISOString(),
+              statusCode: error.digest ? parseInt(error.digest) : undefined,
+              digest: error.digest,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to send error to Discord');
+        }
+      } catch (e) {
+        console.error('Error sending to Discord webhook', e);
+      }
+    };
+
+    sendError();
+  }, [error]);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
       {/* 404 아이콘 */}

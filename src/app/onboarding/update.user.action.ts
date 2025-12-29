@@ -54,7 +54,7 @@ export const updateUserAction = async ({
       refundDepositor: refundDepositor,
       emailVerified: emailVerified,
       password: password,
-      countryCode: COUNTRIES.find((value) => value.key == countryCode)?.dial ?? '82',
+      countryCode: countryCode ? COUNTRIES.find((value) => value.key == countryCode)?.dial : undefined,
       code: code,
     });
     if ('id' in res) {
