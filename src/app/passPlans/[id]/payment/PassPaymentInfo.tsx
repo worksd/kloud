@@ -59,7 +59,7 @@ export const PassPaymentInfo = ({payment, price, url, appVersion, beforeDeposito
         <div className="w-full h-[1px] bg-[#F7F8F9] "/>
       </div>
 
-      <PurchaseInformation price={price} titleResource={'pass_plan_price'} locale={locale}/>
+      <PurchaseInformation originalPrice={payment.originalPrice} totalPrice={payment.totalPrice} titleResource={'pass_plan_price'} locale={locale} discounts={payment.discounts}/>
 
       <div className="py-5">
         <div className="w-full h-3 bg-[#F7F8F9] "/>

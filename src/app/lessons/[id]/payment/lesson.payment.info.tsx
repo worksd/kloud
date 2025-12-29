@@ -70,7 +70,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
       </div>
 
       {/* 결제 정보 */}
-      <PurchaseInformation price={payment.totalPrice} method={selectedMethod} titleResource={'lesson_price'} locale={locale} />
+      <PurchaseInformation originalPrice={payment.originalPrice} totalPrice={payment.totalPrice} method={selectedMethod} titleResource={'lesson_price'} locale={locale} discounts={payment.discounts} />
 
       <div className="py-5">
         <div className="w-full h-3 bg-[#F7F8F9] "/>
