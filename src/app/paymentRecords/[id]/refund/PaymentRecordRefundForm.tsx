@@ -224,7 +224,7 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
         <div className="h-3 bg-[#f9f9fb]"/>
 
         {/* 환불 사유 및 환불하기 버튼 */}
-        <RefundFormActions locale={locale} paymentId={refundPreview.paymentId} />
+        <RefundFormActions locale={locale} paymentId={refundPreview.paymentId} methodType={refundPreview.methodType} />
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>

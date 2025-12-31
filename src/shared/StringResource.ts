@@ -1853,6 +1853,12 @@ export const StringResource = {
     jp: '支払い保留中',
     zh: '付款待处理',
   },
+  payment_record_cancel_pending: {
+    ko: '환불 대기',
+    en: 'Refund Pending',
+    jp: '返金待ち',
+    zh: '退款待处理',
+  },
   payment_record_scheduled: {
     ko: '다음 결제일',
     en: 'Next Payment',
@@ -2107,9 +2113,21 @@ export const StringResource = {
   },
   do_refund: {
     ko: '환불하기',
-    en: 'Request Refund',
+    en: 'Refund',
     jp: '返金する',
+    zh: '退款'
+  },
+  request_refund: {
+    ko: '환불 요청하기',
+    en: 'Request Refund',
+    jp: '返金リクエスト',
     zh: '申请退款'
+  },
+  processing: {
+    ko: '처리중...',
+    en: 'Processing...',
+    jp: '処理中...',
+    zh: '处理中...'
   },
   cancellation_datetime: {
     ko: '취소 일시',

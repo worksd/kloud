@@ -25,6 +25,8 @@ export type GetPaymentRecordResponse = {
   cancelledAt?: string;
   cancelReason?: string;
   confirmedAt?: string;
+  accountTransferConfirmDate?: string;
+  refundAmount?: number;
   refoundAccountNumber?: string;
   refundAccountBank?: string;
   refundDepositor?: string;
@@ -118,4 +120,5 @@ export enum PaymentRecordStatus {
   Cancelled = 'Cancelled',
   Settled = 'Settled',
   Failed = 'Failed',
+  CancelPending = 'CancelPending',
 }

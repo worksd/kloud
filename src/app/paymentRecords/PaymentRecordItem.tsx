@@ -11,7 +11,8 @@ export const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
   Cancelled: 'payment_record_cancelled',
   Pending: 'payment_record_pending',
   Settled: 'payment_record_completed',
-  Failed: 'payment_record_failed'
+  Failed: 'payment_record_failed',
+  CancelPending: 'payment_record_cancel_pending'
 };
 
 const statusBadgeStyle: Record<PaymentRecordStatus | "default", string> = {
@@ -19,7 +20,8 @@ const statusBadgeStyle: Record<PaymentRecordStatus | "default", string> = {
   [PaymentRecordStatus.Settled]: "bg-green-50 text-green-700 ring-1 ring-green-200",
   [PaymentRecordStatus.Cancelled]: "bg-red-50 text-red-700 ring-1 ring-red-200",
   [PaymentRecordStatus.Pending]: "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200",
-  [PaymentRecordStatus.Failed]: "bg-rose-50 text-rose-700 ring-1 ring-rose-200", // ← 신규
+  [PaymentRecordStatus.Failed]: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
+  [PaymentRecordStatus.CancelPending]: "bg-orange-50 text-[#E67E22] ring-1 ring-orange-200",
   default: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
 };
 

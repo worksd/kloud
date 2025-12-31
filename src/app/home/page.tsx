@@ -5,6 +5,7 @@ import Logo from "../../../public/assets/logo_black.svg";
 import { PassPurchaseButton } from "@/app/profile/PassPurchaseButton";
 import MyStudioPage from "@/app/home/MyStudioPage";
 import { NoMyStudioPage } from "@/app/home/NoMyStudioPage";
+import { getHideDialogIdsAction } from "@/app/home/get.hide.dialog.ids.action";
 
 export default async function Home({
                                      searchParams
@@ -13,10 +14,11 @@ export default async function Home({
 }) {
   const {os} = await searchParams
   const res = await getHomeAction()
+  const hideDialogIds = await getHideDialogIdsAction()
   if ('studios' in res) {
     return (
       <div>
-        <HomeScreen os={os} data={res}/>
+        <HomeScreen os={os} data={res} hideDialogIds={hideDialogIds}/>
         <div
           className="fixed top-0 left-0 right-0 flex flex-row items-center justify-between h-16 px-6 py-2 bg-white z-10">
           <Logo className="scale-[0.7] origin-left"/>

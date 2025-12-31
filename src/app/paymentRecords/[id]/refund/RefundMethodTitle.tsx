@@ -40,10 +40,6 @@ export const RefundMethodTitle = ({
     setIsBankSheetOpen(false);
   };
 
-  if (refundPreview.methodType !== 'account_transfer' && refundPreview.methodType !== 'admin') {
-    return null;
-  }
-
   return (
       <>
         <button

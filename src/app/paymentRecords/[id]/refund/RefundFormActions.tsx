@@ -8,13 +8,15 @@ import { requestRefund } from "./request.refund.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { createDialog } from "@/utils/dialog.factory";
+import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 
 type RefundFormActionsProps = {
   locale: Locale;
   paymentId: string;
+  methodType: PaymentMethodType;
 }
 
-export const RefundFormActions = ({ locale, paymentId }: RefundFormActionsProps) => {
+export const RefundFormActions = ({ locale, paymentId, methodType }: RefundFormActionsProps) => {
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -66,8 +68,10 @@ export const RefundFormActions = ({ locale, paymentId }: RefundFormActionsProps)
         >
           <span className="text-[16px] font-medium">
             {isSubmitting 
-              ? (locale === 'ko' ? '처리중...' : locale === 'en' ? 'Processing...' : locale === 'jp' ? '処理中...' : '处理中...')
-              : getLocaleString({locale, key: 'do_refund'})}
+              ? getLocaleString({locale, key: 'processing'})
+              : (methodType === 'account_transfer' || methodType === 'admin')
+                ? getLocaleString({locale, key: 'request_refund'})
+                : getLocaleString({locale, key: 'do_refund'})}
           </span>
         </button>
       </div>

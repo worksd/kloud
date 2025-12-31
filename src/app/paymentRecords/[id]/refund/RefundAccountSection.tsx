@@ -65,7 +65,7 @@ export const RefundAccountSection = ({
             >
               {accountInfo.bank && selectedBankCode ? (
                 <>
-                  <BankOrCardIcon name={selectedBankCode} scale={100}/>
+                  <BankOrCardIcon name={selectedBankCode} scale={75}/>
                   <span className="text-[14px] font-medium text-[#191f28]">{accountInfo.bank}</span>
                 </>
               ) : (

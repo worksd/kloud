@@ -20,6 +20,7 @@ const statusColorMap: Record<PaymentRecordStatus, string> = {
   [PaymentRecordStatus.Cancelled]: "text-[#e55b5b]",
   [PaymentRecordStatus.Pending]: "text-[#e5aa00]",
   [PaymentRecordStatus.Failed]: "text-[#e55b5b]",
+  [PaymentRecordStatus.CancelPending]: "text-[#E67E22]",
 };
 
 export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
@@ -116,12 +117,12 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
             </div>
 
             {/* 확인 일시 (환불 대기/취소일 때만) */}
-            {paymentRecord.confirmedAt &&
+            {(paymentRecord.confirmedAt || paymentRecord.accountTransferConfirmDate) &&
                 <div className="flex items-center justify-between">
                     <span
                         className="text-[14px] font-medium text-black">{await translate('confirmation_datetime')}</span>
                     <span className="text-[14px] font-medium text-black">
-                {paymentRecord.confirmedAt}
+                {paymentRecord.accountTransferConfirmDate || paymentRecord.confirmedAt}
               </span>
                 </div>
             }
@@ -154,7 +155,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
         </div>
 
         {/* 취소 정보 (환불 대기/취소일 때만) */}
-        {(paymentRecord.status === PaymentRecordStatus.Pending || paymentRecord.status === PaymentRecordStatus.Cancelled) && (
+        {(paymentRecord.status === PaymentRecordStatus.Cancelled || paymentRecord.status === PaymentRecordStatus.CancelPending) && (
             <>
               {/* Spacer */}
               <div className="h-3 bg-[#f9f9fb]"/>
@@ -166,7 +167,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-black">{await translate('refund_amount')}</span>
                     <span className="text-[14px] font-bold text-[#191f28]">
-                  {new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}원
+                  {new Intl.NumberFormat("ko-KR").format(paymentRecord.refundAmount ?? paymentRecord.amount)}원
                 </span>
                   </div>
 
@@ -224,12 +225,13 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
         <div className="h-3 bg-[#f9f9fb]"/>
 
         {/* 판매자 정보 및 환불안내 */}
-               <div className="px-5 py-5">
-                 <div className="py-5 space-y-6">
-                   {paymentRecord.studio && <SellerInformation studio={paymentRecord.studio} locale={locale}/>}
-                   <RefundInformation locale={locale} paymentId={paymentRecord.paymentId} isRefundable={paymentRecord.isRefundable}/>
-                 </div>
-               </div>
+        <div className="px-5 py-5">
+          <p className="text-[16px] font-bold text-black mb-5">{await translate('seller_information')}</p>
+          <div className="space-y-6">
+            {paymentRecord.studio && <SellerInformation studio={paymentRecord.studio} locale={locale}/>}
+            <RefundInformation locale={locale} paymentId={paymentRecord.paymentId} isRefundable={paymentRecord.isRefundable}/>
+          </div>
+        </div>
       </div>
   );
 }

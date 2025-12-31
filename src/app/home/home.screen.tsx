@@ -1,28 +1,34 @@
 'use client'
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { hideDialogAction } from "@/app/home/hide.dialog.action";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { getHideDialogIdsAction } from "@/app/home/get.hide.dialog.ids.action";
 
 /**
  * 첫번째 탭
  * @param os
  * @param data
+ * @param hideDialogIds
  * @constructor
  */
 
-export default function HomeScreen({os, data}: { os: string, data: GetHomeResponse }) {
+export default function HomeScreen({os, data, hideDialogIds: initialHideDialogIds}: { os: string, data: GetHomeResponse, hideDialogIds: number[] }) {
   const hasShownDialog = useRef(false);
+  const [hideDialogIds, setHideDialogIds] = useState<number[]>(initialHideDialogIds);
 
   useEffect(() => {
     if (hasShownDialog.current) return;
     
     try {
-      if (data.events.length > 0) {
+      // 숨김 처리된 다이얼로그 제외
+      const availableEvents = data.events.filter(event => !hideDialogIds.includes(event.id));
+      
+      if (availableEvents.length > 0) {
         hasShownDialog.current = true;
-        const randomIndex = Math.floor(Math.random() * data.events.length);
-        const event = data.events[randomIndex];
+        const randomIndex = Math.floor(Math.random() * availableEvents.length);
+        const event = availableEvents[randomIndex];
         const dialogInfo = {
           id: `${event.id}`,
           route: event.route,
@@ -36,7 +42,7 @@ export default function HomeScreen({os, data}: { os: string, data: GetHomeRespon
       }
     } catch (error) {
     }
-  }, [data]);
+  }, [data, hideDialogIds]);
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
@@ -53,6 +59,15 @@ export default function HomeScreen({os, data}: { os: string, data: GetHomeRespon
   useEffect(() => {
     window.onHideDialogConfirm = async (data: { id: string, clicked: boolean }) => {
       await hideDialogAction({id: data.id, clicked: data.clicked})
+      // 숨김 처리 후 목록 업데이트
+      if (data.clicked) {
+        const updatedIds = await getHideDialogIdsAction();
+        setHideDialogIds(updatedIds);
+      } else {
+        // 다시 보이게 한 경우 ID 제거
+        const dialogId = parseInt(data.id, 10);
+        setHideDialogIds(prev => prev.filter(id => id !== dialogId));
+      }
     }
   }, [])
 
