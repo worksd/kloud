@@ -84,7 +84,7 @@ export const kloudNav = {
       route: JSON.stringify({
         route,
         title: await applyTitle(route ?? ''),
-        applyIgnoreSafeArea: applyIgnoreSafeArea(route ?? ''),
+        ignoreSafeArea: applyIgnoreSafeArea(route ?? ''),
       })
     })
     if (isMobile()) (window as any).KloudEvent.navigateMain(bootInfo);
