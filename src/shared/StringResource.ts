@@ -1499,6 +1499,18 @@ export const StringResource = {
     jp: '口座名義人',
     zh: '账户持有人姓名',
   },
+  deposit_account_information: {
+    ko: '입금할 계좌 정보',
+    en: 'Deposit Account Information',
+    jp: '入金先口座情報',
+    zh: '存款账户信息',
+  },
+  account_holder: {
+    ko: '예금주',
+    en: 'Account Holder',
+    jp: '口座名義人',
+    zh: '账户持有人',
+  },
   input_refund_account_number: {
     ko: '환불 받으실 계좌 번호를 입력해주세요(-를 제외하고 입력)',
     en: 'Please enter your refund refund number',

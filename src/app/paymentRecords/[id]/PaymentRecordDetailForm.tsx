@@ -151,6 +151,26 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                   <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.depositor}</span>
                 </div>
             )}
+
+            {/* 입금할 계좌 정보 (계좌이체일 때만) */}
+            {paymentRecord.methodType === 'account_transfer' && paymentRecord.studio?.bank && (
+                <>
+                    <div className="flex items-center justify-between">
+                        <span className="text-[14px] font-medium text-black">{await translate('deposit_account_information')}</span>
+                        <div className="flex items-center gap-1">
+                            <BankOrCardIcon name={paymentRecord.studio.bank} scale={75}/>
+                            <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.bank}</span>
+                            <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.accountNumber}</span>
+                        </div>
+                    </div>
+                    {paymentRecord.studio.depositor && (
+                        <div className="flex items-center justify-between">
+                            <span className="text-[14px] font-medium text-black">{await translate('account_holder')}</span>
+                            <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.depositor}</span>
+                        </div>
+                    )}
+                </>
+            )}
           </div>
         </div>
 
