@@ -119,6 +119,12 @@ export const StringResource = {
     jp: "キャンセルする",
     zh: "取消"
   },
+  confirm_cancel_ticket: {
+    ko: "해당 수강권은 패스권으로 구매했습니다. 수강권을 취소하시겠습니까?",
+    en: "This ticket was purchased with a pass. Do you want to cancel the ticket?",
+    jp: "このチケットはパスで購入されました。チケットをキャンセルしますか？",
+    zh: "该课程票是用通行证购买的。您要取消课程票吗？"
+  },
   email_format: {
     ko: "이메일 주소 형식",
     en: "Email format",

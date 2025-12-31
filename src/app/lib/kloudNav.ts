@@ -163,6 +163,8 @@ const applyTitle = async (route: string) => {
     return await translate('payment')
   } else if (route.includes('resetPassword')) {
     return await translate('change_password')
+  } else if (route.includes('refund')) {
+    return '';
   }
   else return undefined
 }

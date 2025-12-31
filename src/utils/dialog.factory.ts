@@ -3,6 +3,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { cookies } from "next/headers";
 import { userIdKey } from "@/shared/cookies.key";
+import {getLocaleString} from "@/app/components/locale";
 
 export async function createDialog({id, message, title, customData}: {
   id: DialogId,
@@ -244,6 +245,15 @@ export async function createDialog({id, message, title, customData}: {
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
+  } else if (id == 'CancelTicket') {
+    return {
+      id: 'CancelTicket',
+      type: 'YESORNO',
+      title: await translate('do_cancel'),
+      message: await translate('confirm_cancel_ticket'),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
   }
 }
 
@@ -275,6 +285,7 @@ export type DialogId =
   | 'BillingKeyNotFound'
   | 'CapacityFull'
   | 'ChangePhoneNumber'
+  | 'CancelTicket'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

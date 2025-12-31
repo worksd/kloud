@@ -18,8 +18,8 @@ export default async function MembershipPage({searchParams}: {
   }
 
   return (
-    <div className={'bg-black text-white'}>
-      Membership Page {studioId}
-    </div>
+      <div className={'bg-black text-white'}>
+        Membership Page {studioId}
+      </div>
   )
 }

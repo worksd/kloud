@@ -2,7 +2,7 @@ import { api } from "@/app/api.client";
 import Loading from "@/app/loading";
 import { TicketForm } from "@/app/tickets/[id]/TicketForm";
 import { QrCodeDialogScreen } from "@/app/tickets/[id]/QrCodeDialog";
-import { translate } from "@/utils/translate";
+import { translate, getLocale } from "@/utils/translate";
 
 export default async function TicketDetail({params, searchParams}: {
   params: Promise<{ id: number }>,
@@ -13,8 +13,9 @@ export default async function TicketDetail({params, searchParams}: {
     await api.ticket.getInviteTicket({inviteCode})
     : await api.ticket.get({id: (await params).id, isParent});
   if ('id' in ticket) {
+    const locale = await getLocale();
     return <div>
-      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode}/>
+      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale}/>
       <QrCodeDialogScreen
         qrCodeUrl={ticket.qrCodeUrl}
         ticketId={ticket.id}

@@ -12,15 +12,25 @@ import {TicketResponse} from "@/app/endpoint/ticket.endpoint";
 import {QRCodeCanvas} from 'qrcode.react';
 import {Copy} from 'lucide-react';
 import {useState, useEffect, useRef} from "react";
+import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
+import {KloudScreen} from "@/shared/kloud.screen";
+import {getLocaleString} from "@/app/components/locale";
+import {Locale} from "@/shared/StringResource";
+import {createDialog, DialogInfo} from "@/utils/dialog.factory";
+import {deleteTicketAction} from "@/app/tickets/[id]/delete.ticket.action";
+import {useRouter} from "next/navigation";
+import {kloudNav} from "@/app/lib/kloudNav";
 
-export function TicketForm({ticket, isJustPaid, inviteCode}: {
+export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
   ticket: TicketResponse,
   isJustPaid: string,
-  inviteCode: string
+  inviteCode: string,
+  locale: Locale
 }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   const handleCopyPaymentId = async () => {
     try {
@@ -59,6 +69,51 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
     return `0:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleCancelClick = async () => {
+    // LP로 시작하면 다이얼로그 띄우기
+    if (ticket.paymentId.startsWith('LP')) {
+      const dialog = await createDialog({id: 'CancelTicket'});
+      if (dialog && window.KloudEvent) {
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      }
+    } else {
+      // LT일 때는 기존 동작 유지 (환불 페이지로 이동)
+      kloudNav.push(KloudScreen.PaymentRecordRefund(ticket.paymentId));
+    }
+  };
+
+  useEffect(() => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      if (data.id == 'CancelTicket' && ticket.paymentId.startsWith('LP')) {
+        try {
+          const res = await deleteTicketAction({ticketId: ticket.id});
+          if (!res || 'id' in res) {
+            // 성공 시 페이지 새로고침
+            router.refresh();
+          } else if ('message' in res) {
+            // 에러 처리
+            const errorDialog = await createDialog({
+              id: 'Simple',
+              message: res.message || '티켓 취소에 실패했습니다.'
+            });
+            if (errorDialog && window.KloudEvent) {
+              window.KloudEvent.showDialog(JSON.stringify(errorDialog));
+            }
+          }
+        } catch (error) {
+          console.error('Ticket delete error:', error);
+          const errorDialog = await createDialog({
+            id: 'Simple',
+            message: '티켓 취소 중 오류가 발생했습니다.'
+          });
+          if (errorDialog && window.KloudEvent) {
+            window.KloudEvent.showDialog(JSON.stringify(errorDialog));
+          }
+        }
+      }
+    };
+  }, [ticket.id, ticket.paymentId, locale, router]);
+
   return (
       <div className={`relative w-full h-screen overflow-y-auto ${ticket.status === 'Cancelled' ? 'overflow-x-hidden' : ''} bg-white ticket-container`} style={{ overscrollBehaviorY: 'none' }}>
         {/* 배경 이미지 및 Backdrop Blur */}
@@ -85,7 +140,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
         )}
 
         {/* 티켓 카드 */}
-        <div className={`relative z-10 flex flex-col items-center justify-center min-h-screen pt-32 ${ticket.status != 'Paid' ? 'pb-[5px]' : 'pb-[40px]'}`}>
+        <div className={`relative z-10 flex flex-col items-center justify-center min-h-screen pt-16 ${ticket.status != 'Paid' ? 'pb-[5px]' : 'pb-[40px]'}`}>
           <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : ''}`}>
 
             {/* 티켓 배경 이미지 - divider까지 */}
@@ -268,77 +323,23 @@ export function TicketForm({ticket, isJustPaid, inviteCode}: {
             <TicketGgodari className="w-full max-w-[350px] h-auto"/>
           </div>
 
-          {/* 환불안내사항 */}
-          <div className="w-full bg-[#f4f6f8] mt-10 rounded-t-[24px] px-5 py-10 flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] text-[#3e4044] font-bold leading-[1.4]">
-                1. 법적 근거
-              </p>
-              <ul className="text-[14px] text-[#585a5d] font-medium leading-[1.5] list-disc list-inside space-y-1">
-                <li>수강료 환불은 「학원의 설립·운영 및 과외교습에 관한 법률 시행규칙」 제18조 제3항 [별표 4]에 따라 진행됩니다.</li>
-                <li>해당 규정에 의거하여 수업 시작 전·후 환불 금액이 산정됩니다.</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] text-[#3e4044] font-bold leading-[1.4]">
-                2. 패스권 환불 규정
-              </p>
-              <ul className="text-[14px] text-[#585a5d] font-medium leading-[1.5] list-disc list-inside space-y-1">
-                <li>패스권의 경우 아래 조건 충족 시 환불이 가능합니다.</li>
-                <li>만료기간이 남아 있을 것</li>
-                <li>잔여 이용 가능 횟수가 존재할 것</li>
-                <li>환불 시에는 구매 금액 − 기 이용한 수업 금액을 기준으로 금액이 산정됩니다.</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] text-[#3e4044] font-bold leading-[1.4]">
-                3. 입점 스튜디오(판매자)별 환불 정책
-              </p>
-              <ul className="text-[14px] text-[#585a5d] font-medium leading-[1.5] list-disc list-inside space-y-1">
-                <li>입점사(판매자)별로 상이한 환불 정책을 적용할 수 있습니다.</li>
-                <li>이에 해당하는 경우 입점사의 개별 환불 정책이 우선 적용됩니다.</li>
-                <li>자세한 환불 절차·필요 정보·가능 조건은 이용 중인 각 스튜디오에 문의하시면 안내받으실 수 있습니다.</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] text-[#3e4044] font-bold leading-[1.4]">
-                4. 로우그래피의 역할 (통신판매중개업자)
-              </p>
-              <ul className="text-[14px] text-[#585a5d] font-medium leading-[1.5] list-disc list-inside space-y-1">
-                <li>로우그래피(주)는 통신판매중개업자로서 다음의 역할을 수행합니다.</li>
-                <li>결제 및 예약 시스템 제공</li>
-                <li>판매자가 제공하는 상품·서비스 정보의 관리</li>
-                <li>고객센터 운영 및 기본적인 고객 지원 제공</li>
-                <li>분쟁 또는 불만 발생 시 신속한 중재 및 처리 지원</li>
-                <li>거래 확인 요청 시 관련 정보의 성실한 회신 의무</li>
-                <li>단, 실제 서비스 제공의 1차적 책임(수업 일정·내용·품질 등)은 판매자에게 있습니다.</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] text-[#3e4044] font-bold leading-[1.4]">
-                5. 취소 가능 시점
-              </p>
-              <ul className="text-[14px] text-[#585a5d] font-medium leading-[1.5] list-disc list-inside space-y-1">
-                <li>로우그래피는 수업일 기준 전일까지 취소 및 환불이 가능하도록 시스템 기능을 제공하고 있습니다.</li>
-                <li>단, 구체적인 규정은 각 스튜디오 정책에 따라 달라질 수 있습니다.</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] text-[#3e4044] font-bold leading-[1.4]">
-                6. 문의처
-              </p>
-              <ul className="text-[14px] text-[#585a5d] font-medium leading-[1.5] list-disc list-inside space-y-1">
-                <li>환불 절차, 환불 가능 여부, 스튜디오별 규정 등 구체적인 문의는 <span className="font-bold">이용 중인 스튜디오(판매자)</span>로 연락하시면 가장 정확한 안내를 받으실 수 있습니다.</li>
-                <li>추가 문의는 아래 고객센터로도 가능합니다.</li>
-                <li>고객센터 전화번호: 050-6774-3302</li>
-                <li>운영시간: 월–토 13:00–22:00</li>
-              </ul>
-            </div>
+          {/* 취소하기 및 결제내역 버튼 */}
+          <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
+            <button 
+              onClick={handleCancelClick}
+              className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity"
+            >
+              {getLocaleString({locale, key: 'do_cancel'})}
+            </button>
+            <div className="h-[14px] w-px bg-[#e6e8ea]"/>
+            <NavigateClickWrapper
+              method="push"
+              route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
+            >
+              <button className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity">
+                {getLocaleString({locale, key: 'payment_records'})}
+              </button>
+            </NavigateClickWrapper>
           </div>
         </div>
       </div>

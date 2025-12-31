@@ -42,6 +42,12 @@ export type GetTicketParameter = {
   isParent: boolean;
 }
 
+export type RevertUsagePassesParameter = {
+  ticketId: number;
+  reason: string;
+  requester: string;
+}
+
 export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
   method: 'get',
   path: `/tickets`,
@@ -69,6 +75,13 @@ export const CheckDuplicateTicket: Endpoint<CheckDupliateTicketParameter, Ticket
   method: 'get',
   path: '/tickets/duplicate-check',
   queryParams: ['userId', 'lessonId']
+}
+
+export const DeleteTicket: Endpoint<RevertUsagePassesParameter, SimpleResponse> = {
+  method: 'delete',
+  path: (e) => `/tickets/${e.ticketId}`,
+  pathParams: ['ticketId'],
+  bodyParams: ['reason', 'requester']
 }
 
 export function convertStatusToMessage({status}: { status: string }): StringResourceKey {
