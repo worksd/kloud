@@ -58,7 +58,7 @@ export const GetUser: Endpoint<GetUserParameter, GetUserResponse> = {
 
 export const GetMe: Endpoint<object, GetMeResponse> = {
   method: 'get',
-  path: `/me`,
+  path: `/users/me`,
 }
 
 export type PatchUserParameter = {

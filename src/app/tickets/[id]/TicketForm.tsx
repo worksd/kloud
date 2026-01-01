@@ -164,7 +164,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
             <div className={`absolute bottom-0 left-0 right-0 h-[200px] bg-black`} />
 
             {/* 티켓 내용 */}
-            <div className={`relative h-full flex flex-col gap-6 px-6 pt-8 ${ticket.status === 'Paid' ? 'pb-10' : 'pb-0'}`}>
+            <div className={`relative h-full flex flex-col gap-6 pl-6 pr-3 pt-8 ${ticket.status === 'Paid' ? 'pb-10' : 'pb-0'}`}>
               <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
                 <button
                   onClick={handleCopyPaymentId}
@@ -240,7 +240,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
               {/* 사용자 정보 및 QR코드/스탬프 */}
               <div className="flex items-end">
                 {/* 사용자 정보 */}
-                <div className="flex-1 flex flex-col gap-2 relative">
+                <div className="flex-1 flex flex-col gap-2 relative pr-3">
                   {/* Dim 오버레이 */}
                   <div
                       className="w-10 h-10 rounded-full overflow-hidden border flex-shrink-0">
@@ -325,16 +325,18 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
 
           {/* 취소하기 및 결제내역 버튼 */}
           <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
-            <button 
-              onClick={handleCancelClick}
-              className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity"
-            >
-              {getLocaleString({locale, key: 'do_cancel'})}
-            </button>
+            {ticket.isRefundable == true &&
+                <button
+                    onClick={handleCancelClick}
+                    className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity"
+                >
+                  {getLocaleString({locale, key: 'do_cancel'})}
+                </button>
+            }
             <div className="h-[14px] w-px bg-[#e6e8ea]"/>
             <NavigateClickWrapper
-              method="push"
-              route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
+                method="push"
+                route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
             >
               <button className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity">
                 {getLocaleString({locale, key: 'payment_records'})}

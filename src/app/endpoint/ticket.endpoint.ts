@@ -18,6 +18,7 @@ export type TicketResponse = {
   createdAt?: string;
   rank?: string;
   qrCodeUrl?: string;
+  isRefundable?: boolean;
 }
 
 export type GetInviteTicketParameter = {
