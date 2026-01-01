@@ -24,6 +24,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .border-membership {
+    background: conic-gradient(from 0deg, rgba(255, 215, 94, 1), rgba(196, 246, 255, 1), rgba(195, 88, 0, 1), rgba(255, 215, 94, 1));
+  }
+  .border-premium {
+    background: conic-gradient(from 0deg, rgba(147, 51, 234, 1), rgba(219, 39, 119, 1), rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+  }
 }
 
 @layer components {
@@ -207,4 +213,10 @@ html, body {
     transform: scale(4);
     opacity: 0;
   }
+}
+
+@layer utilities {
+    .border-membership {
+        background: conic-gradient(from 0deg, rgba(255, 215, 94, 1), rgba(196, 246, 255, 1), rgba(195, 88, 0, 1), rgba(255, 215, 94, 1));
+    }
 }

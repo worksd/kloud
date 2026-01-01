@@ -1,5 +1,5 @@
-import { getMembershipPlanListAction } from "@/app/membership/action/get.membership.plan.list.action";
-import { MembershipPlanListForm } from "@/app/membership/MembershipPlanListForm";
+import { getMembershipPlanListAction } from "@/app/membershipPlans/action/get.membership.plan.list.action";
+import { MembershipPlanListForm } from "@/app/membershipPlans/MembershipPlanListForm";
 import { getLocale, translate } from "@/utils/translate";
 
 export default async function MembershipPage({searchParams}: {

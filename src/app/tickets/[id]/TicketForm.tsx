@@ -136,6 +136,240 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
     };
   }, [ticket.id, ticket.paymentId, locale, router]);
 
+  // 티켓 렌더링 헬퍼 함수들
+  const getBorderClass = () => {
+    if (ticket.ticketType === 'membership') return 'border-membershipPlans';
+    if (ticket.ticketType === 'premium') return 'border-premium';
+    return '';
+  };
+
+  const getBorderRadius = () => {
+    if (ticket.ticketType === 'membership' || ticket.ticketType === 'premium') {
+      return ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]';
+    }
+    return ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : '';
+  };
+
+  const getRollingBandColor = () => {
+    if (ticket.ticketType === 'membership') {
+      return 'bg-gradient-to-r from-[#ffd75e] via-[#c0e6ff] via-[54.808%] to-[#ff9844]';
+    }
+    if (ticket.ticketType === 'premium') {
+      return 'bg-gradient-to-r from-[#9333ea] via-[#db2777] via-[54.808%] to-[#6366f1]';
+    }
+    return 'bg-black';
+  };
+
+  const isPaidOrUsed = ticket.status === 'Paid' || ticket.status === 'Used';
+  const hasBorder = (ticket.ticketType === 'membership' || ticket.ticketType === 'premium') && isPaidOrUsed;
+  const borderClass = getBorderClass();
+  const borderRadius = getBorderRadius();
+  const rollingBandColor = getRollingBandColor();
+
+  // 티켓 콘텐츠 JSX (중복 제거를 위해 함수로 추출)
+  const renderTicketContent = () => (
+    <div className={`relative h-full flex flex-col gap-6 px-6 pt-8 ${ticket.status === 'Paid' ? 'pb-10' : 'pb-0'}`}>
+      <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
+        <button
+          onClick={handleCopyPaymentId}
+          className="flex items-center gap-2 text-[12px] text-white/70 font-medium leading-[1.4] mb-0 hover:text-white/90 transition-colors active:opacity-70"
+        >
+          <Copy className="w-3 h-3 flex-shrink-0" />
+          <span className={'font-paperlogy'}>{ticket.paymentId}</span>
+          {copied && (
+            <span className="text-[10px] text-white/50 ml-1">복사됨</span>
+          )}
+        </button>
+
+        {/* 수업 정보 */}
+        <div className="flex flex-col gap-[10px]">
+          <div className="flex flex-col">
+            <h1 className="text-[24px] text-white font-bold leading-[1.4] mb-1">
+              {ticket.lesson?.title}
+            </h1>
+            <div className="flex flex-row gap-1 items-center">
+              {/* 날짜 or 반복 요일 */}
+              {ticket.lesson?.formattedDate?.type === 'oneTime' ? (
+                  <div className="flex items-center gap-1">
+                    <p className="text-[18px] text-white font-bold font-paperlogy">
+                      {ticket.lesson?.formattedDate?.date}
+                    </p>
+                    <p className="text-[13px] text-[#FFFFFF80] font-bold">
+                      ({ticket.lesson?.formattedDate?.weekday})
+                    </p>
+                  </div>
+              ) : (
+                  <div className="flex items-center">
+                    <p className="text-[18px] text-[#FFFFFF80] font-semibold">
+                      ({ticket.lesson?.formattedDate?.daysOfWeek})
+                    </p>
+                  </div>
+              )}
+
+              {/* 시간 영역 */}
+              <div className="flex items-center gap-2 ml-3 font-paperlogy">
+                <p className="text-[30px] text-[#FFD438] font-bold leading-none">
+                  {ticket.lesson?.formattedDate?.startTime}
+                </p>
+                <p className="text-[16px] text-[#FFFFFF80] font-medium leading-none">
+                  ~ {ticket.lesson?.formattedDate?.endTime}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-[10px]">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full overflow-hidden border border-[#f5f7fa] flex-shrink-0">
+                {ticket.lesson?.studio?.profileImageUrl && (
+                    <Image
+                        src={ticket.lesson.studio.profileImageUrl}
+                        alt="Studio"
+                        width={28}
+                        height={28}
+                        className="w-full h-full object-cover"
+                    />
+                )}
+              </div>
+              <p className="text-[16px] text-white font-medium">
+                {ticket.lesson?.studio?.name}
+              </p>
+            </div>
+            <p className="text-[20px] text-white font-bold">
+              {ticket.lesson?.room?.name}
+              {ticket.rank && ` - ${ticket.rank}`}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 사용자 정보 및 QR코드/스탬프 */}
+      <div className="flex items-end">
+        {/* 사용자 정보 */}
+        <div className="flex-1 flex flex-col gap-2 relative pr-3">
+          <div className="flex items-center gap-2">
+            {/* Dim 오버레이 */}
+            <div
+                className="w-10 h-10 rounded-full overflow-hidden border flex-shrink-0">
+              {ticket.user?.profileImageUrl && (
+                  <Image
+                      src={ticket.user.profileImageUrl}
+                      alt="User"
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                  />
+              )}
+            </div>
+            {ticket.ticketType === 'membership' && isPaidOrUsed && (
+              <div className="bg-gradient-to-r from-[#fdd763] to-[#c6e4ee] flex items-center justify-center px-[5px] py-0 rounded-[100px]">
+                <p className="text-[12px] font-medium text-black">
+                  Membership
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col">
+            <p className="text-[14px] text-white font-bold leading-[22px] text-left">
+              {ticket.user?.nickName}
+              {ticket.user?.name ? ` (${ticket.user.name})` : ""}
+            </p>
+            <p className="text-[12px] text-white font-medium text-left leading-[20px]">
+              {ticket.user?.email}
+            </p>
+          </div>
+        </div>
+
+        {/* QR코드 또는 스탬프 */}
+        <div
+            className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
+                ticket.status === 'Paid' && ticket.qrCodeUrl ? 'bg-white' : ''
+            }`}>
+          {ticket.status === 'Paid' && ticket.qrCodeUrl ? (
+              <div>
+                <QRCodeCanvas
+                    value={ticket.qrCodeUrl}
+                    size={84}
+                    className="w-full h-full"
+                />
+              </div>
+
+          ) : (
+              <div className="flex items-center justify-center relative">
+                {ticket.status === 'Cancelled' && (
+                    <StampCancel className="scale-50"/>
+                )}
+                {(ticket.status === 'Used' || ticket.status === 'Expired') && (
+                    <StampUsed className="scale-50"/>
+                )}
+                {ticket.status === 'Pending' && (
+                    <StampNotPaid className="scale-50"/>
+                )}
+              </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 티켓 배경 JSX (중복 제거를 위해 함수로 추출)
+  const renderTicketBackground = () => {
+    const bgBorderRadius = ticket.ticketType === 'membership' || ticket.ticketType === 'premium'
+      ? (ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]')
+      : (ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : '');
+
+    return (
+      <>
+        {/* 티켓 배경 이미지 - divider까지 */}
+        <div className={`absolute top-0 left-0 right-0 ${bgBorderRadius} overflow-hidden`} style={{ height: 'calc(100% - 200px)' }}>
+          {ticket.lesson?.thumbnailUrl ? (
+              <>
+                <Image
+                    src={ticket.lesson.thumbnailUrl}
+                    alt="Ticket Background"
+                    fill
+                    className="object-cover"
+                    priority
+                />
+                {/* title 영역 아래쪽에 gradient 적용 */}
+                <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent" />
+              </>
+          ) : <div className="h-full bg-gradient-to-b from-[#1a1a1a] via-[#2a2a2a] to-black" />}
+        </div>
+
+        {/* divider 아래 검은색 배경 */}
+        <div className={`absolute bottom-0 left-0 right-0 h-[200px] bg-black`} />
+      </>
+    );
+  };
+
+  // 롤링 밴드 JSX (중복 제거를 위해 함수로 추출)
+  const renderRollingBand = () => {
+    if (ticket.status !== 'Paid' && ticket.status !== 'Used') {
+      return null;
+    }
+
+    return (
+      <div
+        className={`absolute bottom-0 left-0 w-full h-[20px] ${rollingBandColor} overflow-hidden flex items-center gap-5`}
+      >
+        <div className="flex animate-scroll-reverse-slow">
+          <div className="flex shrink-0">
+            {Array(2).fill(null).map((_, index) => (
+              <div key={index} className="flex">
+                {Array(50).fill(null).map((_, i) => (
+                  <div key={`logo-${index}-${i}`}
+                       className="w-[190px] h-[30px] flex-shrink-0 flex items-center">
+                    <Logo className="w-full h-full scale-50"/>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white ticket-container">
         {/* 배경 이미지 및 Backdrop Blur - 고정 */}
@@ -164,209 +398,52 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
           )}
 
           {/* 티켓 카드 */}
-          <div className={`relative z-10 flex flex-col items-center justify-center min-h-screen pt-16 ${ticket.status != 'Paid' ? 'pb-[5px]' : 'pb-[40px]'}`}>
-          <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : ''}`}>
-
-            {/* 티켓 배경 이미지 - divider까지 */}
-            <div className={`absolute top-0 left-0 right-0 rounded-t-[20px] overflow-hidden`} style={{ height: 'calc(100% - 200px)' }}>
-              {ticket.lesson?.thumbnailUrl ? (
-                  <>
-                    <Image
-                        src={ticket.lesson.thumbnailUrl}
-                        alt="Ticket Background"
-                        fill
-                        className="object-cover"
-                        priority
-                    />
-                    {/* title 영역 아래쪽에 gradient 적용 */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-black via-black/50 to-transparent" />
-                  </>
-              ) : <div className="h-full bg-gradient-to-b from-[#1a1a1a] via-[#2a2a2a] to-black" />}
-            </div>
-
-            {/* divider 아래 검은색 배경 */}
-            <div className={`absolute bottom-0 left-0 right-0 h-[200px] bg-black`} />
-
-            {/* 티켓 내용 */}
-            <div className={`relative h-full flex flex-col gap-6 pl-6 pr-3 pt-8 ${ticket.status === 'Paid' ? 'pb-10' : 'pb-0'}`}>
-              <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
-                <button
-                  onClick={handleCopyPaymentId}
-                  className="flex items-center gap-2 text-[12px] text-white/70 font-medium leading-[1.4] mb-0 hover:text-white/90 transition-colors active:opacity-70"
-                >
-                  <Copy className="w-3 h-3 flex-shrink-0" />
-                  <span className={'font-paperlogy'}>{ticket.paymentId}</span>
-                  {copied && (
-                    <span className="text-[10px] text-white/50 ml-1">복사됨</span>
-                  )}
-                </button>
-
-                {/* 수업 정보 */}
-                <div className="flex flex-col gap-[10px]">
-                  <div className="flex flex-col">
-                    <h1 className="text-[24px] text-white font-bold leading-[1.4] mb-1">
-                      {ticket.lesson?.title}
-                    </h1>
-                    <div className="flex flex-row gap-1 items-center">
-                      {/* 날짜 or 반복 요일 */}
-                      {ticket.lesson?.formattedDate?.type === 'oneTime' ? (
-                          <div className="flex items-center gap-1">
-                            <p className="text-[18px] text-white font-bold font-paperlogy">
-                              {ticket.lesson?.formattedDate?.date}
-                            </p>
-                            <p className="text-[13px] text-[#FFFFFF80] font-bold">
-                              ({ticket.lesson?.formattedDate?.weekday})
-                            </p>
-                          </div>
-                      ) : (
-                          <div className="flex items-center">
-                            <p className="text-[18px] text-[#FFFFFF80] font-semibold">
-                              ({ticket.lesson?.formattedDate?.daysOfWeek})
-                            </p>
-                          </div>
-                      )}
-
-                      {/* 시간 영역 */}
-                      <div className="flex items-center gap-2 ml-3 font-paperlogy">
-                        <p className="text-[30px] text-[#FFD438] font-bold leading-none">
-                          {ticket.lesson?.formattedDate?.startTime}
-                        </p>
-                        <p className="text-[16px] text-[#FFFFFF80] font-medium leading-none">
-                          ~ {ticket.lesson?.formattedDate?.endTime}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-[10px]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full overflow-hidden border border-[#f5f7fa] flex-shrink-0">
-                        {ticket.lesson?.studio?.profileImageUrl && (
-                            <Image
-                                src={ticket.lesson.studio.profileImageUrl}
-                                alt="Studio"
-                                width={28}
-                                height={28}
-                                className="w-full h-full object-cover"
-                            />
-                        )}
-                      </div>
-                      <p className="text-[16px] text-white font-medium">
-                        {ticket.lesson?.studio?.name}
-                      </p>
-                    </div>
-                    <p className="text-[20px] text-white font-bold">
-                      {ticket.lesson?.room?.name}
-                    </p>
+          <div className="relative z-10 flex flex-col items-center justify-center pt-32">
+            {hasBorder ? (
+              <div className={`relative p-[3px] rounded-t-[20px] ${borderClass}`}>
+                <div className={`relative ${ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]'} overflow-hidden`}>
+                  <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : ''}`}>
+                    {renderTicketBackground()}
+                    {renderTicketContent()}
+                    {renderRollingBand()}
                   </div>
                 </div>
               </div>
-
-              {/* 사용자 정보 및 QR코드/스탬프 */}
-              <div className="flex items-end">
-                {/* 사용자 정보 */}
-                <div className="flex-1 flex flex-col gap-2 relative pr-3">
-                  {/* Dim 오버레이 */}
-                  <div
-                      className="w-10 h-10 rounded-full overflow-hidden border flex-shrink-0">
-                    {ticket.user?.profileImageUrl && (
-                        <Image
-                            src={ticket.user.profileImageUrl}
-                            alt="User"
-                            width={40}
-                            height={40}
-                            className="w-full h-full object-cover"
-                        />
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="text-[14px] text-white font-bold leading-[22px] text-left">
-                      {ticket.user?.nickName}
-                      {ticket.user?.name ? ` (${ticket.user.name})` : ""}
-                    </p>
-                    <p className="text-[12px] text-white font-medium text-left leading-[20px]">
-                      {ticket.user?.email}
-                    </p>
-                  </div>
-                </div>
-
-                {/* QR코드 또는 스탬프 */}
-                <div
-                    className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
-                        ticket.status === 'Paid' && ticket.qrCodeUrl ? 'bg-white' : ''
-                    }`}>
-                  {ticket.status === 'Paid' && ticket.qrCodeUrl ? (
-                      <div>
-                        <QRCodeCanvas
-                            value={ticket.qrCodeUrl}
-                            size={84}
-                            className="w-full h-full"
-                        />
-                      </div>
-
-                  ) : (
-                      <div className="flex items-center justify-center relative">
-                        {ticket.status === 'Cancelled' && (
-                            <StampCancel className="scale-50"/>
-                        )}
-                        {(ticket.status === 'Used' || ticket.status === 'Expired') && (
-                            <StampUsed className="scale-50"/>
-                        )}
-                        {ticket.status === 'Pending' && (
-                            <StampNotPaid className="scale-50"/>
-                        )}
-                      </div>
-                  )}
-                </div>
+            ) : (
+              <div className={`relative w-[350px] h-[500px] ${borderRadius}`}>
+                {renderTicketBackground()}
+                {renderTicketContent()}
+                {renderRollingBand()}
               </div>
-            </div>
-
-            {/* Rawgraphy 롤링밴드 (Paid일 때만) */}
-            {ticket.status === 'Paid' && (
-                <div
-                    className="absolute bottom-0 left-0 w-full h-[20px] bg-black overflow-hidden flex items-center gap-5">
-                  <div className="flex animate-scroll-reverse-slow">
-                    <div className="flex shrink-0">
-                      {Array(2).fill(null).map((_, index) => (
-                          <div key={index} className="flex">
-                            {Array(50).fill(null).map((_, i) => (
-                                <div key={`logo-${index}-${i}`}
-                                     className="w-[190px] h-[30px] flex-shrink-0 flex items-center">
-                                  <Logo className="w-full h-full scale-50"/>
-                                </div>
-                            ))}
-                          </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
             )}
-          </div>
-
-          {/* 하단 ticket-ggodari.svg */}
-          <div className="w-full flex justify-center">
-            <TicketGgodari className="w-full max-w-[350px] h-auto"/>
+            
+            {/* 하단 ticket-ggodari.svg */}
+            <div className="w-full flex justify-center">
+              <TicketGgodari className="w-full max-w-[350px] h-auto"/>
+            </div>
           </div>
 
           {/* 취소하기 및 결제내역 버튼 */}
           <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
-            {ticket.isRefundable == true &&
+            {ticket.isRefundable == true && (
+              <>
                 <button
-                    onClick={handleCancelClick}
-                    className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity"
+                  onClick={handleCancelClick}
+                  className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity"
                 >
                   {getLocaleString({locale, key: 'do_cancel'})}
                 </button>
-            }
-            <div className="h-[14px] w-px bg-[#e6e8ea]"/>
+                <div className="h-[14px] w-px bg-[#e6e8ea]"/>
+              </>
+            )}
             <NavigateClickWrapper
-                method="push"
-                route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
+              method="push"
+              route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
             >
               <button className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity">
                 {getLocaleString({locale, key: 'payment_records'})}
               </button>
             </NavigateClickWrapper>
-          </div>
           </div>
         </div>
       </div>

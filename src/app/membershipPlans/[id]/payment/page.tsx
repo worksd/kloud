@@ -1,8 +1,8 @@
 import React from "react";
-import { MembershipPaymentInfo } from "@/app/membership/[id]/payment/MembershipPaymentInfo";
+import { MembershipPaymentInfo } from "@/app/membershipPlans/[id]/payment/MembershipPaymentInfo";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { CurrentMembershipPlan } from "@/app/membership/[id]/payment/CurrentMembershipPlan";
-import { getMembershipPaymentAction } from "@/app/membership/[id]/payment/get.membership.payment.action";
+import { CurrentMembershipPlan } from "@/app/membershipPlans/[id]/payment/CurrentMembershipPlan";
+import { getMembershipPaymentAction } from "@/app/membershipPlans/[id]/payment/get.membership.payment.action";
 import { cookies } from "next/headers";
 import { depositorKey } from "@/shared/cookies.key";
 import { getLocale } from "@/utils/translate";

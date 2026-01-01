@@ -3,7 +3,7 @@
 import { GetMembershipResponse } from "@/app/endpoint/membership.endpoint";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { MembershipItem } from "@/app/profile/membership/[id]/MembershipItem";
+import { MembershipItem } from "@/app/memberships/[id]/MembershipItem";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import Image from "next/image";

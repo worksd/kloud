@@ -19,6 +19,7 @@ export type TicketResponse = {
   rank?: string;
   qrCodeUrl?: string;
   isRefundable?: boolean;
+  ticketType?: 'default' | 'premium' | 'membership'
 }
 
 export type GetInviteTicketParameter = {

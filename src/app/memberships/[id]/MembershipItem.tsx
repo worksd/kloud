@@ -24,7 +24,7 @@ export const MembershipItem = ({membership, locale, isOnBackground = false}: { m
             membership.status == 'Active' &&
             <div className={`flex items-center space-x-2 ${subTextColor}`}>
 
-              <div className={'flex flex-row space-x-0.5'}>
+              <div className={'flex flex-row space-x-0.5 text-[12px]'}>
                 <span className={`${dateTextColor} font-medium`}>{membership.endDate}</span>
                 <div className={`${dateTextColor} font-medium`}>{getLocaleString({locale, key: 'until'})}</div>
               </div>

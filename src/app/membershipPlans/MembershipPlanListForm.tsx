@@ -259,7 +259,7 @@ export const MembershipPlanListForm = ({
             originProps={{
               onClick: () => {
                 if (selectedPlan) {
-                  kloudNav.push(KloudScreen.MembershipPayment(selectedPlan.id));
+                  kloudNav.push(KloudScreen.MembershipPlanPayment(selectedPlan.id));
                 }
               },
               className: "h-[56px] rounded-[8px]"

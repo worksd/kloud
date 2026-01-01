@@ -115,7 +115,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
     route.startsWith(KloudScreen.Certification) ||
-    route.startsWith('/membership?')
+    route.startsWith('/membershipPlans?')
 }
 
 const applyTitle = async (route: string) => {
@@ -169,6 +169,10 @@ const applyTitle = async (route: string) => {
     return await translate('change_password')
   } else if (route.includes('refund')) {
     return '';
+  } else if (route.includes('/memberships')) {
+    return await translate('my_membership')
+  } else if (route.includes('/payment') && route.includes('/membershipPlans')) {
+    return await translate('payment')
   }
   else return undefined
 }
