@@ -30,6 +30,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const handleCopyPaymentId = async () => {
@@ -62,6 +63,27 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
       }
     };
   }, []);
+
+  // 페이지 복귀 시 스크롤 위치 초기화
+  useEffect(() => {
+    // 컴포넌트 마운트 시 스크롤 위치 초기화
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    
+    // 페이지 visibility 변경 시에도 스크롤 위치 초기화
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [ticket.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -115,9 +137,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
   }, [ticket.id, ticket.paymentId, locale, router]);
 
   return (
-      <div className={`relative w-full h-screen overflow-y-auto ${ticket.status === 'Cancelled' ? 'overflow-x-hidden' : ''} bg-white ticket-container`} style={{ overscrollBehaviorY: 'none' }}>
-        {/* 배경 이미지 및 Backdrop Blur */}
-        <div className="absolute inset-0 overflow-hidden">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white ticket-container">
+        {/* 배경 이미지 및 Backdrop Blur - 고정 */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute inset-0 -inset-[10%]">
             {ticket.lesson?.thumbnailUrl && (
                 <Image
@@ -132,15 +154,17 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
           <div className="absolute inset-0 backdrop-blur-[10px]"/>
         </div>
 
-        {/* Header */}
-        {inviteCode && (
-            <div className="relative z-10 flex justify-between items-center">
-              <SimpleHeader titleResource="ticket"/>
-            </div>
-        )}
+        {/* 스크롤 가능한 컨텐츠 영역 */}
+        <div ref={scrollContainerRef} className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden">
+          {/* Header */}
+          {inviteCode && (
+              <div className="relative z-10 flex justify-between items-center">
+                <SimpleHeader titleResource="ticket"/>
+              </div>
+          )}
 
-        {/* 티켓 카드 */}
-        <div className={`relative z-10 flex flex-col items-center justify-center min-h-screen pt-16 ${ticket.status != 'Paid' ? 'pb-[5px]' : 'pb-[40px]'}`}>
+          {/* 티켓 카드 */}
+          <div className={`relative z-10 flex flex-col items-center justify-center min-h-screen pt-16 ${ticket.status != 'Paid' ? 'pb-[5px]' : 'pb-[40px]'}`}>
           <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : ''}`}>
 
             {/* 티켓 배경 이미지 - divider까지 */}
@@ -342,6 +366,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
                 {getLocaleString({locale, key: 'payment_records'})}
               </button>
             </NavigateClickWrapper>
+          </div>
           </div>
         </div>
       </div>
