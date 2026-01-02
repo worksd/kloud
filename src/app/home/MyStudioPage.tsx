@@ -17,7 +17,7 @@ import { GetMembershipResponse } from "@/app/endpoint/membership.endpoint";
 import { MembershipBand } from "@/app/home/MembershipBand";
 import EventScreen from "@/app/home/eventScreen";
 
-export default async function MyStudioPage({res, os, hideDialogIds}: { res: GetMyStudioResponse, os: string, hideDialogIds: number[]}) {
+export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
@@ -28,7 +28,6 @@ export default async function MyStudioPage({res, os, hideDialogIds}: { res: GetM
 
   return (
     <div className={'flex flex-col overflow-y-auto no-scrollbar pb-10'}>
-      <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
       <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
         <header className="flex flex-row space-x-2 p-4 bg-white items-center">
           <h1 className="text-[18px] font-medium text-black">{await translate('my_studio')}</h1>

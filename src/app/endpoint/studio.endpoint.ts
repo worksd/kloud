@@ -58,7 +58,6 @@ export type GetMyStudioResponse = {
   bands: GetBandResponse[];
   myTodayTicket?: TicketResponse;
   membership?: GetMembershipResponse;
-  events?: GetEventResponse[];
 }
 
 export type GetTimeTableResponse = {
