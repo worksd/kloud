@@ -15,6 +15,7 @@ export type GetPaymentRequest = {
 export type DiscountResponse = {
   key: string;
   value: string;
+  amount: number;
   type: string;
   itemId: number;
 }

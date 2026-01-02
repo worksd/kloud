@@ -8,7 +8,7 @@ import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import {redirect, useRouter} from "next/navigation";
 import { SimpleDialog } from "@/app/components/SimpleDialog";
-import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import {DiscountResponse, PaymentMethodType} from "@/app/endpoint/payment.endpoint";
 import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
@@ -43,7 +43,7 @@ type PaymentInfo = {
   price?: number
   amount?: string
   userCode?: string
-  customData?: string
+  customData?: string;
 }
 
 export default function PaymentButton({
@@ -51,6 +51,7 @@ export default function PaymentButton({
                                         id,
                                         selectedPass,
                                         selectedBilling,
+                                        selectedDiscounts,
                                         type,
                                         price,
                                         title,
@@ -66,6 +67,7 @@ export default function PaymentButton({
   id: number,
   selectedPass?: GetPassResponse,
   selectedBilling?: GetBillingResponse,
+  selectedDiscounts?: DiscountResponse[],
   type: PaymentType,
   price: number,
   title: string,
@@ -159,7 +161,8 @@ export default function PaymentButton({
           customer: {fullName: `${user.id}`},
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
           customData: {
-            actualPayerUserId
+            actualPayerUserId,
+            discounts: selectedDiscounts,
           }
         };
 
@@ -176,8 +179,11 @@ export default function PaymentButton({
         type,
         price,
         userId: `${user.id}`,
-        customData: '',
-        userCode: process.env.NEXT_PUBLIC_USER_CODE, // TODO: V2 마이그레이션 시 삭제 예정
+        customData: JSON.stringify({
+          actualPayerUserId,
+          discounts: selectedDiscounts,
+        }),
+        userCode: process.env.NEXT_PUBLIC_USER_CODE,
         pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
         scheme: 'iamport',
         amount: `${price}`,

@@ -90,6 +90,7 @@ export const LessonPaymentInfo = ({payment, url, appVersion, locale, beforeDepos
           appVersion={appVersion}
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
+          selectedDiscounts={payment.discounts} // TODO: 현재는 내려오는 할인정보 다 전송해주지만 나중에는 선택한것만 전송해주게 수정
           type={{value: 'lesson', prefix: 'LT', apiValue: 'lesson'}}
           id={payment.lesson?.id ?? 0}
           price={payment.totalPrice}
