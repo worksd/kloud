@@ -256,7 +256,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
             </div>
             {ticket.ticketType === 'membership' && isPaidOrUsed && (
               <div className="bg-gradient-to-r from-[#fdd763] to-[#c6e4ee] flex items-center justify-center px-[5px] py-0 rounded-[100px]">
-                <p className="text-[12px] font-medium text-black">
+                <p className="text-[10px] font-bold text-black font-paperlogy p-1">
                   Membership
                 </p>
               </div>
@@ -452,25 +452,27 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
 
           {/* 취소하기 및 결제내역 버튼 */}
           <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
-            {ticket.isRefundable == true && (
-              <>
-                <button
-                  onClick={handleCancelClick}
-                  className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity"
-                >
-                  {getLocaleString({locale, key: 'do_cancel'})}
+            <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2 flex items-center gap-6">
+              {ticket.isRefundable == true && (
+                <>
+                  <button
+                    onClick={handleCancelClick}
+                    className="text-[14px] font-medium text-white active:opacity-70 transition-opacity"
+                  >
+                    {getLocaleString({locale, key: 'do_cancel'})}
+                  </button>
+                  <div className="h-[14px] w-px bg-white/30"/>
+                </>
+              )}
+              <NavigateClickWrapper
+                method="push"
+                route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
+              >
+                <button className="text-[14px] font-medium text-white active:opacity-70 transition-opacity">
+                  {getLocaleString({locale, key: 'payment_records'})}
                 </button>
-                <div className="h-[14px] w-px bg-[#e6e8ea]"/>
-              </>
-            )}
-            <NavigateClickWrapper
-              method="push"
-              route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
-            >
-              <button className="text-[14px] font-medium text-[#e6e8ea] active:opacity-70 transition-opacity">
-                {getLocaleString({locale, key: 'payment_records'})}
-              </button>
-            </NavigateClickWrapper>
+              </NavigateClickWrapper>
+            </div>
           </div>
 
           {/* 멤버십 정보 표시 (ticketType이 membership일 때) */}
