@@ -5,6 +5,7 @@ import { DialogInfo } from "@/utils/dialog.factory";
 import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getHideDialogIdsAction } from "@/app/home/get.hide.dialog.ids.action";
+import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
 /**
  * 첫번째 탭
@@ -14,7 +15,7 @@ import { getHideDialogIdsAction } from "@/app/home/get.hide.dialog.ids.action";
  * @constructor
  */
 
-export default function HomeScreen({os, data, hideDialogIds: initialHideDialogIds}: { os: string, data: GetHomeResponse, hideDialogIds: number[] }) {
+export default function EventScreen({os, events, hideDialogIds: initialHideDialogIds}: { os: string, events: GetEventResponse[], hideDialogIds: number[] }) {
   const hasShownDialog = useRef(false);
   const [hideDialogIds, setHideDialogIds] = useState<number[]>(initialHideDialogIds);
 
@@ -23,7 +24,7 @@ export default function HomeScreen({os, data, hideDialogIds: initialHideDialogId
     
     try {
       // 숨김 처리된 다이얼로그 제외
-      const availableEvents = data.events.filter(event => !hideDialogIds.includes(event.id));
+      const availableEvents = events.filter(event => !hideDialogIds.includes(event.id));
       
       if (availableEvents.length > 0) {
         hasShownDialog.current = true;
@@ -42,7 +43,7 @@ export default function HomeScreen({os, data, hideDialogIds: initialHideDialogId
       }
     } catch (error) {
     }
-  }, [data, hideDialogIds]);
+  }, [events, hideDialogIds]);
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {

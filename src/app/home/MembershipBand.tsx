@@ -19,10 +19,10 @@ export const MembershipBand = ({membership, locale}: {
       </div>
       <NavigateClickWrapper method={'push'} route={KloudScreen.MembershipDetail(membership.id)}>
         <div className="relative border border-[#F1F3F6] rounded-[16px] p-4 shadow-sm active:scale-[0.98] transition-all duration-150 select-none overflow-hidden">
-          {membership.plan.imageUrl && (
+          {membership.plan?.imageUrl && (
             <>
               <Image
-                src={membership.plan.imageUrl}
+                src={membership.plan?.imageUrl}
                 alt={membership.plan.name}
                 fill
                 className="object-cover absolute inset-0 z-0"
@@ -32,7 +32,7 @@ export const MembershipBand = ({membership, locale}: {
             </>
           )}
           <div className="relative z-20">
-            <MembershipItem membership={membership} locale={locale} isOnBackground={!!membership.plan.imageUrl} />
+            <MembershipItem membership={membership} locale={locale} isOnBackground={!!membership.plan?.imageUrl} />
           </div>
         </div>
       </NavigateClickWrapper>

@@ -15,11 +15,11 @@ export const MembershipItem = ({membership, locale, isOnBackground = false}: { m
       <div className="flex justify-between items-center">
         <div className="space-y-2">
           <div className={"flex flex-row items-center space-x-2"}>
-            <CircleImage size={24} imageUrl={membership.plan.studio?.profileImageUrl}/>
-            <div className={`text-[16px] ${textColor} font-medium`}>{membership.plan.studio?.name}</div>
+            <CircleImage size={24} imageUrl={membership.plan?.studio?.profileImageUrl}/>
+            <div className={`text-[16px] ${textColor} font-medium`}>{membership.plan?.studio?.name}</div>
           </div>
 
-          <h2 className={`text-xl font-semibold ${textColor}`}>{membership.plan.name}</h2>
+          <h2 className={`text-xl font-semibold ${textColor}`}>{membership.plan?.name}</h2>
           {
             membership.status == 'Active' &&
             <div className={`flex items-center space-x-2 ${subTextColor}`}>

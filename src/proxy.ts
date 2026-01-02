@@ -11,27 +11,45 @@ export async function proxy(request: NextRequest) {
   const cookie = await cookies()
 
   const appVersion = extractKloudVersion(ua) ?? ''
-  // URL 파라미터 설정
+  const deviceId = extractKloudDeviceId(ua) ?? ''
+
   url.searchParams.set('os', os.name ?? '')
   url.searchParams.set('appVersion', appVersion)
 
-  // 새로운 Response 생성하면서 헤더 설정
+  // 🔹 deviceId 필요하면 query로도 전달 가능
+  if (deviceId) {
+    url.searchParams.set('deviceId', deviceId)
+  }
+
   const response = NextResponse.rewrite(url)
 
-  // 헤더 설정
-  response.headers.set('x-guinness-client', appVersion != '' ? `${os.name}` : 'Web')
+  response.headers.set(
+      'x-guinness-client',
+      appVersion !== '' ? `${os.name}` : 'Web'
+  )
   response.headers.set('x-guinness-version', appVersion)
-  response.headers.set('x-guinness-device-name', `${device.model}(${device.vendor}/${os.version})`)
+  response.headers.set(
+      'x-guinness-device-name',
+      `${device.model}(${device.vendor}/${os.version})`
+  )
+  response.headers.set('x-guinness-device-id', deviceId)
 
-  if (appVersion == '' && isAuthScreen(url.pathname) && !cookie.get(accessTokenKey)?.value) {
+  // 🔹 deviceId 헤더 추가 (핵심)
+  if (deviceId) {
+    response.headers.set('x-guinness-device-id', deviceId)
+  }
+
+  if (
+      appVersion == '' &&
+      isAuthScreen(url.pathname) &&
+      !cookie.get(accessTokenKey)?.value
+  ) {
     const loginUrl = new URL(KloudScreen.Login(url.pathname), request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-
   return response
 }
-
 function extractKloudVersion(userAgent: string): string | null {
   try {
     // kloudNativeClient/ 다음에 오는 버전 번호를 찾습니다
@@ -44,6 +62,22 @@ function extractKloudVersion(userAgent: string): string | null {
 
     return match[1]; // 버전 번호만 반환 (예: "1.0.1")
   } catch (error) {
+    return null;
+  }
+}
+
+function extractKloudDeviceId(userAgent: string): string | null {
+  try {
+    // KloudNativeClient/{version}/{deviceId}
+    const regex = /KloudNativeClient\/[0-9]+(?:\.[0-9]+)*\/([A-Za-z0-9-]+)/;
+    const match = userAgent.match(regex);
+
+    if (!match) {
+      return null;
+    }
+
+    return match[1];
+  } catch {
     return null;
   }
 }

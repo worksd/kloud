@@ -1,13 +1,10 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { GetBandResponse, GetLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetBandResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { GetEventResponse } from "@/app/endpoint/event.endpoint";
-import {GetMembershipResponse} from "@/app/endpoint/membership.endpoint";
 
 export type GetHomeResponse = {
   studios: GetStudioResponse[];
   myStudio?: GetMyStudioResponse;
-  events: GetEventResponse[];
   recommendedStudios: GetStudioResponse[];
 }
 

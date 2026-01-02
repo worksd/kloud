@@ -4,6 +4,7 @@ import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import {GetMembershipResponse} from "@/app/endpoint/membership.endpoint";
+import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
 export type IdParameter = {
   id: number;
@@ -57,6 +58,7 @@ export type GetMyStudioResponse = {
   bands: GetBandResponse[];
   myTodayTicket?: TicketResponse;
   membership?: GetMembershipResponse;
+  events?: GetEventResponse[];
 }
 
 export type GetTimeTableResponse = {
