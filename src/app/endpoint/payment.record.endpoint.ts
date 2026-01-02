@@ -15,6 +15,7 @@ export type GetPaymentRecordResponse = {
   createdAt: string;
   amount: number;
   depositor?: string;
+  cardNumber?: string;
   productName: string;
   productImageUrl?: string;
   productRoute?: string;

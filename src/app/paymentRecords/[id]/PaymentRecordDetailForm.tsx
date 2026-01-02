@@ -182,7 +182,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
                   <div className="flex items-center">
-                    <span className="text-[14px] font-medium text-[#191f28] text-right">1000-1000-1010-1010</span>
+                    <span className="text-[14px] font-medium text-[#191f28] text-right">{paymentRecord.cardNumber}</span>
                   </div>
                 </div>
             ) : paymentRecord.depositor && (
