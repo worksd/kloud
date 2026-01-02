@@ -289,7 +289,7 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
-        const res = await createSubscriptionAction({item: type.value, itemId: id, billingKey: data.customData ?? ''})
+        const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
         if ('subscription' in res) {
           await new Promise(resolve => setTimeout(resolve, 2000));
           const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId)
