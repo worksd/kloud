@@ -42,6 +42,14 @@ export type RequestAccountTransfer = {
   itemId: number;
   depositor: string;
   targetUserId?: number;
+  discounts?: RequestDiscountParameter[];
+}
+
+export type RequestDiscountParameter = {
+  amount: number;
+  type: string;
+  key: string;
+  itemId: number;
 }
 
 export type CreateFreePaymentRecord = {
@@ -62,7 +70,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const RequestAccountTransfer: Endpoint<RequestAccountTransfer, GetPaymentRecordResponse> = {
   method: 'post',
   path: (e) => `/paymentRecords/account-transfer`,
-  bodyParams: ['depositor', 'itemId', 'item', 'targetUserId']
+  bodyParams: ['depositor', 'itemId', 'item', 'targetUserId', 'discounts']
 }
 
 export const CreateFreePaymentRecord: Endpoint<CreateFreePaymentRecord, GetPaymentRecordResponse> = {

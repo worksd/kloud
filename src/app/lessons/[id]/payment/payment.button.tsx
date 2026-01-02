@@ -263,6 +263,7 @@ export default function PaymentButton({
           itemId: id,
           depositor: depositor,
           targetUserId: user?.id,
+          discounts: selectedDiscounts,
         });
         if ('paymentId' in res) {
           await onPaymentSuccess({paymentId: res.paymentId, delay: 0})
