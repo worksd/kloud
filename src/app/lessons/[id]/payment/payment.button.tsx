@@ -25,7 +25,7 @@ import { Locale } from "@/shared/StringResource";
 export const PaymentTypes = [
   {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
   {value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'},
-  {value: 'membershipPlan', prefix: 'LM', apiValue: 'membership'},
+  {value: 'membershipPlan', prefix: 'SM', apiValue: 'membership-plan'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];

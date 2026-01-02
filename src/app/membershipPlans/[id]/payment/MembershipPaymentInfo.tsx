@@ -87,7 +87,7 @@ export const MembershipPaymentInfo = ({payment, price, url, appVersion, beforeDe
       <div className="px-6 mt-4 bottom-2 sticky">
         <PaymentButton
           locale={locale}
-          type={{value: 'membershipPlan', prefix: 'LM', apiValue: 'membership'}}
+          type={{value: 'membershipPlan', prefix: 'SM', apiValue: 'membership-plan'}}
           title={membershipPlanName}
           price={price}
           id={payment.membershipPlan?.id ?? payment.passPlan?.id ?? 0}

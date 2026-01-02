@@ -34,7 +34,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   const displayPaymentId = parts[parts.length - 1]; // 마지막 부분만 표시
   const isPassPlan = paymentRecord.paymentId.startsWith('LP');
   const isLessonTicket = paymentRecord.paymentId.startsWith('LT');
-  const isMembership = paymentRecord.paymentId.startsWith('LM');
+  const isMembership = paymentRecord.paymentId.startsWith('SM');
   const informationTitle = isPassPlan
       ? await translate('pass_plan_information')
       : isLessonTicket
