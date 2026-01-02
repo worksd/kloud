@@ -1,5 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { PaymentMethodType, DiscountResponse } from "@/app/endpoint/payment.endpoint";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetPaymentRecordListResponse = {
@@ -31,6 +31,7 @@ export type GetPaymentRecordResponse = {
   refundAccountBank?: string;
   refundDepositor?: string;
   isRefundable?: boolean;
+  discounts?: DiscountResponse[];
 }
 
 export type PaymentIdParameter = {

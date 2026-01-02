@@ -845,6 +845,12 @@ export const StringResource = {
     jp: "総支払額",
     zh: "总支付金额"
   },
+  base_price: {
+    ko: "기본 금액",
+    en: "Base Price",
+    jp: "基本金額",
+    zh: "基础价格"
+  },
   seller_information: {
     ko: "판매자 정보",
     en: "Seller Information",
@@ -1162,6 +1168,12 @@ export const StringResource = {
     en: 'Pass Price',
     jp: 'パス料金',
     zh: '通行证价格',
+  },
+  membership_price: {
+    ko: '멤버십 금액',
+    en: 'Membership Price',
+    jp: 'メンバーシップ料金',
+    zh: '会员价格',
   },
   do_certification: {
     ko: '본인인증 하기',

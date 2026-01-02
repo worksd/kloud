@@ -34,11 +34,29 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   const displayPaymentId = parts[parts.length - 1]; // 마지막 부분만 표시
   const isPassPlan = paymentRecord.paymentId.startsWith('LP');
   const isLessonTicket = paymentRecord.paymentId.startsWith('LT');
+  const isMembership = paymentRecord.paymentId.startsWith('LM');
   const informationTitle = isPassPlan
       ? await translate('pass_plan_information')
       : isLessonTicket
           ? await translate('lesson_ticket_information')
           : await translate('pass_plan_information');
+  
+  // 금액 라벨 결정
+  const amountLabel = isPassPlan
+      ? await translate('pass_plan_price')
+      : isLessonTicket
+          ? await translate('lesson_price')
+          : isMembership
+              ? await translate('membership_price')
+              : await translate('payment_amount');
+  
+  // 원래 가격 계산 (amount + discounts 합계)
+  const totalDiscountAmount = paymentRecord.discounts?.reduce((sum, discount) => sum + discount.amount, 0) ?? 0;
+  const originalAmount = paymentRecord.amount + totalDiscountAmount;
+  
+  // translate 미리 처리
+  const wonText = await translate('won');
+  const totalAmountText = await translate('total_amount');
 
   return (
       <div className="bg-white min-h-screen">
@@ -97,16 +115,40 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
         <div className="px-5 py-5">
           <p className="text-[16px] font-bold text-black mb-4">{await translate('payment_information_title')}</p>
           <div className="flex flex-col gap-4">
-            {/* 결제 금액 */}
+            {/* 결제 금액 (원래 가격 = amount + discounts 합계) */}
             <div className="flex items-center justify-between">
-              <span className="text-[14px] font-bold text-black">{await translate('payment_amount')}</span>
-              <span className="text-[14px] font-bold text-black">
-              {new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}원
-            </span>
+              <span className="text-[14px] font-medium text-[#6d7882]">{amountLabel}</span>
+              <span className="text-[14px] font-medium text-[#6d7882]">
+                {new Intl.NumberFormat("ko-KR").format(originalAmount)}{wonText}
+              </span>
+            </div>
+
+            {/* 할인 정보 */}
+            {paymentRecord.discounts && paymentRecord.discounts.length > 0 && (
+              <>
+                {paymentRecord.discounts.map((discount, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-[14px] font-medium text-black">{discount.key}</span>
+                    <span className="text-[14px] font-medium text-[#e55b5b]">
+                      -{new Intl.NumberFormat("ko-KR").format(discount.amount)}{wonText}
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* 총 결제 금액 */}
+            <div className="flex items-center justify-between">
+              <span className="text-[14px] font-bold text-black">{totalAmountText}</span>
+              <span className="text-[16px] font-bold text-black">
+                {new Intl.NumberFormat("ko-KR").format(paymentRecord.amount)}{wonText}
+              </span>
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-[#e6e8ea]"/>
+            <div className="flex flex-col items-center justify-center py-[4px]">
+              <div className="w-full h-px bg-[#d7dadd]"/>
+            </div>
 
             {/* 결제 일시 */}
             <div className="flex items-center justify-between">
@@ -139,9 +181,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
             {paymentRecord.methodType === 'credit' ? (
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
-                  <div className="flex items-center gap-2">
-                    <BankOrCardIcon name={paymentRecord.paymentMethodLabel} scale={100}/>
-                    <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.paymentMethodLabel}</span>
+                  <div className="flex items-center">
                     <span className="text-[14px] font-medium text-[#191f28] text-right">1000-1000-1010-1010</span>
                   </div>
                 </div>
