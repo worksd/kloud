@@ -138,7 +138,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
 
   // 티켓 렌더링 헬퍼 함수들
   const getBorderClass = () => {
-    if (ticket.ticketType === 'membership') return 'border-membershipPlans';
+    if (ticket.ticketType === 'membership') return 'border-membership';
     if (ticket.ticketType === 'premium') return 'border-premium';
     return '';
   };
@@ -151,12 +151,6 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
   };
 
   const getRollingBandColor = () => {
-    if (ticket.ticketType === 'membership') {
-      return 'bg-gradient-to-r from-[#ffd75e] via-[#c0e6ff] via-[54.808%] to-[#ff9844]';
-    }
-    if (ticket.ticketType === 'premium') {
-      return 'bg-gradient-to-r from-[#9333ea] via-[#db2777] via-[54.808%] to-[#6366f1]';
-    }
     return 'bg-black';
   };
 
@@ -267,6 +261,13 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
                 </p>
               </div>
             )}
+            {ticket.ticketType === 'premium' && isPaidOrUsed && (
+              <div className="bg-gradient-to-r from-[#9333ea] via-[#db2777] to-[#6366f1] flex items-center justify-center px-[5px] py-0 rounded-[100px]">
+                <p className="text-[12px] font-medium text-white">
+                  Premium
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
             <p className="text-[14px] text-white font-bold leading-[22px] text-left">
@@ -350,7 +351,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
 
     return (
       <div
-        className={`absolute bottom-0 left-0 w-full h-[20px] ${rollingBandColor} overflow-hidden flex items-center gap-5`}
+        className={`absolute bottom-0 left-0 w-full ${rollingBandColor} overflow-hidden flex items-center gap-5`}
       >
         <div className="flex animate-scroll-reverse-slow">
           <div className="flex shrink-0">
@@ -400,7 +401,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
           {/* 티켓 카드 */}
           <div className="relative z-10 flex flex-col items-center justify-center pt-32">
             {hasBorder ? (
-              <div className={`relative p-[3px] rounded-t-[20px] ${borderClass}`}>
+              <div className={`relative p-[3px] pt-[3px] pr-[3px] pl-[3px] pb-0 rounded-t-[20px] ${borderClass}`}>
                 <div className={`relative ${ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]'} overflow-hidden`}>
                   <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : ''}`}>
                     {renderTicketBackground()}
@@ -418,8 +419,34 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
             )}
             
             {/* 하단 ticket-ggodari.svg */}
-            <div className="w-full flex justify-center">
-              <TicketGgodari className="w-full max-w-[350px] h-auto"/>
+            <div className="w-full flex justify-center" style={{ marginTop: '-4px' }}>
+              {ticket.ticketType === 'membership' && isPaidOrUsed ? (
+                <div
+                  className="h-auto relative"
+                  style={{
+                    width: '356px',
+                    background: 'linear-gradient(to right, #ffd75e, #c0e6ff, #ff9844)',
+                    WebkitMask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
+                    mask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
+                    minHeight: '60px',
+                  }}
+                />
+              ) : ticket.ticketType === 'premium' && isPaidOrUsed ? (
+                <div
+                  className="h-auto relative"
+                  style={{
+                    width: '356px',
+                    background: 'linear-gradient(to right, #9333ea, #db2777, #6366f1)',
+                    WebkitMask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
+                    mask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
+                    minHeight: '60px',
+                  }}
+                />
+              ) : (
+                <div style={{ width: '350px' }}>
+                  <TicketGgodari className="w-full h-auto"/>
+                </div>
+              )}
             </div>
           </div>
 
@@ -445,6 +472,25 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
               </button>
             </NavigateClickWrapper>
           </div>
+
+          {/* 멤버십 정보 표시 (ticketType이 membership일 때) */}
+          {ticket.ticketType === 'membership' && ticket.studio && (
+            <div className="px-6 py-4 bg-white relative z-10">
+              <div className="text-[16px] font-bold text-black mb-3">
+                {getLocaleString({locale, key: 'membership_signup'})}
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="text-[14px] font-medium text-black">
+                  {ticket.studio.name}
+                </div>
+                {ticket.ticketType === 'membership' && (
+                  <div className="text-[12px] text-[#86898C]">
+                    {getLocaleString({locale, key: 'membership_payment'})}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
   );
