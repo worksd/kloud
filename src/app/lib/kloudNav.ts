@@ -173,6 +173,8 @@ const applyTitle = async (route: string) => {
     return await translate('my_membership')
   } else if (route.includes('/payment') && route.includes('/membershipPlans')) {
     return await translate('payment')
+  } else if (route.includes('/membershipPlans')) {
+    return '';
   }
   else return undefined
 }

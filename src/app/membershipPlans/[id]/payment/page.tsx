@@ -25,6 +25,7 @@ export default async function MembershipPayment({params, searchParams}: {
         {res.membershipPlan && (
           <CurrentMembershipPlan 
             membershipPlan={res.membershipPlan}
+            locale={await getLocale()}
           />
         )}
         <div className="w-full h-3 bg-[#F7F8F9] mb-5"/>

@@ -684,10 +684,10 @@ export const StringResource = {
     zh: "日期"
   },
   day: {
-    ko: "요일",
-    en: "Day",
-    jp: "曜日",
-    zh: "星期"
+    ko: "일",
+    en: "day",
+    jp: "日",
+    zh: "天"
   },
   mon: {
     ko: "월",
@@ -1829,6 +1829,12 @@ export const StringResource = {
     jp: '期間',
     zh: '期间',
   },
+  month: {
+    ko: '개월',
+    en: 'month',
+    jp: 'ヶ月',
+    zh: '个月',
+  },
   subscription_id: {
     ko: '정기결제 ID',
     en: 'Subscription ID',
@@ -2176,6 +2182,78 @@ export const StringResource = {
     en: 'Payment Card',
     jp: '決済カード',
     zh: '支付卡'
+  },
+  membership_purchase_guide_title: {
+    ko: '멤버십 구매 안내',
+    en: 'Membership Purchase Guide',
+    jp: 'メンバーシップ購入案内',
+    zh: '会员购买指南'
+  },
+  membership_validity_period: {
+    ko: '멤버십 유효기간: 구입일로부터 일정 기간 내에만 사용 가능합니다. 멤버십 유효기간 내에 결제한 건에 한하여 수업을 할인받을 수 있습니다.',
+    en: 'Membership Validity Period: Memberships can only be used within a certain period from the purchase date. Discounts on classes are only applicable to payments made within the membership validity period.',
+    jp: 'メンバーシップ有効期間: 購入日から一定期間内のみ使用可能です。メンバーシップ有効期間内に決済した場合のみ、授業を割引できます。',
+    zh: '会员有效期：会员资格只能在购买之日起的特定期间内使用。只有在会员有效期内支付的课程才能享受折扣。'
+  },
+  lesson_schedule_change: {
+    ko: '수업 일정 및 변경: 수업 일정은 사전 공지 없이 변경될 수 있으며, 변경된 일정에 맞출 수 없는 경우에는 다른 일정으로 대체가 불가능할 수 있습니다. 수업에 대한 변경 사항을 주기적으로 확인해 주세요.',
+    en: 'Lesson Schedule and Changes: Lesson schedules may be changed without prior notice, and if you cannot accommodate the changed schedule, it may not be possible to substitute another schedule. Please check for changes to lessons regularly.',
+    jp: '授業スケジュールおよび変更: 授業スケジュールは事前通知なく変更される場合があり、変更されたスケジュールに合わせられない場合、他のスケジュールへの代替が不可能な場合があります。授業に関する変更事項を定期的に確認してください。',
+    zh: '课程安排和变更：课程安排可能会在没有事先通知的情况下更改，如果您无法适应更改后的安排，可能无法替换为其他安排。请定期查看课程变更信息。'
+  },
+  membership_transfer_prohibited: {
+    ko: '멤버십 양도 불가: 구매한 멤버십은 본인만 사용할 수 있으며, 타인에게 양도하거나 판매할 수 없습니다. 양도 및 판매 시 멤버십 및 수강권이 무효 처리될 수 있습니다.',
+    en: 'Membership Transfer Prohibited: Purchased memberships can only be used by the purchaser and cannot be transferred or sold to others. If transferred or sold, the membership and tickets may be invalidated.',
+    jp: 'メンバーシップ譲渡不可: 購入したメンバーシップは本人のみが使用でき、他人に譲渡または販売することはできません。譲渡および販売の場合、メンバーシップおよびチケットが無効になる場合があります。',
+    zh: '会员资格不可转让：购买的会员资格只能由购买者使用，不能转让或出售给他人。如果转让或出售，会员资格和课程券可能会失效。'
+  },
+  membership_refund_policy: {
+    ko: '환불 정책: 멤버십을 이용하여 결제한 수강권이 없고 결제 후 7일 이내인 경우에만 전액 환불이 가능하며, 맴버십을 이용하여 결제한 수강권이 있거나 결제 후 7일이 초과된 경우에는 환불이 불가능합니다.',
+    en: 'Refund Policy: Full refunds are only possible if no tickets have been paid for using the membership and it is within 7 days of payment. Refunds are not possible if tickets have been paid for using the membership or if more than 7 days have passed since payment.',
+    jp: '返金ポリシー: メンバーシップを利用して決済したチケットがなく、決済後7日以内の場合のみ全額返金が可能で、メンバーシップを利用して決済したチケットがある場合、または決済後7日が経過した場合は返金が不可能です。',
+    zh: '退款政策：只有在使用会员资格支付的课程券为零且付款后7天内才能全额退款。如果已使用会员资格支付课程券或付款后超过7天，则无法退款。'
+  },
+  membership_other_conditions: {
+    ko: '기타 조건: 멤버십 사용에 관한 기타 조건은 서비스 제공자와의 계약에 따라 달라질 수 있으며, 변경 사항은 사전에 공지됩니다. 이에 대한 자세한 내용은 이용 약관을 참고하시기 바랍니다.',
+    en: 'Other Conditions: Other conditions regarding membership use may vary depending on the contract with the service provider, and any changes will be announced in advance. For more details, please refer to the terms of service.',
+    jp: 'その他の条件: メンバーシップの使用に関するその他の条件は、サービス提供者との契約により異なる場合があり、変更事項は事前に通知されます。詳細については、利用規約を参照してください。',
+    zh: '其他条件：有关会员使用的其他条件可能因与服务提供商的合同而异，任何变更将提前通知。有关详细信息，请参阅服务条款。'
+  },
+  membership_background: {
+    ko: '멤버십 배경',
+    en: 'Membership Background',
+    jp: 'メンバーシップ背景',
+    zh: '会员背景'
+  },
+  membership_signup: {
+    ko: '멤버십 가입',
+    en: 'Membership Sign Up',
+    jp: 'メンバーシップ登録',
+    zh: '会员注册'
+  },
+  lesson_discount: {
+    ko: '수강권 할인',
+    en: 'Lesson Discount',
+    jp: 'レッスン割引',
+    zh: '课程折扣'
+  },
+  practice_room: {
+    ko: '연습실',
+    en: 'Practice Room',
+    jp: '練習室',
+    zh: '练习室'
+  },
+  unlimited_use: {
+    ko: '무제한 이용',
+    en: 'Unlimited Use',
+    jp: '無制限利用',
+    zh: '无限使用'
+  },
+  membership_payment: {
+    ko: '멤버십 결제',
+    en: 'Membership Payment',
+    jp: 'メンバーシップ決済',
+    zh: '会员支付'
   }
 }
 
