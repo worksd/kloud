@@ -164,14 +164,14 @@ export function MembershipTicketForm({
                     </div>
                   </div>
 
-                  {/* QR코드 */}
-                  <div className="w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative bg-white">
-                    <QRCodeCanvas
-                      value={qrCodeUrl}
-                      size={84}
-                      className="w-full h-full"
-                    />
-                  </div>
+                  {/*/!* QR코드 *!/*/}
+                  {/*<div className="w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative bg-white">*/}
+                  {/*  <QRCodeCanvas*/}
+                  {/*    value={qrCodeUrl}*/}
+                  {/*    size={84}*/}
+                  {/*    className="w-full h-full"*/}
+                  {/*  />*/}
+                  {/*</div>*/}
                 </div>
               </div>
             </div>
