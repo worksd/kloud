@@ -142,8 +142,8 @@ export default function PaymentButton({
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
-        if (!('success' in capacityCheckResponse && capacityCheckResponse.success)) {
-          const dialog = await createDialog({id: 'CapacityFull'})
+        if ('message' in capacityCheckResponse) {
+          const dialog = await createDialog({id: 'Simple', message: capacityCheckResponse.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
           return;
         }
