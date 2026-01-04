@@ -77,7 +77,7 @@ export async function sendErrorToDiscord(error: Error, context?: {
     },
     {
       name: 'User Agent',
-      value: `\`${userAgent.length > 100 ? userAgent.slice(0, 100) + '...' : userAgent}\``,
+      value: `\`${userAgent.length > 200 ? userAgent.slice(0, 100) + '...' : userAgent}\``,
       inline: false,
     },
     {
