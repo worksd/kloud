@@ -20,7 +20,9 @@ export const TimeTable = ({timeTable, today, locale}: {
   const maxRow = Math.max(...currentTimeTable.cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
   const onClickPrev = async () => {
-    window.KloudEvent.sendHapticFeedback();
+    if (window && window.KloudEvent) {
+      window.KloudEvent.sendHapticFeedback();
+    }
 
     const prevBaseDate = new Date(currentTimeTable.baseDate);
     prevBaseDate.setDate(prevBaseDate.getDate() - 7);
@@ -36,7 +38,9 @@ export const TimeTable = ({timeTable, today, locale}: {
   }
 
   const onClickNext = async () => {
-    window.KloudEvent.sendHapticFeedback()
+    if (window && window.KloudEvent) {
+      window.KloudEvent.sendHapticFeedback();
+    }
     const nextBaseDate = new Date(currentTimeTable.baseDate);
     nextBaseDate.setDate(nextBaseDate.getDate() + 7);
     const newTable = await getTimeTableAction({
