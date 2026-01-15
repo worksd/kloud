@@ -174,8 +174,9 @@ export const TimeTable = ({timeTable, locale}: {
           <BackwardIcon/>
         </div>
 
-        <div className="flex flex-row items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center text-center">
           <h2 className="text-[16px] text-black font-bold">{title}</h2>
+          <p className="text-[12px] text-[#7A7A7A]">{description}</p>
         </div>
 
         <div
