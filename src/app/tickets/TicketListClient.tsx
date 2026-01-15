@@ -75,7 +75,7 @@ export const TicketListClient = ({ initialTickets, locale, noTicketsTitle, noTic
 
   return (
     <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
-      <div className="flex flex-col">
+      <div className="flex flex-col mb-8">
         {tickets.map((item) => (
           <div className="flex flex-col" key={item.id}>
             <TicketItem item={item} locale={locale} />
@@ -85,9 +85,9 @@ export const TicketListClient = ({ initialTickets, locale, noTicketsTitle, noTic
       </div>
 
       {/* 무한스크롤 트리거 */}
-      <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
+      <div ref={loadMoreRef} className="flex items-center justify-center">
         {isLoading && (
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin p-4" />
         )}
       </div>
     </div>
