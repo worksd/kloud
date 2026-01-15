@@ -1,8 +1,10 @@
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { TicketItem } from "@/app/tickets/ticket.item";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 
 export const PassTicketUsageHistory = async ({tickets}: { tickets?: TicketResponse[] }) => {
+  const locale = await getLocale();
+
   return (
     <div className="flex flex-col">
       <div className={'text-[16px] font-medium text-black ml-6'}>{await translate('usage_information')}</div>
@@ -11,6 +13,7 @@ export const PassTicketUsageHistory = async ({tickets}: { tickets?: TicketRespon
           <TicketItem
             key={item.id}
             item={item}
+            locale={locale}
           />
         )) :
         <div className="flex justify-center w-full">

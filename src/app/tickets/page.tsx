@@ -1,46 +1,31 @@
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { TicketItem } from "@/app/tickets/ticket.item";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
 import { api } from "@/app/api.client";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
+import { TicketListClient } from "@/app/tickets/TicketListClient";
 
 export default async function TicketListPage() {
   return (
     <Suspense fallback={<Loading/>}>
-      <TicketList/>
+      <TicketListServer/>
     </Suspense>
   );
 }
 
-async function TicketList() {
-  const res = await api.ticket.list({});
+async function TicketListServer() {
+  const res = await api.ticket.list({ page: 1 });
+  const locale = await getLocale();
+  const noTicketsTitle = await translate('no_payment_records_title');
+  const noTicketsMessage = await translate('no_payment_records_message');
+
+  const initialTickets = 'tickets' in res ? res.tickets : [];
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
-
-      {('tickets' in res && res.tickets.length > 0) ? (
-        <div className="flex flex-col">
-          {res.tickets.map((item) => (
-            <div className={'flex flex-col'} key={item.id}>
-              <TicketItem item={item}/>
-              <div className="w-full h-[2px] bg-[#F7F8F9]"/>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="min-h-[400px] flex flex-col items-center justify-center bg-white p-4">
-          {/* 메시지 */}
-          <h2 className="text-[20px] font-bold text-black mb-2">
-            {await translate('no_payment_records_title')}
-          </h2>
-
-          <p className="text-[16px] text-[#86898C] text-center mb-8">
-            {await translate('no_payment_records_message')}
-          </p>
-        </div>
-      )}
-    </div>
+    <TicketListClient
+      initialTickets={initialTickets}
+      locale={locale}
+      noTicketsTitle={noTicketsTitle}
+      noTicketsMessage={noTicketsMessage}
+    />
   );
 }
-

@@ -1,13 +1,14 @@
-'use server';
+'use client';
+
 import Image from "next/image"
 import { KloudScreen } from "@/shared/kloud.screen";
 import { convertStatusToMessage, TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { Thumbnail } from "@/app/components/Thumbnail";
-import { formatDateTime } from "@/utils/date.format";
-import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
-export const TicketItem = async ({item}: { item: TicketResponse }) => {
+export const TicketItem = ({item, locale}: { item: TicketResponse, locale: Locale }) => {
   return (
     <NavigateClickWrapper method={'push'} route={KloudScreen.TicketDetail(item.id, false)}>
       <div className="bg-white active:scale-[0.98] active:bg-gray-100 transition-all duration-150 py-2">
@@ -15,7 +16,7 @@ export const TicketItem = async ({item}: { item: TicketResponse }) => {
         <div className="flex justify-between items-center px-6 mb-3 mt-2">
           <span className="text-[#86898C] text-[14px] font-medium">{item.lesson?.date ?? ''}</span>
           <span className="text-[#86898C] px-2 py-1 rounded-full border border-[#86898C] font-medium text-[12px]">
-          {await translate(convertStatusToMessage({status: item.status}))}
+          {getLocaleString({locale, key: convertStatusToMessage({status: item.status})})}
         </span>
         </div>
 
@@ -56,7 +57,7 @@ export const TicketItem = async ({item}: { item: TicketResponse }) => {
                 {item.lesson?.date ?? ''}
               </p>
               <p className="text-[#86898C] text-[12px] font-medium">
-                /{item.lesson?.duration} {await translate('minutes')}
+                /{item.lesson?.duration} {getLocaleString({locale, key: 'minutes'})}
               </p>
             </div>
           </div>

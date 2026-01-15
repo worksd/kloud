@@ -50,9 +50,14 @@ export type RevertUsagePassesParameter = {
   requester: string;
 }
 
-export const ListTickets: Endpoint<NoParameter, TicketListResponse> = {
+export type ListTicketsParameter = {
+  page?: number;
+}
+
+export const ListTickets: Endpoint<ListTicketsParameter, TicketListResponse> = {
   method: 'get',
   path: `/tickets`,
+  queryParams: ['page'],
 };
 
 export const GetTicket: Endpoint<GetTicketParameter, TicketResponse> = {
