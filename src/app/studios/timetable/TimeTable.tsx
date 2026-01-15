@@ -21,19 +21,30 @@ const getMonday = (date: Date): Date => {
   return d;
 };
 
+// 날짜를 yyyy-MM-dd 형식으로 포맷 (로컬 타임존)
+const formatDateLocal = (date: Date): string => {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 // baseDate 기준 주의 월~일 날짜 배열 생성
 const getWeekDays = (baseDate: Date, today: string): { day: string; date: string; isToday: boolean }[] => {
   const dayNames = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
   const monday = getMonday(baseDate);
 
+  // 서버에서 ISO 형식(2025-01-16T00:00:00)으로 올 수 있으므로 정규화
+  const normalizedToday = today.includes('T') ? today.split('T')[0] : today;
+
   return dayNames.map((dayName, index) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + index);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateLocal(date);
     return {
       day: dayName,
       date: dateStr,
-      isToday: dateStr === today,
+      isToday: dateStr === normalizedToday,
     };
   });
 };
@@ -81,17 +92,19 @@ const getWeekDescription = (baseDate: Date): string => {
   return `${monday.getFullYear()} ${formatDate(monday)} ~ ${formatDate(sunday)}`;
 };
 
-export const TimeTable = ({timeTable, today, locale}: {
+export const TimeTable = ({timeTable, locale}: {
   timeTable: GetTimeTableResponse,
-  today: string,
   locale: Locale
 }) => {
   const [baseDate, setBaseDate] = useState<Date>(new Date(timeTable.baseDate));
   const [cells, setCells] = useState<GetTimeTableCellResponse[]>(timeTable.cells);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 클라이언트에서 오늘 날짜 직접 계산
+  const clientToday = useMemo(() => formatDateLocal(new Date()), []);
+
   // 클라이언트에서 계산되는 날짜 관련 데이터
-  const days = useMemo(() => getWeekDays(baseDate, today), [baseDate, today]);
+  const days = useMemo(() => getWeekDays(baseDate, clientToday), [baseDate, clientToday]);
   const title = useMemo(() => getWeekTitle(baseDate, locale), [baseDate, locale]);
   const description = useMemo(() => getWeekDescription(baseDate), [baseDate]);
 
@@ -110,7 +123,7 @@ export const TimeTable = ({timeTable, today, locale}: {
     setIsLoading(true);
 
     const newTable = await getTimeTableAction({
-      baseDate: prevBaseDate.toISOString().split('T')[0],
+      baseDate: formatDateLocal(prevBaseDate),
       studioId: timeTable.studioId,
     });
 
@@ -133,7 +146,7 @@ export const TimeTable = ({timeTable, today, locale}: {
     setIsLoading(true);
 
     const newTable = await getTimeTableAction({
-      baseDate: nextBaseDate.toISOString().split('T')[0],
+      baseDate: formatDateLocal(nextBaseDate),
       studioId: timeTable.studioId,
     });
 
@@ -153,8 +166,7 @@ export const TimeTable = ({timeTable, today, locale}: {
         <div className="text-[20px] font-bold text-black">{getLocaleString({locale, key: 'timetable_title'})}</div>
       </div>
 
-      <div className="flex flex-row items-center justify-center gap-3 px-4 w-full pb-2">
-
+      <div className="flex flex-row items-center justify-center gap-1 px-4 w-full pb-2">
         <div
           onClick={onClickPrev}
           className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
@@ -162,11 +174,9 @@ export const TimeTable = ({timeTable, today, locale}: {
           <BackwardIcon/>
         </div>
 
-        <div className="flex flex-col items-center justify-center text-center">
+        <div className="flex flex-row items-center justify-center text-center">
           <h2 className="text-[16px] text-black font-bold">{title}</h2>
-          <div className={'text-[#BCBCBC] text-[10px] font-paperlogy'}>{description}</div>
         </div>
-
 
         <div
           onClick={onClickNext}
@@ -197,7 +207,7 @@ export const TimeTable = ({timeTable, today, locale}: {
           >
             {value.day != 'TIME' &&
               <div
-                className={`text-[12px] text-[#7A7A7A] font-paperlogy`}
+                className={`text-[12px] text-[#7A7A7A] font-sans`}
               >
                 {value.day}
               </div>
@@ -224,48 +234,62 @@ export const TimeTable = ({timeTable, today, locale}: {
             <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
           </div>
         ) : cells.length > 0 ? (
-          cells.map((item, i) => (
-            <div
-              key={i}
-              onClick={() =>
-                item.type === 'lesson' &&
-                kloudNav.push(KloudScreen.LessonDetail(item.lesson.id))
-              }
-              className={`rounded-[8px] border overflow-hidden shadow-sm hover:shadow-md transition-all duration-150
-                ${item.type === 'lesson' ? 'aspect-[1/1.5] active:scale-[0.97] cursor-pointer' : ''}
-                ${item.type === 'time' ? 'bg-black text-white flex items-center justify-center font-paperlogy' : ''}
-              `}
-              style={{
-                gridColumnStart: item.column + 1,
-                gridRowStart: item.row + 2,
-                gridRowEnd: `span ${item.length ?? 1}`,
-                minHeight: item.type === 'time' ? 0 : undefined,
-              }}
-            >
-              {item.type === 'lesson' && (
-                <div className="relative w-full h-full flex flex-col">
-                  <div className="flex-1 relative w-full min-h-0">
-                    <Image
-                      src={item.lesson.thumbnailUrl}
-                      alt="lesson thumbnail"
-                      fill
-                      className="object-cover"
-                      quality={50}
-                    />
-                  </div>
-                  <div
-                    className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
-             overflow-hidden text-ellipsis whitespace-nowrap"
-                  >
-                    {item.lesson.title}
-                  </div>
+          (() => {
+            const timeCells = cells.filter(c => c.type === 'time');
+            const firstTimeRow = timeCells.length > 0 ? Math.min(...timeCells.map(c => c.row)) : -1;
+            const lastTimeRow = timeCells.length > 0 ? Math.max(...timeCells.map(c => c.row + (c.length ?? 1) - 1)) : -1;
+
+            return cells.map((item, i) => {
+              const isFirstTime = item.type === 'time' && item.row === firstTimeRow;
+              const isLastTime = item.type === 'time' && (item.row + (item.length ?? 1) - 1) === lastTimeRow;
+
+              return (
+                <div
+                  key={i}
+                  onClick={() =>
+                    item.type === 'lesson' &&
+                    kloudNav.push(KloudScreen.LessonDetail(item.lesson.id))
+                  }
+                  className={`overflow-hidden transition-all duration-150
+                    ${item.type === 'lesson' ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
+                    ${item.type === 'time' ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}
+                    ${isFirstTime && isLastTime ? 'rounded-[10px]' : ''}
+                    ${isFirstTime && !isLastTime ? 'rounded-t-[10px]' : ''}
+                    ${isLastTime && !isFirstTime ? 'rounded-b-[10px]' : ''}
+                  `}
+                  style={{
+                    gridColumnStart: item.column + 1,
+                    gridRowStart: item.row + 2,
+                    gridRowEnd: `span ${item.length ?? 1}`,
+                    minHeight: item.type === 'time' ? 0 : undefined,
+                  }}
+                >
+                  {item.type === 'lesson' && (
+                    <div className="relative w-full h-full flex flex-col">
+                      <div className="flex-1 relative w-full min-h-0">
+                        <Image
+                          src={item.lesson.thumbnailUrl}
+                          alt="lesson thumbnail"
+                          fill
+                          className="object-cover"
+                          quality={50}
+                        />
+                      </div>
+                      <div
+                        className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
+                 overflow-hidden text-ellipsis whitespace-nowrap"
+                      >
+                        {item.lesson.title}
+                      </div>
+                    </div>
+                  )}
+                  {item.type === 'time' && (
+                    <span className={'text-[10px]'}>{item.time}</span>
+                  )}
                 </div>
-              )}
-              {item.type === 'time' && (
-                <span className={'text-[12px]'}>{item.time}</span>
-              )}
-            </div>
-          ))
+              );
+            });
+          })()
         ) : (
           <div
             className="col-span-full mt-4"
