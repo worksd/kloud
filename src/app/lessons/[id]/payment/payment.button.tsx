@@ -9,14 +9,13 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import {redirect, useRouter} from "next/navigation";
 import { SimpleDialog } from "@/app/components/SimpleDialog";
 import {DiscountResponse, PaymentMethodType} from "@/app/endpoint/payment.endpoint";
-import { requestAccountTransferAction } from "@/app/lessons/[id]/action/request.account.transfer.action";
+import { createManualPaymentRecordAction } from "@/app/lessons/[id]/action/create.manual.payment.record.action";
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
-import { createFreePaymentRecord } from "@/app/lessons/[id]/payment/create.free.payment.record.action";
 import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
@@ -123,7 +122,12 @@ export default function PaymentButton({
     }
 
     if (price == 0) {
-      const res = await createFreePaymentRecord({item: type.apiValue, itemId: id})
+      const res = await createManualPaymentRecordAction({
+        methodType: 'free',
+        item: type.apiValue,
+        itemId: id,
+        targetUserId: user.id,
+      })
       if ('paymentId' in res) {
         const route = KloudScreen.PaymentRecordDetail(res.paymentId)
         if (appVersion == '' && route) {
@@ -257,13 +261,13 @@ export default function PaymentButton({
   const onConfirmDialog = async (data: DialogInfo) => {
     try {
       setIsSubmitting(true);
-      if (data.id == 'AccountTransfer') {
-        const res = await requestAccountTransferAction({
+      if (data.id == 'AccountTransfer' && user?.id) {
+        const res = await createManualPaymentRecordAction({
+          methodType: 'account_transfer',
           item: type.apiValue,
           itemId: id,
+          targetUserId: user.id,
           depositor: depositor,
-          targetUserId: user?.id,
-          discounts: selectedDiscounts,
         });
         if ('paymentId' in res) {
           await onPaymentSuccess({paymentId: res.paymentId, delay: 0})

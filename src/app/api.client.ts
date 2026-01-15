@@ -27,9 +27,6 @@ export class ApiClient extends EndpointClient {
 
   readonly lesson = {
     get: this.endpointBuilder(API.Lesson.GetLesson),
-    listJumbotron: this.endpointBuilder(API.Lesson.GetJumbotronLessons),
-    listStudioLessons: this.endpointBuilder(API.Lesson.ListStudioLessons),
-    listStageBands: this.endpointBuilder(API.Lesson.ListStageBands),
     listOngoingLessons: this.endpointBuilder(API.Lesson.ListOngoingLessons),
     listByDate: this.endpointBuilder(API.Lesson.ListStudioLessonsByDate),
     checkCapacity: this.endpointBuilder(API.Lesson.CheckCapacity),
@@ -86,8 +83,7 @@ export class ApiClient extends EndpointClient {
     get: this.endpointBuilder(API.PaymentRecord.GetPaymentRecordDetail),
     getRefundPreview: this.endpointBuilder(API.PaymentRecord.GetRefundPreview),
     requestRefund: this.endpointBuilder(API.PaymentRecord.RequestRefund),
-    requestAccountTransfer: this.endpointBuilder(API.PaymentRecord.RequestAccountTransfer),
-    createFreePaymentRecord: this.endpointBuilder(API.PaymentRecord.CreateFreePaymentRecord),
+    createManual: this.endpointBuilder(API.PaymentRecord.CreateManualPaymentRecord),
   }
 
   readonly billing = {

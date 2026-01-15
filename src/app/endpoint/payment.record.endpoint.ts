@@ -39,14 +39,6 @@ export type PaymentIdParameter = {
   paymentId: string
 }
 
-export type RequestAccountTransfer = {
-  item: string;
-  itemId: number;
-  depositor: string;
-  targetUserId?: number;
-  discounts?: RequestDiscountParameter[];
-}
-
 export type RequestDiscountParameter = {
   amount: number;
   type: string;
@@ -54,9 +46,15 @@ export type RequestDiscountParameter = {
   itemId: number;
 }
 
-export type CreateFreePaymentRecord = {
-  item: string;
+export type ManualPaymentMethodType = 'credit' | 'pass' | 'account_transfer' | 'admin' | 'free' | 'billing';
+export type ManualPaymentItem = 'lesson' | 'pass-plan' | 'membership-plan';
+
+export type CreateManualPaymentRecordRequest = {
+  methodType: ManualPaymentMethodType;
+  item: ManualPaymentItem;
   itemId: number;
+  targetUserId: number;
+  depositor?: string;
 }
 
 export const GetPaymentRecords: Endpoint<object, GetPaymentRecordListResponse> = {
@@ -69,16 +67,10 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
   path: (e) => `/paymentRecords/${e.paymentId}`,
 }
 
-export const RequestAccountTransfer: Endpoint<RequestAccountTransfer, GetPaymentRecordResponse> = {
+export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
-  path: (e) => `/paymentRecords/account-transfer`,
-  bodyParams: ['depositor', 'itemId', 'item', 'targetUserId', 'discounts']
-}
-
-export const CreateFreePaymentRecord: Endpoint<CreateFreePaymentRecord, GetPaymentRecordResponse> = {
-  method: 'post',
-  path: '/paymentRecords/free',
-  bodyParams: ['item', 'itemId'],
+  path: '/paymentRecords/manual',
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor']
 }
 
 export type RefundPassResponse = {
