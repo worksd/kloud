@@ -27,7 +27,6 @@ export type GetLessonResponse = {
     room?: GetStudioRoomResponse;
     ticket?: TicketResponse;
     extraArtists?: GetArtistResponse[];
-    dday?: string;
     buttonTitle: string;
     buttonRoute: string;
     buttons: GetLessonButtonResponse[];
@@ -101,10 +100,6 @@ export type GetLabelResponse = {
     genre?: string;
 }
 
-export type GetBandListResponse = {
-    bands: GetBandResponse[]
-}
-
 export type CheckTicketCapacityParameter = {
     lessonId: number;
 }
@@ -124,17 +119,6 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     path: (e) => `/lessons/${e.id}`,
 };
 
-export const GetJumbotronLessons: Endpoint<object, LessonListResponse> = {
-    method: "get",
-    path: `/lessons/jumbotrons`,
-}
-
-export const ListStudioLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
-    method: 'get',
-    path: `/lessons`,
-    queryParams: ['studioId', 'page', 'all']
-}
-
 export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons/ongoing`,
@@ -145,11 +129,6 @@ export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, 
     method: 'get',
     path: `/lessons`,
     queryParams: ['studioId', 'date', 'isAdmin']
-}
-
-export const ListStageBands: Endpoint<object, GetBandListResponse> = {
-    method: 'get',
-    path: `/lessons/stage`,
 }
 
 export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {

@@ -1,4 +1,3 @@
-import { getJumbotronList } from "@/app/home/action/get.jumbotron.list";
 import CardList from "@/app/components/Carousel";
 import React from "react";
 import { GetLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
