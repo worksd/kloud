@@ -187,13 +187,24 @@ export const TimeTable = ({timeTable, locale}: {
         </div>
       </div>
       <div
-        className="grid w-full px-1 text-center text-[14px] font-medium text-black"
+        className="relative grid w-full px-1 text-center text-[14px] font-medium text-black"
         style={{
           gridTemplateColumns: `repeat(${allDays.length}, minmax(0, 1fr))`,
           gridTemplateRows: `auto repeat(${maxRow}, minmax(0, 1fr))`,
           gap: '4px'
         }}
       >
+        {/* 수업 영역 배경 */}
+        <div
+          className="bg-[#F7F8F9] rounded-[10px]"
+          style={{
+            gridColumnStart: 2,
+            gridColumnEnd: allDays.length + 1,
+            gridRowStart: 2,
+            gridRowEnd: maxRow + 3,
+            zIndex: 0,
+          }}
+        />
         {allDays.map((value, i) => (
           <div
             key={value.day + i}
@@ -263,6 +274,7 @@ export const TimeTable = ({timeTable, locale}: {
                     gridRowStart: item.row + 2,
                     gridRowEnd: `span ${item.length ?? 1}`,
                     minHeight: item.type === 'time' ? 0 : undefined,
+                    zIndex: 1,
                   }}
                 >
                   {item.type === 'lesson' && (
