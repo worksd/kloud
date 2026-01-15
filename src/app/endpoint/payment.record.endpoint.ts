@@ -57,9 +57,14 @@ export type CreateManualPaymentRecordRequest = {
   depositor?: string;
 }
 
-export const GetPaymentRecords: Endpoint<object, GetPaymentRecordListResponse> = {
+export type GetPaymentRecordsParameter = {
+  page?: number;
+}
+
+export const GetPaymentRecords: Endpoint<GetPaymentRecordsParameter, GetPaymentRecordListResponse> = {
   method: "get",
   path: `/paymentRecords`,
+  queryParams: ['page'],
 };
 
 export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentRecordResponse> = {

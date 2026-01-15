@@ -1,27 +1,29 @@
+import { Suspense } from "react";
+import Loading from "@/app/loading";
 import { getPaymentRecordsAction } from "@/app/paymentRecords/get.payment.records.action";
-import { translate } from "@/utils/translate";
-import { PaymentRecordItem } from "@/app/paymentRecords/PaymentRecordItem";
+import { getLocale, translate } from "@/utils/translate";
+import { PaymentRecordListClient } from "@/app/paymentRecords/PaymentRecordListClient";
 
 export default async function PaymentRecordsPage() {
-  const res = await getPaymentRecordsAction({});
+  return (
+    <Suspense fallback={<Loading/>}>
+      <PaymentRecordsServer/>
+    </Suspense>
+  );
+}
 
-  if ('paymentRecords' in res) {
-    return (
-      <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto">
-        <div className={'flex flex-col'}>
-          {res.paymentRecords && res.paymentRecords.length > 0 ?
+async function PaymentRecordsServer() {
+  const res = await getPaymentRecordsAction({ page: 1 });
+  const locale = await getLocale();
+  const noRecordsMessage = await translate('no_purchase_history');
 
-            res.paymentRecords.map((paymentRecord, idx) => {
-              return <PaymentRecordItem paymentRecord={paymentRecord} key={idx}/>
-            })
-            : <div className={'text-black items-center text-center mt-40 font-medium'}>
-              {await translate('no_purchase_history')}
-            </div>
-          }
-        </div>
-      </div>
-    );
-  } else {
-    return <div className="text-black">{res.message}</div>;
-  }
+  const initialRecords = 'paymentRecords' in res ? res.paymentRecords : [];
+
+  return (
+    <PaymentRecordListClient
+      initialRecords={initialRecords}
+      locale={locale}
+      noRecordsMessage={noRecordsMessage}
+    />
+  );
 }
