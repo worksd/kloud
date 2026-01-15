@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { KloudScreen } from "@/shared/kloud.screen";
-import React, { useState } from "react";
-import { GetTimeTableResponse } from "@/app/endpoint/studio.endpoint";
+import React, { useState, useMemo } from "react";
+import { GetTimeTableResponse, GetTimeTableCellResponse } from "@/app/endpoint/studio.endpoint";
 import BackwardIcon from "../../../../public/assets/ic_simple_left_arrow.svg"
 import ForwardIcon from "../../../../public/assets/ic_simple_right_arrow.svg"
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
@@ -11,46 +11,140 @@ import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
 
+// 해당 날짜가 속한 주의 월요일 구하기
+const getMonday = (date: Date): Date => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// baseDate 기준 주의 월~일 날짜 배열 생성
+const getWeekDays = (baseDate: Date, today: string): { day: string; date: string; isToday: boolean }[] => {
+  const dayNames = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  const monday = getMonday(baseDate);
+
+  return dayNames.map((dayName, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    const dateStr = date.toISOString().split('T')[0];
+    return {
+      day: dayName,
+      date: dateStr,
+      isToday: dateStr === today,
+    };
+  });
+};
+
+// 주차 타이틀 계산 (예: "1월 첫째 주")
+const getWeekTitle = (baseDate: Date, locale: Locale): string => {
+  const monday = getMonday(baseDate);
+  const thursday = new Date(monday);
+  thursday.setDate(monday.getDate() + 3);
+
+  const month = thursday.getMonth();
+  const year = thursday.getFullYear();
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const firstDayOfWeek = firstDayOfMonth.getDay();
+  const diffFirstThursday = (4 - firstDayOfWeek + 7) % 7;
+  const firstThursday = new Date(firstDayOfMonth);
+  firstThursday.setDate(1 + diffFirstThursday);
+
+  const diffInDays = Math.floor((thursday.getTime() - firstThursday.getTime()) / (1000 * 60 * 60 * 24));
+  const weekIndex = Math.floor(diffInDays / 7);
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const weekNames = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
+
+  if (locale === 'ko') {
+    return `${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`;
+  } else {
+    return `Week ${weekIndex + 1} of ${monthNames[month]}`;
+  }
+};
+
+// 주차 설명 계산 (예: "2025 01.06 ~ 01.12")
+const getWeekDescription = (baseDate: Date): string => {
+  const monday = getMonday(baseDate);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const formatDate = (d: Date) => {
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${mm}.${dd}`;
+  };
+
+  return `${monday.getFullYear()} ${formatDate(monday)} ~ ${formatDate(sunday)}`;
+};
+
 export const TimeTable = ({timeTable, today, locale}: {
   timeTable: GetTimeTableResponse,
   today: string,
   locale: Locale
 }) => {
-  const [currentTimeTable, setCurrentTimeTable] = useState<GetTimeTableResponse>(timeTable)
-  const maxRow = Math.max(...currentTimeTable.cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
+  const [baseDate, setBaseDate] = useState<Date>(new Date(timeTable.baseDate));
+  const [cells, setCells] = useState<GetTimeTableCellResponse[]>(timeTable.cells);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 클라이언트에서 계산되는 날짜 관련 데이터
+  const days = useMemo(() => getWeekDays(baseDate, today), [baseDate, today]);
+  const title = useMemo(() => getWeekTitle(baseDate, locale), [baseDate, locale]);
+  const description = useMemo(() => getWeekDescription(baseDate), [baseDate]);
+
+  const maxRow = Math.max(...cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
   const onClickPrev = async () => {
     if (window && window.KloudEvent) {
       window.KloudEvent.sendHapticFeedback();
     }
 
-    const prevBaseDate = new Date(currentTimeTable.baseDate);
+    const prevBaseDate = new Date(baseDate);
     prevBaseDate.setDate(prevBaseDate.getDate() - 7);
 
+    // 날짜 먼저 업데이트 (즉시 반영)
+    setBaseDate(prevBaseDate);
+    setIsLoading(true);
+
     const newTable = await getTimeTableAction({
-      baseDate: prevBaseDate.toISOString().split('T')[0], // 'YYYY-MM-DD'
-      studioId: currentTimeTable.studioId,
+      baseDate: prevBaseDate.toISOString().split('T')[0],
+      studioId: timeTable.studioId,
     });
 
-    if ('days' in newTable && newTable.days.length > 1) {
-      setCurrentTimeTable(newTable);
+    if ('cells' in newTable) {
+      setCells(newTable.cells);
     }
+    setIsLoading(false);
   }
 
   const onClickNext = async () => {
     if (window && window.KloudEvent) {
       window.KloudEvent.sendHapticFeedback();
     }
-    const nextBaseDate = new Date(currentTimeTable.baseDate);
+
+    const nextBaseDate = new Date(baseDate);
     nextBaseDate.setDate(nextBaseDate.getDate() + 7);
+
+    // 날짜 먼저 업데이트 (즉시 반영)
+    setBaseDate(nextBaseDate);
+    setIsLoading(true);
+
     const newTable = await getTimeTableAction({
-      baseDate: nextBaseDate.toISOString(), // 또는 원하는 포맷으로
-      studioId: currentTimeTable.studioId,
+      baseDate: nextBaseDate.toISOString().split('T')[0],
+      studioId: timeTable.studioId,
     });
-    if ('days' in newTable && newTable.days.length > 1) {
-      setCurrentTimeTable(newTable);
+
+    if ('cells' in newTable) {
+      setCells(newTable.cells);
     }
+    setIsLoading(false);
   }
+
+  // TIME 컬럼 + 요일 컬럼
+  const allDays = [{ day: 'TIME', date: '', isToday: false }, ...days];
 
   return (
     <div className="flex flex-col px-1">
@@ -69,8 +163,8 @@ export const TimeTable = ({timeTable, today, locale}: {
         </div>
 
         <div className="flex flex-col items-center justify-center text-center">
-          <h2 className="text-[16px] text-black font-bold">{currentTimeTable.title}</h2>
-          <div className={'text-[#BCBCBC] text-[10px] font-paperlogy'}>{currentTimeTable.description}</div>
+          <h2 className="text-[16px] text-black font-bold">{title}</h2>
+          <div className={'text-[#BCBCBC] text-[10px] font-paperlogy'}>{description}</div>
         </div>
 
 
@@ -84,14 +178,14 @@ export const TimeTable = ({timeTable, today, locale}: {
       <div
         className="grid w-full px-1 text-center text-[14px] font-medium text-black"
         style={{
-          gridTemplateColumns: `repeat(${currentTimeTable.days.length}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${allDays.length}, minmax(0, 1fr))`,
           gridTemplateRows: `auto repeat(${maxRow}, minmax(0, 1fr))`,
           gap: '4px'
         }}
       >
-        {currentTimeTable.days.map((value, i) => (
+        {allDays.map((value, i) => (
           <div
-            key={value.day}
+            key={value.day + i}
             className={`text-center flex flex-col items-center justify`}
             style={{
               gridColumnStart: i + 1,
@@ -122,8 +216,15 @@ export const TimeTable = ({timeTable, today, locale}: {
           </div>
         ))}
         {/* timetable cell */}
-        {currentTimeTable.cells.length > 0 ? (
-          currentTimeTable.cells.map((item, i) => (
+        {isLoading ? (
+          <div
+            className="col-span-full mt-4 flex items-center justify-center"
+            style={{gridRowStart: 2, gridColumnStart: 1}}
+          >
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+          </div>
+        ) : cells.length > 0 ? (
+          cells.map((item, i) => (
             <div
               key={i}
               onClick={() =>
@@ -136,7 +237,7 @@ export const TimeTable = ({timeTable, today, locale}: {
               `}
               style={{
                 gridColumnStart: item.column + 1,
-                gridRowStart: item.row + 2, // +2: 1은 헤더, 2부터 timetable
+                gridRowStart: item.row + 2,
                 gridRowEnd: `span ${item.length ?? 1}`,
                 minHeight: item.type === 'time' ? 0 : undefined,
               }}
