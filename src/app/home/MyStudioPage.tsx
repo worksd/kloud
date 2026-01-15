@@ -51,7 +51,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
       {res.membership && (
         <MembershipBand membership={res.membership} locale={await getLocale()} />
       )}
-      <TimeTableServerComponent studioId={res.studio.id} day={res.day} />
+      <TimeTableServerComponent studioId={res.studio.id} />
       {res.bands.map((value) => (
         <LessonBand
           key={value.title}

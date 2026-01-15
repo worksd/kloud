@@ -125,7 +125,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
         </section>
 
 
-        <TimeTableServerComponent studioId={studio.id} day={studio.day}/>
+        <TimeTableServerComponent studioId={studio.id}/>
 
         <section>
           {studio.announcements && studio.announcements.length > 0 && (

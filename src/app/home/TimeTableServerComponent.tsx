@@ -5,14 +5,14 @@ import React from "react";
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
 import { getLocale } from "@/utils/translate";
 
-export const TimeTableServerComponent = async ({studioId, day}: { studioId: number, day: string }) => {
+export const TimeTableServerComponent = async ({studioId}: { studioId: number }) => {
   const res = await getTimeTableAction({
     studioId,
   });
   if ('cells' in res) {
     return (
       <div className={'my-4'}>
-        <TimeTable timeTable={res} today={day} locale={await getLocale()}/>
+        <TimeTable timeTable={res} locale={await getLocale()}/>
       </div>
     )
   }
