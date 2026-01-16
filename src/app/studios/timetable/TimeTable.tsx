@@ -92,13 +92,15 @@ const getWeekDescription = (baseDate: Date): string => {
   return `${monday.getFullYear()} ${formatDate(monday)} ~ ${formatDate(sunday)}`;
 };
 
-export const TimeTable = ({timeTable, locale}: {
+export const TimeTable = ({timeTable, studioId, locale}: {
   timeTable: GetTimeTableResponse,
+  studioId: number,
   locale: Locale
 }) => {
   const [baseDate, setBaseDate] = useState<Date>(new Date(timeTable.baseDate));
   const [cells, setCells] = useState<GetTimeTableCellResponse[]>(timeTable.cells);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   // 클라이언트에서 오늘 날짜 직접 계산
   const clientToday = useMemo(() => formatDateLocal(new Date()), []);
@@ -110,6 +112,23 @@ export const TimeTable = ({timeTable, locale}: {
 
   const maxRow = Math.max(...cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
+  const fetchTimeTable = async (targetDate: Date) => {
+    setIsLoading(true);
+    setIsError(false);
+
+    const newTable = await getTimeTableAction({
+      baseDate: formatDateLocal(targetDate),
+      studioId,
+    });
+
+    if ('cells' in newTable) {
+      setCells(newTable.cells);
+    } else {
+      setIsError(true);
+    }
+    setIsLoading(false);
+  };
+
   const onClickPrev = async () => {
     if (window && window.KloudEvent) {
       window.KloudEvent.sendHapticFeedback();
@@ -117,21 +136,9 @@ export const TimeTable = ({timeTable, locale}: {
 
     const prevBaseDate = new Date(baseDate);
     prevBaseDate.setDate(prevBaseDate.getDate() - 7);
-
-    // 날짜 먼저 업데이트 (즉시 반영)
     setBaseDate(prevBaseDate);
-    setIsLoading(true);
-
-    const newTable = await getTimeTableAction({
-      baseDate: formatDateLocal(prevBaseDate),
-      studioId: timeTable.studioId,
-    });
-
-    if ('cells' in newTable) {
-      setCells(newTable.cells);
-    }
-    setIsLoading(false);
-  }
+    await fetchTimeTable(prevBaseDate);
+  };
 
   const onClickNext = async () => {
     if (window && window.KloudEvent) {
@@ -140,21 +147,13 @@ export const TimeTable = ({timeTable, locale}: {
 
     const nextBaseDate = new Date(baseDate);
     nextBaseDate.setDate(nextBaseDate.getDate() + 7);
-
-    // 날짜 먼저 업데이트 (즉시 반영)
     setBaseDate(nextBaseDate);
-    setIsLoading(true);
+    await fetchTimeTable(nextBaseDate);
+  };
 
-    const newTable = await getTimeTableAction({
-      baseDate: formatDateLocal(nextBaseDate),
-      studioId: timeTable.studioId,
-    });
-
-    if ('cells' in newTable) {
-      setCells(newTable.cells);
-    }
-    setIsLoading(false);
-  }
+  const onRetry = () => {
+    fetchTimeTable(baseDate);
+  };
 
   // TIME 컬럼 + 요일 컬럼
   const allDays = [{ day: 'TIME', date: '', isToday: false }, ...days];
@@ -195,16 +194,18 @@ export const TimeTable = ({timeTable, locale}: {
         }}
       >
         {/* 수업 영역 배경 */}
-        <div
-          className="bg-[#F7F8F9] rounded-[10px]"
-          style={{
-            gridColumnStart: 2,
-            gridColumnEnd: allDays.length + 1,
-            gridRowStart: 2,
-            gridRowEnd: maxRow + 3,
-            zIndex: 0,
-          }}
-        />
+        {!isLoading && (
+          <div
+            className="bg-[#F7F8F9] rounded-[10px]"
+            style={{
+              gridColumnStart: 2,
+              gridColumnEnd: allDays.length + 1,
+              gridRowStart: 2,
+              gridRowEnd: maxRow + 3,
+              zIndex: 0,
+            }}
+          />
+        )}
         {allDays.map((value, i) => (
           <div
             key={value.day + i}
@@ -244,6 +245,19 @@ export const TimeTable = ({timeTable, locale}: {
             style={{gridRowStart: 2, gridColumnStart: 1}}
           >
             <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+          </div>
+        ) : isError ? (
+          <div
+            className="col-span-full mt-4 flex flex-col items-center justify-center gap-3"
+            style={{gridRowStart: 2, gridColumnStart: 1}}
+          >
+            <div className="text-[14px] text-[#7A7A7A]">시간표를 불러오지 못했습니다</div>
+            <button
+              onClick={onRetry}
+              className="px-4 py-2 bg-black text-white text-[14px] rounded-[8px] active:scale-[0.97] transition-transform"
+            >
+              다시 시도
+            </button>
           </div>
         ) : cells.length > 0 ? (
           (() => {

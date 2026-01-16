@@ -12,7 +12,7 @@ export const TimeTableServerComponent = async ({studioId}: { studioId: number })
   if ('cells' in res) {
     return (
       <div className={'my-4'}>
-        <TimeTable timeTable={res} locale={await getLocale()}/>
+        <TimeTable studioId={studioId} timeTable={res} locale={await getLocale()}/>
       </div>
     )
   }
