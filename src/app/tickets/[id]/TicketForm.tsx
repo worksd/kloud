@@ -9,6 +9,7 @@ import StampNotPaid from "../../../../public/assets/stamp_not_paid.svg";
 import Logo from "../../../../public/assets/logo_white.svg";
 import TicketGgodari from "../../../../public/assets/ticket-ggodari.svg";
 import {TicketResponse} from "@/app/endpoint/ticket.endpoint";
+import {GuidelineResponse} from "@/app/endpoint/guideline.endpoint";
 import {QRCodeCanvas} from 'qrcode.react';
 import {Copy} from 'lucide-react';
 import {useState, useEffect, useRef} from "react";
@@ -21,11 +22,12 @@ import {deleteTicketAction} from "@/app/tickets/[id]/delete.ticket.action";
 import {useRouter} from "next/navigation";
 import {kloudNav} from "@/app/lib/kloudNav";
 
-export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
+export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = []}: {
   ticket: TicketResponse,
   isJustPaid: string,
   inviteCode: string,
-  locale: Locale
+  locale: Locale,
+  guidelines?: GuidelineResponse[]
 }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
@@ -145,9 +147,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
 
   const getBorderRadius = () => {
     if (ticket.ticketType === 'membership' || ticket.ticketType === 'premium') {
-      return ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]';
+      return 'rounded-t-[17px]';
     }
-    return ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : '';
+    return 'rounded-t-[20px]';
   };
 
   const getRollingBandColor = () => {
@@ -315,8 +317,8 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
   // 티켓 배경 JSX (중복 제거를 위해 함수로 추출)
   const renderTicketBackground = () => {
     const bgBorderRadius = ticket.ticketType === 'membership' || ticket.ticketType === 'premium'
-      ? (ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]')
-      : (ticket.status === 'Cancelled' ? 'rounded-t-[20px]' : '');
+      ? 'rounded-t-[17px]'
+      : 'rounded-t-[20px]';
 
     return (
       <>
@@ -390,7 +392,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
         </div>
 
         {/* 스크롤 가능한 컨텐츠 영역 */}
-        <div ref={scrollContainerRef} className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden">
+        <div ref={scrollContainerRef} className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden overscroll-none">
           {/* Header */}
           {inviteCode && (
               <div className="relative z-10 flex justify-between items-center">
@@ -411,7 +413,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
                 </div>
               </div>
             ) : (
-              <div className={`relative w-[350px] h-[500px] ${borderRadius}`}>
+              <div className={`relative w-[350px] h-[500px] ${borderRadius} overflow-hidden`}>
                 {renderTicketBackground()}
                 {renderTicketContent()}
                 {renderRollingBand()}
@@ -490,6 +492,25 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale}: {
                     {getLocaleString({locale, key: 'membership_payment'})}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Guidelines 섹션 */}
+          {guidelines.length > 0 && (
+            <div className="bg-white relative z-10 px-6 py-6 rounded-t-[20px] -mt-2">
+              <div className="flex flex-col gap-6">
+                {guidelines.map((guideline, index) => (
+                  <div key={guideline.id} className="flex flex-col gap-2">
+                    <h3 className="text-[14px] font-bold text-black leading-[1.4]">
+                      {index + 1}. {guideline.title}
+                    </h3>
+                    <div
+                      className="text-[14px] font-medium text-black leading-[1.6] guideline-content"
+                      dangerouslySetInnerHTML={{ __html: guideline.content }}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           )}

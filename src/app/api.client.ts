@@ -116,6 +116,10 @@ export class ApiClient extends EndpointClient {
   readonly common = {
     get: this.endpointBuilder(API.DynamicRoute.DynamicGET)
   }
+
+  readonly guideline = {
+    list: this.endpointBuilder(API.Guideline.GetGuidelines),
+  }
 }
 
 export interface ClientOptions {

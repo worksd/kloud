@@ -14,8 +14,11 @@ export default async function TicketDetail({params, searchParams}: {
     : await api.ticket.get({id: (await params).id, isParent});
   if ('id' in ticket) {
     const locale = await getLocale();
+    const studioId = ticket.lesson?.studio?.id ?? ticket.studio?.id;
+    const guidelinesResponse = studioId ? await api.guideline.list({studioId}) : null;
+    const guidelines = guidelinesResponse && 'guidelines' in guidelinesResponse ? guidelinesResponse.guidelines : [];
     return <div>
-      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale}/>
+      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale} guidelines={guidelines}/>
       <QrCodeDialogScreen
         qrCodeUrl={ticket.qrCodeUrl}
         ticketId={ticket.id}

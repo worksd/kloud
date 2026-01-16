@@ -220,3 +220,46 @@ html, body {
         background: conic-gradient(from 0deg, rgba(255, 215, 94, 1), rgba(196, 246, 255, 1), rgba(195, 88, 0, 1), rgba(255, 215, 94, 1));
     }
 }
+
+/* Guideline content styles */
+.guideline-content {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  line-height: 1.6;
+}
+
+/* content 안의 첫 번째 h2는 title과 중복되므로 숨김 */
+.guideline-content > div > h2:first-child {
+  display: none;
+}
+
+.guideline-content h2,
+.guideline-content h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+.guideline-content p {
+  margin-bottom: 8px;
+}
+
+.guideline-content p:last-child {
+  margin-bottom: 0;
+}
+
+.guideline-content ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+
+.guideline-content li {
+  margin-bottom: 4px;
+}
+
+.guideline-content strong {
+  font-weight: 700;
+}
