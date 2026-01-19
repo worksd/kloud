@@ -34,7 +34,7 @@ export const SplashScreen = ({os}: { os: string }) => {
       } else {
         kloudNav.clearAndPush(KloudScreen.Login(''))
       }
-    }, 1000)
+    }, 10)
   }, []);
 
   useEffect(() => {
