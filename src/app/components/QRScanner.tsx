@@ -13,9 +13,10 @@ interface QRScannerProps {
   onError: (errorMessage: string) => void;
   onBack?: () => void;
   isProcessing?: boolean;
+  resultState?: 'idle' | 'success' | 'error';
 }
 
-export default function QRScanner({ onSuccess, onError, onBack, isProcessing }: QRScannerProps) {
+export default function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle' }: QRScannerProps) {
   const qrCodeRegionId = "qr-reader";
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -321,15 +322,15 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing }: 
       {/* 스캔 프레임 오버레이 */}
       {scanning && (
         <div className="qr-scan-overlay">
-          <div className="qr-scan-frame">
+          <div className={`qr-scan-frame ${resultState === 'error' ? 'qr-frame-error' : resultState === 'success' ? 'qr-frame-success' : ''}`}>
             <div className="qr-scan-corner qr-top-left" />
             <div className="qr-scan-corner qr-top-right" />
             <div className="qr-scan-corner qr-bottom-left" />
             <div className="qr-scan-corner qr-bottom-right" />
-            {!isProcessing && <div className="qr-scan-line" />}
+            {!isProcessing && resultState === 'idle' && <div className="qr-scan-line" />}
           </div>
           <p className="qr-scan-text">
-            {isProcessing ? '출석체크중입니다...' : 'QR 코드를 프레임 안에 맞춰주세요'}
+            {isProcessing ? '출석체크중입니다...' : resultState === 'error' ? '출석에 실패했습니다' : resultState === 'success' ? '출석 완료!' : 'QR 코드를 프레임 안에 맞춰주세요'}
           </p>
         </div>
       )}

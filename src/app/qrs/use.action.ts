@@ -4,7 +4,7 @@ import { api } from "@/app/api.client";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 
-export async function toUsedAction({
+export async function useAction({
   ticketId,
   expiredAt,
   lessonId

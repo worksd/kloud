@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import QRScanner from '@/app/components/QRScanner';
-import { toUsedAction } from '@/app/qrs/to.used.action';
+import { useAction } from '@/app/qrs/use.action';
 import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 
@@ -15,10 +15,9 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
   const lessonId = searchParams.get('lessonId');
 
   const [loading, setLoading] = useState(false);
+  const [resultState, setResultState] = useState<'idle' | 'success' | 'error'>('idle');
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const isScanning = useRef(false);
-  const lastScannedTime = useRef<number | null>(null);
-  const debounceDelay = useRef(2000);
   const scanned = useRef<Set<string>>(new Set([]));
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -67,10 +66,11 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
       // 로딩 시작
       isScanning.current = true;
       setLoading(true);
+      setResultState('idle');
       console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId });
 
       try {
-        const result = await toUsedAction({
+        const result = await useAction({
           ticketId,
           expiredAt,
           lessonId: lessonId ? Number(lessonId) : undefined,
@@ -80,19 +80,24 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
         if ('message' in result) {
           // 에러 응답
+          setResultState('error');
           showToast('error', result.message || 'QR 출석에 실패했습니다.');
         } else {
           // 성공 응답
+          setResultState('success');
           scanned.current.add(decodedText);
           showToast('success', '정상적으로 QR 출석이 되었습니다.');
         }
       } catch (error) {
         console.error('[QR] API 에러:', error);
+        setResultState('error');
         showToast('error', '네트워크 오류가 발생했습니다.');
       } finally {
         isScanning.current = false;
         setLoading(false);
         console.log('[QR] 로딩 종료');
+        // 2초 후 상태 초기화
+        setTimeout(() => setResultState('idle'), 2000);
       }
     },
     [parseTicketParams, lessonId]
@@ -113,7 +118,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (

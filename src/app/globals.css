@@ -453,6 +453,17 @@ html, body {
   height: 24px;
   border-color: #22C55E;
   border-style: solid;
+  transition: border-color 0.3s ease;
+}
+
+/* 에러 상태 - 빨간색 프레임 */
+.qr-frame-error .qr-scan-corner {
+  border-color: #EF4444;
+}
+
+/* 성공 상태 - 초록색 유지 */
+.qr-frame-success .qr-scan-corner {
+  border-color: #22C55E;
 }
 
 .qr-top-left {
