@@ -35,6 +35,7 @@ export type GetLessonResponse = {
     description?: string;
     genre?: string;
     formattedDate?: GetFormattedDateResponse;
+    isAdmin?: boolean;
 };
 
 export type GetFormattedDateResponse = {
