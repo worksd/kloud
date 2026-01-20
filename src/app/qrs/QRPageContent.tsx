@@ -26,53 +26,57 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const isValidTicketUrl = useCallback((urlStr: string) => {
+  const parseTicketParams = useCallback((urlStr: string): { ticketId: number; expiredAt?: string } | null => {
     try {
       const url = new URL(urlStr);
       const id = url.searchParams.get('willUseTicketId');
-      return url.host.endsWith('rawgraphy.com') && !!id && /^\d+$/.test(id);
+      const expiredAt = url.searchParams.get('expiredAt');
+      if (!id || !/^\d+$/.test(id)) return null;
+      return { ticketId: Number(id), expiredAt: expiredAt || undefined };
     } catch {
-      return false;
+      return null;
     }
   }, []);
 
   const onSuccess = useCallback(
     async (decodedText: string) => {
-      if (scanned.current.has(decodedText) || isScanning.current) return;
+      console.log('[QR] onSuccess 호출됨:', decodedText);
+
+      if (scanned.current.has(decodedText) || isScanning.current) {
+        console.log('[QR] 중복 스캔 또는 스캔 중:', { hasScanned: scanned.current.has(decodedText), isScanning: isScanning.current });
+        return;
+      }
 
       const now = Date.now();
-      if (lastScannedTime.current != null && now - lastScannedTime.current < debounceDelay.current) return;
+      if (lastScannedTime.current != null && now - lastScannedTime.current < debounceDelay.current) {
+        console.log('[QR] 디바운스로 스킵');
+        return;
+      }
       lastScannedTime.current = now;
 
-      // URL 형식 검증
-      const isUrl = (str: string) => {
-        try {
-          new URL(str);
-          return true;
-        } catch {
-          return false;
-        }
-      };
+      const params = parseTicketParams(decodedText);
+      console.log('[QR] 파라미터 파싱:', params);
 
-      if (!isUrl(decodedText) || !isValidTicketUrl(decodedText)) {
+      if (!params) {
         showToast('error', '올바르지 않은 QR 코드입니다.');
         return;
       }
 
-      const url = new URL(decodedText);
-      const ticketId = url.searchParams.get('willUseTicketId');
-      const expiredAt = url.searchParams.get('expiredAt');
-      if (ticketId == null) return;
+      const { ticketId, expiredAt } = params;
 
       isScanning.current = true;
       setLoading(true);
 
+      console.log('[QR] API 호출 시작:', { ticketId, expiredAt, lessonId });
+
       try {
         const result = await toUsedAction({
-          ticketId: Number(ticketId),
-          expiredAt: expiredAt || undefined,
+          ticketId,
+          expiredAt,
           lessonId: lessonId ? Number(lessonId) : undefined,
         });
+
+        console.log('[QR] API 응답:', result);
 
         if ('message' in result) {
           showToast('error', result.message || 'QR 출석에 실패했습니다.');
@@ -81,13 +85,14 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
           showToast('success', '정상적으로 QR 출석이 되었습니다.');
         }
       } catch (error) {
+        console.error('[QR] API 에러:', error);
         showToast('error', '네트워크 오류가 발생했습니다.');
       } finally {
         isScanning.current = false;
         setLoading(false);
       }
     },
-    [isValidTicketUrl, lessonId]
+    [parseTicketParams, lessonId]
   );
 
   const onError = useCallback((errorMessage: string) => {
