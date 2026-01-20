@@ -6,15 +6,21 @@ import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { cookies } from "next/headers";
 import { accessTokenKey } from "@/shared/cookies.key";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { notFound } from "next/navigation";
 
 export type Props = {
-  params: Promise<{ id: number }>;
+  params: Promise<{ id: string }>;
   searchParams: Promise<{ appVersion: string, os: string }>;
 };
 
 export default async function StudioDetail({params, searchParams}: Props) {
-  const {id} = (await params);
+  const id = Number((await params).id);
   const {appVersion, os} = await searchParams
+
+  if (isNaN(id) || !id) {
+    notFound();
+  }
+
   return (
     <div className={'flex flex-col'}>
       {appVersion == '' && <MobileWebViewTopBar
