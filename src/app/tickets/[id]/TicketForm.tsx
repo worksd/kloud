@@ -164,7 +164,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   // 티켓 콘텐츠 JSX (중복 제거를 위해 함수로 추출)
   const renderTicketContent = () => (
-    <div className={`relative h-full flex flex-col gap-6 px-6 pt-8 ${ticket.status === 'Paid' ? 'pb-10' : 'pb-0'}`}>
+    <div className="relative h-full flex flex-col gap-6 px-6 pt-8 pb-10">
       <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
         <button
           onClick={handleCopyPaymentId}
