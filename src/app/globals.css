@@ -387,9 +387,10 @@ html, body {
   transform: translateY(-50%);
 }
 
-/* html5-qrcode 라이브러리 기본 흰색 테두리 숨기기 */
+/* html5-qrcode 라이브러리 기본 스타일 숨기기 */
 #qr-reader__scan_region {
   border: none !important;
+  background: transparent !important;
 }
 
 #qr-reader__scan_region > img {
@@ -398,6 +399,28 @@ html, body {
 
 #qr-reader video {
   border: none !important;
+}
+
+/* qrbox 흰색 테두리 완전히 숨기기 */
+#qr-reader > div {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#qr-reader__scan_region > div {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* shaded region 숨기기 */
+#qr-shaded-region {
+  border: none !important;
+  display: none !important;
+}
+
+#qr-reader canvas {
+  display: none !important;
 }
 
 .qr-reader-flip video {

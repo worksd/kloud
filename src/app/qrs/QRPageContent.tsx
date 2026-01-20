@@ -113,7 +113,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (
