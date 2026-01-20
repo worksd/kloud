@@ -16,8 +16,10 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
   const [loading, setLoading] = useState(false);
   const [resultState, setResultState] = useState<'idle' | 'success' | 'error'>('idle');
+  const [resultMessage, setResultMessage] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const isScanning = useRef(false);
+  const lastScanTime = useRef<number>(0);
   const scanned = useRef<Set<string>>(new Set([]));
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -53,11 +55,24 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         return;
       }
 
+      // 마지막 스캔 후 2초 딜레이
+      const now = Date.now();
+      if (now - lastScanTime.current < 2000) {
+        console.log('[QR] 딜레이 중');
+        return;
+      }
+      lastScanTime.current = now;
+
       const params = parseTicketParams(decodedText);
       console.log('[QR] 파라미터 파싱:', params);
 
       if (!params) {
-        showToast('error', '올바르지 않은 QR 코드입니다.');
+        setResultState('error');
+        setResultMessage('올바르지 않은 QR 코드입니다.');
+        setTimeout(() => {
+          setResultState('idle');
+          setResultMessage('');
+        }, 2000);
         return;
       }
 
@@ -67,6 +82,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
       isScanning.current = true;
       setLoading(true);
       setResultState('idle');
+      setResultMessage('');
       console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId });
 
       try {
@@ -79,25 +95,28 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         console.log('[QR] API 응답:', result);
 
         if ('message' in result) {
-          // 에러 응답
+          // 에러 응답 - 서버 메시지 표시
           setResultState('error');
-          showToast('error', result.message || 'QR 출석에 실패했습니다.');
+          setResultMessage(result.message || 'QR 출석에 실패했습니다.');
         } else {
           // 성공 응답
           setResultState('success');
+          setResultMessage('출석이 완료되었습니다!');
           scanned.current.add(decodedText);
-          showToast('success', '정상적으로 QR 출석이 되었습니다.');
         }
       } catch (error) {
         console.error('[QR] API 에러:', error);
         setResultState('error');
-        showToast('error', '네트워크 오류가 발생했습니다.');
+        setResultMessage('네트워크 오류가 발생했습니다.');
       } finally {
         isScanning.current = false;
         setLoading(false);
         console.log('[QR] 로딩 종료');
-        // 2초 후 상태 초기화
-        setTimeout(() => setResultState('idle'), 2000);
+        // 3초 후 상태 초기화
+        setTimeout(() => {
+          setResultState('idle');
+          setResultMessage('');
+        }, 3000);
       }
     },
     [parseTicketParams, lessonId]
@@ -118,7 +137,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (
