@@ -7,6 +7,8 @@ import QRScanner from '@/app/components/QRScanner';
 import { useAction } from '@/app/qrs/use.action';
 import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
+import { DialogInfo } from '@/utils/dialog.factory';
+import { createDialog } from '@/utils/dialog.factory';
 
 type LessonInfo = GetLessonResponse;
 
@@ -21,6 +23,8 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
   const scanned = useRef<Set<string>>(new Set([]));
+  const lastTicketId = useRef<number | null>(null);
+  const lastTicketRequestTime = useRef<number>(0);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     setToastMessage({ type, message });
@@ -78,11 +82,18 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
       const { ticketId, expiredAt } = params;
 
+      // 같은 ticketId가 10초 이내에 다시 요청되는지 확인
+      if (lastTicketId.current === ticketId && now - lastTicketRequestTime.current < 5000) {
+        return;
+      }
+
       // 로딩 시작
       isScanning.current = true;
       setLoading(true);
       setResultState('idle');
       setResultMessage('');
+      lastTicketId.current = ticketId;
+      lastTicketRequestTime.current = now;
       console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId });
 
       try {
@@ -95,10 +106,16 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         console.log('[QR] API 응답:', result);
 
         if ('message' in result) {
-          // 에러 응답 - 서버 메시지 표시
-          setResultState('error');
-          setResultMessage(result.message || 'QR 출석에 실패했습니다.');
-        } else {
+          // 에러 응답 - 서버 메시지를 다이얼로그로 표시
+          const dialog = await createDialog({
+            id: 'Simple',
+            title: '알림',
+            message: result.message || 'QR 출석에 실패했습니다.',
+          });
+          if (dialog && window.KloudEvent) {
+            window.KloudEvent.showDialog(JSON.stringify(dialog));
+          }
+        } else if ('id' in result && result.status == 'Used') {
           // 성공 응답
           setResultState('success');
           setResultMessage('출석이 완료되었습니다!');
@@ -106,8 +123,15 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         }
       } catch (error) {
         console.error('[QR] API 에러:', error);
-        setResultState('error');
-        setResultMessage('네트워크 오류가 발생했습니다.');
+        // 네트워크 오류를 다이얼로그로 표시
+        const dialog = await createDialog({
+          id: 'Simple',
+          title: '알림',
+          message: '네트워크 오류가 발생했습니다.',
+        });
+        if (dialog && window.KloudEvent) {
+          window.KloudEvent.showDialog(JSON.stringify(dialog));
+        }
       } finally {
         isScanning.current = false;
         setLoading(false);
@@ -133,6 +157,17 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
   const handleBack = useCallback(() => {
     kloudNav.back();
+  }, []);
+
+  // 다이얼로그 확인 버튼 클릭 시 처리
+  useEffect(() => {
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      // 확인 버튼 클릭 시 아무것도 하지 않고 마지막 ticketId 초기화
+      if (data.id === 'Simple' && data.title === '알림') {
+        lastTicketId.current = null;
+        lastTicketRequestTime.current = 0;
+      }
+    };
   }, []);
 
   return (
