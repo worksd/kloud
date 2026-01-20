@@ -21,13 +21,15 @@ import {createDialog, DialogInfo} from "@/utils/dialog.factory";
 import {deleteTicketAction} from "@/app/tickets/[id]/delete.ticket.action";
 import {useRouter} from "next/navigation";
 import {kloudNav} from "@/app/lib/kloudNav";
+import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
 
-export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = []}: {
+export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = ''}: {
   ticket: TicketResponse,
   isJustPaid: string,
   inviteCode: string,
   locale: Locale,
-  guidelines?: GuidelineResponse[]
+  guidelines?: GuidelineResponse[],
+  endpoint?: string
 }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
@@ -515,6 +517,11 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
             </div>
           )}
         </div>
+
+        {/* Paid 상태일 때 SSE 연결 */}
+        {ticket.status === 'Paid' && endpoint && (
+          <TicketUsageSSEPage ticketId={ticket.id} endpoint={endpoint} />
+        )}
       </div>
   );
 }

@@ -34,10 +34,14 @@ export default function TicketUsageSSEPage({
 
   useEffect(() => {
     setStatus('connecting');
-    if (!ticketId || !endpoint) return;
+    if (!ticketId || !endpoint) {
+      return;
+    }
+
+    const sseUrl = `${endpoint}/tickets/${ticketId}/stream`;
 
     const es = connectSSE(
-      `${endpoint}/tickets/${ticketId}/stream`,
+      sseUrl,
       (data) => {
         const msg = data as SSEMessage;
         setMessages((prev) => [...prev, msg]);
@@ -47,8 +51,12 @@ export default function TicketUsageSSEPage({
           window.location.reload();
         }
       },
-      () => setStatus('open'),
-      () => setStatus('error'),
+      () => {
+        setStatus('open');
+      },
+      (error) => {
+        setStatus('error');
+      },
     );
 
     sseRef.current = es ?? null;

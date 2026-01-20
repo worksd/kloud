@@ -18,7 +18,7 @@ export default async function TicketDetail({params, searchParams}: {
     const guidelinesResponse = studioId ? await api.guideline.list({studioId}) : null;
     const guidelines = guidelinesResponse && 'guidelines' in guidelinesResponse ? guidelinesResponse.guidelines : [];
     return <div>
-      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale} guidelines={guidelines}/>
+      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale} guidelines={guidelines} endpoint={process.env.GUINNESS_API_SERVER ?? ''}/>
       <QrCodeDialogScreen
         qrCodeUrl={ticket.qrCodeUrl}
         ticketId={ticket.id}
