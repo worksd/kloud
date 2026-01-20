@@ -99,7 +99,7 @@ export const DeleteTicket: Endpoint<RevertUsagePassesParameter, SimpleResponse> 
 
 export const ToUsed: Endpoint<ToUsedParameter, TicketResponse> = {
   method: 'post',
-  path: (e) => `/tickets/${e.id}/to-used`,
+  path: (e) => `/tickets/${e.id}/use`,
   pathParams: ['id'],
   bodyParams: ['expiredAt', 'lessonId']
 }

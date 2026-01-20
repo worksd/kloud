@@ -42,17 +42,17 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
     async (decodedText: string) => {
       console.log('[QR] onSuccess 호출됨:', decodedText);
 
-      if (scanned.current.has(decodedText) || isScanning.current) {
-        console.log('[QR] 중복 스캔 또는 스캔 중:', { hasScanned: scanned.current.has(decodedText), isScanning: isScanning.current });
+      // 이미 처리 완료된 QR은 스킵
+      if (scanned.current.has(decodedText)) {
+        console.log('[QR] 이미 처리된 QR');
         return;
       }
 
-      const now = Date.now();
-      if (lastScannedTime.current != null && now - lastScannedTime.current < debounceDelay.current) {
-        console.log('[QR] 디바운스로 스킵');
+      // 현재 API 호출 중이면 스킵
+      if (isScanning.current) {
+        console.log('[QR] 이미 API 호출 중');
         return;
       }
-      lastScannedTime.current = now;
 
       const params = parseTicketParams(decodedText);
       console.log('[QR] 파라미터 파싱:', params);
@@ -64,10 +64,10 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
       const { ticketId, expiredAt } = params;
 
+      // 로딩 시작
       isScanning.current = true;
       setLoading(true);
-
-      console.log('[QR] API 호출 시작:', { ticketId, expiredAt, lessonId });
+      console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId });
 
       try {
         const result = await toUsedAction({
@@ -79,8 +79,10 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         console.log('[QR] API 응답:', result);
 
         if ('message' in result) {
+          // 에러 응답
           showToast('error', result.message || 'QR 출석에 실패했습니다.');
-        } else if (result.status === 'Used') {
+        } else {
+          // 성공 응답
           scanned.current.add(decodedText);
           showToast('success', '정상적으로 QR 출석이 되었습니다.');
         }
@@ -90,6 +92,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
       } finally {
         isScanning.current = false;
         setLoading(false);
+        console.log('[QR] 로딩 종료');
       }
     },
     [parseTicketParams, lessonId]
