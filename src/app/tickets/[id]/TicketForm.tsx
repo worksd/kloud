@@ -347,7 +347,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   // 롤링 밴드 JSX (중복 제거를 위해 함수로 추출)
   const renderRollingBand = () => {
-    if (ticket.status !== 'Paid' && ticket.status !== 'Used') {
+    if (ticket.status !== 'Paid') {
       return null;
     }
 
