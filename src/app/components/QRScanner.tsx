@@ -23,12 +23,25 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
   const [flip, setFlip] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 디버그 상태
+  const [showDebug, setShowDebug] = useState(true);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [scanAttempts, setScanAttempts] = useState(0);
+  const [lastDetected, setLastDetected] = useState<string | null>(null);
+
+  const addDebugLog = useCallback((message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 19)]);
+  }, []);
+
   const startScanner = useCallback(
     async (force?: boolean) => {
       if (currentCameraIdx == null || (!force && scanning) || typeof window === "undefined") return;
       if (html5QrCodeRef.current?.getState() === Html5QrcodeScannerState.SCANNING) return;
 
       try {
+        addDebugLog(`카메라 시작 시도: ${devices[currentCameraIdx].label}`);
+
         const qrCode = new Html5Qrcode(qrCodeRegionId, {
           formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
           verbose: false,
@@ -51,19 +64,29 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
             },
             aspectRatio: 1,
           },
-          onSuccess,
-          () => {} // onError는 매 프레임마다 호출되므로 무시
+          (decodedText) => {
+            addDebugLog(`✅ QR 인식 성공: ${decodedText.substring(0, 50)}...`);
+            setLastDetected(decodedText);
+            onSuccess(decodedText);
+          },
+          (errorMessage) => {
+            // 스캔 시도 카운트 (너무 자주 업데이트하지 않도록)
+            setScanAttempts(prev => prev + 1);
+          }
         );
 
         setScanning(true);
         setError(null);
+        addDebugLog(`✅ 카메라 시작 성공`);
       } catch (err) {
         html5QrCodeRef.current = null;
-        setError(`카메라를 시작할 수 없습니다: ${err}`);
+        const errMsg = `카메라를 시작할 수 없습니다: ${err}`;
+        setError(errMsg);
+        addDebugLog(`❌ ${errMsg}`);
         console.error("Failed to start scanning", err);
       }
     },
-    [currentCameraIdx, scanning, devices, onSuccess]
+    [currentCameraIdx, scanning, devices, onSuccess, addDebugLog]
   );
 
   const stopScanner = useCallback(async () => {
@@ -111,40 +134,67 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
   };
 
   const tryGetMedia = async () => {
+    addDebugLog('카메라 권한 요청 중...');
+
     // 네이티브 앱에 카메라 권한 요청
     const granted = await requestNativeCameraPermission();
     if (!granted) {
-      setError("카메라 권한이 거부되었습니다. 설정에서 카메라 권한을 허용해주세요.");
+      const errMsg = "카메라 권한이 거부되었습니다.";
+      setError(errMsg);
+      addDebugLog(`❌ ${errMsg}`);
       return;
     }
+    addDebugLog('✅ 네이티브 권한 획득');
 
     // 권한 획득 후 카메라 접근
     if (!navigator.mediaDevices) {
-      setError(`navigator.mediaDevices가 없습니다. HTTPS 또는 WebView 설정을 확인해주세요.`);
+      const errMsg = `navigator.mediaDevices가 없습니다. HTTPS 필요.`;
+      setError(errMsg);
+      addDebugLog(`❌ ${errMsg}`);
+      addDebugLog(`현재 URL: ${window.location.href}`);
+      addDebugLog(`프로토콜: ${window.location.protocol}`);
       return;
     }
+    addDebugLog('✅ mediaDevices 사용 가능');
+
     if (!navigator.mediaDevices.getUserMedia) {
-      setError(`getUserMedia가 지원되지 않습니다.`);
+      const errMsg = `getUserMedia가 지원되지 않습니다.`;
+      setError(errMsg);
+      addDebugLog(`❌ ${errMsg}`);
       return;
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    const deviceInfos = await navigator.mediaDevices.enumerateDevices();
-    const videoInputs = deviceInfos.filter((d) => d.kind === "videoinput");
+    try {
+      addDebugLog('getUserMedia 호출 중...');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      addDebugLog('✅ getUserMedia 성공');
 
-    if (videoInputs.length === 0) {
-      setError("카메라를 찾을 수 없습니다.");
-      return;
+      const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = deviceInfos.filter((d) => d.kind === "videoinput");
+      addDebugLog(`발견된 카메라: ${videoInputs.length}개`);
+
+      if (videoInputs.length === 0) {
+        setError("카메라를 찾을 수 없습니다.");
+        addDebugLog('❌ 카메라 없음');
+        return;
+      }
+
+      videoInputs.forEach((device, idx) => {
+        addDebugLog(`  카메라 ${idx + 1}: ${device.label || device.deviceId.substring(0, 8)}`);
+      });
+
+      setDevices(
+        videoInputs.map((device) => ({
+          id: device.deviceId,
+          label: device.label || `Camera ${device.deviceId}`,
+        }))
+      );
+
+      stream.getTracks().forEach((track) => track.stop());
+    } catch (err) {
+      addDebugLog(`❌ getUserMedia 에러: ${err}`);
+      throw err;
     }
-
-    setDevices(
-      videoInputs.map((device) => ({
-        id: device.deviceId,
-        label: device.label || `Camera ${device.deviceId}`,
-      }))
-    );
-
-    stream.getTracks().forEach((track) => track.stop());
   };
 
   useLayoutEffect(() => {
@@ -177,6 +227,7 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
     if (isTransitioning.current) return;
 
     isTransitioning.current = true;
+    addDebugLog('카메라 전환 중...');
     await stopScanner();
 
     const nextIdx = (currentCameraIdx + 1) % devices.length;
@@ -185,6 +236,7 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
 
     // 직접 새 카메라로 시작
     try {
+      addDebugLog(`새 카메라 시작: ${devices[nextIdx].label}`);
       const qrCode = new Html5Qrcode(qrCodeRegionId, {
         formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
         verbose: false,
@@ -205,20 +257,29 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
           },
           aspectRatio: 1,
         },
-        onSuccess,
-        () => {}
+        (decodedText) => {
+          addDebugLog(`✅ QR 인식 성공: ${decodedText.substring(0, 50)}...`);
+          setLastDetected(decodedText);
+          onSuccess(decodedText);
+        },
+        () => {
+          setScanAttempts(prev => prev + 1);
+        }
       );
       setScanning(true);
       setError(null);
+      addDebugLog('✅ 카메라 전환 완료');
     } catch (err) {
       html5QrCodeRef.current = null;
-      setError(`카메라를 시작할 수 없습니다: ${err}`);
+      const errMsg = `카메라를 시작할 수 없습니다: ${err}`;
+      setError(errMsg);
+      addDebugLog(`❌ ${errMsg}`);
     }
 
     setTimeout(() => {
       isTransitioning.current = false;
     }, 300);
-  }, [currentCameraIdx, devices, stopScanner, onSuccess]);
+  }, [currentCameraIdx, devices, stopScanner, onSuccess, addDebugLog]);
 
   const toggleHorizontal = useCallback(() => {
     setFlip((prev) => !prev);
@@ -324,6 +385,105 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
           <span>좌우 반전</span>
         </button>
       </div>
+
+      {/* 디버그 패널 */}
+      {showDebug && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 60,
+            left: 8,
+            right: 8,
+            maxHeight: '40vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            borderRadius: 8,
+            padding: 12,
+            zIndex: 1000,
+            overflow: 'auto',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ color: '#00ff00', fontWeight: 'bold', fontSize: 14 }}>🔧 DEBUG MODE</span>
+            <button
+              onClick={() => setShowDebug(false)}
+              style={{ color: 'white', background: 'none', border: 'none', fontSize: 18 }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* 상태 요약 */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 4 }}>
+              <div style={{ color: '#888', fontSize: 10 }}>스캔 상태</div>
+              <div style={{ color: scanning ? '#00ff00' : '#ff6b6b', fontSize: 14, fontWeight: 'bold' }}>
+                {scanning ? '🟢 스캔 중' : '🔴 대기'}
+              </div>
+            </div>
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 4 }}>
+              <div style={{ color: '#888', fontSize: 10 }}>스캔 시도</div>
+              <div style={{ color: '#00ff00', fontSize: 14, fontWeight: 'bold' }}>
+                {scanAttempts.toLocaleString()}회
+              </div>
+            </div>
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 4 }}>
+              <div style={{ color: '#888', fontSize: 10 }}>카메라</div>
+              <div style={{ color: '#fff', fontSize: 12 }}>
+                {currentCameraIdx !== null && devices[currentCameraIdx]
+                  ? devices[currentCameraIdx].label.substring(0, 15)
+                  : '없음'}
+              </div>
+            </div>
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: 8, borderRadius: 4 }}>
+              <div style={{ color: '#888', fontSize: 10 }}>카메라 수</div>
+              <div style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
+                {devices.length}개
+              </div>
+            </div>
+          </div>
+
+          {/* 마지막 인식 */}
+          {lastDetected && (
+            <div style={{ backgroundColor: 'rgba(0,255,0,0.2)', padding: 8, borderRadius: 4, marginBottom: 8 }}>
+              <div style={{ color: '#00ff00', fontSize: 10 }}>마지막 인식</div>
+              <div style={{ color: '#fff', fontSize: 11, wordBreak: 'break-all' }}>
+                {lastDetected.substring(0, 100)}...
+              </div>
+            </div>
+          )}
+
+          {/* 로그 */}
+          <div style={{ color: '#888', fontSize: 10, marginBottom: 4 }}>로그</div>
+          <div style={{ maxHeight: 150, overflow: 'auto' }}>
+            {debugLogs.map((log, idx) => (
+              <div key={idx} style={{ color: '#ccc', fontSize: 11, marginBottom: 2, fontFamily: 'monospace' }}>
+                {log}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 디버그 토글 버튼 (숨겨졌을 때) */}
+      {!showDebug && (
+        <button
+          onClick={() => setShowDebug(true)}
+          style={{
+            position: 'fixed',
+            top: 60,
+            right: 8,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            color: '#00ff00',
+            border: 'none',
+            borderRadius: 4,
+            padding: '4px 8px',
+            fontSize: 12,
+            zIndex: 1000,
+          }}
+        >
+          🔧 Debug
+        </button>
+      )}
     </div>
   );
 }
