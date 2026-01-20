@@ -285,19 +285,6 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
     setFlip((prev) => !prev);
   }, []);
 
-  const isFrontCamera = useCallback((cameraLabel: string) => {
-    const label = cameraLabel.toLowerCase();
-    return label.includes("front") || label.includes("user") || label.includes("전면");
-  }, []);
-
-  const getNextCameraLabel = useCallback(() => {
-    if (currentCameraIdx == null || devices.length === 0) return "카메라 전환";
-
-    const currentLabel = devices[currentCameraIdx].label;
-    const isCurrentFront = isFrontCamera(currentLabel);
-
-    return isCurrentFront ? "후면으로 전환" : "전면으로 전환";
-  }, [currentCameraIdx, devices, isFrontCamera]);
 
   useLayoutEffect(() => {
     if (scanning || html5QrCodeRef.current != null || typeof window === "undefined") return;
@@ -370,7 +357,7 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
               <path d="m18 22-3-3 3-3" />
               <path d="m6 2 3 3-3 3" />
             </svg>
-            <span>{getNextCameraLabel()}</span>
+            <span>카메라 전환</span>
           </button>
         )}
         <button onClick={toggleHorizontal} className="qr-action-button">
