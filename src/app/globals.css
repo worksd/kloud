@@ -263,3 +263,56 @@ html, body {
 .guideline-content strong {
   font-weight: 700;
 }
+
+/* Timer progress ring */
+.timer-progress-container {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-progress-ring {
+  transform: rotate(-90deg);
+}
+
+.timer-progress-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 3;
+}
+
+.timer-progress-ring-fill {
+  fill: none;
+  stroke: url(#timer-gradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer-progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Timer refresh button */
+.timer-refresh-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.timer-refresh-button:active {
+  background: rgba(0, 0, 0, 0.7);
+}

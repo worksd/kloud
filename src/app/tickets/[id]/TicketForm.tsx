@@ -11,7 +11,7 @@ import TicketGgodari from "../../../../public/assets/ticket-ggodari.svg";
 import {TicketResponse} from "@/app/endpoint/ticket.endpoint";
 import {GuidelineResponse} from "@/app/endpoint/guideline.endpoint";
 import {QRCodeCanvas} from 'qrcode.react';
-import {Copy} from 'lucide-react';
+import {Copy, RefreshCw} from 'lucide-react';
 import {useState, useEffect, useRef} from "react";
 import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
 import {KloudScreen} from "@/shared/kloud.screen";
@@ -22,6 +22,7 @@ import {deleteTicketAction} from "@/app/tickets/[id]/delete.ticket.action";
 import {useRouter} from "next/navigation";
 import {kloudNav} from "@/app/lib/kloudNav";
 import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
+import {refreshTicketAction} from "@/app/tickets/[id]/refresh.ticket.action";
 
 export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = ''}: {
   ticket: TicketResponse,
@@ -33,6 +34,8 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
+  const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -47,8 +50,41 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
     }
   };
 
+  const handleRefreshQrCode = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const res = await refreshTicketAction({ticketId: ticket.id});
+      if ('id' in res && res.qrCodeUrl) {
+        setQrCodeUrl(res.qrCodeUrl);
+        setTimeLeft(60);
+        // 타이머 다시 시작
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        intervalRef.current = setInterval(() => {
+          setTimeLeft((prev) => {
+            if (prev <= 1) {
+              if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    } catch (err) {
+      console.error('Failed to refresh QR code:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    // 타이머 시작
+    // Paid 상태일 때만 타이머 시작
+    if (ticket.status !== 'Paid') return;
+
     intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -66,7 +102,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
+  }, [ticket.status]);
 
   // 페이지 복귀 시 스크롤 위치 초기화
   useEffect(() => {
@@ -164,9 +200,54 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   const borderRadius = getBorderRadius();
   const rollingBandColor = getRollingBandColor();
 
+  // 타이머 렌더링 (Paid 상태이고 시간이 남아있을 때만)
+  const renderTimer = () => {
+    if (ticket.status !== 'Paid' || timeLeft === 0) return null;
+
+    const radius = 16;
+    const circumference = 2 * Math.PI * radius;
+    const progress = timeLeft / 60;
+    const strokeDashoffset = circumference * (1 - progress);
+
+    return (
+      <div className="absolute top-4 right-4 z-20">
+        <div className="timer-progress-container">
+          <svg className="timer-progress-ring" width="40" height="40">
+            <defs>
+              <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(255, 212, 56, 0.8)" />
+                <stop offset="33%" stopColor="rgba(255, 150, 150, 0.8)" />
+                <stop offset="66%" stopColor="rgba(150, 220, 200, 0.8)" />
+                <stop offset="100%" stopColor="rgba(150, 200, 230, 0.8)" />
+              </linearGradient>
+            </defs>
+            <circle
+              className="timer-progress-ring-bg"
+              cx="20"
+              cy="20"
+              r={radius}
+            />
+            <circle
+              className="timer-progress-ring-fill"
+              cx="20"
+              cy="20"
+              r={radius}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+            />
+          </svg>
+          <div className="timer-progress-text">
+            <span className="text-white text-[12px] font-bold font-paperlogy">{timeLeft}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // 티켓 콘텐츠 JSX (중복 제거를 위해 함수로 추출)
   const renderTicketContent = () => (
     <div className="relative h-full flex flex-col gap-6 px-6 pt-8 pb-10">
+      {renderTimer()}
       <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
         <button
           onClick={handleCopyPaymentId}
@@ -287,17 +368,24 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         {/* QR코드 또는 스탬프 */}
         <div
             className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
-                ticket.status === 'Paid' && ticket.qrCodeUrl ? 'bg-white' : ''
+                ticket.status === 'Paid' && qrCodeUrl && timeLeft > 0 ? 'bg-white' : ''
             }`}>
-          {ticket.status === 'Paid' && ticket.qrCodeUrl ? (
+          {ticket.status === 'Paid' && qrCodeUrl && timeLeft > 0 ? (
               <div>
                 <QRCodeCanvas
-                    value={ticket.qrCodeUrl}
+                    value={qrCodeUrl}
                     size={84}
                     className="w-full h-full"
                 />
               </div>
-
+          ) : ticket.status === 'Paid' && timeLeft === 0 ? (
+              <button
+                  onClick={handleRefreshQrCode}
+                  disabled={isRefreshing}
+                  className="timer-refresh-button"
+              >
+                <RefreshCw className={`w-5 h-5 text-white ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
           ) : (
               <div className="flex items-center justify-center relative">
                 {ticket.status === 'Cancelled' && (
@@ -349,7 +437,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   // 롤링 밴드 JSX (중복 제거를 위해 함수로 추출)
   const renderRollingBand = () => {
-    if (ticket.status !== 'Paid') {
+    if (ticket.status !== 'Paid' || timeLeft === 0) {
       return null;
     }
 
