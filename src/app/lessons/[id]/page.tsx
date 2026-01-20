@@ -7,6 +7,8 @@ import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { cookies } from "next/headers";
 import { accessTokenKey } from "@/shared/cookies.key";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { getMeAction } from "@/app/profile/setting/kiosk/get.me.action";
+import { QRScanButtonForLesson } from "@/app/lessons/[id]/QRScanButtonForLesson";
 
 type Props = {
   params: Promise<{ id: string }>
@@ -35,6 +37,9 @@ export default async function LessonDetailPage({params, searchParams}: {
     );
   }
 
+  const me = await getMeAction();
+  const canScanQR = 'id' in me && me.studio?.id && me.studio.id === res.studio?.id;
+
   return (
     <div>
       {appVersion == '' && <MobileWebViewTopBar
@@ -43,6 +48,7 @@ export default async function LessonDetailPage({params, searchParams}: {
         returnUrl={KloudScreen.LessonDetail(lessonId)}
       />}
       <LessonDetailForm lesson={res} appVersion={appVersion}/>
+      {canScanQR && <QRScanButtonForLesson lessonId={lessonId} />}
     </div>
 
   )

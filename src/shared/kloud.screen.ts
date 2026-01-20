@@ -66,6 +66,10 @@ export const KloudScreen = {
 
   /** 아티스트 */
   ArtistDetail: (id: number) => `/artists/${id}`,
+
+  /** QR 스캔 */
+  QRScan: '/qrs',
+  QRScanWithLesson: (lessonId: number) => `/qrs?lessonId=${lessonId}`,
 } as const;
 
 

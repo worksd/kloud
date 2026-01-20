@@ -316,3 +316,248 @@ html, body {
 .timer-refresh-button:active {
   background: rgba(0, 0, 0, 0.7);
 }
+
+/* QR Scanner styles */
+.qr-scanner-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.qr-header {
+  position: relative;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+}
+
+.qr-back-button {
+  position: absolute;
+  left: 16px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: white;
+}
+
+.qr-back-button:active {
+  background: rgba(255,255,255,0.2);
+}
+
+.qr-header-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.qr-reader-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.qr-reader {
+  width: 100%;
+  position: absolute !important;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.qr-reader-flip video {
+  transform: scaleX(-1) !important;
+}
+
+.qr-scan-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-scan-frame {
+  width: 280px;
+  height: 280px;
+  position: relative;
+}
+
+.qr-scan-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: #22C55E;
+  border-style: solid;
+}
+
+.qr-top-left {
+  top: 0;
+  left: 0;
+  border-width: 4px 0 0 4px;
+  border-radius: 8px 0 0 0;
+}
+
+.qr-top-right {
+  top: 0;
+  right: 0;
+  border-width: 4px 4px 0 0;
+  border-radius: 0 8px 0 0;
+}
+
+.qr-bottom-left {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 4px 4px;
+  border-radius: 0 0 0 8px;
+}
+
+.qr-bottom-right {
+  bottom: 0;
+  right: 0;
+  border-width: 0 4px 4px 0;
+  border-radius: 0 0 8px 0;
+}
+
+.qr-scan-line {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #22C55E 50%, transparent 100%);
+  animation: qr-scan-animation 2s ease-in-out infinite;
+  box-shadow: 0 0 8px #22C55E;
+}
+
+@keyframes qr-scan-animation {
+  0%, 100% {
+    top: 8px;
+  }
+  50% {
+    top: calc(100% - 10px);
+  }
+}
+
+.qr-scan-text {
+  margin-top: 24px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.qr-loading-layer {
+  position: fixed;
+  background: rgba(10, 10, 10, 0.9);
+  width: 100dvw;
+  height: 100dvh;
+  z-index: 99;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.qr-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(34, 197, 94, 0.2);
+  border-top-color: #22C55E;
+  border-radius: 50%;
+  animation: qr-spin 1s linear infinite;
+}
+
+@keyframes qr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qr-loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+
+.qr-error-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ef4444;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.qr-bottom-buttons {
+  z-index: 100;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.qr-action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 14px 20px;
+  min-width: 90px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qr-action-button:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.qr-action-button svg {
+  color: #22C55E;
+}
+
+.qr-action-button span {
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}

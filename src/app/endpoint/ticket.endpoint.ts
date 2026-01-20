@@ -50,6 +50,12 @@ export type RevertUsagePassesParameter = {
   requester: string;
 }
 
+export type ToUsedParameter = {
+  id: number;
+  expiredAt?: string;
+  lessonId?: number;
+}
+
 export type ListTicketsParameter = {
   page?: number;
 }
@@ -89,6 +95,13 @@ export const DeleteTicket: Endpoint<RevertUsagePassesParameter, SimpleResponse> 
   path: (e) => `/tickets/${e.ticketId}`,
   pathParams: ['ticketId'],
   bodyParams: ['reason', 'requester']
+}
+
+export const ToUsed: Endpoint<ToUsedParameter, TicketResponse> = {
+  method: 'post',
+  path: (e) => `/tickets/${e.id}/to-used`,
+  pathParams: ['id'],
+  bodyParams: ['expiredAt', 'lessonId']
 }
 
 export function convertStatusToMessage({status}: { status: string }): StringResourceKey {
