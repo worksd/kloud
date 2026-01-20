@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeScannerState, Html5QrcodeSupportedFormats } from "html5-qrcode";
 
 type CameraInfo = {
   id: string;
@@ -29,13 +29,16 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
       if (html5QrCodeRef.current?.getState() === Html5QrcodeScannerState.SCANNING) return;
 
       try {
-        const qrCode = new Html5Qrcode(qrCodeRegionId);
+        const qrCode = new Html5Qrcode(qrCodeRegionId, {
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          verbose: false,
+        });
         html5QrCodeRef.current = qrCode;
 
         await qrCode.start(
           devices[currentCameraIdx].id,
           {
-            fps: 10,
+            fps: 15,
             qrbox: () => {
               const region = document.getElementById(qrCodeRegionId);
               if (!region) return { width: 250, height: 250 };
@@ -43,12 +46,13 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
               const width = region.offsetWidth;
               const height = region.offsetHeight;
 
-              const boxSize = Math.max(Math.floor(Math.min(width, height) * 0.8), 200);
+              const boxSize = Math.max(Math.floor(Math.min(width, height) * 0.7), 200);
               return { width: boxSize, height: boxSize };
             },
+            aspectRatio: 1,
           },
           onSuccess,
-          onError
+          () => {} // onError는 매 프레임마다 호출되므로 무시
         );
 
         setScanning(true);
@@ -59,7 +63,7 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
         console.error("Failed to start scanning", err);
       }
     },
-    [currentCameraIdx, scanning, devices, onSuccess, onError]
+    [currentCameraIdx, scanning, devices, onSuccess]
   );
 
   const stopScanner = useCallback(async () => {
@@ -81,7 +85,6 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
   }, []);
 
   const isTransitioning = useRef(false);
-  const isTransitioningToggle = useRef(false);
   const reStart = useCallback(async () => {
     if (isTransitioning.current) return;
     isTransitioning.current = true;
@@ -90,7 +93,6 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
 
     setTimeout(() => {
       isTransitioning.current = false;
-      isTransitioningToggle.current = false;
     }, 500);
   }, [startScanner, stopScanner]);
 
@@ -171,15 +173,52 @@ export default function QRScanner({ onSuccess, onError, onBack }: QRScannerProps
   }, [reStart]);
 
   const toggleCamera = useCallback(async () => {
-    if (currentCameraIdx == null || isTransitioningToggle.current) return;
+    if (currentCameraIdx == null || devices.length <= 1) return;
+    if (isTransitioning.current) return;
 
-    isTransitioningToggle.current = true;
+    isTransitioning.current = true;
     await stopScanner();
-    setCurrentCameraIdx((prev) => {
-      const next = (prev ?? 0) + 1;
-      return next > devices.length - 1 ? 0 : next;
-    });
-  }, [currentCameraIdx, devices.length, stopScanner]);
+
+    const nextIdx = (currentCameraIdx + 1) % devices.length;
+    setCurrentCameraIdx(nextIdx);
+    setScanning(false);
+
+    // 직접 새 카메라로 시작
+    try {
+      const qrCode = new Html5Qrcode(qrCodeRegionId, {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        verbose: false,
+      });
+      html5QrCodeRef.current = qrCode;
+
+      await qrCode.start(
+        devices[nextIdx].id,
+        {
+          fps: 15,
+          qrbox: () => {
+            const region = document.getElementById(qrCodeRegionId);
+            if (!region) return { width: 250, height: 250 };
+            const width = region.offsetWidth;
+            const height = region.offsetHeight;
+            const boxSize = Math.max(Math.floor(Math.min(width, height) * 0.7), 200);
+            return { width: boxSize, height: boxSize };
+          },
+          aspectRatio: 1,
+        },
+        onSuccess,
+        () => {}
+      );
+      setScanning(true);
+      setError(null);
+    } catch (err) {
+      html5QrCodeRef.current = null;
+      setError(`카메라를 시작할 수 없습니다: ${err}`);
+    }
+
+    setTimeout(() => {
+      isTransitioning.current = false;
+    }, 300);
+  }, [currentCameraIdx, devices, stopScanner, onSuccess]);
 
   const toggleHorizontal = useCallback(() => {
     setFlip((prev) => !prev);
