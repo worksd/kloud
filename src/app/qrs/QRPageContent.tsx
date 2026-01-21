@@ -220,7 +220,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             top: 100,
             left: 12,
             right: 12,
-            zIndex: 90,
+            zIndex: 10002,
             backgroundColor: 'rgba(30, 30, 30, 0.9)',
             backdropFilter: 'blur(10px)',
             borderRadius: 12,
@@ -292,7 +292,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             color: 'white',
             fontSize: '1.25rem',
             fontWeight: 500,
-            zIndex: 1000,
+            zIndex: 10003,
           }}
         >
           <div className="qr-loading-spinner" />
@@ -308,7 +308,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             bottom: 120,
             left: 12,
             right: 12,
-            zIndex: 1001,
+            zIndex: 10004,
             backgroundColor: 'rgba(34, 197, 94, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: 12,
