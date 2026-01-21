@@ -375,7 +375,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 2000,
+            zIndex: 10000,
             padding: 20,
           }}
         >
