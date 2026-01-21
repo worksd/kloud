@@ -371,40 +371,68 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 10000,
-            padding: 20,
+            padding: 24,
+          }}
+          onClick={() => {
+            setSuccessDialog(null);
+            setResultState('idle');
+            setResultMessage('');
           }}
         >
           <div
             style={{
-              backgroundColor: '#1a1a1a',
-              borderRadius: 20,
-              padding: 24,
-              width: '100%',
-              maxWidth: 320,
-              textAlign: 'center',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 16,
             }}
+            onClick={(e) => e.stopPropagation()}
           >
+            {/* 체크 아이콘 */}
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                backgroundColor: '#22C55E',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+
+            {/* 입장 번호 */}
+            {successDialog.rank && (
+              <div style={{ fontSize: 64, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+                {successDialog.rank}
+              </div>
+            )}
+
+            {/* 유저 이름 */}
+            <div style={{ fontSize: 24, fontWeight: 600, color: '#fff' }}>
+              {successDialog.user.nickName || successDialog.user.name || '사용자'}
+            </div>
+
             {/* 멤버십 라벨 */}
-            {successDialog.ticketTypeLabel && (
+            {successDialog.ticketTypeLabel && successDialog.ticketType !== 'default' && (
               <div
                 style={{
-                  display: 'inline-block',
                   padding: '6px 16px',
                   borderRadius: 20,
-                  marginBottom: 16,
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 600,
                   background: successDialog.ticketType === 'membership'
                     ? 'linear-gradient(135deg, #FFD700, #FFA500)'
-                    : successDialog.ticketType === 'premium'
-                    ? 'linear-gradient(135deg, #9333EA, #DB2777)'
-                    : '#22C55E',
+                    : 'linear-gradient(135deg, #9333EA, #DB2777)',
                   color: successDialog.ticketType === 'membership' ? '#000' : '#fff',
                 }}
               >
@@ -412,125 +440,10 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
               </div>
             )}
 
-            {/* 유저 프로필 이미지 */}
-            <div
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: '50%',
-                margin: '0 auto 16px',
-                overflow: 'hidden',
-                backgroundColor: '#333',
-                border: '3px solid #22C55E',
-              }}
-            >
-              {successDialog.user.profileImageUrl ? (
-                <Image
-                  src={successDialog.user.profileImageUrl}
-                  alt="프로필"
-                  width={100}
-                  height={100}
-                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 40,
-                    color: '#666',
-                  }}
-                >
-                  👤
-                </div>
-              )}
+            {/* 탭하여 닫기 */}
+            <div style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.5)', marginTop: 24 }}>
+              탭하여 닫기
             </div>
-
-            {/* 유저 닉네임 */}
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 700,
-                color: '#fff',
-                marginBottom: 4,
-              }}
-            >
-              {successDialog.user.nickName || successDialog.user.name || '사용자'}
-            </div>
-
-            {/* 유저 이름 (닉네임과 다를 경우) */}
-            {successDialog.user.name && successDialog.user.nickName && successDialog.user.name !== successDialog.user.nickName && (
-              <div
-                style={{
-                  fontSize: 14,
-                  color: 'rgba(255, 255, 255, 0.6)',
-                  marginBottom: 16,
-                }}
-              >
-                {successDialog.user.name}
-              </div>
-            )}
-
-            {/* 구분선 */}
-            <div
-              style={{
-                height: 1,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                margin: '16px 0',
-              }}
-            />
-
-            {/* 수업 정보 */}
-            {successDialog.lessonTitle && (
-              <div style={{ fontSize: 15, color: 'rgba(255, 255, 255, 0.7)', marginBottom: 12 }}>
-                {successDialog.lessonTitle}
-              </div>
-            )}
-
-            {/* 입장 번호 */}
-            {successDialog.rank && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                  borderRadius: 12,
-                  padding: '12px 16px',
-                  marginTop: 12,
-                }}
-              >
-                <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.5)', marginBottom: 4 }}>
-                  입장 번호
-                </div>
-                <div style={{ fontSize: 32, color: '#22C55E', fontWeight: 700 }}>
-                  {successDialog.rank}
-                </div>
-              </div>
-            )}
-
-            {/* 확인 버튼 */}
-            <button
-              onClick={() => {
-                setSuccessDialog(null);
-                setResultState('idle');
-                setResultMessage('');
-              }}
-              style={{
-                width: '100%',
-                padding: '14px',
-                backgroundColor: '#22C55E',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 12,
-                fontSize: 16,
-                fontWeight: 600,
-                cursor: 'pointer',
-                marginTop: 20,
-              }}
-            >
-              확인
-            </button>
           </div>
         </div>
       )}
