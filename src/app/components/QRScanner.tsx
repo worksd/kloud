@@ -383,7 +383,7 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
         <div
           style={{
             position: 'fixed',
-            top: 60,
+            top: 100,
             left: 8,
             right: 8,
             maxHeight: '40vh',
@@ -462,7 +462,7 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
           onClick={() => setShowDebug(true)}
           style={{
             position: 'fixed',
-            top: 60,
+            top: 100,
             right: 8,
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             color: '#00ff00',

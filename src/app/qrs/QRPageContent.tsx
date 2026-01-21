@@ -59,13 +59,12 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         return;
       }
 
-      // 마지막 스캔 후 2초 딜레이
+      // 마지막 스캔 후 3초 딜레이
       const now = Date.now();
-      if (now - lastScanTime.current < 2000) {
+      if (now - lastScanTime.current < 3000) {
         console.log('[QR] 딜레이 중');
         return;
       }
-      lastScanTime.current = now;
 
       const params = parseTicketParams(decodedText);
       console.log('[QR] 파라미터 파싱:', params);
@@ -149,6 +148,8 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
       } finally {
         isScanning.current = false;
         setLoading(false);
+        // 성공/실패 모두 3초 딜레이 적용
+        lastScanTime.current = Date.now();
         console.log('[QR] 로딩 종료');
         // 3초 후 상태 초기화
         setTimeout(() => {
@@ -183,7 +184,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         <div
           style={{
             position: 'fixed',
-            top: 76,
+            top: 100,
             left: 12,
             right: 12,
             zIndex: 90,
@@ -294,7 +295,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         <div
           style={{
             position: 'fixed',
-            top: lesson ? 160 : 60,
+            top: lesson ? 190 : 100,
             left: 8,
             zIndex: 80,
             backgroundColor: 'rgba(0, 0, 0, 0.75)',
