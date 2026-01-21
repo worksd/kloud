@@ -5,11 +5,11 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import ShowPasswordIcon from "../../../../public/assets/show-password.svg"
 import HidePasswordIcon from "../../../../public/assets/hide-password.svg"
 import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
-import { clearCookies } from "@/app/profile/clear.token.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { kloudNav } from "@/app/lib/kloudNav";
 import Logo from "../../../../public/assets/logo_black.svg";
 import { useRouter } from "next/navigation";
+import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
 
 type LoginFormProps = {
   appVersion: string;
@@ -24,12 +24,22 @@ type LoginFormProps = {
   signUpTitle: string;
 }
 
+const CACHED_EMAIL_KEY = 'kloud_cached_email';
+
 export const LoginForm = (props: LoginFormProps) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+
+  // 캐시된 이메일 불러오기
+  useEffect(() => {
+    const cachedEmail = localStorage.getItem(CACHED_EMAIL_KEY);
+    if (cachedEmail) {
+      setEmail(cachedEmail);
+    }
+  }, []);
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
@@ -50,6 +60,10 @@ export const LoginForm = (props: LoginFormProps) => {
       password: password,
     })
     if ('status' in res) {
+      // 로그인 성공 시 이메일 캐시 저장
+      localStorage.setItem(CACHED_EMAIL_KEY, email);
+      saveRecentLoginMethod('email');
+
       if (props.appVersion == '') {
         if (props.returnUrl) {
           router.replace(props.returnUrl);

@@ -41,6 +41,12 @@ export const StringResource = {
     jp: "メールで続ける",
     zh: "使用邮箱继续",
   },
+  recent_login: {
+    ko: "최근 로그인",
+    en: "Recent",
+    jp: "最近",
+    zh: "最近登录",
+  },
   email: {
     ko: "이메일",
     en: "Email",

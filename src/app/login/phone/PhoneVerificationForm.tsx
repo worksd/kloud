@@ -18,6 +18,7 @@ import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -100,6 +101,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       if (isFromLogin) {
         const res = await phoneLoginAction({code, phone, countryCode})
         if ('accessToken' in res && res.accessToken) {
+          saveRecentLoginMethod('phone');
           await loginSuccessAction({
             accessToken: res.accessToken,
             userId: res.user.id,

@@ -9,8 +9,18 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
+import { RecentLoginTooltip } from "@/app/login/RecentLoginTooltip";
 
-const KakaoLoginButton = ({title, appVersion, callbackUrl} : {title: string, appVersion: string, callbackUrl?: string}) => {
+type KakaoLoginButtonProps = {
+  title: string;
+  appVersion: string;
+  callbackUrl?: string;
+  isRecentLogin?: boolean;
+  recentLoginText?: string;
+}
+
+const KakaoLoginButton = ({title, appVersion, callbackUrl, isRecentLogin, recentLoginText}: KakaoLoginButtonProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prevCodeRef = useRef<string | null>(null);
@@ -19,6 +29,9 @@ const KakaoLoginButton = ({title, appVersion, callbackUrl} : {title: string, app
   useEffect(() => {
     window.onKakaoLoginSuccess = async (data: { code: string }) => {
       const res = await kakaoLoginAction({token: data.code})
+      if (res.success) {
+        saveRecentLoginMethod('kakao');
+      }
       await LoginAuthNavigation({
         status: res.status,
         window: window,
@@ -45,6 +58,7 @@ const KakaoLoginButton = ({title, appVersion, callbackUrl} : {title: string, app
           try {
             const res = await kakaoLoginAction({code});
             if (res.success) {
+              saveRecentLoginMethod('kakao');
               const decodedState = decodeURIComponent(state);
               if (res.status === UserStatus.Ready) {
                 router.replace(decodedState);
@@ -92,8 +106,8 @@ const KakaoLoginButton = ({title, appVersion, callbackUrl} : {title: string, app
 
   return (
     <button
-      className={`relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-[16px] py-4 shadow-lg w-full 
-            active:scale-[0.95] transition-transform duration-150 select-none'}
+      className={`relative flex items-center justify-center bg-[#FEE500] text-black text-lg font-semibold rounded-[16px] py-4 shadow-lg w-full
+            active:scale-[0.95] transition-transform duration-150 select-none
       `}
       onClick={kakaoLogin}
       disabled={isSubmitting}
@@ -102,6 +116,9 @@ const KakaoLoginButton = ({title, appVersion, callbackUrl} : {title: string, app
         <KakaoLogo/>
       </span>
       <div className={'flex-1 text-center text-[16px]'}>{title}</div>
+      {isRecentLogin && recentLoginText && (
+        <RecentLoginTooltip text={recentLoginText} />
+      )}
     </button>
   );
 };

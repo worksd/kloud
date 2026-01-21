@@ -1,5 +1,6 @@
 import { LoginButtonForm } from "@/app/login/login.button.form";
 import { DevTapLogo } from "@/app/login/DevTapToGo";
+import { translate } from "@/utils/translate";
 
 export default async function LoginIntroPage({
                                                searchParams,
@@ -15,6 +16,14 @@ export default async function LoginIntroPage({
 
   const {os, appVersion, returnUrl} = await searchParams;
 
+  const translations = {
+    continueWithApple: await translate('continue_with_apple'),
+    continueWithGoogle: await translate('continue_with_google'),
+    continueWithKakao: await translate('continue_with_kakao'),
+    continueWithPhone: await translate('continue_with_phone'),
+    continueWithEmail: await translate('continue_with_email'),
+    recentLogin: await translate('recent_login'),
+  };
 
   return (
     <section
@@ -24,7 +33,7 @@ export default async function LoginIntroPage({
       </div>
 
 
-      <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl}/>
+      <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl} translations={translations}/>
 
     </section>
 

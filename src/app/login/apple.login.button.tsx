@@ -6,12 +6,21 @@ import { LoginAuthNavigation } from "@/app/login/loginAuthNavigation";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { createDialog } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
+import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
+import { RecentLoginTooltip } from "@/app/login/RecentLoginTooltip";
 
-const AppleLoginButton = ({title}: { title: string }) => {
+type AppleLoginButtonProps = {
+  title: string;
+  isRecentLogin?: boolean;
+  recentLoginText?: string;
+}
+
+const AppleLoginButton = ({title, isRecentLogin, recentLoginText}: AppleLoginButtonProps) => {
   useEffect(() => {
     window.onAppleLoginSuccess = async (data: { code: string, name: string }) => {
       const res = await appleLoginAction({code: data.code, name: data.name})
       if (res.success) {
+        saveRecentLoginMethod('apple');
         await LoginAuthNavigation({
           status: res.status,
           window: window,
@@ -38,7 +47,7 @@ const AppleLoginButton = ({title}: { title: string }) => {
 
   return (
     <button
-      className={`relative flex items-center justify-center bg-black text-white text-lg font-semibold 
+      className={`relative flex items-center justify-center bg-black text-white text-lg font-semibold
         rounded-[16px] py-4 shadow-lg w-full
         active:scale-[0.95] transition-transform duration-150 select-none
         `}
@@ -48,6 +57,9 @@ const AppleLoginButton = ({title}: { title: string }) => {
         <AppleLogo/>
       </span>
       <div className="flex-1 text-center text-[16px]">{title}</div>
+      {isRecentLogin && recentLoginText && (
+        <RecentLoginTooltip text={recentLoginText} variant="light" />
+      )}
     </button>
   );
 };
