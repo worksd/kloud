@@ -323,14 +323,14 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
       {/* 스캔 프레임 오버레이 */}
       {scanning && (
         <div className="qr-scan-overlay">
-          <div className={`qr-scan-frame ${resultState === 'error' ? 'qr-frame-error' : resultState === 'success' ? 'qr-frame-success' : ''}`}>
+          <div className={`qr-scan-frame ${isProcessing ? 'qr-frame-success' : resultState === 'error' ? 'qr-frame-error' : resultState === 'success' ? 'qr-frame-success' : ''}`}>
             <div className="qr-scan-corner qr-top-left" />
             <div className="qr-scan-corner qr-top-right" />
             <div className="qr-scan-corner qr-bottom-left" />
             <div className="qr-scan-corner qr-bottom-right" />
             {!isProcessing && resultState === 'idle' && <div className="qr-scan-line" />}
           </div>
-          <p className={`qr-scan-text ${resultState === 'error' ? 'qr-text-error' : resultState === 'success' ? 'qr-text-success' : ''}`}>
+          <p className={`qr-scan-text ${isProcessing ? 'qr-text-success' : resultState === 'error' ? 'qr-text-error' : resultState === 'success' ? 'qr-text-success' : ''}`}>
             {isProcessing ? '출석체크중입니다...' : resultMessage || 'QR 코드를 프레임 안에 맞춰주세요'}
           </p>
         </div>
