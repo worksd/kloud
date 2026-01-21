@@ -41,7 +41,7 @@ export default function QRPageContent() {
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [successDialog, setSuccessDialog] = useState<SuccessDialogData | null>(null);
   const [lesson, setLesson] = useState<LessonInfo | null>(null);
-  const [lessonFetchStatus, setLessonFetchStatus] = useState<string>('idle');
+  const [lessonFetchStatus, setLessonFetchStatus] = useState<string>(`init, lessonId=${lessonId}`);
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
@@ -236,7 +236,7 @@ export default function QRPageContent() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#000' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lessonId} lessonTitle={lesson?.title} lessonFetchStatus={lessonFetchStatus} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lessonId} lessonTitle={lesson?.title} lessonFetchStatus={lessonFetchStatus} currentUrl={typeof window !== 'undefined' ? window.location.href : 'ssr'} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (
