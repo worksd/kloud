@@ -297,7 +297,12 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
 
   useLayoutEffect(() => {
     if (currentCameraIdx == null && devices.length > 0) {
-      setCurrentCameraIdx(0);
+      // 후면 카메라 우선 선택 (back, rear, 후면, environment 등의 키워드 포함)
+      const backCameraIdx = devices.findIndex((device) => {
+        const label = device.label.toLowerCase();
+        return label.includes('back') || label.includes('rear') || label.includes('후면') || label.includes('environment');
+      });
+      setCurrentCameraIdx(backCameraIdx !== -1 ? backCameraIdx : 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devices]);
