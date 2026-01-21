@@ -36,6 +36,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showQrDialog, setShowQrDialog] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -371,13 +372,13 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 ticket.status === 'Paid' && qrCodeUrl && timeLeft > 0 ? 'bg-white' : ''
             }`}>
           {ticket.status === 'Paid' && qrCodeUrl && timeLeft > 0 ? (
-              <div>
+              <button onClick={() => setShowQrDialog(true)} className="cursor-pointer">
                 <QRCodeCanvas
                     value={qrCodeUrl}
                     size={84}
                     className="w-full h-full"
                 />
-              </div>
+              </button>
           ) : ticket.status === 'Paid' && timeLeft === 0 ? (
               <button
                   onClick={handleRefreshQrCode}
@@ -609,6 +610,33 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         {/* Paid 상태일 때 SSE 연결 */}
         {ticket.status === 'Paid' && endpoint && (
           <TicketUsageSSEPage ticketId={ticket.id} endpoint={endpoint} />
+        )}
+
+        {/* QR 코드 확대 다이얼로그 */}
+        {showQrDialog && qrCodeUrl && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+            onClick={() => setShowQrDialog(false)}
+          >
+            <div
+              className="bg-white rounded-[20px] p-6 flex flex-col items-center gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <QRCodeCanvas
+                value={qrCodeUrl}
+                size={280}
+              />
+              <p className="text-[14px] text-gray-500 text-center">
+                QR 코드를 스캔해주세요
+              </p>
+              <button
+                onClick={() => setShowQrDialog(false)}
+                className="w-full py-3 bg-black text-white rounded-[12px] font-medium"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
         )}
       </div>
   );
