@@ -27,7 +27,7 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
   const [error, setError] = useState<string | null>(null);
 
   // 디버그 상태
-  const [showDebug, setShowDebug] = useState(true);
+  const [showDebug, setShowDebug] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [scanAttempts, setScanAttempts] = useState(0);
   const [lastDetected, setLastDetected] = useState<string | null>(null);
@@ -441,12 +441,18 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
 
           {/* 마지막 인식 */}
           {lastDetected && (
-            <div style={{ backgroundColor: 'rgba(0,255,0,0.2)', padding: 8, borderRadius: 4, marginBottom: 8 }}>
-              <div style={{ color: '#00ff00', fontSize: 10 }}>마지막 인식</div>
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(lastDetected);
+                alert('복사되었습니다');
+              }}
+              style={{ backgroundColor: 'rgba(0,255,0,0.2)', padding: 8, borderRadius: 4, marginBottom: 8, width: '100%', border: 'none', textAlign: 'left', cursor: 'pointer' }}
+            >
+              <div style={{ color: '#00ff00', fontSize: 10 }}>마지막 인식 (탭하여 복사)</div>
               <div style={{ color: '#fff', fontSize: 11, wordBreak: 'break-all' }}>
                 {lastDetected.substring(0, 100)}...
               </div>
-            </div>
+            </button>
           )}
 
           {/* 로그 */}
