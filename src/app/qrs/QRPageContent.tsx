@@ -113,7 +113,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
           if (dialog && window.KloudEvent) {
             window.KloudEvent.showDialog(JSON.stringify(dialog));
           }
-        } else if ('id' in result && result.status === 'Used') {
+        } else if ('id' in result) {
           // 성공 응답 - ticketId 저장
           successTicketIds.current.add(ticketId);
 
