@@ -12,6 +12,13 @@ import { createDialog } from '@/utils/dialog.factory';
 
 type LessonInfo = GetLessonResponse;
 
+type AttendanceRecord = {
+  ticketId: number;
+  userName: string;
+  ticketType: string;
+  time: string;
+};
+
 export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
   const searchParams = useSearchParams();
   const lessonId = searchParams.get('lessonId');
@@ -19,15 +26,14 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
   const [loading, setLoading] = useState(false);
   const [resultState, setResultState] = useState<'idle' | 'success' | 'error'>('idle');
   const [resultMessage, setResultMessage] = useState<string>('');
-  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
-  const scanned = useRef<Set<string>>(new Set([]));
-  const lastTicketId = useRef<number | null>(null);
-  const lastTicketRequestTime = useRef<number>(0);
+  const successTicketIds = useRef<Set<number>>(new Set([]));
 
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToastMessage({ type, message });
+  const showToast = (message: string) => {
+    setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
@@ -46,12 +52,6 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
   const onSuccess = useCallback(
     async (decodedText: string) => {
       console.log('[QR] onSuccess 호출됨:', decodedText);
-
-      // 이미 처리 완료된 QR은 스킵
-      if (scanned.current.has(decodedText)) {
-        console.log('[QR] 이미 처리된 QR');
-        return;
-      }
 
       // 현재 API 호출 중이면 스킵
       if (isScanning.current) {
@@ -82,8 +82,9 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
 
       const { ticketId, expiredAt } = params;
 
-      // 같은 ticketId가 10초 이내에 다시 요청되는지 확인
-      if (lastTicketId.current === ticketId && now - lastTicketRequestTime.current < 5000) {
+      // 이미 성공한 ticketId면 아무것도 하지 않고 return
+      if (successTicketIds.current.has(ticketId)) {
+        console.log('[QR] 이미 출석 완료된 티켓:', ticketId);
         return;
       }
 
@@ -92,8 +93,6 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
       setLoading(true);
       setResultState('idle');
       setResultMessage('');
-      lastTicketId.current = ticketId;
-      lastTicketRequestTime.current = now;
       console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId });
 
       try {
@@ -115,11 +114,26 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
           if (dialog && window.KloudEvent) {
             window.KloudEvent.showDialog(JSON.stringify(dialog));
           }
-        } else if ('id' in result && result.status == 'Used') {
-          // 성공 응답
+        } else if ('id' in result && result.status === 'Used') {
+          // 성공 응답 - ticketId 저장
+          successTicketIds.current.add(ticketId);
+
+          // user 정보로 토스트 표시
+          const userName = result.user?.nickName || result.user?.name || '사용자';
+          const ticketLabel = result.ticketTypeLabel || '';
+          showToast(ticketLabel ? `${userName} (${ticketLabel})` : userName);
+
+          // 출석 목록에 추가
+          const newRecord: AttendanceRecord = {
+            ticketId,
+            userName,
+            ticketType: ticketLabel,
+            time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+          };
+          setAttendanceList(prev => [newRecord, ...prev]);
+
           setResultState('success');
           setResultMessage('출석이 완료되었습니다!');
-          scanned.current.add(decodedText);
         }
       } catch (error) {
         console.error('[QR] API 에러:', error);
@@ -159,16 +173,6 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
     kloudNav.back();
   }, []);
 
-  // 다이얼로그 확인 버튼 클릭 시 처리
-  useEffect(() => {
-    window.onDialogConfirm = async (data: DialogInfo) => {
-      // 확인 버튼 클릭 시 아무것도 하지 않고 마지막 ticketId 초기화
-      if (data.id === 'Simple' && data.title === '알림') {
-        lastTicketId.current = null;
-        lastTicketRequestTime.current = 0;
-      }
-    };
-  }, []);
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
@@ -262,16 +266,16 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
         </div>
       )}
 
-      {/* 토스트 메시지 */}
+      {/* 출석 성공 토스트 */}
       {toastMessage && (
         <div
           style={{
             position: 'fixed',
-            top: lesson ? 160 : 80,
+            bottom: 120,
             left: 12,
             right: 12,
             zIndex: 1001,
-            backgroundColor: toastMessage.type === 'success' ? 'rgba(34, 197, 94, 0.95)' : 'rgba(239, 68, 68, 0.95)',
+            backgroundColor: 'rgba(34, 197, 94, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: 12,
             padding: '14px 16px',
@@ -281,7 +285,46 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             animation: 'fadeIn 0.3s ease-out',
           }}
         >
-          {toastMessage.message}
+          {toastMessage}
+        </div>
+      )}
+
+      {/* 출석 목록 (왼쪽 위) */}
+      {attendanceList.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            top: lesson ? 160 : 60,
+            left: 8,
+            zIndex: 80,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: 8,
+            padding: 8,
+            maxHeight: '30vh',
+            overflowY: 'auto',
+            minWidth: 140,
+          }}
+        >
+          <div style={{ color: '#22C55E', fontSize: 11, fontWeight: 600, marginBottom: 6 }}>
+            출석 ({attendanceList.length}명)
+          </div>
+          {attendanceList.map((record) => (
+            <div
+              key={record.ticketId}
+              style={{
+                fontSize: 11,
+                color: 'white',
+                padding: '4px 0',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <div style={{ fontWeight: 500 }}>{record.userName}</div>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>
+                {record.ticketType && `${record.ticketType} · `}{record.time}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
