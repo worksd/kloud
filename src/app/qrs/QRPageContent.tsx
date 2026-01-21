@@ -7,9 +7,8 @@ import QRScanner from '@/app/components/QRScanner';
 import { useAction } from '@/app/qrs/use.action';
 import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
-import { DialogInfo } from '@/utils/dialog.factory';
 import { createDialog } from '@/utils/dialog.factory';
-import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
+import { getLessonDetailAction } from '@/app/lessons/[id]/action/getLessonDetailAction';
 
 type LessonInfo = GetLessonResponse;
 
@@ -32,7 +31,7 @@ type SuccessDialogData = {
   rank?: string;
 };
 
-export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
+export default function QRPageContent() {
   const searchParams = useSearchParams();
   const lessonId = searchParams.get('lessonId');
   const [loading, setLoading] = useState(false);
@@ -41,9 +40,27 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [successDialog, setSuccessDialog] = useState<SuccessDialogData | null>(null);
+  const [lesson, setLesson] = useState<LessonInfo | null>(null);
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
+
+  // lessonId가 있으면 레슨 정보 가져오기
+  useEffect(() => {
+    const fetchLesson = async () => {
+      if (lessonId) {
+        try {
+          const lessonData = await getLessonDetailAction({ lessonId: Number(lessonId) });
+          if ('id' in lessonData) {
+            setLesson(lessonData);
+          }
+        } catch (error) {
+          console.error('Failed to fetch lesson:', error);
+        }
+      }
+    };
+    fetchLesson();
+  }, [lessonId]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -256,19 +273,19 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
                   fontSize: 15,
                   fontWeight: 600,
                   color: '#ffffff',
-                  marginBottom: 6,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
+                  marginBottom: 4,
                 }}
               >
                 {lesson.title}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, color: 'rgba(255, 255, 255, 0.7)' }}>
-                <span>{lesson.artist?.nickName || lesson.artist?.name}</span>
-                <span>•</span>
-                <span>{lesson.currentStudentCount}/{lesson.limit}명</span>
-              </div>
+              {lesson.date && (
+                <div style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.7)' }}>
+                  {lesson.date}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -371,64 +388,73 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 10000,
-            padding: 24,
-          }}
-          onClick={() => {
-            setSuccessDialog(null);
-            setResultState('idle');
-            setResultMessage('');
+            zIndex: 10005,
           }}
         >
           <div
             style={{
+              backgroundColor: '#fff',
+              borderRadius: 16,
+              padding: 20,
+              width: 240,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 16,
+              gap: 8,
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            {/* 체크 아이콘 */}
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                backgroundColor: '#22C55E',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+            {/* 프로필 이미지 + 체크 */}
+            <div style={{ position: 'relative', marginBottom: 4 }}>
+              <Image
+                src={successDialog.user.profileImageUrl || '/assets/default_profile.png'}
+                alt="profile"
+                width={52}
+                height={52}
+                style={{ borderRadius: '50%', objectFit: 'cover' }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: -2,
+                  right: -2,
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  backgroundColor: '#22C55E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+            </div>
+
+            {/* 이름 */}
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#000' }}>
+              {successDialog.user.nickName || successDialog.user.name || '사용자'}
             </div>
 
             {/* 입장 번호 */}
             {successDialog.rank && (
-              <div style={{ fontSize: 64, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+              <div style={{ fontSize: 13, color: '#666' }}>
                 {successDialog.rank}
               </div>
             )}
-
-            {/* 유저 이름 */}
-            <div style={{ fontSize: 24, fontWeight: 600, color: '#fff' }}>
-              {successDialog.user.nickName || successDialog.user.name || '사용자'}
-            </div>
 
             {/* 멤버십 라벨 */}
             {successDialog.ticketTypeLabel && successDialog.ticketType !== 'default' && (
               <div
                 style={{
-                  padding: '6px 16px',
-                  borderRadius: 20,
-                  fontSize: 14,
+                  padding: '3px 10px',
+                  borderRadius: 10,
+                  fontSize: 12,
                   fontWeight: 600,
                   background: successDialog.ticketType === 'membership'
                     ? 'linear-gradient(135deg, #FFD700, #FFA500)'
@@ -440,10 +466,27 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
               </div>
             )}
 
-            {/* 탭하여 닫기 */}
-            <div style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.5)', marginTop: 24 }}>
-              탭하여 닫기
-            </div>
+            {/* 확인 버튼 */}
+            <button
+              onClick={() => {
+                setSuccessDialog(null);
+                setResultState('idle');
+                setResultMessage('');
+              }}
+              style={{
+                width: '100%',
+                marginTop: 8,
+                padding: '10px 0',
+                backgroundColor: '#000',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 600,
+                borderRadius: 10,
+                border: 'none',
+              }}
+            >
+              확인
+            </button>
           </div>
         </div>
       )}
