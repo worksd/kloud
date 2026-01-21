@@ -15,9 +15,11 @@ interface QRScannerProps {
   isProcessing?: boolean;
   resultState?: 'idle' | 'success' | 'error';
   resultMessage?: string;
+  lessonId?: string | null;
+  lessonTitle?: string | null;
 }
 
-export default function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle', resultMessage }: QRScannerProps) {
+export default function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle', resultMessage, lessonId, lessonTitle }: QRScannerProps) {
   const qrCodeRegionId = "qr-reader";
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -436,6 +438,15 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
               <div style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
                 {devices.length}개
               </div>
+            </div>
+          </div>
+
+          {/* 레슨 정보 */}
+          <div style={{ backgroundColor: 'rgba(100,149,237,0.2)', padding: 8, borderRadius: 4, marginBottom: 12 }}>
+            <div style={{ color: '#6495ED', fontSize: 10, marginBottom: 4 }}>레슨 정보</div>
+            <div style={{ color: '#fff', fontSize: 12 }}>
+              <div>lessonId: {lessonId ?? '없음'}</div>
+              <div>title: {lessonTitle ?? '없음'}</div>
             </div>
           </div>
 

@@ -227,7 +227,7 @@ export default function QRPageContent() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#000' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lessonId} lessonTitle={lesson?.title} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (
