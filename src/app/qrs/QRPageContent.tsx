@@ -330,7 +330,7 @@ export default function QRPageContent({ lesson }: { lesson?: LessonInfo }) {
             position: 'fixed',
             top: lesson ? 190 : 100,
             left: 8,
-            zIndex: 80,
+            zIndex: 10001,
             backgroundColor: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(10px)',
             borderRadius: 8,
