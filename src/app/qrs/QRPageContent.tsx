@@ -1,16 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 import QRScanner from '@/app/components/QRScanner';
 import { useAction } from '@/app/qrs/use.action';
 import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { createDialog } from '@/utils/dialog.factory';
-import { getLessonDetailAction } from '@/app/lessons/[id]/action/getLessonDetailAction';
-
-type LessonInfo = GetLessonResponse;
 
 type AttendanceRecord = {
   ticketId: number;
@@ -31,45 +27,21 @@ type SuccessDialogData = {
   rank?: string;
 };
 
-export default function QRPageContent() {
-  const searchParams = useSearchParams();
-  const lessonId = searchParams.get('lessonId');
+type Props = {
+  lesson: GetLessonResponse | null;
+  lessonId?: string;
+};
+
+export default function QRPageContent({ lesson, lessonId }: Props) {
   const [loading, setLoading] = useState(false);
   const [resultState, setResultState] = useState<'idle' | 'success' | 'error'>('idle');
   const [resultMessage, setResultMessage] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [successDialog, setSuccessDialog] = useState<SuccessDialogData | null>(null);
-  const [lesson, setLesson] = useState<LessonInfo | null>(null);
-  const [lessonFetchStatus, setLessonFetchStatus] = useState<string>(`init, lessonId=${lessonId}`);
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
-
-  // lessonId가 있으면 레슨 정보 가져오기
-  useEffect(() => {
-    const fetchLesson = async () => {
-      if (lessonId) {
-        setLessonFetchStatus('fetching...');
-        try {
-          const lessonData = await getLessonDetailAction({ lessonId: Number(lessonId) });
-          console.log('[QR] lessonData:', JSON.stringify(lessonData));
-          if ('id' in lessonData) {
-            setLesson(lessonData);
-            setLessonFetchStatus('success');
-          } else {
-            setLessonFetchStatus('no id in response: ' + JSON.stringify(lessonData).substring(0, 100));
-          }
-        } catch (error) {
-          console.error('Failed to fetch lesson:', error);
-          setLessonFetchStatus('error: ' + String(error));
-        }
-      } else {
-        setLessonFetchStatus('no lessonId');
-      }
-    };
-    fetchLesson();
-  }, [lessonId]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -236,7 +208,7 @@ export default function QRPageContent() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#000' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lessonId} lessonTitle={lesson?.title} lessonFetchStatus={lessonFetchStatus} currentUrl={typeof window !== 'undefined' ? window.location.href : 'ssr'} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lessonId} lessonTitle={lesson?.title} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (
