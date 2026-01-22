@@ -43,11 +43,6 @@ export default function QRPageContent({ lesson, lessonId }: Props) {
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
   const parseTicketParams = useCallback((urlStr: string): { ticketId: number; expiredAt?: string } | null => {
     try {
       const url = new URL(urlStr);
