@@ -29,10 +29,9 @@ type SuccessDialogData = {
 
 type Props = {
   lesson: GetLessonResponse | null;
-  lessonId?: string;
 };
 
-export default function QRPageContent({ lesson, lessonId }: Props) {
+export default function QRPageContent({ lesson }: Props) {
   const [loading, setLoading] = useState(false);
   const [resultState, setResultState] = useState<'idle' | 'success' | 'error'>('idle');
   const [resultMessage, setResultMessage] = useState<string>('');
@@ -104,13 +103,13 @@ export default function QRPageContent({ lesson, lessonId }: Props) {
       setLoading(true);
       setResultState('idle');
       setResultMessage('');
-      console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId });
+      console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId: lesson?.id });
 
       try {
         const result = await useAction({
           ticketId,
           expiredAt,
-          lessonId: lessonId ? Number(lessonId) : undefined,
+          lessonId: lesson?.id,
         });
 
         console.log('[QR] API 응답:', result);
@@ -184,7 +183,7 @@ export default function QRPageContent({ lesson, lessonId }: Props) {
         }, 3000);
       }
     },
-    [parseTicketParams, lessonId, successDialog]
+    [parseTicketParams, lesson?.id, successDialog]
   );
 
   const onError = useCallback((errorMessage: string) => {
@@ -203,7 +202,7 @@ export default function QRPageContent({ lesson, lessonId }: Props) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#000' }}>
-      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lessonId} lessonTitle={lesson?.title} />
+      <QRScanner onSuccess={onSuccess} onError={onError} onBack={handleBack} isProcessing={loading} resultState={resultState} resultMessage={resultMessage} lessonId={lesson?.id?.toString()} lessonTitle={lesson?.title} />
 
       {/* 레슨 정보 카드 */}
       {lesson && (

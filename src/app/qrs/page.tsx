@@ -22,5 +22,5 @@ export default async function QRPage({ searchParams }: Props) {
     }
   }
 
-  return <QRPageContent lesson={lesson} lessonId={lessonId} />;
+  return <QRPageContent lesson={lesson} />;
 }
