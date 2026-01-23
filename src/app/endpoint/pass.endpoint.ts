@@ -37,6 +37,7 @@ export type GetPassResponse = {
   id: number
   price: number
   paymentId: string
+  startDate?: string,
   endDate: string,
   status?: PassStatus,
   passPlan?: GetPassPlanResponse
@@ -61,7 +62,7 @@ export type UsePassRequest = {
 }
 
 export type PassOrder = 'upcoming' | 'newest'
-export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending'
+export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending' | 'Waiting'
 
 
 export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse> = {

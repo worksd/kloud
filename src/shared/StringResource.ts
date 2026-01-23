@@ -1379,6 +1379,12 @@ export const StringResource = {
     jp: '使用待機中',
     zh: '等待使用'
   },
+  waiting_pass_start_date: {
+    ko: '부터 사용 가능',
+    en: 'Available from',
+    jp: 'から利用可能',
+    zh: '起可使用'
+  },
   used_complete: {
     ko: '사용 완료',
     en: 'Used',

@@ -38,6 +38,13 @@ export default async function MyPassDetailPage({params}: {
                   price={pass.passPlan?.price}
                 />
               }
+              {pass.status == 'Waiting' && pass.startDate &&
+                <div className="mt-4 p-4 bg-[#FFF8E6] rounded-xl">
+                  <div className="text-[#F59E0B] font-semibold text-sm">
+                    {pass.startDate} {await translate('waiting_pass_start_date')}
+                  </div>
+                </div>
+              }
             </div>
           </div>
           {pass.passPlan?.tier == PassPlanTier.Premium && <PremiumTierIcon/>}
