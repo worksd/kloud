@@ -180,7 +180,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
       </div>
 
       {studio.passPlans && studio.passPlans.length > 0 &&
-        <div className="left-0 w-full h-fit fixed bottom-0 px-6 py-6 bg-white">
+        <div className="left-0 w-full h-fit fixed bottom-0 px-6 py-6 bg-white z-50">
           <PassPlanPurchaseSubmitButton studioId={studio.id}/>
         </div>
       }
