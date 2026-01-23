@@ -1373,6 +1373,12 @@ export const StringResource = {
     jp: '口座振込確認中',
     zh: '确认账户转账中'
   },
+  waiting_pass_status: {
+    ko: '사용 대기중',
+    en: 'Waiting',
+    jp: '使用待機中',
+    zh: '等待使用'
+  },
   used_complete: {
     ko: '사용 완료',
     en: 'Used',

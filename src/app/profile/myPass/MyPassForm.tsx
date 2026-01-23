@@ -13,7 +13,7 @@ export const MyPassForm = ({passes, locale}: {
   locale: Locale,
 }) => {
   const [currentTab, setCurrentTab] = useState<PassTabType>('active')
-  const activePasses = passes.filter(value => value.status == 'Active' || value.status == 'Pending')
+  const activePasses = passes.filter(value => value.status == 'Active' || value.status == 'Pending' || value.status == 'Waiting')
   const notActivePasses = passes.filter(value => !activePasses.includes(value));
 
   return (

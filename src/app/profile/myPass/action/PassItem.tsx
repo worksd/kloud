@@ -48,6 +48,12 @@ export const PassItem = ({pass, endDate, locale}: { pass: GetPassResponse, endDa
             </div>
           }
           {
+            pass.status == 'Waiting' &&
+            <div className="flex items-center space-x-2 text-gray-500">
+              <div className={'text-[#F59E0B] font-bold'}>{getLocaleString({locale, key: 'waiting_pass_status'})}</div>
+            </div>
+          }
+          {
             pass.status == 'Done' &&
             <div className="text-[12px] flex items-center space-x-2 text-gray-500">
               <div className={'font-bold'}>{getLocaleString({locale, key: 'used_complete'})}</div>
