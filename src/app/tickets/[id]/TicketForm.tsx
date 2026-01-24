@@ -105,6 +105,13 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
     };
   }, [ticket.status]);
 
+  // QR 코드 만료 시 다이얼로그 자동 닫기
+  useEffect(() => {
+    if (timeLeft === 0 && showQrDialog) {
+      setShowQrDialog(false);
+    }
+  }, [timeLeft, showQrDialog]);
+
   // 페이지 복귀 시 스크롤 위치 초기화
   useEffect(() => {
     // 컴포넌트 마운트 시 스크롤 위치 초기화
