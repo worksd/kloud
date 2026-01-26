@@ -478,7 +478,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   };
 
   return (
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white ticket-container">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black ticket-container">
         {/* 배경 이미지 및 Backdrop Blur - 고정 */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 transform-gpu">
           <div className="absolute inset-0 -inset-[10%]">
