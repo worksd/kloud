@@ -32,7 +32,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   endpoint?: string
 }) {
   const [copied, setCopied] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60); // 60초 = 1분
+  const [timeLeft, setTimeLeft] = useState(120); // 120초 = 2분
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
@@ -57,7 +57,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       const res = await refreshTicketAction({ticketId: ticket.id});
       if ('id' in res && res.qrCodeUrl) {
         setQrCodeUrl(res.qrCodeUrl);
-        setTimeLeft(60);
+        setTimeLeft(120);
         // 타이머 다시 시작
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -213,7 +213,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
     const radius = 16;
     const circumference = 2 * Math.PI * radius;
-    const progress = timeLeft / 60;
+    const progress = timeLeft / 120;
     const strokeDashoffset = circumference * (1 - progress);
 
     return (
