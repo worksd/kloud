@@ -25,11 +25,274 @@ body {
     text-wrap: balance;
   }
   .border-membership {
-    background: conic-gradient(from 0deg, rgba(255, 215, 94, 1), rgba(196, 246, 255, 1), rgba(195, 88, 0, 1), rgba(255, 215, 94, 1));
+    background: linear-gradient(135deg, #FFD700 0%, #FFF8DC 25%, #C0C0C0 50%, #E8E8E8 75%, #FFD700 100%);
+    box-shadow:
+      0 0 15px rgba(255, 215, 0, 0.6),
+      0 0 30px rgba(255, 215, 0, 0.4),
+      0 0 45px rgba(192, 192, 192, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    animation: glow-gold 2s ease-in-out infinite alternate;
+  }
+  .border-membership::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -150%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      60deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.9) 45%,
+      rgba(255, 215, 0, 0.5) 50%,
+      rgba(255, 255, 255, 0.9) 55%,
+      transparent 80%
+    );
+    animation: shimmer 10s infinite;
+  }
+  .border-membership::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -150%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      120deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 70%
+    );
+    animation: shimmer 10s infinite 0.3s;
   }
   .border-premium {
-    background: conic-gradient(from 0deg, rgba(147, 51, 234, 1), rgba(219, 39, 119, 1), rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+    background: linear-gradient(135deg, #9333ea 0%, #db2777 33%, #6366f1 66%, #9333ea 100%);
+    box-shadow:
+      0 0 15px rgba(147, 51, 234, 0.6),
+      0 0 30px rgba(219, 39, 119, 0.4),
+      0 0 45px rgba(99, 102, 241, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    animation: glow-purple 2s ease-in-out infinite alternate;
   }
+  .border-premium::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -150%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      60deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.8) 45%,
+      rgba(219, 39, 119, 0.4) 50%,
+      rgba(255, 255, 255, 0.8) 55%,
+      transparent 80%
+    );
+    animation: shimmer 10s infinite;
+  }
+  .border-premium::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -150%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      120deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 70%
+    );
+    animation: shimmer 10s infinite 0.3s;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(0%);
+  }
+  20% {
+    transform: translateX(150%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+@keyframes glow-gold {
+  0% {
+    box-shadow:
+      0 0 15px rgba(255, 215, 0, 0.6),
+      0 0 30px rgba(255, 215, 0, 0.4),
+      0 0 45px rgba(192, 192, 192, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 25px rgba(255, 215, 0, 0.8),
+      0 0 50px rgba(255, 215, 0, 0.5),
+      0 0 75px rgba(192, 192, 192, 0.4);
+  }
+}
+
+@keyframes glow-purple {
+  0% {
+    box-shadow:
+      0 0 15px rgba(147, 51, 234, 0.6),
+      0 0 30px rgba(219, 39, 119, 0.4),
+      0 0 45px rgba(99, 102, 241, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 25px rgba(147, 51, 234, 0.8),
+      0 0 50px rgba(219, 39, 119, 0.5),
+      0 0 75px rgba(99, 102, 241, 0.4);
+  }
+}
+
+/* Membership & Premium Badge Styles */
+.membership-badge {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 10px rgba(255, 215, 0, 0.5),
+    0 0 20px rgba(255, 215, 0, 0.3);
+  animation: badge-glow-gold 1.5s ease-in-out infinite alternate;
+}
+.membership-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+  animation: badge-shimmer 5s infinite;
+}
+
+.premium-badge {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 10px rgba(147, 51, 234, 0.5),
+    0 0 20px rgba(219, 39, 119, 0.3);
+  animation: badge-glow-purple 1.5s ease-in-out infinite alternate;
+}
+.premium-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: badge-shimmer 5s infinite;
+}
+
+@keyframes badge-shimmer {
+  0% {
+    left: -100%;
+  }
+  20% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes badge-glow-gold {
+  0% {
+    box-shadow:
+      0 0 10px rgba(255, 215, 0, 0.5),
+      0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 15px rgba(255, 215, 0, 0.8),
+      0 0 30px rgba(255, 215, 0, 0.5);
+  }
+}
+
+@keyframes badge-glow-purple {
+  0% {
+    box-shadow:
+      0 0 10px rgba(147, 51, 234, 0.5),
+      0 0 20px rgba(219, 39, 119, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 15px rgba(147, 51, 234, 0.8),
+      0 0 30px rgba(219, 39, 119, 0.5);
+  }
+}
+
+/* Ticket Ggodari (하단 톱니) */
+.ticket-ggodari {
+  position: relative;
+  width: 350px;
+  height: 52px;
+  overflow: hidden;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg width='350' height='52' viewBox='0 0 350 52' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M350 0C349.999 10.6534 349.971 18.993 349.359 25.6465C348.267 25.4412 347.145 25.333 346 25.333C334.954 25.333 326 35.2827 326 47.5557C326 48.8277 326.098 50.0745 326.282 51.2881C322.505 51.717 318.125 51.8874 312.999 51.9541C312.977 44.6114 307.614 38.667 301 38.667C294.373 38.667 289 44.6362 289 52H271C271 44.6362 265.627 38.667 259 38.667C252.373 38.667 247 44.6362 247 52H229C229 44.6362 223.627 38.667 217 38.667C210.373 38.667 205 44.6362 205 52H187C187 44.6362 181.627 38.667 175 38.667C168.373 38.667 163 44.6362 163 52H145C145 44.6362 139.627 38.667 133 38.667C126.373 38.667 121 44.6362 121 52H103C103 44.6362 97.6274 38.667 91 38.667C84.3726 38.667 79 44.6362 79 52H61C61 44.6362 55.6274 38.667 49 38.667C42.3864 38.667 37.0223 44.6114 37 51.9541C31.874 51.8874 27.4936 51.717 23.7168 51.2881C23.9016 50.0744 24 48.8277 24 47.5557C24 35.2827 15.0457 25.333 4 25.333C2.85482 25.333 1.73222 25.4411 0.639648 25.6465C0.0277135 18.993 0.00113825 10.6533 0 0H350Z' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg width='350' height='52' viewBox='0 0 350 52' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M350 0C349.999 10.6534 349.971 18.993 349.359 25.6465C348.267 25.4412 347.145 25.333 346 25.333C334.954 25.333 326 35.2827 326 47.5557C326 48.8277 326.098 50.0745 326.282 51.2881C322.505 51.717 318.125 51.8874 312.999 51.9541C312.977 44.6114 307.614 38.667 301 38.667C294.373 38.667 289 44.6362 289 52H271C271 44.6362 265.627 38.667 259 38.667C252.373 38.667 247 44.6362 247 52H229C229 44.6362 223.627 38.667 217 38.667C210.373 38.667 205 44.6362 205 52H187C187 44.6362 181.627 38.667 175 38.667C168.373 38.667 163 44.6362 163 52H145C145 44.6362 139.627 38.667 133 38.667C126.373 38.667 121 44.6362 121 52H103C103 44.6362 97.6274 38.667 91 38.667C84.3726 38.667 79 44.6362 79 52H61C61 44.6362 55.6274 38.667 49 38.667C42.3864 38.667 37.0223 44.6114 37 51.9541C31.874 51.8874 27.4936 51.717 23.7168 51.2881C23.9016 50.0744 24 48.8277 24 47.5557C24 35.2827 15.0457 25.333 4 25.333C2.85482 25.333 1.73222 25.4411 0.639648 25.6465C0.0277135 18.993 0.00113825 10.6533 0 0H350Z' fill='black'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.ticket-ggodari-default {
+  background: black;
+}
+
+.ticket-ggodari-border {
+  width: 356px;
+  height: 55px;
+}
+
+.ticket-ggodari-membership {
+  background: linear-gradient(90deg, #FFD700 0%, #FFF8DC 30%, #C0C0C0 50%, #FFF8DC 70%, #FFD700 100%);
+  box-shadow:
+    0 0 15px rgba(255, 215, 0, 0.5),
+    0 0 30px rgba(255, 215, 0, 0.3);
+  animation: glow-gold 2s ease-in-out infinite alternate;
+}
+
+.ticket-ggodari-premium {
+  background: linear-gradient(90deg, #9333ea 0%, #db2777 50%, #6366f1 100%);
+  box-shadow:
+    0 0 15px rgba(147, 51, 234, 0.5),
+    0 0 30px rgba(219, 39, 119, 0.3);
+  animation: glow-purple 2s ease-in-out infinite alternate;
+}
+
+/* Membership/Premium shimmer on ggodari */
+.ticket-ggodari-membership::before,
+.ticket-ggodari-premium::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 80%
+  );
+  animation: shimmer 10s infinite;
+  z-index: 1;
 }
 
 @layer components {
@@ -215,11 +478,6 @@ html, body {
   }
 }
 
-@layer utilities {
-    .border-membership {
-        background: conic-gradient(from 0deg, rgba(255, 215, 94, 1), rgba(196, 246, 255, 1), rgba(195, 88, 0, 1), rgba(255, 215, 94, 1));
-    }
-}
 
 /* Guideline content styles */
 .guideline-content {
