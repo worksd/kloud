@@ -480,7 +480,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   return (
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white ticket-container">
         {/* 배경 이미지 및 Backdrop Blur - 고정 */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 transform-gpu">
           <div className="absolute inset-0 -inset-[10%]">
             {ticket.lesson?.thumbnailUrl && (
                 <Image
@@ -492,7 +492,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 />
             )}
           </div>
-          <div className="absolute inset-0 backdrop-blur-[10px]"/>
+          <div className="absolute inset-0 backdrop-blur-[10px] [-webkit-backdrop-filter:blur(10px)]"/>
         </div>
 
         {/* 스크롤 가능한 컨텐츠 영역 */}
