@@ -76,25 +76,6 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       const res = await refreshTicketAction({ticketId: ticket.id});
       if ('id' in res && res.qrCodeUrl) {
         setQrCodeUrl(res.qrCodeUrl);
-        const newTimeLeft = calculateTimeLeft(res.qrCodeUrl);
-        setTimeLeft(newTimeLeft);
-        // 타이머 다시 시작
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-        if (newTimeLeft > 0) {
-          intervalRef.current = setInterval(() => {
-            setTimeLeft((prev) => {
-              if (prev <= 1) {
-                if (intervalRef.current) {
-                  clearInterval(intervalRef.current);
-                }
-                return 0;
-              }
-              return prev - 1;
-            });
-          }, 1000);
-        }
       }
     } catch (err) {
       console.error('Failed to refresh QR code:', err);
@@ -105,26 +86,25 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   useEffect(() => {
     // Paid 상태일 때만 타이머 시작
-    if (ticket.status !== 'Paid') return;
+    if (ticket.status !== 'Paid' || !qrCodeUrl) return;
 
-    intervalRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // 매초 expiredAt과 현재 시간을 비교하여 남은 시간 계산
+    const updateTimeLeft = () => {
+      const remaining = calculateTimeLeft(qrCodeUrl);
+      setTimeLeft(remaining);
+    };
+
+    // 초기 실행
+    updateTimeLeft();
+
+    intervalRef.current = setInterval(updateTimeLeft, 1000);
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [ticket.status]);
+  }, [ticket.status, qrCodeUrl]);
 
   // QR 코드 만료 시 다이얼로그 자동 닫기
   useEffect(() => {
