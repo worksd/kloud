@@ -24,16 +24,19 @@ import {kloudNav} from "@/app/lib/kloudNav";
 import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
 import {refreshTicketAction} from "@/app/tickets/[id]/refresh.ticket.action";
 
-// qrCodeUrl에서 expiredAt을 파싱하여 남은 시간(초) 계산
+// qrCodeUrl에서 expiredAt을 파싱하여 남은 시간(초) 계산 (KST 기준)
 function calculateTimeLeft(qrCodeUrl?: string): number {
   if (!qrCodeUrl) return 0;
   try {
     const url = new URL(qrCodeUrl);
     const expiredAt = url.searchParams.get('expiredAt');
     if (!expiredAt) return 0;
+    // expiredAt은 KST 시간이지만 Z가 붙어있으므로 9시간 보정
     const expiredTime = new Date(expiredAt).getTime();
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const actualExpiredTime = expiredTime - kstOffset;
     const now = Date.now();
-    const diffSeconds = Math.floor((expiredTime - now) / 1000);
+    const diffSeconds = Math.floor((actualExpiredTime - now) / 1000);
     return Math.max(0, diffSeconds);
   } catch {
     return 0;
