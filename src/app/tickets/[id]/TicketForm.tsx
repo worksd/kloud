@@ -23,6 +23,22 @@ import {kloudNav} from "@/app/lib/kloudNav";
 import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
 import {refreshTicketAction} from "@/app/tickets/[id]/refresh.ticket.action";
 
+// qrCodeUrl에서 expiredAt을 파싱하여 남은 시간(초) 계산
+function calculateTimeLeft(qrCodeUrl?: string): number {
+  if (!qrCodeUrl) return 0;
+  try {
+    const url = new URL(qrCodeUrl);
+    const expiredAt = url.searchParams.get('expiredAt');
+    if (!expiredAt) return 0;
+    const expiredTime = new Date(expiredAt).getTime();
+    const now = Date.now();
+    const diffSeconds = Math.floor((expiredTime - now) / 1000);
+    return Math.max(0, diffSeconds);
+  } catch {
+    return 0;
+  }
+}
+
 export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = ''}: {
   ticket: TicketResponse,
   isJustPaid: string,
@@ -32,7 +48,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   endpoint?: string
 }) {
   const [copied, setCopied] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(120); // 120초 = 2분
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(ticket.qrCodeUrl));
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
@@ -57,22 +73,25 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       const res = await refreshTicketAction({ticketId: ticket.id});
       if ('id' in res && res.qrCodeUrl) {
         setQrCodeUrl(res.qrCodeUrl);
-        setTimeLeft(120);
+        const newTimeLeft = calculateTimeLeft(res.qrCodeUrl);
+        setTimeLeft(newTimeLeft);
         // 타이머 다시 시작
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
         }
-        intervalRef.current = setInterval(() => {
-          setTimeLeft((prev) => {
-            if (prev <= 1) {
-              if (intervalRef.current) {
-                clearInterval(intervalRef.current);
+        if (newTimeLeft > 0) {
+          intervalRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+              if (prev <= 1) {
+                if (intervalRef.current) {
+                  clearInterval(intervalRef.current);
+                }
+                return 0;
               }
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
+              return prev - 1;
+            });
+          }, 1000);
+        }
       }
     } catch (err) {
       console.error('Failed to refresh QR code:', err);
