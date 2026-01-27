@@ -635,9 +635,14 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 value={qrCodeUrl}
                 size={280}
               />
-              <p className="text-[14px] text-gray-500 text-center">
-                QR 코드를 스캔해주세요
-              </p>
+              <div className="flex flex-col gap-1">
+                <p className="text-[14px] text-gray-500 text-center">
+                  {getLocaleString({locale, key: 'scan_qr_code'})}
+                </p>
+                <p className="text-[11px] text-gray-400 text-center">
+                  {getLocaleString({locale, key: 'qr_capture_warning'})}
+                </p>
+              </div>
               <button
                 onClick={() => setShowQrDialog(false)}
                 className="w-full py-3 bg-black text-white rounded-[12px] font-medium"

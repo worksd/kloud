@@ -2284,6 +2284,18 @@ export const StringResource = {
     en: 'Membership Payment',
     jp: 'メンバーシップ決済',
     zh: '会员支付'
+  },
+  scan_qr_code: {
+    ko: 'QR 코드를 스캔해주세요',
+    en: 'Please scan the QR code',
+    jp: 'QRコードをスキャンしてください',
+    zh: '请扫描二维码'
+  },
+  qr_capture_warning: {
+    ko: 'QR코드를 캡쳐할 경우 입장이 제한될 수 있습니다',
+    en: 'Entry may be restricted if you capture the QR code',
+    jp: 'QRコードをスクリーンショットすると入場が制限される場合があります',
+    zh: '如果截图二维码，可能会限制入场'
   }
 }
 
