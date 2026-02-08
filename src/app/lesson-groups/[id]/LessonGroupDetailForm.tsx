@@ -643,12 +643,12 @@ export default function LessonGroupDetailForm({
                   )}
 
                   {/* 강사 */}
-                  {selectedLesson.artist && (
+                  {selectedLesson.artists && selectedLesson.artists.length > 0 && (
                     <div className="flex items-center gap-2 mt-2">
-                      {selectedLesson.artist.profileImageUrl && (
-                        <CircleImage size={32} imageUrl={selectedLesson.artist.profileImageUrl}/>
+                      {selectedLesson.artists[0].profileImageUrl && (
+                        <CircleImage size={32} imageUrl={selectedLesson.artists[0].profileImageUrl}/>
                       )}
-                      <span className="text-[14px] text-black">{selectedLesson.artist.nickName}</span>
+                      <span className="text-[14px] text-black">{selectedLesson.artists[0].nickName}</span>
                     </div>
                   )}
 
