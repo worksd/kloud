@@ -440,7 +440,7 @@ export const KioskLessonSelectionForm = ({onBack, onSelectLessons, studioId}: Ki
                         className="h-[48px] px-[20px] py-0 flex items-center justify-between"
                     >
                       <p className="text-gray-500 text-[18px] font-medium tracking-[-0.54px] flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                        {lesson.date} / {lesson.room?.name} / {lesson.artist?.name}
+                        {lesson.date} / {lesson.room?.name} / {lesson.artists?.[0]?.name}
                       </p>
                       <button
                           onClick={(e) => {

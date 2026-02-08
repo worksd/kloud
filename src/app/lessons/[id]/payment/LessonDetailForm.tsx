@@ -77,16 +77,13 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           </div>
 
           <div className={'self-stretch flex-col justify-start items-start flex gap-2 mt-2.5'}>
-            {lesson.artist && <LessonArtistItem artist={lesson.artist} appVersion={appVersion}/>}
-            {lesson.extraArtists && lesson.extraArtists.length > 0 && (
-              lesson.extraArtists.map((artist, index) => (
-                <LessonArtistItem
-                  key={artist.id || index}
-                  artist={artist}
-                  appVersion={appVersion}
-                />
-              ))
-            )}
+            {lesson.artists && lesson.artists.map((artist, index) => (
+              <LessonArtistItem
+                key={artist.id || index}
+                artist={artist}
+                appVersion={appVersion}
+              />
+            ))}
           </div>
 
           {lesson.description &&

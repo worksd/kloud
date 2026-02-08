@@ -50,6 +50,10 @@ export const KloudScreen = {
   LessonDetail: (id: number) => `/lessons/${id}`,
   LessonPayment: (id: number) => `/lessons/${id}/payment`,
 
+  /** 정기수업 */
+  LessonGroupDetail: (id: number) => `/lesson-groups/${id}`,
+  LessonGroupPayment: (id: number) => `/lesson-groups/${id}/payment`,
+
   /** 스튜디오 */
   Studios: '/studios',
   StudioDetail: (id: number) => `/studios/${id}`,
@@ -74,7 +78,8 @@ export const KloudScreen = {
 
 
 export const isAuthScreen = (endpoint: string) => {
-  return (endpoint.includes('/lessons/') && endpoint.includes('/payment'));
+  return (endpoint.includes('/lessons/') && endpoint.includes('/payment')) ||
+    (endpoint.includes('/lesson-groups/') && endpoint.includes('/payment'));
 }
 
 export const NO_DATA_ID = -1

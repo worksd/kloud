@@ -27,6 +27,15 @@ export type GetPaymentResponse = {
   methods: GetPaymentMethodResponse[];
   cards?: GetBillingResponse[];
   lesson?: GetLessonResponse;
+  lessonGroup?: {
+    id: number;
+    title: string;
+    description?: string;
+    studioImageUrl?: string;
+    studioName?: string;
+    thumbnailUrl?: string;
+    type?: string;
+  };
   passPlan?: GetPassPlanResponse;
   membershipPlan?: GetMembershipPlanResponse;
   paymentId: string;

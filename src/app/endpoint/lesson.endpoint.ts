@@ -21,12 +21,11 @@ export type GetLessonResponse = {
     type?: LessonType;
     price?: number;
     level?: string;
-    artist?: GetArtistResponse;
+    artists?: GetArtistResponse[];
     studio?: GetStudioResponse;
     currentStudentCount?: number;
     room?: GetStudioRoomResponse;
     ticket?: TicketResponse;
-    extraArtists?: GetArtistResponse[];
     buttonTitle: string;
     buttonRoute: string;
     buttons: GetLessonButtonResponse[];
@@ -93,6 +92,11 @@ export type GetBandLessonResponse = {
     studioName: string;
     thumbnailUrl: string;
     label: GetLabelResponse;
+    type?: 'default' | 'subscription';
+    date?: string; // yyyy-MM-dd 형식
+    startDate?: string; // yyyy-MM-dd HH:mm 형식
+    startTime?: string; // HH:mm 형식
+    artist?: GetArtistResponse;
 }
 
 export type GetLabelResponse = {
@@ -135,6 +139,63 @@ export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, 
 export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {
     method: 'get',
     path: (e) => `/lessons/${e.lessonId}/capacity-check`
+}
+
+// LessonGroup (정기수업) 관련 타입
+export type GetLessonGroupParameter = {
+    id: number;
+}
+
+export type GetLessonGroupLessonsParameter = {
+    id: number;
+    year?: number;
+    month?: number;
+    page?: number;
+}
+
+export type GetLessonGroupResponse = {
+    id: number;
+    title: string;
+    thumbnailUrl?: string;
+    level?: string;
+    price?: number;
+    unitPrice?: number;
+    limit: number;
+    genre?: string;
+    description?: string;
+    status: string;
+    studio?: GetStudioResponse;
+    artist?: GetArtistResponse;
+    studioRoom?: GetStudioRoomResponse;
+    days?: string[];
+    startTime?: string;
+    duration?: number;
+    generateAheadDays?: number;
+    webSiteUrl?: string;
+    ticket?: LessonGroupTicketResponse;
+    currentStudentCount: number;
+    paymentCount?: number;
+    lastLessonDate?: string;
+    buttons?: GetLessonButtonResponse[];
+}
+
+export type LessonGroupTicketResponse = {
+    id: number;
+    status: string;
+    remainingCount?: number;
+    startDate?: string;
+    endDate?: string;
+}
+
+export const GetLessonGroup: Endpoint<GetLessonGroupParameter, GetLessonGroupResponse> = {
+    method: 'get',
+    path: (e) => `/lesson-groups/${e.id}`,
+}
+
+export const GetLessonGroupLessons: Endpoint<GetLessonGroupLessonsParameter, LessonListResponse> = {
+    method: 'get',
+    path: (e) => `/lesson-groups/${e.id}/lessons`,
+    queryParams: ['year', 'month', 'page'],
 }
 
 export enum LessonStatus {
