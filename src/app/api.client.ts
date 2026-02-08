@@ -55,6 +55,12 @@ export class ApiClient extends EndpointClient {
     toUsed: this.endpointBuilder(API.Ticket.ToUsed),
   }
 
+  readonly lessonGroupTicket = {
+    get: this.endpointBuilder(API.Ticket.GetLessonGroupTicket),
+    list: this.endpointBuilder(API.Ticket.ListLessonGroupTickets),
+    delete: this.endpointBuilder(API.Ticket.DeleteLessonGroupTicket),
+  }
+
   readonly question = {
     create: this.endpointBuilder(API.Question.CreateQuestion)
   }

@@ -2284,6 +2284,12 @@ export const StringResource = {
     en: 'Membership Payment',
     jp: 'メンバーシップ決済',
     zh: '会员支付'
+  },
+  my_lesson_group_tickets: {
+    ko: '정기수업 수강권',
+    en: 'Lesson Group Tickets',
+    jp: '定期レッスン受講券',
+    zh: '定期课程票'
   }
 }
 

@@ -53,6 +53,8 @@ export const KloudScreen = {
   /** 정기수업 */
   LessonGroupDetail: (id: number) => `/lesson-groups/${id}`,
   LessonGroupPayment: (id: number) => `/lesson-groups/${id}/payment`,
+  LessonGroupTickets: '/lesson-group-tickets',
+  LessonGroupTicketDetail: (id: number, isParent: boolean) => `/lesson-group-tickets/${id}?isParent=${isParent}`,
 
   /** 스튜디오 */
   Studios: '/studios',
