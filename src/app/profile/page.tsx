@@ -62,6 +62,10 @@ export default async function SettingPage({
           <MenuItem label={'my_tickets'}/>
         </NavigateClickWrapper>
 
+        <NavigateClickWrapper method={'push'} route={KloudScreen.LessonGroupTickets}>
+          <MenuItem label="my_lesson_group_tickets"/>
+        </NavigateClickWrapper>
+
         <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
           <MenuItem label="my_pass"/>
         </NavigateClickWrapper>

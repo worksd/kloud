@@ -84,15 +84,15 @@ export type GetTimeTableCellResponse = {
   column: number
   row: number
   length: number
-  time: string
-  type: 'time' | 'lesson'
-  lesson: GetTimeTableLessonResponse
+  time?: string
+  type: 'time' | 'lesson' | 'scheduled'
+  lesson?: GetTimeTableLessonResponse
 }
 
 export type GetTimeTableLessonResponse = {
-  title: string;
-  thumbnailUrl: string;
   id: number;
+  title: string;
+  thumbnailUrl?: string;
 }
 
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {

@@ -31,6 +31,7 @@ export async function LessonBand({title, lessons, type}: {
                 studioName={item.studioName}
                 studioImageUrl={item.studioImageUrl}
                 label={item.label}
+                type={item.type}
               />
             }
             {
@@ -40,6 +41,7 @@ export async function LessonBand({title, lessons, type}: {
                 posterUrl={item?.thumbnailUrl ?? ''}
                 date={item.description ?? ''}
                 title={item.title ?? ''}
+                type={item.type}
               />
             }
           </div>

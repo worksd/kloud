@@ -2296,6 +2296,12 @@ export const StringResource = {
     en: 'Entry may be restricted if you capture the QR code',
     jp: 'QRコードをスクリーンショットすると入場が制限される場合があります',
     zh: '如果截图二维码，可能会限制入场'
+  },
+  my_lesson_group_tickets: {
+    ko: '정기수업 수강권',
+    en: 'Lesson Group Tickets',
+    jp: '定期レッスン受講券',
+    zh: '定期课程票'
   }
 }
 

@@ -16,6 +16,7 @@ export async function Poster({
                                title,
                                width,
                                label,
+                               type,
                              }: {
   id: number,
   posterUrl: string,
@@ -25,9 +26,14 @@ export async function Poster({
   width?: number
   title?: string,
   label?: GetLabelResponse,
+  type?: 'default' | 'subscription',
 }) {
+  const route = type === 'subscription'
+    ? KloudScreen.LessonGroupDetail(id)
+    : KloudScreen.LessonDetail(id);
+
   return (
-    <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(id)}>
+    <NavigateClickWrapper method={'push'} route={route}>
       <div
         className="flex flex-col active:scale-[0.98] transition-transform duration-150"
         style={{width: `${width}px`}}

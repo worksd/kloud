@@ -100,7 +100,7 @@ export const KioskPaymentForm = ({ lessons, onBack, onComplete }: KioskPaymentFo
                   </p>
                   <p className="text-black text-[28px] font-bold w-full">{lesson.title}</p>
                   <p className="text-black text-[20px] font-medium tracking-[-0.6px] w-full">
-                    {lesson.artist?.name}
+                    {lesson.artists?.[0]?.name}
                   </p>
                 </div>
               </div>

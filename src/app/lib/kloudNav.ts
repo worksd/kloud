@@ -111,6 +111,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
     (route.startsWith('/lessons/') && !route.includes('/payment')) ||
+    (route.startsWith('/lesson-groups/') && !route.includes('/payment')) ||
     (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
@@ -150,6 +151,8 @@ const applyTitle = async (route: string) => {
     return await translate('edit_profile')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
+  } else if (route.startsWith('/lesson-group-tickets')) {
+    return await translate('my_lesson_group_tickets')
   } else if (route.startsWith('/tickets')) {
     return ''
   } else if (route.startsWith(KloudScreen.MyPass)) {
@@ -164,7 +167,7 @@ const applyTitle = async (route: string) => {
     }
   } else if (route.includes('lessons') && route.includes('studios')) {
     return await translate('ongoing_lessons')
-  } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/passPlans'))) {
+  } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/lesson-groups') || route.includes('/passPlans'))) {
     return await translate('payment')
   } else if (route.includes('resetPassword')) {
     return await translate('change_password')

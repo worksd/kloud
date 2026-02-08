@@ -273,11 +273,12 @@ export const TimeTable = ({timeTable, studioId, locale}: {
                 <div
                   key={i}
                   onClick={() =>
-                    item.type === 'lesson' &&
+                    item.type === 'lesson' && item.lesson &&
                     kloudNav.push(KloudScreen.LessonDetail(item.lesson.id))
                   }
                   className={`overflow-hidden transition-all duration-150
                     ${item.type === 'lesson' ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
+                    ${item.type === 'scheduled' ? 'rounded-[8px] border border-dashed border-gray-300 aspect-[1/1.76] opacity-50 pointer-events-none' : ''}
                     ${item.type === 'time' ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}
                     ${isFirstTime && isLastTime ? 'rounded-[10px]' : ''}
                     ${isFirstTime && !isLastTime ? 'rounded-t-[10px]' : ''}
@@ -291,19 +292,46 @@ export const TimeTable = ({timeTable, studioId, locale}: {
                     zIndex: 1,
                   }}
                 >
-                  {item.type === 'lesson' && (
+                  {item.type === 'lesson' && item.lesson && (
                     <div className="relative w-full h-full flex flex-col">
-                      <div className="flex-1 relative w-full min-h-0">
-                        <Image
-                          src={item.lesson.thumbnailUrl}
-                          alt="lesson thumbnail"
-                          fill
-                          className="object-cover"
-                          quality={50}
-                        />
-                      </div>
+                      {item.lesson.thumbnailUrl ? (
+                        <div className="flex-1 relative w-full min-h-0">
+                          <Image
+                            src={item.lesson.thumbnailUrl}
+                            alt="lesson thumbnail"
+                            fill
+                            className="object-cover"
+                            quality={50}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 w-full bg-gray-200" />
+                      )}
                       <div
                         className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
+                 overflow-hidden text-ellipsis whitespace-nowrap"
+                      >
+                        {item.lesson.title}
+                      </div>
+                    </div>
+                  )}
+                  {item.type === 'scheduled' && item.lesson && (
+                    <div className="relative w-full h-full flex flex-col bg-gray-100">
+                      {item.lesson.thumbnailUrl ? (
+                        <div className="flex-1 relative w-full min-h-0">
+                          <Image
+                            src={item.lesson.thumbnailUrl}
+                            alt="scheduled lesson"
+                            fill
+                            className="object-cover grayscale"
+                            quality={50}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 w-full bg-gray-200" />
+                      )}
+                      <div
+                        className="absolute bottom-0 inset-x-0 bg-gray-500/60 text-white text-center text-[8px] font-paperlogy pb-2 pt-1
                  overflow-hidden text-ellipsis whitespace-nowrap"
                       >
                         {item.lesson.title}

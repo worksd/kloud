@@ -1,7 +1,8 @@
 import { Endpoint, NoParameter, SimpleResponse } from "@/app/endpoint/index";
 import { GetStudioResponse, IdParameter } from "@/app/endpoint/studio.endpoint";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonResponse, GetLessonGroupResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
+import { GetArtistResponse } from "@/app/endpoint/artist.endpoint";
 import { StringResourceKey } from "@/shared/StringResource";
 
 export type TicketListResponse = {
@@ -103,6 +104,69 @@ export const ToUsed: Endpoint<ToUsedParameter, TicketResponse> = {
   path: (e) => `/tickets/${e.id}/use`,
   pathParams: ['id'],
   bodyParams: ['expiredAt', 'lessonId']
+}
+
+// Lesson Group Ticket types
+export type LessonGroupTicketLessonResponse = {
+  id: number;
+  status: string;
+  lessonId: number;
+  lessonTitle: string;
+  startDate: string;
+}
+
+export type LessonGroupTicketResponse = {
+  id: number;
+  status: string;
+  startDate?: string;
+  endDate?: string;
+  usageLimit?: number;
+  remainingCount?: number;
+  lessonGroup?: {
+    id: number;
+    title: string;
+    thumbnailUrl?: string;
+    studioId?: number;
+    level?: string;
+    price?: number;
+    genre?: string;
+    description?: string;
+    status?: string;
+    days?: string[];
+    startTime?: string;
+    duration?: number;
+    paymentCount?: number;
+    artist?: GetArtistResponse;
+    currentStudentCount?: number;
+  };
+  tickets?: LessonGroupTicketLessonResponse[];
+}
+
+export type LessonGroupTicketListResponse = {
+  lessonGroupTickets: LessonGroupTicketResponse[];
+}
+
+export type GetLessonGroupTicketParameter = {
+  id: number;
+}
+
+// Lesson Group Ticket endpoints
+export const ListLessonGroupTickets: Endpoint<ListTicketsParameter, LessonGroupTicketListResponse> = {
+  method: 'get',
+  path: `/lesson-group-tickets`,
+  queryParams: ['page'],
+};
+
+export const GetLessonGroupTicket: Endpoint<GetLessonGroupTicketParameter, LessonGroupTicketResponse> = {
+  method: 'get',
+  path: (e) => `/lesson-group-tickets/${e.id}`,
+}
+
+export const DeleteLessonGroupTicket: Endpoint<RevertUsagePassesParameter, SimpleResponse> = {
+  method: 'delete',
+  path: (e) => `/lesson-group-tickets/${e.ticketId}`,
+  pathParams: ['ticketId'],
+  bodyParams: ['reason', 'requester']
 }
 
 export function convertStatusToMessage({status}: { status: string }): StringResourceKey {

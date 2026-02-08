@@ -7,7 +7,6 @@ import StampCancel from "../../../../public/assets/stamp_cancel.svg";
 import StampUsed from "../../../../public/assets/stamp_used.svg";
 import StampNotPaid from "../../../../public/assets/stamp_not_paid.svg";
 import Logo from "../../../../public/assets/logo_white.svg";
-import TicketGgodari from "../../../../public/assets/ticket-ggodari.svg";
 import {TicketResponse} from "@/app/endpoint/ticket.endpoint";
 import {GuidelineResponse} from "@/app/endpoint/guideline.endpoint";
 import {QRCodeCanvas} from 'qrcode.react';
@@ -335,32 +334,39 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       <div className="flex items-end">
         {/* 사용자 정보 */}
         <div className="flex-1 flex flex-col gap-2 relative pr-3">
-          <div className="flex items-center gap-2">
-            {/* Dim 오버레이 */}
-            <div
-                className="w-10 h-10 rounded-full overflow-hidden border flex-shrink-0">
-              {ticket.user?.profileImageUrl && (
-                  <Image
-                      src={ticket.user.profileImageUrl}
-                      alt="User"
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                  />
-              )}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div
+                  className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${
+                    ticket.ticketType === 'membership' && isPaidOrUsed
+                      ? 'ring-2 ring-[#FFD700] ring-offset-1 ring-offset-black'
+                      : ticket.ticketType === 'premium' && isPaidOrUsed
+                      ? 'ring-2 ring-[#db2777] ring-offset-1 ring-offset-black'
+                      : 'border border-white/30'
+                  }`}>
+                {ticket.user?.profileImageUrl && (
+                    <Image
+                        src={ticket.user.profileImageUrl}
+                        alt="User"
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                    />
+                )}
+              </div>
             </div>
             {ticket.ticketType === 'membership' && isPaidOrUsed && (
-              <div className="bg-gradient-to-r from-[#fdd763] to-[#c6e4ee] flex items-center justify-center px-[5px] py-0 rounded-[100px]">
-                <p className="text-[10px] font-bold text-black font-paperlogy p-1">
-                  Membership
-                </p>
+              <div className="membership-badge flex items-center gap-1.5 bg-gradient-to-r from-[#FFD700] via-[#FFF8DC] to-[#C0C0C0] px-3 py-1 rounded-full">
+                <span className="text-[11px] font-bold text-[#1a1a1a] tracking-wide">
+                  {ticket.ticketTypeLabel || 'MEMBERSHIP'}
+                </span>
               </div>
             )}
             {ticket.ticketType === 'premium' && isPaidOrUsed && (
-              <div className="bg-gradient-to-r from-[#9333ea] via-[#db2777] to-[#6366f1] flex items-center justify-center px-[5px] py-0 rounded-[100px]">
-                <p className="text-[12px] font-medium text-white">
-                  Premium
-                </p>
+              <div className="premium-badge bg-gradient-to-r from-[#9333ea] via-[#db2777] to-[#6366f1] flex items-center justify-center px-3 py-1 rounded-full">
+                <span className="text-[11px] font-bold text-white tracking-wide">
+                  {ticket.ticketTypeLabel || 'PREMIUM'}
+                </span>
               </div>
             )}
           </div>
@@ -474,21 +480,18 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   };
 
   return (
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white ticket-container">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-neutral-900 ticket-container">
         {/* 배경 이미지 및 Backdrop Blur - 고정 */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute inset-0 -inset-[10%]">
-            {ticket.lesson?.thumbnailUrl && (
-                <Image
-                    src={ticket.lesson.thumbnailUrl}
-                    alt="Background"
-                    fill
-                    className="object-cover"
-                    priority
-                />
-            )}
-          </div>
-          <div className="absolute inset-0 backdrop-blur-[10px]"/>
+          {ticket.lesson?.thumbnailUrl && (
+              <Image
+                  src={ticket.lesson.thumbnailUrl}
+                  alt="Background"
+                  fill
+                  className="object-cover scale-110 blur-[10px]"
+                  priority
+              />
+          )}
         </div>
 
         {/* 스크롤 가능한 컨텐츠 영역 */}
@@ -503,9 +506,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
           {/* 티켓 카드 */}
           <div className="relative z-10 flex flex-col items-center justify-center pt-32">
             {hasBorder ? (
-              <div className={`relative p-[3px] pt-[3px] pr-[3px] pl-[3px] pb-0 rounded-t-[20px] ${borderClass}`}>
-                <div className={`relative ${ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : 'rounded-t-[17px]'} overflow-hidden`}>
-                  <div className={`relative w-[350px] h-[500px] ${ticket.status === 'Cancelled' ? 'rounded-t-[17px]' : ''}`}>
+              <div className={`relative p-[3px] pb-0 rounded-t-[20px] ${borderClass}`}>
+                <div className="relative rounded-t-[17px] overflow-hidden">
+                  <div className="relative w-[350px] h-[500px]">
                     {renderTicketBackground()}
                     {renderTicketContent()}
                     {renderRollingBand()}
@@ -519,35 +522,18 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 {renderRollingBand()}
               </div>
             )}
-            
-            {/* 하단 ticket-ggodari.svg */}
-            <div className="w-full flex justify-center" style={{ marginTop: '-4px' }}>
-              {ticket.ticketType === 'membership' && isPaidOrUsed ? (
+
+            {/* 하단 톱니 */}
+            <div className="relative" style={{ marginTop: '-1px' }}>
+              {hasBorder ? (
                 <div
-                  className="h-auto relative"
-                  style={{
-                    width: '356px',
-                    background: 'linear-gradient(to right, #ffd75e, #c0e6ff, #ff9844)',
-                    WebkitMask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
-                    mask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
-                    minHeight: '60px',
-                  }}
-                />
-              ) : ticket.ticketType === 'premium' && isPaidOrUsed ? (
-                <div
-                  className="h-auto relative"
-                  style={{
-                    width: '356px',
-                    background: 'linear-gradient(to right, #9333ea, #db2777, #6366f1)',
-                    WebkitMask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
-                    mask: `url('/assets/ticket-ggodari.svg') no-repeat center / contain`,
-                    minHeight: '60px',
-                  }}
+                  className={`ticket-ggodari ${
+                    ticket.ticketType === 'membership' ? 'ticket-ggodari-membership' : 'ticket-ggodari-premium'
+                  }`}
+                  style={{ width: '356px', height: '55px' }}
                 />
               ) : (
-                <div style={{ width: '350px' }}>
-                  <TicketGgodari className="w-full h-auto"/>
-                </div>
+                <div className="ticket-ggodari ticket-ggodari-default relative" />
               )}
             </div>
           </div>
