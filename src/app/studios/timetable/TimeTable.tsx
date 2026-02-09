@@ -273,12 +273,12 @@ export const TimeTable = ({timeTable, studioId, locale}: {
                 <div
                   key={i}
                   onClick={() =>
-                    item.type === 'lesson' && item.lesson &&
+                    (item.type === 'lesson' || item.type === 'scheduled') && item.lesson &&
                     kloudNav.push(KloudScreen.LessonDetail(item.lesson.id))
                   }
                   className={`overflow-hidden transition-all duration-150
                     ${item.type === 'lesson' ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
-                    ${item.type === 'scheduled' ? 'rounded-[8px] border border-dashed border-gray-300 aspect-[1/1.76] opacity-50 pointer-events-none' : ''}
+                    ${item.type === 'scheduled' ? 'rounded-[8px] border border-dashed border-gray-300 aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
                     ${item.type === 'time' ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}
                     ${isFirstTime && isLastTime ? 'rounded-[10px]' : ''}
                     ${isFirstTime && !isLastTime ? 'rounded-t-[10px]' : ''}
@@ -316,14 +316,14 @@ export const TimeTable = ({timeTable, studioId, locale}: {
                     </div>
                   )}
                   {item.type === 'scheduled' && item.lesson && (
-                    <div className="relative w-full h-full flex flex-col bg-gray-100">
+                    <div className="relative w-full h-full flex flex-col">
                       {item.lesson.thumbnailUrl ? (
                         <div className="flex-1 relative w-full min-h-0">
                           <Image
                             src={item.lesson.thumbnailUrl}
                             alt="scheduled lesson"
                             fill
-                            className="object-cover grayscale"
+                            className="object-cover"
                             quality={50}
                           />
                         </div>
