@@ -261,25 +261,25 @@ export const TimeTable = ({timeTable, studioId, locale}: {
           </div>
         ) : cells.length > 0 ? (
           (() => {
-            const timeCells = cells.filter(c => c.type === 'time');
+            const timeCells = cells.filter(c => !!c.time);
             const firstTimeRow = timeCells.length > 0 ? Math.min(...timeCells.map(c => c.row)) : -1;
             const lastTimeRow = timeCells.length > 0 ? Math.max(...timeCells.map(c => c.row + (c.length ?? 1) - 1)) : -1;
 
             return cells.map((item, i) => {
-              const isFirstTime = item.type === 'time' && item.row === firstTimeRow;
-              const isLastTime = item.type === 'time' && (item.row + (item.length ?? 1) - 1) === lastTimeRow;
+              const isTime = !!item.time;
+              const isLesson = !!item.lesson;
+              const isFirstTime = isTime && item.row === firstTimeRow;
+              const isLastTime = isTime && (item.row + (item.length ?? 1) - 1) === lastTimeRow;
 
               return (
                 <div
                   key={i}
                   onClick={() =>
-                    (item.type === 'lesson' || item.type === 'scheduled') && item.lesson &&
-                    kloudNav.push(KloudScreen.LessonDetail(item.lesson.id))
+                    isLesson && kloudNav.push(KloudScreen.LessonDetail(item.lesson!.id))
                   }
                   className={`overflow-hidden transition-all duration-150
-                    ${item.type === 'lesson' ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
-                    ${item.type === 'scheduled' ? 'rounded-[8px] border border-dashed border-gray-300 aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
-                    ${item.type === 'time' ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}
+                    ${isLesson ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
+                    ${isTime ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}
                     ${isFirstTime && isLastTime ? 'rounded-[10px]' : ''}
                     ${isFirstTime && !isLastTime ? 'rounded-t-[10px]' : ''}
                     ${isLastTime && !isFirstTime ? 'rounded-b-[10px]' : ''}
@@ -288,16 +288,16 @@ export const TimeTable = ({timeTable, studioId, locale}: {
                     gridColumnStart: item.column + 1,
                     gridRowStart: item.row + 2,
                     gridRowEnd: `span ${item.length ?? 1}`,
-                    minHeight: item.type === 'time' ? 0 : undefined,
+                    minHeight: isTime ? 0 : undefined,
                     zIndex: 1,
                   }}
                 >
-                  {item.type === 'lesson' && item.lesson && (
+                  {isLesson && (
                     <div className="relative w-full h-full flex flex-col">
-                      {item.lesson.thumbnailUrl ? (
+                      {item.lesson!.thumbnailUrl ? (
                         <div className="flex-1 relative w-full min-h-0">
                           <Image
-                            src={item.lesson.thumbnailUrl}
+                            src={item.lesson!.thumbnailUrl}
                             alt="lesson thumbnail"
                             fill
                             className="object-cover"
@@ -311,34 +311,11 @@ export const TimeTable = ({timeTable, studioId, locale}: {
                         className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
                  overflow-hidden text-ellipsis whitespace-nowrap"
                       >
-                        {item.lesson.title}
+                        {item.lesson!.title}
                       </div>
                     </div>
                   )}
-                  {item.type === 'scheduled' && item.lesson && (
-                    <div className="relative w-full h-full flex flex-col">
-                      {item.lesson.thumbnailUrl ? (
-                        <div className="flex-1 relative w-full min-h-0">
-                          <Image
-                            src={item.lesson.thumbnailUrl}
-                            alt="scheduled lesson"
-                            fill
-                            className="object-cover"
-                            quality={50}
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex-1 w-full bg-gray-200" />
-                      )}
-                      <div
-                        className="absolute bottom-0 inset-x-0 bg-gray-500/60 text-white text-center text-[8px] font-paperlogy pb-2 pt-1
-                 overflow-hidden text-ellipsis whitespace-nowrap"
-                      >
-                        {item.lesson.title}
-                      </div>
-                    </div>
-                  )}
-                  {item.type === 'time' && (
+                  {isTime && (
                     <span className={'text-[10px]'}>{item.time}</span>
                   )}
                 </div>

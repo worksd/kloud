@@ -85,7 +85,6 @@ export type GetTimeTableCellResponse = {
   row: number
   length: number
   time?: string
-  type: 'time' | 'lesson' | 'scheduled'
   lesson?: GetTimeTableLessonResponse
 }
 
