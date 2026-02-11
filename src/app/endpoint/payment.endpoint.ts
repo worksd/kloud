@@ -59,3 +59,20 @@ export type GetPaymentMethodResponse = {
 }
 
 export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin'
+
+export type CreateBillingKeyPaymentRequest = {
+  billingKey: string;
+  item: string;
+  itemId: number;
+  targetUserId?: number;
+}
+
+export type CreateBillingKeyPaymentResponse = {
+  success: boolean;
+}
+
+export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
+  method: "post",
+  path: `/payment/billingKey`,
+  bodyParams: ['billingKey', 'item', 'itemId', 'targetUserId']
+}

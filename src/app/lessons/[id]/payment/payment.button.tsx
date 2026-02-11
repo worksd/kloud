@@ -14,6 +14,7 @@ import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePa
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
+import { createBillingKeyPaymentAction } from "@/app/lessons/[id]/action/create.billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
@@ -189,7 +190,7 @@ export default function PaymentButton({
           discounts: selectedDiscounts,
         }),
         userCode: process.env.NEXT_PUBLIC_USER_CODE,
-        pg: process.env.NEXT_PUBLIC_IOS_PORTONE_PG,
+        pg: process.env.NEXT_PUBLIC_IOS_PORㄹㄴTONE_PG,
         scheme: 'iamport',
         amount: `${price}`,
       };
@@ -294,14 +295,31 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
-        const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
-        if ('subscription' in res) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId)
-          await kloudNav.navigateMain({route});
-        } else if (isGuinnessErrorCase(res)) {
-          const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        if (type.value === 'lessonGroup') {
+          const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
+          if ('subscription' in res) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId)
+            await kloudNav.navigateMain({route});
+          } else if (isGuinnessErrorCase(res)) {
+            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          }
+        } else {
+          const res = await createBillingKeyPaymentAction({
+            item: type.apiValue,
+            itemId: id,
+            billingKey: data.customData ?? '',
+            targetUserId: actualPayerUserId
+          })
+          if ('success' in res && res.success) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const route = KloudScreen.PaymentRecordDetail(paymentId)
+            await kloudNav.navigateMain({route});
+          } else if (isGuinnessErrorCase(res)) {
+            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          }
         }
       }
     } catch (e) {

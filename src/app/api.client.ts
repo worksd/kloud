@@ -88,6 +88,7 @@ export class ApiClient extends EndpointClient {
 
   readonly payment = {
     get: this.endpointBuilder(API.Payment.GetPayment),
+    createByBillingKey: this.endpointBuilder(API.Payment.CreateBillingKeyPayment),
   }
 
   readonly paymentRecord = {
