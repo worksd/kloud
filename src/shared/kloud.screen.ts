@@ -30,8 +30,8 @@ export const KloudScreen = {
   Kiosk: '/profile/setting/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
+  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan', id: number) => `/payment?type=${type}&id=${id}`,
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
-  PassPayment: (id: number) => `/passPlans/${id}/payment`,
   MembershipPlans: (studioId?: number) => studioId ? `/membershipPlans?studioId=${studioId}` : '/membershipPlans',
   MembershipPlanPayment: (id: number) => `/membershipPlans/${id}/payment`,
   MembershipDetail: (id: number) => `/memberships/${id}`,
@@ -48,11 +48,9 @@ export const KloudScreen = {
 
   /** 레슨 */
   LessonDetail: (id: number) => `/lessons/${id}`,
-  LessonPayment: (id: number) => `/lessons/${id}/payment`,
 
   /** 정기수업 */
   LessonGroupDetail: (id: number) => `/lesson-groups/${id}`,
-  LessonGroupPayment: (id: number) => `/lesson-groups/${id}/payment`,
   LessonGroupTickets: '/lesson-group-tickets',
   LessonGroupTicketDetail: (id: number, isParent: boolean) => `/lesson-group-tickets/${id}?isParent=${isParent}`,
 
@@ -80,8 +78,7 @@ export const KloudScreen = {
 
 
 export const isAuthScreen = (endpoint: string) => {
-  return (endpoint.includes('/lessons/') && endpoint.includes('/payment')) ||
-    (endpoint.includes('/lesson-groups/') && endpoint.includes('/payment'));
+  return endpoint.includes('/payment');
 }
 
 export const NO_DATA_ID = -1

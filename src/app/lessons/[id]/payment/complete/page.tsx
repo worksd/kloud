@@ -1,7 +1,5 @@
+import { redirect } from "next/navigation";
+
 export default async function PaymentCompletePage() {
-  return (
-    <div>
-      Hello Payment Complete
-    </div>
-  )
+  redirect('/payment/complete');
 }

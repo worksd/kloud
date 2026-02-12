@@ -167,6 +167,8 @@ const applyTitle = async (route: string) => {
     }
   } else if (route.includes('lessons') && route.includes('studios')) {
     return await translate('ongoing_lessons')
+  } else if (route.startsWith('/payment')) {
+    return await translate('payment')
   } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/lesson-groups') || route.includes('/passPlans'))) {
     return await translate('payment')
   } else if (route.includes('resetPassword')) {
