@@ -18,9 +18,13 @@ export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Loca
     <div>
       <button
         onClick={handleAddPaymentMethod}
-        className="mt-2 w-full block px-4 py-2 rounded-xl border border-dashed border-gray-400 text-gray-600 text-sm hover:bg-gray-100 transition"
+        className="mt-2 w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-dashed border-[#D0D0D0]
+                   text-[#888] text-[13px] font-medium active:bg-[#F5F5F5] transition-colors"
       >
-        <div>{getLocaleString({locale, key: 'add_payment_method_button'})}</div>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 2V12M2 7H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+        {getLocaleString({locale, key: 'add_payment_method_button'})}
       </button>
       {open && (
         <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)} onSuccessAction={onSuccessAction}/>

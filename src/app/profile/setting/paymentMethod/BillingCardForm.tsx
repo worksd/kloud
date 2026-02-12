@@ -159,12 +159,12 @@ export const SelectableBillingList = ({
   locale: Locale;
 }) => {
   return (
-    <div className="flex flex-col mt-2 space-y-2">
-      {billingCards.map((card, index) => (
+    <div className="flex flex-col mt-3 space-y-2">
+      {billingCards.map((card) => (
         <div key={card.billingKey}>
           <div
             onClick={() => onSelectAction(card)}
-            className="cursor-pointer transition-all duration-200"
+            className="cursor-pointer transition-all duration-200 active:scale-[0.98]"
           >
             <BillingCard
               locale={locale}
@@ -196,26 +196,38 @@ function BillingCard({
 
   return (
     <div
-      className={`relative rounded-2xl shadow-sm transition-all duration-200 text-black border
-        ${isSelected ? 'border-black bg-white' : 'border-gray-200 bg-gray-50'}`}
+      className={`relative rounded-xl transition-all duration-200 text-black border
+        ${isSelected
+        ? 'border-[1.5px] border-black bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+        : 'border border-[#E8E8E8] bg-[#FAFAFA]'}`}
     >
       {onDelete && (
         <div
           onClick={onDelete}
-          className="absolute top-4 right-4 bottom-1 text-xs text-red-500 font-bold"
+          className="absolute top-4 right-4 text-[12px] text-[#E55B5B] font-semibold cursor-pointer"
         >
           {getLocaleString({locale, key: 'delete'})}
         </div>
       )}
 
-      <div className="flex flex-row items-center justify-items-center p-4 space-x-2">
-        <BankOrCardIcon name={cardName} scale={100}/>
-        <div className={'flex flex-col'}>
-          <div className="text-lg font-semibold">{cardName}</div>
-          <div className={`text-sm tracking-widest ${isSelected ? 'text-neutral-600' : 'text-neutral-400'}`}>
+      <div className="flex flex-row items-center p-4 gap-3">
+        <div className={`w-[40px] h-[40px] rounded-xl flex items-center justify-center flex-shrink-0
+          ${isSelected ? 'bg-[#F0F0F0]' : 'bg-[#F5F5F5]'}`}>
+          <BankOrCardIcon name={cardName} scale={100}/>
+        </div>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className={`text-[15px] font-semibold ${isSelected ? 'text-black' : 'text-[#888]'}`}>{cardName}</div>
+          <div className={`text-[13px] tracking-wider ${isSelected ? 'text-[#666]' : 'text-[#BCBCBC]'}`}>
             {maskedNumber}
           </div>
         </div>
+        {isSelected && (
+          <div className="w-[22px] h-[22px] rounded-full bg-black flex items-center justify-center flex-shrink-0">
+            <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        )}
       </div>
     </div>
   );
