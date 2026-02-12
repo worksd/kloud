@@ -272,23 +272,14 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
               {ticket.lesson?.title}
             </h1>
             <div className="flex flex-row gap-1 items-center">
-              {/* 날짜 or 반복 요일 */}
-              {ticket.lesson?.formattedDate?.type === 'oneTime' ? (
-                  <div className="flex items-center gap-1">
-                    <p className="text-[18px] text-white font-bold font-paperlogy">
-                      {ticket.lesson?.formattedDate?.date}
-                    </p>
-                    <p className="text-[13px] text-[#FFFFFF80] font-bold">
-                      ({ticket.lesson?.formattedDate?.weekday})
-                    </p>
-                  </div>
-              ) : (
-                  <div className="flex items-center">
-                    <p className="text-[18px] text-[#FFFFFF80] font-semibold">
-                      ({ticket.lesson?.formattedDate?.daysOfWeek})
-                    </p>
-                  </div>
-              )}
+              <div className="flex items-center gap-1">
+                <p className="text-[18px] text-white font-bold font-paperlogy">
+                  {ticket.lesson?.formattedDate?.date}
+                </p>
+                <p className="text-[13px] text-[#FFFFFF80] font-bold">
+                  ({ticket.lesson?.formattedDate?.weekday})
+                </p>
+              </div>
 
               {/* 시간 영역 */}
               <div className="flex items-center gap-2 ml-3 font-paperlogy">
