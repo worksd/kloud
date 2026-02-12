@@ -6,24 +6,22 @@ import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 export const CurrentPassPlan = ({passPlan}: { passPlan?: GetPassPlanResponse }) => {
 
   return (
-    <div className={"px-6"}>
-      <div className={"text-[16px] text-black font-medium"}>
+    <div className="px-6 py-4">
+      <div className="text-[13px] text-[#888] font-medium">
         {passPlan?.studio?.name}
       </div>
-      <div className="flex flex-row justify-between items-center">
-        <div className="flex flex-row items-center space-x-3 my-3">
-          <div
-            className="w-[32px] h-[32px] rounded-full overflow-hidden flex-shrink-0 bg-[#F3F3F4] flex items-center justify-center">
-            <TicketIcon/>
+      <div className="flex flex-row items-center gap-3 mt-2">
+        <div
+          className="w-[40px] h-[40px] rounded-xl overflow-hidden flex-shrink-0 bg-[#F3F3F4] flex items-center justify-center">
+          <TicketIcon/>
+        </div>
+        <div className="flex flex-col justify-center gap-0.5">
+          <div className="text-[16px] text-black font-bold">
+            {passPlan?.name}
           </div>
-          <div className="flex flex-col justify-center">
-            <div className="text-[16px] text-black font-medium">
-              {passPlan?.name}
-            </div>
-            <div className="text-[12px] text-[#A4A4A4] font-paperlogy">
-              {passPlan?.type === 'Unlimited' && <div>모든 클래스 무제한 이용 가능</div>}
-              {passPlan?.type === 'Count' && <div>클래스 {passPlan.usageLimit}회 이용 가능</div>}
-            </div>
+          <div className="text-[13px] text-[#999]">
+            {passPlan?.type === 'Unlimited' && <span>모든 클래스 무제한 이용 가능</span>}
+            {passPlan?.type === 'Count' && <span>클래스 {passPlan.usageLimit}회 이용 가능</span>}
           </div>
         </div>
       </div>

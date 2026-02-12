@@ -29,10 +29,15 @@ export const PurchaseStudioPassForm = ({
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
 
   return (
-    <div className={"flex flex-col"}>
-      <div className={"text-[24px] text-black font-medium px-6 mt-4"}>{title}</div>
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* 타이틀 */}
+      <div className="px-6 pt-6 pb-2">
+        <h1 className="text-[22px] text-black font-bold leading-tight">{title}</h1>
+      </div>
+
+      {/* 패스권 목록 */}
       {passPlan && passPlans.length > 0 && (
-        <ul className="flex flex-col p-6 space-y-4 mt-4">
+        <div className="flex flex-col px-6 pt-4 pb-6 gap-3">
           {passPlans.map((item) => (
             <PassPlanItem
               key={item.id}
@@ -43,23 +48,25 @@ export const PurchaseStudioPassForm = ({
                 setPassPlan(item)
               }}/>
           ))}
-        </ul>
+        </div>
       )}
-      <div className={"flex flex-col bg-[#F7F8F9] p-6 text-[#86898C] space-y-4"}>
-        <div className={"font-bold text-[16px]"}>{purchasePassInformationText}</div>
-        <div className={"text-[14px] whitespace-pre-line"}>{passRefundPolicyText}</div>
+
+      {/* 안내 사항 */}
+      <div className="flex flex-col bg-[#F7F8F9] px-6 py-6 gap-3">
+        <div className="font-bold text-[14px] text-[#555]">{purchasePassInformationText}</div>
+        <div className="text-[13px] text-[#999] whitespace-pre-line leading-relaxed">{passRefundPolicyText}</div>
       </div>
 
-      <div className={"sticky bottom-3 px-6"}>
+      {/* 구매 버튼 */}
+      <div className="sticky bottom-3 px-6 mt-4">
         <CommonSubmitButton originProps={{
           onClick: () => {
-            kloudNav.push(KloudScreen.PassPayment(passPlan?.id ?? 0))
+            kloudNav.push(KloudScreen.Payment('pass-plan', passPlan?.id ?? 0))
           }
         }} disabled={passPlan == null}>
           <div>{purchasePassText}</div>
         </CommonSubmitButton>
       </div>
-
     </div>
   )
 }
