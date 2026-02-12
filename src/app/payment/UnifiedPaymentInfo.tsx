@@ -9,7 +9,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { Locale } from "@/shared/StringResource";
+import { Locale, StringResourceKey } from "@/shared/StringResource";
 
 type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group';
 
@@ -24,7 +24,7 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   }
 }
 
-const getTitleResource = (type: UnifiedPaymentType): string => {
+const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
   return type === 'pass-plan' ? 'pass_plan_price' : 'lesson_price';
 }
 

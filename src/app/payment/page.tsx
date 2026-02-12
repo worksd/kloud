@@ -40,7 +40,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   }
 
   // 대리 결제 여부 확인
-  const isProxyPayment = actualPayerUserId && res.user.id !== actualPayerUserId;
+  const isProxyPayment = !!(actualPayerUserId && res.user.id !== actualPayerUserId);
 
   // 타입별로 데이터가 없는 경우 체크
   if (type === 'lesson' && !res.lesson) {
