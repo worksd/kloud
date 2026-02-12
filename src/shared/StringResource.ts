@@ -1067,6 +1067,12 @@ export const StringResource = {
     jp: "振込人名",
     zh: "存款人姓名"
   },
+  depositor_name_warning: {
+    ko: "실제 입금자명과 다를 경우 확인이 어려울 수 있습니다",
+    en: "Verification may be difficult if the name differs from the actual depositor",
+    jp: "実際の振込人名と異なる場合、確認が困難になる場合があります",
+    zh: "如果与实际存款人姓名不同，可能难以确认",
+  },
   developer_mode: {
     ko: "개발자모드",
     en: "Developer Mode",
@@ -1636,6 +1642,12 @@ export const StringResource = {
     en: 'times left',
     jp: '回残り',
     zh: '次剩余',
+  },
+  no_available_pass: {
+    ko: '사용할 수 있는 패스권이 없습니다',
+    en: 'No passes available',
+    jp: '利用可能なパスがありません',
+    zh: '没有可用的通行证',
   },
   live_popular_lessons: {
     ko: '실시간 인기 클래스',
