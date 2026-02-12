@@ -6,6 +6,7 @@ import {BankSelectBottomSheet} from "@/app/components/BankSheet";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 import {RefundAccountEditDialog} from "./RefundAccountEditDialog";
+import {formatAccountNumber} from "@/utils/format.account";
 import {GetRefundPreviewResponse} from "@/app/endpoint/payment.record.endpoint";
 
 type RefundAccountSectionProps = {
@@ -80,7 +81,7 @@ export const RefundAccountSection = ({
             {getLocaleString({locale, key: 'refund_account_number'})}
           </span>
             <span className="text-[14px] font-medium text-[#191f28] text-right">
-            {accountInfo.number || "-"}
+            {accountInfo.number ? formatAccountNumber(accountInfo.number, accountInfo.bank) : "-"}
           </span>
           </div>
 

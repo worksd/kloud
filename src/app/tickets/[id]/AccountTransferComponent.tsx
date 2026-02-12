@@ -1,4 +1,5 @@
 import { translate } from "@/utils/translate";
+import { formatAccountNumber } from "@/utils/format.account";
 
 export const AccountTransferComponent = async ({title, depositor, bank, accountNumber, price} : {
   title?: string
@@ -21,7 +22,7 @@ export const AccountTransferComponent = async ({title, depositor, bank, accountN
         <div className="font-bold text-lg text-black">{bank}</div>
 
         <div className="mt-2 text-gray-500 text-sm">{await translate('account_number')}</div>
-        <div className="font-medium text-base text-black">{accountNumber}</div>
+        <div className="font-medium text-base text-black">{formatAccountNumber(accountNumber, bank)}</div>
 
         <div className="mt-4 text-gray-500 text-sm">{await translate('deposit_amount')}</div>
         <div className="font-bold text-xl text-red-500">

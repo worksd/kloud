@@ -13,6 +13,7 @@ import {Locale} from "@/shared/StringResource";
 import Image from "next/image";
 import GrayRightArrow from "../../../../public/assets/gray_right_arrow.svg";
 import PassPlanIcon from "../../../../public/assets/ic_pass_plan.svg";
+import {formatAccountNumber} from "@/utils/format.account";
 
 const statusColorMap: Record<PaymentRecordStatus, string> = {
   [PaymentRecordStatus.Completed]: "text-[#3d9442]",
@@ -200,7 +201,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                         <div className="flex items-center gap-1">
                             <BankOrCardIcon name={paymentRecord.studio.bank} scale={75}/>
                             <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.bank}</span>
-                            <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.accountNumber}</span>
+                            <span className="text-[14px] font-medium text-[#191f28]">{formatAccountNumber(paymentRecord.studio.accountNumber, paymentRecord.studio.bank)}</span>
                         </div>
                     </div>
                     {paymentRecord.studio.depositor && (
