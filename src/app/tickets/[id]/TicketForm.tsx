@@ -51,7 +51,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   endpoint?: string
 }) {
   const [copied, setCopied] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(ticket.qrCodeUrl));
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
@@ -85,19 +85,15 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   };
 
   useEffect(() => {
+    // 클라이언트에서만 초기값 설정 (hydration mismatch 방지)
+    setTimeLeft(calculateTimeLeft(qrCodeUrl));
+
     // Paid 상태일 때만 타이머 시작
     if (ticket.status !== 'Paid' || !qrCodeUrl) return;
 
-    // 매초 expiredAt과 현재 시간을 비교하여 남은 시간 계산
-    const updateTimeLeft = () => {
-      const remaining = calculateTimeLeft(qrCodeUrl);
-      setTimeLeft(remaining);
-    };
-
-    // 초기 실행
-    updateTimeLeft();
-
-    intervalRef.current = setInterval(updateTimeLeft, 1000);
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(qrCodeUrl));
+    }, 1000);
 
     return () => {
       if (intervalRef.current) {
@@ -211,7 +207,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   // 타이머 렌더링 (Paid 상태이고 시간이 남아있을 때만)
   const renderTimer = () => {
-    if (ticket.status !== 'Paid' || timeLeft === 0) return null;
+    if (ticket.status !== 'Paid' || !timeLeft) return null;
 
     const radius = 16;
     const circumference = 2 * Math.PI * radius;
@@ -384,9 +380,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         {/* QR코드 또는 스탬프 */}
         <div
             className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
-                ticket.status === 'Paid' && qrCodeUrl && timeLeft > 0 ? 'bg-white' : ''
+                ticket.status === 'Paid' && qrCodeUrl && timeLeft && timeLeft > 0 ? 'bg-white' : ''
             }`}>
-          {ticket.status === 'Paid' && qrCodeUrl && timeLeft > 0 ? (
+          {ticket.status === 'Paid' && qrCodeUrl && timeLeft && timeLeft > 0 ? (
               <button onClick={() => setShowQrDialog(true)} className="cursor-pointer">
                 <QRCodeCanvas
                     value={qrCodeUrl}
@@ -394,7 +390,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                     className="w-full h-full"
                 />
               </button>
-          ) : ticket.status === 'Paid' && timeLeft === 0 ? (
+          ) : ticket.status === 'Paid' && (timeLeft === 0 || timeLeft === null) ? (
               <button
                   onClick={handleRefreshQrCode}
                   disabled={isRefreshing}
@@ -453,7 +449,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   // 롤링 밴드 JSX (중복 제거를 위해 함수로 추출)
   const renderRollingBand = () => {
-    if (ticket.status !== 'Paid' || timeLeft === 0) {
+    if (ticket.status !== 'Paid' || !timeLeft) {
       return null;
     }
 
