@@ -175,50 +175,54 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
           </div>
         </div>
 
-        {/* Spacer */}
-        <div className="h-3 bg-[#f9f9fb]"/>
+        {refundAmount > 0 && (
+          <>
+            {/* Spacer */}
+            <div className="h-3 bg-[#f9f9fb]"/>
 
-        {/* 환불 수단 */}
-        <div className="px-5 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[16px] font-bold text-black">{await translate('refund_method')}</p>
-            <RefundMethodTitle refundPreview={refundPreview} locale={locale} />
-          </div>
-          <div className="flex flex-col gap-4 mt-6">
-            {refundPreview.methodType === 'credit' && refundPreview.methodLabel && (
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] font-medium text-black">{await translate('refund_method')}</span>
-                <div className="flex items-center gap-1">
-                  <BankOrCardIcon name={refundPreview.methodLabel} scale={75} />
-                  <span className="text-[14px] font-medium text-[#191f28]">{refundPreview.methodLabel}</span>
-                </div>
+            {/* 환불 수단 */}
+            <div className="px-5 py-5">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[16px] font-bold text-black">{await translate('refund_method')}</p>
+                <RefundMethodTitle refundPreview={refundPreview} locale={locale} />
               </div>
-            )}
-            {refundPreview.cardNumber && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
-                  <span className="text-[14px] font-medium text-[#191f28] text-right">
-                    {formatCardNumber(refundPreview.cardNumber)}
-                  </span>
-                </div>
-            )}
-            {(refundPreview.methodType === 'account_transfer' || refundPreview.methodType === 'admin') && (
-                <RefundAccountSection
-                    refundPreview={refundPreview}
-                    locale={locale}
-                />
-            )}
-          </div>
-          {refundPreview.methodType === 'credit' ? (
-              <p className="text-[12px] font-medium text-[#6d7882] mt-4">
-                {await translate('refund_processing_time_note')}
-              </p>
-          ) : (refundPreview.methodType === 'admin' || refundPreview.methodType === 'account_transfer') ? (
-              <p className="text-[12px] font-medium text-[#6d7882] mt-4">
-                {await translate('refund_notice_studio')}
-              </p>
-          ) : null}
-        </div>
+              <div className="flex flex-col gap-4 mt-6">
+                {refundPreview.methodType === 'credit' && refundPreview.methodLabel && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] font-medium text-black">{await translate('refund_method')}</span>
+                    <div className="flex items-center gap-1">
+                      <BankOrCardIcon name={refundPreview.methodLabel} scale={75} />
+                      <span className="text-[14px] font-medium text-[#191f28]">{refundPreview.methodLabel}</span>
+                    </div>
+                  </div>
+                )}
+                {refundPreview.cardNumber && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
+                      <span className="text-[14px] font-medium text-[#191f28] text-right">
+                        {formatCardNumber(refundPreview.cardNumber)}
+                      </span>
+                    </div>
+                )}
+                {(refundPreview.methodType === 'account_transfer' || refundPreview.methodType === 'admin') && (
+                    <RefundAccountSection
+                        refundPreview={refundPreview}
+                        locale={locale}
+                    />
+                )}
+              </div>
+              {refundPreview.methodType === 'credit' ? (
+                  <p className="text-[12px] font-medium text-[#6d7882] mt-4">
+                    {await translate('refund_processing_time_note')}
+                  </p>
+              ) : (refundPreview.methodType === 'admin' || refundPreview.methodType === 'account_transfer') ? (
+                  <p className="text-[12px] font-medium text-[#6d7882] mt-4">
+                    {await translate('refund_notice_studio')}
+                  </p>
+              ) : null}
+            </div>
+          </>
+        )}
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
