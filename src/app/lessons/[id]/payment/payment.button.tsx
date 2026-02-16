@@ -124,22 +124,27 @@ export default function PaymentButton({
     }
 
     if (price == 0) {
-      const res = await createManualPaymentRecordAction({
-        methodType: 'free',
-        item: type.apiValue,
-        itemId: id,
-        targetUserId: user.id,
-      })
-      if ('paymentId' in res) {
-        const route = KloudScreen.PaymentRecordDetail(res.paymentId)
-        if (appVersion == '' && route) {
-          router.replace(route)
+      setIsSubmitting(true);
+      try {
+        const res = await createManualPaymentRecordAction({
+          methodType: 'free',
+          item: type.apiValue,
+          itemId: id,
+          targetUserId: user.id,
+        })
+        if ('paymentId' in res) {
+          const route = KloudScreen.PaymentRecordDetail(res.paymentId)
+          if (appVersion == '' && route) {
+            router.replace(route)
+          } else {
+            await kloudNav.navigateMain({route});
+          }
         } else {
-          await kloudNav.navigateMain({route});
+          const dialog = await createDialog({id: 'Simple', message: res.message})
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
-      } else {
-        const dialog = await createDialog({id: 'Simple', message: res.message})
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      } finally {
+        setIsSubmitting(false);
       }
       return
     }
