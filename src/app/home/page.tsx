@@ -33,7 +33,7 @@ export default async function Home({
 
           </div>
           <div className={'fixed bottom-4 right-4 z-10'}>
-            <PassPurchaseButton/>
+            <PassPurchaseButton studioId={res.myStudio?.studio?.id}/>
           </div>
         </div>
 
