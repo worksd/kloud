@@ -16,6 +16,7 @@ export type GetLessonResponse = {
     title?: string;
     thumbnailUrl?: string;
     date?: string;
+    startDate?: string; // yyyy-MM-dd HH:mm 형식
     saleDate?: string;
     duration?: number;
     type?: LessonType;
