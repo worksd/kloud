@@ -1,5 +1,4 @@
 import { KloudScreen } from "@/shared/kloud.screen";
-import { createPassAction } from "@/app/passPlans/[id]/payment/create.pass.action";
 import { redirect } from "next/navigation";
 import { extractNumber } from "@/utils";
 import { getPaymentRecordDetail } from "@/app/lessons/[id]/action/get.payment.record.detail";

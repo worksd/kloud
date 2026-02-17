@@ -419,6 +419,12 @@ export const StringResource = {
     jp: "予定されているレッスン",
     zh: "即将到来的课程"
   },
+  upcoming_lesson: {
+    ko: "다음 예정 수업",
+    en: "Next Upcoming Lesson",
+    jp: "次の予定レッスン",
+    zh: "下一节预定课程"
+  },
   sign_out_reason_no_contents: {
     ko: "원하는 콘텐츠가 부족해요.",
     en: "Not enough content I want.",
@@ -666,7 +672,7 @@ export const StringResource = {
     zh: "查看我的课程票"
   },
   my_tickets: {
-    ko: '수강권',
+    ko: '수강 내역',
     en: 'My Lesson Tickets',
     jp: '私の受講券',
     zh: '我的课程票'
@@ -1102,6 +1108,48 @@ export const StringResource = {
     en: "Try taking a new class!",
     jp: "新しいクラスを受講してみましょう！",
     zh: "来体验新的课程吧!"
+  },
+  my_page: {
+    ko: "마이페이지",
+    en: "My Page",
+    jp: "マイページ",
+    zh: "我的页面"
+  },
+  account_info: {
+    ko: "계정 정보",
+    en: "Account Info",
+    jp: "アカウント情報",
+    zh: "账户信息"
+  },
+  profile_info: {
+    ko: "프로필 정보",
+    en: "Profile Info",
+    jp: "プロフィール情報",
+    zh: "个人资料信息"
+  },
+  identity_verified: {
+    ko: "본인인증 완료",
+    en: "Verified",
+    jp: "本人確認済み",
+    zh: "已认证"
+  },
+  identity_not_verified: {
+    ko: "본인인증 미완료",
+    en: "Not Verified",
+    jp: "未確認",
+    zh: "未认证"
+  },
+  user_id: {
+    ko: "아이디",
+    en: "ID",
+    jp: "ID",
+    zh: "ID"
+  },
+  login_type: {
+    ko: "로그인 방식",
+    en: "Login Method",
+    jp: "ログイン方法",
+    zh: "登录方式"
   },
   my_pass: {
     ko: "패스권",
@@ -1674,10 +1722,10 @@ export const StringResource = {
     zh: '目前没有销售通行证的工作室。'
   },
   ongoing_lessons: {
-    ko: '진행중인 수업들',
-    en: 'Ongoing Lessons',
-    jp: '進行中のレッスン',
-    zh: '正在进行的课程'
+    ko: '신청 가능한 수업들',
+    en: 'Available Lessons',
+    jp: '申し込み可能なレッスン',
+    zh: '可报名的课程'
   },
   open_date: {
     ko: '공개 예정',
@@ -2314,6 +2362,24 @@ export const StringResource = {
     en: 'Lesson Group Tickets',
     jp: '定期レッスン受講券',
     zh: '定期课程票'
+  },
+  upcoming_payments: {
+    ko: '다가오는 결제',
+    en: 'Upcoming Payments',
+    jp: '今後の支払い',
+    zh: '即将到来的付款'
+  },
+  no_upcoming_payments: {
+    ko: '다가오는 결제가 없습니다',
+    en: 'No upcoming payments',
+    jp: '今後の支払いはありません',
+    zh: '没有即将到来的付款'
+  },
+  watch_on_youtube: {
+    ko: 'YouTube에서 보기',
+    en: 'Watch on YouTube',
+    jp: 'YouTubeで見る',
+    zh: '在YouTube上观看'
   }
 }
 

@@ -9,6 +9,20 @@ export type GetUserParameter = {
   id: number
 }
 
+export type UpcomingLessonResponse = {
+  id: number
+  status?: string
+  statusLabel?: string
+  genre?: string
+  type?: string
+  startDate?: string
+  dday?: string
+  title?: string
+  thumbnailUrl?: string
+  artists?: { id: number; name: string; nickName?: string; profileImageUrl?: string }[]
+  studio?: { id: number; name: string; profileImageUrl?: string }
+}
+
 export type GetUserResponse = {
   id: number
   email: string
@@ -25,6 +39,10 @@ export type GetUserResponse = {
   refundAccountBank?: string
   refundAccountDepositor?: string
   emailVerified?: boolean
+  upcomingLesson?: UpcomingLessonResponse
+  ticketCount?: number
+  paymentRecordCount?: number
+  passCount?: number
 }
 
 export type GetMeResponse = {
@@ -37,6 +55,10 @@ export type GetMeResponse = {
   nickName?: string
   phone?: string
   studio?: GetStudioResponse
+  upcomingLesson?: UpcomingLessonResponse
+  ticketCount?: number
+  paymentRecordCount?: number
+  passCount?: number
 }
 
 export type GetAnnouncementResponse = {

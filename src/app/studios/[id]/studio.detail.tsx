@@ -6,7 +6,7 @@ import React from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchaseSubmitButton";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
@@ -14,6 +14,7 @@ import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import LeftArrow from "../../../../public/assets/left-arrow.svg";
 import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
+import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -168,6 +169,17 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
               </div>
           )}
         </section>
+
+        {studio.youtubeContents && studio.youtubeContents.length > 0 && (
+          <section>
+            <YoutubeContentSection
+              contents={studio.youtubeContents}
+              title="최근 YouTube 영상"
+              channelUrl={studio.youtubeUrl}
+              locale={await getLocale()}
+            />
+          </section>
+        )}
 
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>

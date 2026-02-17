@@ -64,7 +64,7 @@ export const PurchaseStudioPassForm = ({
             kloudNav.push(KloudScreen.Payment('pass-plan', passPlan?.id ?? 0))
           }
         }} disabled={passPlan == null}>
-          <div>{purchasePassText}</div>
+          <div>{passPlan ? `${passPlan.name} 구매하기` : purchasePassText}</div>
         </CommonSubmitButton>
       </div>
     </div>

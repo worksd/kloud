@@ -68,11 +68,5 @@ export default function TicketUsageSSEPage({
     };
   }, [ticketId, endpoint]);
 
-  return (
-    <div className="text-black space-y-2">
-      <div className={`ml-6 inline-block px-3 py-1 rounded-full text-sm font-medium ${statusClass[status]}`}>
-        {statusLabel[status]}
-      </div>
-    </div>
-  );
+  return <div/>;
 }

@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import Loading from "@/app/loading";
 import { getPaymentRecordsAction } from "@/app/paymentRecords/get.payment.records.action";
 import { getLocale, translate } from "@/utils/translate";
-import { PaymentRecordListClient } from "@/app/paymentRecords/PaymentRecordListClient";
+import { PaymentRecordTabClient } from "@/app/paymentRecords/PaymentRecordTabClient";
+import { getSubscriptionList } from "@/app/profile/mySubscription/action/get.subscription.list.action";
 
 export default async function PaymentRecordsPage() {
   return (
@@ -13,15 +14,20 @@ export default async function PaymentRecordsPage() {
 }
 
 async function PaymentRecordsServer() {
-  const res = await getPaymentRecordsAction({ page: 1 });
+  const [paymentRes, subscriptionRes] = await Promise.all([
+    getPaymentRecordsAction({ page: 1 }),
+    getSubscriptionList(),
+  ]);
   const locale = await getLocale();
   const noRecordsMessage = await translate('no_purchase_history');
 
-  const initialRecords = 'paymentRecords' in res ? res.paymentRecords : [];
+  const initialRecords = 'paymentRecords' in paymentRes ? paymentRes.paymentRecords : [];
+  const subscriptions = 'subscriptions' in subscriptionRes ? subscriptionRes.subscriptions : [];
 
   return (
-    <PaymentRecordListClient
+    <PaymentRecordTabClient
       initialRecords={initialRecords}
+      subscriptions={subscriptions}
       locale={locale}
       noRecordsMessage={noRecordsMessage}
     />

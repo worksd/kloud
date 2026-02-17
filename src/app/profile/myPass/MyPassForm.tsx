@@ -5,6 +5,7 @@ import { PassColumnList } from "@/app/profile/myPass/PassColumnList";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import BackArrowIcon from "../../../../public/assets/ic_back_arrow.svg";
 
 type PassTabType = 'active' | 'used'
 
@@ -18,29 +19,31 @@ export const MyPassForm = ({passes, locale}: {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 bg-white z-10">
-        <div className="flex border-b">
-          <button
-            onClick={() => setCurrentTab('active')}
-            className={`flex-1 py-4 font-bold ${
-              currentTab === 'active'
-                ? 'border-b-2 border-black text-black'
-                : 'text-gray-400'
-            }`}
-          >
-            {getLocaleString({locale, key: 'my_active_passes'})}
-          </button>
-          <button
-            onClick={() => setCurrentTab('used')}
-            className={`flex-1 py-4 ${
-              currentTab === 'used'
-                ? 'border-b-2 border-black text-black font-bold'
-                : 'text-gray-400'
-            }`}
-          >
-            {getLocaleString({locale, key: 'my_used_passes'})}
-          </button>
-        </div>
+      {/* Header: Back Arrow + Tabs */}
+      <div className="flex flex-row items-center gap-4 px-5 pt-4 pb-3 flex-shrink-0">
+        <button onClick={() => (window as any).KloudEvent?.back()} className="flex items-center justify-start flex-shrink-0">
+          <BackArrowIcon className="w-6 h-6 text-black"/>
+        </button>
+        <button
+          onClick={() => setCurrentTab('active')}
+          className={`transition-all duration-300 ${
+            currentTab === 'active'
+              ? 'text-[20px] text-black font-bold'
+              : 'text-[16px] text-gray-400 font-medium'
+          }`}
+        >
+          {getLocaleString({locale, key: 'my_active_passes'})}
+        </button>
+        <button
+          onClick={() => setCurrentTab('used')}
+          className={`transition-all duration-300 ${
+            currentTab === 'used'
+              ? 'text-[20px] text-black font-bold'
+              : 'text-[16px] text-gray-400 font-medium'
+          }`}
+        >
+          {getLocaleString({locale, key: 'my_used_passes'})}
+        </button>
       </div>
 
       {/* Scrollable Content */}

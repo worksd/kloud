@@ -47,7 +47,16 @@ export type GetStudioResponse = {
     passes?: GetPassResponse[];
     timeTable?: GetTimeTableResponse;
     banners?: StudioBannerResponse[];
+    youtubeContents?: YoutubeContentResponse[];
     day: string;
+};
+
+export type YoutubeContentResponse = {
+  videoId: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  publishedAt: string;
 };
 
 export type GetMyStudioResponse = {

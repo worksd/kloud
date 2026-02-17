@@ -12,38 +12,52 @@ export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
 }) => {
   return (
     <div
-      className={`relative flex flex-col w-full rounded-2xl select-none cursor-pointer overflow-hidden
-        transition-all duration-200 active:scale-[0.98]
+      className={`relative flex w-full select-none cursor-pointer overflow-hidden
+        transition-all duration-200 active:scale-[0.98] rounded-2xl
         ${isSelected
-        ? 'border-[1.5px] border-black bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]'
-        : 'border border-[#E8E8E8] bg-white'}`}
+        ? 'bg-black shadow-[0_4px_20px_rgba(0,0,0,0.15)]'
+        : 'bg-[#F2F4F6]'}`}
       onClick={() => onClickAction(item)}
     >
-      {/* 인기 배지 */}
-      {item.isPopular && (
-        <div className={`self-start text-[12px] font-bold px-3 py-1.5 rounded-br-xl
-          ${isSelected ? 'text-white bg-black' : 'text-[#999] bg-[#F2F4F6]'}`}>
-          {getLocaleString({locale, key: 'popular_pass'})}
-        </div>
-      )}
-
-      <div className={`flex items-center justify-between w-full px-5 ${item.isPopular ? 'pt-3 pb-5' : 'py-5'}`}>
-        <div className="flex flex-col gap-1">
-          <div className={`text-[16px] transition-colors duration-200
-            ${isSelected ? 'font-bold text-black' : 'font-medium text-[#555]'}`}>
-            {item.name}
-          </div>
-          {item.expireDateStamp && (
-            <div className={`text-[12px] ${isSelected ? 'text-[#888]' : 'text-[#ACACAC]'}`}>
-              {item.expireDateStamp}
-            </div>
-          )}
-        </div>
+      {/* 왼쪽: 티켓 메인 영역 */}
+      <div className="flex-1 flex flex-col justify-center px-5 py-4">
+        {/* 인기 배지 */}
+        {item.isPopular && (
+          <span className={`self-start text-[11px] font-bold px-2 py-0.5 rounded-full mb-2
+            ${isSelected ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            {getLocaleString({locale, key: 'popular_pass'})}
+          </span>
+        )}
 
         <div className={`text-[16px] font-bold transition-colors duration-200
-          ${isSelected ? 'text-black' : 'text-[#999]'}`}>
-          {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)}{getLocaleString({locale, key: 'won'})}
+          ${isSelected ? 'text-white' : 'text-black'}`}>
+          {item.name}
         </div>
+
+        {item.expireDateStamp && (
+          <div className={`text-[12px] mt-1
+            ${isSelected ? 'text-white/60' : 'text-[#999]'}`}>
+            {item.expireDateStamp}
+          </div>
+        )}
+      </div>
+
+      {/* 점선 구분 + 반원 노치 */}
+      <div className="relative flex items-center w-0">
+        <div className={`absolute -top-3 -translate-x-1/2 w-6 h-6 rounded-full
+          ${isSelected ? 'bg-white' : 'bg-white'}`}/>
+        <div className={`absolute -bottom-3 -translate-x-1/2 w-6 h-6 rounded-full
+          ${isSelected ? 'bg-white' : 'bg-white'}`}/>
+        <div className={`h-[60%] border-l border-dashed
+          ${isSelected ? 'border-white/30' : 'border-[#D5D5D5]'}`}/>
+      </div>
+
+      {/* 오른쪽: 가격 영역 */}
+      <div className="flex items-center justify-center px-5 py-4 min-w-[130px]">
+        <span className={`text-[18px] font-extrabold tracking-tight transition-colors duration-200 whitespace-nowrap
+          ${isSelected ? 'text-white' : 'text-black'}`}>
+          {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)}{getLocaleString({locale, key: 'won'})}
+        </span>
       </div>
     </div>
   );

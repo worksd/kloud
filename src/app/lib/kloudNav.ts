@@ -153,33 +153,27 @@ const applyTitle = async (route: string) => {
     return ''
   } else if (route.startsWith('/lesson-group-tickets')) {
     return await translate('my_lesson_group_tickets')
-  } else if (route.startsWith('/tickets')) {
-    return ''
-  } else if (route.startsWith(KloudScreen.MyPass)) {
-    return await translate('my_pass')
   } else if (route.startsWith(KloudScreen.MySubscription)) {
     return await translate('my_subscription')
-  } else if (route.includes('/paymentRecords')) {
+  } else if (route.startsWith('/paymentRecords')) {
     if (route.includes('/refund')) {
       return await translate('do_refund')
-    } else {
-      return await translate('payment_records')
+    } else if (route.startsWith('/paymentRecords/')) {
+      return '';
     }
   } else if (route.includes('lessons') && route.includes('studios')) {
     return await translate('ongoing_lessons')
-  } else if (route.startsWith('/payment')) {
-    return await translate('payment')
-  } else if (route.includes('/payment') && (route.includes('/lessons') || route.includes('/lesson-groups') || route.includes('/passPlans'))) {
-    return await translate('payment')
   } else if (route.includes('resetPassword')) {
     return await translate('change_password')
   } else if (route.includes('refund')) {
     return '';
   } else if (route.includes('/memberships')) {
     return await translate('my_membership')
-  } else if (route.includes('/payment') && route.includes('/membershipPlans')) {
+  } else if (route.startsWith('/tickets/')) {
+    return '';
+  } else if (route.startsWith('/payment?') || ( route.includes('/lessons/') && route.includes('/payment'))) {
     return await translate('payment')
-  } else if (route.includes('/membershipPlans')) {
+  } else if (route.includes('/profile/myPass/')) {
     return '';
   }
   else return undefined

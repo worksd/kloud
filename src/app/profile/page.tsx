@@ -1,10 +1,11 @@
-import { MenuItem } from "@/app/profile/setting.menu.item";
-import { cookies } from "next/headers";
-import { userIdKey } from "@/shared/cookies.key";
 import { api } from "@/app/api.client";
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
 import SettingIcon from "../../../public/assets/ic_setting.svg";
+import EditIcon from "../../../public/assets/ic_edit.svg";
+import TicketIcon from "../../../public/assets/ic_ticket.svg";
+import PassPlanIcon from "../../../public/assets/ic_pass_plan.svg";
+import ReceiptIcon from "../../../public/assets/ic_receipt.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
@@ -15,12 +16,11 @@ export default async function SettingPage({
   searchParams: Promise<{ os: string }>
 }) {
   const os = (await searchParams).os
-  const cookieStore = await cookies()
-  const user = await api.user.get({
-    id: Number(cookieStore.get(userIdKey)?.value)
-  })
+  const user = await api.user.me({})
 
   if ('id' in user) {
+    const upcoming = user.upcomingLesson;
+
     return (
       <div className="flex flex-col min-h-screen bg-white py-8 w-full max-w-screen overflow-x-hidden">
         <div className="flex justify-end px-4 mb-4">
@@ -41,9 +41,16 @@ export default async function SettingPage({
           </div>
           {(has(user.nickName) || has(user.email)) && (
             <div className="flex flex-col px-4">
-              {has(user.nickName) && (
-                <div className="font-bold text-lg text-black">{user.nickName}</div>
-              )}
+              <div className="flex flex-row items-center gap-2">
+                {has(user.nickName) && (
+                  <div className="font-bold text-lg text-black">{user.nickName}</div>
+                )}
+                <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+                  <div className="w-[28px] h-[28px] rounded-[8px] border border-[#E0E0E0] flex items-center justify-center active:scale-[0.9] active:bg-gray-100 transition-all duration-150">
+                    <EditIcon className="w-[14px] h-[14px] text-gray-500"/>
+                  </div>
+                </NavigateClickWrapper>
+              </div>
               {has(user.email) && (
                 <div className="text-gray-500">{user.email}</div>
               )}
@@ -51,32 +58,108 @@ export default async function SettingPage({
           )}
         </div>
 
-        <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-          <div
-            className="flex border mx-4 mb-5 justify-center py-3 rounded-[8px] border-[#E8E8E8] text-[#505356] font-medium active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none">
-            {await translate('edit_profile')}
+        {/* 다음 예정 수업 */}
+        {upcoming && (
+          <section className="px-4 mb-6">
+            <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('upcoming_lesson')}</div>
+            <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(upcoming.id)}>
+              <div className="rounded-2xl overflow-hidden bg-black active:scale-[0.98] transition-all duration-150">
+                <div className="relative w-full aspect-[2.5/1]">
+                  {upcoming.thumbnailUrl && (
+                    <Image
+                      src={upcoming.thumbnailUrl}
+                      alt={upcoming.title ?? ''}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"/>
+
+                  <div className="absolute inset-0 flex flex-col justify-center px-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      {upcoming.dday && (
+                        <span className="text-[12px] font-extrabold text-black bg-white px-2 py-0.5 rounded-full">
+                          {upcoming.dday}
+                        </span>
+                      )}
+                      {upcoming.genre && (
+                        <span className="text-[11px] font-bold text-white/70">
+                          {upcoming.genre}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-[16px] font-bold text-white line-clamp-1">
+                      {upcoming.title}
+                    </h3>
+
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {upcoming.studio?.profileImageUrl && (
+                        <Image
+                          src={upcoming.studio.profileImageUrl}
+                          alt=""
+                          width={18}
+                          height={18}
+                          className="w-[18px] h-[18px] rounded-full"
+                        />
+                      )}
+                      <span className="text-[12px] text-white/60 font-medium">
+                        {upcoming.studio?.name}
+                      </span>
+                      {upcoming.startDate && (
+                        <span className="text-[12px] text-white/40">
+                          {upcoming.startDate}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </NavigateClickWrapper>
+          </section>
+        )}
+
+        {/* 마이페이지 메뉴 그리드 */}
+        <section className="px-4 mt-4">
+          <div className="text-[13px] font-bold text-[#999] mb-3 px-1 pt-2">{await translate('my_page')}</div>
+          <div className="grid grid-cols-3 gap-3">
+            <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1">
+                  <TicketIcon className="w-5 h-5"/>
+                  <span className="text-[12px] font-medium text-[#999]">{await translate('my_tickets')}</span>
+                </div>
+                {user.ticketCount != null && user.ticketCount > 0 && (
+                  <span className="text-[18px] font-bold text-black">{user.ticketCount}건</span>
+                )}
+              </div>
+            </NavigateClickWrapper>
+
+            <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1">
+                  <PassPlanIcon className="w-5 h-5"/>
+                  <span className="text-[12px] font-medium text-[#999]">{await translate('my_pass')}</span>
+                </div>
+                {user.passCount != null && user.passCount > 0 && (
+                  <span className="text-[18px] font-bold text-black">{user.passCount}개</span>
+                )}
+              </div>
+            </NavigateClickWrapper>
+
+            <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1">
+                  <ReceiptIcon className="w-5 h-5"/>
+                  <span className="text-[12px] font-medium text-[#999]">{await translate('payment_records')}</span>
+                </div>
+                {user.paymentRecordCount != null && user.paymentRecordCount > 0 && (
+                  <span className="text-[18px] font-bold text-black">{user.paymentRecordCount}건</span>
+                )}
+              </div>
+            </NavigateClickWrapper>
           </div>
-        </NavigateClickWrapper>
-
-        <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
-          <MenuItem label={'my_tickets'}/>
-        </NavigateClickWrapper>
-
-        <NavigateClickWrapper method={'push'} route={KloudScreen.LessonGroupTickets}>
-          <MenuItem label="my_lesson_group_tickets"/>
-        </NavigateClickWrapper>
-
-        <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
-          <MenuItem label="my_pass"/>
-        </NavigateClickWrapper>
-
-        <NavigateClickWrapper method={'push'} route={KloudScreen.MySubscription}>
-          <MenuItem label="my_subscription"/>
-        </NavigateClickWrapper>
-
-        <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
-          <MenuItem label="payment_records"/>
-        </NavigateClickWrapper>
+        </section>
       </div>
     );
   }

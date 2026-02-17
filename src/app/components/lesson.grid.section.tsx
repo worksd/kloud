@@ -1,5 +1,4 @@
 import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
-import RightArrowIcon from "../../../public/assets/right-arrow-black.svg"
 import { KloudScreen } from "@/shared/kloud.screen";
 import { GetBandLessonResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { translate } from "@/utils/translate";
@@ -14,13 +13,12 @@ export const LessonGridSection = async ({studioId, title, lessons}: {
     <div className="w-screen pb-8">
       {/* 헤더 */}
       <div className="flex justify-between items-center mb-5 px-4">
-        <div className="text-[18px] text-black font-bold">{title}</div>
+        <div className="text-[20px] text-black font-bold">{title}</div>
         {lessons.length >= 4 &&
           <NavigateClickWrapper method={'push'} route={KloudScreen.StudioLessons(studioId)}>
-            <button className="text-black flex items-center font-normal">
-              {await translate('more')}
-              <RightArrowIcon/>
-            </button>
+            <span className="text-[13px] text-[#999] font-medium active:opacity-60 transition-opacity">
+              {await translate('more')} &rsaquo;
+            </span>
           </NavigateClickWrapper>
         }
       </div>
