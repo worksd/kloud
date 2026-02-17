@@ -41,6 +41,7 @@ export type GetStudioResponse = {
     representative?: string;
     depositor?: string;
     instagramAddress?: string;
+    kioskImageUrl?: string;
     lessons?: GetBandLessonResponse[];
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];
@@ -134,4 +135,30 @@ export const TimeTable: Endpoint<GetTimeTableParameter, GetTimeTableResponse> = 
   path: (e) => `/studios/${e.studioId}/time-table`,
   pathParams: ['studioId'],
   queryParams: ['baseDate']
+}
+
+export enum StudioAttendanceStatus {
+  CheckIn = 'CheckIn',
+  CheckOut = 'CheckOut',
+  Cancelled = 'Cancelled',
+}
+
+export type AttendanceStatus = 'CheckIn' | 'CheckOut';
+
+export type CreateStudioAttendanceRequest = {
+  targetUserId: number;
+  status: AttendanceStatus;
+}
+
+export type StudioAttendanceResponse = {
+  id: number;
+  targetUserId: number;
+  status: AttendanceStatus;
+  createdAt: string;
+}
+
+export const CreateStudioAttendance: Endpoint<CreateStudioAttendanceRequest, StudioAttendanceResponse> = {
+  method: 'post',
+  path: '/studio-attendances',
+  bodyParams: ['targetUserId', 'status']
 }

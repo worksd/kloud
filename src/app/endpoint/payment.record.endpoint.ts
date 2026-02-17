@@ -121,6 +121,29 @@ export const RequestRefund: Endpoint<RequestRefundRequest, GetPaymentRecordRespo
   bodyParams: ['reason', 'requester']
 }
 
+export type KioskPendingPaymentItemRequest = {
+  lessonId: number;
+  discounts?: PaymentDiscount[];
+}
+
+export type PaymentDiscount = {
+  amount: number;
+  type: string;
+  key: string;
+  itemId: number;
+}
+
+export type KioskPendingPaymentRequest = {
+  items: KioskPendingPaymentItemRequest[];
+  targetUserId: number;
+}
+
+export const CreateKioskPendingPayment: Endpoint<KioskPendingPaymentRequest, GetPaymentRecordResponse> = {
+  method: 'post',
+  path: '/paymentRecords/kiosk',
+  bodyParams: ['items', 'targetUserId']
+}
+
 export enum PaymentRecordStatus {
   Pending = 'Pending',
   Completed = 'Completed',

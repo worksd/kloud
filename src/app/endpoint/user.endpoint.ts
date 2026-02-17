@@ -131,3 +131,14 @@ export const CreateParentConnection: Endpoint<CreateParentConnectionParameter, S
   path: (e) => `/users/${e.studentUserId}/connect-parent`,
   bodyParams: ['studentUserId', 'parentName', 'parentPhone']
 }
+
+export type SearchUserByPhoneParameter = {
+  phone: string;
+  countryCode: string;
+}
+
+export const SearchUserByPhone: Endpoint<SearchUserByPhoneParameter, GetUserResponse> = {
+  method: 'get',
+  path: '/users/search',
+  queryParams: ['phone', 'countryCode']
+}

@@ -8,7 +8,10 @@ export default async function KioskPage() {
   if ('id' in res && res.studio?.id) {
     return (
         <KioskForm
-            studioId={res.studio?.id}/>
+            studioId={res.studio?.id}
+            studioName={res.studio?.name ?? ''}
+            studioProfileImageUrl={res.studio?.profileImageUrl}
+            kioskImageUrl={res.studio?.kioskImageUrl}/>
     )
   } else {
     throw Error('not kiosk user')

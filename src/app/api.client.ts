@@ -22,7 +22,8 @@ export class ApiClient extends EndpointClient {
     update: this.endpointBuilder(API.User.UpdateUser),
     delete: this.endpointBuilder(API.User.DeleteUser),
     checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
-    connectParent: this.endpointBuilder(API.User.CreateParentConnection)
+    connectParent: this.endpointBuilder(API.User.CreateParentConnection),
+    searchByPhone: this.endpointBuilder(API.User.SearchUserByPhone),
   }
 
   readonly lesson = {
@@ -43,6 +44,7 @@ export class ApiClient extends EndpointClient {
     me: this.endpointBuilder(API.Studio.Me),
     my: this.endpointBuilder(API.Studio.My),
     timeTable: this.endpointBuilder(API.Studio.TimeTable),
+    createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
   }
 
   readonly ticket = {
@@ -97,6 +99,7 @@ export class ApiClient extends EndpointClient {
     getRefundPreview: this.endpointBuilder(API.PaymentRecord.GetRefundPreview),
     requestRefund: this.endpointBuilder(API.PaymentRecord.RequestRefund),
     createManual: this.endpointBuilder(API.PaymentRecord.CreateManualPaymentRecord),
+    createKiosk: this.endpointBuilder(API.PaymentRecord.CreateKioskPendingPayment),
   }
 
   readonly billing = {

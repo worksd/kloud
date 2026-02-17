@@ -1,149 +1,149 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Logo from '../../../../../public/assets/logo_black.svg';
+import React, {useState, useEffect} from 'react';
 import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
 import {GetLessonResponse} from "@/app/endpoint/lesson.endpoint";
+import {Thumbnail} from '@/app/components/Thumbnail';
 
-type Lesson = {
-  id: number;
-  date: string;
-  time: string;
-  location: string;
-  instructor: string;
-  title: string;
-  image?: string;
-  isEnded?: boolean;
+const toAmPm = (time: string): string => {
+  const [h, m] = time.split(':').map(Number);
+  const period = h < 12 ? '오전' : '오후';
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
+};
+
+const formatLessonTime = (lesson: GetLessonResponse): string | null => {
+  if (lesson.startDate) {
+    const timePart = lesson.startDate.split(' ')[1];
+    if (timePart) {
+      const start = toAmPm(timePart);
+      if (lesson.duration) {
+        const [h, m] = timePart.split(':').map(Number);
+        const endMinutes = h * 60 + m + lesson.duration;
+        const endH = Math.floor(endMinutes / 60) % 24;
+        const endM = endMinutes % 60;
+        const end = toAmPm(`${endH}:${String(endM).padStart(2, '0')}`);
+        return `${start} - ${end}`;
+      }
+      return start;
+    }
+  }
+  if (lesson.formattedDate) {
+    return `${toAmPm(lesson.formattedDate.startTime)} - ${toAmPm(lesson.formattedDate.endTime)}`;
+  }
+  return null;
 };
 
 type KioskPaymentFormProps = {
+  studioName: string;
   lessons: GetLessonResponse[];
   onBack: () => void;
   onComplete: () => void;
 };
 
-export const KioskPaymentForm = ({ lessons, onBack, onComplete }: KioskPaymentFormProps) => {
-  const [countdown, setCountdown] = useState(180); // 180초 = 3분
+export const KioskPaymentForm = ({studioName, lessons, onBack, onComplete}: KioskPaymentFormProps) => {
+  const [countdown, setCountdown] = useState(180);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          onBack(); // 첫 화면으로 돌아가기
+          onBack();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [onBack]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}분 ${secs}초`;
+    return `${mins}분 ${String(secs).padStart(2, '0')}초`;
   };
 
-  const totalPrice = lessons.length * 130000; // Mock 가격
-  const remainingPrice = 190000; // Mock 남은 결제 금액
+  const totalPrice = lessons.reduce((sum, l) => sum + (l.price ?? 0), 0);
 
   return (
-    <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-      {/* 헤더 */}
-      <div className="h-[100px] px-[48px] flex items-center justify-between shrink-0">
-        <div className="h-[27px] w-[200px]">
-          <Logo className="w-full h-full" />
-        </div>
-        <div className="flex items-center justify-end gap-[10px] w-[600px]">
-          <p className="text-gray-500 text-[20px] text-right tracking-[-0.6px]">
-            프로젝트리 댄스학원
+      <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
+        {/* 헤더 */}
+        <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
+          <button onClick={onBack}
+                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
+            <BackArrowIcon className="w-full h-full"/>
+          </button>
+          <p className="text-black text-[20px] font-bold">결제 확인</p>
+          <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
+            {studioName}
           </p>
         </div>
-      </div>
 
-      {/* 네비게이션 바 */}
-      <div className="h-[120px] px-[48px] flex items-center justify-between shrink-0">
-        <button onClick={onBack} className="w-[52px] h-[52px] flex items-center justify-center">
-          <BackArrowIcon className="w-full h-full" />
-        </button>
-        <div className="w-[52px] h-[52px] flex items-center justify-center">
-          {/* 설정 아이콘 */}
-        </div>
-      </div>
-
-      {/* 제목 */}
-      <div className="px-[64px] pt-[80px] pb-[60px] flex items-center gap-[10px] shrink-0">
-        <div className="flex-1 flex flex-col items-start justify-center">
-          <p className="text-black text-[48px] font-bold tracking-[-1.44px]">
+        {/* 메인 영역 */}
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
+          {/* 제목 */}
+          <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[40px]">
             총 {lessons.length}건, 이대로 신청할까요?
           </p>
-        </div>
-      </div>
 
-      {/* 수업 목록 - 스크롤 가능 영역 */}
-      <div className="flex-1 overflow-y-auto px-[48px] py-0 min-h-0">
-        <div className="flex flex-col gap-[40px] py-[20px]">
-          {lessons.map((lesson) => (
-            <div key={lesson.id} className="flex items-center justify-between w-full">
-              <div className="flex-1 flex items-center gap-[20px]">
-                {/* 수업 이미지 */}
-                <div className="h-[165px] w-[125px] rounded-[20px] overflow-hidden bg-gray-200 flex items-center justify-center shrink-0">
-                  <span className="text-gray-400 text-4xl">🕺</span>
-                </div>
-
-                {/* 수업 정보 */}
-                <div className="flex-1 flex flex-col gap-[10px] items-start">
-                  <p className="text-gray-500 text-[20px] font-medium tracking-[-0.6px] w-full">
-                    {lesson.date}
-                  </p>
-                  <p className="text-black text-[28px] font-bold w-full">{lesson.title}</p>
-                  <p className="text-black text-[20px] font-medium tracking-[-0.6px] w-full">
-                    {lesson.artists?.[0]?.name}
-                  </p>
-                </div>
-              </div>
+          {/* 계산내역 카드 */}
+          <div className="w-full max-w-[700px] bg-gray-50 rounded-[20px] p-[32px] flex flex-col gap-[16px]">
+            {/* 수업 항목들 */}
+            <div className="flex flex-col gap-[12px] max-h-[300px] overflow-y-auto scrollbar-hide">
+              {lessons.map((lesson) => (
+                  <div key={lesson.id} className="flex items-center gap-[16px]">
+                    {/* 썸네일 */}
+                    <div className="w-[52px] h-[68px] rounded-[10px] overflow-hidden shrink-0 bg-gray-200">
+                      {lesson.thumbnailUrl ? (
+                          <Thumbnail url={lesson.thumbnailUrl} className="w-full h-full" aspectRatio={52 / 68}/>
+                      ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-gray-400 text-lg">🕺</span>
+                          </div>
+                      )}
+                    </div>
+                    {/* 정보 */}
+                    <div className="flex-1 flex flex-col gap-[2px] min-w-0">
+                      <p className="text-black text-[17px] font-bold truncate">{lesson.title}</p>
+                      <p className="text-gray-400 text-[14px]">
+                        {[formatLessonTime(lesson), lesson.artists?.[0]?.nickName].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    {/* 가격 */}
+                    <p className="text-black text-[17px] font-bold shrink-0">
+                      {(lesson.price ?? 0).toLocaleString()}원
+                    </p>
+                  </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* 하단 결제 영역 */}
-      <div className="p-[40px] flex flex-col gap-[20px] shrink-0 border-t border-gray-200">
-        {/* 카운트다운 */}
-        <div className="flex items-center justify-center pb-[20px]">
-          <p className="text-[24px] text-center tracking-[-0.72px]">
-            <span className="font-semibold text-black">{formatTime(countdown)} 뒤 </span>
-            <span className="text-gray-300">첫 화면으로 돌아갑니다</span>
-          </p>
+            {/* 구분선 + 합계 */}
+            <div className="border-t border-gray-300 pt-[16px] flex items-center justify-between">
+              <p className="text-black text-[20px] font-bold">합계</p>
+              <p className="text-black text-[28px] font-bold tracking-[-0.84px]">
+                {totalPrice.toLocaleString()}원
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* 남은 결제 금액 */}
-        <div className="px-[10px] py-0 flex flex-col items-start w-[340px]">
-          <p className="text-gray-500 text-[24px] font-medium tracking-[-0.72px] w-full">
-            남은 결제 금액
+        {/* 하단 */}
+        <div className="px-[48px] pb-[40px] flex flex-col items-center gap-[20px] shrink-0">
+          {/* 카운트다운 */}
+          <p className="text-[18px] tracking-[-0.54px]">
+            <span className="font-semibold text-black">{formatTime(countdown)}</span>
+            <span className="text-gray-300"> 뒤 첫 화면으로 돌아갑니다</span>
           </p>
-          <p className="text-black text-[40px] font-bold tracking-[-1.2px] w-full">
-            {remainingPrice.toLocaleString()}원
-          </p>
-        </div>
 
-        {/* 신청하기 버튼 */}
-        <div className="flex flex-col gap-[20px] items-start shadow-[0px_4px_10px_0px_rgba(0,0,0,0.1)] w-full">
+          {/* 신청 버튼 */}
           <button
-            onClick={onComplete}
-            className="bg-white border-2 border-gray-100 rounded-[28px] h-[120px] w-full flex items-center justify-center gap-[10px] hover:border-black transition-colors"
+              onClick={onComplete}
+              className="w-full max-w-[700px] h-[80px] rounded-[20px] bg-black text-white flex items-center justify-center gap-[10px] hover:bg-gray-900 transition-colors"
           >
-            <div className="w-[40px] h-[40px] flex items-center justify-center">
-              {/* 결제 아이콘 */}
-              <span className="text-2xl">💳</span>
-            </div>
-            <p className="text-black text-[32px] font-medium tracking-[-0.96px]">신청하기</p>
+            <p className="text-[24px] font-medium tracking-[-0.72px]">신청하기</p>
           </button>
         </div>
       </div>
-    </div>
   );
 };
-
