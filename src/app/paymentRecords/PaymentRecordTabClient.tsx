@@ -185,23 +185,16 @@ const UpcomingPaymentsContent = ({
           method={'push'}
           route={KloudScreen.MySubscriptionDetail(sub.subscriptionId)}
         >
-          <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-white active:scale-[0.98] active:bg-gray-50 duration-150">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 self-start font-medium">
-                {getLocaleString({ locale, key: 'active' })}
+          <div className="rounded-2xl bg-[#F7F8F9] p-4 active:scale-[0.98] transition-all duration-150">
+            {sub.studio && (
+              <span className="text-[12px] text-[#86898C] font-medium">{sub.studio.name}</span>
+            )}
+            <h2 className="text-[16px] font-bold text-black mt-1">{sub.productName}</h2>
+            {sub.paymentScheduledAt && (
+              <span className="text-[13px] text-[#AEAEAE] font-medium mt-1.5 block">
+                {getLocaleString({ locale, key: 'payment_record_scheduled' })} {sub.paymentScheduledAt}
               </span>
-              <h2 className="text-[16px] font-semibold text-black mt-1">{sub.productName}</h2>
-              {sub.studio && (
-                <p className="text-sm text-gray-500">{sub.studio.name}</p>
-              )}
-              {sub.paymentScheduledAt && (
-                <p className="text-sm text-gray-600 mt-1">
-                  <span className="text-gray-400">{getLocaleString({ locale, key: 'payment_record_scheduled' })}</span>
-                  {' '}
-                  <span className="font-medium">{sub.paymentScheduledAt}</span>
-                </p>
-              )}
-            </div>
+            )}
           </div>
         </NavigateClickWrapper>
       ))}

@@ -22,6 +22,7 @@ async function PaymentRecordsServer() {
   const noRecordsMessage = await translate('no_purchase_history');
 
   const initialRecords = 'paymentRecords' in paymentRes ? paymentRes.paymentRecords : [];
+
   const subscriptions = 'subscriptions' in subscriptionRes ? subscriptionRes.subscriptions : [];
 
   return (

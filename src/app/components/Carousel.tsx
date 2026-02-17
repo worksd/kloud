@@ -36,12 +36,22 @@ const CardList = ({lessons}: { lessons: JumbotronResponse[] }) => {
                   kloudNav.push(KloudScreen.LessonDetail(item.id))
                 }}
               >
-                <Image
-                  src={item.thumbnailUrl ?? ''}
-                  alt="썸네일"
-                  fill
-                  draggable={false}
-                />
+                {item.thumbnailUrl ? (
+                  <Image
+                    src={item.thumbnailUrl}
+                    alt="썸네일"
+                    fill
+                    draggable={false}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#F1F3F6] flex items-center justify-center">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="3" y="5" width="18" height="14" rx="2" stroke="#C5C8CB" strokeWidth="1.5"/>
+                      <circle cx="8.5" cy="10.5" r="1.5" stroke="#C5C8CB" strokeWidth="1.5"/>
+                      <path d="M3 16l4.793-4.793a1 1 0 011.414 0L13 15l2.793-2.793a1 1 0 011.414 0L21 16" stroke="#C5C8CB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
 
                 {/* 그라데이션 오버레이 */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70"/>

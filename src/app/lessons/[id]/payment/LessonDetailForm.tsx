@@ -33,14 +33,24 @@ export default async function LessonDetailForm({lesson, appVersion}: {
         </button>
       </NavigateClickWrapper>
 
-      <div className="relative w-full aspect-[1/3] overflow-hidden bg-gray-200">
-        <Image
-          src={lesson.thumbnailUrl ?? ''}
-          alt={lesson?.title ?? 'thumbnail'}
-          fill
-          className="object-cover"
-          quality={60}
-        />
+      <div className="relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6]">
+        {lesson.thumbnailUrl ? (
+          <Image
+            src={lesson.thumbnailUrl}
+            alt={lesson?.title ?? 'thumbnail'}
+            fill
+            className="object-cover"
+            quality={60}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="5" width="18" height="14" rx="2" stroke="#C5C8CB" strokeWidth="1.5"/>
+              <circle cx="8.5" cy="10.5" r="1.5" stroke="#C5C8CB" strokeWidth="1.5"/>
+              <path d="M3 16l4.793-4.793a1 1 0 011.414 0L13 15l2.793-2.793a1 1 0 011.414 0L21 16" stroke="#C5C8CB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* 디테일 영역 */}
