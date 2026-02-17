@@ -203,22 +203,30 @@ export default function LessonGroupDetailForm({
     return parts[1] || ''; // "15:00"
   };
 
-  // 다음 수업 찾기
+  // 다음 수업 찾기 (시간까지 비교)
   const nextLesson = useMemo(() => {
-    const todayStr = today;
+    const nowMs = Date.now();
     const upcomingLessons = lessons
       .filter(lesson => {
         if (!lesson.startDate) return false;
-        const lessonDateStr = parseStartDate(lesson.startDate);
-        return lessonDateStr >= todayStr && lesson.status !== LessonStatus.Completed && lesson.status !== LessonStatus.Cancelled;
+        // "2026.01.01 15:00" → Date 객체로 변환
+        const [datePart, timePart] = lesson.startDate.split(' ');
+        const [Y, M, D] = datePart.split('.').map(Number);
+        const [h, m] = (timePart || '00:00').split(':').map(Number);
+        const lessonMs = new Date(Y, M - 1, D, h, m).getTime();
+        return lessonMs >= nowMs && lesson.status !== LessonStatus.Completed && lesson.status !== LessonStatus.Cancelled;
       })
       .sort((a, b) => {
-        const dateA = a.startDate ? parseStartDate(a.startDate) : '';
-        const dateB = b.startDate ? parseStartDate(b.startDate) : '';
-        return dateA.localeCompare(dateB);
+        const parseMs = (s: string) => {
+          const [dp, tp] = s.split(' ');
+          const [Y, M, D] = dp.split('.').map(Number);
+          const [h, m] = (tp || '00:00').split(':').map(Number);
+          return new Date(Y, M - 1, D, h, m).getTime();
+        };
+        return parseMs(a.startDate!) - parseMs(b.startDate!);
       });
     return upcomingLessons[0] || null;
-  }, [lessons, today]);
+  }, [lessons]);
 
   // 날짜별 수업 매핑
   const lessonsByDate = useMemo(() => {
@@ -320,7 +328,7 @@ export default function LessonGroupDetailForm({
       </NavigateClickWrapper>
 
       {/* 썸네일 */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-200">
+      <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F1F3F6]">
         {(lessonGroup.thumbnailUrl || lessonGroup.artist?.profileImageUrl) ? (
           <Image
             src={lessonGroup.thumbnailUrl || lessonGroup.artist?.profileImageUrl || ''}
@@ -330,8 +338,12 @@ export default function LessonGroupDetailForm({
             quality={60}
           />
         ) : (
-          <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-            <span className="text-gray-500">No Image</span>
+          <div className="w-full h-full flex items-center justify-center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="5" width="18" height="14" rx="2" stroke="#C5C8CB" strokeWidth="1.5"/>
+              <circle cx="8.5" cy="10.5" r="1.5" stroke="#C5C8CB" strokeWidth="1.5"/>
+              <path d="M3 16l4.793-4.793a1 1 0 011.414 0L13 15l2.793-2.793a1 1 0 011.414 0L21 16" stroke="#C5C8CB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
         )}
       </div>
@@ -359,42 +371,77 @@ export default function LessonGroupDetailForm({
               <div className="w-full text-black text-xl font-bold leading-normal">{lessonGroup.title}</div>
             </div>
 
-            {/* 정기수업 정보 */}
-            <div className="w-full flex flex-col gap-1 mt-2">
-              {lessonGroup.days && lessonGroup.days.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-gray-500">수업 요일</span>
-                  <span className="text-[13px] text-black font-medium">{formatDays(lessonGroup.days)}</span>
+            {/* 수업 요일 */}
+            {lessonGroup.days && lessonGroup.days.length > 0 && (
+              <div className="w-full mt-4">
+                <div className="flex gap-1.5">
+                  {(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'] as const).map((day) => {
+                    const labelMap: Record<string, string> = {
+                      MONDAY: '월', TUESDAY: '화', WEDNESDAY: '수', THURSDAY: '목',
+                      FRIDAY: '금', SATURDAY: '토', SUNDAY: '일',
+                    };
+                    const isActive = lessonGroup.days!.some(d => d === day || d === day.slice(0, 3));
+                    return (
+                      <div
+                        key={day}
+                        className={`flex-1 py-2 rounded-lg text-center text-[13px] font-bold transition-colors
+                          ${isActive ? 'bg-black text-white font-extrabold' : 'bg-[#F1F3F6] text-[#C5C8CB] font-medium'}`}
+                      >
+                        {labelMap[day]}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* 수강 현황 */}
+            {lessonGroup.limit > 0 && (
+              <div className="w-full mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'enrollment_status'})}</span>
+                  <span className="text-[13px] text-black font-bold">{lessonGroup.currentStudentCount} / {lessonGroup.limit}명</span>
+                </div>
+                <div className="w-full h-2 bg-[#F1F3F6] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-black rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((lessonGroup.currentStudentCount / lessonGroup.limit) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 수업 정보 */}
+            <div className="w-full mt-4 bg-[#F7F8F9] rounded-2xl divide-y divide-[#ECECEC]">
               {lessonGroup.startTime && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-gray-500">수업 시간</span>
-                  <span className="text-[13px] text-black font-medium">{lessonGroup.startTime}</span>
-                  {lessonGroup.duration && (
-                    <span className="text-[13px] text-gray-400">({lessonGroup.duration}분)</span>
-                  )}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'lesson_time'})}</span>
+                  <span className="text-[13px] text-black font-medium">
+                    {(() => {
+                      const formatAmPm = (time: string) => {
+                        const [h, m] = time.split(':').map(Number);
+                        const period = h < 12 ? '오전' : '오후';
+                        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                        return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
+                      };
+                      const start = formatAmPm(lessonGroup.startTime!);
+                      if (lessonGroup.duration && lessonGroup.startTime) {
+                        const [sh, sm] = lessonGroup.startTime.split(':').map(Number);
+                        const endMinutes = sh * 60 + sm + lessonGroup.duration;
+                        const endH = Math.floor(endMinutes / 60) % 24;
+                        const endM = endMinutes % 60;
+                        const end = formatAmPm(`${endH}:${String(endM).padStart(2, '0')}`);
+                        return `${start} - ${end}`;
+                      }
+                      return start;
+                    })()}
+                  </span>
                 </div>
               )}
-              {/* 연습실 정보 */}
               {lessonGroup.studioRoom && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-gray-500">연습실</span>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'studio_room'})}</span>
                   <span className="text-[13px] text-black font-medium">{lessonGroup.studioRoom.name}</span>
-                </div>
-              )}
-              {/* 수강 횟수 */}
-              {lessonGroup.paymentCount && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-gray-500">수강 횟수</span>
-                  <span className="text-[13px] text-black font-medium">{lessonGroup.paymentCount}회</span>
-                </div>
-              )}
-              {/* 수강 현황 */}
-              {lessonGroup.limit && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-gray-500">수강 현황</span>
-                  <span className="text-[13px] text-black font-medium">{lessonGroup.currentStudentCount} / {lessonGroup.limit}명</span>
                 </div>
               )}
             </div>
@@ -488,26 +535,29 @@ export default function LessonGroupDetailForm({
 
             {/* 다음 수업 정보 */}
             {nextLesson && (
-              <div className="mx-4 mt-2 p-4 bg-black rounded-[16px]">
+              <div
+                className="mx-4 mt-2 p-4 bg-black rounded-2xl active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                onClick={() => handleLessonClick(nextLesson.id)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {nextLesson.artist?.profileImageUrl && (
-                      <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                      <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                         <Image src={nextLesson.artist.profileImageUrl} alt="" fill className="object-cover"/>
                       </div>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-[11px] text-gray-400">다음 수업</span>
+                      <span className="text-[11px] text-white/50 font-medium">{getLocaleString({locale, key: 'next_lesson'})}</span>
                       <span className="text-[15px] text-white font-bold">
                         {(() => {
                           const parts = nextLesson.startDate?.split(' ')[0].split('.');
                           const time = nextLesson.startDate ? parseStartTime(nextLesson.startDate) : '';
-                          return parts ? `${parts[1]}월 ${parts[2]}일 ${time}` : '';
+                          return parts ? `${Number(parts[1])}월 ${Number(parts[2])}일 ${time}` : '';
                         })()}
                       </span>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400"/>
+                  <ChevronRight className="w-5 h-5 text-white/30"/>
                 </div>
               </div>
             )}
@@ -561,22 +611,22 @@ export default function LessonGroupDetailForm({
             <>
               <div className="w-full h-3 bg-[#f7f8f9]"/>
               <div className="self-stretch px-6 py-4">
-                <div className="text-black text-[16px] font-bold mb-3">보유 수강권</div>
-                <div className="bg-[#f7f8f9] rounded-[12px] p-4 flex flex-col gap-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[14px] text-gray-600">상태</span>
-                    <span className="text-[14px] text-black font-medium">{lessonGroup.ticket.status}</span>
+                <div className="text-black text-[16px] font-bold mb-3">{getLocaleString({locale, key: 'my_ticket'})}</div>
+                <div className="bg-[#F7F8F9] rounded-2xl divide-y divide-[#ECECEC]">
+                  <div className="flex justify-between items-center px-4 py-3">
+                    <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'status'})}</span>
+                    <span className="text-[13px] text-black font-medium">{lessonGroup.ticket.status}</span>
                   </div>
                   {lessonGroup.ticket.remainingCount !== undefined && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[14px] text-gray-600">남은 횟수</span>
-                      <span className="text-[14px] text-black font-medium">{lessonGroup.ticket.remainingCount}회</span>
+                    <div className="flex justify-between items-center px-4 py-3">
+                      <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'remaining_count'})}</span>
+                      <span className="text-[13px] text-black font-medium">{lessonGroup.ticket.remainingCount}회</span>
                     </div>
                   )}
                   {lessonGroup.ticket.endDate && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[14px] text-gray-600">이용 기간</span>
-                      <span className="text-[14px] text-black font-medium">~{lessonGroup.ticket.endDate}</span>
+                    <div className="flex justify-between items-center px-4 py-3">
+                      <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'until'})}</span>
+                      <span className="text-[13px] text-black font-medium">~{lessonGroup.ticket.endDate}</span>
                     </div>
                   )}
                 </div>
@@ -654,9 +704,17 @@ export default function LessonGroupDetailForm({
 
                   {/* 수강 현황 */}
                   {selectedLesson.currentStudentCount !== undefined && selectedLesson.limit && (
-                    <div className="flex items-center gap-2 text-[14px]">
-                      <span className="text-gray-500">수강 현황</span>
-                      <span className="text-black font-medium">{selectedLesson.currentStudentCount} / {selectedLesson.limit}명</span>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[13px] text-[#86898C]">{getLocaleString({locale, key: 'enrollment_status'})}</span>
+                        <span className="text-[13px] text-black font-bold">{selectedLesson.currentStudentCount} / {selectedLesson.limit}명</span>
+                      </div>
+                      <div className="w-full h-2 bg-[#F1F3F6] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-black rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min((selectedLesson.currentStudentCount / selectedLesson.limit) * 100, 100)}%` }}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -669,7 +727,7 @@ export default function LessonGroupDetailForm({
                       }}
                       className="mt-4 w-full py-3 bg-black text-white rounded-[12px] text-[14px] font-medium active:opacity-80"
                     >
-                      상세 보기
+                      수업 보러가기
                     </button>
                   )}
                 </div>

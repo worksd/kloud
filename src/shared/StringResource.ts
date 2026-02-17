@@ -2380,6 +2380,48 @@ export const StringResource = {
     en: 'Watch on YouTube',
     jp: 'YouTubeで見る',
     zh: '在YouTube上观看'
+  },
+  lesson_day: {
+    ko: '수업 요일',
+    en: 'Lesson Days',
+    jp: 'レッスン曜日',
+    zh: '上课日'
+  },
+  lesson_time: {
+    ko: '수업 시간',
+    en: 'Lesson Time',
+    jp: 'レッスン時間',
+    zh: '上课时间'
+  },
+  studio_room: {
+    ko: '강의실',
+    en: 'Classroom',
+    jp: '教室',
+    zh: '教室'
+  },
+  lesson_count: {
+    ko: '총 수업',
+    en: 'Total Lessons',
+    jp: '全レッスン',
+    zh: '总课程'
+  },
+  enrollment_status: {
+    ko: '수강 현황',
+    en: 'Enrollment',
+    jp: '受講状況',
+    zh: '报名情况'
+  },
+  next_lesson: {
+    ko: '다음 수업',
+    en: 'Next Lesson',
+    jp: '次のレッスン',
+    zh: '下一节课'
+  },
+  status: {
+    ko: '상태',
+    en: 'Status',
+    jp: 'ステータス',
+    zh: '状态'
   }
 }
 
