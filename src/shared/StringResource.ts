@@ -2358,7 +2358,7 @@ export const StringResource = {
     zh: '如果截图二维码，可能会限制入场'
   },
   my_lesson_group_tickets: {
-    ko: '정기수업 수강권',
+    ko: '정기 수업',
     en: 'Lesson Group Tickets',
     jp: '定期レッスン受講券',
     zh: '定期课程票'
