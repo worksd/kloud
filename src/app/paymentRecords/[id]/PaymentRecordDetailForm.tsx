@@ -3,10 +3,9 @@ import {SellerInformation} from "@/app/lessons/[id]/payment/SellerInformation";
 import {RefundInformation} from "@/app/lessons/[id]/payment/RefundInformation";
 import React from "react";
 import {RippleEffect} from "./RippleEffect";
-import {PaymentRecordDetailMoreButton} from "./PaymentRecordDetailMoreButton";
 import {GetPaymentRecordResponse, PaymentRecordStatus} from "@/app/endpoint/payment.record.endpoint";
 import {translate} from "@/utils/translate";
-import {statusLabelMap, statusBadgeStyle, PaymentStatusBadge} from "@/app/paymentRecords/PaymentRecordItem";
+import {PaymentStatusBadge} from "@/app/paymentRecords/PaymentRecordItem";
 import {BankOrCardIcon} from "@/app/components/Bank";
 import {PaymentMethodLabel} from "@/app/components/PaymentMethodLabel";
 import {Locale} from "@/shared/StringResource";
@@ -37,7 +36,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
       : isLessonTicket
           ? await translate('lesson_ticket_information')
           : await translate('pass_plan_information');
-  
+
   // 금액 라벨 결정
   const amountLabel = isPassPlan
       ? await translate('pass_plan_price')
@@ -46,11 +45,11 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
           : isMembership
               ? await translate('membership_price')
               : await translate('payment_amount');
-  
+
   // 원래 가격 계산 (amount + discounts 합계)
   const totalDiscountAmount = paymentRecord.discounts?.reduce((sum, discount) => sum + discount.amount, 0) ?? 0;
   const originalAmount = paymentRecord.amount + totalDiscountAmount;
-  
+
   // translate 미리 처리
   const wonText = await translate('won');
   const totalAmountText = await translate('total_amount');
@@ -68,39 +67,40 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
 
-         {/* 패스권/수강권 정보 */}
-         <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute || ''}>
-           <RippleEffect className="px-5 py-5 active:bg-gray-50 transition-colors">
-             <p className="text-[16px] font-bold text-black mb-5">
-               {informationTitle}
-             </p>
-             <div className="flex items-center justify-between">
+        {/* 패스권/수강권 정보 */}
+        <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute || ''}>
+          <RippleEffect className="px-5 py-5 active:bg-gray-50 transition-colors">
+            <p className="text-[16px] font-bold text-black mb-5">
+              {informationTitle}
+            </p>
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isLessonTicket ? (
                     <div className="w-12 h-16 rounded overflow-hidden flex-shrink-0">
                       {paymentRecord.productImageUrl ? (
-                        <Image
-                            src={paymentRecord.productImageUrl}
-                            alt={paymentRecord.productName}
-                            width={48}
-                            height={64}
-                            className="w-full h-full object-cover"
-                        />
+                          <Image
+                              src={paymentRecord.productImageUrl}
+                              alt={paymentRecord.productName}
+                              width={48}
+                              height={64}
+                              className="w-full h-full object-cover"
+                          />
                       ) : (
-                        <div className="w-full h-full bg-[#F1F3F6] flex items-center justify-center">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <rect x="3" y="5" width="18" height="14" rx="2" stroke="#C5C8CB" strokeWidth="1.5"/>
-                            <circle cx="8.5" cy="10.5" r="1.5" stroke="#C5C8CB" strokeWidth="1.5"/>
-                            <path d="M3 16l4.793-4.793a1 1 0 011.414 0L13 15l2.793-2.793a1 1 0 011.414 0L21 16" stroke="#C5C8CB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
+                          <div className="w-full h-full bg-[#F1F3F6] flex items-center justify-center">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                              <rect x="3" y="5" width="18" height="14" rx="2" stroke="#C5C8CB" strokeWidth="1.5"/>
+                              <circle cx="8.5" cy="10.5" r="1.5" stroke="#C5C8CB" strokeWidth="1.5"/>
+                              <path d="M3 16l4.793-4.793a1 1 0 011.414 0L13 15l2.793-2.793a1 1 0 011.414 0L21 16"
+                                    stroke="#C5C8CB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
                       )}
                     </div>
-                 ) : (
-                     <div className="w-6 h-6 flex-shrink-0">
-                       <PassPlanIcon className="w-full h-full text-[#b1b8be]" />
-                     </div>
-                 )}
+                ) : (
+                    <div className="w-6 h-6 flex-shrink-0">
+                      <PassPlanIcon className="w-full h-full text-[#b1b8be]"/>
+                    </div>
+                )}
                 <div className="flex flex-col">
                   <p className="text-[14px] font-medium text-black">{paymentRecord.productName}</p>
                   {paymentRecord.productDescription && (
@@ -108,10 +108,10 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                   )}
                 </div>
               </div>
-               <GrayRightArrow className="w-6 h-6 text-[#b1b8be]"/>
-             </div>
-           </RippleEffect>
-         </NavigateClickWrapper>
+              <GrayRightArrow className="w-6 h-6 text-[#b1b8be]"/>
+            </div>
+          </RippleEffect>
+        </NavigateClickWrapper>
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
@@ -130,16 +130,16 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
 
             {/* 할인 정보 */}
             {paymentRecord.discounts && paymentRecord.discounts.length > 0 && (
-              <>
-                {paymentRecord.discounts.map((discount, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-[14px] font-medium text-black">{discount.key}</span>
-                    <span className="text-[14px] font-medium text-[#e55b5b]">
+                <>
+                  {paymentRecord.discounts.map((discount, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-[14px] font-medium text-black">{discount.key}</span>
+                        <span className="text-[14px] font-medium text-[#e55b5b]">
                       -{new Intl.NumberFormat("ko-KR").format(discount.amount)}{wonText}
                     </span>
-                  </div>
-                ))}
-              </>
+                      </div>
+                  ))}
+                </>
             )}
 
             {/* 총 결제 금액 */}
@@ -187,7 +187,8 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
                   <div className="flex items-center">
-                    <span className="text-[14px] font-medium text-[#191f28] text-right">{formatCardNumber(paymentRecord.cardNumber)}</span>
+                    <span
+                        className="text-[14px] font-medium text-[#191f28] text-right">{formatCardNumber(paymentRecord.cardNumber)}</span>
                   </div>
                 </div>
             ) : paymentRecord.depositor && (
@@ -200,20 +201,22 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
             {/* 입금할 계좌 정보 (계좌이체일 때만) */}
             {paymentRecord.methodType === 'account_transfer' && paymentRecord.studio?.bank && (
                 <>
-                    <div className="flex items-center justify-between">
-                        <span className="text-[14px] font-medium text-black">{await translate('deposit_account_information')}</span>
-                        <div className="flex items-center gap-1">
-                            <BankOrCardIcon name={paymentRecord.studio.bank} scale={75}/>
-                            <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.bank}</span>
-                            <span className="text-[14px] font-medium text-[#191f28]">{formatAccountNumber(paymentRecord.studio.accountNumber, paymentRecord.studio.bank)}</span>
-                        </div>
+                  <div className="flex items-center justify-between">
+                    <span
+                        className="text-[14px] font-medium text-black">{await translate('deposit_account_information')}</span>
+                    <div className="flex items-center gap-1">
+                      <BankOrCardIcon name={paymentRecord.studio.bank} scale={75}/>
+                      <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.bank}</span>
+                      <span
+                          className="text-[14px] font-medium text-[#191f28]">{formatAccountNumber(paymentRecord.studio.accountNumber, paymentRecord.studio.bank)}</span>
                     </div>
-                    {paymentRecord.studio.depositor && (
-                        <div className="flex items-center justify-between">
-                            <span className="text-[14px] font-medium text-black">{await translate('account_holder')}</span>
-                            <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.depositor}</span>
-                        </div>
-                    )}
+                  </div>
+                  {paymentRecord.studio.depositor && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[14px] font-medium text-black">{await translate('account_holder')}</span>
+                        <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.depositor}</span>
+                      </div>
+                  )}
                 </>
             )}
           </div>
@@ -266,7 +269,8 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                         <span className="text-[14px] font-medium text-black">{await translate('refund_account')}</span>
                         <div className="flex items-center gap-1">
                           <BankOrCardIcon name={paymentRecord.refundAccountBank} scale={100}/>
-                          <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.refundAccountBank}</span>
+                          <span
+                              className="text-[14px] font-medium text-[#191f28]">{paymentRecord.refundAccountBank}</span>
                           <span
                               className="text-[14px] font-medium text-[#191f28]">{paymentRecord.refoundAccountNumber}</span>
                         </div>
@@ -294,7 +298,8 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
           <p className="text-[16px] font-bold text-black mb-5">{await translate('seller_information')}</p>
           <div className="space-y-6">
             {paymentRecord.studio && <SellerInformation studio={paymentRecord.studio} locale={locale}/>}
-            <RefundInformation locale={locale} paymentId={paymentRecord.paymentId} isRefundable={paymentRecord.isRefundable}/>
+            <RefundInformation locale={locale} paymentId={paymentRecord.paymentId}
+                               isRefundable={paymentRecord.isRefundable}/>
           </div>
         </div>
       </div>
