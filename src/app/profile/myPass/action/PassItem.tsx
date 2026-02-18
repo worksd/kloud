@@ -9,15 +9,12 @@ export const PassItem = ({pass, endDate, locale}: { pass: GetPassResponse, endDa
   const status = pass.status;
 
   return (
-    <div className="flex flex-col gap-2.5">
-      {/* 스튜디오 */}
-      <div className="flex items-center gap-2">
-        <CircleImage size={24} imageUrl={pass.passPlan?.studio?.profileImageUrl}/>
-        <span className="text-[14px] text-[#86898C] font-medium">{pass.passPlan?.studio?.name}</span>
+    <div className="flex flex-col gap-2">
+      {/* 스튜디오 로고 + 패스권 이름 */}
+      <div className="flex items-center gap-2.5">
+        <CircleImage size={28} imageUrl={pass.passPlan?.studio?.profileImageUrl}/>
+        <h2 className="text-[16px] font-bold text-black">{pass.passPlan?.name}</h2>
       </div>
-
-      {/* 패스권 이름 */}
-      <h2 className="text-[18px] font-bold text-black">{pass.passPlan?.name}</h2>
 
       {/* Active 상태 */}
       {status === 'Active' && pass.endDate && (

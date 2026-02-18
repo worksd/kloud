@@ -25,7 +25,7 @@ export default async function SettingPage({
       <div className="flex flex-col min-h-screen bg-white py-8 w-full max-w-screen overflow-x-hidden">
         <div className="flex justify-end px-4 mb-4">
           <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-            <SettingIcon/>
+            <SettingIcon className="w-[24px] h-[24px]"/>
           </NavigateClickWrapper>
         </div>
 
@@ -46,9 +46,7 @@ export default async function SettingPage({
                   <div className="font-bold text-lg text-black">{user.nickName}</div>
                 )}
                 <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-                  <div className="w-[28px] h-[28px] rounded-[8px] border border-[#E0E0E0] flex items-center justify-center active:scale-[0.9] active:bg-gray-100 transition-all duration-150">
-                    <EditIcon className="w-[14px] h-[14px] text-gray-500"/>
-                  </div>
+                  <EditIcon className="w-[18px] h-[18px] active:opacity-50 transition-opacity duration-150"/>
                 </NavigateClickWrapper>
               </div>
               {has(user.email) && (
@@ -124,37 +122,37 @@ export default async function SettingPage({
           <div className="text-[13px] font-bold text-[#999] mb-3 px-1 pt-2">{await translate('my_page')}</div>
           <div className="grid grid-cols-3 gap-3">
             <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <div className="flex items-center gap-1">
-                  <TicketIcon className="w-5 h-5"/>
-                  <span className="text-[12px] font-medium text-[#999]">{await translate('my_tickets')}</span>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1.5">
+                  <TicketIcon className="w-[24px] h-[24px]"/>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_tickets')}</span>
                 </div>
                 {user.ticketCount != null && user.ticketCount > 0 && (
-                  <span className="text-[18px] font-bold text-black">{user.ticketCount}건</span>
+                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.ticketCount}건</span>
                 )}
               </div>
             </NavigateClickWrapper>
 
             <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <div className="flex items-center gap-1">
-                  <PassPlanIcon className="w-5 h-5"/>
-                  <span className="text-[12px] font-medium text-[#999]">{await translate('my_pass')}</span>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1.5">
+                  <PassPlanIcon className="w-[24px] h-[24px]"/>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_pass')}</span>
                 </div>
                 {user.passCount != null && user.passCount > 0 && (
-                  <span className="text-[18px] font-bold text-black">{user.passCount}개</span>
+                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.passCount}개</span>
                 )}
               </div>
             </NavigateClickWrapper>
 
             <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <div className="flex items-center gap-1">
-                  <ReceiptIcon className="w-5 h-5"/>
-                  <span className="text-[12px] font-medium text-[#999]">{await translate('payment_records')}</span>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1.5">
+                  <ReceiptIcon className="w-[24px] h-[24px]"/>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('payment_records')}</span>
                 </div>
                 {user.paymentRecordCount != null && user.paymentRecordCount > 0 && (
-                  <span className="text-[18px] font-bold text-black">{user.paymentRecordCount}건</span>
+                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount}건</span>
                 )}
               </div>
             </NavigateClickWrapper>

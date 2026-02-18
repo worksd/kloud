@@ -30,7 +30,7 @@ export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222 }:
 
   return (
     <div
-      className={`relative [-webkit-touch-callout:none] ${width ? '' : 'w-full aspect-[167/222]'} ${className}`}
+      className={`relative [-webkit-touch-callout:none] rounded-[16px] overflow-hidden ${width ? '' : 'w-full aspect-[167/222]'} ${className}`}
       style={containerStyle}
     >
       {url && !hasError ? (

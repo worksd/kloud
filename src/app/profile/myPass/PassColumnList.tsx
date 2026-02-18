@@ -68,24 +68,24 @@ export const ActivePassItem = ({pass, locale}: { pass: GetPassResponse, locale: 
 
   return (
     <div
-      className={`${backgroundColor} rounded-2xl p-5 border ${borderColor} active:scale-[0.98] transition-all duration-150 select-none`}
+      className={`${backgroundColor} rounded-2xl px-5 py-4 border ${borderColor} active:scale-[0.98] transition-all duration-150 select-none`}
       onClick={() => kloudNav.push(KloudScreen.MyPassDetail(pass.id))}
     >
       <div className="flex justify-between items-start">
         <PassItem pass={pass} locale={locale}/>
-        <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0 ml-3">
           {isPremium && <PremiumTierIcon/>}
           {pass.status === 'Active' && (
-            <>
+            <div className="flex items-center gap-1.5">
               {pass.remainingCount != null && (
-                <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full font-paperlogy">
                   {pass.remainingCount}{getLocaleString({locale, key: 'remaining_count'})}
                 </span>
               )}
-              <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full font-paperlogy">
                 <DdayText input={pass.endDate}/>
               </span>
-            </>
+            </div>
           )}
         </div>
       </div>

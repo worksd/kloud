@@ -6,7 +6,7 @@ import {RippleEffect} from "./RippleEffect";
 import {PaymentRecordDetailMoreButton} from "./PaymentRecordDetailMoreButton";
 import {GetPaymentRecordResponse, PaymentRecordStatus} from "@/app/endpoint/payment.record.endpoint";
 import {translate} from "@/utils/translate";
-import {statusLabelMap} from "@/app/paymentRecords/PaymentRecordItem";
+import {statusLabelMap, statusBadgeStyle, PaymentStatusBadge} from "@/app/paymentRecords/PaymentRecordItem";
 import {BankOrCardIcon} from "@/app/components/Bank";
 import {PaymentMethodLabel} from "@/app/components/PaymentMethodLabel";
 import {Locale} from "@/shared/StringResource";
@@ -15,21 +15,17 @@ import GrayRightArrow from "../../../../public/assets/gray_right_arrow.svg";
 import PassPlanIcon from "../../../../public/assets/ic_pass_plan.svg";
 import {formatAccountNumber} from "@/utils/format.account";
 
-const statusColorMap: Record<PaymentRecordStatus, string> = {
-  [PaymentRecordStatus.Completed]: "text-[#3d9442]",
-  [PaymentRecordStatus.Settled]: "text-[#3d9442]",
-  [PaymentRecordStatus.Cancelled]: "text-[#e55b5b]",
-  [PaymentRecordStatus.Pending]: "text-[#e5aa00]",
-  [PaymentRecordStatus.Failed]: "text-[#e55b5b]",
-  [PaymentRecordStatus.CancelPending]: "text-[#E67E22]",
+const formatCardNumber = (cardNumber?: string | null) => {
+  if (!cardNumber) return '';
+  const chars = cardNumber.replace(/[\s-]/g, '');
+  return chars.replace(/(.{4})(?=.)/g, '$1-');
 };
+
 
 export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   paymentRecord: GetPaymentRecordResponse,
   locale: Locale
 }) => {
-  const statusColor = statusColorMap[paymentRecord.status] || "text-gray-500";
-
   // paymentId의 마지막 부분 확인 (예: "ABC-123-LP" -> "LP")
   const parts = paymentRecord.paymentId.split('-');
   const displayPaymentId = parts[parts.length - 1]; // 마지막 부분만 표시
@@ -60,11 +56,9 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   const totalAmountText = await translate('total_amount');
 
   return (
-      <div className="bg-white min-h-screen">
-        <div className="px-5 py-5">
-          <p className={`text-[16px] font-bold ${statusColor} mb-3`}>
-            {await translate(statusLabelMap[paymentRecord.status])}
-          </p>
+      <div className="bg-white min-h-screen ">
+        <div className="px-5 py-5 flex flex-col gap-3 items-start">
+          <PaymentStatusBadge status={paymentRecord.status} locale={locale}/>
           <div className="flex items-center gap-2 text-[12px] text-[#6d7882] font-medium">
             <span>{await translate('payment_id')}</span>
             <span>{displayPaymentId}</span>
@@ -75,22 +69,32 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
         <div className="h-3 bg-[#f9f9fb]"/>
 
          {/* 패스권/수강권 정보 */}
-         <div className="px-5 py-5">
-           <p className="text-[16px] font-bold text-black mb-5">
-             {informationTitle}
-           </p>
-           <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute || ''}>
-             <RippleEffect className="flex items-center justify-between h-14 active:bg-gray-100 transition-colors -mx-5 px-5">
+         <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute || ''}>
+           <RippleEffect className="px-5 py-5 active:bg-gray-50 transition-colors">
+             <p className="text-[16px] font-bold text-black mb-5">
+               {informationTitle}
+             </p>
+             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isLessonTicket ? (
                     <div className="w-12 h-16 rounded overflow-hidden flex-shrink-0">
-                      <Image
-                          src={paymentRecord.productImageUrl ?? ''}
-                          alt={paymentRecord.productName}
-                          width={48}
-                          height={64}
-                          className="w-full h-full object-cover"
-                      />
+                      {paymentRecord.productImageUrl ? (
+                        <Image
+                            src={paymentRecord.productImageUrl}
+                            alt={paymentRecord.productName}
+                            width={48}
+                            height={64}
+                            className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#F1F3F6] flex items-center justify-center">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="5" width="18" height="14" rx="2" stroke="#C5C8CB" strokeWidth="1.5"/>
+                            <circle cx="8.5" cy="10.5" r="1.5" stroke="#C5C8CB" strokeWidth="1.5"/>
+                            <path d="M3 16l4.793-4.793a1 1 0 011.414 0L13 15l2.793-2.793a1 1 0 011.414 0L21 16" stroke="#C5C8CB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      )}
                     </div>
                  ) : (
                      <div className="w-6 h-6 flex-shrink-0">
@@ -105,9 +109,9 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                 </div>
               </div>
                <GrayRightArrow className="w-6 h-6 text-[#b1b8be]"/>
-             </RippleEffect>
-           </NavigateClickWrapper>
-        </div>
+             </div>
+           </RippleEffect>
+         </NavigateClickWrapper>
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
@@ -183,7 +187,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                 <div className="flex items-center justify-between">
                   <span className="text-[14px] font-medium text-black">{await translate('card_information')}</span>
                   <div className="flex items-center">
-                    <span className="text-[14px] font-medium text-[#191f28] text-right">{paymentRecord.cardNumber}</span>
+                    <span className="text-[14px] font-medium text-[#191f28] text-right">{formatCardNumber(paymentRecord.cardNumber)}</span>
                   </div>
                 </div>
             ) : paymentRecord.depositor && (

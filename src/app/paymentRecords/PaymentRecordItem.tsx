@@ -17,7 +17,7 @@ export const statusLabelMap: Record<PaymentRecordStatus, StringResourceKey> = {
   CancelPending: 'payment_record_cancel_pending'
 };
 
-const statusBadgeStyle: Record<PaymentRecordStatus | "default", string> = {
+export const statusBadgeStyle: Record<PaymentRecordStatus | "default", string> = {
   [PaymentRecordStatus.Completed]: "bg-green-50 text-green-700 ring-1 ring-green-200",
   [PaymentRecordStatus.Settled]: "bg-green-50 text-green-700 ring-1 ring-green-200",
   [PaymentRecordStatus.Cancelled]: "bg-red-50 text-red-700 ring-1 ring-red-200",
@@ -25,6 +25,20 @@ const statusBadgeStyle: Record<PaymentRecordStatus | "default", string> = {
   [PaymentRecordStatus.Failed]: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
   [PaymentRecordStatus.CancelPending]: "bg-orange-50 text-[#E67E22] ring-1 ring-orange-200",
   default: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
+};
+
+export const PaymentStatusBadge = ({status, locale}: { status: PaymentRecordStatus, locale: Locale }) => {
+  return (
+    <span
+      className={[
+        "inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md",
+        "whitespace-nowrap shrink-0 font-bold font-paperlogy",
+        statusBadgeStyle[status] ?? statusBadgeStyle.default,
+      ].join(" ")}
+    >
+      {getLocaleString({locale, key: statusLabelMap[status]})}
+    </span>
+  );
 };
 
 export const PaymentRecordItem = ({
@@ -53,17 +67,7 @@ export const PaymentRecordItem = ({
             <p className="text-sm text-gray-500">{paymentRecord.createdAt}</p>
           </div>
 
-          <span
-            className={[
-              "inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md",
-              "whitespace-nowrap shrink-0 font-bold font-paperlogy",
-              statusBadgeStyle[paymentRecord.status] ?? statusBadgeStyle.default,
-            ].join(" ")}
-          >
-            {/* 작은 상태 점(더 예쁘게) */}
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-current opacity-70"/>
-            {getLocaleString({ locale, key: statusLabelMap[paymentRecord.status] })}
-          </span>
+          <PaymentStatusBadge status={paymentRecord.status} locale={locale}/>
         </div>
 
         {/* 디테일 */}
