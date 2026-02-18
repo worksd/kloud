@@ -1,7 +1,7 @@
 'use client';
 
 import Image from "next/image";
-import { GetLessonGroupResponse, GetBandLessonResponse, GetLessonResponse, LessonStatus, GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonGroupResponse, GetBandLessonResponse, GetLessonResponse, LessonStatus, LessonStatusDisplay, GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import LeftArrow from "../../../../public/assets/left-arrow.svg";
 import ChevronLeft from "../../../../public/assets/ic_simple_left_arrow.svg";
@@ -655,8 +655,8 @@ export default function LessonGroupDetailForm({
                 {/* 헤더 */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[12px] px-2 py-0.5 rounded text-white ${getStatusColor(selectedLesson.status)}`}>
-                      {selectedLesson.status}
+                    <span className="text-[12px] px-2 py-0.5 rounded text-white bg-black">
+                      {LessonStatusDisplay[selectedLesson.status ?? ''] ?? selectedLesson.status}
                     </span>
                   </div>
                   <button onClick={closeDialog} className="p-1">
