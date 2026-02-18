@@ -4,9 +4,8 @@ import React, {useEffect, useState} from 'react';
 import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
 import CloseIcon from '../../../../../public/assets/ic_close_black.svg';
 import {getLessonsByDate} from './get.lessons.by.date.action';
-import {GetLessonResponse, LessonStatus} from '@/app/endpoint/lesson.endpoint';
+import {GetLessonResponse, LessonStatus, LessonStatusDisplay} from '@/app/endpoint/lesson.endpoint';
 import {Thumbnail} from '@/app/components/Thumbnail';
-import StampCancel from '../../../../../public/assets/stamp_cancel.svg';
 
 type KioskLessonSelectionFormProps = {
   studioName: string;
@@ -133,7 +132,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
   };
 
   const handleLessonToggle = (lesson: GetLessonResponse) => {
-    if (lesson.status == LessonStatus.Completed || lesson.status == LessonStatus.Cancelled) return;
+    if (lesson.status !== LessonStatus.Recruiting) return;
     setSelectedLessons((prev) => {
       const exists = prev.find((l) => l.id === lesson.id);
       if (exists) return prev.filter((l) => l.id !== lesson.id);
@@ -281,9 +280,9 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                   <div className="grid grid-cols-5 gap-[16px]">
                     {lessons.map((lesson) => {
                       const isSelected = selectedLessons.find((l) => l.id === lesson.id);
-                      const isCompleted = lesson.status == LessonStatus.Completed;
-                      const isCancelled = lesson.status == LessonStatus.Cancelled;
-                      const isDisabled = isCompleted || isCancelled;
+                      const isRecruiting = lesson.status === LessonStatus.Recruiting;
+                      const isDisabled = !isRecruiting;
+                      const statusLabel = lesson.status ? (LessonStatusDisplay[lesson.status] ?? lesson.status) : '';
                       return (
                           <div
                               key={lesson.id}
@@ -306,14 +305,9 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                                     <span className="text-white text-[14px]">✓</span>
                                   </div>
                               )}
-                              {isCancelled && (
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <StampCancel className="w-[70%] h-auto"/>
-                                  </div>
-                              )}
-                              {isCompleted && (
+                              {isDisabled && (
                                   <div className="absolute bottom-0 left-0 w-full h-[32px] bg-black/50 flex items-center justify-center">
-                                    <p className="text-white text-[12px] font-semibold">수업 종료</p>
+                                    <p className="text-white text-[12px] font-semibold">{statusLabel}</p>
                                   </div>
                               )}
                             </div>
