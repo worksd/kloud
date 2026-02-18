@@ -138,7 +138,19 @@ export type KioskPendingPaymentRequest = {
   targetUserId: number;
 }
 
-export const CreateKioskPendingPayment: Endpoint<KioskPendingPaymentRequest, GetPaymentRecordResponse> = {
+export type KioskPaymentResultItem = {
+  lesson: {
+    id: number;
+    title?: string;
+  };
+  reason?: string;
+}
+
+export type KioskPendingPaymentResponse = {
+  lessons: KioskPaymentResultItem[];
+}
+
+export const CreateKioskPendingPayment: Endpoint<KioskPendingPaymentRequest, KioskPendingPaymentResponse> = {
   method: 'post',
   path: '/paymentRecords/kiosk',
   bodyParams: ['items', 'targetUserId']

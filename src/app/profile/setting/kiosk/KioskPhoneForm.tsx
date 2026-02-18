@@ -8,6 +8,7 @@ import {
   createKioskPaymentAction
 } from "@/app/profile/setting/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
+import {KioskPaymentResultItem} from "@/app/endpoint/payment.record.endpoint";
 
 type Step = 'phone' | 'confirm' | 'name' | 'loading' | 'complete';
 
@@ -62,6 +63,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
+  const [paymentResults, setPaymentResults] = useState<KioskPaymentResultItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(180);
@@ -124,6 +126,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
         setError('신청에 실패했습니다. 다시 시도해주세요.');
         setStep('phone');
       } else {
+        setPaymentResults(result.lessons ?? []);
         setStep('complete');
       }
     } catch {
@@ -365,21 +368,71 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
             </>
         );
 
-      case 'complete':
+      case 'complete': {
+        const successItems = paymentResults.filter((r) => !r.reason);
+        const failedItems = paymentResults.filter((r) => r.reason);
+        const allFailed = successItems.length === 0 && failedItems.length > 0;
         return (
             <>
-              <div className="w-[80px] h-[80px] rounded-full bg-black flex items-center justify-center mb-[32px]">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round"
-                        strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                신청이 완료되었습니다
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[48px]">
-                {userName ? `${userName}님, ` : ''}수업 신청이 접수되었습니다
-              </p>
+              {allFailed ? (
+                  <div className="w-[80px] h-[80px] rounded-full bg-red-500 flex items-center justify-center mb-[32px]">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="3" strokeLinecap="round"
+                            strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+              ) : (
+                  <div className="w-[80px] h-[80px] rounded-full bg-black flex items-center justify-center mb-[32px]">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round"
+                            strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+              )}
+
+              {allFailed ? (
+                  <>
+                    <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+                      수업 신청에 실패했어요
+                    </p>
+                    <p className="text-gray-400 text-[20px] mb-[32px]">
+                      데스크에 문의해주세요
+                    </p>
+                  </>
+              ) : (
+                  <>
+                    <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+                      {successItems.length}개의 수업을 성공적으로 신청했어요
+                    </p>
+                    <p className="text-gray-400 text-[20px] mb-[32px]">
+                      데스크에서 결제를 완료해주세요
+                    </p>
+                  </>
+              )}
+
+              {failedItems.length > 0 && !allFailed && (
+                  <div className="w-full max-w-[500px] bg-red-50 rounded-[16px] p-[20px] mb-[32px] flex flex-col gap-[8px]">
+                    <p className="text-red-500 text-[16px] font-bold">{failedItems.length}개의 수업은 신청에 실패했어요</p>
+                    {failedItems.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <p className="text-black text-[15px]">{item.lesson?.title ?? '수업'}</p>
+                          <p className="text-red-500 text-[14px]">{item.reason}</p>
+                        </div>
+                    ))}
+                  </div>
+              )}
+
+              {allFailed && (
+                  <div className="w-full max-w-[500px] bg-red-50 rounded-[16px] p-[20px] mb-[32px] flex flex-col gap-[8px]">
+                    {failedItems.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <p className="text-black text-[15px]">{item.lesson?.title ?? '수업'}</p>
+                          <p className="text-red-500 text-[14px]">{item.reason}</p>
+                        </div>
+                    ))}
+                  </div>
+              )}
+
               <button
                   onClick={onComplete}
                   className="w-full max-w-[500px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
@@ -388,6 +441,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
               </button>
             </>
         );
+      }
     }
   };
 
