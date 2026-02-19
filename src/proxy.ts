@@ -21,8 +21,18 @@ export async function proxy(request: NextRequest) {
     url.searchParams.set('deviceId', deviceId)
   }
 
-  // token query param → 쿠키 저장
+  // token query param → 쿠키 저장 후 token 제거한 URL로 redirect
   const token = url.searchParams.get('token');
+  if (token) {
+    const cleanUrl = new URL(request.url);
+    cleanUrl.searchParams.delete('token');
+    const response = NextResponse.redirect(cleanUrl);
+    response.cookies.set(accessTokenKey, token, {
+      maxAge: 2592000,
+      sameSite: 'lax',
+    });
+    return response;
+  }
 
   const response = NextResponse.rewrite(url)
 
@@ -40,13 +50,6 @@ export async function proxy(request: NextRequest) {
   // 🔹 deviceId 헤더 추가 (핵심)
   if (deviceId) {
     response.headers.set('x-guinness-device-id', deviceId)
-  }
-
-  if (token) {
-    response.cookies.set(accessTokenKey, token, {
-      maxAge: 2592000,
-      sameSite: 'lax',
-    });
   }
 
   if (
