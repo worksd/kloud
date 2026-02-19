@@ -21,6 +21,9 @@ export async function proxy(request: NextRequest) {
     url.searchParams.set('deviceId', deviceId)
   }
 
+  // token query param → 쿠키 저장
+  const token = url.searchParams.get('token');
+
   const response = NextResponse.rewrite(url)
 
   response.headers.set(
@@ -37,6 +40,13 @@ export async function proxy(request: NextRequest) {
   // 🔹 deviceId 헤더 추가 (핵심)
   if (deviceId) {
     response.headers.set('x-guinness-device-id', deviceId)
+  }
+
+  if (token) {
+    response.cookies.set(accessTokenKey, token, {
+      maxAge: 2592000,
+      sameSite: 'lax',
+    });
   }
 
   if (
