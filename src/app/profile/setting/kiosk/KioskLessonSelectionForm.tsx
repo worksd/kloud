@@ -278,7 +278,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                   </div>
               ) : (
                   <div className="grid grid-cols-5 gap-[16px]">
-                    {lessons.map((lesson) => {
+                    {lessons.filter((l) => l.status !== LessonStatus.Cancelled).map((lesson) => {
                       const isSelected = selectedLessons.find((l) => l.id === lesson.id);
                       const isRecruiting = lesson.status === LessonStatus.Recruiting;
                       const isDisabled = !isRecruiting;
