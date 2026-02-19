@@ -6,12 +6,15 @@ import CloseIcon from '../../../../../public/assets/ic_close_black.svg';
 import {getLessonsByDate} from './get.lessons.by.date.action';
 import {GetLessonResponse, LessonStatus, LessonStatusDisplay} from '@/app/endpoint/lesson.endpoint';
 import {Thumbnail} from '@/app/components/Thumbnail';
+import {Locale} from "@/shared/StringResource";
+import {getLocaleString} from "@/app/components/locale";
 
 type KioskLessonSelectionFormProps = {
   studioName: string;
   onBack: () => void;
   onSelectLessons: (lessons: GetLessonResponse[]) => void;
   studioId: number;
+  locale: Locale;
 };
 
 const formatDateForAPI = (date: Date): string => {
@@ -101,7 +104,8 @@ const getCalendarDays = (year: number, month: number) => {
   return days;
 };
 
-export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, studioId}: KioskLessonSelectionFormProps) => {
+export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, studioId, locale}: KioskLessonSelectionFormProps) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const today = getTodayKST();
   const [selectedDate, setSelectedDate] = useState(() => getTodayKST());
   const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
@@ -181,7 +185,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                   className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
             <BackArrowIcon className="w-full h-full"/>
           </button>
-          <p className="text-black text-[20px] font-bold">수업 선택</p>
+          <p className="text-black text-[20px] font-bold">{t('kiosk_lesson_selection')}</p>
           <div className="flex items-center gap-[8px]">
             <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
               {studioName}
@@ -266,7 +270,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                 {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 ({WEEKDAY_LABELS[selectedDate.getDay()]})
               </p>
               <p className="text-gray-400 text-[16px]">
-                {lessons.length}개 수업
+                {t('kiosk_lessons_count').replace('{0}', String(lessons.length))}
               </p>
             </div>
 
@@ -274,7 +278,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
             <div className="flex-1 overflow-y-auto px-[32px] py-[16px] min-h-0">
               {lessons.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-400 text-[18px]">수업이 없습니다</p>
+                    <p className="text-gray-400 text-[18px]">{t('kiosk_no_lessons')}</p>
                   </div>
               ) : (
                   <div className="grid grid-cols-5 gap-[16px]">
@@ -350,7 +354,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                       </div>
                       <div className="flex items-center gap-[12px] shrink-0">
                         <p className="text-black text-[15px] font-medium">
-                          {(lesson.price ?? 0).toLocaleString()}원
+                          {(lesson.price ?? 0).toLocaleString()}{t('kiosk_won')}
                         </p>
                         <button
                             onClick={(e) => {
@@ -366,9 +370,9 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                 ))}
                 {/* 합계 */}
                 <div className="flex items-center justify-between border-t border-gray-200 pt-[8px] mt-[4px]">
-                  <p className="text-black text-[16px] font-bold">합계 ({selectedLessons.length}건)</p>
+                  <p className="text-black text-[16px] font-bold">{t('kiosk_total')} ({selectedLessons.length})</p>
                   <p className="text-black text-[20px] font-bold tracking-[-0.6px]">
-                    {totalPrice.toLocaleString()}원
+                    {totalPrice.toLocaleString()}{t('kiosk_won')}
                   </p>
                 </div>
               </div>
@@ -378,7 +382,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                   onClick={handleApply}
                   className="h-[60px] px-[40px] rounded-[16px] bg-black text-white flex items-center justify-center shrink-0 self-end"
               >
-                <p className="text-[20px] font-medium tracking-[-0.6px]">신청하기</p>
+                <p className="text-[20px] font-medium tracking-[-0.6px]">{t('kiosk_submit')}</p>
               </button>
             </div>
         )}

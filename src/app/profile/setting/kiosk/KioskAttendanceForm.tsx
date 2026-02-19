@@ -8,15 +8,17 @@ import {
 } from "@/app/profile/setting/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {AttendanceStatus} from "@/app/endpoint/studio.endpoint";
+import {Locale} from "@/shared/StringResource";
+import {getLocaleString} from "@/app/components/locale";
 
 type Step = 'select-status' | 'phone' | 'confirm' | 'loading' | 'complete';
 
 const COUNTRY_CODES = [
-  {code: '82', label: '🇰🇷 +82'},
-  {code: '1', label: '🇺🇸 +1'},
-  {code: '81', label: '🇯🇵 +81'},
-  {code: '86', label: '🇨🇳 +86'},
-  {code: '44', label: '🇬🇧 +44'},
+  {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
+  {code: '1', label: '🇺🇸 +1', placeholder: '000-000-0000'},
+  {code: '81', label: '🇯🇵 +81', placeholder: '090-0000-0000'},
+  {code: '86', label: '🇨🇳 +86', placeholder: '000-0000-0000'},
+  {code: '44', label: '🇬🇧 +44', placeholder: '0000-000-0000'},
 ];
 
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
@@ -47,9 +49,12 @@ type KioskAttendanceFormProps = {
   studioName: string;
   onBack: () => void;
   onComplete: () => void;
+  locale: Locale;
 };
 
-export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAttendanceFormProps) => {
+export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: KioskAttendanceFormProps) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
+
   const [step, setStep] = useState<Step>('select-status');
   const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus | null>(null);
   const [phone, setPhone] = useState('');
@@ -64,6 +69,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(180);
+  const [completeCountdown, setCompleteCountdown] = useState(5);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -79,10 +85,26 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
     return () => clearInterval(timer);
   }, [onBack]);
 
+  useEffect(() => {
+    if (step !== 'complete') return;
+    setCompleteCountdown(5);
+    const timer = setInterval(() => {
+      setCompleteCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          onComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, onComplete]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}분 ${String(secs).padStart(2, '0')}초`;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
   };
 
   const formatPhoneDisplay = (value: string) => {
@@ -105,7 +127,9 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
     }
   };
 
-  const statusLabel = attendanceStatus === 'CheckIn' ? '체크인' : '체크아웃';
+  const statusLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in') : t('kiosk_check_out');
+  const statusDoLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_do') : t('kiosk_check_out_do');
+  const statusCompleteLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_complete') : t('kiosk_check_out_complete');
 
   const callAttendanceApi = useCallback(async (targetUserId: number) => {
     if (!attendanceStatus) return;
@@ -113,20 +137,20 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
     try {
       const result = await createStudioAttendanceAction(targetUserId, attendanceStatus);
       if (isGuinnessErrorCase(result)) {
-        setError(`${statusLabel}에 실패했습니다. 다시 시도해주세요.`);
+        setError(t('kiosk_attendance_failed').replace('{0}', statusLabel));
         setStep('phone');
       } else {
         setStep('complete');
       }
     } catch {
-      setError(`${statusLabel}에 실패했습니다. 다시 시도해주세요.`);
+      setError(t('kiosk_attendance_failed').replace('{0}', statusLabel));
       setStep('phone');
     }
   }, [attendanceStatus, statusLabel]);
 
   const handleSearch = async () => {
     if (phone.length < 10) {
-      setError('휴대폰 번호를 정확히 입력해주세요');
+      setError(t('kiosk_phone_error'));
       return;
     }
     setLoading(true);
@@ -134,7 +158,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
     try {
       const result = await searchUserByPhoneAction(phone, countryCode);
       if (isGuinnessErrorCase(result)) {
-        setError('등록되지 않은 번호입니다. 번호를 확인해주세요.');
+        setError(t('kiosk_not_registered'));
       } else {
         setUserId(result.id);
         setUserName(result.name || null);
@@ -145,7 +169,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
         setStep('confirm');
       }
     } catch {
-      setError('검색에 실패했습니다. 다시 시도해주세요.');
+      setError(t('kiosk_search_failed'));
     } finally {
       setLoading(false);
     }
@@ -176,10 +200,10 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
         return (
             <>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                무엇을 하시겠어요?
+                {t('kiosk_what_to_do')}
               </p>
               <p className="text-gray-400 text-[20px] mb-[48px]">
-                체크인 또는 체크아웃을 선택해주세요
+                {t('kiosk_select_check')}
               </p>
               <div className="w-full max-w-[500px] flex flex-col gap-[16px]">
                 <button
@@ -189,7 +213,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                     }}
                     className="w-full h-[80px] rounded-[16px] bg-black text-white text-[24px] font-medium transition-colors"
                 >
-                  체크인
+                  {t('kiosk_check_in')}
                 </button>
                 <button
                     onClick={() => {
@@ -198,7 +222,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                     }}
                     className="w-full h-[80px] rounded-[16px] border-2 border-gray-200 text-black text-[24px] font-medium transition-colors"
                 >
-                  체크아웃
+                  {t('kiosk_check_out')}
                 </button>
               </div>
             </>
@@ -208,13 +232,12 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
         return (
             <>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                휴대폰 번호를 입력해주세요
+                {t('kiosk_phone_title')}
               </p>
               <p className="text-gray-400 text-[20px] mb-[32px]">
-                등록된 번호로 회원 확인을 진행합니다
+                {t('kiosk_phone_desc')}
               </p>
 
-              {/* 국가코드 */}
               <div className="relative mb-[8px]">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
@@ -243,25 +266,22 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                 )}
               </div>
 
-              {/* 번호 표시 */}
               <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
                 <p className="text-[32px] font-medium tracking-[2px] text-black">
-                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">010-0000-0000</span>}
+                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">{COUNTRY_CODES.find(c => c.code === countryCode)?.placeholder ?? '010-0000-0000'}</span>}
                 </p>
               </div>
 
               {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
 
-              {/* 키패드 */}
               <Keypad onPress={handleKeyPress}/>
 
-              {/* 확인 버튼 */}
               <button
                   onClick={handleSearch}
                   disabled={loading || phone.length < 10}
                   className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
               >
-                {loading ? '확인 중...' : '확인'}
+                {loading ? t('kiosk_checking') : t('kiosk_confirm')}
               </button>
             </>
         );
@@ -270,14 +290,13 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
         return (
             <>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                본인이 맞으신가요?
+                {t('kiosk_confirm_title')}
               </p>
               <p className="text-gray-400 text-[20px] mb-[40px]">
-                아래 정보를 확인해주세요
+                {t('kiosk_confirm_desc')}
               </p>
 
               <div className="w-full max-w-[500px] bg-gray-50 rounded-[20px] p-[32px] flex flex-col items-center gap-[20px] mb-[32px]">
-                {/* 프로필 사진 */}
                 <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shrink-0">
                   {userProfileImageUrl ? (
                       <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover"/>
@@ -288,29 +307,28 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                   )}
                 </div>
 
-                {/* 정보 */}
                 <div className="w-full flex flex-col gap-[12px]">
                   {userName && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">이름</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_name')}</p>
                         <p className="text-black text-[20px] font-bold">{userName}</p>
                       </div>
                   )}
                   {userNickName && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">닉네임</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_nickname')}</p>
                         <p className="text-black text-[20px] font-bold">{userNickName}</p>
                       </div>
                   )}
                   {userPhone && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">전화번호</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_phone')}</p>
                         <p className="text-black text-[20px] font-bold">{formatPhoneDisplay(userPhone)}</p>
                       </div>
                   )}
                   {userEmail && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">이메일</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_email')}</p>
                         <p className="text-black text-[20px] font-bold">{userEmail}</p>
                       </div>
                   )}
@@ -326,7 +344,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                     }}
                     className="w-full h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
                 >
-                  {statusLabel}하기
+                  {statusDoLabel}
                 </button>
                 <button
                     onClick={() => {
@@ -342,7 +360,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                     }}
                     className="w-full h-[72px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors"
                 >
-                  본인이 아닙니다
+                  {t('kiosk_not_me')}
                 </button>
               </div>
             </>
@@ -353,7 +371,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
             <>
               <div className="w-[60px] h-[60px] border-4 border-gray-200 border-t-black rounded-full animate-spin mb-[32px]"/>
               <p className="text-black text-[28px] font-bold tracking-[-0.84px]">
-                {statusLabel} 처리 중...
+                {t('kiosk_attendance_processing').replace('{0}', statusLabel)}
               </p>
             </>
         );
@@ -368,17 +386,21 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
                 </svg>
               </div>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                {statusLabel} 완료
+                {statusCompleteLabel}
               </p>
               <p className="text-gray-400 text-[20px] mb-[48px]">
-                {userName ? `${userName}님, ` : ''}{statusLabel}이 완료되었습니다
+                {userName ? `${userName}${t('kiosk_name_suffix')}` : ''}{t('kiosk_attendance_complete_msg').replace('{0}', statusLabel)}
               </p>
               <button
                   onClick={onComplete}
                   className="w-full max-w-[500px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
               >
-                확인
+                {t('kiosk_confirm')}
               </button>
+              <p className="text-gray-400 text-[16px] mt-[20px]">
+                <span className="font-semibold text-black">{completeCountdown}</span>
+                <span>초 {t('kiosk_countdown_suffix')}</span>
+              </p>
             </>
         );
     }
@@ -386,7 +408,6 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
 
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        {/* 헤더 */}
         <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
           {step !== 'complete' && step !== 'loading' ? (
               <button onClick={handleBackStep}
@@ -396,23 +417,21 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete}: KioskAtten
           ) : (
               <div className="w-[40px]"/>
           )}
-          <p className="text-black text-[20px] font-bold">방문 기록</p>
+          <p className="text-black text-[20px] font-bold">{t('kiosk_attendance')}</p>
           <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
             {studioName}
           </p>
         </div>
 
-        {/* 메인 영역 */}
         <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
           {renderContent()}
         </div>
 
-        {/* 하단 카운트다운 */}
         {step !== 'complete' && (
             <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
               <p className="text-[18px] tracking-[-0.54px]">
                 <span className="font-semibold text-black">{formatTime(countdown)}</span>
-                <span className="text-gray-300"> 뒤 첫 화면으로 돌아갑니다</span>
+                <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
               </p>
             </div>
         )}

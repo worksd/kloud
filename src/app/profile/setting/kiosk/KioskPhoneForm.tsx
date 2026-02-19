@@ -1,23 +1,24 @@
 'use client';
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
-import {GetLessonResponse} from "@/app/endpoint/lesson.endpoint";
 import {
   searchUserByPhoneAction,
-  createKioskPaymentAction
+  registerKioskUserAction
 } from "@/app/profile/setting/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
-import {KioskPaymentResultItem} from "@/app/endpoint/payment.record.endpoint";
+import {KioskNameKeyboard} from "@/app/profile/setting/kiosk/KioskNameKeyboard";
+import {Locale} from "@/shared/StringResource";
+import {getLocaleString} from "@/app/components/locale";
 
-type Step = 'phone' | 'confirm' | 'name' | 'loading' | 'complete';
+type Step = 'phone' | 'confirm' | 'name';
 
 const COUNTRY_CODES = [
-  {code: '82', label: '🇰🇷 +82'},
-  {code: '1', label: '🇺🇸 +1'},
-  {code: '81', label: '🇯🇵 +81'},
-  {code: '86', label: '🇨🇳 +86'},
-  {code: '44', label: '🇬🇧 +44'},
+  {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
+  {code: '1', label: '🇺🇸 +1', placeholder: '000-000-0000'},
+  {code: '81', label: '🇯🇵 +81', placeholder: '090-0000-0000'},
+  {code: '86', label: '🇨🇳 +86', placeholder: '000-0000-0000'},
+  {code: '44', label: '🇬🇧 +44', placeholder: '0000-000-0000'},
 ];
 
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
@@ -46,12 +47,14 @@ const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
 
 type KioskPhoneFormProps = {
   studioName: string;
-  lessons: GetLessonResponse[];
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (userId: number, userName?: string) => void;
+  locale: Locale;
 };
 
-export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskPhoneFormProps) => {
+export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPhoneFormProps) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
+
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('82');
@@ -63,7 +66,6 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
-  const [paymentResults, setPaymentResults] = useState<KioskPaymentResultItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(180);
@@ -85,7 +87,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}분 ${String(secs).padStart(2, '0')}초`;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
   };
 
   const formatPhoneDisplay = (value: string) => {
@@ -108,36 +110,9 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
     }
   };
 
-  const handleNameKeyPress = (char: string) => {
-    setError(null);
-    if (char === 'delete') {
-      setName((prev) => prev.slice(0, -1));
-    } else {
-      setName((prev) => prev + char);
-    }
-  };
-
-  const callKioskApi = useCallback(async (targetUserId: number) => {
-    setStep('loading');
-    try {
-      const items = lessons.map((l) => ({lessonId: l.id}));
-      const result = await createKioskPaymentAction(items, targetUserId);
-      if (isGuinnessErrorCase(result)) {
-        setError('신청에 실패했습니다. 다시 시도해주세요.');
-        setStep('phone');
-      } else {
-        setPaymentResults(result.lessons ?? []);
-        setStep('complete');
-      }
-    } catch {
-      setError('신청에 실패했습니다. 다시 시도해주세요.');
-      setStep('phone');
-    }
-  }, [lessons]);
-
   const handleSearch = async () => {
     if (phone.length < 10) {
-      setError('휴대폰 번호를 정확히 입력해주세요');
+      setError(t('kiosk_phone_error'));
       return;
     }
     setLoading(true);
@@ -145,7 +120,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
     try {
       const result = await searchUserByPhoneAction(phone, countryCode);
       if (isGuinnessErrorCase(result)) {
-        setError('검색 결과가 없습니다. 번호를 확인해주세요.');
+        setStep('name');
       } else {
         setUserId(result.id);
         setUserName(result.name || null);
@@ -156,7 +131,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
         setStep('confirm');
       }
     } catch {
-      setError('검색에 실패했습니다. 다시 시도해주세요.');
+      setError(t('kiosk_search_failed'));
     } finally {
       setLoading(false);
     }
@@ -164,18 +139,24 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
 
   const handleNameSubmit = async () => {
     if (!name.trim()) {
-      setError('이름을 입력해주세요');
+      setError(t('kiosk_phone_error'));
       return;
     }
-    // 신규 유저의 경우에도 phone 검색 API가 유저를 생성해주는 구조라면
-    // 여기서 다시 검색하거나, 별도 생성 로직 필요
-    // 현재는 TODO로 남기고 name + phone 으로 진행
     setLoading(true);
     setError(null);
-    if (userId) {
-      await callKioskApi(userId);
+    try {
+      const result = await registerKioskUserAction(phone, countryCode, name.trim());
+      if (isGuinnessErrorCase(result)) {
+        setError(t('kiosk_register_failed'));
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+      onComplete(result.id, name.trim());
+    } catch {
+      setError(t('kiosk_register_failed'));
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const renderContent = () => {
@@ -184,13 +165,12 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
         return (
             <>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                휴대폰 번호를 입력해주세요
+                {t('kiosk_phone_title')}
               </p>
               <p className="text-gray-400 text-[20px] mb-[32px]">
-                등록된 번호로 회원 확인을 진행합니다
+                {t('kiosk_phone_desc')}
               </p>
 
-              {/* 국가코드 */}
               <div className="relative mb-[8px]">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
@@ -219,25 +199,22 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
                 )}
               </div>
 
-              {/* 번호 표시 */}
               <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
                 <p className="text-[32px] font-medium tracking-[2px] text-black">
-                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">010-0000-0000</span>}
+                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">{COUNTRY_CODES.find(c => c.code === countryCode)?.placeholder ?? '010-0000-0000'}</span>}
                 </p>
               </div>
 
               {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
 
-              {/* 키패드 */}
               <Keypad onPress={handleKeyPress}/>
 
-              {/* 확인 버튼 */}
               <button
                   onClick={handleSearch}
                   disabled={loading || phone.length < 10}
                   className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
               >
-                {loading ? '확인 중...' : '확인'}
+                {loading ? t('kiosk_checking') : t('kiosk_confirm')}
               </button>
             </>
         );
@@ -246,14 +223,13 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
         return (
             <>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                본인이 맞으신가요?
+                {t('kiosk_confirm_title')}
               </p>
               <p className="text-gray-400 text-[20px] mb-[40px]">
-                아래 정보를 확인해주세요
+                {t('kiosk_confirm_desc')}
               </p>
 
               <div className="w-full max-w-[500px] bg-gray-50 rounded-[20px] p-[32px] flex flex-col items-center gap-[20px] mb-[32px]">
-                {/* 프로필 사진 */}
                 <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shrink-0">
                   {userProfileImageUrl ? (
                       <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover"/>
@@ -264,29 +240,28 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
                   )}
                 </div>
 
-                {/* 정보 */}
                 <div className="w-full flex flex-col gap-[12px]">
                   {userName && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">이름</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_name')}</p>
                         <p className="text-black text-[20px] font-bold">{userName}</p>
                       </div>
                   )}
                   {userNickName && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">닉네임</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_nickname')}</p>
                         <p className="text-black text-[20px] font-bold">{userNickName}</p>
                       </div>
                   )}
                   {userPhone && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">전화번호</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_phone')}</p>
                         <p className="text-black text-[20px] font-bold">{formatPhoneDisplay(userPhone)}</p>
                       </div>
                   )}
                   {userEmail && (
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">이메일</p>
+                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_email')}</p>
                         <p className="text-black text-[20px] font-bold">{userEmail}</p>
                       </div>
                   )}
@@ -298,11 +273,11 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
               <div className="w-full max-w-[500px] flex flex-col gap-[12px]">
                 <button
                     onClick={() => {
-                      if (userId) callKioskApi(userId);
+                      if (userId) onComplete(userId, userName ?? undefined);
                     }}
                     className="w-full h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
                 >
-                  수업 신청하기
+                  {t('kiosk_confirm')}
                 </button>
                 <button
                     onClick={() => {
@@ -318,7 +293,7 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
                     }}
                     className="w-full h-[72px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors"
                 >
-                  본인이 아닙니다
+                  {t('kiosk_not_me')}
                 </button>
               </div>
             </>
@@ -328,155 +303,48 @@ export const KioskPhoneForm = ({studioName, lessons, onBack, onComplete}: KioskP
         return (
             <>
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                이름을 입력해주세요
+                {t('kiosk_welcome_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[48px]">
-                등록되지 않은 번호입니다. 이름을 알려주세요
+              <p className="text-gray-400 text-[20px] mb-[32px]">
+                {t('kiosk_welcome_desc')}
               </p>
-              <div className="w-full max-w-[500px] flex flex-col gap-[20px]">
-                <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setError(null);
-                    }}
-                    placeholder="이름 입력"
-                    className="w-full h-[72px] rounded-[16px] border-2 border-gray-200 px-[24px] text-[28px] text-center font-medium focus:border-black focus:outline-none transition-colors"
-                    autoFocus
-                />
-                {error && <p className="text-red-500 text-[16px] text-center">{error}</p>}
-                <button
-                    onClick={handleNameSubmit}
-                    disabled={loading || !name.trim()}
-                    className="w-full h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? '처리 중...' : '확인'}
-                </button>
-              </div>
-            </>
-        );
-
-      case 'loading':
-        return (
-            <>
-              <div
-                  className="w-[60px] h-[60px] border-4 border-gray-200 border-t-black rounded-full animate-spin mb-[32px]"/>
-              <p className="text-black text-[28px] font-bold tracking-[-0.84px]">
-                신청 처리 중...
-              </p>
-            </>
-        );
-
-      case 'complete': {
-        const successItems = paymentResults.filter((r) => !r.reason);
-        const failedItems = paymentResults.filter((r) => r.reason);
-        const allFailed = successItems.length === 0 && failedItems.length > 0;
-        return (
-            <>
-              {allFailed ? (
-                  <div className="w-[80px] h-[80px] rounded-full bg-red-500 flex items-center justify-center mb-[32px]">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="3" strokeLinecap="round"
-                            strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-              ) : (
-                  <div className="w-[80px] h-[80px] rounded-full bg-black flex items-center justify-center mb-[32px]">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round"
-                            strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-              )}
-
-              {allFailed ? (
-                  <>
-                    <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                      수업 신청에 실패했어요
-                    </p>
-                    <p className="text-gray-400 text-[20px] mb-[32px]">
-                      데스크에 문의해주세요
-                    </p>
-                  </>
-              ) : (
-                  <>
-                    <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                      {successItems.length}개의 수업을 성공적으로 신청했어요
-                    </p>
-                    <p className="text-gray-400 text-[20px] mb-[32px]">
-                      데스크에서 결제를 완료해주세요
-                    </p>
-                  </>
-              )}
-
-              {failedItems.length > 0 && !allFailed && (
-                  <div className="w-full max-w-[500px] bg-red-50 rounded-[16px] p-[20px] mb-[32px] flex flex-col gap-[8px]">
-                    <p className="text-red-500 text-[16px] font-bold">{failedItems.length}개의 수업은 신청에 실패했어요</p>
-                    {failedItems.map((item, i) => (
-                        <div key={i} className="flex items-center justify-between">
-                          <p className="text-black text-[15px]">{item.lesson?.title ?? '수업'}</p>
-                          <p className="text-red-500 text-[14px]">{item.reason}</p>
-                        </div>
-                    ))}
-                  </div>
-              )}
-
-              {allFailed && (
-                  <div className="w-full max-w-[500px] bg-red-50 rounded-[16px] p-[20px] mb-[32px] flex flex-col gap-[8px]">
-                    {failedItems.map((item, i) => (
-                        <div key={i} className="flex items-center justify-between">
-                          <p className="text-black text-[15px]">{item.lesson?.title ?? '수업'}</p>
-                          <p className="text-red-500 text-[14px]">{item.reason}</p>
-                        </div>
-                    ))}
-                  </div>
-              )}
-
+              <KioskNameKeyboard onChange={(text) => { setName(text); setError(null); }} />
+              {error && <p className="text-red-500 text-[16px] text-center mt-[12px]">{error}</p>}
               <button
-                  onClick={onComplete}
-                  className="w-full max-w-[500px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
+                  onClick={handleNameSubmit}
+                  disabled={loading || !name.trim()}
+                  className="w-full max-w-[600px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
               >
-                확인
+                {loading ? t('kiosk_processing') : t('kiosk_confirm')}
               </button>
             </>
         );
-      }
     }
   };
 
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        {/* 헤더 */}
         <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
-          {step !== 'complete' && step !== 'loading' ? (
-              <button onClick={onBack}
-                      className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
-                <BackArrowIcon className="w-full h-full"/>
-              </button>
-          ) : (
-              <div className="w-[40px]"/>
-          )}
-          <p className="text-black text-[20px] font-bold">본인 확인</p>
+          <button onClick={onBack}
+                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
+            <BackArrowIcon className="w-full h-full"/>
+          </button>
+          <p className="text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
           <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
             {studioName}
           </p>
         </div>
 
-        {/* 메인 영역 */}
         <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
           {renderContent()}
         </div>
 
-        {/* 하단 카운트다운 */}
-        {step !== 'complete' && (
-            <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
-              <p className="text-[18px] tracking-[-0.54px]">
-                <span className="font-semibold text-black">{formatTime(countdown)}</span>
-                <span className="text-gray-300"> 뒤 첫 화면으로 돌아갑니다</span>
-              </p>
-            </div>
-        )}
+        <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
+          <p className="text-[18px] tracking-[-0.54px]">
+            <span className="font-semibold text-black">{formatTime(countdown)}</span>
+            <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
+          </p>
+        </div>
       </div>
   );
 };

@@ -39,12 +39,9 @@ export default async function SettingPage({
               className="w-full h-full object-cover"
             />
           </div>
-          {(has(user.nickName) || has(user.email)) && (
-            <div className="flex flex-col px-4">
+          <div className="flex flex-col px-4">
               <div className="flex flex-row items-center gap-2">
-                {has(user.nickName) && (
-                  <div className="font-bold text-lg text-black">{user.nickName}</div>
-                )}
+                <div className="font-bold text-lg text-black">{has(user.nickName) ? user.nickName : '-'}</div>
                 <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
                   <EditIcon className="w-[18px] h-[18px] active:opacity-50 transition-opacity duration-150"/>
                 </NavigateClickWrapper>
@@ -53,7 +50,6 @@ export default async function SettingPage({
                 <div className="text-gray-500">{user.email}</div>
               )}
             </div>
-          )}
         </div>
 
         {/* 다음 예정 수업 */}
