@@ -10,16 +10,9 @@ import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {KioskNameKeyboard} from "@/app/profile/setting/kiosk/KioskNameKeyboard";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
+import {COUNTRIES} from "@/app/certification/COUNTRIES";
 
 type Step = 'phone' | 'confirm' | 'name';
-
-const COUNTRY_CODES = [
-  {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
-  {code: '1', label: '🇺🇸 +1', placeholder: '000-000-0000'},
-  {code: '81', label: '🇯🇵 +81', placeholder: '090-0000-0000'},
-  {code: '86', label: '🇨🇳 +86', placeholder: '000-0000-0000'},
-  {code: '44', label: '🇬🇧 +44', placeholder: '0000-000-0000'},
-];
 
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
 
@@ -174,25 +167,28 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
               <div className="relative mb-[8px]">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
-                    className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[4px] text-[20px] font-medium text-black"
+                    className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[8px] text-[20px] font-medium text-black"
                 >
-                  {COUNTRY_CODES.find((c) => c.code === countryCode)?.label ?? `+${countryCode}`}
+                  <span className="text-[24px] leading-none">{COUNTRIES.find((c) => c.dial === countryCode)?.flag}</span>
+                  <span>+{countryCode}</span>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
                 {showCountryPicker && (
-                    <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[12px] shadow-lg z-10 overflow-hidden">
-                      {COUNTRY_CODES.map((c) => (
+                    <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
+                      {COUNTRIES.map((c) => (
                           <button
-                              key={c.code}
+                              key={c.key}
                               onClick={() => {
-                                setCountryCode(c.code);
+                                setCountryCode(c.dial);
                                 setShowCountryPicker(false);
                               }}
-                              className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left hover:bg-gray-50 active:bg-gray-100 ${c.code === countryCode ? 'font-bold bg-gray-50' : ''}`}
+                              className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left flex items-center gap-[10px] hover:bg-gray-50 active:bg-gray-100 ${c.dial === countryCode ? 'font-bold bg-gray-50' : ''}`}
                           >
-                            {c.label}
+                            <span className="text-[22px] leading-none">{c.flag}</span>
+                            <span className="flex-1">{c.nameKo}</span>
+                            <span className="text-gray-500 font-semibold">+{c.dial}</span>
                           </button>
                       ))}
                     </div>
@@ -201,7 +197,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
 
               <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
                 <p className="text-[32px] font-medium tracking-[2px] text-black">
-                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">{COUNTRY_CODES.find(c => c.code === countryCode)?.placeholder ?? '010-0000-0000'}</span>}
+                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">010-0000-0000</span>}
                 </p>
               </div>
 
