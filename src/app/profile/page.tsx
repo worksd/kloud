@@ -123,9 +123,7 @@ export default async function SettingPage({
                   <TicketIcon className="w-[24px] h-[24px]"/>
                   <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_tickets')}</span>
                 </div>
-                {user.ticketCount != null && user.ticketCount > 0 && (
-                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.ticketCount}건</span>
-                )}
+                <span className="text-[13px] font-bold text-black font-paperlogy">{user.ticketCount ?? 0}건</span>
               </div>
             </NavigateClickWrapper>
 
@@ -135,9 +133,7 @@ export default async function SettingPage({
                   <PassPlanIcon className="w-[24px] h-[24px]"/>
                   <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_pass')}</span>
                 </div>
-                {user.passCount != null && user.passCount > 0 && (
-                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.passCount}개</span>
-                )}
+                <span className="text-[13px] font-bold text-black font-paperlogy">{user.passCount ?? 0}개</span>
               </div>
             </NavigateClickWrapper>
 
@@ -147,9 +143,7 @@ export default async function SettingPage({
                   <ReceiptIcon className="w-[24px] h-[24px]"/>
                   <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('payment_records')}</span>
                 </div>
-                {user.paymentRecordCount != null && user.paymentRecordCount > 0 && (
-                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount}건</span>
-                )}
+                <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount ?? 0}건</span>
               </div>
             </NavigateClickWrapper>
           </div>
