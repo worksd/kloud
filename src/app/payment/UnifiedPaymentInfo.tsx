@@ -204,8 +204,10 @@ export const UnifiedPaymentInfo = ({
           user={payment.user}
           depositor={depositor}
           disabled={
-            !selectedMethod ||
-            (selectedMethod === 'pass' && !selectedPass)
+            payment.methods.length > 0 && (
+              !selectedMethod ||
+              (selectedMethod === 'pass' && !selectedPass)
+            )
           }
           paymentId={payment.paymentId}
           actualPayerUserId={type === 'pass-plan' ? undefined : actualPayerUserId}
