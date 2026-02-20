@@ -131,32 +131,36 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
-      <div className="flex flex-col gap-y-4">
-        <PaymentMethodComponent
-          locale={locale}
-          passes={payment.user.passes}
-          cards={cards ?? []}
-          onCardsChangeAction={(cards) => setCards(cards)}
-          selectedPass={selectedPass}
-          selectedBillingCard={selectedBillingCard}
-          selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
-          selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
-          paymentOptions={payment.methods}
-          selectedMethod={selectedMethod}
-          selectPaymentMethodAction={handleSelectMethod}
-          depositor={depositor}
-          setDepositorAction={setDepositor}
-          refundAccount={{
-            holderName: payment.refundAccountDepositor,
-            bankName: payment.refundAccountBank,
-            accountNumber: payment.refundAccountNumber
-          }}
-        />
-      </div>
+      {payment.methods.length > 0 && (
+        <>
+          <div className="flex flex-col gap-y-4">
+            <PaymentMethodComponent
+              locale={locale}
+              passes={payment.user.passes}
+              cards={cards ?? []}
+              onCardsChangeAction={(cards) => setCards(cards)}
+              selectedPass={selectedPass}
+              selectedBillingCard={selectedBillingCard}
+              selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
+              selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
+              paymentOptions={payment.methods}
+              selectedMethod={selectedMethod}
+              selectPaymentMethodAction={handleSelectMethod}
+              depositor={depositor}
+              setDepositorAction={setDepositor}
+              refundAccount={{
+                holderName: payment.refundAccountDepositor,
+                bankName: payment.refundAccountBank,
+                accountNumber: payment.refundAccountNumber
+              }}
+            />
+          </div>
 
-      <div className="py-5">
-        <div className="w-full h-[1px] bg-[#F7F8F9] "/>
-      </div>
+          <div className="py-5">
+            <div className="w-full h-[1px] bg-[#F7F8F9] "/>
+          </div>
+        </>
+      )}
 
       {/* 결제 정보 */}
       <PurchaseInformation
