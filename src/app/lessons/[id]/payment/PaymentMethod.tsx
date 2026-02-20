@@ -120,6 +120,8 @@ export const PaymentMethodComponent = ({
     }
   }
 
+  if (paymentOptions.length === 0) return null;
+
   return (
     <div className="flex flex-col gap-y-3 px-6">
       <div className="text-[15px] font-bold text-black">
