@@ -10,6 +10,7 @@ import { GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.en
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group';
 
@@ -176,6 +177,16 @@ export const UnifiedPaymentInfo = ({
         {studio && <SellerInformation studio={studio} locale={locale}/>}
         {/* 환불 안내 */}
         <RefundInformation locale={locale}/>
+
+        {/* 유의사항 */}
+        <div>
+          <div className="font-medium text-[14px] text-black mb-2">
+            {getLocaleString({locale, key: 'payment_notice'})}
+          </div>
+          <div className="text-[12px] text-[#86898c] font-medium leading-relaxed">
+            • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
+          </div>
+        </div>
       </div>
 
       <div className={buttonPositionClass}>
