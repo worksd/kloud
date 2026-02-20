@@ -2479,7 +2479,7 @@ export const StringResource = {
   kiosk_lesson_selection: { ko: '수업 선택', en: 'Select Lessons', jp: 'レッスン選択', zh: '选择课程' },
   kiosk_no_lessons: { ko: '수업이 없습니다', en: 'No lessons available', jp: 'レッスンがありません', zh: '没有课程' },
   kiosk_lessons_count: { ko: '{0}개 수업', en: '{0} lessons', jp: '{0}件のレッスン', zh: '{0}节课' },
-  payment_notice: { ko: '유의사항', en: 'Notice', jp: 'ご注意', zh: '注意事项' },
+  payment_notice: { ko: '결제 유의사항', en: 'Payment Notice', jp: '決済に関するご注意', zh: '支付注意事项' },
   apple_pay_domestic_only: { ko: 'Apple Pay는 Master/Visa 등 해외카드는 결제가 불가합니다.', en: 'Apple Pay does not support international cards such as Master/Visa.', jp: 'Apple PayはMaster/Visaなどの海外カードはご利用いただけません。', zh: 'Apple Pay不支持Master/Visa等海外银行卡。' },
 }
 

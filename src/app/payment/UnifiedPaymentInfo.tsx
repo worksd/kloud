@@ -173,12 +173,7 @@ export const UnifiedPaymentInfo = ({
       </div>
 
       <div className={`flex flex-col ${type === 'pass-plan' ? 'gap-y-5' : 'space-y-4'} px-6`}>
-        {/* 판매자 정보 - lesson-group은 표시 안 함 */}
-        {studio && <SellerInformation studio={studio} locale={locale}/>}
-        {/* 환불 안내 */}
-        <RefundInformation locale={locale}/>
-
-        {/* 유의사항 */}
+        {/* 결제 유의사항 */}
         <div>
           <div className="font-medium text-[14px] text-black mb-2">
             {getLocaleString({locale, key: 'payment_notice'})}
@@ -187,6 +182,10 @@ export const UnifiedPaymentInfo = ({
             • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
           </div>
         </div>
+        {/* 판매자 정보 - lesson-group은 표시 안 함 */}
+        {studio && <SellerInformation studio={studio} locale={locale}/>}
+        {/* 환불 안내 */}
+        <RefundInformation locale={locale}/>
       </div>
 
       <div className={buttonPositionClass}>
