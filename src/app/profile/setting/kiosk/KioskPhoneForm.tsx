@@ -176,22 +176,25 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                   </svg>
                 </button>
                 {showCountryPicker && (
-                    <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
-                      {COUNTRIES.map((c) => (
-                          <button
-                              key={c.key}
-                              onClick={() => {
-                                setCountryCode(c.dial);
-                                setShowCountryPicker(false);
-                              }}
-                              className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left flex items-center gap-[10px] hover:bg-gray-50 active:bg-gray-100 ${c.dial === countryCode ? 'font-bold bg-gray-50' : ''}`}
-                          >
-                            <span className="text-[22px] leading-none">{c.flag}</span>
-                            <span className="flex-1">{c.nameKo}</span>
-                            <span className="text-gray-500 font-semibold">+{c.dial}</span>
-                          </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="fixed inset-0 z-[9]" onClick={() => setShowCountryPicker(false)}/>
+                      <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
+                        {COUNTRIES.map((c) => (
+                            <button
+                                key={c.key}
+                                onClick={() => {
+                                  setCountryCode(c.dial);
+                                  setShowCountryPicker(false);
+                                }}
+                                className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left flex items-center gap-[10px] hover:bg-gray-50 active:bg-gray-100 ${c.dial === countryCode ? 'font-bold bg-gray-50' : ''}`}
+                            >
+                              <span className="text-[22px] leading-none">{c.flag}</span>
+                              <span className="flex-1">{c.nameKo}</span>
+                              <span className="text-gray-500 font-semibold">+{c.dial}</span>
+                            </button>
+                        ))}
+                      </div>
+                    </>
                 )}
               </div>
 
