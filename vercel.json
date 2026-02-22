@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/blog",
+      "destination": "https://proxy.inblog.dev/rawgraphy"
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "https://proxy.inblog.dev/rawgraphy/:path*"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://proxy.inblog.dev/rawgraphy/robots.txt"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://rawgraphyinc-4d67463f.mintlify.dev/docs"
+    },
+    {
+      "source": "/docs/:match*",
+      "destination": "https://rawgraphyinc-4d67463f.mintlify.dev/docs/:match*"
+    }
+  ]
+}
