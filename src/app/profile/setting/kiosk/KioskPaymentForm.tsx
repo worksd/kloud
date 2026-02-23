@@ -103,7 +103,7 @@ export const KioskPaymentForm = ({studioName, lessons, userId, userName, onBack,
 
   useEffect(() => {
     if (step !== 'complete') return;
-    setCompleteCountdown(5);
+    setCompleteCountdown(10);
     const timer = setInterval(() => {
       setCompleteCountdown((prev) => {
         if (prev <= 1) {
