@@ -88,7 +88,7 @@ export const YoutubeContentSection = ({ contents, title, channelUrl, locale }: {
             <p className="text-[13px] text-[#333] mt-2 line-clamp-2 leading-[1.4]">
               {content.title}
             </p>
-            <span className="text-[11px] text-[#AEAEAE] mt-1 block">
+            <span className="text-[11px] text-[#AEAEAE] mt-1 block" suppressHydrationWarning>
               {new Date(content.publishedAt).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </span>
           </a>
