@@ -172,6 +172,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
 
   const totalPrice = selectedLessons.reduce((sum, l) => sum + (l.price ?? 0), 0);
   const calendarDays = getCalendarDays(calendarYear, calendarMonth);
+  const filteredLessons = lessons.filter((l) => l.status !== LessonStatus.Cancelled && l.price != null);
 
   const todayDay = today.getDate();
   const todayMonth = today.getMonth();
@@ -270,19 +271,19 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                 {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 ({WEEKDAY_LABELS[selectedDate.getDay()]})
               </p>
               <p className="text-gray-400 text-[16px]">
-                {t('kiosk_lessons_count').replace('{0}', String(lessons.length))}
+                {t('kiosk_lessons_count').replace('{0}', String(filteredLessons.length))}
               </p>
             </div>
 
             {/* 수업 목록 스크롤 */}
             <div className="flex-1 overflow-y-auto px-[32px] py-[16px] min-h-0">
-              {lessons.length === 0 ? (
+              {filteredLessons.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <p className="text-gray-400 text-[18px]">{t('kiosk_no_lessons')}</p>
                   </div>
               ) : (
                   <div className="grid grid-cols-5 gap-[16px]">
-                    {lessons.filter((l) => l.status !== LessonStatus.Cancelled).map((lesson) => {
+                    {filteredLessons.map((lesson) => {
                       const isSelected = selectedLessons.find((l) => l.id === lesson.id);
                       const isRecruiting = lesson.status === LessonStatus.Recruiting;
                       const isDisabled = !isRecruiting;
