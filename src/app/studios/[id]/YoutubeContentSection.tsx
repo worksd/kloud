@@ -16,7 +16,7 @@ type YoutubeContent = {
 export const YoutubeContentSection = ({ contents, title, channelUrl, locale }: { contents: YoutubeContent[], title: string, channelUrl?: string, locale: Locale }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const scrollEl = scrollRef.current;
@@ -60,13 +60,11 @@ export const YoutubeContentSection = ({ contents, title, channelUrl, locale }: {
       </div>
       <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide">
         {contents.map((content, index) => (
-          <a
+          <div
             key={content.videoId}
             ref={(el) => { itemRefs.current[index] = el; }}
-            href={`https://www.youtube.com/watch?v=${content.videoId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`min-w-[300px] max-w-[300px] snap-start flex-shrink-0 pl-4 ${index === contents.length - 1 ? 'pr-4' : ''}`}
+            onClick={() => window.open(`https://www.youtube.com/watch?v=${content.videoId}`, '_blank')}
+            className={`min-w-[300px] max-w-[300px] snap-start flex-shrink-0 pl-4 cursor-pointer ${index === contents.length - 1 ? 'pr-4' : ''}`}
           >
             <div className="w-full aspect-[16/10] relative rounded-xl overflow-hidden bg-black">
               {focusedIndex === index ? (
@@ -91,7 +89,7 @@ export const YoutubeContentSection = ({ contents, title, channelUrl, locale }: {
             <span className="text-[11px] text-[#AEAEAE] mt-1 block" suppressHydrationWarning>
               {new Date(content.publishedAt).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </span>
-          </a>
+          </div>
         ))}
       </div>
     </div>
