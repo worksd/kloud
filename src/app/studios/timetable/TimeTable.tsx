@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { KloudScreen } from "@/shared/kloud.screen";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { GetTimeTableResponse, GetTimeTableCellResponse } from "@/app/endpoint/studio.endpoint";
 import BackwardIcon from "../../../../public/assets/ic_simple_left_arrow.svg"
 import ForwardIcon from "../../../../public/assets/ic_simple_right_arrow.svg"
@@ -102,8 +102,11 @@ export const TimeTable = ({timeTable, studioId, locale}: {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  // 클라이언트에서 오늘 날짜 직접 계산
-  const clientToday = useMemo(() => formatDateLocal(new Date()), []);
+  // 클라이언트에서 오늘 날짜 직접 계산 (useEffect로 hydration mismatch 방지)
+  const [clientToday, setClientToday] = useState<string>('');
+  useEffect(() => {
+    setClientToday(formatDateLocal(new Date()));
+  }, []);
 
   // 클라이언트에서 계산되는 날짜 관련 데이터
   const days = useMemo(() => getWeekDays(baseDate, clientToday), [baseDate, clientToday]);
