@@ -221,10 +221,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'confirm':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full">
                 {t('kiosk_confirm_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[40px]">
+              <p className="text-gray-400 text-[20px] mb-[40px] w-full">
                 {t('kiosk_confirm_desc')}
               </p>
 
@@ -301,10 +301,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'name':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full">
                 {t('kiosk_welcome_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px]">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full">
                 {t('kiosk_welcome_desc')}
               </p>
               <KioskNameKeyboard onChange={(text) => { setName(text); setError(null); }} />
