@@ -157,10 +157,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'phone':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] text-center">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full">
                 {t('kiosk_phone_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] text-center">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full">
                 {t('kiosk_phone_desc')}
               </p>
 
