@@ -157,10 +157,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'phone':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] text-center">
                 {t('kiosk_phone_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px]">
+              <p className="text-gray-400 text-[20px] mb-[32px] text-center">
                 {t('kiosk_phone_desc')}
               </p>
 
@@ -338,11 +338,13 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
           {renderContent()}
         </div>
 
-        <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
-          <p className="text-[18px] tracking-[-0.54px]">
-            <span className="font-semibold text-black">{formatTime(countdown)}</span>
-            <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
-          </p>
+        <div className="px-[48px] pb-[40px] flex justify-center shrink-0 h-[60px]">
+          {countdown <= 60 && (
+            <p className="text-[18px] tracking-[-0.54px]">
+              <span className="font-semibold text-black">{formatTime(countdown)}</span>
+              <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
+            </p>
+          )}
         </div>
       </div>
   );
