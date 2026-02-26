@@ -164,7 +164,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                 {t('kiosk_phone_desc')}
               </p>
 
-              <div className="relative mb-[8px] w-full max-w-[400px]">
+              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
                     className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[8px] text-[20px] font-medium text-black"
@@ -178,7 +178,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                 {showCountryPicker && (
                     <>
                       <div className="fixed inset-0 z-[9]" onClick={() => setShowCountryPicker(false)}/>
-                      <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
+                      <div className="absolute top-[52px] left-1/2 -translate-x-1/2 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
                         {COUNTRIES.map((c) => (
                             <button
                                 key={c.key}
@@ -324,7 +324,15 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
         <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
-          <button onClick={onBack}
+          <button onClick={() => {
+                    if (step === 'phone') {
+                      onBack();
+                    } else {
+                      setPhone('');
+                      setError(null);
+                      setStep('phone');
+                    }
+                  }}
                   className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
             <BackArrowIcon className="w-full h-full"/>
           </button>
