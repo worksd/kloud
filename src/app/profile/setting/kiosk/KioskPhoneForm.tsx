@@ -157,14 +157,14 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'phone':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[400px] text-center">
                 {t('kiosk_phone_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] w-full">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[400px] text-center">
                 {t('kiosk_phone_desc')}
               </p>
 
-              <div className="relative mb-[8px]">
+              <div className="relative mb-[8px] w-full max-w-[400px]">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
                     className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[8px] text-[20px] font-medium text-black"
@@ -221,10 +221,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'confirm':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
                 {t('kiosk_confirm_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[40px] w-full">
+              <p className="text-gray-400 text-[20px] mb-[40px] w-full max-w-[500px] text-center">
                 {t('kiosk_confirm_desc')}
               </p>
 
@@ -301,10 +301,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'name':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[600px] text-center">
                 {t('kiosk_welcome_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] w-full">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[600px] text-center">
                 {t('kiosk_welcome_desc')}
               </p>
               <KioskNameKeyboard onChange={(text) => { setName(text); setError(null); }} />
