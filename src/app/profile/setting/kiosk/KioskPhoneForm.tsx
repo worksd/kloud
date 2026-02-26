@@ -323,7 +323,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
 
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
+        <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
           <button onClick={() => {
                     if (step === 'phone') {
                       onBack();
@@ -336,8 +336,8 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                   className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
             <BackArrowIcon className="w-full h-full"/>
           </button>
-          <p className="text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
-          <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
+          <p className="absolute left-1/2 -translate-x-1/2 text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
+          <p className="ml-auto text-gray-500 text-[16px] tracking-[-0.48px]">
             {studioName}
           </p>
         </div>
