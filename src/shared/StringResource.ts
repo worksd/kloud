@@ -905,6 +905,12 @@ export const StringResource = {
     jp: "キオスク",
     zh: "自助服务终端"
   },
+  qr_scanner: {
+    ko: "QR 출석",
+    en: "QR Attendance",
+    jp: "QR出席",
+    zh: "QR签到"
+  },
   business_name: {
     ko: "사업자명",
     en: "Business Name",
