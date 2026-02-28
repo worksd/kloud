@@ -10,7 +10,7 @@ export const QRScannerMenu = async () => {
   const res = await getUserAction();
   if (res && 'id' in res && (res.type == UserType.Operator || res.type == UserType.Partner)) {
     return (
-      <NavigateClickWrapper method={'push'} route={KloudScreen.QRScanner}>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.QRScan}>
         <MenuItem label="qr_scanner"/>
       </NavigateClickWrapper>
     );

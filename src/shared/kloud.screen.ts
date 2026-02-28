@@ -28,7 +28,6 @@ export const KloudScreen = {
   DeveloperAuthentication: '/profile/setting/developer/authentication',
   BusinessInfo: '/profile/setting/businessInfo',
   Kiosk: '/profile/setting/kiosk',
-  QRScanner: '/profile/setting/qr-scanner',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
   Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan', id: number) => `/payment?type=${type}&id=${id}`,
