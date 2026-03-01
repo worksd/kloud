@@ -5,9 +5,11 @@ import Image from 'next/image';
 import QRScanner from '@/app/components/QRScanner';
 import { useAction } from '@/app/qrs/use.action';
 import { GetLessonResponse, LessonStatus } from '@/app/endpoint/lesson.endpoint';
+import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { createDialog } from '@/utils/dialog.factory';
 import { getLessonsByDate } from '@/app/profile/setting/kiosk/get.lessons.by.date.action';
+import { getLessonTicketsAction } from '@/app/qrs/get.lesson.tickets.action';
 import { Thumbnail } from '@/app/components/Thumbnail';
 
 type AttendanceRecord = {
@@ -115,6 +117,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [successDialog, setSuccessDialog] = useState<SuccessDialogData | null>(null);
+  const [studentTickets, setStudentTickets] = useState<TicketResponse[]>([]);
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
@@ -130,6 +133,19 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
       return null;
     }
   }, []);
+
+  // 수업 선택 시 수강권 목록 조회
+  useEffect(() => {
+    if (!selectedLesson?.id) {
+      setStudentTickets([]);
+      return;
+    }
+    const fetchTickets = async () => {
+      const tickets = await getLessonTicketsAction(selectedLesson.id);
+      setStudentTickets(tickets);
+    };
+    fetchTickets();
+  }, [selectedLesson?.id]);
 
   const onSuccess = useCallback(
     async (decodedText: string) => {
@@ -207,6 +223,11 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
         } else if ('id' in result) {
           // 성공 응답 - ticketId 저장
           successTicketIds.current.add(ticketId);
+
+          // 수강권 목록에서 해당 티켓 상태 업데이트
+          setStudentTickets(prev =>
+            prev.map(t => t.id === ticketId ? { ...t, status: 'Used' } : t)
+          );
 
           const userName = result.user?.nickName || result.user?.name || '사용자';
           const ticketLabel = result.ticketTypeLabel || '';
@@ -424,42 +445,96 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
         </div>
       )}
 
-      {/* 출석 목록 (왼쪽 위) */}
-      {attendanceList.length > 0 && (
+      {/* 수강권 목록 (하단 패널) */}
+      {studentTickets.length > 0 && (
         <div
           style={{
             position: 'fixed',
-            top: lesson ? 190 : 100,
-            left: 8,
+            bottom: 0,
+            left: 0,
+            right: 0,
             zIndex: 10001,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
             backdropFilter: 'blur(10px)',
-            borderRadius: 8,
-            padding: 8,
-            maxHeight: '30vh',
-            overflowY: 'auto',
-            minWidth: 140,
+            borderRadius: '16px 16px 0 0',
+            maxHeight: '35vh',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <div style={{ color: '#22C55E', fontSize: 11, fontWeight: 600, marginBottom: 6 }}>
-            출석 ({attendanceList.length}명)
-          </div>
-          {attendanceList.map((record) => (
-            <div
-              key={record.ticketId}
-              style={{
-                fontSize: 11,
-                color: 'white',
-                padding: '4px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              <div style={{ fontWeight: 500 }}>{record.userName}</div>
-              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>
-                {record.ticketType && `${record.ticketType} · `}{record.time}
-              </div>
+          <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
+              수강생 ({studentTickets.length}명)
+              <span style={{ color: '#22C55E', marginLeft: 8 }}>
+                출석 {studentTickets.filter(t => t.status === 'Used').length}명
+              </span>
             </div>
-          ))}
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 12px 16px' }}>
+            {studentTickets.map((ticket) => {
+              const isUsed = ticket.status === 'Used';
+              return (
+                <div
+                  key={ticket.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 4px',
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  {/* 프로필 이미지 */}
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <Image
+                      src={ticket.user?.profileImageUrl || '/assets/default_profile.png'}
+                      alt=""
+                      width={36}
+                      height={36}
+                      style={{ borderRadius: '50%', objectFit: 'cover', opacity: isUsed ? 1 : 0.6 }}
+                    />
+                    {isUsed && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: -2,
+                          right: -2,
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          backgroundColor: '#22C55E',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 이름 + 정보 */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: isUsed ? '#fff' : 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {ticket.user?.nickName || ticket.user?.name || '사용자'}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', display: 'flex', gap: 4, alignItems: 'center' }}>
+                      {ticket.rank && <span>{ticket.rank}</span>}
+                      {ticket.rank && ticket.ticketTypeLabel && <span>·</span>}
+                      {ticket.ticketTypeLabel && <span>{ticket.ticketTypeLabel}</span>}
+                    </div>
+                  </div>
+
+                  {/* 출석 상태 */}
+                  <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: isUsed ? '#22C55E' : 'rgba(255,255,255,0.3)' }}>
+                    {isUsed ? '출석' : '미출석'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

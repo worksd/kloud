@@ -1,7 +1,7 @@
 import { Endpoint, SimpleResponse } from '@/app/endpoint/index';
 import { LessonType } from '@/entities/lesson/lesson';
 import { GetStudioResponse } from '@/app/endpoint/studio.endpoint';
-import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
+import { TicketListResponse, TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { GetArtistResponse } from '@/app/endpoint/artist.endpoint';
 
 export type GetLessonParameter = {
@@ -140,6 +140,15 @@ export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, 
 export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {
     method: 'get',
     path: (e) => `/lessons/${e.lessonId}/capacity-check`
+}
+
+export type GetLessonTicketsParameter = {
+    id: number;
+}
+
+export const GetLessonTickets: Endpoint<GetLessonTicketsParameter, TicketListResponse> = {
+    method: 'get',
+    path: (e) => `/lessons/${e.id}/tickets`,
 }
 
 // LessonGroup (정기수업) 관련 타입
