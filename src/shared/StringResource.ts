@@ -1397,6 +1397,24 @@ export const StringResource = {
     jp: '認証番号を再送信',
     zh: '重新发送验证码',
   },
+  resend_available_after_seconds: {
+    ko: '{0}초 후에 재전송할 수 있습니다.',
+    en: 'You can resend after {0} seconds.',
+    jp: '{0}秒後に再送信できます。',
+    zh: '{0}秒后可以重新发送。',
+  },
+  resend_try_again_later: {
+    ko: '잠시 후 다시 시도해주세요.',
+    en: 'Please try again later.',
+    jp: 'しばらくしてからもう一度お試しください。',
+    zh: '请稍后再试。',
+  },
+  resend_countdown: {
+    ko: '{0}초',
+    en: '{0}s',
+    jp: '{0}秒',
+    zh: '{0}秒',
+  },
   payment_fail: {
     ko: '결제실패',
     en: 'Payment Failed',

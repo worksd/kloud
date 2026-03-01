@@ -115,4 +115,5 @@ export const CheckPhoneVerification: Endpoint<VerifyCodeParameter, PostAuthLogin
 export type SendPhoneVerificationResponse = {
   code: string;
   ttl: number;
+  resendAvailableAt?: string;
 }

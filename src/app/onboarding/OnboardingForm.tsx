@@ -54,7 +54,7 @@ const fadeUp = {
   },
 } as const;
 
-type OnboardStep = 'onboard' | 'phone' | 'code' | 'agreement' | 'complete';
+type OnboardStep = 'onboard' | 'phone' | 'agreement' | 'complete';
 
 export const OnboardingForm = ({
                                  user,
@@ -91,6 +91,8 @@ export const OnboardingForm = ({
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('KR');
   const [code, setCode] = useState('');
+  const [smsSent, setSmsSent] = useState(false);
+  const [resendAvailableAt, setResendAvailableAt] = useState<string | null>(null);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const birthRef = useRef<HTMLInputElement>(null);
@@ -126,8 +128,11 @@ export const OnboardingForm = ({
     const res = await sendVerificationSMS({phone, countryCode})
     if ('ttl' in res) {
       flushSync(() => {
-        setStep('code');
+        setSmsSent(true);
         setCode('');
+        if (res.resendAvailableAt) {
+          setResendAvailableAt(res.resendAvailableAt);
+        }
       });
       focusField('code')
     } else if ('message' in res && res.message) {
@@ -141,12 +146,15 @@ export const OnboardingForm = ({
       await kloudNav.navigateMain({})
     } else if (step == 'agreement') {
       setStep('complete')
-    } else if (step == 'code') {
+    } else if (step == 'phone' && smsSent) {
       const res = await updateUserAction({ phone, countryCode, code })
       if ('success' in res && res.success) {
         setStep('agreement')
+      } else if ('errorMessage' in res && res.errorMessage) {
+        const dialog = await createDialog({id: 'Simple', message: res.errorMessage});
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
-    } else if (step == 'phone') {
+    } else if (step == 'phone' && !smsSent) {
       const errorTitle = await translate('send_code_fail_title')
       const duplicateCheck = await checkDuplicateUser({phone})
       if ('success' in duplicateCheck && duplicateCheck.success) {
@@ -222,10 +230,10 @@ export const OnboardingForm = ({
           return inputNickNameMessage;
       }
     }
-    if (step === 'phone') {
+    if (step === 'phone' && !smsSent) {
       return phoneVerificationSteps.find(v => v.id === 'phone')?.message ?? '';
     }
-    if (step === 'code') {
+    if (step === 'phone' && smsSent) {
       return phoneVerificationSteps.find(v => v.id === 'code')?.message ?? '';
     }
     if (step === 'agreement') {
@@ -240,6 +248,7 @@ export const OnboardingForm = ({
     return '';
   }, [
     step,
+    smsSent,
     currentOnboardField,
     inputNameMessage,
     inputBirthMessage,
@@ -249,10 +258,11 @@ export const OnboardingForm = ({
   ]);
 
   const handleOnClickBack = () => {
-    if (step == 'phone') {
+    if (step == 'phone' && smsSent) {
+      setSmsSent(false)
+      setCode('')
+    } else if (step == 'phone' && !smsSent) {
       setStep('onboard')
-    } else if (step == 'code') {
-      setStep('phone')
     } else if (step == 'agreement') {
       if (user.loginType == 'Phone' || user.phone) {
         setStep('onboard')
@@ -315,17 +325,17 @@ export const OnboardingForm = ({
           return name.trim().length < 2;
       }
     }
-    if (step === 'phone') {
+    if (step === 'phone' && !smsSent) {
       return onlyDigits(phone).length < 6;
     }
-    if (step === 'code') {
+    if (step === 'phone' && smsSent) {
       return onlyDigits(code).length < 6; // 6자리 코드
     }
     if (step === 'agreement') {
       return !allChecked;
     }
     return false;
-  }, [step, currentOnboardField, nickName, gender, birth, name, phone, code, allChecked]);
+  }, [step, smsSent, currentOnboardField, nickName, gender, birth, name, phone, code, allChecked]);
 
   const [genderSheetOpen, setGenderSheetOpen] = useState(false);
 
@@ -415,7 +425,7 @@ export const OnboardingForm = ({
             </div>
           )}
           {step === 'phone' && (
-            <div className="mt-9">
+            <div className="mt-9 space-y-4">
               <PhoneVerification
                 locale={locale}
                 ref={phoneRef}
@@ -425,10 +435,27 @@ export const OnboardingForm = ({
                 onChangePhoneAction={(value: string) => {
                   setPhone(value);
                 }}/>
-              <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center">
-                {/* 위쪽 경계 살짝 분리용 그라데이션 (옵션) */}
-                <div className="pointer-events-none h-4 w-full bg-gradient-to-t from-white to-transparent"/>
 
+              <AnimatePresence>
+                {smsSent && (
+                  <motion.div key="code-input" {...fadeUp}>
+                    <VerificationCodeForm
+                      ref={codeRef}
+                      placeholder={phoneVerificationSteps.find((value) => value.id == 'code')?.placeholder ?? ''}
+                      value={code}
+                      handleChangeAction={(value: string) => {
+                        setCode(value)
+                      }}
+                      locale={locale}
+                      resendAvailableAt={resendAvailableAt}
+                      onResendAction={sendSmsCode}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center">
+                <div className="pointer-events-none h-4 w-full bg-gradient-to-t from-white to-transparent"/>
                 <button
                   type="button"
                   onClick={() => {
@@ -436,7 +463,7 @@ export const OnboardingForm = ({
                   }}
                   className={[
                     'mb-4 rounded-full px-5',
-                    'h-11 min-h-[44px]', // 모바일 터치 타깃 확보
+                    'h-11 min-h-[44px]',
                     'text-sm font-medium',
                     disabled
                       ? 'text-gray-400 cursor-not-allowed'
@@ -446,18 +473,6 @@ export const OnboardingForm = ({
                   나중에 하기
                 </button>
               </div>
-            </div>
-          )}
-          {step === 'code' && (
-            <div className="mt-9">
-              <VerificationCodeForm
-                ref={codeRef}
-                placeholder={phoneVerificationSteps.find((value) => value.id == 'code')?.placeholder ?? ''}
-                value={code}
-                handleChangeAction={(value: string) => {
-                  setCode(value)
-                }}
-              />
             </div>
           )}
           {step === 'agreement' && (

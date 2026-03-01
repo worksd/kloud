@@ -34,11 +34,12 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
   isFromLogin: boolean
 }) {
 
-  const [step, setStep] = useState<PhoneVerificationStep>('phone');
   const [phone, setPhone] = useState('')
   const [countryCode, setCountryCode] = useState<string>('KR');
   const [code, setCode] = useState<string>('')
   const [disabled, setDisabled] = useState<boolean>(true);
+  const [smsSent, setSmsSent] = useState(false);
+  const [resendAvailableAt, setResendAvailableAt] = useState<string | null>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
 
@@ -51,25 +52,28 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       } catch {
         el.focus(); // fallback
       }
-    }, 300); // 300~500ms 권장 (1초까지는 보통 필요 없음)
+    }, 300);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
-    if (step == 'phone') {
+    if (!smsSent) {
       setDisabled(phone.length < 6)
-    } else if (step == 'code') {
+    } else {
       setDisabled(code.length !== 6)
     }
-  }, [phone, step, code])
+  }, [phone, smsSent, code])
 
   const sendSmsVerification = async () => {
     const errorTitle = await translate('send_code_fail_title')
     const res = await sendVerificationSMS({phone, countryCode})
     if ('ttl' in res) {
       flushSync(() => {
-        setStep('code');
+        setSmsSent(true);
         setCode('');
+        if (res.resendAvailableAt) {
+          setResendAvailableAt(res.resendAvailableAt);
+        }
       });
       codeRef?.current?.focus();
     } else if ('message' in res && res.message) {
@@ -79,7 +83,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
   }
 
   const handleOnClick = async () => {
-    if (step === 'phone') {
+    if (!smsSent) {
       if (!isFromLogin) {
         const errorTitle = await translate('send_code_fail_title')
         const duplicateCheck = await checkDuplicateUser({phone})
@@ -97,7 +101,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       } else {
         await sendSmsVerification()
       }
-    } else if (step === 'code') {
+    } else {
       if (isFromLogin) {
         const res = await phoneLoginAction({code, phone, countryCode})
         if ('accessToken' in res && res.accessToken) {
@@ -118,7 +122,6 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       } else {
         const res = await updateUserAction({phone, countryCode, code})
         if ('success' in res && res.success) {
-          setStep('code')
           const completeDialog = await createDialog({
             id: 'CertificationComplete',
             message: await translate('certification_success_message'),
@@ -141,12 +144,21 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
   })
 
   const handleOnClickBack = () => {
-    if (step === 'phone') {
+    if (smsSent) {
+      setSmsSent(false)
+      setCode('')
+    } else {
       kloudNav.back()
-    } else if (step === 'code') {
-      setStep('phone')
     }
   }
+
+  const message = smsSent
+    ? steps.find((v) => v.id === 'code')?.message
+    : steps.find((v) => v.id === 'phone')?.message;
+
+  const buttonText = smsSent
+    ? steps.find((v) => v.id === 'code')?.buttonText
+    : steps.find((v) => v.id === 'phone')?.buttonText;
 
   return (
     <div className="fixed inset-0 bg-white overflow-hidden px-6">
@@ -156,23 +168,20 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
       {/* 위 컨텐츠: 버튼과 겹치지 않도록 아래 여백만 확보 */}
       <div className="pt-24 pb-4">
         <div className="text-black font-bold text-[22px]">
-          {steps.find((value) => value.id == step)?.message}
+          {message}
         </div>
-        {step === 'phone' && (
-          <div className="mt-9">
-            <PhoneVerification
-              locale={locale}
-              ref={phoneRef}
-              phone={phone}
-              countryCode={countryCode}
-              onChangeCountryCodeAction={(value: string) => setCountryCode(value)}
-              onChangePhoneAction={(value: string) => {
-                setPhone(value);
-              }}/>
-          </div>
-        )}
-        {step === 'code' && (
-          <div className="mt-9">
+        <div className="mt-9 space-y-4">
+          <PhoneVerification
+            locale={locale}
+            ref={phoneRef}
+            phone={phone}
+            countryCode={countryCode}
+            onChangeCountryCodeAction={(value: string) => setCountryCode(value)}
+            onChangePhoneAction={(value: string) => {
+              setPhone(value);
+            }}/>
+
+          {smsSent && (
             <VerificationCodeForm
               ref={codeRef}
               placeholder={steps.find((value) => value.id == 'code')?.placeholder ?? ''}
@@ -180,10 +189,12 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
               handleChangeAction={(value: string) => {
                 setCode(value)
               }}
+              locale={locale}
+              resendAvailableAt={resendAvailableAt}
+              onResendAction={sendSmsVerification}
             />
-          </div>
-        )}
-
+          )}
+        </div>
       </div>
 
       {/* 하단 고정 버튼 */}
@@ -191,7 +202,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
         <AsyncCommonSubmitButton
           disabled={disabled}
           onClick={handleOnClick}>
-          {steps.find((value) => value.id == step)?.buttonText}
+          {buttonText}
         </AsyncCommonSubmitButton>
       </div>
     </div>
