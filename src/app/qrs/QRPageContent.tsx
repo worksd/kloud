@@ -118,6 +118,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [successDialog, setSuccessDialog] = useState<SuccessDialogData | null>(null);
   const [studentTickets, setStudentTickets] = useState<TicketResponse[]>([]);
+  const [manualLoadingTicketId, setManualLoadingTicketId] = useState<number | null>(null);
   const isScanning = useRef(false);
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
@@ -283,6 +284,71 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
     },
     [parseTicketParams, lesson?.id, successDialog]
   );
+
+  const handleManualAttendance = useCallback(async (ticket: TicketResponse) => {
+    if (ticket.status === 'Used') return;
+    if (manualLoadingTicketId !== null) return;
+    if (successTicketIds.current.has(ticket.id)) return;
+
+    setManualLoadingTicketId(ticket.id);
+
+    try {
+      const result = await useAction({
+        ticketId: ticket.id,
+        lessonId: lesson?.id,
+      });
+
+      if ('message' in result) {
+        const dialog = await createDialog({
+          id: 'Simple',
+          title: '알림',
+          message: result.message || '출석 처리에 실패했습니다.',
+        });
+        if (dialog && window.KloudEvent) {
+          window.KloudEvent.showDialog(JSON.stringify(dialog));
+        }
+      } else if ('id' in result) {
+        successTicketIds.current.add(ticket.id);
+
+        setStudentTickets(prev =>
+          prev.map(t => t.id === ticket.id ? { ...t, status: 'Used' } : t)
+        );
+
+        const userName = result.user?.nickName || result.user?.name || '사용자';
+        const ticketLabel = result.ticketTypeLabel || '';
+
+        setAttendanceList(prev => [{
+          ticketId: ticket.id,
+          userName,
+          ticketType: ticketLabel,
+          time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        }, ...prev]);
+
+        setSuccessDialog({
+          user: {
+            profileImageUrl: result.user?.profileImageUrl,
+            name: result.user?.name,
+            nickName: result.user?.nickName,
+          },
+          ticketType: result.ticketType,
+          ticketTypeLabel: result.ticketTypeLabel,
+          lessonTitle: result.lesson?.title,
+          rank: result.rank,
+        });
+      }
+    } catch {
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: '알림',
+        message: '네트워크 오류가 발생했습니다.',
+      });
+      if (dialog && window.KloudEvent) {
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      }
+    } finally {
+      setManualLoadingTicketId(null);
+    }
+  }, [lesson?.id, manualLoadingTicketId]);
 
   // ── 수업 선택 다이얼로그 상태 ──
   const today = getTodayKST();
@@ -473,15 +539,19 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
           <div style={{ flex: 1, overflowY: 'auto', padding: '4px 12px 16px' }}>
             {studentTickets.map((ticket) => {
               const isUsed = ticket.status === 'Used';
+              const isManualLoading = manualLoadingTicketId === ticket.id;
               return (
                 <div
                   key={ticket.id}
+                  onClick={() => !isUsed && handleManualAttendance(ticket)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                     padding: '8px 4px',
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    cursor: isUsed ? 'default' : 'pointer',
+                    opacity: isManualLoading ? 0.5 : 1,
                   }}
                 >
                   {/* 프로필 이미지 */}
@@ -529,7 +599,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
 
                   {/* 출석 상태 */}
                   <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: isUsed ? '#22C55E' : 'rgba(255,255,255,0.3)' }}>
-                    {isUsed ? '출석' : '미출석'}
+                    {isManualLoading ? '처리중...' : isUsed ? '출석' : '미출석'}
                   </div>
                 </div>
               );
