@@ -7,6 +7,7 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import CloseIcon from "@/../public/assets/ic_close.svg"
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
+import { getMeAction } from "@/app/profile/setting/kiosk/get.me.action";
 
 export const PaymentMethodSheetForm = ({
                                          locale,
@@ -64,6 +65,22 @@ export const PaymentMethodSheetForm = ({
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
   }
+
+  const [birthFromProfile, setBirthFromProfile] = useState(false);
+
+  useEffect(() => {
+    getMeAction().then(res => {
+      if ('id' in res && res.birth) {
+        // birth format: YYYYMMDD → extract YYMMDD (6 digits)
+        const birth6 = res.birth.length === 8 ? res.birth.slice(2) : res.birth;
+        setForm(prev => ({
+          ...prev,
+          birthOrBusinessRegistrationNumber: prev.birthOrBusinessRegistrationNumber || birth6,
+        }));
+        setBirthFromProfile(true);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (initialCardNumber) {
@@ -189,6 +206,11 @@ export const PaymentMethodSheetForm = ({
             onChange={handleChange}
             className="w-full bg-gray-50 text-black px-4 py-3 rounded-xl shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black placeholder-gray-400"
           />
+          {birthFromProfile && form.birthOrBusinessRegistrationNumber && (
+            <div className="text-[11px] text-[#999] mt-1.5 px-1">
+              {getLocaleString({locale, key: 'birth_from_profile'})}
+            </div>
+          )}
         </div>
 
         <div>

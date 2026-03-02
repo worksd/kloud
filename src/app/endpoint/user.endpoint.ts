@@ -54,6 +54,7 @@ export type GetMeResponse = {
   name?: string
   nickName?: string
   phone?: string
+  birth?: string
   studio?: GetStudioResponse
   upcomingLesson?: UpcomingLessonResponse
   ticketCount?: number
