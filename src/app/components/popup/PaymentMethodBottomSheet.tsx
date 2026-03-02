@@ -9,7 +9,7 @@ import CardScanner, { CardScanResult } from "@/app/components/CardScanner";
 
 type Phase = 'idle' | 'scanning' | 'form';
 
-export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Locale, onSuccessAction: () => void }) => {
+export const PaymentMethodAddButton = ({locale, onSuccessAction, birth}: { locale: Locale, onSuccessAction: () => void, birth?: string | null }) => {
 
   const [phase, setPhase] = React.useState<Phase>('idle');
   const [scanResult, setScanResult] = React.useState<CardScanResult | null>(null);
@@ -58,13 +58,14 @@ export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Loca
           initialCardNumber={scanResult?.cardNumber}
           initialExpiryMonth={scanResult?.expiryMonth}
           initialExpiryYear={scanResult?.expiryYear}
+          initialBirth={birth}
         />
       )}
     </div>
   )
 }
 
-export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSuccessAction, initialCardNumber, initialExpiryMonth, initialExpiryYear}: {
+export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSuccessAction, initialCardNumber, initialExpiryMonth, initialExpiryYear, initialBirth}: {
   open: boolean,
   locale: Locale,
   onCloseAction: () => void,
@@ -72,12 +73,13 @@ export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSucc
   initialCardNumber?: string,
   initialExpiryMonth?: string,
   initialExpiryYear?: string,
+  initialBirth?: string | null,
 }) => {
   return (
     <div className="fixed inset-0 z-[1000]">
 
       <CommonBottomSheet open={open} onCloseAction={onCloseAction}>
-        <PaymentMethodSheetForm locale={locale} onCloseAction={onCloseAction} onSuccessAction={onSuccessAction} initialCardNumber={initialCardNumber} initialExpiryMonth={initialExpiryMonth} initialExpiryYear={initialExpiryYear}/>
+        <PaymentMethodSheetForm locale={locale} onCloseAction={onCloseAction} onSuccessAction={onSuccessAction} initialCardNumber={initialCardNumber} initialExpiryMonth={initialExpiryMonth} initialExpiryYear={initialExpiryYear} initialBirth={initialBirth}/>
       </CommonBottomSheet>
     </div>
   )

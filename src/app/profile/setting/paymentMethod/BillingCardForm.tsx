@@ -13,7 +13,7 @@ import CardScanner, { CardScanResult } from "@/app/components/CardScanner";
 
 type Phase = 'idle' | 'scanning' | 'form';
 
-export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], locale: Locale }) => {
+export const BillingCardForm = ({cards, locale, birth}: { cards: GetBillingResponse[], locale: Locale, birth?: string | null }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
   const [phase, setPhase] = useState<Phase>('idle');
@@ -148,6 +148,7 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
           initialCardNumber={scanResult?.cardNumber}
           initialExpiryMonth={scanResult?.expiryMonth}
           initialExpiryYear={scanResult?.expiryYear}
+          initialBirth={birth}
         />
       )}
     </main>

@@ -7,7 +7,6 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import CloseIcon from "@/../public/assets/ic_close.svg"
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
-import { getMeBirthAction } from "@/app/profile/setting/paymentMethod/get.me.birth.action";
 
 export const PaymentMethodSheetForm = ({
                                          locale,
@@ -16,6 +15,7 @@ export const PaymentMethodSheetForm = ({
                                          initialCardNumber,
                                          initialExpiryMonth,
                                          initialExpiryYear,
+                                         initialBirth,
                                        }: {
   locale: Locale,
   onCloseAction: () => void,
@@ -23,17 +23,22 @@ export const PaymentMethodSheetForm = ({
   initialCardNumber?: string,
   initialExpiryMonth?: string,
   initialExpiryYear?: string,
+  initialBirth?: string | null,
 }) => {
 
   const initialFormatted = initialCardNumber
     ? initialCardNumber.match(/.{1,4}/g)?.join(' ').trim() || ''
     : '';
 
+  const initialBirth6 = initialBirth
+    ? (initialBirth.length === 8 ? initialBirth.slice(2) : initialBirth)
+    : '';
+
   const [form, setForm] = useState<CreateBillingRequest>({
     cardNumber: initialFormatted,
     expiryYear: initialExpiryYear || '',
     expiryMonth: initialExpiryMonth || '',
-    birthOrBusinessRegistrationNumber: '',
+    birthOrBusinessRegistrationNumber: initialBirth6,
     passwordTwoDigits: '',
   })
   // refs for focusing
@@ -66,31 +71,22 @@ export const PaymentMethodSheetForm = ({
     }
   }
 
-  const [birthFromProfile, setBirthFromProfile] = useState(false);
-
-  useEffect(() => {
-    getMeBirthAction().then(res => {
-      if (res) {
-        // birth format: YYYYMMDD → extract YYMMDD (6 digits)
-        const birth6 = res.length === 8 ? res.slice(2) : res;
-        setForm(prev => ({
-          ...prev,
-          birthOrBusinessRegistrationNumber: prev.birthOrBusinessRegistrationNumber || birth6,
-        }));
-        setBirthFromProfile(true);
-      }
-    });
-  }, []);
+  const birthFromProfile = !!initialBirth6;
 
   useEffect(() => {
     if (initialCardNumber) {
-      if (initialExpiryMonth && initialExpiryYear) {
+      if (initialExpiryMonth && initialExpiryYear && initialBirth6) {
+        passwordRef.current?.focus();
+      } else if (initialExpiryMonth && initialExpiryYear) {
         birthRef.current?.focus();
       } else {
         expiryMonthRef.current?.focus();
       }
+    } else if (initialBirth6) {
+      // 스캐너 없이 폼만 열린 경우에도 birth가 채워져 있으면 password로 이동하지 않음
+      // 카드번호부터 입력하게 둠
     }
-  }, [initialCardNumber, initialExpiryMonth, initialExpiryYear]);
+  }, [initialCardNumber, initialExpiryMonth, initialExpiryYear, initialBirth6]);
 
   useEffect(() => {
     window.onDialogConfirm = async (dialogInfo: DialogInfo) => {
