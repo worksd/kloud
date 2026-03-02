@@ -498,16 +498,16 @@ export const StringResource = {
     zh: "输入支付信息"
   },
   sign_up_complete_message_1: {
-    ko: "가입 완료!",
-    en: "Sign-up complete!",
-    jp: "登録が完了しました！",
-    zh: "注册完成！"
+    ko: "",
+    en: "",
+    jp: "",
+    zh: ""
   },
   sign_up_complete_message_2: {
-    ko: "님 환영해요",
-    en: "welcome!",
-    jp: "さん、ようこそ！",
-    zh: "，欢迎您！"
+    ko: "님, 환영합니다!\n지금 바로 시작해보세요",
+    en: ", welcome!\nLet's get started",
+    jp: "さん、ようこそ！\n今すぐ始めましょう",
+    zh: "，欢迎您！\n现在就开始吧"
   },
   card_number_placeholder: {
     ko: "카드 번호",

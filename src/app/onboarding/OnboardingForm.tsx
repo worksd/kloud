@@ -161,13 +161,13 @@ export const OnboardingForm = ({
           setIsLoading(false);
         }
       }
-      setStep('complete');
+      setStep('agreement');
     } else if (step == 'agreement') {
-      setStep('studio')
+      setStep('complete')
     } else if (step == 'phone' && smsSent) {
       const res = await updateUserAction({ phone, countryCode, code })
       if ('success' in res && res.success) {
-        setStep('agreement')
+        setStep('studio')
       } else if ('errorMessage' in res && res.errorMessage) {
         const dialog = await createDialog({id: 'Simple', message: res.errorMessage});
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
@@ -195,7 +195,7 @@ export const OnboardingForm = ({
       })
       if (user.loginType === 'Phone' || user.phone) {
         if ('success' in res && res.success) {
-          setStep('agreement');
+          setStep('studio');
         } else if ('errorMessage' in res && res.errorMessage) {
           const dialog = await createDialog({id: 'Simple', message: res.errorMessage});
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
@@ -258,13 +258,10 @@ export const OnboardingForm = ({
       return agreementMessage;
     }
     if (step === 'studio') {
-      return selectStudioMessage;
+      return `${name}님,\n댄스 스튜디오를 골라주세요!`;
     }
     if (step === 'complete') {
-      return getLocaleString({
-        locale,
-        key: 'sign_up_complete_message_1'
-      }) + '\n' + (name ?? nickName) + getLocaleString({locale, key: 'sign_up_complete_message_2'}) + '\n';
+      return (name ?? nickName) + getLocaleString({locale, key: 'sign_up_complete_message_2'});
     }
     return '';
   }, [
@@ -284,16 +281,16 @@ export const OnboardingForm = ({
       setCode('')
     } else if (step == 'phone' && !smsSent) {
       setStep('onboard')
-    } else if (step == 'agreement') {
+    } else if (step == 'studio') {
       if (user.loginType == 'Phone' || user.phone) {
         setStep('onboard')
       } else {
         setStep('phone')
       }
     } else if (step == 'complete') {
-      setStep('studio')
-    } else if (step == 'studio') {
       setStep('agreement')
+    } else if (step == 'agreement') {
+      setStep('studio')
     } else if (step == 'onboard') {
       kloudNav.clearAndPush(KloudScreen.Login(''))
     }
@@ -371,8 +368,26 @@ export const OnboardingForm = ({
   return (
     <MotionConfig reducedMotion="user">
       <div className="bg-white px-6">
-        <div className="pt-16" onClick={handleOnClickBack}>
-          <BackIcon/>
+        <div className="sticky top-0 z-10 bg-white pt-16 pb-2 flex items-center justify-between">
+          <div onClick={handleOnClickBack}>
+            <BackIcon/>
+          </div>
+          {(step === 'studio' || step === 'phone') && (
+            <button
+              type="button"
+              onClick={() => {
+                if (step === 'phone') {
+                  setStep('studio');
+                } else {
+                  setSelectedStudioId(null);
+                  setStep('agreement');
+                }
+              }}
+              className="text-sm text-gray-400 active:opacity-60"
+            >
+              건너뛰기
+            </button>
+          )}
         </div>
 
         <div className="pt-16 pb-6">
@@ -446,8 +461,15 @@ export const OnboardingForm = ({
             </div>
           )}
           {step == 'complete' && (
-            <div className="w-full flex justify-center mt-20">
-              <CircleCloseIcon className="scale-75"/>
+            <div className="flex flex-col items-center mt-16 gap-5">
+              <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <p className="text-center text-[15px] text-gray-500">
+                모든 준비가 끝났어요
+              </p>
             </div>
           )}
           {step === 'phone' && (
@@ -485,7 +507,7 @@ export const OnboardingForm = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setStep('agreement')
+                    setStep('studio')
                   }}
                   className={[
                     'mb-4 rounded-full px-5',
@@ -507,42 +529,27 @@ export const OnboardingForm = ({
             </div>
           )}
           {step === 'studio' && (
-            <div className="mt-9">
-              <div className="grid grid-cols-3 gap-4">
-                {studios.map((studio) => (
-                  <button
-                    key={studio.id}
-                    type="button"
-                    onClick={() => setSelectedStudioId(studio.id)}
-                    className={[
-                      'flex flex-col items-center gap-2 rounded-xl p-3 transition',
-                      selectedStudioId === studio.id
-                        ? 'bg-black/5 ring-2 ring-black'
-                        : 'hover:bg-gray-50',
-                    ].join(' ')}
-                  >
-                    <img
-                      src={studio.profileImageUrl}
-                      alt={studio.name}
-                      className="h-16 w-16 rounded-full object-cover"
-                    />
-                    <span className="text-xs font-medium text-center line-clamp-2">{studio.name}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center">
-                <div className="pointer-events-none h-4 w-full bg-gradient-to-t from-white to-transparent"/>
+            <div className="mt-6 grid grid-cols-3 gap-3 pb-24">
+              {studios.map((studio) => (
                 <button
+                  key={studio.id}
                   type="button"
-                  onClick={() => {
-                    setSelectedStudioId(null);
-                    setStep('complete');
-                  }}
-                  className="mb-4 rounded-full px-5 h-11 min-h-[44px] text-sm font-medium text-gray-700 hover:text-black active:opacity-80"
+                  onClick={() => setSelectedStudioId(studio.id)}
+                  className={[
+                    'flex flex-col items-center gap-2.5 rounded-2xl border p-4 transition',
+                    selectedStudioId === studio.id
+                      ? 'border-black bg-black'
+                      : 'border-gray-200 bg-white',
+                  ].join(' ')}
                 >
-                  나중에 하기
+                  <img
+                    src={studio.profileImageUrl}
+                    alt={studio.name}
+                    className="h-14 w-14 rounded-full object-cover"
+                  />
+                  <span className={`text-[11px] font-semibold text-center leading-tight line-clamp-2 ${selectedStudioId === studio.id ? 'text-white' : 'text-black'}`}>{studio.name}</span>
                 </button>
-              </div>
+              ))}
             </div>
           )}
 
@@ -550,7 +557,7 @@ export const OnboardingForm = ({
         </div>
 
         {/* 하단 고정 버튼 */}
-        <div className="left-0 right-0 pb-6 bg-white/70">
+        <div className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-6 pt-2 bg-white/90 backdrop-blur-sm">
           <CommonSubmitButton
             disabled={disabled}
             originProps={{onClick: handleOnClick}}
