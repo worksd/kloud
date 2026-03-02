@@ -7,7 +7,7 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import CloseIcon from "@/../public/assets/ic_close.svg"
 import AsyncCommonSubmitButton from "@/app/components/buttons/AsyncCommonSubmitButton";
-import { getMeAction } from "@/app/profile/setting/kiosk/get.me.action";
+import { getMeBirthAction } from "@/app/profile/setting/paymentMethod/get.me.birth.action";
 
 export const PaymentMethodSheetForm = ({
                                          locale,
@@ -69,10 +69,10 @@ export const PaymentMethodSheetForm = ({
   const [birthFromProfile, setBirthFromProfile] = useState(false);
 
   useEffect(() => {
-    getMeAction().then(res => {
-      if ('id' in res && res.birth) {
+    getMeBirthAction().then(res => {
+      if (res) {
         // birth format: YYYYMMDD → extract YYMMDD (6 digits)
-        const birth6 = res.birth.length === 8 ? res.birth.slice(2) : res.birth;
+        const birth6 = res.length === 8 ? res.slice(2) : res;
         setForm(prev => ({
           ...prev,
           birthOrBusinessRegistrationNumber: prev.birthOrBusinessRegistrationNumber || birth6,
