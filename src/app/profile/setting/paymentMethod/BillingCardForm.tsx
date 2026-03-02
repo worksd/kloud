@@ -9,7 +9,7 @@ import { BankOrCardIcon } from "@/app/components/Bank";
 import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMethodBottomSheet";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import CardScanner from "@/app/components/CardScanner";
+import CardScanner, { CardScanResult } from "@/app/components/CardScanner";
 
 type Phase = 'idle' | 'scanning' | 'form';
 
@@ -17,7 +17,7 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
   const [phase, setPhase] = useState<Phase>('idle');
-  const [scannedCardNumber, setScannedCardNumber] = useState('');
+  const [scanResult, setScanResult] = useState<CardScanResult | null>(null);
 
   const loadCards = async () => {
 
@@ -122,17 +122,17 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
       {phase === 'scanning' && (
         <CardScanner
           locale={locale}
-          onCardDetected={(cardNumber) => {
-            setScannedCardNumber(cardNumber);
+          onCardDetected={(result) => {
+            setScanResult(result);
             setPhase('form');
           }}
           onManualEntry={() => {
-            setScannedCardNumber('');
+            setScanResult(null);
             setPhase('form');
           }}
           onClose={() => {
             setPhase('idle');
-            setScannedCardNumber('');
+            setScanResult(null);
           }}
         />
       )}
@@ -142,10 +142,12 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
           locale={locale}
           onCloseAction={() => {
             setPhase('idle');
-            setScannedCardNumber('');
+            setScanResult(null);
           }}
           onSuccessAction={() => loadCards()}
-          initialCardNumber={scannedCardNumber || undefined}
+          initialCardNumber={scanResult?.cardNumber}
+          initialExpiryMonth={scanResult?.expiryMonth}
+          initialExpiryYear={scanResult?.expiryYear}
         />
       )}
     </main>

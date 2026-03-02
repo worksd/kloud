@@ -13,11 +13,15 @@ export const PaymentMethodSheetForm = ({
                                          onCloseAction,
                                          onSuccessAction,
                                          initialCardNumber,
+                                         initialExpiryMonth,
+                                         initialExpiryYear,
                                        }: {
   locale: Locale,
   onCloseAction: () => void,
   onSuccessAction: () => void,
   initialCardNumber?: string,
+  initialExpiryMonth?: string,
+  initialExpiryYear?: string,
 }) => {
 
   const initialFormatted = initialCardNumber
@@ -26,8 +30,8 @@ export const PaymentMethodSheetForm = ({
 
   const [form, setForm] = useState<CreateBillingRequest>({
     cardNumber: initialFormatted,
-    expiryYear: '',
-    expiryMonth: '',
+    expiryYear: initialExpiryYear || '',
+    expiryMonth: initialExpiryMonth || '',
     birthOrBusinessRegistrationNumber: '',
     passwordTwoDigits: '',
   })
@@ -63,9 +67,13 @@ export const PaymentMethodSheetForm = ({
 
   useEffect(() => {
     if (initialCardNumber) {
-      expiryMonthRef.current?.focus();
+      if (initialExpiryMonth && initialExpiryYear) {
+        birthRef.current?.focus();
+      } else {
+        expiryMonthRef.current?.focus();
+      }
     }
-  }, [initialCardNumber]);
+  }, [initialCardNumber, initialExpiryMonth, initialExpiryYear]);
 
   useEffect(() => {
     window.onDialogConfirm = async (dialogInfo: DialogInfo) => {

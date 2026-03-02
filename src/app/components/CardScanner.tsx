@@ -4,9 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
+export interface CardScanResult {
+  cardNumber: string;
+  expiryMonth?: string;
+  expiryYear?: string;
+}
+
 interface CardScannerProps {
   locale: Locale;
-  onCardDetected: (cardNumber: string) => void;
+  onCardDetected: (result: CardScanResult) => void;
   onManualEntry: () => void;
   onClose: () => void;
 }
@@ -46,6 +52,15 @@ function extractCardNumber(text: string): string | null {
     }
   }
 
+  return null;
+}
+
+function extractExpiry(text: string): { month: string; year: string } | null {
+  // Match MM/YY or MM / YY patterns (month 01-12, year 00-99)
+  const match = text.match(/\b(0[1-9]|1[0-2])\s*[\/\-]\s*(\d{2})\b/);
+  if (match) {
+    return { month: match[1], year: match[2] };
+  }
   return null;
 }
 
@@ -133,7 +148,7 @@ export default function CardScanner({ locale, onCardDetected, onManualEntry, onC
         }
 
         await worker.setParameters({
-          tessedit_char_whitelist: '0123456789 ',
+          tessedit_char_whitelist: '0123456789 /',
           tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
         } as any);
 
@@ -174,10 +189,15 @@ export default function CardScanner({ locale, onCardDetected, onManualEntry, onC
             const { data: result } = await workerRef.current.recognize(canvas);
             const cardNumber = extractCardNumber(result.text);
             if (cardNumber) {
+              const expiry = extractExpiry(result.text);
               setDetected(true);
               // Small delay to show feedback
               setTimeout(() => {
-                onCardDetected(cardNumber);
+                onCardDetected({
+                  cardNumber,
+                  expiryMonth: expiry?.month,
+                  expiryYear: expiry?.year,
+                });
               }, 500);
               // Stop scanning after detection
               if (intervalRef.current) {
