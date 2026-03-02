@@ -137,6 +137,10 @@ export class ApiClient extends EndpointClient {
   readonly guideline = {
     list: this.endpointBuilder(API.Guideline.GetGuidelines),
   }
+
+  readonly student = {
+    create: this.endpointBuilder(API.Student.CreateStudent),
+  }
 }
 
 export interface ClientOptions {

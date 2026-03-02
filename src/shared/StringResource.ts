@@ -221,6 +221,12 @@ export const StringResource = {
     jp: "サービスの利用に同意してください！",
     zh: "请同意服务条款!"
   },
+  select_studio_message: {
+    ko: "회원님의 스튜디오를\n선택해주세요!",
+    en: "Please select\nyour studio!",
+    jp: "スタジオを\n選択してください！",
+    zh: "请选择\n您的工作室！"
+  },
   all_agreement: {
     ko: "모두 동의하기",
     en: "Agree to all",

@@ -18,6 +18,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { phoneLoginAction } from "@/app/login/phone/phoneLoginAction";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
+import { createStudentAction } from "@/app/onboarding/action/create.student.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"
 import { Locale } from "@/shared/StringResource";
@@ -25,6 +26,7 @@ import { getLocaleString } from "@/app/components/locale";
 import { translate } from "@/utils/translate";
 import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -54,7 +56,7 @@ const fadeUp = {
   },
 } as const;
 
-type OnboardStep = 'onboard' | 'phone' | 'agreement' | 'complete';
+type OnboardStep = 'onboard' | 'phone' | 'agreement' | 'studio' | 'complete';
 
 export const OnboardingForm = ({
                                  user,
@@ -63,6 +65,8 @@ export const OnboardingForm = ({
                                  inputGenderMessage,
                                  inputNickNameMessage,
                                  agreementMessage,
+                                 selectStudioMessage,
+                                 studios,
                                  confirmText,
                                  phoneVerificationSteps,
                                  failSignUpText,
@@ -75,6 +79,8 @@ export const OnboardingForm = ({
   inputNickNameMessage: string,
   confirmText: string,
   agreementMessage: string,
+  selectStudioMessage: string,
+  studios: GetStudioResponse[],
   failSignUpText: string,
   phoneVerificationSteps: PhoneVerificationStepConfig[],
   locale: Locale,
@@ -99,6 +105,8 @@ export const OnboardingForm = ({
   const nickRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
+
+  const [selectedStudioId, setSelectedStudioId] = useState<number | null>(null);
 
   const [step, setStep] = useState<OnboardStep>('onboard');
 
@@ -144,8 +152,18 @@ export const OnboardingForm = ({
   const handleOnClick = async () => {
     if (step == 'complete') {
       await kloudNav.navigateMain({})
+    } else if (step == 'studio') {
+      if (selectedStudioId) {
+        setIsLoading(true);
+        try {
+          await createStudentAction({ studioId: selectedStudioId });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      setStep('complete');
     } else if (step == 'agreement') {
-      setStep('complete')
+      setStep('studio')
     } else if (step == 'phone' && smsSent) {
       const res = await updateUserAction({ phone, countryCode, code })
       if ('success' in res && res.success) {
@@ -239,6 +257,9 @@ export const OnboardingForm = ({
     if (step === 'agreement') {
       return agreementMessage;
     }
+    if (step === 'studio') {
+      return selectStudioMessage;
+    }
     if (step === 'complete') {
       return getLocaleString({
         locale,
@@ -270,6 +291,8 @@ export const OnboardingForm = ({
         setStep('phone')
       }
     } else if (step == 'complete') {
+      setStep('studio')
+    } else if (step == 'studio') {
       setStep('agreement')
     } else if (step == 'onboard') {
       kloudNav.clearAndPush(KloudScreen.Login(''))
@@ -334,8 +357,11 @@ export const OnboardingForm = ({
     if (step === 'agreement') {
       return !allChecked;
     }
+    if (step === 'studio') {
+      return selectedStudioId === null;
+    }
     return false;
-  }, [step, smsSent, currentOnboardField, nickName, gender, birth, name, phone, code, allChecked]);
+  }, [step, smsSent, currentOnboardField, nickName, gender, birth, name, phone, code, allChecked, selectedStudioId]);
 
   const [genderSheetOpen, setGenderSheetOpen] = useState(false);
 
@@ -478,6 +504,45 @@ export const OnboardingForm = ({
           {step === 'agreement' && (
             <div className="mt-9">
               <AgreementForm checkboxes={checkboxes} handleCheckboxChangeAction={handleCheckboxChange} locale={locale}/>
+            </div>
+          )}
+          {step === 'studio' && (
+            <div className="mt-9">
+              <div className="grid grid-cols-3 gap-4">
+                {studios.map((studio) => (
+                  <button
+                    key={studio.id}
+                    type="button"
+                    onClick={() => setSelectedStudioId(studio.id)}
+                    className={[
+                      'flex flex-col items-center gap-2 rounded-xl p-3 transition',
+                      selectedStudioId === studio.id
+                        ? 'bg-black/5 ring-2 ring-black'
+                        : 'hover:bg-gray-50',
+                    ].join(' ')}
+                  >
+                    <img
+                      src={studio.profileImageUrl}
+                      alt={studio.name}
+                      className="h-16 w-16 rounded-full object-cover"
+                    />
+                    <span className="text-xs font-medium text-center line-clamp-2">{studio.name}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center">
+                <div className="pointer-events-none h-4 w-full bg-gradient-to-t from-white to-transparent"/>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedStudioId(null);
+                    setStep('complete');
+                  }}
+                  className="mb-4 rounded-full px-5 h-11 min-h-[44px] text-sm font-medium text-gray-700 hover:text-black active:opacity-80"
+                >
+                  나중에 하기
+                </button>
+              </div>
             </div>
           )}
 

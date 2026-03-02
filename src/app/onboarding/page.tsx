@@ -10,6 +10,7 @@ export default async function Onboarding({searchParams}: {
 
   const user = await getUserAction();
   if (user && 'id' in user) {
+    const studioListRes = await getStudioList({});
     return (
       <OnboardingForm
         user={user}
@@ -20,6 +21,8 @@ export default async function Onboarding({searchParams}: {
         inputNickNameMessage={await translate('input_nick_name_message')}
         phoneVerificationSteps={await getPhoneVerificationSteps()}
         agreementMessage={await translate('agreement_message')}
+        selectStudioMessage={await translate('select_studio_message')}
+        studios={studioListRes.studios ?? []}
         failSignUpText={await translate('fail_sign_up')}
         locale={await getLocale()}
       />
