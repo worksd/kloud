@@ -7,7 +7,7 @@ import { useAction } from '@/app/qrs/use.action';
 import { GetLessonResponse, LessonStatus } from '@/app/endpoint/lesson.endpoint';
 import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
-import { createDialog } from '@/utils/dialog.factory';
+import { createDialog, DialogInfo } from '@/utils/dialog.factory';
 import { getLessonsByDate } from '@/app/profile/setting/kiosk/get.lessons.by.date.action';
 import { getLessonTicketsAction } from '@/app/qrs/get.lesson.tickets.action';
 import { Thumbnail } from '@/app/components/Thumbnail';
@@ -285,13 +285,30 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
     [parseTicketParams, lesson?.id, successDialog]
   );
 
+  const pendingTicketRef = useRef<TicketResponse | null>(null);
+
   const handleManualAttendance = useCallback(async (ticket: TicketResponse) => {
-    if (ticket.status === 'Used') return;
+    if (ticket.status !== 'Paid') return;
     if (manualLoadingTicketId !== null) return;
     if (successTicketIds.current.has(ticket.id)) return;
 
-    setManualLoadingTicketId(ticket.id);
+    pendingTicketRef.current = ticket;
+    const userName = ticket.user?.nickName || ticket.user?.name || '사용자';
+    const info = [ticket.ticketTypeLabel, ticket.rank].filter(Boolean).join(' · ');
+    const message = `${userName}${info ? `\n${info}` : ''}\n\n출석하시겠습니까?`;
 
+    const dialog = await createDialog({
+      id: 'ConfirmAttendance',
+      message,
+      customData: String(ticket.id),
+    });
+    if (dialog && window.KloudEvent) {
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
+  }, [manualLoadingTicketId]);
+
+  const processAttendance = useCallback(async (ticket: TicketResponse) => {
+    setManualLoadingTicketId(ticket.id);
     try {
       const result = await useAction({
         ticketId: ticket.id,
@@ -348,7 +365,20 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
     } finally {
       setManualLoadingTicketId(null);
     }
-  }, [lesson?.id, manualLoadingTicketId]);
+  }, [lesson?.id]);
+
+  useEffect(() => {
+    const prev = window.onDialogConfirm;
+    window.onDialogConfirm = async (data: DialogInfo) => {
+      if (data.id === 'ConfirmAttendance' && pendingTicketRef.current) {
+        const ticket = pendingTicketRef.current;
+        pendingTicketRef.current = null;
+        await processAttendance(ticket);
+      }
+      prev?.(data);
+    };
+    return () => { window.onDialogConfirm = prev; };
+  }, [processAttendance]);
 
   // ── 수업 선택 다이얼로그 상태 ──
   const today = getTodayKST();
@@ -512,7 +542,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
       )}
 
       {/* 수강권 목록 (하단 패널) */}
-      {studentTickets.length > 0 && (
+      {selectedLesson && (
         <div
           style={{
             position: 'fixed',
@@ -531,26 +561,34 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
           <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
               수강생 ({studentTickets.length}명)
-              <span style={{ color: '#22C55E', marginLeft: 8 }}>
-                출석 {studentTickets.filter(t => t.status === 'Used').length}명
-              </span>
+              {studentTickets.length > 0 && (
+                <span style={{ color: '#22C55E', marginLeft: 8 }}>
+                  출석 {studentTickets.filter(t => t.status === 'Used').length}명
+                </span>
+              )}
             </div>
           </div>
+          {studentTickets.length === 0 ? (
+            <div style={{ padding: '24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>아직 수강신청한 수강생이 없습니다</span>
+            </div>
+          ) : (
           <div style={{ flex: 1, overflowY: 'auto', padding: '4px 12px 16px' }}>
             {studentTickets.map((ticket) => {
               const isUsed = ticket.status === 'Used';
+              const isPaid = ticket.status === 'Paid';
               const isManualLoading = manualLoadingTicketId === ticket.id;
               return (
                 <div
                   key={ticket.id}
-                  onClick={() => !isUsed && handleManualAttendance(ticket)}
+                  onClick={() => isPaid && handleManualAttendance(ticket)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                     padding: '8px 4px',
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    cursor: isUsed ? 'default' : 'pointer',
+                    cursor: isPaid ? 'pointer' : 'default',
                     opacity: isManualLoading ? 0.5 : 1,
                   }}
                 >
@@ -572,7 +610,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                           width: 16,
                           height: 16,
                           borderRadius: '50%',
-                          backgroundColor: '#22C55E',
+                          backgroundColor: '#9CA3AF',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -587,7 +625,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
 
                   {/* 이름 + 정보 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: isUsed ? '#fff' : 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: isUsed ? 'rgba(255,255,255,0.4)' : '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {ticket.user?.nickName || ticket.user?.name || '사용자'}
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', display: 'flex', gap: 4, alignItems: 'center' }}>
@@ -598,13 +636,14 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                   </div>
 
                   {/* 출석 상태 */}
-                  <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: isUsed ? '#22C55E' : 'rgba(255,255,255,0.3)' }}>
-                    {isManualLoading ? '처리중...' : isUsed ? '출석' : '미출석'}
+                  <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: isUsed ? '#9CA3AF' : '#22C55E' }}>
+                    {isManualLoading ? '처리중...' : isUsed ? '출석완료' : '출석하기'}
                   </div>
                 </div>
               );
             })}
           </div>
+          )}
         </div>
       )}
 

@@ -254,6 +254,16 @@ export async function createDialog({id, message, title, customData}: {
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
     }
+  } else if (id == 'ConfirmAttendance') {
+    return {
+      id: 'ConfirmAttendance',
+      type: 'YESORNO',
+      title: '출석 확인',
+      message: message ?? '',
+      confirmTitle: '출석',
+      cancelTitle: '취소',
+      customData: customData,
+    }
   }
 }
 
@@ -286,6 +296,7 @@ export type DialogId =
   | 'CapacityFull'
   | 'ChangePhoneNumber'
   | 'CancelTicket'
+  | 'ConfirmAttendance'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {

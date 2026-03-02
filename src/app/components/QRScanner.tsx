@@ -1,11 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { Html5Qrcode, Html5QrcodeScannerState, Html5QrcodeSupportedFormats } from "html5-qrcode";
 
 type CameraInfo = {
   id: string;
   label: string;
+};
+
+export type QRScannerHandle = {
+  toggleCamera: () => void;
+  toggleFlip: () => void;
+  hasMultipleCameras: boolean;
 };
 
 interface QRScannerProps {
@@ -21,7 +27,7 @@ interface QRScannerProps {
   currentUrl?: string;
 }
 
-export default function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle', resultMessage, lessonId, lessonTitle, lessonFetchStatus, currentUrl }: QRScannerProps) {
+const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle', resultMessage, lessonId, lessonTitle, lessonFetchStatus, currentUrl }, ref) {
   const qrCodeRegionId = "qr-reader";
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -292,6 +298,11 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
     setFlip((prev) => !prev);
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    toggleCamera,
+    toggleFlip: toggleHorizontal,
+    hasMultipleCameras: devices.length > 1,
+  }), [toggleCamera, toggleHorizontal, devices.length]);
 
   useLayoutEffect(() => {
     if (scanning || html5QrCodeRef.current != null || typeof window === "undefined") return;
@@ -327,6 +338,31 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
           </button>
         )}
         <span className="qr-header-title">QR 출석</span>
+        <div style={{ position: 'absolute', right: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
+          {devices.length > 1 && (
+            <button onClick={toggleCamera} style={{ background: 'none', border: 'none', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
+                <path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5" />
+                <circle cx="12" cy="12" r="3" />
+                <path d="m18 22-3-3 3-3" />
+                <path d="m6 2 3 3-3 3" />
+              </svg>
+              <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)' }}>전환</span>
+            </button>
+          )}
+          <button onClick={toggleHorizontal} style={{ background: 'none', border: 'none', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3" />
+              <path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3" />
+              <path d="M12 20v2" />
+              <path d="M12 14v2" />
+              <path d="M12 8v2" />
+              <path d="M12 2v2" />
+            </svg>
+            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)' }}>반전</span>
+          </button>
+        </div>
       </div>
 
       {/* 스캔 프레임 오버레이 */}
@@ -359,33 +395,6 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
           <span className="qr-error-text">{error}</span>
         </div>
       )}
-
-      {/* 하단 버튼 */}
-      <div className="qr-bottom-buttons">
-        {devices.length > 1 && (
-          <button onClick={toggleCamera} className="qr-action-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
-              <path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5" />
-              <circle cx="12" cy="12" r="3" />
-              <path d="m18 22-3-3 3-3" />
-              <path d="m6 2 3 3-3 3" />
-            </svg>
-            <span>카메라 전환</span>
-          </button>
-        )}
-        <button onClick={toggleHorizontal} className="qr-action-button">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3" />
-            <path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3" />
-            <path d="M12 20v2" />
-            <path d="M12 14v2" />
-            <path d="M12 8v2" />
-            <path d="M12 2v2" />
-          </svg>
-          <span>좌우 반전</span>
-        </button>
-      </div>
 
       {/* 디버그 패널 */}
       {showDebug && (
@@ -504,4 +513,6 @@ export default function QRScanner({ onSuccess, onError, onBack, isProcessing, re
       )}
     </div>
   );
-}
+});
+
+export default QRScanner;
