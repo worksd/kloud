@@ -288,7 +288,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
   const pendingTicketRef = useRef<TicketResponse | null>(null);
 
   const handleManualAttendance = useCallback(async (ticket: TicketResponse) => {
-    if (ticket.status !== 'Paid') return;
+    if (ticket.status === 'Used') return;
     if (manualLoadingTicketId !== null) return;
     if (successTicketIds.current.has(ticket.id)) return;
 
@@ -576,19 +576,35 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
           <div style={{ flex: 1, overflowY: 'auto', padding: '4px 12px 16px' }}>
             {studentTickets.map((ticket) => {
               const isUsed = ticket.status === 'Used';
-              const isPaid = ticket.status === 'Paid';
+              const isPending = ticket.status === 'Pending';
+              const isClickable = !isUsed && !isPending;
               const isManualLoading = manualLoadingTicketId === ticket.id;
               return (
                 <div
                   key={ticket.id}
-                  onClick={() => isPaid && handleManualAttendance(ticket)}
+                  onClick={(e) => {
+                    if (!isClickable) return;
+                    const el = e.currentTarget;
+                    const rect = el.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-light';
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+                    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+                    el.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                    handleManualAttendance(ticket);
+                  }}
                   style={{
+                    position: 'relative',
+                    overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                     padding: '8px 4px',
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    cursor: isPaid ? 'pointer' : 'default',
+                    cursor: isClickable ? 'pointer' : 'default',
                     opacity: isManualLoading ? 0.5 : 1,
                   }}
                 >
@@ -636,8 +652,8 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                   </div>
 
                   {/* 출석 상태 */}
-                  <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: isUsed ? '#9CA3AF' : '#22C55E' }}>
-                    {isManualLoading ? '처리중...' : isUsed ? '출석완료' : '출석하기'}
+                  <div style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: isPending ? '#F59E0B' : isUsed ? '#9CA3AF' : '#22C55E' }}>
+                    {isManualLoading ? '처리중...' : isPending ? '결제대기' : isUsed ? '출석완료' : '출석'}
                   </div>
                 </div>
               );

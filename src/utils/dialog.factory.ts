@@ -260,7 +260,7 @@ export async function createDialog({id, message, title, customData}: {
       type: 'YESORNO',
       title: '출석 확인',
       message: message ?? '',
-      confirmTitle: '출석',
+      confirmTitle: '확인',
       cancelTitle: '취소',
       customData: customData,
     }
