@@ -5,13 +5,22 @@ import { CommonBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { Locale } from "@/shared/StringResource";
 import { PaymentMethodSheetForm } from "@/app/profile/setting/paymentMethod/sheet/PaymentMethodSheetForm";
 import { getLocaleString } from "@/app/components/locale";
+import CardScanner from "@/app/components/CardScanner";
+
+type Phase = 'idle' | 'scanning' | 'form';
 
 export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Locale, onSuccessAction: () => void }) => {
 
-  const [open, setOpen] = React.useState(false);
+  const [phase, setPhase] = React.useState<Phase>('idle');
+  const [scannedCardNumber, setScannedCardNumber] = React.useState('');
 
   const handleAddPaymentMethod = () => {
-    setOpen(true)
+    setPhase('scanning');
+  }
+
+  const handleClose = () => {
+    setPhase('idle');
+    setScannedCardNumber('');
   }
 
   return (
@@ -26,24 +35,45 @@ export const PaymentMethodAddButton = ({locale, onSuccessAction}: { locale: Loca
         </svg>
         {getLocaleString({locale, key: 'add_payment_method_button'})}
       </button>
-      {open && (
-        <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)} onSuccessAction={onSuccessAction}/>
+      {phase === 'scanning' && (
+        <CardScanner
+          locale={locale}
+          onCardDetected={(cardNumber) => {
+            setScannedCardNumber(cardNumber);
+            setPhase('form');
+          }}
+          onManualEntry={() => {
+            setScannedCardNumber('');
+            setPhase('form');
+          }}
+          onClose={handleClose}
+        />
+      )}
+      {phase === 'form' && (
+        <PaymentMethodAddBottomSheet
+          open={true}
+          locale={locale}
+          onCloseAction={handleClose}
+          onSuccessAction={onSuccessAction}
+          initialCardNumber={scannedCardNumber || undefined}
+        />
       )}
     </div>
   )
 }
 
-export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSuccessAction}: {
+export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSuccessAction, initialCardNumber}: {
   open: boolean,
   locale: Locale,
   onCloseAction: () => void,
   onSuccessAction: () => void,
+  initialCardNumber?: string,
 }) => {
   return (
     <div className="fixed inset-0 z-[1000]">
 
       <CommonBottomSheet open={open} onCloseAction={onCloseAction}>
-        <PaymentMethodSheetForm locale={locale} onCloseAction={onCloseAction} onSuccessAction={onSuccessAction}/>
+        <PaymentMethodSheetForm locale={locale} onCloseAction={onCloseAction} onSuccessAction={onSuccessAction} initialCardNumber={initialCardNumber}/>
       </CommonBottomSheet>
     </div>
   )

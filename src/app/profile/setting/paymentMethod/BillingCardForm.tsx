@@ -9,11 +9,15 @@ import { BankOrCardIcon } from "@/app/components/Bank";
 import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMethodBottomSheet";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import CardScanner from "@/app/components/CardScanner";
+
+type Phase = 'idle' | 'scanning' | 'form';
 
 export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], locale: Locale }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [scannedCardNumber, setScannedCardNumber] = useState('');
 
   const loadCards = async () => {
 
@@ -63,7 +67,7 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
         {/* + 버튼 */}
         <button
           onClick={() => {
-            setOpen(true);
+            setPhase('scanning');
           }}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition"
           aria-label="카드 추가"
@@ -115,9 +119,34 @@ export const BillingCardForm = ({cards, locale}: { cards: GetBillingResponse[], 
           </div>
         </div>
       )}
-      {open && (
-        <PaymentMethodAddBottomSheet open={open} locale={locale} onCloseAction={() => setOpen(false)}
-                                     onSuccessAction={() => loadCards()}/>
+      {phase === 'scanning' && (
+        <CardScanner
+          locale={locale}
+          onCardDetected={(cardNumber) => {
+            setScannedCardNumber(cardNumber);
+            setPhase('form');
+          }}
+          onManualEntry={() => {
+            setScannedCardNumber('');
+            setPhase('form');
+          }}
+          onClose={() => {
+            setPhase('idle');
+            setScannedCardNumber('');
+          }}
+        />
+      )}
+      {phase === 'form' && (
+        <PaymentMethodAddBottomSheet
+          open={true}
+          locale={locale}
+          onCloseAction={() => {
+            setPhase('idle');
+            setScannedCardNumber('');
+          }}
+          onSuccessAction={() => loadCards()}
+          initialCardNumber={scannedCardNumber || undefined}
+        />
       )}
     </main>
   )

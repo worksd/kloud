@@ -12,14 +12,20 @@ export const PaymentMethodSheetForm = ({
                                          locale,
                                          onCloseAction,
                                          onSuccessAction,
+                                         initialCardNumber,
                                        }: {
   locale: Locale,
   onCloseAction: () => void,
   onSuccessAction: () => void,
+  initialCardNumber?: string,
 }) => {
 
+  const initialFormatted = initialCardNumber
+    ? initialCardNumber.match(/.{1,4}/g)?.join(' ').trim() || ''
+    : '';
+
   const [form, setForm] = useState<CreateBillingRequest>({
-    cardNumber: '',
+    cardNumber: initialFormatted,
     expiryYear: '',
     expiryMonth: '',
     birthOrBusinessRegistrationNumber: '',
@@ -54,6 +60,12 @@ export const PaymentMethodSheetForm = ({
       window.KloudEvent.showDialog(JSON.stringify(dialog))
     }
   }
+
+  useEffect(() => {
+    if (initialCardNumber) {
+      expiryMonthRef.current?.focus();
+    }
+  }, [initialCardNumber]);
 
   useEffect(() => {
     window.onDialogConfirm = async (dialogInfo: DialogInfo) => {
