@@ -1968,10 +1968,10 @@ export const StringResource = {
     zh: '请选择取消订阅的原因。',
   },
   add_payment_method_button: {
-    ko: '+ 결제수단 추가',
-    en: '+ Add Payment Method',
-    jp: '+ 支払い方法を追加',
-    zh: '+ 添加付款方式',
+    ko: '결제수단 추가',
+    en: 'Add Payment Method',
+    jp: '支払い方法を追加',
+    zh: '添加付款方式',
   },
   payment_record_completed: {
     ko: '결제 완료',
