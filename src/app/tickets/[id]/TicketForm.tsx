@@ -77,9 +77,25 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       if ('id' in res && res.qrCodeUrl) {
         setQrCodeUrl(res.qrCodeUrl);
         setTimeLeft(calculateTimeLeft(res.qrCodeUrl));
+      } else if ('message' in res) {
+        const dialog = await createDialog({
+          id: 'Simple',
+          title: getLocaleString({locale, key: 'qr_refresh_fail_title'}),
+          message: res.message,
+        });
+        if (window.KloudEvent) {
+          window.KloudEvent.showDialog(JSON.stringify(dialog));
+        }
       }
-    } catch (err) {
-      console.error('Failed to refresh QR code:', err);
+    } catch {
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: getLocaleString({locale, key: 'qr_refresh_fail_title'}),
+        message: getLocaleString({locale, key: 'qr_refresh_fail_message'}),
+      });
+      if (window.KloudEvent) {
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      }
     } finally {
       setIsRefreshing(false);
     }

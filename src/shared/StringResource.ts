@@ -2387,6 +2387,18 @@ export const StringResource = {
     jp: 'QRコードをスクリーンショットすると入場が制限される場合があります',
     zh: '如果截图二维码，可能会限制入场'
   },
+  qr_refresh_fail_title: {
+    ko: 'QR코드 갱신 실패',
+    en: 'QR Code Refresh Failed',
+    jp: 'QRコード更新失敗',
+    zh: '二维码刷新失败'
+  },
+  qr_refresh_fail_message: {
+    ko: '잠시 후 다시 시도해 주세요.',
+    en: 'Please try again later.',
+    jp: 'しばらくしてからもう一度お試しください。',
+    zh: '请稍后再试。'
+  },
   my_lesson_group_tickets: {
     ko: '정기 수업',
     en: 'Lesson Group Tickets',
