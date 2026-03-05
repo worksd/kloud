@@ -76,6 +76,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       const res = await refreshTicketAction({ticketId: ticket.id});
       if ('id' in res && res.qrCodeUrl) {
         setQrCodeUrl(res.qrCodeUrl);
+        setTimeLeft(calculateTimeLeft(res.qrCodeUrl));
       }
     } catch (err) {
       console.error('Failed to refresh QR code:', err);

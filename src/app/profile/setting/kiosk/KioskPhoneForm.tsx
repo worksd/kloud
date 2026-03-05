@@ -157,14 +157,14 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'phone':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[400px] text-center">
                 {t('kiosk_phone_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px]">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[400px] text-center">
                 {t('kiosk_phone_desc')}
               </p>
 
-              <div className="relative mb-[8px]">
+              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
                     className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[8px] text-[20px] font-medium text-black"
@@ -178,7 +178,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                 {showCountryPicker && (
                     <>
                       <div className="fixed inset-0 z-[9]" onClick={() => setShowCountryPicker(false)}/>
-                      <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
+                      <div className="absolute top-[52px] left-1/2 -translate-x-1/2 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
                         {COUNTRIES.map((c) => (
                             <button
                                 key={c.key}
@@ -221,10 +221,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'confirm':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
                 {t('kiosk_confirm_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[40px]">
+              <p className="text-gray-400 text-[20px] mb-[40px] w-full max-w-[500px] text-center">
                 {t('kiosk_confirm_desc')}
               </p>
 
@@ -301,10 +301,10 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
       case 'name':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[600px] text-center">
                 {t('kiosk_welcome_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px]">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[600px] text-center">
                 {t('kiosk_welcome_desc')}
               </p>
               <KioskNameKeyboard onChange={(text) => { setName(text); setError(null); }} />
@@ -323,13 +323,21 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
 
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
-          <button onClick={onBack}
+        <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
+          <button onClick={() => {
+                    if (step === 'phone') {
+                      onBack();
+                    } else {
+                      setPhone('');
+                      setError(null);
+                      setStep('phone');
+                    }
+                  }}
                   className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
             <BackArrowIcon className="w-full h-full"/>
           </button>
-          <p className="text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
-          <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
+          <p className="absolute left-1/2 -translate-x-1/2 text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
+          <p className="ml-auto text-gray-500 text-[16px] tracking-[-0.48px]">
             {studioName}
           </p>
         </div>
@@ -338,11 +346,13 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
           {renderContent()}
         </div>
 
-        <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
-          <p className="text-[18px] tracking-[-0.54px]">
-            <span className="font-semibold text-black">{formatTime(countdown)}</span>
-            <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
-          </p>
+        <div className="px-[48px] pb-[40px] flex justify-center shrink-0 h-[60px]">
+          {countdown <= 60 && (
+            <p className="text-[18px] tracking-[-0.54px]">
+              <span className="font-semibold text-black">{formatTime(countdown)}</span>
+              <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
+            </p>
+          )}
         </div>
       </div>
   );
