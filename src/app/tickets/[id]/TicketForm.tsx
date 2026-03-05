@@ -217,7 +217,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
     return (
       <div className="absolute top-4 right-4 z-20">
-        <div className="timer-progress-container">
+        <div className="timer-progress-container" style={{backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%'}}>
           <svg className="timer-progress-ring" width="40" height="40">
             <defs>
               <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
