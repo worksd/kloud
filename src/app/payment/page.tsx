@@ -82,68 +82,70 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
 
   return (
-    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
+    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
       <div className="flex flex-col">
         {appVersion === '' && (
           <BackButton />
         )}
-        {/* lesson / lesson-group: 큰 히어로 이미지 */}
+        {/* lesson / lesson-group */}
         {(type === 'lesson' || type === 'lesson-group') && (
-          <>
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F1F3F6]">
-              {thumbnailUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={thumbnailUrl}
-                  alt={title ?? ''}
-                  className="w-full h-full object-cover"
-                />
-              )}
-              {/* 하단 그라데이션 */}
-              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
-              {/* 이미지 위 텍스트 */}
-              <div className="absolute inset-x-0 bottom-0 px-6 pb-5">
-                <p className="text-[18px] font-bold text-white leading-snug drop-shadow-sm">{title}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  {studioImageUrl && <CircleImage size={22} imageUrl={studioImageUrl} />}
-                  <span className="text-[14px] font-medium text-white/90 drop-shadow-sm">{studioName}</span>
-                  {type === 'lesson' && res.lesson?.room?.name && (
-                    <span className="text-[12px] text-white/70">· {res.lesson.room.name}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* 날짜/시간 정보 바 */}
-            {type === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
-              <div className="px-6 py-3 bg-[#F7F8F9] flex items-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="2" y="3" width="12" height="11" rx="2" stroke="#86898C" strokeWidth="1.2"/>
-                  <path d="M2 6.5H14" stroke="#86898C" strokeWidth="1.2"/>
-                  <path d="M5.5 1.5V3.5" stroke="#86898C" strokeWidth="1.2" strokeLinecap="round"/>
-                  <path d="M10.5 1.5V3.5" stroke="#86898C" strokeWidth="1.2" strokeLinecap="round"/>
-                </svg>
-                {res.lesson?.formattedDate ? (
-                  <span className="text-[13px] font-medium text-[#555]">
-                    {res.lesson.formattedDate.date}
-                    {res.lesson.formattedDate.weekday && ` (${res.lesson.formattedDate.weekday})`}
-                    {' '}
-                    {res.lesson.formattedDate.startTime} - {res.lesson.formattedDate.endTime}
-                  </span>
-                ) : res.lesson?.date && (
-                  <span className="text-[13px] font-medium text-[#555]">
-                    {res.lesson.date}{res.lesson.duration ? ` · ${res.lesson.duration}${await translate('minutes')}` : ''}
-                  </span>
+          <div className="px-5 pt-4 pb-3">
+            <div className="flex gap-4">
+              {/* 썸네일 9:16 */}
+              <div className="relative w-[120px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#F1F3F6] flex-shrink-0">
+                {thumbnailUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={thumbnailUrl}
+                    alt={title ?? ''}
+                    className="w-full h-full object-cover"
+                  />
                 )}
               </div>
-            )}
 
-            {type === 'lesson-group' && res.lessonGroup?.description && (
-              <div className="px-6 py-3 bg-[#F7F8F9]">
-                <p className="text-[13px] font-medium text-[#555]">{res.lessonGroup.description}</p>
+              {/* 메타 정보 */}
+              <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
+                <p className="text-[16px] font-bold text-black leading-snug break-words">{title}</p>
+                <div className="flex items-center gap-2">
+                  {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
+                  <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
+                </div>
+                {type === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <rect x="1.5" y="2.5" width="11" height="9.5" rx="1.5" stroke="#999" strokeWidth="1.1"/>
+                        <path d="M1.5 5.5H12.5" stroke="#999" strokeWidth="1.1"/>
+                        <path d="M4.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
+                        <path d="M9.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
+                      </svg>
+                      <span className="text-[12px] font-medium text-[#666]">
+                        {res.lesson?.formattedDate
+                          ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
+                          : res.lesson?.date}
+                      </span>
+                    </div>
+                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration) && (
+                      <div className="flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <circle cx="7" cy="7" r="5.5" stroke="#999" strokeWidth="1.1"/>
+                          <path d="M7 4V7L9 9" stroke="#999" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-[12px] font-medium text-[#666]">
+                          {res.lesson?.formattedDate
+                            ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
+                            : `${res.lesson?.duration}${await translate('minutes')}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {type === 'lesson-group' && res.lessonGroup?.description && (
+                  <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
+                )}
               </div>
-            )}
-          </>
+            </div>
+          </div>
         )}
 
         {/* pass-plan: 기존 컴팩트 레이아웃 */}
@@ -170,8 +172,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </>
         )}
 
-        <div className="py-5">
-          <div className="w-full h-3 bg-[#F7F8F9]" />
+        <div className="py-1">
+          <div className="w-full h-2 bg-[#F7F8F9]" />
         </div>
 
         <UnifiedPaymentInfo

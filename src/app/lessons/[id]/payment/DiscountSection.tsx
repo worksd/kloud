@@ -37,7 +37,7 @@ export const DiscountSection = ({
           <div
             onClick={() => setSelectedTab('pass')}
             className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none
-              ${selectedTab === 'pass' ? 'bg-[#F6F7F8] border-l-[3px] border-l-black pl-[17px]' : 'bg-white hover:bg-[#FBFBFC] border-b border-[#F0F0F0]'}`}
+              ${selectedTab === 'pass' ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC] border-b border-[#F0F0F0]'}`}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 5H18C18.8 5 19.5 5.7 19.5 6.5V9.2C18.4 9.5 17.5 10.4 17.5 11.5C17.5 12.6 18.4 13.5 19.5 13.8V15.5C19.5 16.3 18.8 17 18 17H4C3.2 17 2.5 16.3 2.5 15.5V13.8C3.6 13.5 4.5 12.6 4.5 11.5C4.5 10.4 3.6 9.5 2.5 9.2V6.5C2.5 5.7 3.2 5 4 5Z" stroke={selectedTab === 'pass' ? '#111' : '#BDBDBD'} strokeWidth="1.4"/>
@@ -61,7 +61,7 @@ export const DiscountSection = ({
 
           {/* 패스권 확장 영역 - 보기 전용 */}
           {selectedTab === 'pass' && (
-            <div className="bg-[#F6F7F8] px-5 pb-4">
+            <div className="bg-[#F0F1F3] px-5 pb-4">
               {discounts && discounts.length > 0 ? (
                 <div className="flex flex-col gap-2 mt-3">
                   {discounts.map((discount, index) => {
@@ -89,7 +89,7 @@ export const DiscountSection = ({
                   })}
                 </div>
               ) : (
-                <div className="py-4 text-center text-[13px] text-[#999] bg-white rounded-xl mt-3">
+                <div className="py-4 text-center text-[13px] text-[#999] bg-white rounded-xl mt-2">
                   {getLocaleString({ locale, key: 'no_available_pass' })}
                 </div>
               )}
@@ -102,7 +102,7 @@ export const DiscountSection = ({
           <div
             onClick={() => setSelectedTab('coupon')}
             className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none
-              ${selectedTab === 'coupon' ? 'bg-[#F6F7F8] border-l-[3px] border-l-black pl-[17px]' : 'bg-white hover:bg-[#FBFBFC]'}`}
+              ${selectedTab === 'coupon' ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC]'}`}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="4" width="18" height="14" rx="2.5" stroke={selectedTab === 'coupon' ? '#111' : '#BDBDBD'} strokeWidth="1.4"/>
@@ -126,7 +126,7 @@ export const DiscountSection = ({
 
           {/* 쿠폰 확장 영역 */}
           {selectedTab === 'coupon' && (
-            <div className="bg-[#F6F7F8] px-5 pb-4">
+            <div className="bg-[#F0F1F3] px-5 pb-4">
               {coupons && coupons.length > 0 ? (
                 <div className="flex flex-col gap-2 mt-3">
                   {coupons.map((coupon) => {

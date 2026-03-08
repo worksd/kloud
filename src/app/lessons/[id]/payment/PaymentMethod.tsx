@@ -31,18 +31,18 @@ const EASY_PAY_TYPES: PaymentMethodType[] = ['NAVER_PAY', 'KAKAO_PAY', 'TOSS_PAY
 const isEasyPayType = (type: PaymentMethodType) => EASY_PAY_TYPES.includes(type);
 
 const EasyPayLogo = ({type, size = 22}: { type: PaymentMethodType, size?: number }) => {
-  const wideSize = Math.round(size * 1.15);
+  const wideSize = Math.round(size * 0.85);
   switch (type) {
     case 'NAVER_PAY':
       return <NaverPayIcon style={{height: wideSize, width: Math.round(wideSize * 277 / 105)}} />;
     case 'KAKAO_PAY':
-      return <KakaoPayIcon style={{height: wideSize, width: Math.round(wideSize * 192.9 / 80.4)}} />;
+      return <KakaoPayIcon style={{height: wideSize, width: Math.round(wideSize * 192.9 / 45)}} />;
     case 'ALIPAY':
-      return <AliPayIcon style={{width: size, height: size}} />;
+      return <AliPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
     case 'WECHAT_PAY':
-      return <WechatPayIcon style={{width: size, height: size}} />;
+      return <WechatPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
     case 'TOSS_PAY':
-      return <TossPayIcon style={{height: size * 0.75, width: Math.round(size * 0.75 * 5500 / 897.75)}} />;
+      return <TossPayIcon style={{height: size * 0.55, width: Math.round(size * 0.55 * 5500 / 897.75)}} />;
     default:
       return null;
   }
@@ -177,7 +177,7 @@ export const PaymentMethodComponent = ({
   if (paymentOptions.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-y-2 px-6">
+    <div className="flex flex-col gap-y-2 px-6 mt-2">
       <div className="text-[15px] font-bold text-black">
         {getLocaleString({locale, key: 'payment_method'})}
       </div>
@@ -192,9 +192,8 @@ export const PaymentMethodComponent = ({
               <div
                 onClick={() => selectPaymentMethodAction(option.type)}
                 className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none
-                  ${isSelected ? 'bg-[#F6F7F8]' : 'bg-white hover:bg-[#FBFBFC]'}
-                  ${!isLast && !isSelected ? 'border-b border-[#F0F0F0]' : ''}
-                  ${isSelected ? 'border-l-[3px] border-l-black pl-[17px]' : ''}`}
+                  ${isSelected ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC]'}
+                  ${!isLast && !isSelected ? 'border-b border-[#F0F0F0]' : ''}`}
               >
                 <PaymentMethodIcon type={option.type} selected={isSelected} />
                 <div className={`flex-grow text-[14px] transition-colors duration-150
@@ -222,7 +221,7 @@ export const PaymentMethodComponent = ({
                       locale={locale}
                     />
                   ) : (
-                    <div className="py-4 text-center text-[13px] text-[#999] bg-white rounded-xl">
+                    <div className="py-4 text-center text-[13px] text-[#999] bg-white rounded-xl mt-2">
                       {getLocaleString({locale, key: 'no_available_pass'})}
                     </div>
                   )}
@@ -443,15 +442,13 @@ export const PaymentMethodComponent = ({
                   <button
                     key={option.id}
                     onClick={() => selectPaymentMethodAction(option.type)}
-                    className={`flex items-center justify-center h-[48px] rounded-xl border-[1.5px] transition-all duration-150 select-none active:scale-[0.97]
+                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] transition-all duration-150 select-none active:scale-[0.97]
                       ${isSelected
                         ? 'border-black bg-[#F6F7F8]'
                         : 'border-[#EEEFF0] bg-white hover:bg-[#FBFBFC]'}`}
                   >
                     <EasyPayLogo type={option.type} size={24} />
-                    {(option.type === 'ALIPAY' || option.type === 'WECHAT_PAY') && (
-                      <span className="text-[13px] font-semibold text-black ml-1">{option.name}</span>
-                    )}
+                    <span className={`text-[11px] font-medium ${isSelected ? 'text-black' : 'text-[#999]'}`}>{option.name}</span>
                   </button>
                 );
               })}
