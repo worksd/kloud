@@ -65,7 +65,7 @@ export const PurchaseInformation = ({originalPrice, totalPrice, method, titleRes
 
       <div className="rounded-2xl border border-[#EEEFF0] bg-[#FAFBFC] overflow-hidden">
         {/* 상품 가격 */}
-        <div className="flex justify-between items-center px-5 py-3.5">
+        <div className="flex justify-between items-center px-5 pt-3.5 pb-1.5">
           <span className="text-[13px] text-[#666]">{getLocaleString({locale, key: titleResource})}</span>
           <span className="text-[14px] font-semibold text-black">{fmt(originalPrice)}{won}</span>
         </div>
@@ -74,7 +74,7 @@ export const PurchaseInformation = ({originalPrice, totalPrice, method, titleRes
         {hasDiscount && (
           <>
             <div className="mx-5 h-px bg-[#EEEFF0]" />
-            <div className="px-5 py-3">
+            <div className="px-5 py-2">
               <div className="text-[12px] font-bold text-[#888] uppercase tracking-wide mb-2">
                 {getLocaleString({locale, key: 'discount_info'})}
               </div>
@@ -95,8 +95,7 @@ export const PurchaseInformation = ({originalPrice, totalPrice, method, titleRes
         {/* 결제수단 */}
         {(method || totalPrice === 0) && (
           <>
-            <div className="mx-5 h-px bg-[#EEEFF0]" />
-            <div className="flex justify-between items-center px-5 py-3.5">
+            <div className="flex justify-between items-center px-5 py-1.5">
               <span className="text-[13px] text-[#666]">{getLocaleString({locale, key: 'payment_method_select'})}</span>
               <span className="text-[14px] font-semibold text-black flex items-center gap-1.5">
                 {totalPrice === 0 && method !== 'pass'
@@ -109,9 +108,10 @@ export const PurchaseInformation = ({originalPrice, totalPrice, method, titleRes
         )}
 
         {/* 총 결제금액 */}
-        <div className="bg-black mx-3 mb-3 mt-1 rounded-xl px-5 py-4 flex justify-between items-center">
-          <span className="text-[13px] font-semibold text-white/70">{getLocaleString({locale, key: 'total_amount'})}</span>
-          <span className="text-[18px] font-bold text-white">{fmt(finalPrice)}{won}</span>
+        <div className="mx-5 mt-3 h-px bg-[#EEEFF0]" />
+        <div className="flex justify-between items-center px-5 py-5">
+          <span className="text-[15px] font-bold text-black">{getLocaleString({locale, key: 'total_amount'})}</span>
+          <span className="text-[22px] font-extrabold text-black">{fmt(finalPrice)}{won}</span>
         </div>
       </div>
     </div>
