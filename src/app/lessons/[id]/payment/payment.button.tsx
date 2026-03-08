@@ -12,9 +12,10 @@ import {DiscountResponse, PaymentMethodType} from "@/app/endpoint/payment.endpoi
 import { createManualPaymentRecordAction } from "@/app/lessons/[id]/action/create.manual.payment.record.action";
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
-import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { CreateBillingRequest, GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
-import { createBillingKeyPaymentAction } from "@/app/lessons/[id]/action/create.billing.key.payment.action";
+import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
@@ -63,6 +64,8 @@ export default function PaymentButton({
                                         user,
                                         actualPayerUserId,
                                         locale,
+                                        newCardForm,
+                                        onBillingCardsChange,
                                       }: {
   appVersion: string;
   id: number,
@@ -79,6 +82,8 @@ export default function PaymentButton({
   paymentId: string,
   actualPayerUserId?: number,
   locale: Locale,
+  newCardForm?: CreateBillingRequest,
+  onBillingCardsChange?: (cards: GetBillingResponse[]) => void,
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,7 +154,7 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit') {
+    if (method === 'credit' || method === 'ALIPAY' || method === 'WECHAT_PAY' || method === 'NAVER_PAY' || method === 'KAKAO_PAY') {
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
@@ -160,13 +165,15 @@ export default function PaymentButton({
         }
       }
 
+      const portOnePayMethod = method === 'credit' ? 'CARD' : 'EASY_PAY';
+
       if (appVersion === '') {
         const mobileWebPaymentRequest: PaymentRequest = {
           storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
           channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
           paymentId,
           orderName: title,
-          payMethod: 'CARD',
+          payMethod: portOnePayMethod,
           totalAmount: price,
           currency: 'CURRENCY_KRW',
           customer: {fullName: `${user.id}`},
@@ -186,7 +193,7 @@ export default function PaymentButton({
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
         paymentId,
         orderName: title,
-        method: 'credit',
+        method: method,
         type,
         price,
         userId: `${user.id}`,
@@ -220,7 +227,7 @@ export default function PaymentButton({
     } else if (method === 'pass') {
       const dialog = await createDialog({
         id: 'UsePass',
-        message: `\n구매 패스권 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
+        message: `\n${getLocaleString({locale, key: 'use_pass_confirm_lesson'})} : ${title}\n${getLocaleString({locale, key: 'use_pass_confirm_pass'})} : ${selectedPass?.passPlan?.name}\n\n${getLocaleString({locale, key: 'use_pass_confirm_question'})}`
       })
       if (appVersion == '' && dialog) {
         setWebDialogInfo(dialog)
@@ -228,17 +235,55 @@ export default function PaymentButton({
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } else if (method == 'billing') {
-      if (selectedBilling && selectedBilling.billingKey) {
+      if (newCardForm) {
+        // 새 카드: billingKey 발급 → 즉시 결제
+        setIsSubmitting(true);
+        try {
+          const billingRes = await addBillingAction(newCardForm);
+          if ('billingKey' in billingRes && billingRes.billingKey) {
+            const dialog = await createDialog({
+              id: 'RequestBillingKeyPayment',
+              title: `${title} - ${getLocaleString({locale, key: 'billing_key_payment_confirm_title'})}`,
+              message: [
+                `${getLocaleString({locale, key: 'billing_key_payment_confirm_description'})}\n`,
+                `${getLocaleString({locale, key: 'billing_key_payment_lesson_name'})}: ${title}\n`,
+                `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${price.toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
+                `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${billingRes.cardName ?? ''}`,
+                ``,
+                `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
+              ].join('\n'),
+              customData: billingRes.billingKey,
+            });
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          } else if ('pgMessage' in billingRes) {
+            const dialog = await createDialog({
+              id: 'Simple',
+              title: getLocaleString({locale, key: 'billing_register_fail_title'}),
+              message: billingRes.pgMessage ?? ''
+            });
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          } else if ('message' in billingRes) {
+            const dialog = await createDialog({
+              id: 'Simple',
+              title: getLocaleString({locale, key: 'billing_register_fail_title'}),
+              message: (billingRes as { message: string }).message
+            });
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          }
+        } finally {
+          setIsSubmitting(false);
+        }
+      } else if (selectedBilling && selectedBilling.billingKey) {
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
-          title: `${title}을(를) 정기결제하시겠어요?`,
+          title: `${title} - ${getLocaleString({locale, key: 'billing_key_payment_confirm_title'})}`,
           message: [
-            `해당 수업은 매월 자동으로 결제되는 정기결제 수업입니다.\n`,
-            `수업명: ${title}\n`,
-            `결제 금액: ${price.toLocaleString()}원`,
-            `결제 수단: ${selectedBilling.cardName}`,
+            `${getLocaleString({locale, key: 'billing_key_payment_confirm_description'})}\n`,
+            `${getLocaleString({locale, key: 'billing_key_payment_lesson_name'})}: ${title}\n`,
+            `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${price.toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
+            `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${selectedBilling.cardName}`,
             ``,
-            `결제를 진행하시겠습니까?`
+            `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
           ].join('\n'),
           customData: selectedBilling.billingKey,
         });
@@ -250,7 +295,7 @@ export default function PaymentButton({
       }
     }
 
-  }, [id, method, depositor, selectedPass, selectedBilling]);
+  }, [id, method, depositor, selectedPass, selectedBilling, newCardForm]);
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
@@ -300,6 +345,7 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
+        // 구독을 직접 만들어야하니깐 유지
         if (type.value === 'lessonGroup') {
           const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
           if ('subscription' in res) {
@@ -311,7 +357,7 @@ export default function PaymentButton({
             window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
         } else {
-          const res = await createBillingKeyPaymentAction({
+          const res = await billingKeyPaymentAction({
             item: type.apiValue,
             itemId: id,
             billingKey: data.customData ?? '',
@@ -343,14 +389,16 @@ export default function PaymentButton({
 
   return (
     <div>
-      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
+      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={(price > 0 && disabled) || isSubmitting}>
         <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-          {method == 'pass'
-            ? getLocaleString({locale, key: 'use_pass'})
-            : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
-              locale,
-              key: 'won'
-            })} ${getLocaleString({locale, key: 'payment'})}`
+          {price === 0
+            ? `0${getLocaleString({locale, key: 'won'})} ${getLocaleString({locale, key: 'payment'})}`
+            : method == 'pass'
+              ? getLocaleString({locale, key: 'use_pass'})
+              : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
+                locale,
+                key: 'won'
+              })} ${getLocaleString({locale, key: 'payment'})}`
           }
         </p>
       </CommonSubmitButton>

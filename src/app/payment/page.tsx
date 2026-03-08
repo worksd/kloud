@@ -7,8 +7,8 @@ import React from "react";
 import { UnifiedPaymentInfo } from "@/app/payment/UnifiedPaymentInfo";
 import { CircleImage } from "@/app/components/CircleImage";
 import { getLocale, translate } from "@/utils/translate";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
+import { BackButton } from "@/app/payment/BackButton";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group';
 
@@ -44,13 +44,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
   // 타입별로 데이터가 없는 경우 체크
   if (type === 'lesson' && !res.lesson) {
-    return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
   if (type === 'lesson-group' && !res.lessonGroup) {
-    return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
   if (type === 'pass-plan' && !res.passPlan) {
-    return <div className="flex items-center justify-center p-4 text-black">패스권 정보를 찾을 수 없습니다.</div>
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
 
   const getItemInfo = () => {
@@ -82,68 +82,93 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
-      {/* 공통 헤더: back arrow + 결제하기 */}
-      {appVersion === '' && (
-        <div className="mb-2">
-          <SimpleHeader titleResource={'payment'} />
-        </div>
-      )}
-
+    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
       <div className="flex flex-col">
-        {/* 공통 상단: 상품 정보 */}
-        <div className="flex gap-4 w-full px-6 items-center">
-          {type === 'pass-plan' ? (
-            <div className="w-[56px] h-[56px] rounded-2xl bg-[#F3F3F4] flex items-center justify-center flex-shrink-0">
-              <TicketIcon className="w-6 h-6" />
+        {appVersion === '' && (
+          <BackButton />
+        )}
+        {/* lesson / lesson-group: 큰 히어로 이미지 */}
+        {(type === 'lesson' || type === 'lesson-group') && (
+          <>
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#F1F3F6]">
+              {thumbnailUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={thumbnailUrl}
+                  alt={title ?? ''}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              {/* 하단 그라데이션 */}
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
+              {/* 이미지 위 텍스트 */}
+              <div className="absolute inset-x-0 bottom-0 px-6 pb-5">
+                <p className="text-[18px] font-bold text-white leading-snug drop-shadow-sm">{title}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  {studioImageUrl && <CircleImage size={22} imageUrl={studioImageUrl} />}
+                  <span className="text-[14px] font-medium text-white/90 drop-shadow-sm">{studioName}</span>
+                  {type === 'lesson' && res.lesson?.room?.name && (
+                    <span className="text-[12px] text-white/70">· {res.lesson.room.name}</span>
+                  )}
+                </div>
+              </div>
             </div>
-          ) : (
-            <Thumbnail url={thumbnailUrl ?? ''} width={86} className="rounded-lg flex-shrink-0" />
-          )}
 
-          <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-base font-bold text-left text-[#131517] break-words">{title}</p>
-            <div className="flex items-top gap-2">
-              {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
-              <div className="flex flex-col items-start">
-                <span className="font-medium text-[14px] text-[#86898c]">
-                  {studioName}
-                </span>
-                {type === 'lesson' && res.lesson?.room?.name && (
-                  <span className="font-medium text-[12px] text-[#86898C]">
-                    {res.lesson.room.name}
+            {/* 날짜/시간 정보 바 */}
+            {type === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
+              <div className="px-6 py-3 bg-[#F7F8F9] flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="3" width="12" height="11" rx="2" stroke="#86898C" strokeWidth="1.2"/>
+                  <path d="M2 6.5H14" stroke="#86898C" strokeWidth="1.2"/>
+                  <path d="M5.5 1.5V3.5" stroke="#86898C" strokeWidth="1.2" strokeLinecap="round"/>
+                  <path d="M10.5 1.5V3.5" stroke="#86898C" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                {res.lesson?.formattedDate ? (
+                  <span className="text-[13px] font-medium text-[#555]">
+                    {res.lesson.formattedDate.date}
+                    {res.lesson.formattedDate.weekday && ` (${res.lesson.formattedDate.weekday})`}
+                    {' '}
+                    {res.lesson.formattedDate.startTime} - {res.lesson.formattedDate.endTime}
+                  </span>
+                ) : res.lesson?.date && (
+                  <span className="text-[13px] font-medium text-[#555]">
+                    {res.lesson.date}{res.lesson.duration ? ` · ${res.lesson.duration}${await translate('minutes')}` : ''}
                   </span>
                 )}
               </div>
-            </div>
-
-            {type === 'lesson' && res.lesson?.formattedDate && (
-              <p className="text-[#86898C] text-[13px] font-medium">
-                {res.lesson.formattedDate.date}
-                {res.lesson.formattedDate.weekday && ` (${res.lesson.formattedDate.weekday})`}
-                {' '}
-                {res.lesson.formattedDate.startTime} - {res.lesson.formattedDate.endTime}
-              </p>
-            )}
-
-            {type === 'lesson' && !res.lesson?.formattedDate && res.lesson?.date && (
-              <p className="text-[#86898C] text-[13px] font-medium">
-                {res.lesson.date}{res.lesson.duration ? ` · ${res.lesson.duration}${await translate('minutes')}` : ''}
-              </p>
             )}
 
             {type === 'lesson-group' && res.lessonGroup?.description && (
-              <p className="text-[#86898C] text-[14px] font-medium">{res.lessonGroup.description}</p>
-            )}
-
-            {type === 'pass-plan' && res.passPlan && (
-              <div className="text-[13px] text-[#86898C] font-medium">
-                {res.passPlan.type === 'Unlimited' && <span>모든 클래스 무제한 이용 가능</span>}
-                {res.passPlan.type === 'Count' && <span>클래스 {res.passPlan.usageLimit}회 이용 가능</span>}
+              <div className="px-6 py-3 bg-[#F7F8F9]">
+                <p className="text-[13px] font-medium text-[#555]">{res.lessonGroup.description}</p>
               </div>
             )}
-          </div>
-        </div>
+          </>
+        )}
+
+        {/* pass-plan: 기존 컴팩트 레이아웃 */}
+        {type === 'pass-plan' && (
+          <>
+            <div className="flex gap-4 w-full px-6 items-center">
+              <div className="w-[56px] h-[56px] rounded-2xl bg-[#F3F3F4] flex items-center justify-center flex-shrink-0">
+                <TicketIcon className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col gap-1 min-w-0">
+                <p className="text-base font-bold text-left text-[#131517] break-words">{title}</p>
+                <div className="flex items-center gap-2">
+                  {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
+                  <span className="font-medium text-[14px] text-[#86898c]">{studioName}</span>
+                </div>
+                {res.passPlan && (
+                  <div className="text-[13px] text-[#86898C] font-medium">
+                    {res.passPlan.type === 'Unlimited' && <span>{await translate('pass_plan_unlimited_description')}</span>}
+                    {res.passPlan.type === 'Count' && <span>{(await translate('pass_plan_count_description')).replace('{{count}}', `${res.passPlan.usageLimit}`)}</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="py-5">
           <div className="w-full h-3 bg-[#F7F8F9]" />

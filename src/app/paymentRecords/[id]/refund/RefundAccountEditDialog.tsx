@@ -33,7 +33,7 @@ export const RefundAccountEditDialog = ({
   const [refundAccountNumber, setRefundAccountNumber] = useState(initialNumber ?? "");
   const [refundAccountDepositor, setRefundAccountDepositor] = useState(initialDepositor ?? "");
   const [isBankSheetOpen, setIsBankSheetOpen] = useState(false);
-  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
     () => pickBankKey(initialBank ?? '')
   );
 

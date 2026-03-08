@@ -25,7 +25,7 @@ export const RefundAccountSection = ({
     number: refundPreview.refundAccountNumber ?? "",
     depositor: refundPreview.refundDepositor ?? "",
   });
-  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
       () => pickBankKey(accountInfo.bank)
   );
 
@@ -43,7 +43,7 @@ export const RefundAccountSection = ({
     setSelectedBankCode(pickBankKey(account.bank));
   };
 
-  const handleBankSelect = (code: BankCode, label: string) => {
+  const handleBankSelect = (code: BankCode | 'other', label: string) => {
     setSelectedBankCode(code);
     setAccountInfo(prev => ({...prev, bank: label}));
     setIsBankSheetOpen(false);

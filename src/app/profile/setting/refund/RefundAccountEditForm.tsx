@@ -41,7 +41,7 @@ export const RefundAccountEditForm = ({
 
   // ✅ 상태: 은행 선택 바텀시트
   const [isBankSheetOpen, setIsBankSheetOpen] = useState(false);
-  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
     () => pickBankKey(initialAccountBank ?? '')
   );
   const handleClickSubmit = async () => {
