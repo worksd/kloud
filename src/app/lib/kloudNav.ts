@@ -117,7 +117,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.Onboard('')) ||
     route.startsWith(KloudScreen.Certification) ||
     route.startsWith('/membershipPlans?') ||
-    route.startsWith('/qrs')
+    route.startsWith('/qrs') ||
+    route.includes('/profile/myPass/')
 }
 
 const applyTitle = async (route: string) => {

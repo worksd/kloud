@@ -15,6 +15,19 @@ export type GetPassListRequest = {
   order: PassOrder
 }
 
+export type PassBenefitType = 'unlimited' | 'free_count' | 'discount' | 'presale' | 'fast_entry' | 'room';
+
+export type PassBenefit = {
+  type: PassBenefitType
+  title: string
+  subtitle?: string
+  description?: string
+  isAdditional?: boolean
+  remainingCount?: number
+  totalCount?: number
+  isUsedUp?: boolean
+}
+
 export type GetPassPlanResponse = {
   id: number
   name: string
@@ -27,6 +40,7 @@ export type GetPassPlanResponse = {
   tier: PassPlanTier,
   tag?: string,
   canPreSale?: boolean,
+  benefits?: PassBenefit[],
 }
 
 export type GetPassPlansResponse = {
