@@ -41,6 +41,7 @@ export type GetPassPlanResponse = {
   tag?: string,
   canPreSale?: boolean,
   benefits?: PassBenefit[],
+  isRecommended?: boolean, // TODO: API에서 isRecommended 필드 내려주기
 }
 
 export type GetPassPlansResponse = {
