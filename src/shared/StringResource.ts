@@ -2529,7 +2529,7 @@ export const StringResource = {
   card_scan_detected: { ko: '카드 번호를 인식했습니다', en: 'Card number detected', jp: 'カード番号を認識しました', zh: '已识别银行卡号' },
   card_scan_loading: { ko: 'OCR 엔진 로딩 중...', en: 'Loading OCR engine...', jp: 'OCRエンジンを読み込み中...', zh: '正在加载OCR引擎...' },
   card_scan_error_no_camera: { ko: '카메라를 찾을 수 없습니다', en: 'Camera not found', jp: 'カメラが見つかりません', zh: '未找到摄像头' },
-  card_scan_error_permission: { ko: '카메라 권한이 거부되었습니다', en: 'Camera permission denied', jp: 'カメラの権限が拒否されました', zh: '摄像头权限被拒绝' },
+  card_scan_error_permission: { ko: '카메라 권한이 거부되었습니다.\n앱을 최신 버전으로 업데이트해주세요.', en: 'Camera permission denied.\nPlease update the app to the latest version.', jp: 'カメラの権限が拒否されました。\nアプリを最新バージョンにアップデートしてください。', zh: '摄像头权限被拒绝。\n请将应用更新到最新版本。' },
   birth_from_profile: { ko: '회원 정보에 등록된 생년월일입니다', en: 'Date of birth from your profile', jp: 'プロフィールに登録された生年月日です', zh: '来自您个人资料中的出生日期' },
 }
 
