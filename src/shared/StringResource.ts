@@ -2523,13 +2523,6 @@ export const StringResource = {
   kiosk_lessons_count: { ko: '{0}개 수업', en: '{0} lessons', jp: '{0}件のレッスン', zh: '{0}节课' },
   payment_notice: { ko: '결제 유의사항', en: 'Payment Notice', jp: '決済に関するご注意', zh: '支付注意事项' },
   apple_pay_domestic_only: { ko: 'Apple Pay는 Master/Visa 등 해외카드 결제가 불가합니다.', en: 'Apple Pay does not support international cards such as Master/Visa.', jp: 'Apple PayはMaster/Visaなどの海外カードはご利用いただけません。', zh: 'Apple Pay不支持Master/Visa等海外银行卡。' },
-  card_scan_title: { ko: '카드 스캔', en: 'Scan Card', jp: 'カードスキャン', zh: '扫描银行卡' },
-  card_scan_guide: { ko: '카드를 프레임 안에 맞춰주세요', en: 'Align your card within the frame', jp: 'カードをフレーム内に合わせてください', zh: '请将银行卡对准框内' },
-  card_scan_manual_entry: { ko: '번호 직접 입력하기', en: 'Enter number manually', jp: '番号を直接入力する', zh: '手动输入号码' },
-  card_scan_detected: { ko: '카드 번호를 인식했습니다', en: 'Card number detected', jp: 'カード番号を認識しました', zh: '已识别银行卡号' },
-  card_scan_loading: { ko: 'OCR 엔진 로딩 중...', en: 'Loading OCR engine...', jp: 'OCRエンジンを読み込み中...', zh: '正在加载OCR引擎...' },
-  card_scan_error_no_camera: { ko: '카메라를 찾을 수 없습니다', en: 'Camera not found', jp: 'カメラが見つかりません', zh: '未找到摄像头' },
-  card_scan_error_permission: { ko: '카메라 권한이 거부되었습니다.\n앱을 최신 버전으로 업데이트해주세요.', en: 'Camera permission denied.\nPlease update the app to the latest version.', jp: 'カメラの権限が拒否されました。\nアプリを最新バージョンにアップデートしてください。', zh: '摄像头权限被拒绝。\n请将应用更新到最新版本。' },
   birth_from_profile: { ko: '회원 정보에 등록된 생년월일입니다', en: 'Date of birth from your profile', jp: 'プロフィールに登録された生年月日です', zh: '来自您个人资料中的出生日期' },
 }
 

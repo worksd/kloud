@@ -12,32 +12,22 @@ export const PaymentMethodSheetForm = ({
                                          locale,
                                          onCloseAction,
                                          onSuccessAction,
-                                         initialCardNumber,
-                                         initialExpiryMonth,
-                                         initialExpiryYear,
                                          initialBirth,
                                        }: {
   locale: Locale,
   onCloseAction: () => void,
   onSuccessAction: () => void,
-  initialCardNumber?: string,
-  initialExpiryMonth?: string,
-  initialExpiryYear?: string,
   initialBirth?: string | null,
 }) => {
-
-  const initialFormatted = initialCardNumber
-    ? initialCardNumber.match(/.{1,4}/g)?.join(' ').trim() || ''
-    : '';
 
   const initialBirth6 = initialBirth
     ? (initialBirth.length === 8 ? initialBirth.slice(2) : initialBirth)
     : '';
 
   const [form, setForm] = useState<CreateBillingRequest>({
-    cardNumber: initialFormatted,
-    expiryYear: initialExpiryYear || '',
-    expiryMonth: initialExpiryMonth || '',
+    cardNumber: '',
+    expiryYear: '',
+    expiryMonth: '',
     birthOrBusinessRegistrationNumber: initialBirth6,
     passwordTwoDigits: '',
   })
@@ -74,19 +64,8 @@ export const PaymentMethodSheetForm = ({
   const birthFromProfile = !!initialBirth6;
 
   useEffect(() => {
-    if (initialCardNumber) {
-      if (initialExpiryMonth && initialExpiryYear && initialBirth6) {
-        passwordRef.current?.focus();
-      } else if (initialExpiryMonth && initialExpiryYear) {
-        birthRef.current?.focus();
-      } else {
-        expiryMonthRef.current?.focus();
-      }
-    } else if (initialBirth6) {
-      // 스캐너 없이 폼만 열린 경우에도 birth가 채워져 있으면 password로 이동하지 않음
-      // 카드번호부터 입력하게 둠
-    }
-  }, [initialCardNumber, initialExpiryMonth, initialExpiryYear, initialBirth6]);
+    cardRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     window.onDialogConfirm = async (dialogInfo: DialogInfo) => {

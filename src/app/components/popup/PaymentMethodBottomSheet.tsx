@@ -5,28 +5,15 @@ import { CommonBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { Locale } from "@/shared/StringResource";
 import { PaymentMethodSheetForm } from "@/app/profile/setting/paymentMethod/sheet/PaymentMethodSheetForm";
 import { getLocaleString } from "@/app/components/locale";
-import CardScanner, { CardScanResult } from "@/app/components/CardScanner";
-
-type Phase = 'idle' | 'scanning' | 'form';
 
 export const PaymentMethodAddButton = ({locale, onSuccessAction, birth}: { locale: Locale, onSuccessAction: () => void, birth?: string | null }) => {
 
-  const [phase, setPhase] = React.useState<Phase>('idle');
-  const [scanResult, setScanResult] = React.useState<CardScanResult | null>(null);
-
-  const handleAddPaymentMethod = () => {
-    setPhase('scanning');
-  }
-
-  const handleClose = () => {
-    setPhase('idle');
-    setScanResult(null);
-  }
+  const [open, setOpen] = React.useState(false);
 
   return (
     <div>
       <button
-        onClick={handleAddPaymentMethod}
+        onClick={() => setOpen(true)}
         className="mt-2 w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-dashed border-[#D0D0D0]
                    text-[#888] text-[13px] font-medium active:bg-[#F5F5F5] transition-colors"
       >
@@ -35,29 +22,12 @@ export const PaymentMethodAddButton = ({locale, onSuccessAction, birth}: { local
         </svg>
         {getLocaleString({locale, key: 'add_payment_method_button'})}
       </button>
-      {phase === 'scanning' && (
-        <CardScanner
-          locale={locale}
-          onCardDetected={(result) => {
-            setScanResult(result);
-            setPhase('form');
-          }}
-          onManualEntry={() => {
-            setScanResult(null);
-            setPhase('form');
-          }}
-          onClose={handleClose}
-        />
-      )}
-      {phase === 'form' && (
+      {open && (
         <PaymentMethodAddBottomSheet
           open={true}
           locale={locale}
-          onCloseAction={handleClose}
+          onCloseAction={() => setOpen(false)}
           onSuccessAction={onSuccessAction}
-          initialCardNumber={scanResult?.cardNumber}
-          initialExpiryMonth={scanResult?.expiryMonth}
-          initialExpiryYear={scanResult?.expiryYear}
           initialBirth={birth}
         />
       )}
@@ -65,21 +35,17 @@ export const PaymentMethodAddButton = ({locale, onSuccessAction, birth}: { local
   )
 }
 
-export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSuccessAction, initialCardNumber, initialExpiryMonth, initialExpiryYear, initialBirth}: {
+export const PaymentMethodAddBottomSheet = ({open, locale, onCloseAction, onSuccessAction, initialBirth}: {
   open: boolean,
   locale: Locale,
   onCloseAction: () => void,
   onSuccessAction: () => void,
-  initialCardNumber?: string,
-  initialExpiryMonth?: string,
-  initialExpiryYear?: string,
   initialBirth?: string | null,
 }) => {
   return (
     <div className="fixed inset-0 z-[1000]">
-
       <CommonBottomSheet open={open} onCloseAction={onCloseAction}>
-        <PaymentMethodSheetForm locale={locale} onCloseAction={onCloseAction} onSuccessAction={onSuccessAction} initialCardNumber={initialCardNumber} initialExpiryMonth={initialExpiryMonth} initialExpiryYear={initialExpiryYear} initialBirth={initialBirth}/>
+        <PaymentMethodSheetForm locale={locale} onCloseAction={onCloseAction} onSuccessAction={onSuccessAction} initialBirth={initialBirth}/>
       </CommonBottomSheet>
     </div>
   )

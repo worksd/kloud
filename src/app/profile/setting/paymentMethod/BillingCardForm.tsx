@@ -9,15 +9,11 @@ import { BankOrCardIcon } from "@/app/components/Bank";
 import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMethodBottomSheet";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import CardScanner, { CardScanResult } from "@/app/components/CardScanner";
-
-type Phase = 'idle' | 'scanning' | 'form';
 
 export const BillingCardForm = ({cards, locale, birth}: { cards: GetBillingResponse[], locale: Locale, birth?: string | null }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [scanResult, setScanResult] = useState<CardScanResult | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const loadCards = async () => {
 
@@ -66,9 +62,7 @@ export const BillingCardForm = ({cards, locale, birth}: { cards: GetBillingRespo
       <div className="w-full max-w-md mx-auto relative">
         {/* + 버튼 */}
         <button
-          onClick={() => {
-            setPhase('scanning');
-          }}
+          onClick={() => setShowForm(true)}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition"
           aria-label="카드 추가"
         >
@@ -119,35 +113,12 @@ export const BillingCardForm = ({cards, locale, birth}: { cards: GetBillingRespo
           </div>
         </div>
       )}
-      {phase === 'scanning' && (
-        <CardScanner
-          locale={locale}
-          onCardDetected={(result) => {
-            setScanResult(result);
-            setPhase('form');
-          }}
-          onManualEntry={() => {
-            setScanResult(null);
-            setPhase('form');
-          }}
-          onClose={() => {
-            setPhase('idle');
-            setScanResult(null);
-          }}
-        />
-      )}
-      {phase === 'form' && (
+      {showForm && (
         <PaymentMethodAddBottomSheet
           open={true}
           locale={locale}
-          onCloseAction={() => {
-            setPhase('idle');
-            setScanResult(null);
-          }}
+          onCloseAction={() => setShowForm(false)}
           onSuccessAction={() => loadCards()}
-          initialCardNumber={scanResult?.cardNumber}
-          initialExpiryMonth={scanResult?.expiryMonth}
-          initialExpiryYear={scanResult?.expiryYear}
           initialBirth={birth}
         />
       )}
