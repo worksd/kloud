@@ -47,19 +47,11 @@ type PaymentInfo = {
   pgProvider?: string
 }
 
-const getPayMethodAndPgProvider = (method?: PaymentMethodType): { payMethod: string, pgProvider?: string } => {
-  switch (method) {
-    case 'naver_pay':
-      return { payMethod: 'EASY_PAY', pgProvider: 'NaverPay' };
-    case 'kakao_pay':
-      return { payMethod: 'EASY_PAY', pgProvider: 'KakaoPay' };
-    case 'ali_pay':
-      return { payMethod: 'EASY_PAY', pgProvider: 'AliPay' };
-    case 'wechat_pay':
-      return { payMethod: 'EASY_PAY', pgProvider: 'WeChatPay' };
-    default:
-      return { payMethod: 'CARD', pgProvider: 'TossPayments' };
-  }
+const pgProviderMap: Partial<Record<PaymentMethodType, string>> = {
+  naver_pay: 'NaverPay',
+  kakao_pay: 'KakaoPay',
+  ali_pay: 'AliPay',
+  wechat_pay: 'WeChatPay',
 }
 
 
@@ -176,8 +168,6 @@ export default function PaymentButton({
         }
       }
 
-      const { payMethod, pgProvider } = getPayMethodAndPgProvider(method);
-
       const paymentInfo: PaymentInfo = {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
@@ -185,7 +175,7 @@ export default function PaymentButton({
         orderName: title,
         price,
         userId: `${user.id}`,
-        method: payMethod,
+        method: method && pgProviderMap[method] ? 'EASY_PAY' : 'CARD',
         customData: JSON.stringify({
           actualPayerUserId,
           discounts: selectedDiscounts,
@@ -194,7 +184,7 @@ export default function PaymentButton({
         userPhone: user.phone ?? undefined,
         userBirth: user.birth ?? undefined,
         locale: locale ?? undefined,
-        pgProvider,
+        pgProvider: method ? pgProviderMap[method] : undefined,
       };
 
       if (appVersion === '') {
