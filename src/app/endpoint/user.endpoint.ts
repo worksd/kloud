@@ -34,6 +34,7 @@ export type GetUserResponse = {
   profileImageUrl?: string
   deactivatedAt: string
   phone?: string
+  birth?: string
   passes?: GetPassResponse[]
   refundAccountNumber?: string
   refundAccountBank?: string

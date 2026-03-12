@@ -32,20 +32,36 @@ export const PaymentTypes = [
 export type PaymentType = (typeof PaymentTypes)[number];
 
 type PaymentInfo = {
-  storeId?: string
-  pg?: string
-  channelKey?: string
-  scheme?: string
+  storeId: string
+  channelKey: string
   paymentId: string
-  type: PaymentType,
   orderName: string
-  method: PaymentMethodType
+  price: number
   userId: string
-  price?: number
-  amount?: string
-  userCode?: string
-  customData?: string;
+  method: string
+  customData: string
+  userName?: string
+  userBirth?: string
+  userPhone?: string
+  locale?: string
+  pgProvider?: string
 }
+
+const getPayMethodAndPgProvider = (method?: PaymentMethodType): { payMethod: string, pgProvider?: string } => {
+  switch (method) {
+    case 'naver_pay':
+      return { payMethod: 'EASY_PAY', pgProvider: 'NaverPay' };
+    case 'kakao_pay':
+      return { payMethod: 'EASY_PAY', pgProvider: 'KakaoPay' };
+    case 'ali_pay':
+      return { payMethod: 'EASY_PAY', pgProvider: 'AliPay' };
+    case 'wechat_pay':
+      return { payMethod: 'EASY_PAY', pgProvider: 'WeChatPay' };
+    default:
+      return { payMethod: 'CARD', pgProvider: 'TossPayments' };
+  }
+}
+
 
 export default function PaymentButton({
                                         appVersion,
@@ -160,16 +176,43 @@ export default function PaymentButton({
         }
       }
 
+      const { payMethod, pgProvider } = getPayMethodAndPgProvider(method);
+
+      const paymentInfo: PaymentInfo = {
+        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+        paymentId,
+        orderName: title,
+        price,
+        userId: `${user.id}`,
+        method: payMethod,
+        customData: JSON.stringify({
+          actualPayerUserId,
+          discounts: selectedDiscounts,
+        }),
+        userName: user.name ?? user.nickName ?? undefined,
+        userPhone: user.phone ?? undefined,
+        userBirth: user.birth ?? undefined,
+        locale: locale ?? undefined,
+        pgProvider,
+      };
+
       if (appVersion === '') {
         const mobileWebPaymentRequest: PaymentRequest = {
-          storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-          channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-          paymentId,
-          orderName: title,
-          payMethod: 'CARD',
-          totalAmount: price,
+          storeId: paymentInfo.storeId,
+          channelKey: paymentInfo.channelKey,
+          paymentId: paymentInfo.paymentId,
+          orderName: paymentInfo.orderName,
+          payMethod: paymentInfo.method as any,
+          totalAmount: paymentInfo.price,
           currency: 'CURRENCY_KRW',
-          customer: {fullName: `${user.id}`},
+          customer: {
+            fullName: paymentInfo.userName ?? user.nickName ?? paymentInfo.userId,
+            phoneNumber: paymentInfo.userPhone,
+            birthYear: paymentInfo.userBirth ? Number(paymentInfo.userBirth.slice(0, 2)) <= 26 ? 2000 + Number(paymentInfo.userBirth.slice(0, 2)) : 1900 + Number(paymentInfo.userBirth.slice(0, 2)) : undefined,
+            birthMonth: paymentInfo.userBirth ? Number(paymentInfo.userBirth.slice(2, 4)) : undefined,
+            birthday: paymentInfo.userBirth ? Number(paymentInfo.userBirth.slice(4, 6)) : undefined,
+          } as any,
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
           customData: {
             actualPayerUserId,
@@ -180,25 +223,6 @@ export default function PaymentButton({
         await requestPayment(mobileWebPaymentRequest);
         return;
       }
-
-      const paymentInfo: PaymentInfo = {
-        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
-        paymentId,
-        orderName: title,
-        method: 'credit',
-        type,
-        price,
-        userId: `${user.id}`,
-        customData: JSON.stringify({
-          actualPayerUserId,
-          discounts: selectedDiscounts,
-        }),
-        userCode: process.env.NEXT_PUBLIC_USER_CODE,
-        pg: process.env.NEXT_PUBLIC_IOS_PORㄹㄴTONE_PG,
-        scheme: 'iamport',
-        amount: `${price}`,
-      };
 
       window.KloudEvent?.requestPayment(JSON.stringify(paymentInfo));
     } else if (method === 'account_transfer') {
