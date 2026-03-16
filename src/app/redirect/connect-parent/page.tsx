@@ -1,4 +1,4 @@
-import { connectParentAction, getUserAction } from "@/app/redirect/connect-parent/connect.parent.action";
+import { connectParentAction } from "@/app/redirect/connect-parent/connect.parent.action";
 import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 
 function maskPhone(phone?: string) {
@@ -61,26 +61,22 @@ export default async function ConnectParentPage({ searchParams }: {
   searchParams: Promise<{
     studentUserId: number,
     parentPhone: string,
-    parentName: string
+    parentName: string,
+    studentName: string,
   }>
 }) {
   // Optional: small optimistic splash while awaiting searchParams/action
   // (Server components render once; leaving this for clarity)
-  const { studentUserId, parentPhone, parentName } = await searchParams;
+  const { studentUserId, parentPhone, parentName, studentName } = await searchParams;
 
-  const user = await getUserAction({ id: studentUserId });
-  const studentName = user && 'id' in user ? (user.name ?? user.nickName ?? '') : '';
-  const alreadyConnected =
-    user && 'id' in user &&
-    user.parentPhone === parentPhone;
-
-  const res = alreadyConnected
+  const connectRes = await connectParentAction({ studentUserId, parentPhone, parentName });
+  const res = ('code' in connectRes && connectRes.code === 'STUDENT_PARENT_ALREADY_CONNECTED')
     ? { success: true }
-    : await connectParentAction({ studentUserId, parentPhone, parentName });
+    : connectRes;
 
   const baseDetails = (
       <div className="divide-y divide-gray-100">
-        <Field label="학생 이름" value={studentName || '-'} />
+        <Field label="학생 이름" value={studentName} />
         <Field label="학부모 이름" value={parentName} />
         <Field label="학부모 연락처" value={maskPhone(parentPhone)} />
       </div>
@@ -92,7 +88,7 @@ export default async function ConnectParentPage({ searchParams }: {
           <Card tone="success">
             <Header
                 title="연동이 완료되었어요!"
-                subtitle={`${studentName}님과의 학부모 연동이 성공적으로 처리되었습니다.`}
+                subtitle="학부모 연동이 성공적으로 처리되었습니다."
                 icon={<CheckCircle2 className="h-8 w-8 text-green-600" />}
             />
             <Body>

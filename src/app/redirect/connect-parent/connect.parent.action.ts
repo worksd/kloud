@@ -8,7 +8,3 @@ export const connectParentAction = async ({studentUserId, parentPhone, parentNam
 }) => {
     return await api.user.connectParent({studentUserId, parentPhone, parentName})
 }
-
-export const getUserAction = async ({id}: { id: number }) => {
-    return await api.user.get({id})
-}
