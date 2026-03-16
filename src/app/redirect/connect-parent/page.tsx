@@ -62,7 +62,7 @@ export default async function ConnectParentPage({ searchParams }: {
     studentUserId: number,
     parentPhone: string,
     parentName: string,
-    studentName: string,
+    studentName?: string,
   }>
 }) {
   // Optional: small optimistic splash while awaiting searchParams/action
@@ -76,7 +76,7 @@ export default async function ConnectParentPage({ searchParams }: {
 
   const baseDetails = (
       <div className="divide-y divide-gray-100">
-        <Field label="학생 이름" value={studentName} />
+        <Field label="학생 이름" value={studentName || studentUserId} />
         <Field label="학부모 이름" value={parentName} />
         <Field label="학부모 연락처" value={maskPhone(parentPhone)} />
       </div>
