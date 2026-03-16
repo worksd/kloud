@@ -44,6 +44,9 @@ export type GetUserResponse = {
   ticketCount?: number
   paymentRecordCount?: number
   passCount?: number
+  parentPhone?: string
+  parentCountryCode?: string
+  parentName?: string
 }
 
 export type GetMeResponse = {

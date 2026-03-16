@@ -1,4 +1,4 @@
-import { connectParentAction } from "@/app/redirect/connect-parent/connect.parent.action";
+import { connectParentAction, getUserAction } from "@/app/redirect/connect-parent/connect.parent.action";
 import { CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 
 function maskPhone(phone?: string) {
@@ -67,11 +67,20 @@ export default async function ConnectParentPage({ searchParams }: {
   // Optional: small optimistic splash while awaiting searchParams/action
   // (Server components render once; leaving this for clarity)
   const { studentUserId, parentPhone, parentName } = await searchParams;
-  const res = await connectParentAction({ studentUserId, parentPhone, parentName });
+
+  const user = await getUserAction({ id: studentUserId });
+  const studentName = user && 'id' in user ? (user.name ?? user.nickName ?? '') : '';
+  const alreadyConnected =
+    user && 'id' in user &&
+    user.parentPhone === parentPhone;
+
+  const res = alreadyConnected
+    ? { success: true }
+    : await connectParentAction({ studentUserId, parentPhone, parentName });
 
   const baseDetails = (
       <div className="divide-y divide-gray-100">
-        <Field label="학생 사용자 ID" value={studentUserId} />
+        <Field label="학생 이름" value={studentName || '-'} />
         <Field label="학부모 이름" value={parentName} />
         <Field label="학부모 연락처" value={maskPhone(parentPhone)} />
       </div>
@@ -83,7 +92,7 @@ export default async function ConnectParentPage({ searchParams }: {
           <Card tone="success">
             <Header
                 title="연동이 완료되었어요!"
-                subtitle="입력하신 정보와 연결이 성공적으로 처리되었습니다."
+                subtitle={`${studentName}님과의 학부모 연동이 성공적으로 처리되었습니다.`}
                 icon={<CheckCircle2 className="h-8 w-8 text-green-600" />}
             />
             <Body>
@@ -108,7 +117,8 @@ export default async function ConnectParentPage({ searchParams }: {
             />
             <Body>
               <div className="rounded-xl bg-red-50 text-red-700 text-sm p-4">
-                {res.message}
+                <p className="font-medium">[{res.code}]</p>
+                <p className="mt-1">{res.message}</p>
               </div>
               <div className="mt-6">
                 {baseDetails}
