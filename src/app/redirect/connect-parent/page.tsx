@@ -117,7 +117,6 @@ export default async function ConnectParentPage({ searchParams }: {
             />
             <Body>
               <div className="rounded-xl bg-red-50 text-red-700 text-sm p-4">
-                <p className="font-medium">[{res.code}]</p>
                 <p className="mt-1">{res.message}</p>
               </div>
               <div className="mt-6">
