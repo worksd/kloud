@@ -19,6 +19,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
+import { useRouter } from "next/navigation";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -28,11 +29,13 @@ export type PhoneVerificationStepConfig = {
   placeholder?: string;
 }
 
-export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
+export default function PhoneVerificationForm({steps, locale, isFromLogin, returnUrl}: {
   steps: PhoneVerificationStepConfig[],
   locale: Locale,
-  isFromLogin: boolean
+  isFromLogin: boolean,
+  returnUrl?: string,
 }) {
+  const router = useRouter();
 
   const [phone, setPhone] = useState('')
   const [countryCode, setCountryCode] = useState<string>('KR');
@@ -110,7 +113,11 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin}: {
             accessToken: res.accessToken,
             userId: res.user.id,
           })
-          await LoginAuthNavigation({status: res.user.status, window})
+          if (returnUrl) {
+            router.replace(returnUrl);
+          } else {
+            await LoginAuthNavigation({status: res.user.status, window})
+          }
         } else {
           const resendDialog = await createDialog({
             id: 'Simple',
