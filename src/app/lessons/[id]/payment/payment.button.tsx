@@ -183,7 +183,7 @@ export default function PaymentButton({
         userName: user.name ?? user.nickName ?? undefined,
         userPhone: user.phone ?? undefined,
         userBirth: user.birth ?? undefined,
-        locale: locale ?? undefined,
+        locale: locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
         pgProvider: method ? pgProviderMap[method] : undefined,
       };
 
