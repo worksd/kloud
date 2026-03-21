@@ -4,6 +4,7 @@ import { getLocale, translate } from "@/utils/translate";
 import { DevTapLogo } from "@/app/login/DevTapToGo";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { redirect } from "next/navigation";
 
 export default async function Login({
                                       searchParams,
@@ -16,7 +17,17 @@ export default async function Login({
     state: string;
   }>;
 }) {
-  const { os, appVersion, returnUrl } = await searchParams;
+  const { os, appVersion, returnUrl, code, state } = await searchParams;
+
+  // 카카오 OAuth 콜백: code가 있으면 login/intro로 전달
+  if (code) {
+    const params = new URLSearchParams();
+    params.set('code', code);
+    if (state) params.set('state', state);
+    if (os) params.set('os', os);
+    if (appVersion) params.set('appVersion', appVersion);
+    redirect(`/login/intro?${params.toString()}`);
+  }
 
   return (
     <section
