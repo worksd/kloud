@@ -50,8 +50,13 @@ export const LoginForm = (props: LoginFormProps) => {
   }
 
   const onClickSignUp = async () => {
-    const signUpQuery = props.returnUrl ? `?returnUrl=${props.returnUrl}` : ''
-    kloudNav.push(KloudScreen.SignUp(signUpQuery))
+    const signUpQuery = props.returnUrl ? `?returnUrl=${encodeURIComponent(props.returnUrl)}` : ''
+    const route = KloudScreen.SignUp(signUpQuery)
+    if (props.appVersion === '') {
+      router.replace(route)
+    } else {
+      kloudNav.push(route)
+    }
   }
 
   const onClickLogin = async () => {
