@@ -143,7 +143,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
     }
     const fetchTickets = async () => {
       const tickets = await getLessonTicketsAction(selectedLesson.id);
-      setStudentTickets(tickets);
+      setStudentTickets(tickets.filter(t => t.status !== 'Cancelled' && t.status !== 'CancelPending'));
     };
     fetchTickets();
   }, [selectedLesson?.id]);
