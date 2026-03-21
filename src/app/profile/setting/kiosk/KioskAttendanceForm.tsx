@@ -3,15 +3,16 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
 import {
-  searchUserByPhoneAction,
+  searchUserAction,
   createStudioAttendanceAction
 } from "@/app/profile/setting/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
+import {GetUserResponse} from "@/app/endpoint/user.endpoint";
 import {AttendanceStatus} from "@/app/endpoint/studio.endpoint";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 
-type Step = 'select-status' | 'phone' | 'confirm' | 'loading' | 'complete';
+type Step = 'select-status' | 'phone' | 'select' | 'confirm' | 'loading' | 'complete';
 
 const COUNTRY_CODES = [
   {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
@@ -66,6 +67,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<GetUserResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(180);
@@ -148,6 +150,16 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
     }
   }, [attendanceStatus, statusLabel]);
 
+  const selectUser = (user: GetUserResponse) => {
+    setUserId(user.id);
+    setUserName(user.name || null);
+    setUserNickName(user.nickName || null);
+    setUserEmail(user.email || null);
+    setUserPhone(user.phone || null);
+    setUserProfileImageUrl(user.profileImageUrl || null);
+    setStep('confirm');
+  };
+
   const handleSearch = async () => {
     if (phone.length < 10) {
       setError(t('kiosk_phone_error'));
@@ -156,17 +168,16 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
     setLoading(true);
     setError(null);
     try {
-      const result = await searchUserByPhoneAction(phone, countryCode);
+      const result = await searchUserAction(phone);
       if (isGuinnessErrorCase(result)) {
         setError(t('kiosk_not_registered'));
+      } else if (result.users.length === 0) {
+        setError(t('kiosk_not_registered'));
+      } else if (result.users.length === 1) {
+        selectUser(result.users[0]);
       } else {
-        setUserId(result.id);
-        setUserName(result.name || null);
-        setUserNickName(result.nickName || null);
-        setUserEmail(result.email || null);
-        setUserPhone(result.phone || null);
-        setUserProfileImageUrl(result.profileImageUrl || null);
-        setStep('confirm');
+        setSearchResults(result.users);
+        setStep('select');
       }
     } catch {
       setError(t('kiosk_search_failed'));
@@ -180,6 +191,11 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
       setPhone('');
       setError(null);
       setStep('select-status');
+    } else if (step === 'select') {
+      setSearchResults([]);
+      setPhone('');
+      setError(null);
+      setStep('phone');
     } else if (step === 'confirm') {
       setUserId(null);
       setUserName(null);
@@ -188,7 +204,11 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
       setUserPhone(null);
       setUserProfileImageUrl(null);
       setError(null);
-      setStep('phone');
+      if (searchResults.length > 1) {
+        setStep('select');
+      } else {
+        setStep('phone');
+      }
     } else {
       onBack();
     }
@@ -199,10 +219,10 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
       case 'select-status':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
                 {t('kiosk_what_to_do')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[48px]">
+              <p className="text-gray-400 text-[20px] mb-[48px] w-full max-w-[500px] text-center">
                 {t('kiosk_select_check')}
               </p>
               <div className="w-full max-w-[500px] flex flex-col gap-[16px]">
@@ -231,14 +251,14 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
       case 'phone':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[400px] text-center">
                 {t('kiosk_phone_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px]">
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[400px] text-center">
                 {t('kiosk_phone_desc')}
               </p>
 
-              <div className="relative mb-[8px]">
+              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
                     className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[4px] text-[20px] font-medium text-black"
@@ -286,13 +306,61 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
             </>
         );
 
+      case 'select':
+        return (
+            <>
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
+                {t('kiosk_select_user_title')}
+              </p>
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[500px] text-center">
+                {t('kiosk_select_user_desc')}
+              </p>
+
+              <div className="w-full max-w-[500px] flex flex-col gap-[12px] overflow-y-auto max-h-[400px]">
+                {searchResults.map((user) => (
+                    <button
+                        key={user.id}
+                        onClick={() => selectUser(user)}
+                        className="w-full bg-gray-50 rounded-[16px] p-[20px] flex items-center gap-[16px] hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                    >
+                      <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+                        {user.profileImageUrl ? (
+                            <img src={user.profileImageUrl} alt="" className="w-full h-full object-cover"/>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-[24px]">
+                              👤
+                            </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-start gap-[4px]">
+                        <p className="text-black text-[20px] font-bold">{user.name || user.nickName || '-'}</p>
+                        {user.phone && <p className="text-gray-500 text-[16px]">{formatPhoneDisplay(user.phone)}</p>}
+                      </div>
+                    </button>
+                ))}
+              </div>
+
+              <button
+                  onClick={() => {
+                    setSearchResults([]);
+                    setPhone('');
+                    setError(null);
+                    setStep('phone');
+                  }}
+                  className="w-full max-w-[500px] h-[64px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors mt-[16px]"
+              >
+                {t('kiosk_not_me')}
+              </button>
+            </>
+        );
+
       case 'confirm':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
                 {t('kiosk_confirm_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[40px]">
+              <p className="text-gray-400 text-[20px] mb-[40px] w-full max-w-[500px] text-center">
                 {t('kiosk_confirm_desc')}
               </p>
 
