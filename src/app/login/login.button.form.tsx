@@ -22,7 +22,7 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
     recentLogin: string,
   }
 }) => {
-  const loginEmailQuery = returnUrl ? `?returnUrl=${returnUrl}` : '';
+  const loginEmailQuery = returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : '';
   const [recentMethod, setRecentMethod] = useState<LoginMethod | null>(null);
 
   useEffect(() => {
