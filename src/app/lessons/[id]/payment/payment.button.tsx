@@ -197,6 +197,7 @@ export default function PaymentButton({
           totalAmount: paymentInfo.price,
           currency: 'CURRENCY_KRW',
           customer: {
+            id: user.id,
             fullName: paymentInfo.userName ?? user.nickName ?? paymentInfo.userId,
           } as any,
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
