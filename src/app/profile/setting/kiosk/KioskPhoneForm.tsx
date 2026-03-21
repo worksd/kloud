@@ -3,16 +3,17 @@
 import React, {useState, useEffect} from 'react';
 import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
 import {
-  searchUserByPhoneAction,
+  searchUserAction,
   registerKioskUserAction
 } from "@/app/profile/setting/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
+import {GetUserResponse} from "@/app/endpoint/user.endpoint";
 import {KioskNameKeyboard} from "@/app/profile/setting/kiosk/KioskNameKeyboard";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 import {COUNTRIES} from "@/app/certification/COUNTRIES";
 
-type Step = 'phone' | 'confirm' | 'name';
+type Step = 'phone' | 'select' | 'confirm' | 'name';
 
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
 
@@ -59,6 +60,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<GetUserResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(180);
@@ -111,23 +113,32 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
     setLoading(true);
     setError(null);
     try {
-      const result = await searchUserByPhoneAction(phone, countryCode);
+      const result = await searchUserAction(phone);
       if (isGuinnessErrorCase(result)) {
         setStep('name');
+      } else if (result.users.length === 0) {
+        setStep('name');
+      } else if (result.users.length === 1) {
+        selectUser(result.users[0]);
       } else {
-        setUserId(result.id);
-        setUserName(result.name || null);
-        setUserNickName(result.nickName || null);
-        setUserEmail(result.email || null);
-        setUserPhone(result.phone || null);
-        setUserProfileImageUrl(result.profileImageUrl || null);
-        setStep('confirm');
+        setSearchResults(result.users);
+        setStep('select');
       }
     } catch {
       setError(t('kiosk_search_failed'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const selectUser = (user: GetUserResponse) => {
+    setUserId(user.id);
+    setUserName(user.name || null);
+    setUserNickName(user.nickName || null);
+    setUserEmail(user.email || null);
+    setUserPhone(user.phone || null);
+    setUserProfileImageUrl(user.profileImageUrl || null);
+    setStep('confirm');
   };
 
   const handleNameSubmit = async () => {
@@ -214,6 +225,54 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                   className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
               >
                 {loading ? t('kiosk_checking') : t('kiosk_confirm')}
+              </button>
+            </>
+        );
+
+      case 'select':
+        return (
+            <>
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
+                {t('kiosk_select_user_title')}
+              </p>
+              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[500px] text-center">
+                {t('kiosk_select_user_desc')}
+              </p>
+
+              <div className="w-full max-w-[500px] flex flex-col gap-[12px] overflow-y-auto max-h-[400px]">
+                {searchResults.map((user) => (
+                    <button
+                        key={user.id}
+                        onClick={() => selectUser(user)}
+                        className="w-full bg-gray-50 rounded-[16px] p-[20px] flex items-center gap-[16px] hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                    >
+                      <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+                        {user.profileImageUrl ? (
+                            <img src={user.profileImageUrl} alt="" className="w-full h-full object-cover"/>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-[24px]">
+                              👤
+                            </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-start gap-[4px]">
+                        <p className="text-black text-[20px] font-bold">{user.name || user.nickName || '-'}</p>
+                        {user.phone && <p className="text-gray-500 text-[16px]">{formatPhoneDisplay(user.phone)}</p>}
+                      </div>
+                    </button>
+                ))}
+              </div>
+
+              <button
+                  onClick={() => {
+                    setSearchResults([]);
+                    setPhone('');
+                    setError(null);
+                    setStep('phone');
+                  }}
+                  className="w-full max-w-[500px] h-[64px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors mt-[16px]"
+              >
+                {t('kiosk_not_me')}
               </button>
             </>
         );
@@ -327,6 +386,8 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
           <button onClick={() => {
                     if (step === 'phone') {
                       onBack();
+                    } else if (step === 'confirm' && searchResults.length > 1) {
+                      setStep('select');
                     } else {
                       setPhone('');
                       setError(null);

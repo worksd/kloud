@@ -2478,6 +2478,8 @@ export const StringResource = {
   kiosk_phone_error: { ko: '휴대폰 번호를 정확히 입력해주세요', en: 'Please enter a valid phone number', jp: '正しい電話番号を入力してください', zh: '请正确输入手机号码' },
   kiosk_search_failed: { ko: '검색에 실패했습니다. 다시 시도해주세요.', en: 'Search failed. Please try again.', jp: '検索に失敗しました。', zh: '搜索失败，请重试。' },
   kiosk_checking: { ko: '확인 중...', en: 'Checking...', jp: '確認中...', zh: '确认中...' },
+  kiosk_select_user_title: { ko: '수강생을 선택해주세요', en: 'Select a student', jp: '受講生を選択してください', zh: '请选择学员' },
+  kiosk_select_user_desc: { ko: '검색 결과에서 본인을 선택해주세요', en: 'Please select yourself from the results', jp: '検索結果からご自身を選択してください', zh: '请从搜索结果中选择您自己' },
   kiosk_confirm_title: { ko: '본인이 맞으신가요?', en: 'Is this you?', jp: 'ご本人ですか？', zh: '是您本人吗？' },
   kiosk_confirm_desc: { ko: '아래 정보를 확인해주세요', en: 'Please confirm your information', jp: '以下の情報をご確認ください', zh: '请确认以下信息' },
   kiosk_not_me: { ko: '본인이 아닙니다', en: 'Not me', jp: '本人ではありません', zh: '不是本人' },

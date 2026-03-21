@@ -8,6 +8,10 @@ export const searchUserByPhoneAction = async (phone: string, countryCode: string
   return await api.user.searchByPhone({ phone, countryCode });
 };
 
+export const searchUserAction = async (query: string) => {
+  return await api.user.search({ query });
+};
+
 export const registerKioskUserAction = async (phone: string, countryCode: string, name: string) => {
   // 1. phone-login (isAdmin: true → 신규 유저 자동 생성)
   const loginResult = await api.auth.checkPhoneVerification({

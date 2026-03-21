@@ -147,3 +147,17 @@ export const SearchUserByPhone: Endpoint<SearchUserByPhoneParameter, GetUserResp
   path: '/users/search',
   queryParams: ['phone', 'countryCode']
 }
+
+export type SearchUserParameter = {
+  query: string;
+}
+
+export type UserListResponse = {
+  users: GetUserResponse[];
+}
+
+export const SearchUser: Endpoint<SearchUserParameter, UserListResponse> = {
+  method: 'get',
+  path: '/users/search',
+  queryParams: ['query']
+}

@@ -24,6 +24,7 @@ export class ApiClient extends EndpointClient {
     checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
     connectParent: this.endpointBuilder(API.User.CreateParentConnection),
     searchByPhone: this.endpointBuilder(API.User.SearchUserByPhone),
+    search: this.endpointBuilder(API.User.SearchUser),
   }
 
   readonly lesson = {

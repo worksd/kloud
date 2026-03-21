@@ -1,6 +1,17 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+
+export type SimplePaymentRecordResponse = {
+  id: number
+  paymentId: string
+  status: string
+  amount: number
+  methodType?: PaymentMethodType
+  productName?: string
+  createdAt?: string
+}
 
 
 export type GetPassPlanListRequest = {
@@ -37,12 +48,16 @@ export type GetPassResponse = {
   id: number
   price: number
   paymentId: string
-  startDate?: string,
-  endDate: string,
-  status?: PassStatus,
-  passPlan?: GetPassPlanResponse
+  startDate: string
+  endDate: string
+  status: PassStatus
+  statusLabel: string
+  passPlan: GetPassPlanResponse
+  paymentRecord?: SimplePaymentRecordResponse
   tickets?: TicketResponse[]
   remainingCount?: number
+  usable: boolean
+  reason?: string
 }
 
 export type GetPassesResponse = {
@@ -62,7 +77,7 @@ export type UsePassRequest = {
 }
 
 export type PassOrder = 'upcoming' | 'newest'
-export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending' | 'Waiting'
+export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending' | 'Waiting' | 'Cancelled' | 'CancelPending'
 
 
 export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse> = {
