@@ -78,7 +78,7 @@ export const KloudScreen = {
 
 
 export const isAuthScreen = (endpoint: string) => {
-  return endpoint.includes('/payment');
+  return endpoint.includes('/payment') && !endpoint.startsWith('/login');
 }
 
 export const NO_DATA_ID = -1
