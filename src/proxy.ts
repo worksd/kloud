@@ -57,7 +57,8 @@ export async function proxy(request: NextRequest) {
       isAuthScreen(url.pathname) &&
       !cookie.get(accessTokenKey)?.value
   ) {
-    const loginUrl = new URL(KloudScreen.Login(url.pathname), request.url);
+    const returnUrl = `${url.pathname}${url.search}`;
+    const loginUrl = new URL(KloudScreen.Login(`?returnUrl=${encodeURIComponent(returnUrl)}`), request.url);
     return NextResponse.redirect(loginUrl);
   }
 
