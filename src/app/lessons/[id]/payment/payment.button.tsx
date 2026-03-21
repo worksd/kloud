@@ -157,7 +157,7 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit') {
+    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'ali_pay' || method === 'wechat_pay') {
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
@@ -198,10 +198,6 @@ export default function PaymentButton({
           currency: 'CURRENCY_KRW',
           customer: {
             fullName: paymentInfo.userName ?? user.nickName ?? paymentInfo.userId,
-            phoneNumber: paymentInfo.userPhone,
-            birthYear: paymentInfo.userBirth ? Number(paymentInfo.userBirth.slice(0, 2)) <= 26 ? 2000 + Number(paymentInfo.userBirth.slice(0, 2)) : 1900 + Number(paymentInfo.userBirth.slice(0, 2)) : undefined,
-            birthMonth: paymentInfo.userBirth ? Number(paymentInfo.userBirth.slice(2, 4)) : undefined,
-            birthday: paymentInfo.userBirth ? Number(paymentInfo.userBirth.slice(4, 6)) : undefined,
           } as any,
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
           customData: {
