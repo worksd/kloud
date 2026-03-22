@@ -9,3 +9,8 @@ export const saveStudioIdAction = async ({studioId}: { studioId?: number }) => {
     sameSite: 'lax',
   })
 };
+
+export const clearStudioIdAction = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete(studioKey);
+};

@@ -19,6 +19,7 @@ import { sendVerificationSMS } from "@/app/certification/send.message.action";
 import { phoneLoginAction } from "@/app/login/phone/phoneLoginAction";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createStudentAction } from "@/app/onboarding/action/create.student.action";
+import { saveStudioIdAction, clearStudioIdAction } from "@/app/studios/save.studio.id.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import CircleCloseIcon from "@/../public/assets/ic_circle_check.svg"
 import { Locale } from "@/shared/StringResource";
@@ -157,6 +158,7 @@ export const OnboardingForm = ({
         setIsLoading(true);
         try {
           await createStudentAction({ studioId: selectedStudioId });
+          await saveStudioIdAction({ studioId: selectedStudioId });
         } finally {
           setIsLoading(false);
         }
@@ -375,11 +377,12 @@ export const OnboardingForm = ({
           {(step === 'studio' || step === 'phone') && (
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 if (step === 'phone') {
                   setStep('studio');
                 } else {
                   setSelectedStudioId(null);
+                  await clearStudioIdAction();
                   setStep('agreement');
                 }
               }}
