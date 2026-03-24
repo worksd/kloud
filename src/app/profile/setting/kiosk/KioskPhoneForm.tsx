@@ -22,10 +22,7 @@ const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
       {KEYPAD_KEYS.map((key, i) => (
           <button
               key={i}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                onPress(key);
-              }}
+              onPointerDown={() => onPress(key)}
               className="h-[64px] rounded-[12px] bg-gray-100 text-[24px] font-medium text-black flex items-center justify-center active:bg-gray-200 transition-colors select-none"
           >
             {key === 'delete' ? (
