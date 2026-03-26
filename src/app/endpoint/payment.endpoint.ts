@@ -18,6 +18,14 @@ export type DiscountResponse = {
   amount: number;
   type: string;
   itemId: number;
+  description?: string;
+}
+
+export type CouponResponse = {
+  id: number;
+  name: string;
+  discountAmount: number;
+  type: string;
 }
 
 export type GetPaymentResponse = {
@@ -43,6 +51,7 @@ export type GetPaymentResponse = {
   refundAccountBank?: string
   refundAccountDepositor?: string
   discounts?: DiscountResponse[];
+  coupons?: CouponResponse[];
 }
 
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {

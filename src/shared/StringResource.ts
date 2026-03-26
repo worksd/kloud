@@ -840,10 +840,22 @@ export const StringResource = {
     zh: "信用卡"
   },
   payment_method: {
-    ko: "결제 수단",
+    ko: "결제수단",
     en: "Payment Method",
     jp: "決済方法",
     zh: "支付方式"
+  },
+  payment_method_select: {
+    ko: "결제수단",
+    en: "Payment Method",
+    jp: "決済方法",
+    zh: "支付方式"
+  },
+  free_payment: {
+    ko: "무료결제",
+    en: "Free",
+    jp: "無料決済",
+    zh: "免费支付"
   },
   payment_information: {
     ko: "결제 정보",
@@ -1626,22 +1638,22 @@ export const StringResource = {
     zh: '账户持有人',
   },
   input_refund_account_number: {
-    ko: '환불 받으실 계좌 번호를 입력해주세요(-를 제외하고 입력)',
-    en: 'Please enter your refund refund number',
-    jp: '返金用の口座番号を入力してください',
-    zh: '请输入用于退款的账户号码',
+    ko: "계좌번호",
+    en: "Account number",
+    jp: "口座番号",
+    zh: "账户号码",
   },
   input_refund_account_bank: {
-    ko: '환불 받으실 은행을 입력해주세요',
-    en: 'Please enter your bank name for the refund',
-    jp: '返金用の銀行名を入力してください',
-    zh: '请输入用于退款的银行名称',
+    ko: "은행 선택",
+    en: "Select bank",
+    jp: "銀行を選択",
+    zh: "选择银行",
   },
   input_refund_account_depositor: {
-    ko: '환불 받으실 계좌의 예금주를 입력해주세요',
-    en: 'Please enter the refund holder’s name for the refund',
-    jp: '返金用の口座名義人を入力してください',
-    zh: '请输入退款账户的持有人姓名',
+    ko: "예금주",
+    en: "Account holder",
+    jp: "口座名義人",
+    zh: "账户持有人",
   },
   edit_refund_account: {
     ko: '계좌 관리',
@@ -1685,6 +1697,12 @@ export const StringResource = {
     jp: '返金口座',
     zh: '退款账户',
   },
+  refund_account_desc: {
+    ko: '수업 취소 등의 사유로 환불이 필요할 때 사용됩니다.',
+    en: 'Used when a refund is needed, such as class cancellation.',
+    jp: 'レッスンのキャンセルなどで返金が必要な場合に使用されます。',
+    zh: '当需要退款时使用，例如课程取消。',
+  },
   active: {
     ko: '진행 중',
     en: 'Active',
@@ -1726,6 +1744,24 @@ export const StringResource = {
     en: 'No passes available',
     jp: '利用可能なパスがありません',
     zh: '没有可用的通行证',
+  },
+  discount_pass_benefit_prefix: {
+    ko: '모든 수업에서',
+    en: 'Get',
+    jp: '全てのレッスンで',
+    zh: '所有课程享受',
+  },
+  discount_pass_benefit_suffix: {
+    ko: '할인됩니다',
+    en: 'off on all lessons',
+    jp: '割引されます',
+    zh: '折扣',
+  },
+  discount_pass_disabled_by_coupon: {
+    ko: '쿠폰 적용 시 패스권 할인은 적용되지 않습니다',
+    en: 'Pass discount is not applied when a coupon is used',
+    jp: 'クーポン適用時はパス割引は適用されません',
+    zh: '使用优惠券时不适用通行证折扣',
   },
   live_popular_lessons: {
     ko: '실시간 인기 클래스',
@@ -1884,7 +1920,7 @@ export const StringResource = {
     zh: '此二维码仅用于入场。\n截屏或分享可能会导致无法入场。',
   },
   billing_card_not_found: {
-    ko: '내 결제수단을 선택해주세요',
+    ko: '간편카드결제를 선택해주세요',
     en: 'Please select your billing method',
     jp: 'お支払い方法を選択してください',
     zh: '请选择您的支付方式',
@@ -2399,6 +2435,84 @@ export const StringResource = {
     jp: 'しばらくしてからもう一度お試しください。',
     zh: '请稍后再试。'
   },
+  use_pass_confirm_lesson: {
+    ko: '구매 수강권',
+    en: 'Lesson ticket',
+    jp: '購入レッスン',
+    zh: '购买课程'
+  },
+  use_pass_confirm_pass: {
+    ko: '패스권',
+    en: 'Pass',
+    jp: 'パス券',
+    zh: '通票'
+  },
+  use_pass_confirm_question: {
+    ko: '위의 수강권을 구매하시겠습니까?',
+    en: 'Would you like to purchase the above ticket?',
+    jp: '上記のレッスンチケットを購入しますか？',
+    zh: '是否购买以上课程票？'
+  },
+  not_reserved_lesson: {
+    ko: '예약 중인 수업이 아닙니다.',
+    en: 'This is not a reserved class.',
+    jp: '予約中のレッスンではありません。',
+    zh: '不是正在预约的课程。'
+  },
+  pass_plan_not_found: {
+    ko: '패스권 정보를 찾을 수 없습니다.',
+    en: 'Pass plan information not found.',
+    jp: 'パス券の情報が見つかりません。',
+    zh: '找不到通票信息。'
+  },
+  pass_plan_unlimited_description: {
+    ko: '모든 클래스 무제한 이용 가능',
+    en: 'Unlimited access to all classes',
+    jp: '全クラス無制限利用可能',
+    zh: '所有课程无限使用'
+  },
+  pass_plan_count_description: {
+    ko: '클래스 {{count}}회 이용 가능',
+    en: '{{count}} class uses available',
+    jp: 'クラス{{count}}回利用可能',
+    zh: '可使用{{count}}次课程'
+  },
+  billing_key_payment_confirm_title: {
+    ko: '정기결제하시겠어요?',
+    en: 'Subscribe to recurring payment?',
+    jp: '定期決済しますか？',
+    zh: '确认订阅定期付款？'
+  },
+  billing_key_payment_confirm_description: {
+    ko: '해당 수업은 매월 자동으로 결제되는 정기결제 수업입니다.',
+    en: 'This class is a recurring payment class that is automatically charged every month.',
+    jp: 'このレッスンは毎月自動的に決済される定期決済レッスンです。',
+    zh: '该课程是每月自动扣费的定期付款课程。'
+  },
+  billing_key_payment_lesson_name: {
+    ko: '수업명',
+    en: 'Class',
+    jp: 'レッスン名',
+    zh: '课程名'
+  },
+  billing_key_payment_amount: {
+    ko: '결제 금액',
+    en: 'Amount',
+    jp: '決済金額',
+    zh: '付款金额'
+  },
+  billing_key_payment_method: {
+    ko: '결제 수단',
+    en: 'Payment method',
+    jp: '決済手段',
+    zh: '付款方式'
+  },
+  billing_key_payment_confirm_question: {
+    ko: '결제를 진행하시겠습니까?',
+    en: 'Would you like to proceed with the payment?',
+    jp: '決済を進めますか？',
+    zh: '是否继续付款？'
+  },
   my_lesson_group_tickets: {
     ko: '정기 수업',
     en: 'Lesson Group Tickets',
@@ -2526,6 +2640,13 @@ export const StringResource = {
   payment_notice: { ko: '결제 유의사항', en: 'Payment Notice', jp: '決済に関するご注意', zh: '支付注意事项' },
   apple_pay_domestic_only: { ko: 'Apple Pay는 Master/Visa 등 해외카드 결제가 불가합니다.', en: 'Apple Pay does not support international cards such as Master/Visa.', jp: 'Apple PayはMaster/Visaなどの海外カードはご利用いただけません。', zh: 'Apple Pay不支持Master/Visa等海外银行卡。' },
   birth_from_profile: { ko: '회원 정보에 등록된 생년월일입니다', en: 'Date of birth from your profile', jp: 'プロフィールに登録された生年月日です', zh: '来自您个人资料中的出生日期' },
+  add_new_card: { ko: '새 카드 추가', en: 'Add New Card', jp: '新しいカードを追加', zh: '添加新卡' },
+  easy_payment: { ko: '간편결제', en: 'Easy Pay', jp: '簡単決済', zh: '快捷支付' },
+  discount_info: { ko: '할인', en: 'Discount', jp: '割引', zh: '折扣' },
+  discount_section: { ko: '할인', en: 'Discount', jp: '割引', zh: '折扣' },
+  discount_pass: { ko: '패스권', en: 'Pass', jp: 'パス', zh: '通行证' },
+  discount_coupon: { ko: '쿠폰', en: 'Coupon', jp: 'クーポン', zh: '优惠券' },
+  no_available_coupon: { ko: '사용 가능한 쿠폰이 없습니다', en: 'No coupons available', jp: '利用可能なクーポンがありません', zh: '没有可用的优惠券' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

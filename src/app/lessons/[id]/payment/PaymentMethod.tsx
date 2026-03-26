@@ -1,18 +1,24 @@
 'use client'
-import React from "react";
+import React, { useState } from "react";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassList";
 import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/BillingCardForm";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { BankOrCardIcon } from "@/app/components/Bank";
-import { kloudNav } from "@/app/lib/kloudNav";
-import { PaymentMethodAddButton } from "@/app/components/popup/PaymentMethodBottomSheet";
+import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
+import { BankSelectBottomSheet } from "@/app/components/BankSheet";
+import { updateUserAction } from "@/app/onboarding/update.user.action";
+import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
+import { InlineCardForm } from "@/app/lessons/[id]/payment/InlineCardForm";
 import { Locale } from "@/shared/StringResource";
 import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
 import { getLocaleString } from "@/app/components/locale";
 import { formatAccountNumber } from "@/utils/format.account";
+import AliPayIcon from "@/../public/assets/ic_ali_pay.svg";
+import WechatPayIcon from "@/../public/assets/ic_wechat_pay.svg";
+import NaverPayIcon from "@/../public/assets/ic_naver_pay.svg";
+import KakaoPayIcon from "@/../public/assets/ic_kakao_pay.svg";
+import TossPayIcon from "@/../public/assets/ic_toss_payments.svg";
 
 type RefundAccount = {
   bankName?: string;
@@ -20,61 +26,79 @@ type RefundAccount = {
   holderName?: string;
 };
 
-const PaymentMethodIcon = ({type}: { type: PaymentMethodType }) => {
+const EASY_PAY_TYPES: PaymentMethodType[] = ['NAVER_PAY', 'KAKAO_PAY', 'TOSS_PAY', 'ALIPAY', 'WECHAT_PAY'];
+
+const isEasyPayType = (type: PaymentMethodType) => EASY_PAY_TYPES.includes(type);
+
+const EasyPayLogo = ({type, size = 22}: { type: PaymentMethodType, size?: number }) => {
+  const wideSize = Math.round(size * 0.85);
+  switch (type) {
+    case 'NAVER_PAY':
+      return <NaverPayIcon style={{height: wideSize, width: Math.round(wideSize * 277 / 105)}} />;
+    case 'KAKAO_PAY':
+      return <KakaoPayIcon style={{height: wideSize, width: Math.round(wideSize * 192.9 / 45)}} />;
+    case 'ALIPAY':
+      return <AliPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
+    case 'WECHAT_PAY':
+      return <WechatPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
+    case 'TOSS_PAY':
+      return <TossPayIcon style={{height: size * 0.55, width: Math.round(size * 0.55 * 5500 / 897.75)}} />;
+    default:
+      return null;
+  }
+};
+
+const PaymentMethodIcon = ({type, selected}: { type: PaymentMethodType, selected: boolean }) => {
+  const color = selected ? '#111' : '#BDBDBD';
   switch (type) {
     case 'credit':
+      // 카드 + NFC 무선 결제 표시
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M2 8H18" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M5 12H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1.5" y="5.5" width="15" height="11" rx="2" stroke={color} strokeWidth="1.4"/>
+          <path d="M1.5 9H16.5" stroke={color} strokeWidth="1.4"/>
+          <path d="M4.5 13H8" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M17 10.5C18 9.8 18.7 8.7 18.7 7.5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
+          <path d="M18.5 12C19.8 11 20.7 9.4 20.7 7.5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
         </svg>
       );
     case 'account_transfer':
+      // 은행 건물
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M7 4V2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M13 4V2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <circle cx="10" cy="11" r="2" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M10 9V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 3L2.5 8.5H19.5L11 3Z" stroke={color} strokeWidth="1.4" strokeLinejoin="round"/>
+          <path d="M4.5 8.5V16" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M9 8.5V16" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M13 8.5V16" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M17.5 8.5V16" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M2.5 16H19.5" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M2 18.5H20" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
         </svg>
       );
     case 'pass':
+      // 티켓/패스권 (양쪽 반원 노치)
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-          <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M2 7.5H4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M2 12.5H4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M16 7.5H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M16 12.5H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 5H18C18.8 5 19.5 5.7 19.5 6.5V9.2C18.4 9.5 17.5 10.4 17.5 11.5C17.5 12.6 18.4 13.5 19.5 13.8V15.5C19.5 16.3 18.8 17 18 17H4C3.2 17 2.5 16.3 2.5 15.5V13.8C3.6 13.5 4.5 12.6 4.5 11.5C4.5 10.4 3.6 9.5 2.5 9.2V6.5C2.5 5.7 3.2 5 4 5Z" stroke={color} strokeWidth="1.4"/>
+          <path d="M8.5 8L13.5 15" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
+          <circle cx="9" cy="14" r="1.2" stroke={color} strokeWidth="1.2"/>
+          <circle cx="13" cy="8.5" r="1.2" stroke={color} strokeWidth="1.2"/>
         </svg>
       );
     case 'billing':
+      // 카드 + 별(즐겨찾기) 표시
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M2 8H18" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M5 12H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M12 12H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1.5" y="5.5" width="15" height="11" rx="2" stroke={color} strokeWidth="1.4"/>
+          <path d="M1.5 9H16.5" stroke={color} strokeWidth="1.4"/>
+          <path d="M4.5 13H8" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M18.5 4.5L19.1 6.1H20.8L19.4 7.1L19.9 8.7L18.5 7.7L17.1 8.7L17.6 7.1L16.2 6.1H17.9L18.5 4.5Z" fill={color}/>
         </svg>
       );
     default:
       return null;
   }
 };
-
-const RadioIndicator = ({selected}: { selected: boolean }) => (
-  <div className={`w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200
-    ${selected ? 'border-black bg-black' : 'border-[#D1D5DB]'}`}>
-    {selected && (
-      <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    )}
-  </div>
-);
 
 export const PaymentMethodComponent = ({
                                          locale,
@@ -91,6 +115,7 @@ export const PaymentMethodComponent = ({
                                          depositor,
                                          setDepositorAction,
                                          refundAccount,
+                                         onNewCardInfoChange,
                                        }: {
   locale: Locale,
   paymentOptions: GetPaymentMethodResponse[],
@@ -106,11 +131,34 @@ export const PaymentMethodComponent = ({
   depositor: string,
   setDepositorAction: (value: string) => void,
   refundAccount?: RefundAccount | null,
+  onNewCardInfoChange?: (form: CreateBillingRequest | null) => void,
 }) => {
 
+  const [showInlineCardForm, setShowInlineCardForm] = useState(false);
 
-  const goRefundAccount = () => {
-    kloudNav.push(KloudScreen.RefundAccountSetting);
+  // 환불계좌 inline 편집
+  const [editingRefund, setEditingRefund] = useState(!refundAccount?.accountNumber);
+  const [refundBank, setRefundBank] = useState(refundAccount?.bankName ?? '');
+  const [refundNumber, setRefundNumber] = useState(refundAccount?.accountNumber ?? '');
+  const [refundHolder, setRefundHolder] = useState(refundAccount?.holderName ?? '');
+  const [bankSheetOpen, setBankSheetOpen] = useState(false);
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
+    () => pickBankKey(refundAccount?.bankName ?? '')
+  );
+  const [savingRefund, setSavingRefund] = useState(false);
+
+  const handleSaveRefund = async () => {
+    if (!refundBank || !refundNumber || !refundHolder) return;
+    setSavingRefund(true);
+    const res = await updateUserAction({
+      refundAccountBank: refundBank,
+      refundAccountNumber: refundNumber.replace(/-/g, ''),
+      refundDepositor: refundHolder,
+    });
+    setSavingRefund(false);
+    if (res.success) {
+      setEditingRefund(false);
+    }
   };
 
   const handleOnSuccessAddBillingCard = async () => {
@@ -120,41 +168,52 @@ export const PaymentMethodComponent = ({
     }
   }
 
+  const regularOptions = paymentOptions.filter(o => !isEasyPayType(o.type));
+  const easyPayOrder: PaymentMethodType[] = ['NAVER_PAY', 'KAKAO_PAY', 'TOSS_PAY', 'ALIPAY', 'WECHAT_PAY'];
+  const easyPayOptions = paymentOptions
+    .filter(o => isEasyPayType(o.type))
+    .sort((a, b) => easyPayOrder.indexOf(a.type) - easyPayOrder.indexOf(b.type));
+
   if (paymentOptions.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-y-3 px-6">
+    <div className="flex flex-col gap-y-2 px-6 mt-2">
       <div className="text-[15px] font-bold text-black">
         {getLocaleString({locale, key: 'payment_method'})}
       </div>
 
-      {paymentOptions.length > 0 ? (
-        <div className="flex flex-col gap-y-2">
-          {paymentOptions.map((option) => {
-            const isSelected = selectedMethod === option.type;
-            return (
-              <div key={option.id} className="flex flex-col">
-                <div
-                  onClick={() => selectPaymentMethodAction(option.type)}
-                  className={`w-full flex items-center gap-3 px-4 py-[14px] rounded-xl border cursor-pointer
-                    transition-all duration-200 select-none active:scale-[0.98]
-                    ${isSelected
-                    ? 'border-black bg-[#F8F8F8] shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
-                    : 'border-[#E8E8E8] bg-white hover:border-[#CDCDCD]'}`}
-                >
-                  <div className={`transition-colors duration-200 ${isSelected ? 'text-black' : 'text-[#ACACAC]'}`}>
-                    <PaymentMethodIcon type={option.type}/>
-                  </div>
-                  <div className={`flex-grow text-[14px] font-semibold transition-colors duration-200
-                    ${isSelected ? 'text-black' : 'text-[#6B6B6B]'}`}>
-                    {option.name}
-                  </div>
-                  <RadioIndicator selected={isSelected}/>
+      <div className="rounded-2xl border border-[#EEEFF0] overflow-hidden">
+        {/* 일반 결제수단 리스트 */}
+        {regularOptions.map((option, index) => {
+          const isSelected = selectedMethod === option.type;
+          const isLast = index === regularOptions.length - 1 && easyPayOptions.length === 0;
+          return (
+            <div key={option.id} className="flex flex-col">
+              <div
+                onClick={() => selectPaymentMethodAction(option.type)}
+                className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none
+                  ${isSelected ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC]'}
+                  ${!isLast && !isSelected ? 'border-b border-[#F0F0F0]' : ''}`}
+              >
+                <PaymentMethodIcon type={option.type} selected={isSelected} />
+                <div className={`flex-grow text-[14px] transition-colors duration-150
+                  ${isSelected ? 'text-black font-bold' : 'text-[#888] font-medium'}`}>
+                  {option.name}
                 </div>
+                <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-150
+                  ${isSelected ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
+                  {isSelected && (
+                    <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                      <path d="M1 3.5L3.2 5.7L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+              </div>
 
-                {/* PASS 목록 */}
-                {isSelected && option.type === 'pass' && (
-                  passes && passes.length > 0 && selectPass && selectedPass ? (
+              {/* 확장 영역 */}
+              {isSelected && option.type === 'pass' && (
+                <div className="bg-[#F6F7F8] px-5 pb-4">
+                  {passes && passes.length > 0 && selectPass && selectedPass ? (
                     <SelectablePassList
                       passItems={passes}
                       onSelect={selectPass}
@@ -162,141 +221,241 @@ export const PaymentMethodComponent = ({
                       locale={locale}
                     />
                   ) : (
-                    <div className="mt-3 py-4 text-center text-[13px] text-[#999] bg-[#F8F8F8] rounded-xl">
+                    <div className="py-4 text-center text-[13px] text-[#999] bg-white rounded-xl mt-2">
                       {getLocaleString({locale, key: 'no_available_pass'})}
                     </div>
-                  )
-                )}
+                  )}
+                </div>
+              )}
 
-                {/* 계좌이체 섹션 */}
-                {isSelected && option.type === 'account_transfer' && (
-                  <div className="flex flex-col w-full space-y-4 text-black mt-3">
-                    {/* 예금주 입력 */}
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-center gap-1">
-                        <div className="text-black text-[14px] text-left font-bold">{getLocaleString({
-                          locale,
-                          key: 'depositor_name'
-                        })}</div>
-                        <div className="text-[#E55B5B] text-[13px] font-medium">{getLocaleString({
-                          locale,
-                          key: 'required'
-                        })}</div>
-                      </div>
+              {isSelected && option.type === 'account_transfer' && (
+                <div className="bg-[#F6F7F8] px-5 pb-4">
+                  {/* 입금자명 */}
+                  <div className="mt-3 rounded-xl border border-[#E8E8E8] bg-white overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+                      <span className="text-[13px] font-bold text-black">
+                        {getLocaleString({locale, key: 'depositor_name'})}
+                      </span>
+                      <span className="text-[11px] font-medium text-[#E55B5B]">
+                        {getLocaleString({locale, key: 'required'})}
+                      </span>
+                    </div>
+                    <div className="px-4 pb-3">
                       <input
                         type="text"
                         placeholder={getLocaleString({locale, key: 'input_name_message'})}
-                        className="border border-[#E8E8E8] rounded-xl px-4 py-3.5 text-[14px] w-full
-                                   focus:border-black focus:text-black focus:outline-none transition-colors"
+                        className="border border-[#EEEFF0] rounded-lg px-3.5 py-2.5 text-[14px] text-black w-full bg-[#FAFBFC]
+                                   focus:border-black focus:bg-white focus:outline-none transition-colors"
                         value={depositor}
                         onChange={(e) => setDepositorAction(e.target.value)}
                         onFocus={(e) => {
-                          setTimeout(() => {
-                            e.target.scrollIntoView({behavior: 'smooth', block: 'center'});
-                          }, 300);
+                          setTimeout(() => e.target.scrollIntoView({behavior: 'smooth', block: 'center'}), 300);
                         }}
                       />
-                      <div className="flex items-start gap-1.5 mt-2 px-1">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0 mt-px">
-                          <circle cx="7" cy="7" r="6" stroke="#ACACAC" strokeWidth="1.2"/>
-                          <path d="M7 6V10" stroke="#ACACAC" strokeWidth="1.2" strokeLinecap="round"/>
-                          <circle cx="7" cy="4.5" r="0.7" fill="#ACACAC"/>
-                        </svg>
-                        <span className="text-[12px] text-[#999] leading-tight">
-                          {getLocaleString({locale, key: 'depositor_name_warning'})}
-                        </span>
-                      </div>
+                      <p className="text-[11px] text-[#ACACAC] mt-2 leading-snug">
+                        {getLocaleString({locale, key: 'depositor_name_warning'})}
+                      </p>
                     </div>
+                  </div>
 
-                    {/* 환불계좌 카드 */}
-                    {refundAccount?.accountNumber ? (
-                      <div className="rounded-xl border border-[#E8E8E8] bg-white">
-                        <div className="px-4 pt-3 pb-2.5 border-b border-[#F2F2F2] flex items-center justify-between">
-                          <span className="text-[13px] font-bold text-black">
-                            {getLocaleString({locale, key: 'refund_account'})}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={goRefundAccount}
-                            className="text-[12px] font-medium px-2.5 py-1 rounded-lg border border-[#E0E0E0] text-[#6B6B6B]
-                                       active:bg-gray-50 transition-colors"
-                          >
-                            {getLocaleString({locale, key: 'edit'})}
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-3 p-4">
-                          {refundAccount.bankName && (
-                            <BankOrCardIcon name={refundAccount.bankName} scale={100}/>
-                          )}
-                          <div className="flex-1">
-                            <div className="text-[14px] font-semibold text-black">
-                              {refundAccount.bankName}
-                              {refundAccount.holderName && (
-                                <span className="ml-1 text-[13px] text-[#888] font-normal">
-                                  ({refundAccount.holderName})
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-0.5 text-[13px] text-[#888] tracking-wide">
-                              {formatAccountNumber(refundAccount.accountNumber, refundAccount.bankName)}
-                            </div>
+                  {/* 환불계좌 */}
+                  <div className="mt-2 rounded-xl border border-[#E8E8E8] bg-white overflow-hidden">
+                    <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                      <span className="text-[13px] font-bold text-black">
+                        {getLocaleString({locale, key: 'refund_account'})}
+                      </span>
+                      {!editingRefund && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingRefund(true)}
+                          className="text-[12px] font-medium text-[#888] underline active:text-black transition-colors"
+                        >
+                          {getLocaleString({locale, key: 'edit'})}
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#ACACAC] px-4 pb-2 leading-snug">
+                      {getLocaleString({locale, key: 'refund_account_desc'})}
+                    </p>
+
+                    {editingRefund ? (
+                      <div className="px-4 pb-4 flex flex-col gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setBankSheetOpen(true)}
+                          className="w-full flex items-center justify-between rounded-lg border border-[#EEEFF0] px-3.5 py-2.5 bg-[#FAFBFC]"
+                        >
+                          <div className="flex items-center gap-2">
+                            {selectedBankCode && selectedBankCode !== 'other' ? (
+                              <BankOrCardIcon name={selectedBankCode} scale={50}/>
+                            ) : (
+                              <div className="w-5 h-5 rounded bg-[#EEEFF0]" />
+                            )}
+                            <span className={`text-[14px] ${refundBank ? 'text-black' : 'text-[#BDBDBD]'}`}>
+                              {refundBank || getLocaleString({locale, key: 'input_refund_account_bank'})}
+                            </span>
                           </div>
-                        </div>
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="#999" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+
+                        {selectedBankCode === 'other' && (
+                          <input
+                            type="text"
+                            placeholder={getLocaleString({locale, key: 'input_refund_account_bank'})}
+                            className="border border-[#EEEFF0] rounded-lg px-3.5 py-2.5 text-[14px] text-black w-full bg-[#FAFBFC]
+                                       focus:border-black focus:bg-white focus:outline-none transition-colors"
+                            value={refundBank === '기타' ? '' : refundBank}
+                            onChange={(e) => setRefundBank(e.target.value)}
+                            onFocus={(e) => {
+                              setTimeout(() => e.target.scrollIntoView({behavior: 'smooth', block: 'center'}), 300);
+                            }}
+                          />
+                        )}
+
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder={getLocaleString({locale, key: 'input_refund_account_number'})}
+                          className="border border-[#EEEFF0] rounded-lg px-3.5 py-2.5 text-[14px] text-black w-full bg-[#FAFBFC]
+                                     focus:border-black focus:bg-white focus:outline-none transition-colors"
+                          value={refundNumber}
+                          onChange={(e) => setRefundNumber(e.target.value)}
+                          onFocus={(e) => {
+                            setTimeout(() => e.target.scrollIntoView({behavior: 'smooth', block: 'center'}), 300);
+                          }}
+                        />
+
+                        <input
+                          type="text"
+                          placeholder={getLocaleString({locale, key: 'input_refund_account_depositor'})}
+                          className="border border-[#EEEFF0] rounded-lg px-3.5 py-2.5 text-[14px] text-black w-full bg-[#FAFBFC]
+                                     focus:border-black focus:bg-white focus:outline-none transition-colors"
+                          value={refundHolder}
+                          onChange={(e) => setRefundHolder(e.target.value)}
+                          onFocus={(e) => {
+                            setTimeout(() => e.target.scrollIntoView({behavior: 'smooth', block: 'center'}), 300);
+                          }}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={handleSaveRefund}
+                          disabled={!refundBank || !refundNumber || !refundHolder || savingRefund}
+                          className="w-full py-2.5 rounded-lg text-[13px] font-semibold transition-colors
+                                     disabled:bg-[#F0F0F0] disabled:text-[#BDBDBD]
+                                     bg-black text-white active:scale-[0.98]"
+                        >
+                          {savingRefund ? '...' : getLocaleString({locale, key: 'confirm'})}
+                        </button>
+
+                        <BankSelectBottomSheet
+                          open={bankSheetOpen}
+                          selected={selectedBankCode}
+                          onClose={() => setBankSheetOpen(false)}
+                          onSelect={(code, label) => {
+                            setSelectedBankCode(code);
+                            setRefundBank(label);
+                            setBankSheetOpen(false);
+                          }}
+                          title={getLocaleString({locale, key: 'refund_account_bank'})}
+                        />
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-[#FFE1C8] bg-[#FFF7F0] p-4">
-                        <div className="flex items-start gap-3">
-                          <div
-                            className="h-9 w-9 rounded-full bg-white/80 flex items-center justify-center border border-[#FFD7B4] flex-shrink-0">
-                            <span aria-hidden className="text-[14px] font-bold text-[#E8930C]">!</span>
+                      <div
+                        className="flex items-center gap-3 px-4 pb-3 cursor-pointer active:bg-[#F6F7F8] transition-colors rounded-b-xl"
+                        onClick={() => setEditingRefund(true)}
+                      >
+                        {refundBank && (
+                          <BankOrCardIcon name={refundBank} scale={100}/>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-semibold text-black truncate">
+                            {refundBank}
+                            {refundHolder && (
+                              <span className="ml-1 text-[12px] text-[#888] font-normal">({refundHolder})</span>
+                            )}
                           </div>
-                          <div className="flex-1">
-                            <div className="text-[13px] font-semibold text-[#6B3A00]">{getLocaleString({
-                              locale,
-                              key: 'no_registered_refund_title'
-                            })}</div>
-                            <div className="text-[12px] text-[#8C4A10] mt-1 leading-relaxed">{getLocaleString({
-                              locale,
-                              key: 'no_registered_refund_desc'
-                            })}</div>
-                            <button
-                              type="button"
-                              onClick={goRefundAccount}
-                              className="mt-3 inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-[13px] font-semibold
-                                         bg-black text-white active:scale-[0.98] transition-transform"
-                              aria-label="환불계좌 등록하러 가기"
-                            >
-                              {getLocaleString({locale, key: 'go_registered_refund_button_title'})}
-                            </button>
+                          <div className="text-[12px] text-[#999] tracking-wide">
+                            {formatAccountNumber(refundNumber, refundBank)}
                           </div>
                         </div>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
+                          <path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="#999" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </div>
                     )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* 빌링 카드 섹션 */}
-                {isSelected && option.type === 'billing' && selectBillingCard && (
+              {isSelected && option.type === 'billing' && selectBillingCard && (
+                <div className="bg-[#F6F7F8] px-5 pb-4">
                   <div className="flex flex-col">
                     <SelectableBillingList
                       billingCards={cards ?? []}
-                      selectedBillingKey={selectedBillingCard}
-                      onSelectAction={selectBillingCard}
+                      selectedBillingKey={showInlineCardForm ? undefined : selectedBillingCard}
+                      onSelectAction={(card) => {
+                        selectBillingCard(card);
+                        setShowInlineCardForm(false);
+                        onNewCardInfoChange?.(null);
+                      }}
                       locale={locale}
                     />
-                    <PaymentMethodAddButton locale={locale} onSuccessAction={() => handleOnSuccessAddBillingCard()}/>
+                    <button
+                      onClick={() => {
+                        setShowInlineCardForm(prev => !prev);
+                        onNewCardInfoChange?.(null);
+                      }}
+                      className="mt-2 w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-dashed border-[#D0D0D0] bg-white
+                                 text-[#888] text-[13px] font-medium active:bg-[#F5F5F5] transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 2V12M2 7H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                      {getLocaleString({locale, key: 'add_new_card'})}
+                    </button>
+                    {showInlineCardForm && (
+                      <InlineCardForm
+                        locale={locale}
+                        onCardInfoChange={(form) => onNewCardInfoChange?.(form)}
+                      />
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-[#888] font-medium text-center py-8">{getLocaleString({
-          locale,
-          key: 'no_available_payment_method'
-        })}</div>
-      )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* 간편결제 영역 */}
+        {easyPayOptions.length > 0 && (
+          <div className="border-t border-[#F0F0F0] px-4 py-3.5 bg-white">
+            <div className="text-[12px] font-bold text-[#999] mb-2.5">
+              {getLocaleString({locale, key: 'easy_payment'})}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {easyPayOptions.map((option) => {
+                const isSelected = selectedMethod === option.type;
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => selectPaymentMethodAction(option.type)}
+                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] transition-all duration-150 select-none active:scale-[0.97]
+                      ${isSelected
+                        ? 'border-black bg-[#F6F7F8]'
+                        : 'border-[#EEEFF0] bg-white hover:bg-[#FBFBFC]'}`}
+                  >
+                    <EasyPayLogo type={option.type} size={24} />
+                    <span className={`text-[11px] font-medium ${isSelected ? 'text-black' : 'text-[#999]'}`}>{option.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
