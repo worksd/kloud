@@ -105,10 +105,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
               {/* 메타 정보 */}
               <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
-                <p className="text-[16px] font-bold text-black leading-snug break-words">{title}</p>
+                <p className="text-[18px] font-bold text-black leading-snug break-words line-clamp-2">{title}</p>
                 <div className="flex items-center gap-2">
                   {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
-                  <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
+                  <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
                 </div>
                 {type === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
                   <div className="flex flex-col gap-1 mt-1">
@@ -119,7 +119,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         <path d="M4.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
                         <path d="M9.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
                       </svg>
-                      <span className="text-[12px] font-medium text-[#666]">
+                      <span className="text-[13px] font-medium text-[#666]">
                         {res.lesson?.formattedDate
                           ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
                           : res.lesson?.date}
@@ -131,7 +131,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                           <circle cx="7" cy="7" r="5.5" stroke="#999" strokeWidth="1.1"/>
                           <path d="M7 4V7L9 9" stroke="#999" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                        <span className="text-[12px] font-medium text-[#666]">
+                        <span className="text-[13px] font-medium text-[#666]">
                           {res.lesson?.formattedDate
                             ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
                             : `${res.lesson?.duration}${await translate('minutes')}`}
