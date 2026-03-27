@@ -100,6 +100,10 @@ export const InlineCardForm = ({
     emitChange();
   };
 
+  const scrollIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  };
+
   const inputClass = "w-full bg-gray-50 text-black px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black placeholder-gray-400 text-[14px]";
 
   return (
@@ -113,6 +117,7 @@ export const InlineCardForm = ({
           ref={cardRef}
           placeholder="1234 5678 9012 3456"
           onChange={handleCardNumberChange}
+          onFocus={scrollIntoView}
           maxLength={19}
           inputMode="numeric"
           className={inputClass}
@@ -130,6 +135,7 @@ export const InlineCardForm = ({
             ref={expiryMonthRef}
             inputMode="numeric"
             onChange={handleExpiryMonthChange}
+            onFocus={scrollIntoView}
             maxLength={2}
             className={`w-1/2 ${inputClass}`}
           />
@@ -139,6 +145,7 @@ export const InlineCardForm = ({
             ref={expiryYearRef}
             inputMode="numeric"
             onChange={handleExpiryYearChange}
+            onFocus={scrollIntoView}
             maxLength={2}
             className={`w-1/2 ${inputClass}`}
           />
@@ -155,6 +162,7 @@ export const InlineCardForm = ({
           inputMode="numeric"
           ref={birthRef}
           onChange={handleBirthChange}
+          onFocus={scrollIntoView}
           maxLength={10}
           className={inputClass}
         />
@@ -170,6 +178,7 @@ export const InlineCardForm = ({
           inputMode="numeric"
           ref={passwordRef}
           onChange={handlePasswordChange}
+          onFocus={scrollIntoView}
           maxLength={2}
           className={inputClass}
         />
