@@ -8,10 +8,10 @@ import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/Billi
 import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
 import { BankSelectBottomSheet } from "@/app/components/BankSheet";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
-import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
-import { InlineCardForm } from "@/app/lessons/[id]/payment/InlineCardForm";
 import { Locale } from "@/shared/StringResource";
-import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
+import { InlineCardForm } from "@/app/lessons/[id]/payment/InlineCardForm";
+import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
+import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
 import { getLocaleString } from "@/app/components/locale";
 import { formatAccountNumber } from "@/utils/format.account";
 import NaverPayIcon from "@/../public/assets/ic_naver_pay.svg";
@@ -127,7 +127,6 @@ export const PaymentMethodComponent = ({
                                          depositor,
                                          setDepositorAction,
                                          refundAccount,
-                                         onNewCardInfoChange,
                                          os,
                                          appVersion,
                                        }: {
@@ -145,12 +144,13 @@ export const PaymentMethodComponent = ({
   depositor: string,
   setDepositorAction: (value: string) => void,
   refundAccount?: RefundAccount | null,
-  onNewCardInfoChange?: (form: CreateBillingRequest | null) => void,
   os?: string,
   appVersion?: string,
 }) => {
 
   const [showInlineCardForm, setShowInlineCardForm] = useState(false);
+  const [newCardForm, setNewCardForm] = useState<CreateBillingRequest | null>(null);
+  const [addingCard, setAddingCard] = useState(false);
 
   // 환불계좌 inline 편집
   const [editingRefund, setEditingRefund] = useState(!refundAccount?.accountNumber);
@@ -162,6 +162,35 @@ export const PaymentMethodComponent = ({
     () => pickBankKey(refundAccount?.bankName ?? '')
   );
   const [savingRefund, setSavingRefund] = useState(false);
+
+  const handleAddCard = async () => {
+    if (!newCardForm) return;
+    setAddingCard(true);
+    const billingRes = await addBillingAction(newCardForm);
+    if ('billingKey' in billingRes && billingRes.billingKey) {
+      setShowInlineCardForm(false);
+      setNewCardForm(null);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      window.location.reload();
+    } else if ('pgMessage' in billingRes) {
+      const { createDialog } = await import("@/utils/dialog.factory");
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
+        message: billingRes.pgMessage ?? ''
+      });
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    } else if ('message' in billingRes) {
+      const { createDialog } = await import("@/utils/dialog.factory");
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
+        message: (billingRes as { message: string }).message
+      });
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    }
+    setAddingCard(false);
+  };
 
   const handleSaveRefund = async () => {
     if (!refundBank || !refundNumber || !refundHolder) return;
@@ -178,10 +207,8 @@ export const PaymentMethodComponent = ({
   };
 
   const handleOnSuccessAddBillingCard = async () => {
-    const res = await getBillingListAction()
-    if ('billings' in res) {
-      onCardsChangeAction(res.billings)
-    }
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    window.location.reload();
   }
 
   const regularOptions = paymentOptions.filter(o => !isEasyPayType(o.type));
@@ -413,19 +440,16 @@ export const PaymentMethodComponent = ({
                   <div className="flex flex-col">
                     <SelectableBillingList
                       billingCards={cards ?? []}
-                      selectedBillingKey={showInlineCardForm ? undefined : selectedBillingCard}
+                      selectedBillingKey={selectedBillingCard}
                       onSelectAction={(card) => {
                         selectBillingCard(card);
                         setShowInlineCardForm(false);
-                        onNewCardInfoChange?.(null);
+                        setNewCardForm(null);
                       }}
                       locale={locale}
                     />
                     <button
-                      onClick={() => {
-                        setShowInlineCardForm(prev => !prev);
-                        onNewCardInfoChange?.(null);
-                      }}
+                      onClick={() => setShowInlineCardForm(prev => !prev)}
                       className="mt-2 w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-dashed border-[#D0D0D0] bg-white
                                  text-[#888] text-[13px] font-medium active:bg-[#F5F5F5] transition-colors"
                     >
@@ -435,10 +459,22 @@ export const PaymentMethodComponent = ({
                       {getLocaleString({locale, key: 'add_new_card'})}
                     </button>
                     {showInlineCardForm && (
-                      <InlineCardForm
-                        locale={locale}
-                        onCardInfoChange={(form) => onNewCardInfoChange?.(form)}
-                      />
+                      <>
+                        <InlineCardForm
+                          locale={locale}
+                          onCardInfoChange={(form) => setNewCardForm(form)}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddCard}
+                          disabled={!newCardForm || addingCard}
+                          className="mt-2 w-full py-2.5 rounded-lg text-[13px] font-semibold transition-colors
+                                     disabled:bg-[#F0F0F0] disabled:text-[#BDBDBD]
+                                     bg-black text-white active:scale-[0.98]"
+                        >
+                          {addingCard ? '...' : getLocaleString({locale, key: 'add_new_card'})}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -474,6 +510,7 @@ export const PaymentMethodComponent = ({
           </div>
         )}
       </div>
+
     </div>
   );
 };

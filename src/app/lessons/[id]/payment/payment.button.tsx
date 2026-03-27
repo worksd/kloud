@@ -12,8 +12,7 @@ import {DiscountResponse, PaymentMethodType} from "@/app/endpoint/payment.endpoi
 import { createManualPaymentRecordAction } from "@/app/lessons/[id]/action/create.manual.payment.record.action";
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
-import { CreateBillingRequest, GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
@@ -71,7 +70,7 @@ export default function PaymentButton({
                                         user,
                                         actualPayerUserId,
                                         locale,
-                                        newCardForm,
+                                        hasRefundAccount,
                                         onBillingCardsChange,
                                       }: {
   appVersion: string;
@@ -89,7 +88,7 @@ export default function PaymentButton({
   paymentId: string,
   actualPayerUserId?: number,
   locale: Locale,
-  newCardForm?: CreateBillingRequest,
+  hasRefundAccount: boolean,
   onBillingCardsChange?: (cards: GetBillingResponse[]) => void,
 }) {
 
@@ -224,6 +223,7 @@ export default function PaymentButton({
           title,
           price,
           depositor,
+          hasRefundAccount,
         })
         if (appVersion == '' && dialog) {
           setWebDialogInfo(dialog)
@@ -234,7 +234,13 @@ export default function PaymentButton({
     } else if (method === 'pass') {
       const dialog = await createDialog({
         id: 'UsePass',
-        message: `\n${getLocaleString({locale, key: 'use_pass_confirm_lesson'})} : ${title}\n${getLocaleString({locale, key: 'use_pass_confirm_pass'})} : ${selectedPass?.passPlan?.name}\n\n${getLocaleString({locale, key: 'use_pass_confirm_question'})}`
+        title: title,
+        message: [
+          `${getLocaleString({locale, key: 'use_pass_confirm_lesson'})}: ${title}`,
+          `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name}`,
+          ``,
+          `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
+        ].join('\n'),
       })
       if (appVersion == '' && dialog) {
         setWebDialogInfo(dialog)
@@ -242,51 +248,11 @@ export default function PaymentButton({
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     } else if (method == 'billing') {
-      if (newCardForm) {
-        // 새 카드: billingKey 발급 → 즉시 결제
-        setIsSubmitting(true);
-        try {
-          const billingRes = await addBillingAction(newCardForm);
-          if ('billingKey' in billingRes && billingRes.billingKey) {
-            const dialog = await createDialog({
-              id: 'RequestBillingKeyPayment',
-              title: `${title} - ${getLocaleString({locale, key: 'billing_key_payment_confirm_title'})}`,
-              message: [
-                `${getLocaleString({locale, key: 'billing_key_payment_confirm_description'})}\n`,
-                `${getLocaleString({locale, key: 'billing_key_payment_lesson_name'})}: ${title}\n`,
-                `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${price.toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
-                `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${billingRes.cardName ?? ''}`,
-                ``,
-                `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
-              ].join('\n'),
-              customData: billingRes.billingKey,
-            });
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
-          } else if ('pgMessage' in billingRes) {
-            const dialog = await createDialog({
-              id: 'Simple',
-              title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-              message: billingRes.pgMessage ?? ''
-            });
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
-          } else if ('message' in billingRes) {
-            const dialog = await createDialog({
-              id: 'Simple',
-              title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-              message: (billingRes as { message: string }).message
-            });
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
-          }
-        } finally {
-          setIsSubmitting(false);
-        }
-      } else if (selectedBilling && selectedBilling.billingKey) {
+      if (selectedBilling && selectedBilling.billingKey) {
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
-          title: `${title} - ${getLocaleString({locale, key: 'billing_key_payment_confirm_title'})}`,
+          title: title,
           message: [
-            `${getLocaleString({locale, key: 'billing_key_payment_confirm_description'})}\n`,
-            `${getLocaleString({locale, key: 'billing_key_payment_lesson_name'})}: ${title}\n`,
             `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${price.toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
             `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${selectedBilling.cardName}`,
             ``,
@@ -302,7 +268,7 @@ export default function PaymentButton({
       }
     }
 
-  }, [id, method, depositor, selectedPass, selectedBilling, newCardForm]);
+  }, [id, method, depositor, selectedPass, selectedBilling]);
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
