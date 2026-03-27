@@ -9,6 +9,16 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
 
+const extractPath = (raw?: string): string | undefined => {
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw, 'https://placeholder.com');
+    return url.pathname;
+  } catch {
+    return raw.startsWith('/') ? raw : `/${raw}`;
+  }
+};
+
 export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
   useEffect(() => {
     setTimeout(async () => {
@@ -27,7 +37,7 @@ export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
         kloudNav.clearAndPush(KloudScreen.Onboard(''))
       }
       else if (status == UserStatus.Ready) {
-        await kloudNav.navigateMain({ route: link })
+        await kloudNav.navigateMain({ route: extractPath(link) })
       }
       else if (status == UserStatus.Deactivate) {
         kloudNav.clearAndPush(KloudScreen.LoginDeactivate)
