@@ -11,8 +11,10 @@ import { kloudNav } from "@/app/lib/kloudNav";
 
 const extractPath = (raw?: string): string | undefined => {
   if (!raw) return undefined;
+  // https://staging.rawgraphy.com/lessons/1638 or staging.rawgraphy.com/lessons/1638
+  const withScheme = raw.includes('://') ? raw : `https://${raw}`;
   try {
-    const url = new URL(raw, 'https://placeholder.com');
+    const url = new URL(withScheme);
     return url.pathname;
   } catch {
     return raw.startsWith('/') ? raw : `/${raw}`;
