@@ -15,27 +15,27 @@ const METHOD_LABEL: Record<PaymentMethodType, string> = {
   pass: '패스',
   billing: '카드결제',
   admin: '관리자',
-  ALIPAY: 'Alipay',
-  WECHAT_PAY: 'WeChat Pay',
-  NAVER_PAY: '네이버페이',
-  KAKAO_PAY: '카카오페이',
-  TOSS_PAY: '토스페이',
+  ali_pay: 'Alipay',
+  wechat_pay: 'WeChat Pay',
+  naver_pay: '네이버페이',
+  kakao_pay: '카카오페이',
+  toss_pay: '토스페이',
 };
 
-const EASY_PAY_TYPES: PaymentMethodType[] = ['NAVER_PAY', 'KAKAO_PAY', 'TOSS_PAY', 'ALIPAY', 'WECHAT_PAY'];
+const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay', 'ali_pay', 'wechat_pay'];
 
 const EasyPayMiniLogo = ({type}: { type: PaymentMethodType }) => {
   const h = 16;
   switch (type) {
-    case 'NAVER_PAY':
+    case 'naver_pay':
       return <NaverPayIcon style={{height: h, width: Math.round(h * 277 / 105)}} />;
-    case 'KAKAO_PAY':
+    case 'kakao_pay':
       return <KakaoPayIcon style={{height: h, width: Math.round(h * 192.9 / 80.4)}} />;
-    case 'TOSS_PAY':
+    case 'toss_pay':
       return <TossPayIcon style={{height: h * 0.75, width: Math.round(h * 0.75 * 5500 / 897.75)}} />;
-    case 'ALIPAY':
+    case 'ali_pay':
       return <AliPayIcon style={{width: h, height: h}} />;
-    case 'WECHAT_PAY':
+    case 'wechat_pay':
       return <WechatPayIcon style={{width: h, height: h}} />;
     default:
       return null;

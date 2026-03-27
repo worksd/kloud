@@ -67,7 +67,7 @@ export type GetPaymentMethodResponse = {
   name: string;
 }
 
-export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'naver_pay' | 'kakao_pay' | 'ali_pay' | 'wechat_pay'
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'ali_pay' | 'wechat_pay'
 
 export type CreateBillingKeyPaymentRequest = {
   billingKey: string;
