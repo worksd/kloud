@@ -11,6 +11,7 @@ import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
 import {KloudScreen} from "@/shared/kloud.screen";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
+import {HomeAlerts} from "@/app/home/HomeAlerts";
 import {cookies} from "next/headers";
 import {fcmTokenKey} from "@/shared/cookies.key";
 
@@ -28,6 +29,7 @@ export default async function Home({
     return (
         <div>
           <FcmTokenRequester hasFcmToken={hasFcmToken}/>
+          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
           <div
               className="fixed top-0 left-0 right-0 flex flex-row items-center justify-between h-16 px-6 py-2 bg-white z-10">

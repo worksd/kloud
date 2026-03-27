@@ -265,6 +265,15 @@ export async function createDialog({id, message, title, customData}: {
       customData: customData,
     }
   }
+  else if (id == 'HomeAlert') {
+    return {
+      id: 'HomeAlert',
+      type: 'SIMPLE',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+    }
+  }
 }
 
 export type DialogId =
@@ -297,6 +306,7 @@ export type DialogId =
   | 'ChangePhoneNumber'
   | 'CancelTicket'
   | 'ConfirmAttendance'
+  | 'HomeAlert'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
