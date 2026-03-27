@@ -49,7 +49,7 @@ export type GetPaymentResponse = {
   paymentId: string;
   refundAccountNumber?: string
   refundAccountBank?: string
-  refundAccountDepositor?: string
+  refundDepositor?: string
   discounts?: DiscountResponse[];
   coupons?: CouponResponse[];
 }
@@ -82,6 +82,6 @@ export type CreateBillingKeyPaymentResponse = {
 
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
-  path: `/payment/billingKey`,
+  path: `/paymentRecords/billingKey`,
   bodyParams: ['billingKey', 'item', 'itemId', 'targetUserId']
 }

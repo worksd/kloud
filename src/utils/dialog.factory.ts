@@ -87,7 +87,7 @@ export async function createDialog({id, message, title, customData}: {
       id: 'PaymentFail',
       type: 'SIMPLE',
       title: await translate('payment_fail'),
-      message: message ?? await translate('payment_fail_message'),
+      message: message || await translate('payment_fail_message'),
       confirmTitle: await translate('confirm'),
     }
   } else if (id == 'UsePass') {
@@ -314,19 +314,25 @@ export const createAccountTransferMessage = async ({
                                                      title,
                                                      price,
                                                      depositor,
-
+                                                     hasRefundAccount,
                                                    }: {
   title: string;
   price: number;
   depositor: string;
+  hasRefundAccount: boolean;
 }): Promise<DialogInfo | undefined> => {
 
   const message = await translate('account_transfer_dialog_message')
 
-  const transformMessage = message
+  let transformMessage = message
     .replace('{title}', title)
     .replace('{price}', new Intl.NumberFormat('ko-KR').format(price))
     .replace('{depositor}', depositor);
+
+  if (!hasRefundAccount) {
+    const warning = await translate('account_transfer_no_refund_account_warning');
+    transformMessage += `\n${warning}`;
+  }
 
   return createDialog({id: 'AccountTransfer', message: transformMessage});
 };

@@ -9,7 +9,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { DiscountSection } from "@/app/lessons/[id]/payment/DiscountSection";
 import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { CreateBillingRequest, GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -115,7 +115,6 @@ export const UnifiedPaymentInfo = ({
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
   );
   const [depositor, setDepositor] = useState(beforeDepositor);
-  const [newCardForm, setNewCardForm] = useState<CreateBillingRequest | null>(null);
   const [mounted, setMounted] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
 
@@ -188,11 +187,11 @@ export const UnifiedPaymentInfo = ({
             depositor={depositor}
             setDepositorAction={setDepositor}
             refundAccount={{
-              holderName: payment.refundAccountDepositor,
+              holderName: payment.refundDepositor,
               bankName: payment.refundAccountBank,
               accountNumber: payment.refundAccountNumber
             }}
-            onNewCardInfoChange={(form) => setNewCardForm(form)}
+
             os={os}
             appVersion={appVersion}
           />
@@ -262,12 +261,12 @@ export const UnifiedPaymentInfo = ({
             mockPaymentMethods.length > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||
-              (selectedMethod === 'billing' && !selectedBillingCard && !newCardForm)
+              (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
             )
           }
           paymentId={payment.paymentId}
           actualPayerUserId={noPass ? undefined : actualPayerUserId}
-          newCardForm={newCardForm ?? undefined}
+          hasRefundAccount={payment.refundAccountNumber != null && payment.refundAccountNumber.length > 0}
           onBillingCardsChange={(cards) => setCards(cards)}
         />
       </div>
