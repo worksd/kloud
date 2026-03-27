@@ -52,8 +52,6 @@ const easyPayMethodMap: Partial<Record<PaymentMethodType, string>> = {
   naver_pay: 'naverpay',
   kakao_pay: 'kakaopay',
   toss_pay: 'tosspay',
-  ali_pay: 'AliPay',
-  wechat_pay: 'WeChatPay',
 }
 
 
@@ -163,7 +161,7 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay' || method === 'ali_pay' || method === 'wechat_pay') {
+    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay') {
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 

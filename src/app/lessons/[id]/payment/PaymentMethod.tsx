@@ -14,8 +14,6 @@ import { Locale } from "@/shared/StringResource";
 import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
 import { getLocaleString } from "@/app/components/locale";
 import { formatAccountNumber } from "@/utils/format.account";
-import AliPayIcon from "@/../public/assets/ic_ali_pay.svg";
-import WechatPayIcon from "@/../public/assets/ic_wechat_pay.svg";
 import NaverPayIcon from "@/../public/assets/ic_naver_pay.svg";
 import KakaoPayIcon from "@/../public/assets/ic_kakao_pay.svg";
 import TossPayIcon from "@/../public/assets/ic_toss_payments.svg";
@@ -26,7 +24,7 @@ type RefundAccount = {
   holderName?: string;
 };
 
-const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay', 'ali_pay', 'wechat_pay'];
+const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay'];
 
 const isEasyPayType = (type: PaymentMethodType) => EASY_PAY_TYPES.includes(type);
 
@@ -43,8 +41,8 @@ const compareVersion = (a: string, b: string): number => {
 
 const isEasyPaySupported = (os?: string, appVersion?: string): boolean => {
   if (!appVersion?.trim()) return true; // 웹
-  if (os === 'ios') return compareVersion(appVersion, '1.0.23') >= 0;
-  if (os === 'android') return compareVersion(appVersion, '1.0.37') >= 0;
+  if (os === 'iOS') return compareVersion(appVersion, '1.0.23') >= 0;
+  if (os === 'Android') return compareVersion(appVersion, '1.0.37') >= 0;
   return false;
 };
 
@@ -55,10 +53,6 @@ const EasyPayLogo = ({type, size = 22}: { type: PaymentMethodType, size?: number
       return <NaverPayIcon style={{height: wideSize, width: Math.round(wideSize * 277 / 105)}} />;
     case 'kakao_pay':
       return <KakaoPayIcon style={{height: wideSize, width: Math.round(wideSize * 192.9 / 45)}} />;
-    case 'ali_pay':
-      return <AliPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
-    case 'wechat_pay':
-      return <WechatPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
     case 'toss_pay':
       return <TossPayIcon style={{height: size * 0.55, width: Math.round(size * 0.55 * 5500 / 897.75)}} />;
     default:
@@ -191,7 +185,7 @@ export const PaymentMethodComponent = ({
   }
 
   const regularOptions = paymentOptions.filter(o => !isEasyPayType(o.type));
-  const easyPayOrder: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay', 'ali_pay', 'wechat_pay'];
+  const easyPayOrder: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay'];
   const easyPayOptions = isEasyPaySupported(os, appVersion)
     ? paymentOptions
       .filter(o => isEasyPayType(o.type))

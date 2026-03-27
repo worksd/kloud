@@ -101,8 +101,6 @@ export const UnifiedPaymentInfo = ({
   // TODO: 목 해제 — 서버에서 간편결제 타입이 내려오면 아래 mock 제거
   const mockPaymentMethods: GetPaymentMethodResponse[] = [
     ...payment.methods,
-    { id: -901, type: 'ali_pay', name: 'Alipay' },
-    { id: -902, type: 'wechat_pay', name: 'WeChat Pay' },
     { id: -903, type: 'naver_pay', name: '네이버페이' },
     { id: -904, type: 'kakao_pay', name: '카카오페이' },
     { id: -905, type: 'toss_pay', name: '토스페이' },

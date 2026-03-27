@@ -3,8 +3,6 @@
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { PaymentMethodType, DiscountResponse } from "@/app/endpoint/payment.endpoint";
 import { getLocaleString } from "@/app/components/locale";
-import AliPayIcon from "@/../public/assets/ic_ali_pay.svg";
-import WechatPayIcon from "@/../public/assets/ic_wechat_pay.svg";
 import NaverPayIcon from "@/../public/assets/ic_naver_pay.svg";
 import KakaoPayIcon from "@/../public/assets/ic_kakao_pay.svg";
 import TossPayIcon from "@/../public/assets/ic_toss_payments.svg";
@@ -15,14 +13,12 @@ const METHOD_LABEL: Record<PaymentMethodType, string> = {
   pass: '패스',
   billing: '카드결제',
   admin: '관리자',
-  ali_pay: 'Alipay',
-  wechat_pay: 'WeChat Pay',
   naver_pay: '네이버페이',
   kakao_pay: '카카오페이',
   toss_pay: '토스페이',
 };
 
-const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay', 'ali_pay', 'wechat_pay'];
+const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay'];
 
 const EasyPayMiniLogo = ({type}: { type: PaymentMethodType }) => {
   const h = 16;
@@ -33,10 +29,6 @@ const EasyPayMiniLogo = ({type}: { type: PaymentMethodType }) => {
       return <KakaoPayIcon style={{height: h, width: Math.round(h * 192.9 / 80.4)}} />;
     case 'toss_pay':
       return <TossPayIcon style={{height: h * 0.75, width: Math.round(h * 0.75 * 5500 / 897.75)}} />;
-    case 'ali_pay':
-      return <AliPayIcon style={{width: h, height: h}} />;
-    case 'wechat_pay':
-      return <WechatPayIcon style={{width: h, height: h}} />;
     default:
       return null;
   }
