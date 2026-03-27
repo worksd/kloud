@@ -15,6 +15,7 @@ export const HomeAlerts = ({ alerts }: { alerts: HomeAlertResponse[] }) => {
         id: 'HomeAlert',
         title: alert.title,
         message: alert.description,
+        customData: alert.route,
       });
       if (dialog) {
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
@@ -22,11 +23,8 @@ export const HomeAlerts = ({ alerts }: { alerts: HomeAlertResponse[] }) => {
     };
 
     window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.id === 'HomeAlert') {
-        const alert = alerts[0];
-        if (alert?.route) {
-          await kloudNav.push(alert.route);
-        }
+      if (data.id === 'HomeAlert' && data.route) {
+        await kloudNav.push(data.route);
       }
     };
 

@@ -268,10 +268,12 @@ export async function createDialog({id, message, title, customData}: {
   else if (id == 'HomeAlert') {
     return {
       id: 'HomeAlert',
-      type: 'SIMPLE',
+      type: 'YESORNO',
       title: title ?? '',
       message: message ?? '',
       confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      route: customData,
     }
   }
 }
