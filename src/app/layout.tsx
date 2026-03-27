@@ -70,7 +70,7 @@ declare global {
     onAppleLoginSuccess: (data: { code: string, name: string }) => void;
     onGoogleLoginSuccess: (data: { code: string }) => void;
     onPaymentSuccess: (data: { transactionId: string, paymentId: string }) => void;
-    onErrorInvoked: (data: { code: string }) => void;
+    onErrorInvoked: (data: { paymentId: string, message?: string }) => void;
     onDialogConfirm: (data: DialogInfo) => void;
     onHideDialogConfirm: (data: { id: string, clicked: boolean }) => void;
     onFcmTokenComplete: (data: { fcmToken: string, udid: string }) => void;

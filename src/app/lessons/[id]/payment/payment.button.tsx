@@ -48,9 +48,10 @@ type PaymentInfo = {
   pgProvider?: string
 }
 
-const pgProviderMap: Partial<Record<PaymentMethodType, string>> = {
-  naver_pay: 'NaverPay',
-  kakao_pay: 'KakaoPay',
+const easyPayMethodMap: Partial<Record<PaymentMethodType, string>> = {
+  naver_pay: 'naverpay',
+  kakao_pay: 'kakaopay',
+  toss_pay: 'tosspay',
   ali_pay: 'AliPay',
   wechat_pay: 'WeChatPay',
 }
@@ -162,7 +163,7 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'ali_pay' || method === 'wechat_pay') {
+    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay' || method === 'ali_pay' || method === 'wechat_pay') {
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
@@ -180,7 +181,7 @@ export default function PaymentButton({
         orderName: title,
         price,
         userId: `${user.id}`,
-        method: method && pgProviderMap[method] ? 'EASY_PAY' : 'CARD',
+        method: method && easyPayMethodMap[method] ? easyPayMethodMap[method]! : 'CARD',
         customData: JSON.stringify({
           actualPayerUserId,
           discounts: selectedDiscounts,
@@ -189,7 +190,6 @@ export default function PaymentButton({
         userPhone: user.phone ?? undefined,
         userBirth: user.birth ?? undefined,
         locale: locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
-        pgProvider: method ? pgProviderMap[method] : undefined,
       };
 
       if (appVersion === '') {
@@ -313,8 +313,8 @@ export default function PaymentButton({
   }, [onPaymentSuccess, selectedPass])
 
   useEffect(() => {
-    window.onErrorInvoked = async (data: { code: string }) => {
-      const dialog = await createDialog({id: 'PaymentFail'})
+    window.onErrorInvoked = async (data: { paymentId: string, message?: string }) => {
+      const dialog = await createDialog({id: 'PaymentFail', message: data.message})
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     }
   }, [])
