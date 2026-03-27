@@ -82,6 +82,7 @@ export const UnifiedPaymentInfo = ({
   type,
   url,
   appVersion,
+  os,
   locale,
   beforeDepositor,
   actualPayerUserId,
@@ -91,6 +92,7 @@ export const UnifiedPaymentInfo = ({
   type: UnifiedPaymentType,
   url: string,
   appVersion: string,
+  os?: string,
   beforeDepositor: string,
   actualPayerUserId?: number,
   isProxyPayment?: boolean,
@@ -99,11 +101,11 @@ export const UnifiedPaymentInfo = ({
   // TODO: 목 해제 — 서버에서 간편결제 타입이 내려오면 아래 mock 제거
   const mockPaymentMethods: GetPaymentMethodResponse[] = [
     ...payment.methods,
-    { id: -901, type: 'ALIPAY', name: 'Alipay' },
-    { id: -902, type: 'WECHAT_PAY', name: 'WeChat Pay' },
-    { id: -903, type: 'NAVER_PAY', name: '네이버페이' },
-    { id: -904, type: 'KAKAO_PAY', name: '카카오페이' },
-    { id: -905, type: 'TOSS_PAY', name: '토스페이' },
+    { id: -901, type: 'ali_pay', name: 'Alipay' },
+    { id: -902, type: 'wechat_pay', name: 'WeChat Pay' },
+    { id: -903, type: 'naver_pay', name: '네이버페이' },
+    { id: -904, type: 'kakao_pay', name: '카카오페이' },
+    { id: -905, type: 'toss_pay', name: '토스페이' },
   ];
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
@@ -193,6 +195,8 @@ export const UnifiedPaymentInfo = ({
               accountNumber: payment.refundAccountNumber
             }}
             onNewCardInfoChange={(form) => setNewCardForm(form)}
+            os={os}
+            appVersion={appVersion}
           />
 
           <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />

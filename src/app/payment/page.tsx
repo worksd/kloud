@@ -22,7 +22,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   }>
 }) {
   const params = await searchParams;
-  const { type, id, appVersion = '', targetUserId } = params;
+  const { type, id, os, appVersion = '', targetUserId } = params;
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
 
@@ -180,6 +180,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           type={type}
           url={process.env.GUINNESS_API_SERVER ?? ''}
           appVersion={appVersion}
+          os={os}
           payment={res}
           beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
           locale={await getLocale()}

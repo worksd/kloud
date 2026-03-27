@@ -26,22 +26,40 @@ type RefundAccount = {
   holderName?: string;
 };
 
-const EASY_PAY_TYPES: PaymentMethodType[] = ['NAVER_PAY', 'KAKAO_PAY', 'TOSS_PAY', 'ALIPAY', 'WECHAT_PAY'];
+const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay', 'ali_pay', 'wechat_pay'];
 
 const isEasyPayType = (type: PaymentMethodType) => EASY_PAY_TYPES.includes(type);
+
+const compareVersion = (a: string, b: string): number => {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] ?? 0;
+    const nb = pb[i] ?? 0;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
+};
+
+const isEasyPaySupported = (os?: string, appVersion?: string): boolean => {
+  if (!appVersion?.trim()) return true; // 웹
+  if (os === 'ios') return compareVersion(appVersion, '1.0.23') >= 0;
+  if (os === 'android') return compareVersion(appVersion, '1.0.37') >= 0;
+  return false;
+};
 
 const EasyPayLogo = ({type, size = 22}: { type: PaymentMethodType, size?: number }) => {
   const wideSize = Math.round(size * 0.85);
   switch (type) {
-    case 'NAVER_PAY':
+    case 'naver_pay':
       return <NaverPayIcon style={{height: wideSize, width: Math.round(wideSize * 277 / 105)}} />;
-    case 'KAKAO_PAY':
+    case 'kakao_pay':
       return <KakaoPayIcon style={{height: wideSize, width: Math.round(wideSize * 192.9 / 45)}} />;
-    case 'ALIPAY':
+    case 'ali_pay':
       return <AliPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
-    case 'WECHAT_PAY':
+    case 'wechat_pay':
       return <WechatPayIcon style={{width: size * 0.85, height: size * 0.85}} />;
-    case 'TOSS_PAY':
+    case 'toss_pay':
       return <TossPayIcon style={{height: size * 0.55, width: Math.round(size * 0.55 * 5500 / 897.75)}} />;
     default:
       return null;
@@ -116,6 +134,8 @@ export const PaymentMethodComponent = ({
                                          setDepositorAction,
                                          refundAccount,
                                          onNewCardInfoChange,
+                                         os,
+                                         appVersion,
                                        }: {
   locale: Locale,
   paymentOptions: GetPaymentMethodResponse[],
@@ -132,6 +152,8 @@ export const PaymentMethodComponent = ({
   setDepositorAction: (value: string) => void,
   refundAccount?: RefundAccount | null,
   onNewCardInfoChange?: (form: CreateBillingRequest | null) => void,
+  os?: string,
+  appVersion?: string,
 }) => {
 
   const [showInlineCardForm, setShowInlineCardForm] = useState(false);
@@ -169,10 +191,12 @@ export const PaymentMethodComponent = ({
   }
 
   const regularOptions = paymentOptions.filter(o => !isEasyPayType(o.type));
-  const easyPayOrder: PaymentMethodType[] = ['NAVER_PAY', 'KAKAO_PAY', 'TOSS_PAY', 'ALIPAY', 'WECHAT_PAY'];
-  const easyPayOptions = paymentOptions
-    .filter(o => isEasyPayType(o.type))
-    .sort((a, b) => easyPayOrder.indexOf(a.type) - easyPayOrder.indexOf(b.type));
+  const easyPayOrder: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay', 'ali_pay', 'wechat_pay'];
+  const easyPayOptions = isEasyPaySupported(os, appVersion)
+    ? paymentOptions
+      .filter(o => isEasyPayType(o.type))
+      .sort((a, b) => easyPayOrder.indexOf(a.type) - easyPayOrder.indexOf(b.type))
+    : [];
 
   if (paymentOptions.length === 0) return null;
 
