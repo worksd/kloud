@@ -11,7 +11,9 @@ export const FcmTokenRequester = ({ hasFcmToken }: { hasFcmToken: boolean }) => 
       await registerDeviceAction({ token: data.fcmToken, udid: data.udid });
     };
 
-    window.KloudEvent?.requestFcmToken();
+    if (typeof window.KloudEvent?.requestFcmToken === 'function') {
+      window.KloudEvent.requestFcmToken();
+    }
   }, [hasFcmToken]);
 
   return null;
