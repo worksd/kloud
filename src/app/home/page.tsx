@@ -14,6 +14,8 @@ import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
 import {HomeAlerts} from "@/app/home/HomeAlerts";
 import {cookies} from "next/headers";
 import {fcmTokenKey} from "@/shared/cookies.key";
+import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
+import {HomeHeader} from "@/app/home/HomeHeader";
 
 export default async function Home({
                                      searchParams
@@ -26,26 +28,31 @@ export default async function Home({
   const hasFcmToken = !!(await cookies()).get(fcmTokenKey)?.value
   if ('studios' in res) {
     const studio = res.myStudio?.studio;
-    return (
+    const firstThumb = res.myStudio?.bands
+      ?.flatMap(b => b.lessons)
+      ?.find(l => l.thumbnailUrl)?.thumbnailUrl ?? '';
+
+    const content = (
         <div>
           <FcmTokenRequester hasFcmToken={hasFcmToken}/>
           {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
-          <div
-              className="fixed top-0 left-0 right-0 flex flex-row items-center justify-between h-16 px-6 py-2 bg-white z-10">
+          <HomeHeader hasStudio={!!studio}>
             {studio ? (
               <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
                 <div className="flex items-center gap-2.5 cursor-pointer active:opacity-70 transition-opacity">
-                  <CircleImage imageUrl={studio.profileImageUrl} size={36}/>
-                  <span className="text-[18px] font-bold text-black">{studio.name}</span>
-                  <ArrowDownIcon/>
+                  <CircleImage imageUrl={studio.profileImageUrl} size={28}/>
+                  <span className="text-[18px] font-medium text-black">{studio.name}</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 4L10 8L6 12" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
               </NavigateClickWrapper>
             ) : (
               <Logo className="scale-[0.7] origin-left"/>
             )}
-          </div>
-          <div className={'mt-20'}>
+          </HomeHeader>
+          <div className="mt-24">
             {
               res.myStudio ? (
                   <MyStudioPage res={res.myStudio}/>
@@ -58,8 +65,11 @@ export default async function Home({
             <PassPurchaseButton studioId={res.myStudio?.studio?.id}/>
           </div>
         </div>
+    );
 
-    )
+    return studio && firstThumb
+      ? <HomeAlphaBgProvider initialImage={firstThumb}>{content}</HomeAlphaBgProvider>
+      : content;
   } else {
     throw Error()
   }
