@@ -6,6 +6,7 @@ import MyStudioPage from "@/app/home/MyStudioPage";
 import {NoMyStudioPage} from "@/app/home/NoMyStudioPage";
 import {getHideDialogIdsAction} from "@/app/home/get.hide.dialog.ids.action";
 import EventScreen from "@/app/home/eventScreen";
+import {sendErrorToDiscord} from "@/utils/discord.webhook";
 
 export default async function Home({
                                      searchParams
@@ -39,6 +40,8 @@ export default async function Home({
 
     )
   } else {
-    throw Error()
+    const message = `GET /home 실패: ${JSON.stringify(res)}`;
+    await sendErrorToDiscord(new Error(message), { pathname: '/home', route: '/home' });
+    throw Error(message)
   }
 }

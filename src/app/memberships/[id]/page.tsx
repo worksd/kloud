@@ -4,6 +4,7 @@ import {MembershipTicketForm} from "./MembershipTicketForm";
 import {api} from "@/app/api.client";
 import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
 import {KloudScreen} from "@/shared/kloud.screen";
+import {sendErrorToDiscord} from "@/utils/discord.webhook";
 
 export default async function MembershipDetailPage({params}: {
   params: Promise<{ id: number }>
@@ -37,6 +38,8 @@ export default async function MembershipDetailPage({params}: {
         </div>
     )
   } else {
-    throw Error()
+    const message = `GET /memberships/${(await params).id} 실패: ${JSON.stringify(membership)}`;
+    await sendErrorToDiscord(new Error(message), { pathname: `/memberships`, route: `/memberships` });
+    throw Error(message)
   }
 }

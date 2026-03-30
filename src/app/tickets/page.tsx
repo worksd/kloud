@@ -3,6 +3,7 @@ import Loading from "@/app/loading";
 import { api } from "@/app/api.client";
 import { getLocale, translate } from "@/utils/translate";
 import { TicketTabClient } from "@/app/tickets/TicketTabClient";
+import { sendErrorToDiscord } from "@/utils/discord.webhook";
 
 export default async function TicketListPage() {
   return (
@@ -17,6 +18,13 @@ async function TicketListServer() {
     api.ticket.list({ page: 1 }),
     api.lessonGroupTicket.list({ page: 1 }),
   ]);
+
+  if (!('tickets' in ticketRes)) {
+    const message = `GET /tickets 실패: ${JSON.stringify(ticketRes)}`;
+    await sendErrorToDiscord(new Error(message), { pathname: '/tickets', route: '/tickets' });
+    throw Error(message);
+  }
+
   const locale = await getLocale();
   const noTicketsTitle = await translate('no_payment_records_title');
   const noTicketsMessage = await translate('no_payment_records_message');

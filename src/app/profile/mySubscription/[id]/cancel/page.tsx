@@ -3,6 +3,7 @@ import { getSubscriptionDetailAction } from "@/app/profile/mySubscription/action
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import React from "react";
 import { getLocale } from "@/utils/translate";
+import { sendErrorToDiscord } from "@/utils/discord.webhook";
 
 export default async function MySubscriptionCancelPage({params}: { params: Promise<{ id: string }> }) {
   const subscriptionId = (await params).id
@@ -14,7 +15,9 @@ export default async function MySubscriptionCancelPage({params}: { params: Promi
       </div>
     )
   } else {
-    throw Error()
+    const message = `GET /subscriptions/${subscriptionId} 실패: ${JSON.stringify(subscription)}`;
+    await sendErrorToDiscord(new Error(message), { pathname: '/profile/mySubscription', route: `/profile/mySubscription/${subscriptionId}/cancel` });
+    throw Error(message)
   }
 
 }
