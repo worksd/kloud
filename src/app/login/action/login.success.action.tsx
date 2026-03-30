@@ -8,11 +8,11 @@ export const loginSuccessAction = async ({accessToken, userId}: {
 }) => {
   const cookie = await cookies()
   cookie.set(accessTokenKey, accessToken, {
-    maxAge: 2592000,
+    maxAge: 15552000,
     sameSite: 'lax',
   })
   cookie.set(userIdKey, `${userId}`, {
-    maxAge: 2592000,
+    maxAge: 15552000,
     sameSite: 'lax',
   })
 }

@@ -32,11 +32,11 @@ export async function GET(req: NextRequest) {
 
   if ('user' in res) {
     response.cookies.set(accessTokenKey, res.accessToken, {
-      maxAge: 2592000,
+      maxAge: 15552000,
       sameSite: 'lax',
     })
     response.cookies.set(userIdKey, String(res.user.id), {
-      maxAge: 2592000,
+      maxAge: 15552000,
       sameSite: 'lax',
     })
   } else {
