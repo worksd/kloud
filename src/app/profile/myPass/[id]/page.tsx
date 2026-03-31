@@ -16,16 +16,6 @@ import PassPresaleIcon from "../../../../../public/assets/ic_pass_presale.svg";
 import PassRoomIcon from "../../../../../public/assets/ic_pass_room.svg";
 import React from "react";
 
-const MOCK_ENABLED = true;
-
-const mockBenefits: PassBenefit[] = [
-  { type: 'unlimited', title: '트레이닝반 전용 수업 무제한 이용', description: '트레이닝반 소속 모든 클래스를 무제한으로 수강할 수 있습니다' },
-  { type: 'free_count', title: '모든 수업 20회 무료', subtitle: '워크샵 제외', description: '워크샵을 제외한 전체 수업에 무료로 참여할 수 있습니다', remainingCount: 14, totalCount: 20 },
-  { type: 'discount', title: '모든 수업 10,000원 할인', subtitle: '워크샵 제외', description: '수업 결제 시 자동으로 10,000원이 할인됩니다' },
-  { type: 'presale', title: '사전 신청 허용', description: '일반 학생보다 먼저 수업을 신청할 수 있습니다', isAdditional: true },
-  { type: 'room', title: '연습실 이용', description: '스튜디오 연습실을 자유롭게 이용할 수 있습니다', isAdditional: true },
-  { type: 'fast_entry', title: '우선 입장', description: '수업 시작 전 우선 입장이 가능합니다', isAdditional: true, isUsedUp: true },
-];
 
 const BenefitIcon = ({ type }: { type: PassBenefitType }) => {
   switch (type) {
@@ -55,9 +45,7 @@ export default async function MyPassDetailPage({params}: {
 
     let benefits: PassBenefit[];
 
-    if (MOCK_ENABLED) {
-      benefits = mockBenefits;
-    } else if (passPlan?.benefits && passPlan.benefits.length > 0) {
+    if (passPlan?.benefits && passPlan.benefits.length > 0) {
       benefits = passPlan.benefits;
     } else {
       benefits = [];

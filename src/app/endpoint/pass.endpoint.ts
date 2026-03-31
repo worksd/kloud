@@ -29,11 +29,27 @@ export type GetPassListRequest = {
 export type PassPlanRule = {
   id: number;
   description: string;
+  target?: { type: string; value?: string | null; label?: string | null };
+  benefit?: { type: string; value?: number | null };
+  excludes?: { type: string; value?: string | null; label?: string | null }[];
 }
 
 export type PassPlanFeature = {
   key: string;
   description?: string | null;
+}
+
+export type PassBenefitType = 'unlimited' | 'free_count' | 'discount' | 'presale' | 'fast_entry' | 'room';
+
+export type PassBenefit = {
+  type: PassBenefitType;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  isAdditional?: boolean;
+  remainingCount?: number;
+  totalCount?: number;
+  isUsedUp?: boolean;
 }
 
 export type GetPassPlanResponse = {
@@ -52,6 +68,7 @@ export type GetPassPlanResponse = {
   isRecommended?: boolean,
   rules?: PassPlanRule[],
   features?: PassPlanFeature[],
+  benefits?: PassBenefit[],
 }
 
 export type GetPassPlansResponse = {
