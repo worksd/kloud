@@ -1751,6 +1751,30 @@ export const StringResource = {
     jp: '利用可能なパスがありません',
     zh: '没有可用的通行证',
   },
+  pass_benefit: {
+    ko: '이용 혜택',
+    en: 'Benefits',
+    jp: '利用特典',
+    zh: '使用优惠'
+  },
+  naver_pay: {
+    ko: '네이버페이',
+    en: 'Naver Pay',
+    jp: 'ネイバーペイ',
+    zh: 'Naver Pay'
+  },
+  kakao_pay: {
+    ko: '카카오페이',
+    en: 'Kakao Pay',
+    jp: 'カカオペイ',
+    zh: 'Kakao Pay'
+  },
+  toss_pay: {
+    ko: '토스페이',
+    en: 'Toss Pay',
+    jp: 'トスペイ',
+    zh: 'Toss Pay'
+  },
   discount_pass_benefit_prefix: {
     ko: '모든 수업에서',
     en: 'Get',
