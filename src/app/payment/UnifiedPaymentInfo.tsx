@@ -58,6 +58,21 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
   }
 }
 
+const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): number => {
+  // 최상위 price가 있으면 우선 사용, 없으면 아이템별 price
+  if (payment.price != null) return payment.price;
+  switch (type) {
+    case 'lesson':
+      return payment.lesson?.price ?? 0;
+    case 'pass-plan':
+      return payment.passPlan?.price ?? 0;
+    case 'lesson-group':
+      return payment.lessonGroup?.price ?? 0;
+    case 'membership-plan':
+      return payment.membershipPlan?.price ?? 0;
+  }
+}
+
 const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
   switch (type) {
     case 'lesson':
@@ -98,13 +113,18 @@ export const UnifiedPaymentInfo = ({
   isProxyPayment?: boolean,
   locale: Locale
 }) => {
-  // TODO: 목 해제 — 서버에서 간편결제 타입이 내려오면 아래 mock 제거
-  const mockPaymentMethods: GetPaymentMethodResponse[] = [
-    ...payment.methods,
-    { id: -903, type: 'naver_pay', name: '네이버페이' },
-    { id: -904, type: 'kakao_pay', name: '카카오페이' },
-    { id: -905, type: 'toss_pay', name: '토스페이' },
-  ];
+  // easy_pay의 providers를 개별 메서드로 풀어서 사용
+  const easyPayLabel: Record<string, string> = {
+    naver_pay: getLocaleString({ locale, key: 'naver_pay' }),
+    kakao_pay: getLocaleString({ locale, key: 'kakao_pay' }),
+    toss_pay: getLocaleString({ locale, key: 'toss_pay' }),
+  };
+  const paymentMethods: GetPaymentMethodResponse[] = payment.methods.flatMap(m => {
+    if (m.type === 'easy_pay' && m.providers && m.providers.length > 0) {
+      return m.providers.map((p, i) => ({ id: m.id * -100 - i, type: p, name: easyPayLabel[p] ?? p }));
+    }
+    return [m];
+  });
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(defaultMethod(type));
@@ -141,6 +161,7 @@ export const UnifiedPaymentInfo = ({
 
   const studio = getStudio(payment, type);
   const noPass = type === 'pass-plan' || type === 'membership-plan';
+  const itemPrice = getItemPrice(payment, type);
 
   // 쿠폰 선택 시 Pass 타입 할인 제외, 쿠폰 할인 적용
   const activeDiscounts = (() => {
@@ -158,6 +179,9 @@ export const UnifiedPaymentInfo = ({
     return payment.discounts;
   })();
 
+  const totalDiscount = (activeDiscounts ?? []).reduce((sum, d) => sum + d.amount, 0);
+  const totalPrice = Math.max(0, itemPrice - totalDiscount);
+
   return (
     <div className={"flex flex-col"}>
       {/* 대리 결제 안내 배너 */}
@@ -169,8 +193,7 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
-      {/* TODO: 목 해제 — mockPaymentMethods를 payment.methods로 원복 */}
-      {mockPaymentMethods.length > 0 && payment.totalPrice > 0 && (
+      {paymentMethods.length > 0 && itemPrice > 0 && (
         <>
           <PaymentMethodComponent
             locale={locale}
@@ -181,7 +204,7 @@ export const UnifiedPaymentInfo = ({
             selectedBillingCard={selectedBillingCard}
             selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
             selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
-            paymentOptions={mockPaymentMethods}
+            paymentOptions={paymentMethods}
             selectedMethod={selectedMethod}
             selectPaymentMethodAction={handleSelectMethod}
             depositor={depositor}
@@ -216,8 +239,8 @@ export const UnifiedPaymentInfo = ({
 
       {/* 결제 정보 */}
       <PurchaseInformation
-        originalPrice={payment.originalPrice}
-        totalPrice={payment.totalPrice}
+        originalPrice={itemPrice}
+        totalPrice={totalPrice}
         method={noPass ? undefined : selectedMethod}
         titleResource={getTitleResource(type)}
         locale={locale}
@@ -252,13 +275,12 @@ export const UnifiedPaymentInfo = ({
           selectedDiscounts={noPass ? undefined : activeDiscounts}
           type={getPaymentType(type)}
           id={getItemId(payment, type)}
-          price={payment.totalPrice}
+          price={totalPrice}
           title={getItemTitle(payment, type)}
           user={payment.user}
           depositor={depositor}
           disabled={
-            /* TODO: 목 해제 — mockPaymentMethods를 payment.methods로 원복 */
-            mockPaymentMethods.length > 0 && (
+            paymentMethods.length > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)

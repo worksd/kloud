@@ -13,6 +13,8 @@ const METHOD_LABEL: Record<PaymentMethodType, string> = {
   pass: '패스',
   billing: '카드결제',
   admin: '관리자',
+  free: '무료',
+  easy_pay: '간편결제',
   naver_pay: '네이버페이',
   kakao_pay: '카카오페이',
   toss_pay: '토스페이',
