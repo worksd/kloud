@@ -148,28 +148,71 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
-        {/* pass-plan: 기존 컴팩트 레이아웃 */}
-        {type === 'pass-plan' && (
-          <>
-            <div className="flex gap-4 w-full px-6 items-center">
-              <div className="w-[56px] h-[56px] rounded-2xl bg-[#F3F3F4] flex items-center justify-center flex-shrink-0">
-                <TicketIcon className="w-6 h-6" />
+        {/* pass-plan */}
+        {type === 'pass-plan' && res.passPlan && (
+          <div className="px-5 pt-4 pb-3">
+            {/* 이미지 */}
+            {res.passPlan.imageUrl && (
+              <div className="w-full aspect-[2/1] rounded-2xl overflow-hidden bg-[#F1F3F6] mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={res.passPlan.imageUrl} alt={title ?? ''} className="w-full h-full object-cover" />
               </div>
-              <div className="flex flex-col gap-1 min-w-0">
-                <p className="text-base font-bold text-left text-[#131517] break-words">{title}</p>
-                <div className="flex items-center gap-2">
-                  {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
-                  <span className="font-medium text-[14px] text-[#86898c]">{studioName}</span>
-                </div>
-                {res.passPlan && (
-                  <div className="text-[13px] text-[#86898C] font-medium">
-                    {res.passPlan.type === 'Unlimited' && <span>{await translate('pass_plan_unlimited_description')}</span>}
-                    {res.passPlan.type === 'Count' && <span>{(await translate('pass_plan_count_description')).replace('{{count}}', `${res.passPlan.usageLimit}`)}</span>}
-                  </div>
-                )}
-              </div>
+            )}
+
+            {/* 헤더 */}
+            <div className="flex items-center gap-2.5 mb-3">
+              {studioImageUrl && <CircleImage size={24} imageUrl={studioImageUrl} />}
+              <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
             </div>
-          </>
+            <p className="text-[20px] font-bold text-black mb-1">{title}</p>
+            {res.passPlan.expireDateStamp && (
+              <p className="text-[13px] text-[#86898C] font-medium mb-4">{res.passPlan.expireDateStamp}</p>
+            )}
+
+            {/* 이용 혜택 (rules + features) */}
+            {((res.passPlan.rules && res.passPlan.rules.length > 0) || (res.passPlan.features && res.passPlan.features.length > 0)) && (
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[14px] font-bold text-black">{await translate('pass_benefit')}</span>
+                {res.passPlan.rules?.map((rule: { id: number; description: string }) => (
+                  <div key={rule.id} className="flex items-start gap-2.5">
+                    <div className="w-5 h-5 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#555" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <span className="text-[13px] text-[#555] font-medium leading-snug">{rule.description}</span>
+                  </div>
+                ))}
+                {res.passPlan.features?.map((feature: { key: string; description?: string | null }, i: number) => {
+                  if (!feature.description) return null;
+                  const icon = feature.key === 'canPrePurchase' ? (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <rect x="1.5" y="2.5" width="9" height="7.5" rx="1" stroke="#555" strokeWidth="1.1"/>
+                      <path d="M1.5 4.5H10.5" stroke="#555" strokeWidth="1.1"/>
+                      <path d="M4 1V3" stroke="#555" strokeWidth="1.1" strokeLinecap="round"/>
+                      <path d="M8 1V3" stroke="#555" strokeWidth="1.1" strokeLinecap="round"/>
+                    </svg>
+                  ) : feature.key === 'priorityEntry' ? (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M6 1L7.5 4.1L11 4.6L8.5 7L9.1 10.5L6 8.9L2.9 10.5L3.5 7L1 4.6L4.5 4.1L6 1Z" stroke="#555" strokeWidth="1.1" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#555" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  );
+                  return (
+                    <div key={`f-${i}`} className="flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {icon}
+                      </div>
+                      <span className="text-[13px] text-[#555] font-medium leading-snug">{feature.description}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
 
         <div className="py-1">
