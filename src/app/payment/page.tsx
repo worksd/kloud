@@ -170,49 +170,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               <p className="text-[13px] text-[#86898C] font-medium mb-4">{res.passPlan.expireDateStamp}</p>
             )}
 
-            {/* 이용 혜택 (rules + features) */}
-            {((res.passPlan.rules && res.passPlan.rules.length > 0) || (res.passPlan.features && res.passPlan.features.length > 0)) && (
-              <div className="flex flex-col gap-2.5">
-                <span className="text-[14px] font-bold text-black">{await translate('pass_benefit')}</span>
-                {res.passPlan.rules?.map((rule: { id: number; description: string }) => (
-                  <div key={rule.id} className="flex items-start gap-2.5">
-                    <div className="w-5 h-5 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#555" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <span className="text-[13px] text-[#555] font-medium leading-snug">{rule.description}</span>
-                  </div>
-                ))}
-                {res.passPlan.features?.map((feature: { key: string; description?: string | null }, i: number) => {
-                  if (!feature.description) return null;
-                  const icon = feature.key === 'canPrePurchase' ? (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <rect x="1.5" y="2.5" width="9" height="7.5" rx="1" stroke="#555" strokeWidth="1.1"/>
-                      <path d="M1.5 4.5H10.5" stroke="#555" strokeWidth="1.1"/>
-                      <path d="M4 1V3" stroke="#555" strokeWidth="1.1" strokeLinecap="round"/>
-                      <path d="M8 1V3" stroke="#555" strokeWidth="1.1" strokeLinecap="round"/>
-                    </svg>
-                  ) : feature.key === 'priorityEntry' ? (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M6 1L7.5 4.1L11 4.6L8.5 7L9.1 10.5L6 8.9L2.9 10.5L3.5 7L1 4.6L4.5 4.1L6 1Z" stroke="#555" strokeWidth="1.1" strokeLinejoin="round"/>
-                    </svg>
-                  ) : (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#555" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  );
-                  return (
-                    <div key={`f-${i}`} className="flex items-start gap-2.5">
-                      <div className="w-5 h-5 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0 mt-0.5">
-                        {icon}
-                      </div>
-                      <span className="text-[13px] text-[#555] font-medium leading-snug">{feature.description}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {/* 이용 혜택 */}
+            <PassPlanBenefits passPlan={res.passPlan} />
           </div>
         )}
 

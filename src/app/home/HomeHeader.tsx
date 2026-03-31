@@ -16,7 +16,7 @@ export const HomeHeader = ({ hasStudio, children }: { hasStudio: boolean, childr
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-10 transition-all duration-200 flex flex-row items-center px-6 pt-12 pb-2"
+      className="fixed top-0 left-0 right-0 z-10 transition-all duration-200 flex flex-row items-center px-6 pt-16 pb-4"
       style={{
         backgroundColor: hasStudio
           ? (scrolled ? 'rgba(255,255,255,0.3)' : 'transparent')

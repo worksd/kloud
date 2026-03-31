@@ -2,7 +2,7 @@ import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import { PassTicketUsageHistory } from "@/app/profile/myPass/[id]/PassTicketUsageHistory";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 import { getLocale, translate } from "@/utils/translate";
-import { PassPlanTier, PassBenefit, PassBenefitType } from "@/app/endpoint/pass.endpoint";
+import { PassPlanTier, PassBenefitType, PassPlanRule, RuleTicket } from "@/app/endpoint/pass.endpoint";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
 import { DdayText } from "@/app/components/DdayText";
 import { CircleImage } from "@/app/components/CircleImage";
@@ -15,7 +15,6 @@ import PassFastIcon from "../../../../../public/assets/ic_pass_fast.svg";
 import PassPresaleIcon from "../../../../../public/assets/ic_pass_presale.svg";
 import PassRoomIcon from "../../../../../public/assets/ic_pass_room.svg";
 import React from "react";
-
 
 const BenefitIcon = ({ type }: { type: PassBenefitType }) => {
   switch (type) {
@@ -34,6 +33,39 @@ const BenefitIcon = ({ type }: { type: PassBenefitType }) => {
   }
 };
 
+const ruleBenefitToType = (benefitType?: string): PassBenefitType => {
+  switch (benefitType) {
+    case 'Unlimited': return 'unlimited';
+    case 'FreeCount': return 'free_count';
+    case 'Discount': return 'discount';
+    default: return 'unlimited';
+  }
+};
+
+const featureKeyToType: Record<string, PassBenefitType> = {
+  canPrePurchase: 'presale',
+  priorityEntry: 'fast_entry',
+  practiceRoom: 'room',
+};
+
+const TicketStatusBadge = ({ status }: { status: RuleTicket['status'] }) => {
+  switch (status) {
+    case 'Used':
+      return <span className="text-[11px] font-bold text-[#999] bg-[#F1F3F6] px-2 py-0.5 rounded-full">사용완료</span>;
+    case 'Upcoming':
+      return <span className="text-[11px] font-bold text-[#5B5FF6] bg-[#EDEDFF] px-2 py-0.5 rounded-full">예정</span>;
+    case 'Cancelled':
+      return <span className="text-[11px] font-bold text-[#E55B5B] bg-[#FFEDED] px-2 py-0.5 rounded-full">취소</span>;
+  }
+};
+
+// Mock tickets — API 준비되면 rule.tickets로 교체
+const mockTicketsForRule = (ruleId: number): RuleTicket[] => [
+  { id: ruleId * 100 + 1, title: '트릭스 힙합 클래스 초보반', date: '2026.03.28(토) 17:00', status: 'Used' },
+  { id: ruleId * 100 + 2, title: '트릭스 힙합 클래스 중급반', date: '2026.03.29(일) 18:00', status: 'Upcoming' },
+  { id: ruleId * 100 + 3, title: '주말 아침 하드 트레이닝', date: '2026.04.05(토) 09:00', status: 'Upcoming' },
+];
+
 export default async function MyPassDetailPage({params}: {
   params: Promise<{ id: number }>
 }) {
@@ -42,94 +74,104 @@ export default async function MyPassDetailPage({params}: {
 
   if ('id' in pass) {
     const passPlan = pass.passPlan;
-
-    let benefits: PassBenefit[];
-
-    if (passPlan?.benefits && passPlan.benefits.length > 0) {
-      benefits = passPlan.benefits;
-    } else {
-      benefits = [];
-      if (passPlan?.type === 'Unlimited') {
-        benefits.push({
-          type: 'unlimited',
-          title: passPlan.tag
-            ? `${passPlan.tag} 전용 수업 무제한 이용`
-            : '클래스 무제한 수강',
-        });
-      }
-      if (passPlan?.type === 'Count' && passPlan.usageLimit) {
-        benefits.push({
-          type: 'free_count',
-          title: `모든 수업 ${passPlan.usageLimit}회 이용 가능`,
-        });
-      }
-      if (passPlan?.canPreSale) {
-        benefits.push({ type: 'presale', title: '사전 신청 허용', isAdditional: true });
-      }
-      if (passPlan?.tier === PassPlanTier.Premium) {
-        benefits.push({ type: 'fast_entry', title: '우선 입장', isAdditional: true });
-      }
-    }
-
-    const mainBenefits = benefits.filter(b => !b.isAdditional);
-    const additionalBenefits = benefits.filter(b => b.isAdditional);
-
-    const BenefitRow = ({ benefit }: { benefit: PassBenefit }) => {
-      const usedUp = benefit.isUsedUp === true;
-      return (
-        <div className={`flex items-start gap-3.5 ${usedUp ? 'opacity-40' : ''}`}>
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${usedUp ? 'bg-[#E8E8E8]' : 'bg-[#F3F4F6]'}`}>
-            <BenefitIcon type={benefit.type} />
-          </div>
-          <div className="flex flex-col gap-0.5 min-w-0 pt-0.5">
-            <div className="flex items-center gap-2">
-              <span className="text-[15px] font-semibold text-black leading-snug">{benefit.title}</span>
-              {usedUp && (
-                <span className="text-[11px] font-bold text-white bg-[#BFBFBF] px-2 py-[2px] rounded-full">사용완료</span>
-              )}
-              {!usedUp && benefit.remainingCount != null && benefit.totalCount != null && (
-                <span className="text-[11px] font-bold text-[#5B5FF6] bg-[#EDEDFF] px-2 py-[2px] rounded-full">
-                  {benefit.remainingCount}/{benefit.totalCount}회 남음
-                </span>
-              )}
-            </div>
-            {benefit.description && (
-              <span className="text-[12px] text-[#999] font-medium leading-relaxed">{benefit.description}</span>
-            )}
-          </div>
-        </div>
-      );
-    };
+    const rules = passPlan?.rules && passPlan.rules.length > 0 ? passPlan.rules : [
+      {
+        id: -1,
+        description: '키즈반 전용 수업을 무제한으로 이용할 수 있습니다',
+        target: { type: 'Exclusive', value: null, label: null },
+        benefit: { type: 'Unlimited', value: null },
+        excludes: [],
+      },
+      {
+        id: -2,
+        description: '모든 수업을 20회 수강할 수 있습니다 (단, 팝핀 장르 제외)',
+        target: { type: 'All', value: null, label: null },
+        benefit: { type: 'FreeCount', value: 20 },
+        excludes: [{ type: 'Genre', value: 'Poppin', label: '팝핀' }],
+      },
+    ];
+    const features = passPlan?.features && passPlan.features.length > 0 ? passPlan.features : [
+      { key: 'canPrePurchase', description: '수업을 선예약 기간에 미리 신청할 수 있어요' },
+      { key: 'priorityEntry', description: '수업 입장시 우선적으로 입장할 수 있어요' },
+    ];
 
     const benefitsContent = (
-      <div className="flex flex-col px-6 pt-6 pb-8">
-        {/* 주요 혜택 */}
-        {mainBenefits.length > 0 && (
-          <div className="flex flex-col gap-5">
-            {mainBenefits.map((benefit, index) => (
-              <BenefitRow key={index} benefit={benefit} />
-            ))}
-          </div>
-        )}
+      <div className="flex flex-col px-6 pt-4 pb-8">
+        {/* Rules — 각 rule별 혜택 + tickets */}
+        {rules.map((rule) => {
+          const benefitType = ruleBenefitToType(rule.benefit?.type);
+          const tickets = rule.tickets ?? mockTicketsForRule(rule.id);
+          const usedCount = tickets.filter(t => t.status === 'Used').length;
 
-        {/* 부가 혜택 */}
-        {additionalBenefits.length > 0 && (
-          <>
-            <div className="flex items-center gap-4 mt-8 mb-5">
-              <div className="flex-1 h-px bg-[#EBEBEB]" />
-              <span className="text-[13px] text-[#B0B0B0] font-medium">부가 혜택</span>
-              <div className="flex-1 h-px bg-[#EBEBEB]" />
+          return (
+            <div key={rule.id} className="mb-6">
+              {/* 혜택 헤더 */}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                  <BenefitIcon type={benefitType} />
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-[15px] font-semibold text-black">{rule.description}</span>
+                  {rule.benefit?.value && (
+                    <span className="text-[12px] font-medium text-[#5B5FF6]">
+                      {usedCount}/{rule.benefit.value}회 사용
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 수강권 목록 */}
+              {tickets.length > 0 && (
+                <div className="flex flex-col gap-1.5 ml-[52px]">
+                  {tickets.map((ticket) => (
+                    <div key={ticket.id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-[#F9FAFB]">
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-[13px] font-medium text-[#333] truncate">{ticket.title}</span>
+                        <span className="text-[11px] text-[#999]">{ticket.date}</span>
+                      </div>
+                      <TicketStatusBadge status={ticket.status} />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tickets.length === 0 && (
+                <div className="ml-[52px] py-3 text-[13px] text-[#AEAEAE]">
+                  아직 사용한 수강권이 없습니다
+                </div>
+              )}
             </div>
+          );
+        })}
 
-            <div className="flex flex-col gap-5">
-              {additionalBenefits.map((benefit, index) => (
-                <BenefitRow key={index} benefit={benefit} />
-              ))}
+        {/* Features — 부가 혜택 */}
+        {features.length > 0 && (
+          <>
+            {rules.length > 0 && (
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-1 h-px bg-[#EBEBEB]" />
+                <span className="text-[12px] text-[#B0B0B0] font-medium">부가 혜택</span>
+                <div className="flex-1 h-px bg-[#EBEBEB]" />
+              </div>
+            )}
+            <div className="flex flex-col gap-3">
+              {features.map((feature, i) => {
+                if (!feature.description) return null;
+                const type = featureKeyToType[feature.key] ?? 'fast_entry';
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                      <BenefitIcon type={type} />
+                    </div>
+                    <span className="text-[14px] font-medium text-black">{feature.description}</span>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
 
-        {mainBenefits.length === 0 && additionalBenefits.length === 0 && (
+        {rules.length === 0 && features.length === 0 && (
           <div className="py-10 text-center text-[14px] text-[#AEAEAE] font-medium">
             등록된 혜택이 없습니다
           </div>
@@ -148,9 +190,7 @@ export default async function MyPassDetailPage({params}: {
         {/* 패스 정보 */}
         <div className="bg-gradient-to-b from-[#F0EDFF] via-[#F6F4FF] to-white px-6 pt-28 pb-6">
           <div className="flex items-start justify-between gap-4">
-            {/* 왼쪽: 메타 정보 */}
             <div className="flex flex-col gap-3 min-w-0">
-              {/* 스튜디오 로고 + 패스권 이름 */}
               <div className="flex items-center gap-3">
                 <CircleImage size={44} imageUrl={pass.passPlan?.studio?.profileImageUrl} />
                 <div className="flex items-center gap-2 min-w-0">
@@ -161,29 +201,27 @@ export default async function MyPassDetailPage({params}: {
                 </div>
               </div>
 
-              {/* 상태 배지 (Active 제외) */}
               {pass.status === 'Pending' && (
-                <span className="text-[12px] font-bold text-[#86898C] bg-white/60 border border-[#E0E0E0] px-3 py-[5px] rounded-full">
+                <span className="text-[12px] font-bold text-[#86898C] bg-white/60 border border-[#E0E0E0] px-3 py-[5px] rounded-full self-start">
                   입금 대기
                 </span>
               )}
               {pass.status === 'Waiting' && (
-                <span className="text-[12px] font-bold text-[#F59E0B] bg-[#FFFDF5] border border-[#F59E0B]/20 px-3 py-[5px] rounded-full">
+                <span className="text-[12px] font-bold text-[#F59E0B] bg-[#FFFDF5] border border-[#F59E0B]/20 px-3 py-[5px] rounded-full self-start">
                   시작 대기
                 </span>
               )}
               {pass.status === 'Done' && (
-                <span className="text-[12px] font-bold text-[#999] bg-white/60 border border-[#E0E0E0] px-3 py-[5px] rounded-full">
+                <span className="text-[12px] font-bold text-[#999] bg-white/60 border border-[#E0E0E0] px-3 py-[5px] rounded-full self-start">
                   사용 완료
                 </span>
               )}
               {pass.status === 'Expired' && (
-                <span className="text-[12px] font-bold text-[#999] bg-white/60 border border-[#E0E0E0] px-3 py-[5px] rounded-full">
+                <span className="text-[12px] font-bold text-[#999] bg-white/60 border border-[#E0E0E0] px-3 py-[5px] rounded-full self-start">
                   만료됨
                 </span>
               )}
 
-              {/* 만료일 */}
               {pass.endDate && (
                 <span className="text-[13px] text-[#AEAEAE] font-medium">
                   {pass.endDate} 까지
@@ -191,14 +229,12 @@ export default async function MyPassDetailPage({params}: {
               )}
             </div>
 
-            {/* 오른쪽: QR 코드 */}
             <div className="flex-shrink-0 rounded-xl overflow-hidden bg-white p-1.5 shadow-sm border border-[#E8E8E8]">
               <PassQRCode url="https://www.naver.com" />
             </div>
           </div>
         </div>
 
-        {/* Pending: 계좌이체 안내 */}
         {pass.status === 'Pending' && (
           <div className="px-4 pb-2">
             <AccountTransferComponent
@@ -210,7 +246,6 @@ export default async function MyPassDetailPage({params}: {
           </div>
         )}
 
-        {/* Waiting: 시작 대기 */}
         {pass.status === 'Waiting' && pass.startDate && (
           <div className="mx-6 mb-2 p-4 bg-[#FFFDF5] rounded-xl border border-[#F59E0B]/20">
             <div className="text-[#F59E0B] font-semibold text-sm">
@@ -219,7 +254,6 @@ export default async function MyPassDetailPage({params}: {
           </div>
         )}
 
-        {/* 탭 (혜택 / 사용 정보) */}
         <PassDetailTabs
           benefitsContent={benefitsContent}
           usageContent={usageContent}

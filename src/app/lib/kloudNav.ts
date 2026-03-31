@@ -150,6 +150,8 @@ const applyTitle = async (route: string) => {
     return await translate('service_terms_agreement')
   } else if (route == KloudScreen.ProfileEdit) {
     return await translate('edit_profile')
+  } else if (route == KloudScreen.StudioSetting) {
+    return await translate('my_ticket_studio')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
   } else if (route.startsWith('/lesson-group-tickets')) {

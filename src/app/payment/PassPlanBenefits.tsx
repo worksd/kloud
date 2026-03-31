@@ -41,33 +41,25 @@ const ruleBenefitToType = (benefitType?: string): PassBenefitType => {
 const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse): PassBenefit[] => {
   const benefits: PassBenefit[] = [];
 
-  // rules → 주요 혜택
   if (passPlan.rules) {
     for (const rule of passPlan.rules) {
-      const type = ruleBenefitToType(rule.benefit?.type);
-      const excludeLabel = rule.excludes?.map(e => e.label).filter(Boolean).join(', ');
       benefits.push({
-        type,
+        type: ruleBenefitToType(rule.benefit?.type),
         title: rule.description,
-        subtitle: excludeLabel ? `${excludeLabel} 제외` : undefined,
       });
     }
   }
 
-  // features → 부가 혜택
   if (passPlan.features) {
     for (const feature of passPlan.features) {
       if (!feature.description) continue;
-      const type = featureKeyToType[feature.key] ?? 'fast_entry';
       benefits.push({
-        type,
+        type: featureKeyToType[feature.key] ?? 'fast_entry',
         title: feature.description,
-        isAdditional: true,
       });
     }
   }
 
-  // rules/features 없으면 기존 필드에서 생성
   if (benefits.length === 0) {
     if (passPlan.type === 'Unlimited') {
       benefits.push({
@@ -82,10 +74,10 @@ const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse): PassBenefit[] => 
       });
     }
     if (passPlan.canPreSale) {
-      benefits.push({ type: 'presale', title: '사전 신청 허용', isAdditional: true });
+      benefits.push({ type: 'presale', title: '사전 신청 허용' });
     }
     if (passPlan.tier === PassPlanTier.Premium) {
-      benefits.push({ type: 'fast_entry', title: '우선 입장', isAdditional: true });
+      benefits.push({ type: 'fast_entry', title: '우선 입장' });
     }
   }
 
@@ -99,65 +91,18 @@ export const PassPlanBenefits = ({ passPlan }: { passPlan: GetPassPlanResponse }
 
   if (benefits.length === 0) return null;
 
-  const mainBenefits = benefits.filter(b => !b.isAdditional);
-  const additionalBenefits = benefits.filter(b => b.isAdditional);
-
   return (
-    <div className="flex flex-col px-6 pt-4 pb-1">
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex-1 h-px bg-[#D0D0D0]" />
-        <span className="text-[12px] text-[#888] font-semibold">패스권 혜택</span>
-        <div className="flex-1 h-px bg-[#D0D0D0]" />
-      </div>
-
-      {/* 주요 혜택 */}
-      {mainBenefits.length > 0 && (
-        <div className="flex flex-col gap-3.5">
-          {mainBenefits.map((benefit, index) => (
-            <div key={index} className="flex items-start gap-3">
-              <div className="w-11 h-11 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
-                <BenefitIcon type={benefit.type} />
-              </div>
-              <div className="flex flex-col gap-0.5 min-w-0 pt-0.5">
-                <span className="text-[14px] font-semibold text-black leading-snug">{benefit.title}</span>
-                {benefit.subtitle && (
-                  <span className="text-[11px] text-[#AEAEAE] font-medium">{benefit.subtitle}</span>
-                )}
-                {benefit.description && (
-                  <span className="text-[12px] text-[#999] font-medium leading-relaxed">{benefit.description}</span>
-                )}
-              </div>
+    <div className="flex flex-col gap-2.5">
+      {benefits.map((benefit, index) => (
+        <div key={index} className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+            <div className="w-6 h-6 rounded overflow-hidden">
+              <BenefitIcon type={benefit.type} />
             </div>
-          ))}
+          </div>
+          <span className="text-[13px] text-[#333] font-medium">{benefit.title}</span>
         </div>
-      )}
-
-      {/* 부가 혜택 */}
-      {additionalBenefits.length > 0 && (
-        <>
-          <div className="flex items-center gap-4 mt-5 mb-4">
-            <div className="flex-1 h-px bg-[#EBEBEB]" />
-            <span className="text-[12px] text-[#B0B0B0] font-medium">부가 혜택</span>
-            <div className="flex-1 h-px bg-[#EBEBEB]" />
-          </div>
-
-          <div className="flex flex-col gap-3.5">
-            {additionalBenefits.map((benefit, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
-                  <BenefitIcon type={benefit.type} />
-                </div>
-                <div className="flex flex-col gap-0.5 min-w-0 pt-0.5">
-                  <span className="text-[14px] font-semibold text-black leading-snug">{benefit.title}</span>
-                  {benefit.description && (
-                    <span className="text-[12px] text-[#999] font-medium leading-relaxed">{benefit.description}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      ))}
     </div>
   );
 };

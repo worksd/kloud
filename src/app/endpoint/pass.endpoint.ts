@@ -26,12 +26,20 @@ export type GetPassListRequest = {
   order: PassOrder
 }
 
+export type RuleTicket = {
+  id: number;
+  title: string;
+  date: string;
+  status: 'Used' | 'Upcoming' | 'Cancelled';
+}
+
 export type PassPlanRule = {
   id: number;
   description: string;
   target?: { type: string; value?: string | null; label?: string | null };
   benefit?: { type: string; value?: number | null };
   excludes?: { type: string; value?: string | null; label?: string | null }[];
+  tickets?: RuleTicket[];
 }
 
 export type PassPlanFeature = {

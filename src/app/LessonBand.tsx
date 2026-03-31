@@ -34,7 +34,7 @@ export async function LessonBand({title, lessons, type}: {
           >
             {type == 'Default' &&
               <Poster
-                width={114}
+                width={167}
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}
                 title={item.title}

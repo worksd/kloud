@@ -41,7 +41,7 @@ export default async function Home({
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
           <HomeHeader hasStudio={!!studio}>
             {studio ? (
-              <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
+              <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>
                 <div className="flex items-center gap-2.5 cursor-pointer active:opacity-70 transition-opacity">
                   <CircleImage imageUrl={studio.profileImageUrl} size={28}/>
                   <span className="text-[18px] font-medium text-black">{studio.name}</span>
@@ -54,7 +54,7 @@ export default async function Home({
               <Logo className="scale-[0.7] origin-left"/>
             )}
           </HomeHeader>
-          <div className="mt-24">
+          <div className="mt-28">
             {
               res.myStudio ? (
                   <MyStudioPage res={res.myStudio}/>
@@ -63,7 +63,7 @@ export default async function Home({
               )}
 
           </div>
-          <div className={'fixed bottom-4 right-4 z-10'}>
+          <div className={'fixed bottom-24 right-4 z-20'}>
             <PassPurchaseButton studioId={res.myStudio?.studio?.id}/>
           </div>
         </div>

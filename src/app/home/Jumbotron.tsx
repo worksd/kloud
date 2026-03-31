@@ -65,10 +65,10 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
 
       {/* 페이지 인디케이터 */}
       {items.length > 1 && (
-        <div className="absolute bottom-4 right-8 bg-black/60 rounded-xl px-2 py-1 flex items-center gap-0.5">
-          <span className="text-white text-[12px] font-medium leading-4">{current + 1}</span>
-          <span className="text-white/60 text-[12px] font-medium leading-4">|</span>
-          <span className="text-white/60 text-[12px] font-medium leading-4">{items.length}</span>
+        <div className="absolute bottom-4 right-8 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+          <span className="text-white text-[12px] font-bold font-paperlogy leading-4 tracking-wide">{current + 1}</span>
+          <span className="text-white/40 text-[10px] font-medium leading-4">/</span>
+          <span className="text-white/50 text-[12px] font-medium font-paperlogy leading-4 tracking-wide">{items.length}</span>
         </div>
       )}
     </div>
