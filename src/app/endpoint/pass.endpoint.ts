@@ -26,6 +26,16 @@ export type GetPassListRequest = {
   order: PassOrder
 }
 
+export type PassPlanRule = {
+  id: number;
+  description: string;
+}
+
+export type PassPlanFeature = {
+  key: string;
+  description?: string | null;
+}
+
 export type GetPassPlanResponse = {
   id: number
   name: string
@@ -38,6 +48,10 @@ export type GetPassPlanResponse = {
   tier: PassPlanTier,
   tag?: string,
   canPreSale?: boolean,
+  imageUrl?: string,
+  isRecommended?: boolean,
+  rules?: PassPlanRule[],
+  features?: PassPlanFeature[],
 }
 
 export type GetPassPlansResponse = {

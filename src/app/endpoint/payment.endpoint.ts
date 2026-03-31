@@ -30,19 +30,20 @@ export type CouponResponse = {
 
 export type GetPaymentResponse = {
   user: GetUserResponse;
-  totalPrice: number;
-  originalPrice: number;
+  price?: number;
   methods: GetPaymentMethodResponse[];
   cards?: GetBillingResponse[];
   lesson?: GetLessonResponse;
   lessonGroup?: {
     id: number;
     title: string;
+    price: number;
     description?: string;
     studioImageUrl?: string;
     studioName?: string;
     thumbnailUrl?: string;
     type?: string;
+    studio?: { id: number; name: string };
   };
   passPlan?: GetPassPlanResponse;
   membershipPlan?: GetMembershipPlanResponse;
@@ -65,9 +66,10 @@ export type GetPaymentMethodResponse = {
   id: number;
   type: PaymentMethodType;
   name: string;
+  providers?: PaymentMethodType[];
 }
 
-export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'naver_pay' | 'kakao_pay' | 'toss_pay'
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay'
 
 export type CreateBillingKeyPaymentRequest = {
   billingKey: string;
