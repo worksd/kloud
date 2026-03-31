@@ -28,7 +28,7 @@ export async function proxy(request: NextRequest) {
     cleanUrl.searchParams.delete('token');
     const response = NextResponse.redirect(cleanUrl);
     response.cookies.set(accessTokenKey, token, {
-      maxAge: 2592000,
+      maxAge: 15552000,
       sameSite: 'lax',
     });
     return response;

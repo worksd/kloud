@@ -1,12 +1,16 @@
 import NotificationForm from "@/app/notifications/notification.form";
 import { api } from "@/app/api.client";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
+import { handleApiError } from "@/utils/handle.api.error";
+import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
 
 export default async function NotificationPage() {
   const res = await api.notification.get({});
 
   if (!('notifications' in res)) {
-    throw Error();
+    const result = await handleApiError(res, 'GET /notifications');
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
+    return null;
   }
 
   return (

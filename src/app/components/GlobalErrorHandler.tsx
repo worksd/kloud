@@ -38,9 +38,16 @@ export function GlobalErrorHandler() {
 
     // Promise rejection 핸들러
     const handleRejection = (event: PromiseRejectionEvent) => {
+      const message = event.reason?.message || String(event.reason) || 'Unknown rejection';
+
+      // 네트워크 에러는 무시 (Safari "Load failed" 등)
+      if (message === 'Load failed' || message === 'Failed to fetch' || message === 'NetworkError when attempting to fetch resource.' || message.includes('Java exception was raised during method invocation')) {
+        return;
+      }
+
       const error = {
         name: 'UnhandledPromiseRejection',
-        message: event.reason?.message || String(event.reason) || 'Unknown rejection',
+        message,
         stack: event.reason?.stack || 'No stack trace',
       };
 

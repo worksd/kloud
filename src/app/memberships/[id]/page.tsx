@@ -4,6 +4,8 @@ import {MembershipTicketForm} from "./MembershipTicketForm";
 import {api} from "@/app/api.client";
 import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
 import {KloudScreen} from "@/shared/kloud.screen";
+import {handleApiError} from "@/utils/handle.api.error";
+import {TokenExpiredRedirect} from "@/app/components/TokenExpiredRedirect";
 
 export default async function MembershipDetailPage({params}: {
   params: Promise<{ id: number }>
@@ -14,7 +16,9 @@ export default async function MembershipDetailPage({params}: {
     const userResponse = await api.user.me({});
 
     if (!('id' in userResponse)) {
-      throw Error('User not found');
+      const result = await handleApiError(userResponse, 'GET /users/me');
+      if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
+      return null;
     }
 
     const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
@@ -37,6 +41,8 @@ export default async function MembershipDetailPage({params}: {
         </div>
     )
   } else {
-    throw Error()
+    const result = await handleApiError(membership, `GET /memberships/${(await params).id}`);
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
+    return null;
   }
 }

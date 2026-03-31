@@ -11,6 +11,7 @@ const nextConfig = {
         hostname: '*',
       }
     ],
+    qualities: [50, 60, 70, 75],
   },
   webpack: config => {
     config.module.rules.push({

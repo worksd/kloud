@@ -6,6 +6,8 @@ import MyStudioPage from "@/app/home/MyStudioPage";
 import {NoMyStudioPage} from "@/app/home/NoMyStudioPage";
 import {getHideDialogIdsAction} from "@/app/home/get.hide.dialog.ids.action";
 import EventScreen from "@/app/home/eventScreen";
+import {handleApiError} from "@/utils/handle.api.error";
+import {TokenExpiredRedirect} from "@/app/components/TokenExpiredRedirect";
 import {CircleImage} from "@/app/components/CircleImage";
 import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
 import {KloudScreen} from "@/shared/kloud.screen";
@@ -71,6 +73,7 @@ export default async function Home({
       ? <HomeAlphaBgProvider initialImage={firstThumb}>{content}</HomeAlphaBgProvider>
       : content;
   } else {
-    throw Error()
+    const result = await handleApiError(res, 'GET /home');
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
   }
 }

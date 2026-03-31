@@ -19,7 +19,7 @@ export const translate = async (key: StringResourceKey): Promise<string> => {
 export const changeLocale = async (newLocale: Locale) => {
   const cookie = await cookies();
   cookie.set(localeKey, newLocale, {
-    maxAge: 2592000,
+    maxAge: 15552000,
     sameSite: 'lax',
   })
 };
