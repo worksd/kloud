@@ -3,7 +3,8 @@ import Loading from "@/app/loading";
 import { api } from "@/app/api.client";
 import { getLocale, translate } from "@/utils/translate";
 import { TicketTabClient } from "@/app/tickets/TicketTabClient";
-import { sendErrorToDiscord } from "@/utils/discord.webhook";
+import { handleApiError } from "@/utils/handle.api.error";
+import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
 
 export default async function TicketListPage() {
   return (
@@ -20,9 +21,9 @@ async function TicketListServer() {
   ]);
 
   if (!('tickets' in ticketRes)) {
-    const message = `GET /tickets 실패: ${JSON.stringify(ticketRes)}`;
-    await sendErrorToDiscord(new Error(message), { pathname: '/tickets', route: '/tickets' });
-    throw Error(message);
+    const result = await handleApiError(ticketRes, 'GET /tickets');
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
+    return null;
   }
 
   const locale = await getLocale();

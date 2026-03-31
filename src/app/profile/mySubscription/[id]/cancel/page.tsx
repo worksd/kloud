@@ -3,7 +3,8 @@ import { getSubscriptionDetailAction } from "@/app/profile/mySubscription/action
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import React from "react";
 import { getLocale } from "@/utils/translate";
-import { sendErrorToDiscord } from "@/utils/discord.webhook";
+import { handleApiError } from "@/utils/handle.api.error";
+import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
 
 export default async function MySubscriptionCancelPage({params}: { params: Promise<{ id: string }> }) {
   const subscriptionId = (await params).id
@@ -15,9 +16,8 @@ export default async function MySubscriptionCancelPage({params}: { params: Promi
       </div>
     )
   } else {
-    const message = `GET /subscriptions/${subscriptionId} 실패: ${JSON.stringify(subscription)}`;
-    await sendErrorToDiscord(new Error(message), { pathname: '/profile/mySubscription', route: `/profile/mySubscription/${subscriptionId}/cancel` });
-    throw Error(message)
+    const result = await handleApiError(subscription, `GET /subscriptions/${subscriptionId}`);
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
   }
 
 }

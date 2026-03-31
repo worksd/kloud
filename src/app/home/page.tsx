@@ -6,7 +6,8 @@ import MyStudioPage from "@/app/home/MyStudioPage";
 import {NoMyStudioPage} from "@/app/home/NoMyStudioPage";
 import {getHideDialogIdsAction} from "@/app/home/get.hide.dialog.ids.action";
 import EventScreen from "@/app/home/eventScreen";
-import {sendErrorToDiscord} from "@/utils/discord.webhook";
+import {handleApiError} from "@/utils/handle.api.error";
+import {TokenExpiredRedirect} from "@/app/components/TokenExpiredRedirect";
 
 export default async function Home({
                                      searchParams
@@ -40,8 +41,7 @@ export default async function Home({
 
     )
   } else {
-    const message = `GET /home 실패: ${JSON.stringify(res)}`;
-    await sendErrorToDiscord(new Error(message), { pathname: '/home', route: '/home' });
-    throw Error(message)
+    const result = await handleApiError(res, 'GET /home');
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
   }
 }
