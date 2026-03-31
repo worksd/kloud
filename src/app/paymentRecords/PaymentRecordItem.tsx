@@ -82,7 +82,7 @@ export const PaymentRecordItem = ({
           <div className="flex justify-between">
             <dt className="text-gray-500">{getLocaleString({ locale, key: 'total_amount' })}</dt>
             <dd className="text-right font-semibold text-gray-900">
-              {paymentRecord.amount.toLocaleString() + getLocaleString({ locale, key: 'won' })}
+              {new Intl.NumberFormat('ko-KR').format(paymentRecord.amount) + getLocaleString({ locale, key: 'won' })}
             </dd>
           </div>
 
