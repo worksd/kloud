@@ -9,6 +9,7 @@ import { CircleImage } from "@/app/components/CircleImage";
 import { getLocale, translate } from "@/utils/translate";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
 import { BackButton } from "@/app/payment/BackButton";
+import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group';
 

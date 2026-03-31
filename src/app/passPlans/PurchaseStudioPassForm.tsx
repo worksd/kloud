@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { PassPlanItem } from "@/app/passPlans/PassPlanItem";
+import { RecommendedPassPlanItem } from "@/app/passPlans/RecommendedPassPlanItem";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -26,6 +27,10 @@ export const PurchaseStudioPassForm = ({
   locale: Locale,
 }) => {
 
+  // TODO: API에서 isRecommended 필드가 내려오면 그걸 사용. 현재는 첫 번째 패스권을 추천으로 처리
+  const recommendedPlan = passPlans.find(p => p.isRecommended) ?? passPlans[0];
+  const otherPlans = passPlans.filter(p => p.id !== recommendedPlan?.id);
+
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
 
   return (
@@ -35,15 +40,27 @@ export const PurchaseStudioPassForm = ({
         <h1 className="text-[22px] text-black font-bold leading-tight">{title}</h1>
       </div>
 
-      {/* 패스권 목록 */}
-      {passPlan && passPlans.length > 0 && (
-        <div className="flex flex-col px-6 pt-4 pb-6 gap-3">
-          {passPlans.map((item) => (
+      {/* 추천 패스권 */}
+      {recommendedPlan && (
+        <div className="px-6 pt-4">
+          <RecommendedPassPlanItem
+            item={recommendedPlan}
+            locale={locale}
+            isSelected={passPlan?.id === recommendedPlan.id}
+            onClickAction={(item) => setPassPlan(item)}
+          />
+        </div>
+      )}
+
+      {/* 나머지 패스권 목록 */}
+      {otherPlans.length > 0 && (
+        <div className="flex flex-col px-6 pt-3 pb-6 gap-3">
+          {otherPlans.map((item) => (
             <PassPlanItem
               key={item.id}
               item={item}
               locale={locale}
-              isSelected={passPlan ? passPlan.id === item.id : passPlans.find(p => p.isPopular)?.id === item.id}
+              isSelected={passPlan ? passPlan.id === item.id : false}
               onClickAction={(item: GetPassPlanResponse) => {
                 setPassPlan(item)
               }}/>
