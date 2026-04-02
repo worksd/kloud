@@ -18,7 +18,7 @@ type Step = 'phone' | 'select' | 'confirm' | 'name';
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
 
 const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
-    <div className="grid grid-cols-3 gap-[8px] w-full max-w-[400px]">
+    <div className="grid grid-cols-3 gap-[8px] w-full max-w-[480px]">
       {KEYPAD_KEYS.map((key, i) => (
           <button
               key={i}
@@ -26,7 +26,7 @@ const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
               className="h-[64px] rounded-[12px] bg-gray-100 text-[24px] font-medium text-black flex items-center justify-center active:bg-gray-200 transition-colors select-none"
           >
             {key === 'delete' ? (
-                <svg width="44" height="28" viewBox="0 0 24 24" fill="none">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                   <path d="M9 3H20a1 1 0 011 1v16a1 1 0 01-1 1H9l-7-9 7-9z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M16 9l-4 6M12 9l4 6" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
@@ -172,21 +172,22 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                 {t('kiosk_phone_desc')}
               </p>
 
-              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
+              <div className="w-full max-w-[480px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center mb-[12px] relative">
+                {/* 나라코드 */}
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
-                    className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[8px] text-[20px] font-medium text-black"
+                    className="h-full px-[16px] flex items-center gap-[6px] border-r-2 border-gray-200 shrink-0"
                 >
-                  <span className="text-[24px] leading-none">{COUNTRIES.find((c) => c.dial === countryCode)?.flag}</span>
-                  <span>+{countryCode}</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <span className="text-[22px] leading-none">{COUNTRIES.find((c) => c.dial === countryCode)?.flag}</span>
+                  <span className="text-[18px] font-medium text-black">+{countryCode}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
                 {showCountryPicker && (
                     <>
                       <div className="fixed inset-0 z-[9]" onClick={() => setShowCountryPicker(false)}/>
-                      <div className="absolute top-[52px] left-1/2 -translate-x-1/2 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
+                      <div className="absolute top-[76px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
                         {COUNTRIES.map((c) => (
                             <button
                                 key={c.key}
@@ -204,12 +205,12 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                       </div>
                     </>
                 )}
-              </div>
-
-              <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
-                <p className="text-[32px] font-medium tracking-[2px] text-black">
-                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">010-0000-0000</span>}
-                </p>
+                {/* 전화번호 */}
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-[24px] font-medium tracking-[2px] text-black">
+                    {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">010-0000-0000</span>}
+                  </p>
+                </div>
               </div>
 
               {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
@@ -217,9 +218,9 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
               <Keypad onPress={handleKeyPress}/>
 
               <button
-                  onClick={handleSearch}
+                  onPointerDown={() => { if (!loading && phone.length >= 10) handleSearch(); }}
                   disabled={loading || phone.length < 10}
-                  className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
+                  className="w-full max-w-[480px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px] select-none"
               >
                 {loading ? t('kiosk_checking') : t('kiosk_confirm')}
               </button>
@@ -392,7 +393,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                     }
                   }}
                   className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
-            <BackArrowIcon className="w-full h-full"/>
+            <BackArrowIcon className="w-6 h-6"/>
           </button>
           <p className="absolute left-1/2 -translate-x-1/2 text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
           <p className="ml-auto text-gray-500 text-[16px] tracking-[-0.48px]">
