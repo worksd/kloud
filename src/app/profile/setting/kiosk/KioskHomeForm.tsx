@@ -27,12 +27,14 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, onSelectPaymen
 
   return (
       <div className="bg-white w-full h-screen flex flex-col overflow-hidden relative">
-        {/* 키오스크 이미지 */}
-        {kioskImageUrl && (
-            <div className="flex-1 min-h-0">
+        {/* 키오스크 이미지 또는 빈 공간 */}
+        <div className="flex-1 min-h-0">
+          {kioskImageUrl ? (
               <img src={kioskImageUrl} alt="" className="w-full h-full object-cover"/>
-            </div>
-        )}
+          ) : (
+              <div className="w-full h-full bg-[#F5F6F8]" />
+          )}
+        </div>
 
         {/* 하단 영역 */}
         <div className="shrink-0 px-[40px] pt-[24px] pb-[32px] flex flex-col gap-[16px]">
