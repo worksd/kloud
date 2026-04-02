@@ -25,7 +25,7 @@ export async function LessonBand({title, lessons, type}: {
 
   return (
     <div className="flex flex-col mb-2">
-      <h2 className="text-[18px] text-black font-medium pt-5 pb-2 px-6">{title}</h2>
+      <h2 className="text-[18px] text-black font-bold pt-5 pb-2 px-6">{title}</h2>
       <div className="flex overflow-x-auto scrollbar-hide gap-2">
         {lessons.map((item: GetBandLessonResponse, index: number) => (
           <div
