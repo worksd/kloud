@@ -1,7 +1,6 @@
 'use client';
 
 import React, {useState} from 'react';
-import Logo from '../../../../../public/assets/logo_black.svg';
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 
@@ -28,54 +27,53 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, onSelectPaymen
 
   return (
       <div className="bg-white w-full h-screen flex flex-col overflow-hidden relative">
-        {/* 상단 바: 로고 + 언어 선택 */}
-        <div className="absolute top-[24px] left-[40px] right-[40px] z-10 flex items-center justify-between">
-          {/* 언어 드롭다운 */}
-          <div className="relative">
-            <button
-                onClick={() => setShowLocalePicker((v) => !v)}
-                className="h-[40px] px-[14px] rounded-[12px] bg-white/90 border border-gray-200 flex items-center gap-[8px] shadow-sm"
-            >
-              <span className="text-[20px]">{currentLocale.flag}</span>
-              <span className="text-[14px] font-medium text-black">{currentLocale.label}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            {showLocalePicker && (
-                <div className="absolute top-[46px] left-0 bg-white border border-gray-200 rounded-[12px] shadow-lg z-20 overflow-hidden min-w-[140px]">
-                  {KIOSK_LOCALES.map((l) => (
-                      <button
-                          key={l.code}
-                          onClick={() => {
-                            onChangeLocale(l.code);
-                            setShowLocalePicker(false);
-                          }}
-                          className={`w-full px-[14px] py-[12px] flex items-center gap-[10px] text-left hover:bg-gray-50 active:bg-gray-100 ${l.code === locale ? 'bg-gray-50 font-bold' : ''}`}
-                      >
-                        <span className="text-[20px]">{l.flag}</span>
-                        <span className="text-[14px] text-black">{l.label}</span>
-                      </button>
-                  ))}
-                </div>
-            )}
-          </div>
-          <Logo/>
-        </div>
-
-        {/* 키오스크 이미지 */}
-        {kioskImageUrl && (
-            <div className="flex-1 min-h-0">
+        {/* 키오스크 이미지 또는 빈 공간 */}
+        <div className="flex-1 min-h-0">
+          {kioskImageUrl ? (
               <img src={kioskImageUrl} alt="" className="w-full h-full object-cover"/>
-            </div>
-        )}
+          ) : (
+              <div className="w-full h-full bg-[#F5F6F8]" />
+          )}
+        </div>
 
         {/* 하단 영역 */}
         <div className="shrink-0 px-[40px] pt-[24px] pb-[32px] flex flex-col gap-[16px]">
-          <div className="px-[8px]">
+          {/* 인사말 + 언어 선택 */}
+          <div className="flex items-start justify-between px-[8px]">
             <p className="text-black text-[28px] font-bold leading-[1.4]">
               {t('kiosk_greeting').replace('{0}', studioName)}
             </p>
+
+            {/* 언어 드롭다운 */}
+            <div className="relative flex-shrink-0 ml-3">
+              <button
+                  onClick={() => setShowLocalePicker((v) => !v)}
+                  className="h-[40px] px-[14px] rounded-[12px] bg-white border border-gray-200 flex items-center gap-[8px] shadow-sm"
+              >
+                <span className="text-[20px]">{currentLocale.flag}</span>
+                <span className="text-[14px] font-medium text-black">{currentLocale.label}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {showLocalePicker && (
+                  <div className="absolute bottom-[46px] right-0 bg-white border border-gray-200 rounded-[12px] shadow-lg z-20 overflow-hidden min-w-[140px]">
+                    {KIOSK_LOCALES.map((l) => (
+                        <button
+                            key={l.code}
+                            onClick={() => {
+                              onChangeLocale(l.code);
+                              setShowLocalePicker(false);
+                            }}
+                            className={`w-full px-[14px] py-[12px] flex items-center gap-[10px] text-left hover:bg-gray-50 active:bg-gray-100 ${l.code === locale ? 'bg-gray-50 font-bold' : ''}`}
+                        >
+                          <span className="text-[20px]">{l.flag}</span>
+                          <span className="text-[14px] text-black">{l.label}</span>
+                        </button>
+                    ))}
+                  </div>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-[12px]">

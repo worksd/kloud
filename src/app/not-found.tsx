@@ -1,9 +1,28 @@
 'use client'
 
+import { useEffect } from "react";
 import Logo from "../../public/assets/logo_black.svg"
 import { kloudNav } from "@/app/lib/kloudNav";
 
 export default function NotFound() {
+  useEffect(() => {
+    fetch('/api/error-webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: { name: 'NotFound', message: `404: ${window.location.pathname}` },
+        context: {
+          pathname: window.location.pathname,
+          route: window.location.pathname + window.location.search,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          statusCode: 404,
+          env: process.env.NEXT_PUBLIC_ENV ?? 'unknown',
+        },
+      }),
+    }).catch(console.error);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
       {/* 404 아이콘 */}

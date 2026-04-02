@@ -33,6 +33,7 @@ export default function Error({ error, reset }: ErrorProps) {
               timestamp: new Date().toISOString(),
               statusCode: error.digest ? parseInt(error.digest) : undefined,
               digest: error.digest,
+              env: process.env.NEXT_PUBLIC_ENV ?? 'unknown',
             },
           }),
         });

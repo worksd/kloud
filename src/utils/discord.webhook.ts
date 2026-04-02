@@ -11,9 +11,10 @@ export async function sendErrorToDiscord(error: Error, context?: {
   lineno?: number;
   colno?: number;
   digest?: string;
+  env?: string;
 }) {
   const DISCORD_WEBHOOK_URL = process.env.NEXT_PUBLIC_DISCORD_ERROR_WEB_HOOK;
-  
+
   if (!DISCORD_WEBHOOK_URL) {
     console.warn('Discord webhook URL not configured');
     return;
@@ -27,12 +28,18 @@ export async function sendErrorToDiscord(error: Error, context?: {
   const userAgent = context?.userAgent || '알 수 없음';
   const statusCode = context?.statusCode;
   const timestamp = context?.timestamp || new Date().toISOString();
+  const env = context?.env || process.env.NEXT_PUBLIC_ENV || 'unknown';
 
   // 스택 트레이스가 너무 길면 자르기
   const truncatedStack = stack.length > 1000 ? `${stack.slice(0, 1000)}\n... (truncated)` : stack;
   const truncatedMessage = errorMessage.length > 1000 ? `${errorMessage.slice(0, 1000)}... (truncated)` : errorMessage;
 
   const fields = [
+    {
+      name: '환경',
+      value: `\`${env}\``,
+      inline: true,
+    },
     {
       name: '에러 메시지',
       value: `\`\`\`\n${truncatedMessage}\n\`\`\``,
@@ -88,8 +95,7 @@ export async function sendErrorToDiscord(error: Error, context?: {
   );
 
   const discordPayload = {
-    username: 'Kloud Error Bot',
-    content: '웹에서 에러가 발생했습니다.',
+    username: '로우그래피 앱 에러',
     embeds: [
       {
         title: `🚨 웹 에러 발생 - ${errorName}`,

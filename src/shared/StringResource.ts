@@ -2599,7 +2599,7 @@ export const StringResource = {
   kiosk_visit_desc: { ko: '회원은 방문 기록을 남길 수 있어요', en: 'Members can record their visit', jp: '会員は訪問記録を残せます', zh: '会员可以留下访问记录' },
   kiosk_visit_tag: { ko: '수강생', en: 'Members', jp: '受講生', zh: '学员' },
   kiosk_phone_title: { ko: '휴대폰 번호를 입력해주세요', en: 'Enter your phone number', jp: '電話番号を入力してください', zh: '请输入手机号码' },
-  kiosk_phone_desc: { ko: '등록된 번호로 회원 확인을 진행합니다', en: 'We will verify your membership', jp: '登録番号で会員確認を行います', zh: '将通过注册号码确认会员信息' },
+  kiosk_phone_desc: { ko: '등록된 번호로 수강생 확인을 진행합니다', en: 'We will verify your enrollment with your registered number', jp: '登録番号で受講生確認を行います', zh: '将通过注册号码确认学员信息' },
   kiosk_phone_verify: { ko: '본인 확인', en: 'Verify Identity', jp: '本人確認', zh: '身份验证' },
   kiosk_phone_error: { ko: '휴대폰 번호를 정확히 입력해주세요', en: 'Please enter a valid phone number', jp: '正しい電話番号を入力してください', zh: '请正确输入手机号码' },
   kiosk_search_failed: { ko: '검색에 실패했습니다. 다시 시도해주세요.', en: 'Search failed. Please try again.', jp: '検索に失敗しました。', zh: '搜索失败，请重试。' },

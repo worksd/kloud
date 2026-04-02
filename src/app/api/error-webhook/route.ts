@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       lineno: context?.lineno,
       colno: context?.colno,
       digest: error.digest || context?.digest,
+      env: context?.env,
     });
 
     return NextResponse.json({ success: true }, { status: 200 });

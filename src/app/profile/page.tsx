@@ -1,6 +1,8 @@
 import { api } from "@/app/api.client";
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
+import { handleApiError } from "@/utils/handle.api.error";
+import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
 import SettingIcon from "../../../public/assets/ic_setting.svg";
 import EditIcon from "../../../public/assets/ic_edit.svg";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
@@ -18,8 +20,13 @@ export default async function SettingPage({
   const os = (await searchParams).os
   const user = await api.user.me({})
 
-  if ('id' in user) {
-    const upcoming = user.upcomingLesson;
+  if (!('id' in user)) {
+    const result = await handleApiError(user, 'GET /users/me');
+    if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
+    return null;
+  }
+
+  const upcoming = user.upcomingLesson;
 
     return (
       <div className="flex flex-col min-h-screen bg-white py-8 w-full max-w-screen overflow-x-hidden">
@@ -150,7 +157,6 @@ export default async function SettingPage({
         </section>
       </div>
     );
-  }
 };
 
 const has = (s?: string | null) => !!s && s.trim().length > 0;

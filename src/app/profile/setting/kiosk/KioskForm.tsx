@@ -62,7 +62,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   };
 
   return (
-      <div className="w-full h-screen overflow-hidden">
+      <div className={`w-full h-screen overflow-hidden ${currentScreen !== 'home' ? 'pt-6' : ''}`}>
         {currentScreen === 'home' && (
             <KioskHomeForm
                 studioName={studioName}

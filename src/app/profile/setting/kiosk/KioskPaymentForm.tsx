@@ -201,15 +201,17 @@ export const KioskPaymentForm = ({studioName, lessons, userId, userName, onBack,
   // step === 'confirm'
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        <div className="h-[70px] px-[48px] flex items-center justify-between shrink-0 border-b border-gray-100">
+        <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
           <button onClick={onBack}
-                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
-            <BackArrowIcon className="w-full h-full"/>
+                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10">
+            <BackArrowIcon className="w-6 h-6"/>
           </button>
-          <p className="text-black text-[20px] font-bold">{t('kiosk_payment_confirm')}</p>
-          <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
-            {studioName}
-          </p>
+          <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">{t('kiosk_payment_confirm')}</p>
+          <div className="ml-auto z-10">
+            <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
+              {studioName}
+            </p>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">

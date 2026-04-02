@@ -88,6 +88,7 @@ export const SignupForm = (props: SignUpFormProps) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
+    window.onDialogConfirm = async () => {};
   }, []);
 
 
