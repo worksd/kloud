@@ -6,9 +6,22 @@ export function GlobalErrorHandler() {
   useEffect(() => {
     // 전역 에러 핸들러
     const handleError = (event: ErrorEvent) => {
+      const msg = event.message || 'Unknown error';
+
+      // 네이티브 콜백 미등록 에러 무시
+      if (msg.includes('is not defined') && (
+        msg.includes('onDialogConfirm') ||
+        msg.includes('onReload') ||
+        msg.includes('onPaymentSuccess') ||
+        msg.includes('onErrorInvoked') ||
+        msg.includes('onFcmToken')
+      )) {
+        return;
+      }
+
       const error = {
         name: 'UnhandledError',
-        message: event.message || 'Unknown error',
+        message: msg,
         stack: event.error?.stack || 'No stack trace',
         filename: event.filename,
         lineno: event.lineno,
