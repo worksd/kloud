@@ -3,44 +3,33 @@
 import React from "react";
 import Image from "next/image";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { HomeBannerResponse } from "@/app/endpoint/studio.endpoint";
 
-type BannerItem = {
-  title: string;
-  linkText: string;
-  route: string;
-  imageUrl?: string;
-}
+export const HomeBanner = ({ banners }: { banners: HomeBannerResponse[] }) => {
+  if (banners.length === 0) return null;
 
-export const HomeBanner = ({ banner }: { banner: BannerItem }) => {
   return (
-    <div
-      className="mx-5 my-2 rounded-xl overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform"
-      style={{ backgroundColor: '#BBE8ED', height: '80px' }}
-      onClick={() => kloudNav.push(banner.route)}
-    >
-      {/* 텍스트 */}
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 z-10">
-        <span className="text-[14px] font-medium text-black">{banner.title}</span>
-        <span className="text-[12px] font-medium text-black/60 flex items-center gap-0.5">
-          {banner.linkText}
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </span>
-      </div>
-
-      {/* 오른쪽 이미지 */}
-      {banner.imageUrl && (
-        <div className="absolute right-0 bottom-0 w-[118px] h-[110px]">
+    <div className="flex overflow-x-auto scrollbar-hide gap-2 px-5 py-2 snap-x snap-mandatory">
+      {banners.map((banner) => (
+        <div
+          key={banner.id}
+          className="flex-shrink-0 snap-center rounded-xl overflow-hidden cursor-pointer active:scale-[0.98] transition-transform relative"
+          style={{ width: banners.length === 1 ? '100%' : 'calc(100vw - 52px)', height: '96px' }}
+          onClick={() => kloudNav.push(banner.route)}
+        >
           <Image
             src={banner.imageUrl}
-            alt=""
-            width={118}
-            height={110}
+            alt={banner.description}
+            fill
             className="object-cover"
           />
+          {banner.description && (
+            <div className="absolute inset-0 bg-black/20 flex items-end px-4 pb-3">
+              <span className="text-white text-[14px] font-bold drop-shadow">{banner.description}</span>
+            </div>
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 };
