@@ -30,9 +30,9 @@ export default async function Home({
   const hasFcmToken = !!(await cookies()).get(fcmTokenKey)?.value
   if ('studios' in res) {
     const studio = res.myStudio?.studio;
-    const firstThumb = res.myStudio?.bands
-      ?.flatMap(b => b.lessons)
-      ?.find(l => l.thumbnailUrl)?.thumbnailUrl ?? '';
+    const firstThumb = res.myStudio?.jumbotrons?.[0]?.thumbnailUrl
+      ?? res.myStudio?.bands?.flatMap(b => b.lessons)?.find(l => l.thumbnailUrl)?.thumbnailUrl
+      ?? '';
 
     const content = (
         <div>
@@ -44,7 +44,7 @@ export default async function Home({
               <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>
                 <div className="flex items-center gap-2.5 cursor-pointer active:opacity-70 transition-opacity">
                   <CircleImage imageUrl={studio.profileImageUrl} size={28}/>
-                  <span className="text-[18px] font-medium text-black">{studio.name}</span>
+                  <span className="text-[18px] font-bold text-black">{studio.name}</span>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M6 4L10 8L6 12" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>

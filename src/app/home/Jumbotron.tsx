@@ -7,6 +7,9 @@ import { useAlphaBg } from "@/app/home/HomeAlphaBg";
 type JumbotronItem = {
   id: number;
   imageUrl: string;
+  title?: string;
+  artistName?: string;
+  artistImageUrl?: string;
 }
 
 export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
@@ -45,7 +48,7 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
           <div
             key={item.id}
             data-card
-            className="flex-shrink-0 snap-center rounded-xl overflow-hidden bg-[#F1F3F6]"
+            className="relative flex-shrink-0 snap-center rounded-xl overflow-hidden bg-[#F1F3F6]"
             style={{ width: 'calc(100vw - 52px)', maxWidth: '338px', aspectRatio: '350/457' }}
           >
             {item.imageUrl ? (
@@ -58,6 +61,32 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
               />
             ) : (
               <div className="w-full h-full bg-[#F1F3F6]" />
+            )}
+
+            {/* 하단 dim gradient + 수업/강사 정보 */}
+            {(item.title || item.artistName) && (
+              <>
+                <div className="absolute inset-x-0 bottom-0 h-[140px] bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 px-4 pb-4 flex flex-col gap-1.5">
+                  {item.title && (
+                    <span className="text-white text-[16px] font-bold leading-snug line-clamp-2">{item.title}</span>
+                  )}
+                  {item.artistName && (
+                    <div className="flex items-center gap-2">
+                      {item.artistImageUrl && (
+                        <Image
+                          src={item.artistImageUrl}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="w-5 h-5 rounded-full object-cover"
+                        />
+                      )}
+                      <span className="text-white/70 text-[13px] font-medium">{item.artistName}</span>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         ))}
