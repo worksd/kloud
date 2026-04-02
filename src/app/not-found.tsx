@@ -17,6 +17,7 @@ export default function NotFound() {
           userAgent: navigator.userAgent,
           timestamp: new Date().toISOString(),
           statusCode: 404,
+          env: process.env.NEXT_PUBLIC_ENV ?? 'unknown',
         },
       }),
     }).catch(console.error);
