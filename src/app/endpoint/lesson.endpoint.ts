@@ -98,6 +98,7 @@ export type GetBandLessonResponse = {
     startDate?: string; // yyyy-MM-dd HH:mm 형식
     startTime?: string; // HH:mm 형식
     artist?: GetArtistResponse;
+    artists?: GetArtistResponse[];
 }
 
 export type GetLabelResponse = {

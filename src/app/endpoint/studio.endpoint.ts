@@ -60,13 +60,19 @@ export type YoutubeContentResponse = {
   publishedAt: string;
 };
 
+export type HomeBannerResponse = {
+  id: number;
+  imageUrl: string;
+  description: string;
+  route: string;
+}
+
 export type GetMyStudioResponse = {
   studio: GetStudioResponse;
   announcement: GetAnnouncementResponse;
-  passes: GetPassResponse[];
-  day: string;
   bands: GetBandResponse[];
-  myTodayTicket?: TicketResponse;
+  jumbotrons?: GetBandLessonResponse[];
+  banners?: HomeBannerResponse[];
   membership?: GetMembershipResponse;
 }
 
