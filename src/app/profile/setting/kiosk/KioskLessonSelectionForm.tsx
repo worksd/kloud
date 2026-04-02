@@ -43,20 +43,11 @@ const formatLessonTime = (lesson: GetLessonResponse): string | null => {
   if (lesson.startDate) {
     const timePart = lesson.startDate.split(' ')[1]; // "HH:mm"
     if (timePart) {
-      const start = toAmPm(timePart);
-      if (lesson.duration) {
-        const [h, m] = timePart.split(':').map(Number);
-        const endMinutes = h * 60 + m + lesson.duration;
-        const endH = Math.floor(endMinutes / 60) % 24;
-        const endM = endMinutes % 60;
-        const end = toAmPm(`${endH}:${String(endM).padStart(2, '0')}`);
-        return `${start} - ${end}`;
-      }
-      return start;
+      return toAmPm(timePart);
     }
   }
   if (lesson.formattedDate) {
-    return `${toAmPm(lesson.formattedDate.startTime)} - ${toAmPm(lesson.formattedDate.endTime)}`;
+    return toAmPm(lesson.formattedDate.startTime);
   }
   return null;
 };
@@ -181,13 +172,13 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
         {/* 헤더 */}
-        <div className="h-[70px] px-[32px] flex items-center justify-between shrink-0 border-b border-gray-100">
+        <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
           <button onClick={onBack}
-                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
-            <BackArrowIcon className="w-full h-full"/>
+                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10">
+            <BackArrowIcon className="w-6 h-6"/>
           </button>
-          <p className="text-black text-[20px] font-bold">{t('kiosk_lesson_selection')}</p>
-          <div className="flex items-center gap-[8px]">
+          <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">{t('kiosk_lesson_selection')}</p>
+          <div className="ml-auto flex items-center gap-[8px] z-10">
             <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
               {studioName}
             </p>
@@ -282,7 +273,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                     <p className="text-gray-400 text-[18px]">{t('kiosk_no_lessons')}</p>
                   </div>
               ) : (
-                  <div className="grid grid-cols-5 gap-[16px]">
+                  <div className="grid grid-cols-3 gap-[16px]">
                     {filteredLessons.map((lesson) => {
                       const isSelected = selectedLessons.find((l) => l.id === lesson.id);
                       const isRecruiting = lesson.status === LessonStatus.Recruiting;
@@ -292,9 +283,9 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                           <div
                               key={lesson.id}
                               onClick={() => handleLessonToggle(lesson)}
-                              className={`flex flex-col rounded-[16px] cursor-pointer transition-all overflow-hidden
+                              className={`flex flex-col cursor-pointer transition-all overflow-hidden rounded-[20px]
                                 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-                                ${isSelected ? 'ring-2 ring-black bg-gray-50' : 'hover:bg-gray-50'}`}
+                                ${isSelected ? 'border-[3px] border-black p-[3px]' : 'hover:bg-gray-50'}`}
                           >
                             {/* 세로 썸네일 */}
                             <div className="w-full aspect-[3/4] rounded-[16px] overflow-hidden relative">
@@ -306,8 +297,10 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
                                   </div>
                               )}
                               {isSelected && (
-                                  <div className="absolute top-[8px] right-[8px] w-[28px] h-[28px] bg-black rounded-full flex items-center justify-center">
-                                    <span className="text-white text-[14px]">✓</span>
+                                  <div className="absolute top-[8px] right-[8px] w-[28px] h-[28px] bg-white rounded-full flex items-center justify-center shadow">
+                                    <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+                                      <path d="M1 5.5L5 9.5L13 1.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
                                   </div>
                               )}
                               {isDisabled && (
@@ -340,7 +333,7 @@ export const KioskLessonSelectionForm = ({studioName, onBack, onSelectLessons, s
 
         {/* 하단 계산내역 패널 */}
         {selectedLessons.length > 0 && (
-            <div className="px-[32px] py-[20px] shrink-0 border-t border-gray-200 bg-white flex gap-[24px]">
+            <div className="px-[32px] pt-[20px] pb-[32px] shrink-0 border-t border-gray-200 bg-white flex gap-[24px]">
               {/* 계산내역 */}
               <div className="flex-1 flex flex-col gap-[8px] overflow-y-auto max-h-[180px]">
                 {selectedLessons.map((lesson) => (
