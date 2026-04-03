@@ -3,6 +3,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { useAlphaBg } from "@/app/home/HomeAlphaBg";
+import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 type JumbotronItem = {
   id: number;
@@ -48,8 +50,9 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
           <div
             key={item.id}
             data-card
-            className="relative flex-shrink-0 snap-center rounded-xl overflow-hidden bg-[#F1F3F6]"
+            className="relative flex-shrink-0 snap-center rounded-xl overflow-hidden bg-[#F1F3F6] cursor-pointer active:scale-[0.98] transition-transform"
             style={{ width: 'calc(100vw - 52px)', maxWidth: '338px', aspectRatio: '350/457' }}
+            onClick={() => kloudNav.push(KloudScreen.LessonDetail(item.id))}
           >
             {item.imageUrl ? (
               <Image
