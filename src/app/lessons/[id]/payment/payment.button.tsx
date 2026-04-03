@@ -160,7 +160,7 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay') {
+    if (method === 'credit' || method === 'foreign_card' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay') {
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
@@ -186,7 +186,7 @@ export default function PaymentButton({
         userName: user.name ?? user.nickName ?? undefined,
         userPhone: user.phone ?? undefined,
         userBirth: user.birth ?? undefined,
-        locale: locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
+        locale: method === 'foreign_card' ? 'EN_US' : locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
       };
 
       if (appVersion === '') {
