@@ -33,6 +33,34 @@ export type RuleTicket = {
   status: 'Used' | 'Upcoming' | 'Cancelled';
 }
 
+export type PassRuleTicket = {
+  id: number;
+  status: string;
+  paymentId: string;
+  createdAt: string;
+  lesson?: {
+    id: number;
+    title: string;
+    startDate?: string;
+    endDate?: string;
+  };
+}
+
+export type PassRuleResponse = {
+  id: number;
+  status: string;
+  startDate: string;
+  endDate: string;
+  remainingCount?: number | null;
+  usageCount: number;
+  targetType: string;
+  targetValue?: string | null;
+  targetLabel?: string | null;
+  benefitType: string;
+  benefitValue?: number | null;
+  tickets: PassRuleTicket[];
+}
+
 export type PassPlanRule = {
   id: number;
   description: string;
@@ -94,9 +122,11 @@ export type GetPassResponse = {
   passPlan: GetPassPlanResponse
   paymentRecord?: SimplePaymentRecordResponse
   tickets?: TicketResponse[]
+  passRules?: PassRuleResponse[]
   remainingCount?: number
   usable: boolean
   reason?: string
+  qrcodeUrl?: string
 }
 
 export type GetPassesResponse = {
