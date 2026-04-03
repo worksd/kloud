@@ -103,7 +103,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
   };
 
   const handleSearch = async () => {
-    if (phone.length < 10) {
+    if (phone.length < 5) {
       setError(t('kiosk_phone_error'));
       return;
     }
@@ -218,8 +218,8 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
               <Keypad onPress={handleKeyPress}/>
 
               <button
-                  onPointerDown={() => { if (!loading && phone.length >= 10) handleSearch(); }}
-                  disabled={loading || phone.length < 10}
+                  onPointerDown={() => { if (!loading && phone.length >= 5) handleSearch(); }}
+                  disabled={loading || phone.length < 5}
                   className="w-full max-w-[480px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px] select-none"
               >
                 {loading ? t('kiosk_checking') : t('kiosk_confirm')}
