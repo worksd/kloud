@@ -180,16 +180,8 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
 
   return (
     <div className="flex flex-col bg-white min-h-screen">
-      {/* 헤더 + 주간 선택기 (sticky) */}
+      {/* 주간 선택기 (sticky) */}
       <div ref={stickyRef} className="sticky top-0 z-10 bg-white">
-        <div className="flex items-center gap-2.5 px-6 pt-4 pb-2">
-          {studioImageUrl && (
-            <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
-              <Image src={studioImageUrl} alt="" width={28} height={28} className="object-cover w-full h-full" />
-            </div>
-          )}
-          <span className="text-[22px] font-medium text-black">캘린더</span>
-        </div>
         {/* 주차 타이틀 + 좌우 이동 */}
         <div className="flex items-center justify-between px-6 py-2">
           <button

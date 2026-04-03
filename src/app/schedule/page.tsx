@@ -2,6 +2,7 @@ import React from "react";
 import { NoMyStudioPage } from "@/app/home/NoMyStudioPage";
 import { getHomeAction } from "@/app/home/get.home.action";
 import { ScheduleTabView } from "@/app/schedule/ScheduleTabView";
+import { SchedulePageClient } from "@/app/schedule/SchedulePageClient";
 
 export default async function SchedulePage() {
   const res = await getHomeAction();
@@ -21,7 +22,7 @@ export default async function SchedulePage() {
   const toDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(d.getDate() + n); return r; };
 
-  const mockLessons = [
+  const lessons = [
     { id: 1001, title: '트릭스 힙합 클래스 초보반', thumbnailUrl: '', startTime: '17:00', endTime: '18:00', room: 'A홀', date: toDateStr(addDays(today, 0)) },
     { id: 1002, title: '주말 아침 하드 트레이닝', thumbnailUrl: '', startTime: '09:00', endTime: '10:30', room: 'B홀', date: toDateStr(addDays(today, 0)) },
     { id: 1003, title: '이혁재 고급 House', thumbnailUrl: '', startTime: '19:00', endTime: '20:30', room: 'A홀', date: toDateStr(addDays(today, 0)) },
@@ -36,13 +37,13 @@ export default async function SchedulePage() {
     { id: 1012, title: '주말 프리스타일 잼', thumbnailUrl: '', startTime: '14:00', endTime: '16:00', room: 'A홀', date: toDateStr(addDays(today, 6)) },
   ];
 
-  const lessons = mockLessons;
-
   return (
-    <ScheduleTabView
-      lessons={lessons}
-      studioName={res.myStudio.studio.name}
-      studioImageUrl={res.myStudio.studio.profileImageUrl}
-    />
+    <SchedulePageClient studioImageUrl={res.myStudio.studio.profileImageUrl}>
+      <ScheduleTabView
+        lessons={lessons}
+        studioName={res.myStudio.studio.name}
+        studioImageUrl={res.myStudio.studio.profileImageUrl}
+      />
+    </SchedulePageClient>
   );
 }

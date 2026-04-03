@@ -11,13 +11,14 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import UnlimitedIcon from "../../../../../public/assets/ic_unlimited.svg";
 import FreeUnlimitedIcon from "../../../../../public/assets/ic_free_unlimited.svg";
 import DiscountIcon from "../../../../../public/assets/ic_discount.svg";
+import { PassQRCode } from "@/app/profile/myPass/[id]/PassQRCode";
 
 const ruleBenefitIcon = (benefitType: string) => {
   switch (benefitType) {
-    case 'Unlimited': return <UnlimitedIcon className="w-5 h-5" />;
-    case 'FreeCount': return <FreeUnlimitedIcon className="w-5 h-5" />;
-    case 'Discount': return <DiscountIcon className="w-5 h-5" />;
-    default: return <UnlimitedIcon className="w-5 h-5" />;
+    case 'Unlimited': return <UnlimitedIcon />;
+    case 'FreeCount': return <FreeUnlimitedIcon />;
+    case 'Discount': return <DiscountIcon />;
+    default: return <UnlimitedIcon />;
   }
 };
 
@@ -57,31 +58,48 @@ export default async function MyPassDetailPage({params}: {
 
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
+        {/* 패스플랜 이미지 */}
+        {passPlan?.imageUrl && (
+          <div className="w-full aspect-[2/1] bg-[#F1F3F6]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+
         {/* 상단 패스 정보 */}
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center gap-3 mb-3">
-            {passPlan?.studio?.profileImageUrl ? (
-              <CircleImage size={44} imageUrl={passPlan.studio.profileImageUrl} />
-            ) : (
-              <div className="w-11 h-11 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <rect x="2" y="4" width="16" height="12" rx="2" stroke="#CDD1D5" strokeWidth="1.5"/>
-                  <circle cx="7" cy="9" r="1.5" stroke="#CDD1D5" strokeWidth="1.2"/>
-                  <path d="M2 14l4-3 3 2 4-4 5 5" stroke="#CDD1D5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+        <div className="px-6 pt-5 pb-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              {passPlan?.studio?.profileImageUrl ? (
+                <CircleImage size={44} imageUrl={passPlan.studio.profileImageUrl} />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <rect x="2" y="4" width="16" height="12" rx="2" stroke="#CDD1D5" strokeWidth="1.5"/>
+                    <circle cx="7" cy="9" r="1.5" stroke="#CDD1D5" strokeWidth="1.2"/>
+                    <path d="M2 14l4-3 3 2 4-4 5 5" stroke="#CDD1D5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[18px] font-bold text-black truncate">{passPlan?.name}</h2>
+                  {passPlan?.tier === PassPlanTier.Premium && <PremiumTierIcon className="flex-shrink-0" />}
+                </div>
+                <span className="text-[13px] text-[#999]">{passPlan?.studio?.name}</span>
+              </div>
+            </div>
+
+            {/* QR 코드 */}
+            {pass.qrcodeUrl && pass.status === 'Active' && (
+              <div className="flex-shrink-0 rounded-xl overflow-hidden bg-white p-1.5 shadow-sm border border-[#E8E8E8]">
+                <PassQRCode url={pass.qrcodeUrl} />
               </div>
             )}
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-[18px] font-bold text-black truncate">{passPlan?.name}</h2>
-                {passPlan?.tier === PassPlanTier.Premium && <PremiumTierIcon className="flex-shrink-0" />}
-              </div>
-              <span className="text-[13px] text-[#999]">{passPlan?.studio?.name}</span>
-            </div>
           </div>
 
           {/* 상태 + 잔여 */}
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mt-3 mb-2">
             <span className={`text-[12px] font-bold px-2.5 py-1 rounded-full ${
               pass.status === 'Active' ? 'text-[#059669] bg-[#ECFDF5]'
                 : pass.status === 'Pending' ? 'text-[#D97706] bg-[#FFFBEB]'
@@ -89,7 +107,7 @@ export default async function MyPassDetailPage({params}: {
             }`}>
               {pass.statusLabel}
             </span>
-            {pass.remainingCount != null && (
+            {pass.remainingCount != null && pass.remainingCount >= 0 && (
               <span className="text-[12px] font-bold text-[#5B5FF6] bg-[#EDEDFF] px-2.5 py-1 rounded-full">
                 {pass.remainingCount}회 남음
               </span>
@@ -131,14 +149,13 @@ export default async function MyPassDetailPage({params}: {
         {passRules.length > 0 && (
           <div className="px-6 pt-5">
             <h3 className="text-[15px] font-bold text-black mb-4">{await translate('pass_benefit')}</h3>
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 divide-y divide-[#F0F0F0]">
               {passRules.map((rule) => {
                 const isExpired = rule.status === 'Expired' || rule.status === 'Done';
                 return (
-                  <div key={rule.id} className={isExpired ? 'opacity-40' : ''}>
-                    {/* 규칙 헤더 */}
+                  <div key={rule.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
                     <div className="flex items-center gap-3 mb-2.5">
-                      <div className="w-9 h-9 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                      <div className="flex-shrink-0">
                         {ruleBenefitIcon(rule.benefitType)}
                       </div>
                       <div className="flex flex-col gap-0.5 min-w-0">
@@ -158,7 +175,6 @@ export default async function MyPassDetailPage({params}: {
                       </div>
                     </div>
 
-                    {/* 티켓 목록 */}
                     {rule.tickets.length > 0 && (
                       <div className="flex flex-col gap-1.5 ml-12">
                         {rule.tickets.map((ticket) => (
