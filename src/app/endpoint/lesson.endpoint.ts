@@ -60,12 +60,12 @@ export type GetStudioRoomResponse = {
 };
 export type LessonListResponse = {
     lessons: GetBandLessonResponse[]
+    totalPage: number
 }
 
 export type GetStudioLessonParameter = {
     studioId: number;
-    page: number;
-    all: boolean;
+    page?: number;
 }
 
 export type GetStudioLessonsByDateParameter = {
@@ -129,7 +129,7 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
 export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons/ongoing`,
-    queryParams: ['studioId', 'all']
+    queryParams: ['studioId', 'page']
 }
 
 export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, GetLessonListResponse> = {
