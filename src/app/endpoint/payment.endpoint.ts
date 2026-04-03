@@ -69,7 +69,7 @@ export type GetPaymentMethodResponse = {
   providers?: PaymentMethodType[];
 }
 
-export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay'
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
 
 export type CreateBillingKeyPaymentRequest = {
   billingKey: string;
