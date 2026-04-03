@@ -55,6 +55,7 @@ export type CreateManualPaymentRecordRequest = {
   itemId: number;
   targetUserId: number;
   depositor?: string;
+  discounts?: DiscountResponse[];
 }
 
 export type GetPaymentRecordsParameter = {
@@ -75,7 +76,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
   path: '/paymentRecords/manual',
-  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor']
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor', 'discounts']
 }
 
 export type RefundPassResponse = {

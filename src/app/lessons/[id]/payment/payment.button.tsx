@@ -142,6 +142,7 @@ export default function PaymentButton({
           item: type.apiValue,
           itemId: id,
           targetUserId: user.id,
+          discounts: selectedDiscounts,
         })
         if ('paymentId' in res) {
           const route = KloudScreen.PaymentRecordDetail(res.paymentId)
@@ -293,6 +294,7 @@ export default function PaymentButton({
           itemId: id,
           targetUserId: user.id,
           depositor: depositor,
+          discounts: selectedDiscounts,
         });
         if ('paymentId' in res) {
           await onPaymentSuccess({paymentId: res.paymentId, delay: 0})
