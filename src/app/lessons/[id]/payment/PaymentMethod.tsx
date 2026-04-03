@@ -107,6 +107,19 @@ const PaymentMethodIcon = ({type, selected}: { type: PaymentMethodType, selected
           <path d="M18.5 4.5L19.1 6.1H20.8L19.4 7.1L19.9 8.7L18.5 7.7L17.1 8.7L17.6 7.1L16.2 6.1H17.9L18.5 4.5Z" fill={color}/>
         </svg>
       );
+    case 'foreign_card':
+      // 해외 카드 (카드 + 지구본)
+      return (
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1.5" y="5.5" width="15" height="11" rx="2" stroke={color} strokeWidth="1.4"/>
+          <path d="M1.5 9H16.5" stroke={color} strokeWidth="1.4"/>
+          <path d="M4.5 13H8" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+          <circle cx="17.5" cy="14.5" r="4" stroke={color} strokeWidth="1.2"/>
+          <path d="M17.5 10.5C16 12 16 17 17.5 18.5" stroke={color} strokeWidth="1"/>
+          <path d="M17.5 10.5C19 12 19 17 17.5 18.5" stroke={color} strokeWidth="1"/>
+          <path d="M13.5 14.5H21.5" stroke={color} strokeWidth="1"/>
+        </svg>
+      );
     default:
       return null;
   }

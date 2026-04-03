@@ -18,6 +18,7 @@ const METHOD_LABEL: Record<PaymentMethodType, string> = {
   naver_pay: '네이버페이',
   kakao_pay: '카카오페이',
   toss_pay: '토스페이',
+  foreign_card: '해외카드',
 };
 
 const EASY_PAY_TYPES: PaymentMethodType[] = ['naver_pay', 'kakao_pay', 'toss_pay'];
