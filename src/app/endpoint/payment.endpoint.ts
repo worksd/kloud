@@ -75,6 +75,7 @@ export type CreateBillingKeyPaymentRequest = {
   billingKey: string;
   item: string;
   itemId: number;
+  paymentId: string;
   targetUserId?: number;
 }
 
@@ -85,5 +86,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'targetUserId']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId']
 }

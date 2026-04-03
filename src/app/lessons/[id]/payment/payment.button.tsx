@@ -334,6 +334,7 @@ export default function PaymentButton({
             item: type.apiValue,
             itemId: id,
             billingKey: data.customData ?? '',
+            paymentId,
             targetUserId: actualPayerUserId
           })
           if ('success' in res && res.success) {
