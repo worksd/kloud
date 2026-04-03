@@ -60,7 +60,17 @@ export default async function MyPassDetailPage({params}: {
         {/* 상단 패스 정보 */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3 mb-3">
-            <CircleImage size={44} imageUrl={passPlan?.studio?.profileImageUrl} />
+            {passPlan?.studio?.profileImageUrl ? (
+              <CircleImage size={44} imageUrl={passPlan.studio.profileImageUrl} />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-[#F1F3F6] flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect x="2" y="4" width="16" height="12" rx="2" stroke="#CDD1D5" strokeWidth="1.5"/>
+                  <circle cx="7" cy="9" r="1.5" stroke="#CDD1D5" strokeWidth="1.2"/>
+                  <path d="M2 14l4-3 3 2 4-4 5 5" stroke="#CDD1D5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            )}
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-[18px] font-bold text-black truncate">{passPlan?.name}</h2>
