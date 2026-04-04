@@ -126,8 +126,6 @@ const applyTitle = async (route: string) => {
     return ''
   } else if (route.startsWith(KloudScreen.SignUp(''))) {
     return await translate('sign_up')
-  } else if (route.startsWith(KloudScreen.HasPassStudioList)) {
-    return ''
   } else if (route.startsWith('/passPlans?studioId')) {
     return ''
   } else if (route == (KloudScreen.ProfileSetting)) {

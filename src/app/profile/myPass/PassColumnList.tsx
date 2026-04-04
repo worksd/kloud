@@ -33,9 +33,6 @@ export const PassColumnList = ({
   } else {
     return (
       <div className="flex flex-col justify-center pt-36 items-center gap-4 text-center">
-        {isActivePass && <div
-          className="text-[14px] text-black font-bold border rounded-full border-black px-4 py-3 active:scale-[0.98] active:bg-gray-100 transition-transform duration-150 text-center"
-          onClick={() => kloudNav.push(KloudScreen.HasPassStudioList)}>{getLocaleString({locale, key: 'go_purchase_pass_title'})}</div>}
         <div
           className="text-[#85898C] font-medium text-[16px] text-center whitespace-pre-line">
           {isActivePass ? getLocaleString({locale, key: 'no_active_passes_message'}) : getLocaleString({locale, key: 'no_used_passes_message'})}

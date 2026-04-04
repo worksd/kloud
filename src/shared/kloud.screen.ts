@@ -60,7 +60,6 @@ export const KloudScreen = {
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
   StudioSettingSheet: '/studios/setting/sheet',
   StudioSetting: '/profile/setting/studio',
-  HasPassStudioList: `/studios/passPlans`,
 
   /** 정책 / 문의 / 알림 */
   Policy: '/profile/policy',

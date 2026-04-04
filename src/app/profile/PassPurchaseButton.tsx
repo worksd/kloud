@@ -4,12 +4,10 @@ import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export async function PassPurchaseButton({ studioId }: { studioId?: number }) {
-  const route = studioId
-    ? KloudScreen.PurchasePass(studioId)
-    : KloudScreen.HasPassStudioList;
+  if (!studioId) return null;
 
   return (
-    <NavigateClickWrapper method={'push'} route={route}>
+    <NavigateClickWrapper method={'push'} route={KloudScreen.PurchasePass(studioId)}>
       <div
         className="flex flex-row w-full text-white px-4 py-3 rounded-[100px] items-center font-bold bg-[#2A2A2A] space-x-2.5 text-[14px] active:scale-[0.98] transition-all duration-150 select-none font-paperlogy">
         <WhiteTicketIcon/>
