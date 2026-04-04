@@ -7,7 +7,8 @@ import { studioKey } from "@/shared/cookies.key";
 
 export default async function StudioSettingPage() {
   const res = await api.studio.my({});
-  const selectedStudioId = (await cookies()).get(studioKey)?.value;
+  const selectedStudioId = (await cookies()).get(studioKey)?.value
+    ?? ('studios' in res && res.studios.length > 0 ? `${res.studios[0].id}` : undefined);
 
   if ('studios' in res && res.studios.length > 0) {
     return (

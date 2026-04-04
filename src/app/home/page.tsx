@@ -15,7 +15,8 @@ import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
 import {HomeAlerts} from "@/app/home/HomeAlerts";
 import {cookies} from "next/headers";
-import {fcmTokenKey} from "@/shared/cookies.key";
+import {fcmTokenKey, studioKey} from "@/shared/cookies.key";
+import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
 import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
 
@@ -27,7 +28,9 @@ export default async function Home({
   const {os} = await searchParams
   const res = await getHomeAction()
   const hideDialogIds = await getHideDialogIdsAction()
-  const hasFcmToken = !!(await cookies()).get(fcmTokenKey)?.value
+  const cookieStore = await cookies();
+  const hasFcmToken = !!cookieStore.get(fcmTokenKey)?.value;
+  const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
   if ('studios' in res) {
     const studio = res.myStudio?.studio;
     const firstThumb = res.myStudio?.jumbotrons?.[0]?.thumbnailUrl
@@ -37,6 +40,9 @@ export default async function Home({
     const content = (
         <div>
           <FcmTokenRequester hasFcmToken={hasFcmToken}/>
+          {!hasStudioCookie && res.myStudio?.studio?.id && (
+            <StudioCookieSetter studioId={res.myStudio.studio.id} />
+          )}
           {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
           <HomeHeader hasStudio={!!studio}>
