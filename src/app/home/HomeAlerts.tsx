@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import { HomeAlertResponse } from "@/app/endpoint/home.endpoint";
-import { createDialog, DialogInfo } from "@/utils/dialog.factory";
-import { kloudNav } from "@/app/lib/kloudNav";
+import { createDialog } from "@/utils/dialog.factory";
 
 export const HomeAlerts = ({ alerts }: { alerts: HomeAlertResponse[] }) => {
   useEffect(() => {
@@ -19,12 +18,6 @@ export const HomeAlerts = ({ alerts }: { alerts: HomeAlertResponse[] }) => {
       });
       if (dialog) {
         window.KloudEvent?.showDialog(JSON.stringify(dialog));
-      }
-    };
-
-    window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.id === 'HomeAlert' && data.route) {
-        await kloudNav.push(data.route);
       }
     };
 

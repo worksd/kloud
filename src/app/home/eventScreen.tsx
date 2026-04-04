@@ -48,11 +48,7 @@ export default function EventScreen({os, events, hideDialogIds: initialHideDialo
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.route) {
-        if (os === 'Android') {
-          kloudNav.push(data.route)
-        } else if (os === 'iOS') {
-          kloudNav.rootNext(data.route)
-        }
+        await kloudNav.push(data.route)
       }
     }
   }, [])
