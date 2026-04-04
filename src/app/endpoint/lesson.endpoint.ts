@@ -70,8 +70,10 @@ export type GetStudioLessonParameter = {
 
 export type GetStudioLessonsByDateParameter = {
     studioId: number;
-    date: string;
-    isAdmin: boolean;
+    date?: string;
+    startDate?: string;
+    endDate?: string;
+    isAdmin?: boolean;
 }
 
 export type GetBandResponse = {
@@ -135,7 +137,7 @@ export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListRe
 export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, GetLessonListResponse> = {
     method: 'get',
     path: `/lessons`,
-    queryParams: ['studioId', 'date', 'isAdmin']
+    queryParams: ['studioId', 'date', 'startDate', 'endDate', 'isAdmin']
 }
 
 export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {

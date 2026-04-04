@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import Image from "next/image";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { getWeeklyLessonsAction } from "@/app/schedule/get.weekly.lessons.action";
 
 type CalendarLesson = {
   id: number;
@@ -48,13 +49,50 @@ const isSameDay = (a: Date, b: Date) =>
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
+const formatDateForApi = (d: Date) => {
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const parseLessons = (rawLessons: any[]): CalendarLesson[] => {
+  return rawLessons.map((l: any) => {
+    const parts = (l.startDate ?? '').split(' ');
+    const datePart = (parts[0] ?? '').replace(/\./g, '-');
+    const timePart = parts[1] ?? '';
+    return {
+      id: l.id,
+      title: l.title,
+      thumbnailUrl: l.thumbnailUrl ?? '',
+      startTime: timePart,
+      endTime: '',
+      room: l.room?.name,
+      date: datePart,
+    };
+  });
+};
+
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
+
+const formatAmPm = (time: string, locale: Locale): string => {
+  if (!time) return '';
+  const [h, m] = time.split(':').map(Number);
+  const amLabel = getLocaleString({ locale, key: 'am' });
+  const pmLabel = getLocaleString({ locale, key: 'pm' });
+  const period = h < 12 ? amLabel : pmLabel;
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
+};
+
+export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioImageUrl, locale = 'ko' }: {
   lessons: CalendarLesson[],
   studioName?: string,
   studioImageUrl?: string,
+  locale?: Locale,
 }) => {
   const today = useMemo(() => new Date(), []);
   const [selectedDate, setSelectedDate] = useState(today);
+  const [lessons, setLessons] = useState(initialLessons);
+  const [loadingLessons, setLoadingLessons] = useState(false);
   const dayStripRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
@@ -76,6 +114,31 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
       return d;
     });
   }, [selectedDate]);
+
+  // 주차 변경 시 API 호출
+  const prevWeekKey = useRef('');
+  useEffect(() => {
+    const monday = visibleDates[0];
+    const sunday = visibleDates[6];
+    const weekKey = `${formatDateForApi(monday)}-${formatDateForApi(sunday)}`;
+    if (weekKey === prevWeekKey.current) return;
+    prevWeekKey.current = weekKey;
+
+    const fetchLessons = async () => {
+      setLoadingLessons(true);
+      try {
+        const res = await getWeeklyLessonsAction(formatDateForApi(monday), formatDateForApi(sunday));
+        if ('lessons' in res) {
+          setLessons(parseLessons(res.lessons));
+        }
+      } catch {
+        // fallback
+      } finally {
+        setLoadingLessons(false);
+      }
+    };
+    fetchLessons();
+  }, [visibleDates]);
 
   const lessonsByDate = useMemo(() => {
     const map: Record<string, CalendarLesson[]> = {};
@@ -223,7 +286,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
                 className="flex-1 flex flex-col items-center gap-0.5 py-1"
                 onClick={() => handleDateClick(date)}
               >
-                <span className="text-[12px] font-normal text-[#6D7882]">{DAY_LABELS[i]}</span>
+                <span className="text-[12px] font-normal text-[#6D7882] font-paperlogy">{DAY_LABELS[i]}</span>
                 <div
                   className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors duration-150 ${
                     isSelected
@@ -255,10 +318,10 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
           const key = toDateStr(date);
           const dayLessons = lessonsByDate[key] ?? [];
           return (
-            <div key={key} ref={el => { dateHeaderRefs.current[key] = el; }}>
+            <div key={key} ref={el => { dateHeaderRefs.current[key] = el; }} className="[&:not(:first-child)]:border-t border-[#F0F0F0]">
               {/* 날짜 헤더 */}
               <div className="px-6 pt-5 pb-2">
-                <span className={`text-[14px] font-medium ${isSameDay(date, selectedDate) ? 'text-black font-bold' : 'text-[#33363D]'}`}>
+                <span className={`text-[16px] font-bold ${isSameDay(date, selectedDate) ? 'text-black' : 'text-[#33363D]'}`}>
                   {formatDateHeader(date)}
                 </span>
               </div>
@@ -267,15 +330,15 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
                 <div className="flex flex-col gap-2 py-2">
                   {dayLessons.map(lesson => (
                     <NavigateClickWrapper key={lesson.id} method="push" route={KloudScreen.LessonDetail(lesson.id)}>
-                      <div className="flex items-center gap-3 px-5 active:bg-[#F9FAFB] transition-colors">
+                      <div className="flex items-start gap-3 px-5 py-2 active:bg-[#F3F4F6] transition-colors rounded-xl mx-2">
                         {/* 썸네일 */}
-                        <div className="w-[52px] h-[92px] rounded-md overflow-hidden flex-shrink-0 bg-[#F1F3F6]">
+                        <div className="w-[64px] h-[96px] rounded-lg overflow-hidden flex-shrink-0 bg-[#F1F3F6]">
                           {lesson.thumbnailUrl ? (
                             <Image
                               src={lesson.thumbnailUrl}
                               alt=""
-                              width={52}
-                              height={92}
+                              width={64}
+                              height={96}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -291,7 +354,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl }: {
                               <circle cx="6" cy="6" r="4.5" stroke="#CDD1D5" strokeWidth="1"/>
                               <path d="M6 3.5V6L7.5 7.5" stroke="#CDD1D5" strokeWidth="1" strokeLinecap="round"/>
                             </svg>
-                            <span className="text-[12px] font-medium text-[#58616A]">{lesson.startTime}{lesson.endTime ? ` - ${lesson.endTime}` : ''}</span>
+                            <span className="text-[12px] font-medium text-[#58616A]">{formatAmPm(lesson.startTime, locale)}</span>
                           </div>
                           {lesson.room && (
                             <div className="flex items-center gap-1">

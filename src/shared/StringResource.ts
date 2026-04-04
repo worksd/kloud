@@ -665,6 +665,18 @@ export const StringResource = {
     jp: "{n}分前",
     zh: "{n}分钟前"
   },
+  am: {
+    ko: "오전",
+    en: "AM",
+    jp: "午前",
+    zh: "上午"
+  },
+  pm: {
+    ko: "오후",
+    en: "PM",
+    jp: "午後",
+    zh: "下午"
+  },
   minutes: {
     ko: "분",
     en: "minutes",
