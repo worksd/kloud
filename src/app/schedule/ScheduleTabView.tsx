@@ -216,9 +216,18 @@ export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioIma
     return () => window.removeEventListener('scroll', handleScroll);
   }, [selectedDate, scrollDayStripToDate]);
 
-  // 초기 로드 시 오늘로 스크롤
+  // 초기 로드 시 오늘 날짜 섹션으로 스크롤
   useEffect(() => {
     scrollDayStripToDate(today);
+    setTimeout(() => {
+      const key = toDateStr(today);
+      const el = dateHeaderRefs.current[key];
+      if (el) {
+        const stickyOffset = stickyRef.current?.getBoundingClientRect().height ?? 160;
+        const top = el.getBoundingClientRect().top + window.scrollY - stickyOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 300);
   }, []);
 
   // 마지막 날짜가 sticky 헤더 바로 아래까지 올라갈 수 있도록 하단 패딩 계산
