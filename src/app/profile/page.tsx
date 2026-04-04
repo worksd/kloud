@@ -29,34 +29,37 @@ export default async function SettingPage({
   const upcoming = user.upcomingLesson;
 
     return (
-      <div className="flex flex-col min-h-screen bg-white py-8 w-full max-w-screen overflow-x-hidden">
-        <div className="flex justify-end px-4 mb-4">
+      <div className="flex flex-col min-h-screen bg-white pb-8 w-full max-w-screen overflow-x-hidden">
+        {/* 아이콘 */}
+        <div className="flex justify-end items-center gap-3 px-5 py-3">
+          <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+            <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+          </NavigateClickWrapper>
           <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-            <SettingIcon className="w-[24px] h-[24px]"/>
+            <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
           </NavigateClickWrapper>
         </div>
 
-        <div className={"flex flex-row w-full ml-6 mb-5 items-center"}>
+        {/* 프로필 정보 */}
+        <div className="flex items-center gap-3 px-5 mb-5">
           <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
             <Image
               src={user.profileImageUrl ?? ''}
-              alt="studio logo"
-              width={40}
-              height={40}
+              alt="profile"
+              width={52}
+              height={52}
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="flex flex-col px-4">
-              <div className="flex flex-row items-center gap-2">
-                <div className="font-bold text-lg text-black">{has(user.nickName) ? user.nickName : '-'}</div>
-                <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-                  <EditIcon className="w-[18px] h-[18px] active:opacity-50 transition-opacity duration-150"/>
-                </NavigateClickWrapper>
-              </div>
-              {has(user.email) && (
-                <div className="text-gray-500">{user.email}</div>
-              )}
+          <div className="flex flex-col min-w-0">
+            <div className="font-bold text-lg text-black truncate">
+              {has(user.nickName) ? user.nickName : '-'}
+              {has(user.name) && <span className="text-[14px] font-normal text-[#999]"> ({user.name})</span>}
             </div>
+            <div className="text-gray-500 text-[14px] truncate">
+              {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
+            </div>
+          </div>
         </div>
 
         {/* 다음 예정 수업 */}
@@ -160,3 +163,10 @@ export default async function SettingPage({
 };
 
 const has = (s?: string | null) => !!s && s.trim().length > 0;
+
+const formatPhone = (phone: string) => {
+  const nums = phone.replace(/\D/g, '');
+  if (nums.length === 11) return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7)}`;
+  if (nums.length === 10) return `${nums.slice(0, 3)}-${nums.slice(3, 6)}-${nums.slice(6)}`;
+  return phone;
+};
