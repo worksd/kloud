@@ -383,6 +383,12 @@ export const StringResource = {
     jp: "アプリバージョン",
     zh: "应用版本"
   },
+  copy_complete: {
+    ko: "복사완료",
+    en: "Copied",
+    jp: "コピー完了",
+    zh: "已复制"
+  },
   confirm: {
     ko: "확인",
     en: "Confirm",
@@ -1558,6 +1564,12 @@ export const StringResource = {
     en: 'Payment Pending',
     jp: '支払待ち',
     zh: '待付款'
+  },
+  select_pass_plan: {
+    ko: '나에게 맞는 패스권을 선택하세요',
+    en: 'Choose the right pass for you',
+    jp: '自分に合ったパスを選んでください',
+    zh: '选择适合您的通票'
   },
   purchase_pass_information: {
     ko: '패스 구매 안내사항',
