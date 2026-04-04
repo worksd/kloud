@@ -44,6 +44,7 @@ export type GetUserResponse = {
   ticketCount?: number
   paymentRecordCount?: number
   passCount?: number
+  gender?: 'male' | 'female'
   parentPhone?: string
   parentCountryCode?: string
   parentName?: string
