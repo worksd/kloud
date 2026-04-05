@@ -2513,6 +2513,18 @@ export const StringResource = {
     jp: '時間',
     zh: '小时'
   },
+  application_method: {
+    ko: '신청수단',
+    en: 'Application Method',
+    jp: '申請方法',
+    zh: '申请方式'
+  },
+  practice_room_not_available: {
+    ko: '현재 연습실을 예약할 수 없습니다',
+    en: 'Practice room reservation is not available',
+    jp: '現在練習室を予約できません',
+    zh: '目前无法预约练习室'
+  },
   unlimited_use: {
     ko: '무제한 이용',
     en: 'Unlimited Use',

@@ -93,6 +93,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   };
 
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
+  const timeText = await translate('time');
 
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
@@ -223,18 +224,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                   <span className="text-[14px] font-medium text-black">{date}</span>
                 </div>
               )}
-              {time && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-[#86898C]">{await translate('time')}</span>
-                  <span className="text-[14px] font-medium text-black">{time}</span>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#86898C]">{await translate('rental_duration')}</span>
-                <span className="text-[14px] font-medium text-black">
-                  {res.studioRoom?.slotDurationMinutes ? `${res.studioRoom.slotDurationMinutes}min` : `1${await translate('hour')}`}
-                </span>
-              </div>
+              {time && (() => {
+                const duration = res.studioRoom?.slotDurationMinutes ?? 60;
+                const [h, m] = time.split(':').map(Number);
+                const endTotal = h * 60 + m + duration;
+                const endTime = `${String(Math.floor(endTotal / 60) % 24).padStart(2, '0')}:${String(endTotal % 60).padStart(2, '0')}`;
+                return (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-[#86898C]">{timeText}</span>
+                    <span className="text-[14px] font-medium text-black">{time} ~ {endTime}</span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}

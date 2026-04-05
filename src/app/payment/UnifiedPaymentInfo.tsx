@@ -135,7 +135,9 @@ export const UnifiedPaymentInfo = ({
   });
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(defaultMethod(type));
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(
+    defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined)
+  );
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
     payment.user.passes?.find(p => p.usable)
   );
@@ -170,6 +172,7 @@ export const UnifiedPaymentInfo = ({
   const studio = getStudio(payment, type);
   const noPass = type === 'pass-plan' || type === 'membership-plan' || type === 'practice-room';
   const itemPrice = getItemPrice(payment, type);
+  const priceNotAvailable = payment.price == null && payment.methods.length === 0;
 
   // 쿠폰 선택 시 Pass 타입 할인 제외, 쿠폰 할인 적용
   const activeDiscounts = (() => {
@@ -201,7 +204,7 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
-      {paymentMethods.length > 0 && itemPrice > 0 && (
+      {paymentMethods.length > 0 && (
         <>
           <PaymentMethodComponent
             locale={locale}
@@ -225,6 +228,7 @@ export const UnifiedPaymentInfo = ({
 
             os={os}
             appVersion={appVersion}
+            titleOverride={payment.price == null ? getLocaleString({ locale, key: 'application_method' }) : undefined}
           />
 
           <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
@@ -232,7 +236,7 @@ export const UnifiedPaymentInfo = ({
       )}
 
       {/* 할인 섹션 */}
-      {!noPass && (
+      {!noPass && !priceNotAvailable && (
         <>
           <DiscountSection
             locale={locale}
@@ -246,32 +250,48 @@ export const UnifiedPaymentInfo = ({
       )}
 
       {/* 결제 정보 */}
-      <PurchaseInformation
-        originalPrice={itemPrice}
-        totalPrice={totalPrice}
-        method={noPass ? undefined : selectedMethod}
-        titleResource={getTitleResource(type)}
-        locale={locale}
-        discounts={activeDiscounts}
-      />
+      {payment.price != null && (
+        <>
+          <PurchaseInformation
+            originalPrice={itemPrice}
+            totalPrice={totalPrice}
+            method={noPass ? undefined : selectedMethod}
+            titleResource={getTitleResource(type)}
+            locale={locale}
+            discounts={activeDiscounts}
+          />
 
-      <div className="my-2 h-2 bg-[#F7F8F9]" />
+          <div className="my-2 h-2 bg-[#F7F8F9]" />
+        </>
+      )}
 
-      <div className={`flex flex-col ${noPass ? 'gap-y-5' : 'space-y-4'} px-6 py-2`}>
-        {/* 결제 유의사항 */}
-        <div>
-          <div className="font-medium text-[13px] text-[#999] mb-1.5">
-            {getLocaleString({locale, key: 'payment_notice'})}
-          </div>
-          <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
-            • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
-          </div>
+      {priceNotAvailable && (
+        <div className="px-6 py-8 text-center">
+          <span className="text-[15px] text-[#85898C] font-medium">
+            {type === 'practice-room'
+              ? getLocaleString({ locale, key: 'practice_room_not_available' })
+              : getLocaleString({ locale, key: 'no_available_payment_method' })}
+          </span>
         </div>
-        {/* 판매자 정보 - lesson-group은 표시 안 함 */}
-        {studio && <SellerInformation studio={studio} locale={locale}/>}
-        {/* 환불 안내 */}
-        <RefundInformation locale={locale}/>
-      </div>
+      )}
+
+      {payment.price != null && (
+        <div className={`flex flex-col ${noPass ? 'gap-y-5' : 'space-y-4'} px-6 py-2`}>
+          {/* 결제 유의사항 */}
+          <div>
+            <div className="font-medium text-[13px] text-[#999] mb-1.5">
+              {getLocaleString({locale, key: 'payment_notice'})}
+            </div>
+            <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
+              • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
+            </div>
+          </div>
+          {/* 판매자 정보 - lesson-group은 표시 안 함 */}
+          {studio && <SellerInformation studio={studio} locale={locale}/>}
+          {/* 환불 안내 */}
+          <RefundInformation locale={locale}/>
+        </div>
+      )}
 
       <div className="fixed bottom-2 left-0 w-full px-6">
         <PaymentButton
@@ -283,16 +303,18 @@ export const UnifiedPaymentInfo = ({
           selectedDiscounts={noPass ? undefined : activeDiscounts}
           type={getPaymentType(type)}
           id={getItemId(payment, type)}
-          price={totalPrice}
+          price={payment.price != null ? totalPrice : null}
           title={getItemTitle(payment, type)}
           user={payment.user}
           depositor={depositor}
           disabled={
-            paymentMethods.length > 0 && (
+            priceNotAvailable ||
+            (paymentMethods.length > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
-            )
+            )) ||
+            (payment.price == null && selectedMethod === 'pass' && !selectedPass)
           }
           paymentId={payment.paymentId}
           actualPayerUserId={noPass ? undefined : actualPayerUserId}

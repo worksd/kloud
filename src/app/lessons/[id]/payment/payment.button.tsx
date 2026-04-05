@@ -80,7 +80,7 @@ export default function PaymentButton({
   selectedBilling?: GetBillingResponse,
   selectedDiscounts?: DiscountResponse[],
   type: PaymentType,
-  price: number,
+  price: number | null,
   title: string,
   method?: PaymentMethodType,
   user?: GetUserResponse,
@@ -178,7 +178,7 @@ export default function PaymentButton({
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
         paymentId,
         orderName: title,
-        price,
+        price: price ?? 0,
         userId: `${user.id}`,
         method: method && easyPayMethodMap[method] ? easyPayMethodMap[method]! : 'CARD',
         customData: JSON.stringify({
@@ -223,7 +223,7 @@ export default function PaymentButton({
       } else {
         const dialog = await createAccountTransferMessage({
           title,
-          price,
+          price: price ?? 0,
           depositor,
           hasRefundAccount,
         })
@@ -255,7 +255,7 @@ export default function PaymentButton({
           id: 'RequestBillingKeyPayment',
           title: title,
           message: [
-            `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${price.toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
+            `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${(price ?? 0).toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
             `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${selectedBilling.cardName}`,
             ``,
             `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
@@ -366,16 +366,20 @@ export default function PaymentButton({
 
   return (
     <div>
-      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={(price > 0 && disabled) || isSubmitting}>
+      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
         <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-          {price === 0
-            ? `0${getLocaleString({locale, key: 'won'})} ${getLocaleString({locale, key: 'payment'})}`
-            : method == 'pass'
+          {price == null
+            ? method === 'pass'
               ? getLocaleString({locale, key: 'use_pass'})
-              : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
-                locale,
-                key: 'won'
-              })} ${getLocaleString({locale, key: 'payment'})}`
+              : getLocaleString({locale, key: 'payment'})
+            : price === 0
+              ? `0${getLocaleString({locale, key: 'won'})} ${getLocaleString({locale, key: 'payment'})}`
+              : method == 'pass'
+                ? getLocaleString({locale, key: 'use_pass'})
+                : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
+                  locale,
+                  key: 'won'
+                })} ${getLocaleString({locale, key: 'payment'})}`
           }
         </p>
       </CommonSubmitButton>

@@ -142,6 +142,7 @@ export const PaymentMethodComponent = ({
                                          refundAccount,
                                          os,
                                          appVersion,
+                                         titleOverride,
                                        }: {
   locale: Locale,
   paymentOptions: GetPaymentMethodResponse[],
@@ -159,6 +160,7 @@ export const PaymentMethodComponent = ({
   refundAccount?: RefundAccount | null,
   os?: string,
   appVersion?: string,
+  titleOverride?: string,
 }) => {
 
   const [showInlineCardForm, setShowInlineCardForm] = useState(false);
@@ -237,7 +239,7 @@ export const PaymentMethodComponent = ({
   return (
     <div className="flex flex-col gap-y-2 px-6 mt-2">
       <div className="text-[15px] font-bold text-black">
-        {getLocaleString({locale, key: 'payment_method'})}
+        {titleOverride ?? getLocaleString({locale, key: 'payment_method'})}
       </div>
 
       <div className="rounded-2xl border border-[#EEEFF0] overflow-hidden">
