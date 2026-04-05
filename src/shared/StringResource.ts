@@ -2519,6 +2519,46 @@ export const StringResource = {
     jp: '申請方法',
     zh: '申请方式'
   },
+  lesson_tab: {
+    ko: '수업',
+    en: 'Lessons',
+    jp: 'レッスン',
+    zh: '课程'
+  },
+  practice_room_tab: {
+    ko: '연습실',
+    en: 'Practice',
+    jp: '練習室',
+    zh: '练习室'
+  },
+  schedule_no_lessons: {
+    ko: '수업이 없습니다',
+    en: 'No lessons',
+    jp: 'レッスンがありません',
+    zh: '没有课程'
+  },
+  week_1: { ko: '첫째주', en: 'Week 1', jp: '第1週', zh: '第1周' },
+  week_2: { ko: '둘째주', en: 'Week 2', jp: '第2週', zh: '第2周' },
+  week_3: { ko: '셋째주', en: 'Week 3', jp: '第3週', zh: '第3周' },
+  week_4: { ko: '넷째주', en: 'Week 4', jp: '第4週', zh: '第4周' },
+  week_5: { ko: '다섯째주', en: 'Week 5', jp: '第5週', zh: '第5周' },
+  week_6: { ko: '여섯째주', en: 'Week 6', jp: '第6週', zh: '第6周' },
+  weekday_sun: { ko: '일', en: 'Sun', jp: '日', zh: '日' },
+  weekday_mon: { ko: '월', en: 'Mon', jp: '月', zh: '一' },
+  weekday_tue: { ko: '화', en: 'Tue', jp: '火', zh: '二' },
+  weekday_wed: { ko: '수', en: 'Wed', jp: '水', zh: '三' },
+  weekday_thu: { ko: '목', en: 'Thu', jp: '木', zh: '四' },
+  weekday_fri: { ko: '금', en: 'Fri', jp: '金', zh: '五' },
+  weekday_sat: { ko: '토', en: 'Sat', jp: '土', zh: '六' },
+  month_format: { ko: '월', en: '', jp: '月', zh: '月' },
+  day_format: { ko: '일', en: '', jp: '日', zh: '日' },
+  year_format: { ko: '년', en: '', jp: '年', zh: '年' },
+  proxy_payment_notice: {
+    ko: '님의 대리 결제 페이지입니다',
+    en: "'s proxy payment page",
+    jp: 'さんの代理決済ページです',
+    zh: '的代付页面'
+  },
   practice_room_not_available: {
     ko: '현재 연습실을 예약할 수 없습니다',
     en: 'Practice room reservation is not available',

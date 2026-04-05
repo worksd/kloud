@@ -19,19 +19,30 @@ export type CalendarLesson = {
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
-const getWeekLabel = (date: Date): string => {
+const getWeekLabel = (date: Date, locale: Locale): string => {
   const month = date.getMonth() + 1;
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
   const weekNum = Math.ceil((date.getDate() + ((firstDay.getDay() + 6) % 7)) / 7);
-  const weekNames = ['첫째주', '둘째주', '셋째주', '넷째주', '다섯째주', '여섯째주'];
-  return `${month}월 ${weekNames[weekNum - 1] ?? `${weekNum}째주`}`;
+  const weekKeys = ['week_1', 'week_2', 'week_3', 'week_4', 'week_5', 'week_6'] as const;
+  const weekLabel = getLocaleString({ locale, key: weekKeys[weekNum - 1] ?? 'week_1' });
+  const monthSuffix = getLocaleString({ locale, key: 'month_format' });
+  return locale === 'en' ? `${weekLabel}, ${month}` : `${month}${monthSuffix} ${weekLabel}`;
 };
 
-const formatDateHeader = (date: Date): string => {
+const getWeekdays = (locale: Locale) => {
+  const keys = ['weekday_sun', 'weekday_mon', 'weekday_tue', 'weekday_wed', 'weekday_thu', 'weekday_fri', 'weekday_sat'] as const;
+  return keys.map(k => getLocaleString({ locale, key: k }));
+};
+
+const formatDateHeader = (date: Date, locale: Locale): string => {
   const month = date.getMonth() + 1;
   const day = date.getDate();
-  const weekday = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-  return `${month}월 ${day}일 (${weekday})`;
+  const weekdays = getWeekdays(locale);
+  const wd = weekdays[date.getDay()];
+  const monthSuffix = getLocaleString({ locale, key: 'month_format' });
+  const daySuffix = getLocaleString({ locale, key: 'day_format' });
+  if (locale === 'en') return `${month}/${day} (${wd})`;
+  return `${month}${monthSuffix} ${day}${daySuffix} (${wd})`;
 };
 
 const isSameDay = (a: Date, b: Date) =>
@@ -50,7 +61,7 @@ const formatAmPm = (time: string, locale: Locale): string => {
   return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
 };
 
-export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 'ko', selectedDate, onDateChange, loading }: {
+export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 'ko', selectedDate, onDateChange, loading, active = true }: {
   lessons: CalendarLesson[],
   studioName?: string,
   studioImageUrl?: string,
@@ -58,11 +69,13 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
   selectedDate: Date,
   onDateChange: (date: Date) => void,
   loading?: boolean,
+  active?: boolean,
 }) => {
   const today = useMemo(() => new Date(), []);
   const listRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const dateHeaderRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [bottomPadding, setBottomPadding] = useState(0);
 
   // 선택된 날짜가 속한 주의 월~일
   const visibleDates = useMemo(() => {
@@ -97,10 +110,60 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
   }, []);
 
   const handleDateClick = useCallback((date: Date) => {
+    isClickScrolling.current = true;
     onDateChange(date);
-    // 같은 주 내 클릭이면 해당 섹션으로 스크롤
     setTimeout(() => scrollToDate(date), 50);
+    setTimeout(() => { isClickScrolling.current = false; }, 800);
   }, [onDateChange, scrollToDate]);
+
+  // 스크롤 시 현재 보이는 날짜 감지 → 요일 스트립 업데이트
+  const isClickScrolling = useRef(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!active || isClickScrolling.current) return;
+
+      const stickyOffset = (stickyRef.current?.getBoundingClientRect().height ?? 160) + 52;
+      let closestDate: string | null = null;
+      let closestDist = Infinity;
+
+      for (const [key, el] of Object.entries(dateHeaderRefs.current)) {
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const dist = Math.abs(rect.top - stickyOffset);
+        if (rect.top <= stickyOffset + 50 && dist < closestDist) {
+          closestDist = dist;
+          closestDate = key;
+        }
+      }
+
+      if (closestDate) {
+        const [y, m, d] = closestDate.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        if (!isSameDay(date, selectedDate)) {
+          onDateChange(date);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [selectedDate, onDateChange, active]);
+
+  // 마지막 날짜(일요일)가 sticky 헤더 바로 아래까지 스크롤되도록 하단 패딩 계산
+  useEffect(() => {
+    const calculate = () => {
+      const lastKey = toDateStr(visibleDates[visibleDates.length - 1]);
+      const lastEl = dateHeaderRefs.current[lastKey];
+      if (!lastEl) return;
+
+      const stickyHeight = (stickyRef.current?.getBoundingClientRect().height ?? 120) + 52;
+      const viewportHeight = window.innerHeight;
+      const lastSectionHeight = lastEl.getBoundingClientRect().height;
+      const needed = Math.max(0, viewportHeight - stickyHeight - lastSectionHeight);
+      setBottomPadding(needed);
+    };
+    requestAnimationFrame(calculate);
+  }, [visibleDates, lessons]);
 
   // 마운트 시 selectedDate 섹션으로 스크롤 (한 번만)
   const didMount = useRef(false);
@@ -128,7 +191,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
               <path d="M12.5 15L7.5 10L12.5 5" stroke="#464C53" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <span className="text-[16px] font-bold text-[#1E2124]">{getWeekLabel(selectedDate)}</span>
+          <span className="text-[16px] font-bold text-[#1E2124]">{getWeekLabel(selectedDate, locale)}</span>
           <button
             className="p-1 active:opacity-50 transition-opacity"
             onClick={() => {
@@ -182,7 +245,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
       </div>
 
       {/* 수업 리스트 */}
-      <div ref={listRef} className="flex flex-col pb-20">
+      <div ref={listRef} className="flex flex-col" style={{ paddingBottom: `${bottomPadding}px` }}>
         {visibleDates.map(date => {
           const key = toDateStr(date);
           const dayLessons = lessonsByDate[key] ?? [];
@@ -191,7 +254,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
               {/* 날짜 헤더 */}
               <div className="px-6 pt-5 pb-2">
                 <span className={`text-[16px] font-bold ${isSameDay(date, selectedDate) ? 'text-black' : 'text-[#33363D]'}`}>
-                  {formatDateHeader(date)}
+                  {formatDateHeader(date, locale)}
                 </span>
               </div>
 
@@ -245,7 +308,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
                     <path d="M12 3V8" stroke="#E0E0E0" strokeWidth="1.5" strokeLinecap="round"/>
                     <path d="M24 3V8" stroke="#E0E0E0" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                  <span className="text-[13px] text-[#B0B3B8] mt-2">수업이 없습니다</span>
+                  <span className="text-[13px] text-[#B0B3B8] mt-2">{getLocaleString({ locale, key: 'schedule_no_lessons' })}</span>
                 </div>
               )}
             </div>

@@ -1,18 +1,24 @@
 'use client'
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import { PracticeRoomView } from "@/app/schedule/PracticeRoomView";
 import { ScheduleTabView, CalendarLesson } from "@/app/schedule/ScheduleTabView";
 import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 import { getWeeklyLessonsAction } from "@/app/schedule/get.weekly.lessons.action";
 
 type ScheduleTab = 'lesson' | 'practice';
 
-const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const getWeekdays = (locale: Locale) => {
+  const keys = ['weekday_sun', 'weekday_mon', 'weekday_tue', 'weekday_wed', 'weekday_thu', 'weekday_fri', 'weekday_sat'] as const;
+  return keys.map(k => getLocaleString({ locale, key: k }));
+};
 
-const formatShortDate = (d: Date) =>
-  `${d.getMonth() + 1}/${d.getDate()}(${DAY_LABELS[d.getDay()]})`;
+const formatShortDate = (d: Date, locale: Locale) => {
+  const wd = getWeekdays(locale)[d.getDay()];
+  return `${d.getMonth() + 1}/${d.getDate()}(${wd})`;
+};
 
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -61,7 +67,17 @@ export const SchedulePageClient = ({
   studioName?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<ScheduleTab>('lesson');
+  const scrollPositions = useRef<Record<ScheduleTab, number>>({ lesson: 0, practice: 0 });
   const today = useMemo(() => new Date(), []);
+
+  const switchTab = useCallback((tab: ScheduleTab) => {
+    if (tab === activeTab) return;
+    scrollPositions.current[activeTab] = window.scrollY;
+    setActiveTab(tab);
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPositions.current[tab]);
+    });
+  }, [activeTab]);
 
   // 수업 탭 상태 (부모에서 관리 → unmount 돼도 유지)
   const [lessonSelectedDate, setLessonSelectedDate] = useState(today);
@@ -111,24 +127,24 @@ export const SchedulePageClient = ({
             </div>
           )}
           <button
-            onClick={() => setActiveTab('lesson')}
+            onClick={() => switchTab('lesson')}
             className={`transition-all duration-200 ${
               activeTab === 'lesson'
                 ? 'text-[20px] text-black font-bold'
                 : 'text-[16px] text-gray-400 font-medium'
             }`}
           >
-            수업
+            {getLocaleString({ locale, key: 'lesson_tab' })}
           </button>
           <button
-            onClick={() => setActiveTab('practice')}
+            onClick={() => switchTab('practice')}
             className={`transition-all duration-200 ${
               activeTab === 'practice'
                 ? 'text-[20px] text-black font-bold'
                 : 'text-[16px] text-gray-400 font-medium'
             }`}
           >
-            연습실
+            {getLocaleString({ locale, key: 'practice_room_tab' })}
           </button>
         </div>
 
@@ -143,7 +159,7 @@ export const SchedulePageClient = ({
               <path d="M4.5 1V3" stroke="#333" strokeWidth="1.1" strokeLinecap="round"/>
               <path d="M9.5 1V3" stroke="#333" strokeWidth="1.1" strokeLinecap="round"/>
             </svg>
-            <span className="text-[13px] font-medium text-black">{formatShortDate(practiceDate)}</span>
+            <span className="text-[13px] font-medium text-black">{formatShortDate(practiceDate, locale)}</span>
           </button>
         )}
       </div>
@@ -158,6 +174,7 @@ export const SchedulePageClient = ({
           selectedDate={lessonSelectedDate}
           onDateChange={setLessonSelectedDate}
           loading={loadingLessons}
+          active={activeTab === 'lesson'}
         />
       </div>
       <div className={activeTab === 'practice' ? '' : 'hidden'}>
@@ -172,6 +189,7 @@ export const SchedulePageClient = ({
           closing={closingSheet}
           onSelect={(date) => { setPracticeDate(date); closeSheet(); }}
           onClose={closeSheet}
+          locale={locale}
         />
       )}
 
@@ -186,20 +204,20 @@ export const SchedulePageClient = ({
 };
 
 // 달력 바텀시트
-const WEEKDAY_HEADERS = ['일', '월', '화', '수', '목', '금', '토'];
-
 const CalendarSheet = ({
   selectedDate,
   today,
   closing,
   onSelect,
   onClose,
+  locale,
 }: {
   selectedDate: Date;
   today: Date;
   closing: boolean;
   onSelect: (date: Date) => void;
   onClose: () => void;
+  locale: Locale;
 }) => {
   const [viewMonth, setViewMonth] = useState(selectedDate.getMonth());
   const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
@@ -237,7 +255,11 @@ const CalendarSheet = ({
               <path d="M12.5 15L7.5 10L12.5 5" stroke="#464C53" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <span className="text-[16px] font-bold text-[#1E2124]">{viewYear}년 {viewMonth + 1}월</span>
+          <span className="text-[16px] font-bold text-[#1E2124]">
+            {locale === 'en'
+              ? `${viewYear} / ${viewMonth + 1}`
+              : `${viewYear}${getLocaleString({ locale, key: 'year_format' })} ${viewMonth + 1}${getLocaleString({ locale, key: 'month_format' })}`}
+          </span>
           <button onClick={goNext} className="p-1 active:opacity-50">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M7.5 5L12.5 10L7.5 15" stroke="#464C53" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -246,7 +268,7 @@ const CalendarSheet = ({
         </div>
 
         <div className="grid grid-cols-7 px-6">
-          {WEEKDAY_HEADERS.map(d => (
+          {getWeekdays(locale).map(d => (
             <div key={d} className="flex items-center justify-center py-2">
               <span className="text-[12px] text-[#9CA3AF] font-medium">{d}</span>
             </div>
