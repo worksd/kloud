@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { getPracticeRoomsAction } from "@/app/schedule/get.practice.rooms.action";
-import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
+import { getPracticeRoomsAction, getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
+import { StudioRoomResponse, TimeSlotResponse, RoomAvailabilityResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -46,6 +46,8 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
   const [rooms, setRooms] = useState<StudioRoomResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<{ room: StudioRoomResponse; slot: TimeSlotResponse; } | null>(null);
+  const [roomDetail, setRoomDetail] = useState<RoomAvailabilityResponse | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [closingSlot, setClosingSlot] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
@@ -144,9 +146,19 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
     };
   }, [selectedSlot]);
 
-  const handleSlotClick = (room: StudioRoomResponse, slot?: TimeSlotResponse) => {
+  const handleSlotClick = async (room: StudioRoomResponse, slot?: TimeSlotResponse) => {
     if (!slot || slot.status !== 'available') return;
     setSelectedSlot({ room, slot });
+    setRoomDetail(null);
+    setLoadingDetail(true);
+    try {
+      const res = await getRoomAvailabilityAction(room.id, toDateStr(selectedDate));
+      if ('studioRoomId' in res) {
+        setRoomDetail(res);
+      }
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleReserve = () => {
@@ -245,33 +257,67 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
                 {getLocaleString({ locale, key: 'reservation_info' })}
               </span>
 
-              <div className="flex flex-col gap-2.5 text-[14px] mt-4">
-                <div className="flex justify-between">
-                  <span className="text-[#888]">{getLocaleString({ locale, key: 'practice_room' })}</span>
-                  <span className="font-semibold text-black">{selectedSlot.room.name}</span>
+              {loadingDetail ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#888]">{getLocaleString({ locale, key: 'date' })}</span>
-                  <span className="font-semibold text-black">{formatDate(selectedDate, locale)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#888]">{getLocaleString({ locale, key: 'time' })}</span>
-                  <span className="font-semibold text-black">{selectedSlot.slot.time}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#888]">{getLocaleString({ locale, key: 'current_usage' })}</span>
-                  <span className="font-semibold text-black">
-                    {selectedSlot.slot.currentCount} / {selectedSlot.slot.maxCount}
-                  </span>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2.5 text-[14px] mt-4">
+                    <div className="flex justify-between">
+                      <span className="text-[#888]">{getLocaleString({ locale, key: 'practice_room' })}</span>
+                      <span className="font-semibold text-black">{roomDetail?.name ?? selectedSlot.room.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#888]">{getLocaleString({ locale, key: 'date' })}</span>
+                      <span className="font-semibold text-black">{formatDate(selectedDate, locale)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#888]">{getLocaleString({ locale, key: 'time' })}</span>
+                      <span className="font-semibold text-black">
+                        {(() => {
+                          const duration = roomDetail?.slotDurationMinutes ?? 60;
+                          const [h, m] = selectedSlot.slot.time.split(':').map(Number);
+                          const end = h * 60 + m + duration;
+                          return `${selectedSlot.slot.time} ~ ${String(Math.floor(end / 60) % 24).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+                        })()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#888]">{getLocaleString({ locale, key: 'current_usage' })}</span>
+                      <span className="font-semibold text-black">
+                        {selectedSlot.slot.currentCount} / {roomDetail?.maxCount ?? selectedSlot.slot.maxCount}
+                      </span>
+                    </div>
+                  </div>
 
-              <button
-                onClick={handleReserve}
-                className="w-full mt-6 py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
-              >
-                {getLocaleString({ locale, key: 'reserve' })}
-              </button>
+                  {roomDetail?.buttons && roomDetail.buttons.length > 0 ? (
+                    <div className="flex flex-col gap-2 mt-6">
+                      {roomDetail.buttons.map((btn, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            if (btn.route) {
+                              setClosingSlot(true);
+                              setTimeout(() => kloudNav.push(btn.route!), 150);
+                            }
+                          }}
+                          className="w-full py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
+                        >
+                          {btn.title}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleReserve}
+                      className="w-full mt-6 py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
+                    >
+                      {getLocaleString({ locale, key: 'reserve' })}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

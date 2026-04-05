@@ -14,3 +14,7 @@ export const getPracticeRoomsAction = async (date?: string) => {
     date,
   });
 };
+
+export const getRoomAvailabilityAction = async (roomId: number, date: string) => {
+  return api.studioRoom.getAvailability({ id: roomId, date });
+};

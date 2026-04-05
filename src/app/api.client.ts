@@ -145,6 +145,7 @@ export class ApiClient extends EndpointClient {
 
   readonly studioRoom = {
     list: this.endpointBuilder(API.StudioRoom.ListStudioRooms),
+    getAvailability: this.endpointBuilder(API.StudioRoom.GetRoomAvailability),
   }
 }
 
