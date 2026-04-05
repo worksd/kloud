@@ -1,7 +1,7 @@
 import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 import { getLocale, translate } from "@/utils/translate";
-import { PassPlanTier, PassRuleResponse } from "@/app/endpoint/pass.endpoint";
+import { PassPlanTier, PassRuleResponse, PassFeatureResponse } from "@/app/endpoint/pass.endpoint";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
 import { DdayText } from "@/app/components/DdayText";
 import { CircleImage } from "@/app/components/CircleImage";
@@ -11,7 +11,19 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import UnlimitedIcon from "../../../../../public/assets/ic_unlimited.svg";
 import FreeUnlimitedIcon from "../../../../../public/assets/ic_free_unlimited.svg";
 import DiscountIcon from "../../../../../public/assets/ic_discount.svg";
+import PassPresaleIcon from "../../../../../public/assets/ic_pass_presale.svg";
+import PassFastIcon from "../../../../../public/assets/ic_pass_fast.svg";
+import PassRoomIcon from "../../../../../public/assets/ic_pass_room.svg";
 import { PassQRCode } from "@/app/profile/myPass/[id]/PassQRCode";
+
+const featureIcon = (key: string) => {
+  switch (key) {
+    case 'canPrePurchase': return <PassPresaleIcon />;
+    case 'priorityEntry': return <PassFastIcon />;
+    case 'practiceRoom': return <PassRoomIcon />;
+    default: return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="#555" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  }
+};
 
 const ruleBenefitIcon = (benefitType: string) => {
   switch (benefitType) {
@@ -55,6 +67,9 @@ export default async function MyPassDetailPage({params}: {
   if ('id' in pass) {
     const passPlan = pass.passPlan;
     const passRules = pass.passRules ?? [];
+    const passFeatures = pass.passFeatures ?? [];
+    const usableText = await translate('usable');
+    const additionalBenefitText = await translate('additional_benefit');
 
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
@@ -145,8 +160,8 @@ export default async function MyPassDetailPage({params}: {
 
         <div className="w-full h-2 bg-[#F7F8F9]" />
 
-        {/* 이용 혜택 (passRules) */}
-        {passRules.length > 0 && (
+        {/* 이용 혜택 */}
+        {(passRules.length > 0 || passFeatures.length > 0) && (
           <div className="px-6 pt-5">
             <h3 className="text-[15px] font-bold text-black mb-4">{await translate('pass_benefit')}</h3>
             <div className="flex flex-col gap-5 divide-y divide-[#F0F0F0]">
@@ -194,33 +209,40 @@ export default async function MyPassDetailPage({params}: {
                 );
               })}
             </div>
-          </div>
-        )}
 
-        {/* features */}
-        {passPlan?.features && passPlan.features.length > 0 && (
-          <div className="px-6 pt-4">
-            {passRules.length > 0 && (
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-1 h-px bg-[#EBEBEB]" />
-                <span className="text-[12px] text-[#B0B0B0] font-medium">부가 혜택</span>
-                <div className="flex-1 h-px bg-[#EBEBEB]" />
-              </div>
-            )}
-            <div className="flex flex-col gap-2.5">
-              {passPlan.features.map((feature, i) => (
-                feature.description && (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M3 7L6 10L11 4" stroke="#555" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <span className="text-[13px] text-[#555] font-medium">{feature.description}</span>
+            {/* passFeatures */}
+            {passFeatures.length > 0 && (
+              <>
+                {passRules.length > 0 && (
+                  <div className="flex items-center gap-4 mt-5 mb-4">
+                    <div className="flex-1 h-px bg-[#EBEBEB]" />
+                    <span className="text-[12px] text-[#B0B0B0] font-medium">{additionalBenefitText}</span>
+                    <div className="flex-1 h-px bg-[#EBEBEB]" />
                   </div>
-                )
-              ))}
-            </div>
+                )}
+                <div className="flex flex-col gap-3">
+                  {passFeatures.map((feature) => {
+                    const isExpired = feature.status === 'Expired';
+                    return (
+                      <div key={feature.id} className={`flex items-center gap-3 ${isExpired ? 'opacity-40' : ''}`}>
+                        <div className="w-8 h-8 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
+                          {featureIcon(feature.featureKey)}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[13px] text-[#333] font-medium">{feature.description ?? feature.featureKey}</span>
+                          <span className="text-[11px] text-[#999]">{feature.startDate} ~ {feature.endDate}</span>
+                        </div>
+                        {feature.usable && !isExpired && (
+                          <span className="text-[10px] font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full ml-auto flex-shrink-0">
+                            {feature.status === 'Active' ? usableText : feature.status}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

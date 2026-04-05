@@ -42,18 +42,6 @@ export const RecommendedPassPlanItem = ({item, isSelected, onClickAction, locale
               {item.expireDateStamp}
             </div>
           )}
-          {item.type === 'Unlimited' && (
-            <div className={`text-[13px] font-medium mt-0.5
-              ${isSelected ? 'text-white/70' : 'text-[#6B66A0]'}`}>
-              모든 클래스 무제한 이용
-            </div>
-          )}
-          {item.type === 'Count' && item.usageLimit && (
-            <div className={`text-[13px] font-medium mt-0.5
-              ${isSelected ? 'text-white/70' : 'text-[#6B66A0]'}`}>
-              클래스 {item.usageLimit}회 이용 가능
-            </div>
-          )}
         </div>
 
         <div className={`text-[20px] font-extrabold tracking-tight whitespace-nowrap ml-4
