@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getPracticeRoomsAction, getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
 import { StudioRoomResponse, TimeSlotResponse, RoomAvailabilityResponse } from "@/app/endpoint/studio.room.endpoint";
@@ -49,10 +49,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
   const [roomDetail, setRoomDetail] = useState<RoomAvailabilityResponse | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [closingSlot, setClosingSlot] = useState(false);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const dragStartY = useRef(0);
-  const dragCurrentY = useRef(0);
-  const isDragging = useRef(false);
 
   const fetchRooms = useCallback(async () => {
     setLoading(true);
@@ -79,41 +75,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
     return Array.from(timeSet).sort();
   }, [rooms]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    dragStartY.current = e.touches[0].clientY;
-    isDragging.current = true;
-    if (sheetRef.current) sheetRef.current.style.transition = 'none';
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    e.preventDefault();
-    dragCurrentY.current = e.touches[0].clientY;
-    const dy = Math.max(0, dragCurrentY.current - dragStartY.current);
-    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${dy}px)`;
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    const dy = dragCurrentY.current - dragStartY.current;
-    if (dy > 80) {
-      if (sheetRef.current) {
-        sheetRef.current.style.transition = 'transform 150ms ease-in';
-        sheetRef.current.style.transform = 'translateY(100%)';
-      }
-      setTimeout(() => {
-        setSelectedSlot(null);
-        setClosingSlot(false);
-      }, 150);
-    } else {
-      if (sheetRef.current) {
-        sheetRef.current.style.transition = 'transform 150ms ease-out';
-        sheetRef.current.style.transform = 'translateY(0)';
-      }
-    }
-  };
-
   useEffect(() => {
     if (closingSlot) {
       const timer = setTimeout(() => {
@@ -123,28 +84,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
       return () => clearTimeout(timer);
     }
   }, [closingSlot]);
-
-  useEffect(() => {
-    if (selectedSlot) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
-    } else {
-      const scrollY = document.body.style.top;
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      window.scrollTo(0, parseInt(scrollY || '0') * -1);
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-    };
-  }, [selectedSlot]);
 
   const handleSlotClick = async (room: StudioRoomResponse, slot?: TimeSlotResponse) => {
     if (!slot || slot.status !== 'available') return;
@@ -236,26 +175,25 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
         </div>
       </div>
 
-      {/* 선택된 슬롯 바텀시트 */}
+      {/* 선택된 슬롯 다이얼로그 */}
       {selectedSlot && (
-        <div className="fixed inset-0 z-50" onClick={() => setClosingSlot(true)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setClosingSlot(true)}>
           <div className={`absolute inset-0 bg-black/40 ${closingSlot ? 'animate-[fadeOut_150ms_ease-in_forwards]' : 'animate-[fadeIn_150ms_ease-out]'}`} />
           <div
-            ref={sheetRef}
-            className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl pb-8 touch-none ${closingSlot ? 'animate-[slideDown_150ms_ease-in_forwards]' : 'animate-[slideUp_150ms_ease-out]'}`}
+            className={`relative bg-white rounded-2xl w-[calc(100%-48px)] max-w-[340px] ${closingSlot ? 'animate-[scaleOut_150ms_ease-in_forwards]' : 'animate-[scaleIn_150ms_ease-out]'}`}
             onClick={e => e.stopPropagation()}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1 rounded-full bg-[#DDD]" />
-            </div>
-
-            <div className="px-6">
-              <span className="text-[17px] font-bold text-black">
-                {getLocaleString({ locale, key: 'reservation_info' })}
-              </span>
+            <div className="px-6 pt-5 pb-5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[17px] font-bold text-black">
+                  {getLocaleString({ locale, key: 'reservation_info' })}
+                </span>
+                <button onClick={() => setClosingSlot(true)} className="p-1 -mr-1 active:opacity-50">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M5 5L15 15M15 5L5 15" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
 
               {loadingDetail ? (
                 <div className="flex items-center justify-center py-8">
@@ -292,7 +230,7 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
                   </div>
 
                   {roomDetail?.buttons && roomDetail.buttons.length > 0 ? (
-                    <div className="flex flex-col gap-2 mt-6">
+                    <div className="flex flex-col gap-2 mt-5">
                       {roomDetail.buttons.map((btn, i) => (
                         <button
                           key={i}
@@ -303,7 +241,7 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
                               setTimeout(() => kloudNav.push(btn.route!), 150);
                             }
                           }}
-                          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-transform ${
+                          className={`w-full py-3 rounded-xl text-[14px] font-bold transition-transform ${
                             btn.route
                               ? 'bg-black text-white active:scale-[0.98]'
                               : 'bg-[#E0E0E0] text-[#999] cursor-not-allowed'
@@ -316,7 +254,7 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
                   ) : (
                     <button
                       onClick={handleReserve}
-                      className="w-full mt-6 py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
+                      className="w-full mt-5 py-3 rounded-xl bg-black text-white text-[14px] font-bold active:scale-[0.98] transition-transform"
                     >
                       {getLocaleString({ locale, key: 'reserve' })}
                     </button>
@@ -331,8 +269,8 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
       <style jsx>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes scaleOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
       `}</style>
     </div>
   );
