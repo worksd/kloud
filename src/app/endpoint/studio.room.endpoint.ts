@@ -35,6 +35,9 @@ export const ListStudioRooms: Endpoint<GetStudioRoomListParameter, StudioRoomLis
 export type GetRoomAvailabilityParameter = {
   id: number;
   date: string;
+  targetDate?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export type RoomAvailabilityResponse = {
@@ -51,5 +54,5 @@ export const GetRoomAvailability: Endpoint<GetRoomAvailabilityParameter, RoomAva
   method: 'get',
   path: (e) => `/studioRooms/${e.id}`,
   pathParams: ['id'],
-  queryParams: ['date'],
+  queryParams: ['date', 'targetDate', 'startTime', 'endTime'],
 }

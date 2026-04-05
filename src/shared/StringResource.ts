@@ -2571,6 +2571,54 @@ export const StringResource = {
     jp: 'さんの代理決済ページです',
     zh: '的代付页面'
   },
+  additional_benefit: {
+    ko: '부가 혜택',
+    en: 'Additional Benefits',
+    jp: '付加特典',
+    zh: '附加权益'
+  },
+  usable: {
+    ko: '사용 가능',
+    en: 'Available',
+    jp: '利用可能',
+    zh: '可使用'
+  },
+  max_capacity: {
+    ko: '최대 인원',
+    en: 'Max capacity',
+    jp: '最大人数',
+    zh: '最大人数'
+  },
+  people: {
+    ko: '명',
+    en: '',
+    jp: '名',
+    zh: '人'
+  },
+  slot: {
+    ko: '타임',
+    en: 'slot',
+    jp: 'コマ',
+    zh: '时段'
+  },
+  select_time: {
+    ko: '시간을 선택해주세요',
+    en: 'Select a time',
+    jp: '時間を選択してください',
+    zh: '请选择时间'
+  },
+  closed: {
+    ko: '마감',
+    en: 'Closed',
+    jp: '締切',
+    zh: '已关闭'
+  },
+  use_pass_confirm_question: {
+    ko: '패스권을 사용하시겠습니까?',
+    en: 'Would you like to use your pass?',
+    jp: 'パス券を使用しますか？',
+    zh: '是否使用通票？'
+  },
   go_purchase_pass: {
     ko: '패스권 구매하러 가기',
     en: 'Purchase a pass',

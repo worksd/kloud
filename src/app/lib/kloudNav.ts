@@ -172,6 +172,9 @@ const applyTitle = async (route: string) => {
     return await translate('my_membership')
   } else if (route.startsWith('/tickets/')) {
     return '';
+  } else if (route.startsWith('/studioRooms/')) {
+    const match = route.match(/roomName=([^&]+)/);
+    return match ? decodeURIComponent(match[1]) : await translate('practice_room')
   } else if (route.startsWith('/payment?') || ( route.includes('/lessons/') && route.includes('/payment'))) {
     return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
   } else if (route.includes('/profile/myPass/')) {
