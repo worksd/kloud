@@ -2571,6 +2571,12 @@ export const StringResource = {
     jp: 'さんの代理決済ページです',
     zh: '的代付页面'
   },
+  go_purchase_pass: {
+    ko: '패스권 구매하러 가기',
+    en: 'Purchase a pass',
+    jp: 'パスを購入する',
+    zh: '购买通行证'
+  },
   practice_room_not_available: {
     ko: '현재 연습실을 예약할 수 없습니다',
     en: 'Practice room reservation is not available',

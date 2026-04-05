@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 import { getPracticeRoomsAction, getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
 import { StudioRoomResponse, TimeSlotResponse, RoomAvailabilityResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
@@ -38,9 +39,10 @@ const formatDate = (d: Date, locale: Locale) => {
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
+export const PracticeRoomView = ({ selectedDate, onChangeDate, locale, studioId }: {
   selectedDate: Date;
   onChangeDate: (date: Date) => void;
+  studioId?: number;
   locale: Locale;
 }) => {
   const [rooms, setRooms] = useState<StudioRoomResponse[]>([]);
@@ -257,6 +259,18 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
                       className="w-full mt-5 py-3 rounded-xl bg-black text-white text-[14px] font-bold active:scale-[0.98] transition-transform"
                     >
                       {getLocaleString({ locale, key: 'reserve' })}
+                    </button>
+                  )}
+
+                  {studioId && roomDetail?.buttons?.some(btn => !btn.route && !btn.activateAt) && (
+                    <button
+                      onClick={() => {
+                        setClosingSlot(true);
+                        setTimeout(() => kloudNav.push(KloudScreen.PurchasePass(studioId)), 150);
+                      }}
+                      className="w-full mt-3 text-[12px] text-[#888] underline underline-offset-2 active:text-black transition-colors"
+                    >
+                      {getLocaleString({ locale, key: 'go_purchase_pass' })}
                     </button>
                   )}
                 </>

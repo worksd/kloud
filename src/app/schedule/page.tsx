@@ -43,6 +43,7 @@ export default async function SchedulePage() {
     <SchedulePageClient
       studioImageUrl={res.myStudio.studio.profileImageUrl}
       studioName={res.myStudio.studio.name}
+      studioId={res.myStudio.studio.id}
       lessons={lessons}
       locale={locale}
     />

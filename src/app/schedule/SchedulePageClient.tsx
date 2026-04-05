@@ -60,11 +60,13 @@ export const SchedulePageClient = ({
   locale,
   lessons: initialLessons,
   studioName,
+  studioId,
 }: {
   studioImageUrl?: string;
   locale: Locale;
   lessons: CalendarLesson[];
   studioName?: string;
+  studioId?: number;
 }) => {
   const [activeTab, setActiveTab] = useState<ScheduleTab>('lesson');
   const scrollPositions = useRef<Record<ScheduleTab, number>>({ lesson: 0, practice: 0 });
@@ -186,7 +188,7 @@ export const SchedulePageClient = ({
         />
       </div>
       <div className={activeTab === 'practice' ? '' : 'hidden'}>
-        <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} locale={locale} />
+        <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} locale={locale} studioId={studioId} />
       </div>
 
       {/* 날짜 선택 달력 바텀시트 */}
