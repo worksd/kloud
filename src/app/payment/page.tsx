@@ -21,13 +21,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     os?: string
     appVersion?: string
     targetUserId?: string
-    date?: string
-    time?: string
     roomName?: string
+    targetDate?: string
+    startTime?: string
+    endTime?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, item, id, os, appVersion = '', targetUserId, date, time, roomName } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, roomName, targetDate, startTime, endTime } = params;
   const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
@@ -218,24 +219,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                   <span className="text-[14px] font-medium text-black">{res.studioRoom?.name ?? roomName}</span>
                 </div>
               )}
-              {date && (
+              {targetDate && (
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] text-[#86898C]">{await translate('date')}</span>
-                  <span className="text-[14px] font-medium text-black">{date}</span>
+                  <span className="text-[14px] font-medium text-black">{targetDate}</span>
                 </div>
               )}
-              {time && (() => {
-                const duration = res.studioRoom?.slotDurationMinutes ?? 60;
-                const [h, m] = time.split(':').map(Number);
-                const endTotal = h * 60 + m + duration;
-                const endTime = `${String(Math.floor(endTotal / 60) % 24).padStart(2, '0')}:${String(endTotal % 60).padStart(2, '0')}`;
-                return (
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-[#86898C]">{timeText}</span>
-                    <span className="text-[14px] font-medium text-black">{time} ~ {endTime}</span>
-                  </div>
-                );
-              })()}
+              {startTime && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#86898C]">{timeText}</span>
+                  <span className="text-[14px] font-medium text-black">{startTime} ~ {endTime ?? startTime}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -254,6 +249,12 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           locale={await getLocale()}
           actualPayerUserId={actualPayerUserId}
           isProxyPayment={isProxyPayment}
+          practiceRoomInfo={paymentItem === 'practice-room' && targetDate && startTime && endTime ? {
+            studioRoomId: itemId,
+            targetDate,
+            startTime,
+            endTime,
+          } : undefined}
         />
       </div>
     </div>

@@ -61,6 +61,18 @@ export type PassRuleResponse = {
   tickets: PassRuleTicket[];
 }
 
+export type PassFeatureResponse = {
+  id: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  usable: boolean;
+  featureKey: string;
+  featureValue?: string | null;
+  duration: number;
+  description?: string | null;
+}
+
 export type PassPlanRule = {
   id: number;
   description: string;
@@ -123,6 +135,7 @@ export type GetPassResponse = {
   paymentRecord?: SimplePaymentRecordResponse
   tickets?: TicketResponse[]
   passRules?: PassRuleResponse[]
+  passFeatures?: PassFeatureResponse[]
   remainingCount?: number
   usable: boolean
   reason?: string
@@ -142,7 +155,11 @@ export type CreatePassRequest = {
 
 export type UsePassRequest = {
   passId: number
-  lessonId: number
+  lessonId?: number
+  studioRoomId?: number
+  targetDate?: string
+  startTime?: string
+  endTime?: string
 }
 
 export type PassOrder = 'upcoming' | 'newest'
@@ -174,7 +191,7 @@ export const CreatePass: Endpoint<CreatePassRequest, GetPassResponse> = {
 export const UsePass: Endpoint<UsePassRequest, TicketResponse> = {
   method: 'post',
   path: (e) => `/passes/${e.passId}/use`,
-  bodyParams: ['lessonId']
+  bodyParams: ['lessonId', 'studioRoomId', 'targetDate', 'startTime', 'endTime']
 }
 
 export enum PassPlanTier {

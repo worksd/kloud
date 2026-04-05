@@ -273,11 +273,11 @@ export const PaymentMethodComponent = ({
               {/* 확장 영역 */}
               {isSelected && option.type === 'pass' && (
                 <div className="bg-[#F6F7F8] px-5 pb-4">
-                  {passes && passes.length > 0 && selectPass && selectedPass ? (
+                  {passes && passes.length > 0 && selectPass ? (
                     <SelectablePassList
                       passItems={passes}
                       onSelect={selectPass}
-                      selectedPassId={selectedPass.id}
+                      selectedPassId={selectedPass?.id ?? null}
                       locale={locale}
                     />
                   ) : (

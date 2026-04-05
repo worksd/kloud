@@ -45,7 +45,7 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
     case 'membership-plan':
       return payment.membershipPlan?.id ?? payment.passPlan?.id ?? 0;
     case 'practice-room':
-      return 0;
+      return payment.studioRoom?.id ?? 0;
   }
 }
 
@@ -109,7 +109,8 @@ export const UnifiedPaymentInfo = ({
   locale,
   beforeDepositor,
   actualPayerUserId,
-  isProxyPayment
+  isProxyPayment,
+  practiceRoomInfo,
 }: {
   payment: GetPaymentResponse,
   type: UnifiedPaymentType,
@@ -119,7 +120,8 @@ export const UnifiedPaymentInfo = ({
   beforeDepositor: string,
   actualPayerUserId?: number,
   isProxyPayment?: boolean,
-  locale: Locale
+  locale: Locale,
+  practiceRoomInfo?: { studioRoomId: number; targetDate: string; startTime: string; endTime: string },
 }) => {
   // easy_pay의 providers를 개별 메서드로 풀어서 사용
   const easyPayLabel: Record<string, string> = {
@@ -139,7 +141,7 @@ export const UnifiedPaymentInfo = ({
     defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined)
   );
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
-    payment.user.passes?.find(p => p.usable)
+    payment.user.passes?.find(p => p.usable || p.status === 'Active')
   );
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
@@ -299,7 +301,7 @@ export const UnifiedPaymentInfo = ({
           method={selectedMethod}
           appVersion={appVersion}
           selectedBilling={selectedBillingCard}
-          selectedPass={noPass ? undefined : selectedPass}
+          selectedPass={selectedPass}
           selectedDiscounts={noPass ? undefined : activeDiscounts}
           type={getPaymentType(type)}
           id={getItemId(payment, type)}
@@ -320,6 +322,7 @@ export const UnifiedPaymentInfo = ({
           actualPayerUserId={noPass ? undefined : actualPayerUserId}
           hasRefundAccount={payment.refundAccountNumber != null && payment.refundAccountNumber.length > 0}
           onBillingCardsChange={(cards) => setCards(cards)}
+          practiceRoomInfo={practiceRoomInfo}
         />
       </div>
     </div>

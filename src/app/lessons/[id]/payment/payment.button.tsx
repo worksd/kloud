@@ -73,6 +73,7 @@ export default function PaymentButton({
                                         locale,
                                         hasRefundAccount,
                                         onBillingCardsChange,
+                                        practiceRoomInfo,
                                       }: {
   appVersion: string;
   id: number,
@@ -91,6 +92,7 @@ export default function PaymentButton({
   locale: Locale,
   hasRefundAccount: boolean,
   onBillingCardsChange?: (cards: GetBillingResponse[]) => void,
+  practiceRoomInfo?: { studioRoomId: number; targetDate: string; startTime: string; endTime: string },
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -234,15 +236,22 @@ export default function PaymentButton({
         }
       }
     } else if (method === 'pass') {
+      const isPracticeRoom = type.apiValue === 'practice-room';
       const dialog = await createDialog({
         id: 'UsePass',
         title: title,
-        message: [
-          `${getLocaleString({locale, key: 'use_pass_confirm_lesson'})}: ${title}`,
-          `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name}`,
-          ``,
-          `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
-        ].join('\n'),
+        message: isPracticeRoom
+          ? [
+              `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
+              ``,
+              `${getLocaleString({locale, key: 'use_pass_confirm_question'})}`
+            ].join('\n')
+          : [
+              `${getLocaleString({locale, key: 'use_pass_confirm_lesson'})}: ${title}`,
+              `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
+              ``,
+              `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
+            ].join('\n'),
       })
       if (appVersion == '' && dialog) {
         setWebDialogInfo(dialog)
@@ -304,17 +313,27 @@ export default function PaymentButton({
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
         }
-      } else if (data.id == 'UsePass' && selectedPass?.id && type.value == 'lesson') {
+      } else if (data.id == 'UsePass' && selectedPass?.id && (type.value == 'lesson' || type.value == 'practiceRoom')) {
         const res = await selectAndUsePassAction({
-          passId: selectedPass?.id,
-          lessonId: id,
+          passId: selectedPass.id,
+          lessonId: type.value === 'lesson' ? id : undefined,
+          studioRoomId: type.value === 'practiceRoom' ? id : undefined,
+          targetDate: practiceRoomInfo?.targetDate,
+          startTime: practiceRoomInfo?.startTime,
+          endTime: practiceRoomInfo?.endTime,
         });
         if ('id' in res) {
-          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, false) : undefined
+          const pushRoute = KloudScreen.TicketDetail(res.id, false);
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
           } else {
             await kloudNav.navigateMain({route: pushRoute});
+          }
+        } else if (type.value === 'practiceRoom' && 'success' in res && res.success) {
+          if (appVersion == '') {
+            router.replace('/')
+          } else {
+            await kloudNav.navigateMain({});
           }
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
