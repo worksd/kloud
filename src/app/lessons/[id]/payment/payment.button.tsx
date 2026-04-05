@@ -27,6 +27,7 @@ export const PaymentTypes = [
   {value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group'},
   {value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'},
   {value: 'membershipPlan', prefix: 'SM', apiValue: 'membership-plan'},
+  {value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];

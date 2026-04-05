@@ -13,7 +13,7 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan';
+type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan' | 'practice-room';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
@@ -25,6 +25,8 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
       return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
     case 'membership-plan':
       return { value: 'membershipPlan', prefix: 'SM', apiValue: 'membership-plan' };
+    case 'practice-room':
+      return { value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room' };
   }
 }
 
@@ -42,6 +44,8 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
       return payment.lessonGroup?.id ?? 0;
     case 'membership-plan':
       return payment.membershipPlan?.id ?? payment.passPlan?.id ?? 0;
+    case 'practice-room':
+      return 0;
   }
 }
 
@@ -55,6 +59,8 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
       return payment.lessonGroup?.title ?? '';
     case 'membership-plan':
       return payment.membershipPlan?.name ?? '';
+    case 'practice-room':
+      return payment.studioRoom?.name ?? '';
   }
 }
 
@@ -70,6 +76,8 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
       return payment.lessonGroup?.price ?? 0;
     case 'membership-plan':
       return payment.membershipPlan?.price ?? 0;
+    case 'practice-room':
+      return payment.price ?? payment.studioRoom?.hourlyPrice ?? 0;
   }
 }
 
@@ -160,7 +168,7 @@ export const UnifiedPaymentInfo = ({
   if (needsMountCheck(type) && !mounted) return null;
 
   const studio = getStudio(payment, type);
-  const noPass = type === 'pass-plan' || type === 'membership-plan';
+  const noPass = type === 'pass-plan' || type === 'membership-plan' || type === 'practice-room';
   const itemPrice = getItemPrice(payment, type);
 
   // 쿠폰 선택 시 Pass 타입 할인 제외, 쿠폰 할인 적용

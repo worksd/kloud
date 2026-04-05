@@ -11,24 +11,29 @@ import TicketIcon from "../../../public/assets/ic_ticket.svg";
 import { BackButton } from "@/app/payment/BackButton";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
-    type: PaymentPageType
+    type?: PaymentPageType
+    item?: PaymentPageType
     id: string
     os?: string
     appVersion?: string
     targetUserId?: string
+    date?: string
+    time?: string
+    roomName?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, id, os, appVersion = '', targetUserId } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, date, time, roomName } = params;
+  const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
 
   const res = await getPaymentAction({
-    type,
+    item: paymentItem,
     id: itemId,
     targetUserId: parsedTargetUserId
   });
@@ -44,18 +49,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const isProxyPayment = !!(actualPayerUserId && res.user.id !== actualPayerUserId);
 
   // 타입별로 데이터가 없는 경우 체크
-  if (type === 'lesson' && !res.lesson) {
+  if (paymentItem === 'lesson' && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
-  if (type === 'lesson-group' && !res.lessonGroup) {
+  if (paymentItem === 'lesson-group' && !res.lessonGroup) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
-  if (type === 'pass-plan' && !res.passPlan) {
+  if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
 
   const getItemInfo = () => {
-    switch (type) {
+    switch (paymentItem) {
       case 'lesson':
         return {
           thumbnailUrl: res.lesson?.thumbnailUrl,
@@ -77,6 +82,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           studioName: res.passPlan?.studio?.name,
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
         };
+      default:
+        return {
+          thumbnailUrl: undefined,
+          title: undefined,
+          studioName: undefined,
+          studioImageUrl: undefined,
+        };
     }
   };
 
@@ -89,7 +101,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           <BackButton />
         )}
         {/* lesson / lesson-group */}
-        {(type === 'lesson' || type === 'lesson-group') && (
+        {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
           <div className="px-5 pt-4 pb-3">
             <div className="flex gap-4">
               {/* 썸네일 9:16 */}
@@ -111,7 +123,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                   {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
                   <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
                 </div>
-                {type === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
+                {paymentItem === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
                   <div className="flex flex-col gap-1 mt-1">
                     <div className="flex items-center gap-1.5">
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -141,7 +153,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                     )}
                   </div>
                 )}
-                {type === 'lesson-group' && res.lessonGroup?.description && (
+                {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
                   <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
                 )}
               </div>
@@ -150,7 +162,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
         )}
 
         {/* pass-plan */}
-        {type === 'pass-plan' && res.passPlan && (
+        {paymentItem === 'pass-plan' && res.passPlan && (
           <div className="px-5 pt-4 pb-3">
             {/* 이미지 */}
             {res.passPlan.imageUrl && (
@@ -175,12 +187,64 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
+        {/* practice-room */}
+        {paymentItem === 'practice-room' && (
+          <div className="px-5 pt-4 pb-3">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-[48px] h-[48px] rounded-2xl bg-[#F1F3F6] flex items-center justify-center flex-shrink-0">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="#333" strokeWidth="1.5"/>
+                  <path d="M8 5V3" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M16 5V3" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M3 9H21" stroke="#333" strokeWidth="1.5"/>
+                </svg>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[18px] font-bold text-black">
+                  {(res.studioRoom?.name ?? roomName)
+                    ? `${await translate('practice_room')} · ${res.studioRoom?.name ?? roomName}`
+                    : await translate('practice_room')}
+                </span>
+                {studioName && (
+                  <span className="text-[13px] text-[#86898C] font-medium">{studioName}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 bg-[#F7F8F9] rounded-xl px-4 py-3">
+              {(res.studioRoom?.name ?? roomName) && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#86898C]">{await translate('practice_room')}</span>
+                  <span className="text-[14px] font-medium text-black">{res.studioRoom?.name ?? roomName}</span>
+                </div>
+              )}
+              {date && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#86898C]">{await translate('date')}</span>
+                  <span className="text-[14px] font-medium text-black">{date}</span>
+                </div>
+              )}
+              {time && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#86898C]">{await translate('time')}</span>
+                  <span className="text-[14px] font-medium text-black">{time}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-[#86898C]">{await translate('rental_duration')}</span>
+                <span className="text-[14px] font-medium text-black">
+                  {res.studioRoom?.slotDurationMinutes ? `${res.studioRoom.slotDurationMinutes}min` : `1${await translate('hour')}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="py-1">
           <div className="w-full h-2 bg-[#F7F8F9]" />
         </div>
 
         <UnifiedPaymentInfo
-          type={type}
+          type={paymentItem}
           url={process.env.GUINNESS_API_SERVER ?? ''}
           appVersion={appVersion}
           os={os}

@@ -53,6 +53,14 @@ export type GetPaymentResponse = {
   refundDepositor?: string
   discounts?: DiscountResponse[];
   coupons?: CouponResponse[];
+  studioRoom?: {
+    id: number;
+    name: string;
+    hourlyPrice: number;
+    slotDurationMinutes: number;
+    practiceMaxNumber: number;
+    practiceImageUrls?: string[];
+  };
 }
 
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {

@@ -47,7 +47,7 @@ export type RequestDiscountParameter = {
 }
 
 export type ManualPaymentMethodType = 'credit' | 'pass' | 'account_transfer' | 'admin' | 'free' | 'billing';
-export type ManualPaymentItem = 'lesson' | 'lesson-group' | 'pass-plan' | 'membership-plan';
+export type ManualPaymentItem = 'lesson' | 'lesson-group' | 'pass-plan' | 'membership-plan' | 'practice-room';
 
 export type CreateManualPaymentRecordRequest = {
   methodType: ManualPaymentMethodType;

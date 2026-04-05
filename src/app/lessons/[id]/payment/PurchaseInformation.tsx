@@ -52,7 +52,7 @@ export const PurchaseInformation = ({originalPrice, totalPrice, method, titleRes
   const finalPrice = method == 'pass' ? 0 : totalPrice;
 
   return (
-    <div className="flex flex-col px-6">
+    <div className="flex flex-col px-6 pt-4">
       <div className="text-[15px] font-bold text-black mb-4">{getLocaleString({
         locale,
         key: 'payment_information'
