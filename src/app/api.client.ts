@@ -142,6 +142,10 @@ export class ApiClient extends EndpointClient {
   readonly student = {
     create: this.endpointBuilder(API.Student.CreateStudent),
   }
+
+  readonly studioRoom = {
+    list: this.endpointBuilder(API.StudioRoom.ListStudioRooms),
+  }
 }
 
 export interface ClientOptions {

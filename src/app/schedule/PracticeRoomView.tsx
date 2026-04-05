@@ -1,28 +1,11 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
-
-type TimeSlot = {
-  hour: number;
-  currentUsers: number;
-  maxUsers: number;
-  available: boolean;
-}
-
-const ROOMS = ['A홀', 'B홀', 'C홀', 'D홀', 'E홀', 'F홀', 'G홀'];
-const HOURS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-
-const generateMockData = (): Record<string, TimeSlot[]> => {
-  const data: Record<string, TimeSlot[]> = {};
-  for (const room of ROOMS) {
-    data[room] = HOURS.map(hour => {
-      const currentUsers = Math.floor(Math.random() * 5);
-      return { hour, currentUsers, maxUsers: 5, available: currentUsers < 5 };
-    });
-  }
-  return data;
-};
+import { getPracticeRoomsAction } from "@/app/schedule/get.practice.rooms.action";
+import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 const getHeatColor = (current: number, max: number) => {
   if (current === 0) return '#F3F4F6';
@@ -34,25 +17,65 @@ const getHeatColor = (current: number, max: number) => {
   return '#C7D2FE';
 };
 
-const formatDate = (d: Date) => {
-  const weekday = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${weekday})`;
+const slotColor = (slot?: TimeSlotResponse) => {
+  if (!slot || slot.status === 'closed') return '#F3F4F6';
+  if (slot.status === 'full') return '#EF4444';
+  return getHeatColor(slot.currentCount, slot.maxCount);
+};
+
+const formatDate = (d: Date, locale: Locale) => {
+  const weekdays: Record<Locale, string[]> = {
+    ko: ['일', '월', '화', '수', '목', '금', '토'],
+    en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    jp: ['日', '月', '火', '水', '木', '金', '土'],
+    zh: ['日', '一', '二', '三', '四', '五', '六'],
+  };
+  const wd = weekdays[locale][d.getDay()];
+  if (locale === 'en') return `${d.getMonth() + 1}/${d.getDate()} (${wd})`;
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`;
 };
 
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
+export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
   selectedDate: Date;
   onChangeDate: (date: Date) => void;
+  locale: Locale;
 }) => {
-  const [selectedSlot, setSelectedSlot] = useState<{ room: string; hour: number } | null>(null);
+  const [rooms, setRooms] = useState<StudioRoomResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSlot, setSelectedSlot] = useState<{ room: StudioRoomResponse; slot: TimeSlotResponse; } | null>(null);
   const [closingSlot, setClosingSlot] = useState(false);
-  const roomData = useMemo(() => generateMockData(), [selectedDate]);
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
   const dragCurrentY = useRef(0);
   const isDragging = useRef(false);
+
+  const fetchRooms = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getPracticeRoomsAction(toDateStr(selectedDate));
+      if ('studioRooms' in res) {
+        setRooms(res.studioRooms);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  // 모든 room의 슬롯에서 정시(HH:00)만 추출
+  const allTimes = React.useMemo(() => {
+    const timeSet = new Set<string>();
+    rooms.forEach(room => room.slots?.forEach(s => {
+      if (s.time.endsWith(':00')) timeSet.add(s.time);
+    }));
+    return Array.from(timeSet).sort();
+  }, [rooms]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     dragStartY.current = e.touches[0].clientY;
@@ -73,7 +96,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
     isDragging.current = false;
     const dy = dragCurrentY.current - dragStartY.current;
     if (dy > 80) {
-      // 닫기: 현재 위치에서 아래로 슬라이드
       if (sheetRef.current) {
         sheetRef.current.style.transition = 'transform 150ms ease-in';
         sheetRef.current.style.transform = 'translateY(100%)';
@@ -83,7 +105,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
         setClosingSlot(false);
       }, 150);
     } else {
-      // 원위치
       if (sheetRef.current) {
         sheetRef.current.style.transition = 'transform 150ms ease-out';
         sheetRef.current.style.transform = 'translateY(0)';
@@ -101,7 +122,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
     }
   }, [closingSlot]);
 
-  // 바텀시트 열렸을 때 배경 스크롤 방지
   useEffect(() => {
     if (selectedSlot) {
       document.body.style.overflow = 'hidden';
@@ -124,53 +144,69 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
     };
   }, [selectedSlot]);
 
-  const handleSlotClick = (room: string, slot: TimeSlot) => {
-    if (!slot.available) return;
-    setSelectedSlot({ room, hour: slot.hour });
+  const handleSlotClick = (room: StudioRoomResponse, slot?: TimeSlotResponse) => {
+    if (!slot || slot.status !== 'available') return;
+    setSelectedSlot({ room, slot });
   };
 
   const handleReserve = () => {
     if (!selectedSlot) return;
     setClosingSlot(true);
-    const roomId = ROOMS.indexOf(selectedSlot.room) + 1;
     setTimeout(() => {
-      kloudNav.push(`/payment?type=practice&id=${roomId}&date=${toDateStr(selectedDate)}&hour=${selectedSlot.hour}`);
+      kloudNav.push(`/payment?item=practice-room&id=${selectedSlot.room.id}&date=${toDateStr(selectedDate)}&time=${selectedSlot.slot.time}&roomName=${encodeURIComponent(selectedSlot.room.name)}`);
     }, 150);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (rooms.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <span className="text-[#85898C] text-[15px] font-medium">
+          {getLocaleString({ locale, key: 'no_practice_room' })}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col bg-white pb-10">
       {/* 히트맵 */}
       <div className="px-4 pt-3">
         <div className="border border-[#E6E8EA] rounded-2xl p-4">
-          <span className="text-sm font-bold text-[#191F28]">{formatDate(selectedDate)} 이용 현황</span>
+          <span className="text-sm font-bold text-[#191F28]">{formatDate(selectedDate, locale)}</span>
           <div className="mt-3 flex gap-0.5">
             {/* 시간 라벨 */}
             <div className="flex flex-col gap-0.5 pr-1 pt-[18px]">
-              {HOURS.map((h) => (
-                <div key={h} className="h-[22px] flex items-center justify-end">
-                  <span className="text-[9px] text-[#9CA3AF] leading-none">{h}시</span>
+              {allTimes.map((time) => (
+                <div key={time} className="h-[22px] flex items-center justify-end">
+                  <span className="text-[9px] text-[#9CA3AF] leading-none whitespace-nowrap">{time}</span>
                 </div>
               ))}
             </div>
             {/* 연습실별 격자 */}
-            {ROOMS.map((room) => (
-              <div key={room} className="flex-1 flex flex-col items-center gap-0.5">
-                <span className="text-[9px] text-[#6D7882] font-bold h-[14px]">{room}</span>
-                {(roomData[room] ?? []).map((slot) => {
-                  const isSelected = selectedSlot?.room === room && selectedSlot?.hour === slot.hour;
+            {rooms.map((room) => (
+              <div key={room.id} className="flex-1 flex flex-col items-center gap-0.5">
+                <span className="text-[9px] text-[#6D7882] font-bold h-[14px] truncate max-w-full">{room.name}</span>
+                {allTimes.map((time) => {
+                  const slot = room.slots?.find(s => s.time === time);
+                  const isAvailable = slot?.status === 'available';
+                  const isSelected = selectedSlot?.room.id === room.id && selectedSlot?.slot.time === time;
                   return (
                     <div
-                      key={slot.hour}
+                      key={time}
                       onClick={() => handleSlotClick(room, slot)}
-                      className={`w-full h-[22px] rounded-sm transition-all cursor-pointer relative ${
-                        isSelected ? 'scale-125 z-10 shadow-lg rounded-md' : ''
-                      } ${!slot.available ? 'opacity-30 cursor-not-allowed' : ''}`}
-                      style={{ backgroundColor: getHeatColor(slot.currentUsers, slot.maxUsers) }}
+                      className={`w-full h-[22px] rounded-sm transition-all relative ${
+                        isAvailable ? 'cursor-pointer' : 'cursor-not-allowed opacity-30'
+                      } ${isSelected ? 'z-10 rounded-md ring-2 ring-[#1E2124]' : ''}`}
+                      style={{ backgroundColor: slotColor(slot) }}
                     >
-                      {isSelected && (
-                        <div className="absolute inset-0 rounded-md border-2 border-white shadow-[0_0_0_2px_#1E2124] pointer-events-none" />
-                      )}
                     </div>
                   );
                 })}
@@ -179,11 +215,11 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
           </div>
           {/* 범례 */}
           <div className="flex items-center justify-end gap-1 mt-3">
-            <span className="text-[9px] text-[#9CA3AF]">여유</span>
+            <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'available' })}</span>
             {[0, 1, 2, 3, 4].map((v) => (
               <div key={v} className="w-3 h-3 rounded-sm" style={{ backgroundColor: getHeatColor(v, 5) }} />
             ))}
-            <span className="text-[9px] text-[#9CA3AF]">혼잡</span>
+            <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'crowded' })}</span>
           </div>
         </div>
       </div>
@@ -205,42 +241,36 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate }: {
             </div>
 
             <div className="px-6">
-              <span className="text-[17px] font-bold text-black">예약 정보</span>
+              <span className="text-[17px] font-bold text-black">
+                {getLocaleString({ locale, key: 'reservation_info' })}
+              </span>
 
               <div className="flex flex-col gap-2.5 text-[14px] mt-4">
                 <div className="flex justify-between">
-                  <span className="text-[#888]">연습실</span>
-                  <span className="font-semibold text-black">{selectedSlot.room}</span>
+                  <span className="text-[#888]">{getLocaleString({ locale, key: 'practice_room' })}</span>
+                  <span className="font-semibold text-black">{selectedSlot.room.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#888]">날짜</span>
-                  <span className="font-semibold text-black">{formatDate(selectedDate)}</span>
+                  <span className="text-[#888]">{getLocaleString({ locale, key: 'date' })}</span>
+                  <span className="font-semibold text-black">{formatDate(selectedDate, locale)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#888]">시간</span>
-                  <span className="font-semibold text-black">{selectedSlot.hour}:00 - {selectedSlot.hour + 1}:00 (1시간)</span>
+                  <span className="text-[#888]">{getLocaleString({ locale, key: 'time' })}</span>
+                  <span className="font-semibold text-black">{selectedSlot.slot.time}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#888]">현재 이용</span>
+                  <span className="text-[#888]">{getLocaleString({ locale, key: 'current_usage' })}</span>
                   <span className="font-semibold text-black">
-                    {roomData[selectedSlot.room]?.find(s => s.hour === selectedSlot.hour)?.currentUsers ?? 0}명 / 5명
+                    {selectedSlot.slot.currentCount} / {selectedSlot.slot.maxCount}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-4 p-3 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/20">
-                <p className="text-[12px] text-[#92400E] font-medium leading-relaxed">
-                  • 예약 시간 10분 전까지 취소 가능합니다{'\n'}
-                  • 다른 이용자와 함께 사용할 수 있습니다{'\n'}
-                  • 연습실 내 음식물 반입은 금지됩니다
-                </p>
-              </div>
-
               <button
                 onClick={handleReserve}
-                className="w-full mt-4 py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
+                className="w-full mt-6 py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
               >
-                예약하기
+                {getLocaleString({ locale, key: 'reserve' })}
               </button>
             </div>
           </div>

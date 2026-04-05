@@ -2459,6 +2459,60 @@ export const StringResource = {
     jp: '練習室',
     zh: '练习室'
   },
+  no_practice_room: {
+    ko: '이용 가능한 연습실이 없습니다',
+    en: 'No practice rooms available',
+    jp: '利用可能な練習室がありません',
+    zh: '没有可用的练习室'
+  },
+  available: {
+    ko: '여유',
+    en: 'Low',
+    jp: '空き',
+    zh: '空闲'
+  },
+  crowded: {
+    ko: '혼잡',
+    en: 'Full',
+    jp: '混雑',
+    zh: '拥挤'
+  },
+  reservation_info: {
+    ko: '예약 정보',
+    en: 'Reservation Info',
+    jp: '予約情報',
+    zh: '预约信息'
+  },
+  time: {
+    ko: '시간',
+    en: 'Time',
+    jp: '時間',
+    zh: '时间'
+  },
+  current_usage: {
+    ko: '현재 이용',
+    en: 'Current',
+    jp: '現在の利用',
+    zh: '当前使用'
+  },
+  reserve: {
+    ko: '예약하기',
+    en: 'Reserve',
+    jp: '予約する',
+    zh: '预约'
+  },
+  rental_duration: {
+    ko: '대관 시간',
+    en: 'Duration',
+    jp: '利用時間',
+    zh: '租用时长'
+  },
+  hour: {
+    ko: '시간',
+    en: ' hour',
+    jp: '時間',
+    zh: '小时'
+  },
   unlimited_use: {
     ko: '무제한 이용',
     en: 'Unlimited Use',
