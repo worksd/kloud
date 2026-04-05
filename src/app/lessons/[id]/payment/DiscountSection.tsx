@@ -20,10 +20,12 @@ export const DiscountSection = ({
   selectedCoupon?: CouponResponse,
   onSelectCoupon: (coupon: CouponResponse | undefined) => void,
 }) => {
-  const [selectedTab, setSelectedTab] = useState<DiscountTab>('pass');
+  const [selectedTab, setSelectedTab] = useState<DiscountTab | null>(null);
 
   const fmt = (n: number) => new Intl.NumberFormat("ko-KR").format(n);
   const won = getLocaleString({ locale, key: 'won' });
+  const hasPassDiscount = (discounts ?? []).length > 0;
+  const hasCoupon = (coupons ?? []).length > 0;
 
   return (
     <div className="flex flex-col gap-y-2 px-6">
@@ -35,9 +37,9 @@ export const DiscountSection = ({
         {/* 패스권 탭 */}
         <div className="flex flex-col">
           <div
-            onClick={() => setSelectedTab('pass')}
-            className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none
-              ${selectedTab === 'pass' ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC] border-b border-[#F0F0F0]'}`}
+            onClick={() => setSelectedTab(selectedTab === 'pass' ? null : 'pass')}
+            className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none border-b border-[#F0F0F0]
+              ${selectedTab === 'pass' ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC]'}`}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 5H18C18.8 5 19.5 5.7 19.5 6.5V9.2C18.4 9.5 17.5 10.4 17.5 11.5C17.5 12.6 18.4 13.5 19.5 13.8V15.5C19.5 16.3 18.8 17 18 17H4C3.2 17 2.5 16.3 2.5 15.5V13.8C3.6 13.5 4.5 12.6 4.5 11.5C4.5 10.4 3.6 9.5 2.5 9.2V6.5C2.5 5.7 3.2 5 4 5Z" stroke={selectedTab === 'pass' ? '#111' : '#BDBDBD'} strokeWidth="1.4"/>
@@ -50,8 +52,8 @@ export const DiscountSection = ({
               {getLocaleString({ locale, key: 'discount_pass' })}
             </div>
             <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-150
-              ${selectedTab === 'pass' ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
-              {selectedTab === 'pass' && (
+              ${selectedTab === 'pass' && hasPassDiscount ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
+              {selectedTab === 'pass' && hasPassDiscount && (
                 <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
                   <path d="M1 3.5L3.2 5.7L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -100,7 +102,7 @@ export const DiscountSection = ({
         {/* 쿠폰 탭 */}
         <div className="flex flex-col">
           <div
-            onClick={() => setSelectedTab('coupon')}
+            onClick={() => setSelectedTab(selectedTab === 'coupon' ? null : 'coupon')}
             className={`flex items-center gap-3 px-5 py-[15px] cursor-pointer transition-all duration-150 select-none
               ${selectedTab === 'coupon' ? 'bg-[#F0F1F3]' : 'bg-white hover:bg-[#FBFBFC]'}`}
           >
@@ -115,8 +117,8 @@ export const DiscountSection = ({
               {getLocaleString({ locale, key: 'discount_coupon' })}
             </div>
             <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-150
-              ${selectedTab === 'coupon' ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
-              {selectedTab === 'coupon' && (
+              ${selectedTab === 'coupon' && hasCoupon ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
+              {selectedTab === 'coupon' && hasCoupon && (
                 <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
                   <path d="M1 3.5L3.2 5.7L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
