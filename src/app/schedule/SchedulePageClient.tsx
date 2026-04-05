@@ -1,29 +1,93 @@
 'use client'
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { PracticeRoomView } from "@/app/schedule/PracticeRoomView";
+import { ScheduleTabView, CalendarLesson } from "@/app/schedule/ScheduleTabView";
+import { Locale } from "@/shared/StringResource";
+import { getWeeklyLessonsAction } from "@/app/schedule/get.weekly.lessons.action";
 
 type ScheduleTab = 'lesson' | 'practice';
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
-const formatShortDate = (d: Date) => {
-  return `${d.getMonth() + 1}/${d.getDate()}(${DAY_LABELS[d.getDay()]})`;
-};
+const formatShortDate = (d: Date) =>
+  `${d.getMonth() + 1}/${d.getDate()}(${DAY_LABELS[d.getDay()]})`;
 
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
+const formatDateForApi = (d: Date) =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
+const getMonday = (date: Date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() - ((day + 6) % 7));
+  return d;
+};
+
+const getSunday = (monday: Date) => {
+  const d = new Date(monday);
+  d.setDate(monday.getDate() + 6);
+  return d;
+};
+
+const parseLessons = (rawLessons: any[]): CalendarLesson[] =>
+  rawLessons.map((l: any) => {
+    const parts = (l.startDate ?? '').split(' ');
+    const datePart = (parts[0] ?? '').replace(/\./g, '-');
+    const timePart = parts[1] ?? '';
+    return {
+      id: l.id,
+      title: l.title,
+      thumbnailUrl: l.thumbnailUrl ?? '',
+      startTime: timePart,
+      endTime: '',
+      room: l.room?.name,
+      date: datePart,
+    };
+  });
+
 export const SchedulePageClient = ({
   studioImageUrl,
-  children,
+  locale,
+  lessons: initialLessons,
+  studioName,
 }: {
   studioImageUrl?: string;
-  children: React.ReactNode;
+  locale: Locale;
+  lessons: CalendarLesson[];
+  studioName?: string;
 }) => {
   const [activeTab, setActiveTab] = useState<ScheduleTab>('lesson');
   const today = useMemo(() => new Date(), []);
+
+  // 수업 탭 상태 (부모에서 관리 → unmount 돼도 유지)
+  const [lessonSelectedDate, setLessonSelectedDate] = useState(today);
+  const [lessons, setLessons] = useState(initialLessons);
+  const [loadingLessons, setLoadingLessons] = useState(false);
+
+  // 주차 변경 시 API 호출
+  const weekKey = useMemo(() => {
+    const mon = getMonday(lessonSelectedDate);
+    const sun = getSunday(mon);
+    return `${formatDateForApi(mon)}-${formatDateForApi(sun)}`;
+  }, [lessonSelectedDate]);
+
+  const prevWeekKey = React.useRef(weekKey);
+  useEffect(() => {
+    if (weekKey === prevWeekKey.current) return;
+    prevWeekKey.current = weekKey;
+    const [start, end] = weekKey.split('-');
+    setLoadingLessons(true);
+    getWeeklyLessonsAction(start, end)
+      .then(res => { if ('lessons' in res) setLessons(parseLessons(res.lessons)); })
+      .catch(() => {})
+      .finally(() => setLoadingLessons(false));
+  }, [weekKey]);
+
+  // 연습실 탭 상태
   const [practiceDate, setPracticeDate] = useState(today);
   const [showDateSheet, setShowDateSheet] = useState(false);
   const [closingSheet, setClosingSheet] = useState(false);
@@ -68,7 +132,6 @@ export const SchedulePageClient = ({
           </button>
         </div>
 
-        {/* 날짜 선택 (연습실 탭일 때만) */}
         {activeTab === 'practice' && (
           <button
             onClick={() => setShowDateSheet(true)}
@@ -86,8 +149,18 @@ export const SchedulePageClient = ({
       </div>
 
       {/* 탭 콘텐츠 */}
-      {activeTab === 'lesson' ? children : (
-        <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} />
+      {activeTab === 'lesson' ? (
+        <ScheduleTabView
+          lessons={lessons}
+          studioName={studioName}
+          studioImageUrl={studioImageUrl}
+          locale={locale}
+          selectedDate={lessonSelectedDate}
+          onDateChange={setLessonSelectedDate}
+          loading={loadingLessons}
+        />
+      ) : (
+        <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} locale={locale} />
       )}
 
       {/* 날짜 선택 달력 바텀시트 */}
@@ -102,22 +175,10 @@ export const SchedulePageClient = ({
       )}
 
       <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes fadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-        @keyframes slideDown {
-          from { transform: translateY(0); }
-          to { transform: translateY(100%); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
       `}</style>
     </div>
   );
@@ -169,7 +230,6 @@ const CalendarSheet = ({
           <div className="w-10 h-1 rounded-full bg-[#DDD]" />
         </div>
 
-        {/* 월 네비게이션 */}
         <div className="flex items-center justify-between px-6 py-2">
           <button onClick={goPrev} className="p-1 active:opacity-50">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -184,7 +244,6 @@ const CalendarSheet = ({
           </button>
         </div>
 
-        {/* 요일 헤더 */}
         <div className="grid grid-cols-7 px-6">
           {WEEKDAY_HEADERS.map(d => (
             <div key={d} className="flex items-center justify-center py-2">
@@ -193,7 +252,6 @@ const CalendarSheet = ({
           ))}
         </div>
 
-        {/* 날짜 격자 */}
         <div className="grid grid-cols-7 px-6 pb-4">
           {cells.map((day, i) => {
             if (day === null) return <div key={i} />;

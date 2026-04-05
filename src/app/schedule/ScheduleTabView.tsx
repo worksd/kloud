@@ -4,9 +4,8 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import Image from "next/image";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { getWeeklyLessonsAction } from "@/app/schedule/get.weekly.lessons.action";
 
-type CalendarLesson = {
+export type CalendarLesson = {
   id: number;
   title: string;
   thumbnailUrl: string;
@@ -49,26 +48,6 @@ const isSameDay = (a: Date, b: Date) =>
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-const formatDateForApi = (d: Date) => {
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const parseLessons = (rawLessons: any[]): CalendarLesson[] => {
-  return rawLessons.map((l: any) => {
-    const parts = (l.startDate ?? '').split(' ');
-    const datePart = (parts[0] ?? '').replace(/\./g, '-');
-    const timePart = parts[1] ?? '';
-    return {
-      id: l.id,
-      title: l.title,
-      thumbnailUrl: l.thumbnailUrl ?? '',
-      startTime: timePart,
-      endTime: '',
-      room: l.room?.name,
-      date: datePart,
-    };
-  });
-};
 
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
@@ -83,16 +62,16 @@ const formatAmPm = (time: string, locale: Locale): string => {
   return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
 };
 
-export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioImageUrl, locale = 'ko' }: {
+export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 'ko', selectedDate, onDateChange, loading }: {
   lessons: CalendarLesson[],
   studioName?: string,
   studioImageUrl?: string,
   locale?: Locale,
+  selectedDate: Date,
+  onDateChange: (date: Date) => void,
+  loading?: boolean,
 }) => {
   const today = useMemo(() => new Date(), []);
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [lessons, setLessons] = useState(initialLessons);
-  const [loadingLessons, setLoadingLessons] = useState(false);
   const dayStripRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
@@ -114,31 +93,6 @@ export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioIma
       return d;
     });
   }, [selectedDate]);
-
-  // 주차 변경 시 API 호출
-  const prevWeekKey = useRef('');
-  useEffect(() => {
-    const monday = visibleDates[0];
-    const sunday = visibleDates[6];
-    const weekKey = `${formatDateForApi(monday)}-${formatDateForApi(sunday)}`;
-    if (weekKey === prevWeekKey.current) return;
-    prevWeekKey.current = weekKey;
-
-    const fetchLessons = async () => {
-      setLoadingLessons(true);
-      try {
-        const res = await getWeeklyLessonsAction(formatDateForApi(monday), formatDateForApi(sunday));
-        if ('lessons' in res) {
-          setLessons(parseLessons(res.lessons));
-        }
-      } catch {
-        // fallback
-      } finally {
-        setLoadingLessons(false);
-      }
-    };
-    fetchLessons();
-  }, [visibleDates]);
 
   const lessonsByDate = useMemo(() => {
     const map: Record<string, CalendarLesson[]> = {};
@@ -164,7 +118,7 @@ export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioIma
   // 날짜 클릭
   const handleDateClick = useCallback((date: Date) => {
     isUserScrolling.current = true;
-    setSelectedDate(date);
+    onDateChange(date);
     scrollDayStripToDate(date);
 
     // 해당 날짜 섹션으로 스크롤
@@ -206,7 +160,7 @@ export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioIma
         const [y, m, d] = closestDate.split('-').map(Number);
         const date = new Date(y, m - 1, d);
         if (!isSameDay(date, selectedDate)) {
-          setSelectedDate(date);
+          onDateChange(date);
           scrollDayStripToDate(date);
         }
       }
@@ -253,7 +207,7 @@ export const ScheduleTabView = ({ lessons: initialLessons, studioName, studioIma
   return (
     <div className="flex flex-col bg-white min-h-screen">
       {/* 주간 선택기 (sticky) */}
-      <div ref={stickyRef} className="sticky top-0 z-10 bg-white">
+      <div ref={stickyRef} className="sticky top-[52px] z-10 bg-white">
         {/* 주차 타이틀 + 좌우 이동 */}
         <div className="flex items-center justify-between px-6 py-2">
           <button
