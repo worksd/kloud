@@ -148,8 +148,8 @@ export const SchedulePageClient = ({
         )}
       </div>
 
-      {/* 탭 콘텐츠 */}
-      {activeTab === 'lesson' ? (
+      {/* 탭 콘텐츠 - hidden으로 둘 다 마운트 유지 */}
+      <div className={activeTab === 'lesson' ? '' : 'hidden'}>
         <ScheduleTabView
           lessons={lessons}
           studioName={studioName}
@@ -159,9 +159,10 @@ export const SchedulePageClient = ({
           onDateChange={setLessonSelectedDate}
           loading={loadingLessons}
         />
-      ) : (
+      </div>
+      <div className={activeTab === 'practice' ? '' : 'hidden'}>
         <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} locale={locale} />
-      )}
+      </div>
 
       {/* 날짜 선택 달력 바텀시트 */}
       {showDateSheet && (
