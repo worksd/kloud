@@ -117,7 +117,7 @@ export const SchedulePageClient = ({
   };
 
   return (
-    <div className="flex flex-col bg-white min-h-screen">
+    <div className="flex flex-col">
       {/* 헤더 (sticky) */}
       <div className="sticky top-0 z-20 bg-white flex items-center justify-between px-6 pt-4 pb-2">
         <div className="flex items-center gap-4">
@@ -148,6 +148,14 @@ export const SchedulePageClient = ({
           </button>
         </div>
 
+        {activeTab === 'lesson' && (
+          <button
+            onClick={() => setLessonSelectedDate(getMonday(today))}
+            className="px-3 py-1.5 rounded-full border border-[#E6E8EA] active:bg-[#F9FAFB] transition-colors"
+          >
+            <span className="text-[13px] font-medium text-black">{getLocaleString({ locale, key: 'this_week' })}</span>
+          </button>
+        )}
         {activeTab === 'practice' && (
           <button
             onClick={() => setShowDateSheet(true)}

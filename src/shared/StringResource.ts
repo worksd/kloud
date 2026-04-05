@@ -2531,6 +2531,18 @@ export const StringResource = {
     jp: '練習室',
     zh: '练习室'
   },
+  today: {
+    ko: '오늘',
+    en: 'Today',
+    jp: '今日',
+    zh: '今天'
+  },
+  this_week: {
+    ko: '이번주',
+    en: 'This week',
+    jp: '今週',
+    zh: '本周'
+  },
   schedule_no_lessons: {
     ko: '수업이 없습니다',
     en: 'No lessons',
