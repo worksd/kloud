@@ -296,13 +296,18 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale }: {
                       {roomDetail.buttons.map((btn, i) => (
                         <button
                           key={i}
+                          disabled={!btn.route}
                           onClick={() => {
                             if (btn.route) {
                               setClosingSlot(true);
                               setTimeout(() => kloudNav.push(btn.route!), 150);
                             }
                           }}
-                          className="w-full py-3.5 rounded-xl bg-black text-white text-[15px] font-bold active:scale-[0.98] transition-transform"
+                          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-transform ${
+                            btn.route
+                              ? 'bg-black text-white active:scale-[0.98]'
+                              : 'bg-[#E0E0E0] text-[#999] cursor-not-allowed'
+                          }`}
                         >
                           {btn.title}
                         </button>
