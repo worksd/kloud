@@ -31,7 +31,6 @@ export const PurchaseStudioPassForm = ({
   locale: Locale,
 }) => {
 
-  // TODO: API에서 isRecommended 필드가 내려오면 그걸 사용. 현재는 첫 번째 패스권을 추천으로 처리
   const recommendedPlan = passPlans.find(p => p.isRecommended) ?? passPlans[0];
   const otherPlans = passPlans.filter(p => p.id !== recommendedPlan?.id);
 
