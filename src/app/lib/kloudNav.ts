@@ -118,7 +118,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.Certification) ||
     route.startsWith('/membershipPlans?') ||
     route.startsWith('/qrs') ||
-    route.startsWith(KloudScreen.Kiosk)
+    route.startsWith(KloudScreen.Kiosk) ||
+    route.startsWith('/studioRooms/')
 }
 
 const applyTitle = async (route: string) => {
@@ -173,8 +174,7 @@ const applyTitle = async (route: string) => {
   } else if (route.startsWith('/tickets/')) {
     return '';
   } else if (route.startsWith('/studioRooms/')) {
-    const match = route.match(/roomName=([^&]+)/);
-    return match ? decodeURIComponent(match[1]) : await translate('practice_room')
+    return ''
   } else if (route.startsWith('/payment?') || ( route.includes('/lessons/') && route.includes('/payment'))) {
     return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
   } else if (route.includes('/profile/myPass/')) {

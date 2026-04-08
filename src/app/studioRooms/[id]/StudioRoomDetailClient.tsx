@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
 import { RoomAvailabilityResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -23,118 +23,232 @@ const slotColor = (slot: TimeSlotResponse) => {
   return getHeatColor(slot.currentCount, slot.maxCount);
 };
 
-const statusLabel = (status: string, locale: Locale) => {
-  switch (status) {
-    case 'available': return getLocaleString({ locale, key: 'available' });
-    case 'full': return getLocaleString({ locale, key: 'crowded' });
-    case 'closed': return getLocaleString({ locale, key: 'closed' });
-    default: return status;
-  }
-};
-
 const calcEndTime = (time: string, duration: number) => {
   const [h, m] = time.split(':').map(Number);
   const end = h * 60 + m + duration;
   return `${String(Math.floor(end / 60) % 24).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
 };
 
-const toTargetDate = (date: string) => date.replace(/-/g, '.');
+const formatPrice = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 
-export const StudioRoomDetailClient = ({ room, date, locale }: {
-  room: RoomAvailabilityResponse;
-  date: string;
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const DAY_LABELS: Record<Locale, string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  jp: ['日', '月', '火', '水', '木', '金', '土'],
+  zh: ['日', '一', '二', '三', '四', '五', '六'],
+};
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+export const StudioRoomDetailClient = ({ roomId, locale }: {
+  roomId: number;
   locale: Locale;
 }) => {
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlotResponse | null>(null);
-  const hourlySlots = room.slots.filter(s => s.time.endsWith(':00'));
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [room, setRoom] = useState<RoomAvailabilityResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [imageIndex, setImageIndex] = useState(0);
+  const imageScrollRef = useRef<HTMLDivElement>(null);
+  const won = getLocaleString({ locale, key: 'won' });
 
-  const handleReserve = () => {
-    if (!selectedSlot) return;
-    const endTime = calcEndTime(selectedSlot.time, room.slotDurationMinutes);
-    kloudNav.push(`/payment?item=practice-room&id=${room.studioRoomId}&targetDate=${toTargetDate(date)}&startTime=${selectedSlot.time}&endTime=${endTime}`);
+  // 날짜 변경 시 API 재호출
+  const fetchRoom = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getRoomAvailabilityAction(roomId, toDateStr(selectedDate));
+      if ('studioRoomId' in res) {
+        setRoom(res);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [roomId, selectedDate]);
+
+  useEffect(() => {
+    fetchRoom();
+  }, [fetchRoom]);
+
+  // 날짜 스트립 (오늘 ~ +13일)
+  const dateStrip = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d;
+  });
+
+  const handleImageScroll = () => {
+    if (!imageScrollRef.current) return;
+    const scrollLeft = imageScrollRef.current.scrollLeft;
+    const width = imageScrollRef.current.clientWidth;
+    setImageIndex(Math.round(scrollLeft / width));
   };
+
+  const images = room?.practiceImageUrls ?? room?.imageUrls ?? [];
+  const hourlySlots = room?.slots.filter(s => s.time.endsWith(':00')) ?? [];
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-24">
-      {/* 헤더 */}
-      <div className="px-6 pt-5 pb-4">
-        <h1 className="text-[22px] font-bold text-black">{room.name}</h1>
-        <span className="text-[14px] text-[#86898C] mt-1">{date}</span>
-        <div className="flex items-center gap-3 mt-2">
-          <span className="text-[13px] text-[#86898C]">
-            {getLocaleString({ locale, key: 'max_capacity' })}: {room.maxCount}{getLocaleString({ locale, key: 'people' })}
-          </span>
-          <span className="text-[13px] text-[#86898C]">
-            {room.slotDurationMinutes}{getLocaleString({ locale, key: 'minutes' })}/{getLocaleString({ locale, key: 'slot' })}
-          </span>
+      {/* 이미지 캐러셀 */}
+      {images.length > 0 && (
+        <div className="relative">
+          <div
+            ref={imageScrollRef}
+            onScroll={handleImageScroll}
+            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+          >
+            {images.map((url, i) => (
+              <div key={i} className="w-full flex-shrink-0 snap-center aspect-[16/9] bg-[#F1F3F6]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+          {images.length > 1 && (
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+              {images.map((_, i) => (
+                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white/40'}`} />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* 룸 정보 */}
+      {room && (
+        <div className="px-6 pt-5 pb-4">
+          <h1 className="text-[22px] font-bold text-black">{room.name}</h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+            {(room.practiceMaxNumber ?? room.maxCount) > 0 && (
+              <span className="text-[13px] text-[#86898C]">
+                {getLocaleString({ locale, key: 'max_capacity' })} {room.practiceMaxNumber ?? room.maxCount}{getLocaleString({ locale, key: 'people' })}
+              </span>
+            )}
+            <span className="text-[13px] text-[#86898C]">
+              {room.slotDurationMinutes}{getLocaleString({ locale, key: 'minutes' })}/{getLocaleString({ locale, key: 'slot' })}
+            </span>
+            {room.unitPrice != null && room.unitPrice > 0 && (
+              <span className="text-[13px] text-[#86898C]">
+                {formatPrice(room.unitPrice)}{won}/{getLocaleString({ locale, key: 'slot' })}
+              </span>
+            )}
+          </div>
+          {room.description && room.description !== '<p></p>' && room.description.trim() !== '' && (
+            <p className="text-[13px] text-[#86898C] mt-3 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: room.description }}
+            />
+          )}
+        </div>
+      )}
 
       <div className="w-full h-2 bg-[#F7F8F9]" />
 
-      {/* 시간대 목록 */}
-      <div className="px-6 pt-4">
-        <h2 className="text-[15px] font-bold text-black mb-3">{getLocaleString({ locale, key: 'time' })}</h2>
-        <div className="flex flex-col gap-2">
-          {hourlySlots.map((slot) => {
-            const isAvailable = slot.status === 'available';
-            const isSelected = selectedSlot?.time === slot.time;
-            const endTime = calcEndTime(slot.time, room.slotDurationMinutes);
+      {/* 날짜 선택 스트립 */}
+      <div className="px-4 pt-4 pb-2">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+          {dateStrip.map((date) => {
+            const isSelected = isSameDay(date, selectedDate);
+            const isToday = isSameDay(date, today);
+            const dayLabel = DAY_LABELS[locale][date.getDay()];
 
             return (
-              <div
-                key={slot.time}
-                onClick={() => isAvailable && setSelectedSlot(isSelected ? null : slot)}
-                className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all
-                  ${!isAvailable
-                    ? 'border-[#F0F0F0] bg-[#FAFAFA] opacity-40 cursor-not-allowed'
-                    : isSelected
-                      ? 'border-black bg-black'
-                      : 'border-[#E8E8E8] bg-white cursor-pointer active:scale-[0.98]'
+              <button
+                key={toDateStr(date)}
+                onClick={() => setSelectedDate(date)}
+                className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl flex-shrink-0 transition-all
+                  ${isSelected
+                    ? 'bg-black'
+                    : 'bg-[#F3F4F6] active:scale-[0.97]'
                   }`}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: slotColor(slot) }}
-                  />
-                  <span className={`text-[15px] font-medium ${isSelected ? 'text-white' : 'text-black'}`}>
-                    {slot.time} ~ {endTime}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[13px] ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
-                    {slot.currentCount}/{slot.maxCount}
-                  </span>
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                    slot.status === 'available'
-                      ? isSelected ? 'bg-white/20 text-white' : 'bg-[#ECFDF5] text-[#059669]'
-                      : slot.status === 'full'
-                        ? 'bg-[#FEF2F2] text-[#EF4444]'
-                        : 'bg-[#F3F4F6] text-[#999]'
-                  }`}>
-                    {statusLabel(slot.status, locale)}
-                  </span>
-                </div>
-              </div>
+                <span className={`text-[11px] font-medium ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
+                  {dayLabel}
+                </span>
+                <span className={`text-[15px] font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
+                  {date.getDate()}
+                </span>
+                {isToday && (
+                  <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-black'}`} />
+                )}
+              </button>
             );
           })}
         </div>
       </div>
 
+      {/* 히트맵 */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="px-6 pt-2">
+          <div className="flex items-center justify-end gap-1 mb-3">
+            <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'reservable' })}</span>
+            <div className="w-2.5 h-2.5 rounded-sm bg-[#C7D2FE]" />
+            <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'slot_full' })}</span>
+            <div className="w-2.5 h-2.5 rounded-sm bg-[#EF4444]" />
+            <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'slot_unavailable' })}</span>
+            <div className="w-2.5 h-2.5 rounded-sm bg-[#F3F4F6]" />
+          </div>
+
+          <div className="flex gap-1.5">
+            <div className="flex flex-col gap-0.5">
+              {hourlySlots.map((slot) => (
+                <div key={slot.time} className="h-[32px] flex items-center justify-end pr-1">
+                  <span className="text-[10px] text-[#9CA3AF] whitespace-nowrap">{slot.time}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex-1 flex flex-col gap-0.5">
+              {hourlySlots.map((slot) => {
+                const isClosed = slot.status === 'closed';
+                const isFull = slot.status === 'full';
+
+                return (
+                  <div
+                    key={slot.time}
+                    className={`h-[32px] rounded-md flex items-center px-3 ${
+                      isClosed ? 'bg-[#F3F4F6]'
+                        : isFull ? 'bg-[#EF4444]'
+                          : 'bg-[#C7D2FE]'
+                    }`}
+                  >
+                    <span className={`text-[11px] font-medium ${
+                      isClosed ? 'text-[#BFBFBF]'
+                        : isFull ? 'text-white'
+                          : 'text-[#4338CA]'
+                    }`}>
+                      {isClosed
+                        ? getLocaleString({ locale, key: 'slot_unavailable' })
+                        : isFull
+                          ? getLocaleString({ locale, key: 'slot_full' })
+                          : getLocaleString({ locale, key: 'reservable' })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* buttons */}
-      {room.buttons && room.buttons.length > 0 && (
-        <div className="px-6 pt-4">
+      {room?.buttons && room.buttons.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-white">
           <div className="flex flex-col gap-2">
             {room.buttons.map((btn, i) => (
               <button
                 key={i}
                 disabled={!btn.route}
                 onClick={() => btn.route && kloudNav.push(btn.route)}
-                className={`w-full py-3.5 rounded-xl text-[14px] font-bold transition-transform ${
+                className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-transform ${
                   btn.route
-                    ? 'bg-[#F3F4F6] text-black active:scale-[0.98]'
-                    : 'bg-[#F3F4F6] text-[#999] cursor-not-allowed'
+                    ? 'bg-black text-white active:scale-[0.98]'
+                    : 'bg-[#E0E0E0] text-[#999] cursor-not-allowed'
                 }`}
               >
                 {btn.title}
@@ -143,23 +257,6 @@ export const StudioRoomDetailClient = ({ room, date, locale }: {
           </div>
         </div>
       )}
-
-      {/* 하단 예약 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-white">
-        <button
-          disabled={!selectedSlot}
-          onClick={handleReserve}
-          className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-all ${
-            selectedSlot
-              ? 'bg-black text-white active:scale-[0.98]'
-              : 'bg-[#E0E0E0] text-[#999] cursor-not-allowed'
-          }`}
-        >
-          {selectedSlot
-            ? `${selectedSlot.time} ${getLocaleString({ locale, key: 'reserve' })}`
-            : getLocaleString({ locale, key: 'select_time' })}
-        </button>
-      </div>
     </div>
   );
 };

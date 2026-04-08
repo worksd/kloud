@@ -2601,11 +2601,47 @@ export const StringResource = {
     jp: 'コマ',
     zh: '时段'
   },
+  fixed_booking: {
+    ko: '고정 예약',
+    en: 'Fixed booking',
+    jp: '固定予約',
+    zh: '固定预约'
+  },
+  tap_to_select_time: {
+    ko: '시간대를 탭하여 선택해주세요',
+    en: 'Tap to select a time slot',
+    jp: '時間帯をタップして選択してください',
+    zh: '点击选择时间段'
+  },
+  drag_to_select_time: {
+    ko: '시간대를 드래그하여 선택해주세요',
+    en: 'Drag to select time slots',
+    jp: '時間帯をドラッグして選択してください',
+    zh: '拖动选择时间段'
+  },
   select_time: {
     ko: '시간을 선택해주세요',
     en: 'Select a time',
     jp: '時間を選択してください',
     zh: '请选择时间'
+  },
+  reservable: {
+    ko: '예약 가능',
+    en: 'Available',
+    jp: '予約可能',
+    zh: '可预约'
+  },
+  slot_unavailable: {
+    ko: '사용 불가',
+    en: 'Unavailable',
+    jp: '利用不可',
+    zh: '不可用'
+  },
+  slot_full: {
+    ko: '예약 완료',
+    en: 'Fully booked',
+    jp: '予約済み',
+    zh: '已约满'
   },
   closed: {
     ko: '마감',

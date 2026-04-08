@@ -14,11 +14,29 @@ export type TimeSlotResponse = {
   maxCount: number;
 }
 
+export type AvailableDayTime = {
+  day: number;
+  startTime: string;
+  endTime: string;
+}
+
 export type StudioRoomResponse = {
   id: number;
   name: string;
+  description?: string;
   maxNumber: number;
+  practiceMaxNumber?: number;
   isPracticeRoom?: boolean;
+  imageUrls?: string[];
+  practiceImageUrls?: string[];
+  unitPrice?: number;
+  dailyPrice?: number;
+  slotDurationMinutes?: number;
+  advanceBookingDays?: number | null;
+  advanceBookingOpenTime?: string;
+  bookingDurationMinutes?: number | null;
+  bookingWhileInUse?: boolean;
+  availableDayTimes?: AvailableDayTime[];
   slots?: TimeSlotResponse[];
 }
 
@@ -43,9 +61,19 @@ export type GetRoomAvailabilityParameter = {
 export type RoomAvailabilityResponse = {
   studioRoomId: number;
   name: string;
+  description?: string;
   date: string;
   maxCount: number;
   slotDurationMinutes: number;
+  imageUrls?: string[];
+  practiceImageUrls?: string[];
+  unitPrice?: number;
+  dailyPrice?: number;
+  practiceMaxNumber?: number;
+  advanceBookingDays?: number | null;
+  bookingDurationMinutes?: number | null;
+  bookingWhileInUse?: boolean;
+  availableDayTimes?: AvailableDayTime[];
   slots: TimeSlotResponse[];
   buttons?: GetLessonButtonResponse[];
 }
