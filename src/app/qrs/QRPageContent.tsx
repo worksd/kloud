@@ -12,9 +12,19 @@ import { getLessonsByDate } from '@/app/profile/setting/kiosk/get.lessons.by.dat
 import { getLessonTicketsAction } from '@/app/qrs/get.lesson.tickets.action';
 import { Thumbnail } from '@/app/components/Thumbnail';
 
-const formatUserName = (nickName?: string, name?: string) => {
-  if (!nickName) return '사용자';
-  return name ? `${nickName}(${name})` : nickName;
+const formatPhone = (phone: string) => {
+  if (phone.length === 11) return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
+  if (phone.length === 10) return `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6)}`;
+  return phone;
+};
+
+const formatUserName = (nickName?: string, name?: string, phone?: string, email?: string) => {
+  if (nickName && name) return `${nickName}(${name})`;
+  if (name) return name;
+  if (nickName) return nickName;
+  if (phone) return formatPhone(phone);
+  if (email) return email;
+  return '사용자';
 };
 
 type AttendanceRecord = {
@@ -29,6 +39,8 @@ type SuccessDialogData = {
     profileImageUrl?: string;
     name?: string;
     nickName?: string;
+    phone?: string;
+    email?: string;
   };
   ticketType?: 'default' | 'premium' | 'membership';
   ticketTypeLabel?: string;
@@ -235,7 +247,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
             prev.map(t => t.id === ticketId ? { ...t, status: 'Used' } : t)
           );
 
-          const userName = formatUserName(result.user?.nickName, result.user?.name);
+          const userName = formatUserName(result.user?.nickName, result.user?.name, result.user?.phone, result.user?.email);
           const ticketLabel = result.ticketTypeLabel || '';
 
           // 출석 목록에 추가
@@ -253,6 +265,8 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
               profileImageUrl: result.user?.profileImageUrl,
               name: result.user?.name,
               nickName: result.user?.nickName,
+              phone: result.user?.phone,
+              email: result.user?.email,
             },
             ticketType: result.ticketType,
             ticketTypeLabel: result.ticketTypeLabel,
@@ -298,7 +312,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
     if (successTicketIds.current.has(ticket.id)) return;
 
     pendingTicketRef.current = ticket;
-    const userName = formatUserName(ticket.user?.nickName, ticket.user?.name);
+    const userName = formatUserName(ticket.user?.nickName, ticket.user?.name, ticket.user?.phone, ticket.user?.email);
     const info = [ticket.ticketTypeLabel, ticket.rank].filter(Boolean).join(' · ');
     const message = `${userName}${info ? `\n${info}` : ''}\n\n출석하시겠습니까?`;
 
@@ -336,7 +350,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
           prev.map(t => t.id === ticket.id ? { ...t, status: 'Used' } : t)
         );
 
-        const userName = formatUserName(result.user?.nickName, result.user?.name);
+        const userName = formatUserName(result.user?.nickName, result.user?.name, result.user?.phone, result.user?.email);
         const ticketLabel = result.ticketTypeLabel || '';
 
         setAttendanceList(prev => [{
@@ -351,6 +365,8 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
             profileImageUrl: result.user?.profileImageUrl,
             name: result.user?.name,
             nickName: result.user?.nickName,
+            phone: result.user?.phone,
+            email: result.user?.email,
           },
           ticketType: result.ticketType,
           ticketTypeLabel: result.ticketTypeLabel,
@@ -647,7 +663,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                   {/* 이름 + 정보 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: isUsed ? 'rgba(255,255,255,0.4)' : '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {formatUserName(ticket.user?.nickName, ticket.user?.name)}
+                      {formatUserName(ticket.user?.nickName, ticket.user?.name, ticket.user?.phone, ticket.user?.email)}
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', display: 'flex', gap: 4, alignItems: 'center' }}>
                       {ticket.rank && <span>{ticket.rank}</span>}
@@ -902,7 +918,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
 
             {/* 이름 */}
             <div style={{ fontSize: 16, fontWeight: 600, color: '#000' }}>
-              {formatUserName(successDialog.user.nickName, successDialog.user.name)}
+              {formatUserName(successDialog.user.nickName, successDialog.user.name, successDialog.user.phone, successDialog.user.email)}
             </div>
 
             {/* 입장 번호 */}
