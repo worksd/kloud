@@ -10,6 +10,7 @@ import { getLocale, translate } from "@/utils/translate";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
 import { BackButton } from "@/app/payment/BackButton";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
+import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
 
@@ -189,73 +190,39 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
-        {/* practice-room */}
-        {paymentItem === 'practice-room' && (
-          <div className="px-5 pt-4 pb-3">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-[48px] h-[48px] rounded-2xl bg-[#F1F3F6] flex items-center justify-center flex-shrink-0">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="#333" strokeWidth="1.5"/>
-                  <path d="M8 5V3" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M16 5V3" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M3 9H21" stroke="#333" strokeWidth="1.5"/>
-                </svg>
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[18px] font-bold text-black">
-                  {(res.studioRoom?.name ?? roomName)
-                    ? `${await translate('practice_room')} · ${res.studioRoom?.name ?? roomName}`
-                    : await translate('practice_room')}
-                </span>
-                {studioName && (
-                  <span className="text-[13px] text-[#86898C] font-medium">{studioName}</span>
-                )}
-              </div>
+        {paymentItem === 'practice-room' ? (
+          <PracticeRoomPaymentWrapper
+            payment={res}
+            roomName={roomName}
+            targetDate={targetDate}
+            studioRoomId={itemId}
+            url={process.env.GUINNESS_API_SERVER ?? ''}
+            appVersion={appVersion}
+            os={os}
+            beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+            locale={await getLocale()}
+            actualPayerUserId={actualPayerUserId}
+            isProxyPayment={isProxyPayment}
+          />
+        ) : (
+          <>
+            <div className="py-1">
+              <div className="w-full h-2 bg-[#F7F8F9]" />
             </div>
-            <div className="flex flex-col gap-2 bg-[#F7F8F9] rounded-xl px-4 py-3">
-              {(res.studioRoom?.name ?? roomName) && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-[#86898C]">{await translate('practice_room')}</span>
-                  <span className="text-[14px] font-medium text-black">{res.studioRoom?.name ?? roomName}</span>
-                </div>
-              )}
-              {targetDate && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-[#86898C]">{await translate('date')}</span>
-                  <span className="text-[14px] font-medium text-black">{targetDate}</span>
-                </div>
-              )}
-              {startTime && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-[#86898C]">{timeText}</span>
-                  <span className="text-[14px] font-medium text-black">{startTime} ~ {endTime ?? startTime}</span>
-                </div>
-              )}
-            </div>
-          </div>
+
+            <UnifiedPaymentInfo
+              type={paymentItem}
+              url={process.env.GUINNESS_API_SERVER ?? ''}
+              appVersion={appVersion}
+              os={os}
+              payment={res}
+              beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+              locale={await getLocale()}
+              actualPayerUserId={actualPayerUserId}
+              isProxyPayment={isProxyPayment}
+            />
+          </>
         )}
-
-        <div className="py-1">
-          <div className="w-full h-2 bg-[#F7F8F9]" />
-        </div>
-
-        <UnifiedPaymentInfo
-          type={paymentItem}
-          url={process.env.GUINNESS_API_SERVER ?? ''}
-          appVersion={appVersion}
-          os={os}
-          payment={res}
-          beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-          locale={await getLocale()}
-          actualPayerUserId={actualPayerUserId}
-          isProxyPayment={isProxyPayment}
-          practiceRoomInfo={paymentItem === 'practice-room' && targetDate && startTime && endTime ? {
-            studioRoomId: itemId,
-            targetDate,
-            startTime,
-            endTime,
-          } : undefined}
-        />
       </div>
     </div>
   );

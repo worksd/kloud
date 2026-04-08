@@ -60,6 +60,8 @@ export type GetPaymentResponse = {
     slotDurationMinutes: number;
     practiceMaxNumber: number;
     practiceImageUrls?: string[];
+    bookingDurationMinutes?: number | null;
+    slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
   };
 }
 
