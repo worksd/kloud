@@ -28,7 +28,9 @@ export type StudioRoomResponse = {
   practiceMaxNumber?: number;
   isPracticeRoom?: boolean;
   imageUrls?: string[];
+  representativeImageIndex?: number;
   practiceImageUrls?: string[];
+  practiceRepresentativeImageIndex?: number;
   unitPrice?: number;
   dailyPrice?: number;
   slotDurationMinutes?: number;
@@ -53,9 +55,6 @@ export const ListStudioRooms: Endpoint<GetStudioRoomListParameter, StudioRoomLis
 export type GetRoomAvailabilityParameter = {
   id: number;
   date: string;
-  targetDate?: string;
-  startTime?: string;
-  endTime?: string;
 }
 
 export type RoomAvailabilityResponse = {
@@ -66,14 +65,11 @@ export type RoomAvailabilityResponse = {
   maxCount: number;
   slotDurationMinutes: number;
   imageUrls?: string[];
+  representativeImageIndex?: number;
   practiceImageUrls?: string[];
+  practiceRepresentativeImageIndex?: number;
   unitPrice?: number;
   dailyPrice?: number;
-  practiceMaxNumber?: number;
-  advanceBookingDays?: number | null;
-  bookingDurationMinutes?: number | null;
-  bookingWhileInUse?: boolean;
-  availableDayTimes?: AvailableDayTime[];
   slots: TimeSlotResponse[];
   buttons?: GetLessonButtonResponse[];
 }
@@ -82,5 +78,5 @@ export const GetRoomAvailability: Endpoint<GetRoomAvailabilityParameter, RoomAva
   method: 'get',
   path: (e) => `/studioRooms/${e.id}`,
   pathParams: ['id'],
-  queryParams: ['date', 'targetDate', 'startTime', 'endTime'],
+  queryParams: ['date'],
 }

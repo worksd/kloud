@@ -22,14 +22,11 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     os?: string
     appVersion?: string
     targetUserId?: string
-    roomName?: string
-    targetDate?: string
-    startTime?: string
-    endTime?: string
+    date?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, item, id, os, appVersion = '', targetUserId, roomName, targetDate, startTime, endTime } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, date } = params;
   const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
@@ -37,7 +34,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const res = await getPaymentAction({
     item: paymentItem,
     id: itemId,
-    targetUserId: parsedTargetUserId
+    targetUserId: parsedTargetUserId,
+    date: paymentItem === 'practice-room' ? date : undefined,
   });
 
   const cookieValue = (await cookies()).get(userIdKey)?.value;
@@ -193,8 +191,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
         {paymentItem === 'practice-room' ? (
           <PracticeRoomPaymentWrapper
             payment={res}
-            roomName={roomName}
-            targetDate={targetDate}
             studioRoomId={itemId}
             url={process.env.GUINNESS_API_SERVER ?? ''}
             appVersion={appVersion}

@@ -30,86 +30,58 @@ const calcEndTime = (time: string, duration: number) => {
 export const PracticeRoomSlotSelector = ({
   slots,
   slotDurationMinutes,
-  bookingDurationMinutes,
   locale,
+  myBookings,
   onSelectionChange,
 }: {
   slots: TimeSlotResponse[];
   slotDurationMinutes: number;
-  bookingDurationMinutes?: number | null;
   locale: Locale;
+  myBookings?: { id: number; startTime: string; endTime: string }[];
   onSelectionChange: (selection: { startTime: string; endTime: string } | null) => void;
 }) => {
   const hourlySlots = slots.filter(s => s.time.endsWith(':00'));
+
+  const isMyBooked = (time: string) =>
+    (myBookings ?? []).some(b => b.startTime <= time && time < b.endTime);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
-  // 고정 예약 시간이면 한번에 선택되는 슬롯 수
-  const fixedCount = bookingDurationMinutes
-    ? Math.ceil(bookingDurationMinutes / slotDurationMinutes)
-    : 1;
-
-  const isConsecutiveAvailable = useCallback((startIdx: number, count: number) => {
-    for (let i = startIdx; i < startIdx + count && i < hourlySlots.length; i++) {
-      if (hourlySlots[i].status !== 'available') return false;
-    }
-    return startIdx + count <= hourlySlots.length;
-  }, [hourlySlots]);
-
   const handleSlotClick = (index: number) => {
-    if (hourlySlots[index].status !== 'available') return;
+    const slot = hourlySlots[index];
+    if (slot.status !== 'available' || isMyBooked(slot.time)) return;
 
-    if (bookingDurationMinutes) {
-      // 고정 시간: 클릭하면 해당 위치부터 fixedCount만큼 선택/해제
-      if (!isConsecutiveAvailable(index, fixedCount)) return;
-
-      const newSet = new Set<number>();
-      // 이미 같은 시작점이 선택되어 있으면 해제
-      if (selectedIndices.has(index) && selectedIndices.size === fixedCount) {
-        setSelectedIndices(newSet);
-        onSelectionChange(null);
-      } else {
-        for (let i = index; i < index + fixedCount; i++) newSet.add(i);
-        setSelectedIndices(newSet);
-        const startTime = hourlySlots[index].time;
-        const endTime = calcEndTime(hourlySlots[index + fixedCount - 1].time, slotDurationMinutes);
-        onSelectionChange({ startTime, endTime });
-      }
+    const newSet = new Set(selectedIndices);
+    if (newSet.has(index)) {
+      newSet.delete(index);
     } else {
-      // 자유 선택: 토글
-      const newSet = new Set(selectedIndices);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
+      newSet.add(index);
+    }
+
+    // 연속된 범위인지 확인
+    if (newSet.size > 0) {
+      const sorted = Array.from(newSet).sort((a, b) => a - b);
+      let isConsecutive = true;
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] !== sorted[i - 1] + 1) {
+          isConsecutive = false;
+          break;
+        }
+      }
+      if (!isConsecutive) {
+        newSet.clear();
         newSet.add(index);
       }
+    }
 
-      // 연속된 범위인지 확인
-      if (newSet.size > 0) {
-        const sorted = Array.from(newSet).sort((a, b) => a - b);
-        let isConsecutive = true;
-        for (let i = 1; i < sorted.length; i++) {
-          if (sorted[i] !== sorted[i - 1] + 1) {
-            isConsecutive = false;
-            break;
-          }
-        }
-        if (!isConsecutive) {
-          // 비연속이면 새로 클릭한 것만 선택
-          newSet.clear();
-          newSet.add(index);
-        }
-      }
+    setSelectedIndices(newSet);
 
-      setSelectedIndices(newSet);
-
-      if (newSet.size > 0) {
-        const sorted = Array.from(newSet).sort((a, b) => a - b);
-        const startTime = hourlySlots[sorted[0]].time;
-        const endTime = calcEndTime(hourlySlots[sorted[sorted.length - 1]].time, slotDurationMinutes);
-        onSelectionChange({ startTime, endTime });
-      } else {
-        onSelectionChange(null);
-      }
+    if (newSet.size > 0) {
+      const sorted = Array.from(newSet).sort((a, b) => a - b);
+      const startTime = hourlySlots[sorted[0]].time;
+      const endTime = calcEndTime(hourlySlots[sorted[sorted.length - 1]].time, slotDurationMinutes);
+      onSelectionChange({ startTime, endTime });
+    } else {
+      onSelectionChange(null);
     }
   };
 
@@ -132,24 +104,26 @@ export const PracticeRoomSlotSelector = ({
         {hourlySlots.map((slot, index) => {
           const isAvailable = slot.status === 'available';
           const isSelected = selectedIndices.has(index);
-          const endTime = calcEndTime(slot.time, slotDurationMinutes);
+          const booked = isMyBooked(slot.time);
 
           return (
             <button
               key={slot.time}
-              disabled={!isAvailable}
+              disabled={!isAvailable || booked}
               onClick={() => handleSlotClick(index)}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all
-                ${!isAvailable
-                  ? 'border-[#F0F0F0] bg-[#FAFAFA] text-[#CCC] cursor-not-allowed'
-                  : isSelected
-                    ? 'border-black bg-black text-white'
-                    : 'border-[#E8E8E8] bg-white text-black active:scale-[0.97]'
+                ${booked
+                  ? 'border-[#5B5FF6]/30 bg-[#EDEDFF] text-[#5B5FF6] cursor-not-allowed'
+                  : !isAvailable
+                    ? 'border-[#F0F0F0] bg-[#FAFAFA] text-[#CCC] cursor-not-allowed'
+                    : isSelected
+                      ? 'border-black bg-black text-white'
+                      : 'border-[#E8E8E8] bg-white text-black active:scale-[0.97]'
                 }`}
             >
               <div
                 className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: isSelected ? '#fff' : slotColor(slot) }}
+                style={{ backgroundColor: booked ? '#5B5FF6' : isSelected ? '#fff' : slotColor(slot) }}
               />
               {slot.time}
             </button>

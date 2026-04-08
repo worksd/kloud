@@ -77,7 +77,7 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
     case 'membership-plan':
       return payment.membershipPlan?.price ?? 0;
     case 'practice-room':
-      return payment.price ?? payment.studioRoom?.hourlyPrice ?? 0;
+      return payment.price ?? payment.studioRoom?.unitPrice ?? 0;
   }
 }
 

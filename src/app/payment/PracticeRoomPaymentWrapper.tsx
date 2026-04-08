@@ -9,8 +9,6 @@ import { getLocaleString } from "@/app/components/locale";
 
 export const PracticeRoomPaymentWrapper = ({
   payment,
-  roomName,
-  targetDate,
   studioRoomId,
   url,
   appVersion,
@@ -21,8 +19,6 @@ export const PracticeRoomPaymentWrapper = ({
   locale,
 }: {
   payment: GetPaymentResponse;
-  roomName?: string;
-  targetDate?: string;
   studioRoomId: number;
   url: string;
   appVersion: string;
@@ -34,8 +30,9 @@ export const PracticeRoomPaymentWrapper = ({
 }) => {
   const [selectedTime, setSelectedTime] = useState<{ startTime: string; endTime: string } | null>(null);
   const room = payment.studioRoom;
-  const slots = room?.slots ?? [];
-  const won = getLocaleString({ locale, key: 'won' });
+  const slots = payment.slots ?? [];
+  const myBookings = payment.myBookings ?? [];
+  const date = payment.date;
 
   return (
     <>
@@ -52,25 +49,43 @@ export const PracticeRoomPaymentWrapper = ({
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[18px] font-bold text-black">
-              {room?.name ?? roomName ?? getLocaleString({ locale, key: 'practice_room' })}
+              {room?.name ?? getLocaleString({ locale, key: 'practice_room' })}
             </span>
           </div>
         </div>
-        {targetDate && (
+        {date && (
           <div className="flex items-center justify-between bg-[#F7F8F9] rounded-xl px-4 py-3">
             <span className="text-[13px] text-[#86898C]">{getLocaleString({ locale, key: 'date' })}</span>
-            <span className="text-[14px] font-medium text-black">{targetDate}</span>
+            <span className="text-[14px] font-medium text-black">{date}</span>
           </div>
         )}
       </div>
+
+      {/* 내 기존 예약 */}
+      {myBookings.length > 0 && (
+        <div className="px-5 pb-2">
+          <span className="text-[13px] font-bold text-black mb-2 block">
+            {getLocaleString({ locale, key: 'my_bookings' })}
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {myBookings.map((booking) => (
+              <div key={booking.id} className="px-3 py-1.5 bg-[#EDEDFF] rounded-lg">
+                <span className="text-[12px] font-medium text-[#5B5FF6]">
+                  {booking.startTime} ~ {booking.endTime}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 시간대 선택 */}
       {slots.length > 0 && (
         <PracticeRoomSlotSelector
           slots={slots}
           slotDurationMinutes={room?.slotDurationMinutes ?? 60}
-          bookingDurationMinutes={room?.bookingDurationMinutes}
           locale={locale}
+          myBookings={myBookings}
           onSelectionChange={setSelectedTime}
         />
       )}
@@ -99,7 +114,7 @@ export const PracticeRoomPaymentWrapper = ({
         isProxyPayment={isProxyPayment}
         practiceRoomInfo={selectedTime ? {
           studioRoomId,
-          targetDate: targetDate ?? '',
+          targetDate: date ?? '',
           startTime: selectedTime.startTime,
           endTime: selectedTime.endTime,
         } : undefined}

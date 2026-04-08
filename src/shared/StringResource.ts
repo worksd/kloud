@@ -2625,6 +2625,12 @@ export const StringResource = {
     jp: '時間を選択してください',
     zh: '请选择时间'
   },
+  my_bookings: {
+    ko: '내 예약',
+    en: 'My Bookings',
+    jp: '予約済み',
+    zh: '我的预约'
+  },
   reservable: {
     ko: '예약 가능',
     en: 'Available',

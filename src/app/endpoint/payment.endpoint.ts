@@ -10,6 +10,7 @@ export type GetPaymentRequest = {
   itemId: number
   item: string
   targetUserId?: number
+  date?: string
 }
 
 export type DiscountResponse = {
@@ -56,19 +57,20 @@ export type GetPaymentResponse = {
   studioRoom?: {
     id: number;
     name: string;
-    hourlyPrice: number;
+    unitPrice?: number;
     slotDurationMinutes: number;
     practiceMaxNumber: number;
     practiceImageUrls?: string[];
-    bookingDurationMinutes?: number | null;
-    slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
   };
+  date?: string;
+  slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
+  myBookings?: { id: number; startTime: string; endTime: string }[];
 }
 
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   method: "get",
   path: `/payment`,
-  queryParams: ['itemId', 'item', 'targetUserId']
+  queryParams: ['itemId', 'item', 'targetUserId', 'date']
 };
 
 

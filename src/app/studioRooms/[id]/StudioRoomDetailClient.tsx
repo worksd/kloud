@@ -122,9 +122,9 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
         <div className="px-6 pt-5 pb-4">
           <h1 className="text-[22px] font-bold text-black">{room.name}</h1>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
-            {(room.practiceMaxNumber ?? room.maxCount) > 0 && (
+            {(room.maxCount) > 0 && (
               <span className="text-[13px] text-[#86898C]">
-                {getLocaleString({ locale, key: 'max_capacity' })} {room.practiceMaxNumber ?? room.maxCount}{getLocaleString({ locale, key: 'people' })}
+                {getLocaleString({ locale, key: 'max_capacity' })} {room.maxCount}{getLocaleString({ locale, key: 'people' })}
               </span>
             )}
             <span className="text-[13px] text-[#86898C]">
