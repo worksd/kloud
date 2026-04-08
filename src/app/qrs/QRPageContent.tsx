@@ -12,6 +12,11 @@ import { getLessonsByDate } from '@/app/profile/setting/kiosk/get.lessons.by.dat
 import { getLessonTicketsAction } from '@/app/qrs/get.lesson.tickets.action';
 import { Thumbnail } from '@/app/components/Thumbnail';
 
+const formatUserName = (nickName?: string, name?: string) => {
+  if (!nickName) return '사용자';
+  return name ? `${nickName}(${name})` : nickName;
+};
+
 type AttendanceRecord = {
   ticketId: number;
   userName: string;
@@ -230,7 +235,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
             prev.map(t => t.id === ticketId ? { ...t, status: 'Used' } : t)
           );
 
-          const userName = result.user?.nickName || result.user?.name || '사용자';
+          const userName = formatUserName(result.user?.nickName, result.user?.name);
           const ticketLabel = result.ticketTypeLabel || '';
 
           // 출석 목록에 추가
@@ -293,7 +298,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
     if (successTicketIds.current.has(ticket.id)) return;
 
     pendingTicketRef.current = ticket;
-    const userName = ticket.user?.nickName || ticket.user?.name || '사용자';
+    const userName = formatUserName(ticket.user?.nickName, ticket.user?.name);
     const info = [ticket.ticketTypeLabel, ticket.rank].filter(Boolean).join(' · ');
     const message = `${userName}${info ? `\n${info}` : ''}\n\n출석하시겠습니까?`;
 
@@ -331,7 +336,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
           prev.map(t => t.id === ticket.id ? { ...t, status: 'Used' } : t)
         );
 
-        const userName = result.user?.nickName || result.user?.name || '사용자';
+        const userName = formatUserName(result.user?.nickName, result.user?.name);
         const ticketLabel = result.ticketTypeLabel || '';
 
         setAttendanceList(prev => [{
@@ -642,7 +647,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                   {/* 이름 + 정보 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: isUsed ? 'rgba(255,255,255,0.4)' : '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {ticket.user?.nickName || ticket.user?.name || '사용자'}
+                      {formatUserName(ticket.user?.nickName, ticket.user?.name)}
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', display: 'flex', gap: 4, alignItems: 'center' }}>
                       {ticket.rank && <span>{ticket.rank}</span>}
@@ -897,7 +902,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
 
             {/* 이름 */}
             <div style={{ fontSize: 16, fontWeight: 600, color: '#000' }}>
-              {successDialog.user.nickName || successDialog.user.name || '사용자'}
+              {formatUserName(successDialog.user.nickName, successDialog.user.name)}
             </div>
 
             {/* 입장 번호 */}
