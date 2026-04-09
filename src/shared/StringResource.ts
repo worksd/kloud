@@ -2637,6 +2637,12 @@ export const StringResource = {
     jp: '予約済み',
     zh: '我的预约'
   },
+  room_booking_history: {
+    ko: '홀 예약 내역',
+    en: 'Room Bookings',
+    jp: 'ホール予約履歴',
+    zh: '场地预约记录'
+  },
   reservable: {
     ko: '예약 가능',
     en: 'Available',
