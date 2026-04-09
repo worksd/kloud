@@ -163,27 +163,29 @@ export default async function SettingPage({
         {user.myPasses && user.myPasses.length > 0 && (
           <section className="px-4 mt-6">
             <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_pass')}</div>
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide [&>*:last-child]:mr-4">
+            <div className="flex flex-col gap-2.5">
               {user.myPasses.map((pass) => {
                 const isActive = pass.status === 'Active';
                 return (
                   <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
-                    <div className={`flex-shrink-0 w-[180px] rounded-2xl p-4 active:scale-[0.98] transition-all duration-150 ${
+                    <div className={`w-full rounded-2xl px-5 py-4 active:scale-[0.98] transition-all duration-150 flex items-center justify-between ${
                       isActive ? 'bg-[#1E2124]' : 'bg-[#F1F3F6]'
                     }`}>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#999]'}`}>
+                          {pass.passPlan?.name}
+                        </span>
+                        {pass.passPlan?.expireDateStamp && (
+                          <span className={`text-[11px] mt-1 truncate ${isActive ? 'text-white/40' : 'text-[#BBB]'}`}>
+                            {pass.passPlan.expireDateStamp}
+                          </span>
+                        )}
+                      </div>
+                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ml-3 ${
                         isActive ? 'text-white/80 bg-white/10' : 'text-[#999] bg-[#E0E0E0]'
                       }`}>
                         {isActive ? '사용 가능' : pass.status}
                       </span>
-                      <span className={`text-[15px] font-bold block mt-2.5 truncate ${isActive ? 'text-white' : 'text-[#999]'}`}>
-                        {pass.passPlan?.name}
-                      </span>
-                      {pass.passPlan?.expireDateStamp && (
-                        <span className={`text-[11px] mt-1.5 block truncate ${isActive ? 'text-white/40' : 'text-[#BBB]'}`}>
-                          {pass.passPlan.expireDateStamp}
-                        </span>
-                      )}
                     </div>
                   </NavigateClickWrapper>
                 );
@@ -196,19 +198,19 @@ export default async function SettingPage({
         {user.myBookings && user.myBookings.length > 0 && (
           <section className="px-4 mt-6">
             <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('room_booking_history')}</div>
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide [&>*:last-child]:mr-4">
+            <div className="flex flex-col gap-2.5">
               {user.myBookings.map((booking) => (
                 <NavigateClickWrapper key={booking.id} method="push" route={KloudScreen.StudioRoomDetail(booking.studioRoom?.id ?? booking.studioRoomId)}>
-                  <div className="flex-shrink-0 w-[200px] rounded-2xl overflow-hidden bg-[#F7F8F9] active:scale-[0.98] transition-all duration-150">
-                    <div className="w-full h-[80px] bg-[#E8E8EA]">
+                  <div className="w-full rounded-2xl overflow-hidden bg-[#F7F8F9] flex active:scale-[0.98] transition-all duration-150">
+                    <div className="w-[80px] h-[80px] bg-[#E8E8EA] flex-shrink-0">
                       {booking.studioRoom?.imageUrls?.[0] && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={booking.studioRoom.imageUrls[0]} alt="" className="w-full h-full object-cover" />
                       )}
                     </div>
-                    <div className="px-3 py-2.5">
-                      <span className="text-[14px] font-bold text-black block truncate">{booking.studioRoom?.name ?? '연습실'}</span>
-                      <span className="text-[11px] text-[#86898C] mt-0.5 block">{booking.startDate} ~ {booking.endDate}</span>
+                    <div className="flex flex-col justify-center px-3 min-w-0">
+                      <span className="text-[14px] font-bold text-black truncate">{booking.studioRoom?.name ?? '연습실'}</span>
+                      <span className="text-[11px] text-[#86898C] mt-0.5">{booking.startDate} ~ {booking.endDate}</span>
                     </div>
                   </div>
                 </NavigateClickWrapper>
