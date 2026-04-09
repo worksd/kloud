@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { getRoomBookingAction } from "@/app/profile/get.room.booking.action";
+import { getRoomBookingAction, deleteRoomBookingAction } from "@/app/profile/get.room.booking.action";
 import { RoomBookingDetailResponse } from "@/app/endpoint/room.booking.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
@@ -21,16 +21,18 @@ export const RoomBookingDialog = ({
   booking,
   locale,
   onClose,
-  onCancel,
+  onCancelled,
 }: {
   booking: RoomBookingInfo;
   locale: Locale;
   onClose: () => void;
-  onCancel?: (bookingId: number) => void;
+  onCancelled?: () => void;
 }) => {
   const [closing, setClosing] = useState(false);
   const [detail, setDetail] = useState<RoomBookingDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     getRoomBookingAction(booking.id)
@@ -43,10 +45,20 @@ export const RoomBookingDialog = ({
     setTimeout(onClose, 150);
   };
 
-  const handleCancel = () => {
-    if (onCancel) {
-      setClosing(true);
-      setTimeout(() => onCancel(booking.id), 150);
+  const handleCancelConfirm = async () => {
+    setCancelling(true);
+    try {
+      const res = await deleteRoomBookingAction(booking.id);
+      if ('success' in res && res.success) {
+        setClosing(true);
+        setTimeout(() => {
+          onClose();
+          onCancelled?.();
+        }, 150);
+      }
+    } finally {
+      setCancelling(false);
+      setConfirmCancel(false);
     }
   };
 
@@ -199,14 +211,34 @@ export const RoomBookingDialog = ({
                   : `${roomName} ${getLocaleString({ locale, key: 'go_to_room' })}`}
               </button>
 
-              {onCancel && (
+              {!confirmCancel ? (
                 <button
-                  onClick={handleCancel}
-                  className="w-full mt-2 py-3 rounded-xl text-[14px] font-bold active:scale-[0.98] transition-transform
-                    bg-[#FEF2F2] text-[#EF4444] border border-[#EF4444]/20"
+                  onClick={() => setConfirmCancel(true)}
+                  className="w-full mt-2 py-3 rounded-xl text-[13px] font-medium text-[#999] active:text-[#EF4444] transition-colors"
                 >
                   {getLocaleString({ locale, key: 'cancel_booking' })}
                 </button>
+              ) : (
+                <div className="mt-3 p-3.5 rounded-xl border border-[#EF4444]/20 bg-[#FEF2F2]">
+                  <p className="text-[13px] text-[#EF4444] font-medium text-center mb-3">
+                    {getLocaleString({ locale, key: 'cancel_booking_confirm' })}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setConfirmCancel(false)}
+                      className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-white text-[#333] border border-[#E8E8E8] active:scale-[0.98] transition-transform"
+                    >
+                      {getLocaleString({ locale, key: 'no' })}
+                    </button>
+                    <button
+                      disabled={cancelling}
+                      onClick={handleCancelConfirm}
+                      className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-[#EF4444] text-white active:scale-[0.98] transition-transform disabled:opacity-50"
+                    >
+                      {cancelling ? '...' : getLocaleString({ locale, key: 'yes_cancel' })}
+                    </button>
+                  </div>
+                </div>
               )}
             </>
           )}

@@ -1,4 +1,4 @@
-import { Endpoint } from "@/app/endpoint/index";
+import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 
 export type RoomBookingDetailResponse = {
   id: number;
@@ -37,4 +37,16 @@ export const GetRoomBooking: Endpoint<GetRoomBookingParameter, RoomBookingDetail
   method: 'get',
   path: (e) => `/roomBookings/${e.id}`,
   pathParams: ['id'],
+}
+
+export type DeleteRoomBookingParameter = {
+  id: number;
+  reason?: string;
+}
+
+export const DeleteRoomBooking: Endpoint<DeleteRoomBookingParameter, SimpleResponse> = {
+  method: 'delete',
+  path: (e) => `/roomBookings/${e.id}`,
+  pathParams: ['id'],
+  queryParams: ['reason'],
 }

@@ -2679,6 +2679,24 @@ export const StringResource = {
     jp: '予約キャンセル',
     zh: '取消预约'
   },
+  cancel_booking_confirm: {
+    ko: '정말 예약을 취소하시겠습니까?',
+    en: 'Are you sure you want to cancel?',
+    jp: '本当に予約をキャンセルしますか？',
+    zh: '确定要取消预约吗？'
+  },
+  no: {
+    ko: '아니요',
+    en: 'No',
+    jp: 'いいえ',
+    zh: '否'
+  },
+  yes_cancel: {
+    ko: '취소하기',
+    en: 'Yes, cancel',
+    jp: 'キャンセル',
+    zh: '确认取消'
+  },
   room_booking_history: {
     ko: '홀 예약 내역',
     en: 'Room Bookings',
