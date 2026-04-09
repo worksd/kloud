@@ -61,6 +61,17 @@ export type PassRuleResponse = {
   tickets: PassRuleTicket[];
 }
 
+export type PassRoomBookingResponse = {
+  id: number;
+  studioRoom?: {
+    id: number;
+    name: string;
+    imageUrls?: string[];
+  };
+  startDate: string;
+  endDate: string;
+}
+
 export type PassFeatureResponse = {
   id: number;
   startDate: string;
@@ -71,6 +82,7 @@ export type PassFeatureResponse = {
   featureValue?: string | null;
   duration: number;
   description?: string | null;
+  roomBookings?: PassRoomBookingResponse[];
 }
 
 export type PassPlanRule = {

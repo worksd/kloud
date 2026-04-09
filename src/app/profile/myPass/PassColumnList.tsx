@@ -65,7 +65,7 @@ export const ActivePassItem = ({pass, locale}: { pass: GetPassResponse, locale: 
 
   return (
     <div
-      className={`${backgroundColor} rounded-2xl px-5 py-4 border ${borderColor} active:scale-[0.98] transition-all duration-150 select-none`}
+      className={`${backgroundColor} rounded-2xl px-5 py-4 border ${borderColor} active:bg-[#F3F4F6] active:scale-[0.98] transition-all duration-150 select-none cursor-pointer`}
       onClick={() => kloudNav.push(KloudScreen.MyPassDetail(pass.id))}
     >
       <div className="flex justify-between items-start">

@@ -137,6 +137,12 @@ export default function PaymentButton({
       return;
     }
 
+    if (type.value === 'practiceRoom' && !practiceRoomInfo) {
+      const dialog = await createDialog({ id: 'Simple', message: getLocaleString({ locale, key: 'select_time' }) });
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      return;
+    }
+
     if (price == 0) {
       setIsSubmitting(true);
       try {
@@ -237,6 +243,11 @@ export default function PaymentButton({
       }
     } else if (method === 'pass') {
       const isPracticeRoom = type.apiValue === 'practice-room';
+      if (isPracticeRoom && !practiceRoomInfo) {
+        const d = await createDialog({ id: 'Simple', message: getLocaleString({ locale, key: 'select_time' }) });
+        window.KloudEvent?.showDialog(JSON.stringify(d));
+        return;
+      }
       const dialog = await createDialog({
         id: 'UsePass',
         title: isPracticeRoom
@@ -282,7 +293,7 @@ export default function PaymentButton({
       }
     }
 
-  }, [id, method, depositor, selectedPass, selectedBilling]);
+  }, [id, method, depositor, selectedPass, selectedBilling, practiceRoomInfo]);
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
@@ -384,7 +395,7 @@ export default function PaymentButton({
     window.onDialogConfirm = async (data: DialogInfo) => {
       await onConfirmDialog(data)
     }
-  }, [depositor, selectedPass, isSubmitting])
+  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo])
 
 
   return (

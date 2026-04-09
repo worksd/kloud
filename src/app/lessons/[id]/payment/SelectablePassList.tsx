@@ -34,7 +34,9 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
   locale: Locale,
   onSelect: () => void
 }) => {
-  const disabled = pass.usable === false || (!pass.usable && pass.status !== 'Active');
+  const hasNoUsableRule = (!pass.passRules || pass.passRules.length === 0) &&
+    (pass.passFeatures ?? []).every(f => !f.usable);
+  const disabled = pass.usable === false || (!pass.usable && pass.status !== 'Active') || hasNoUsableRule;
 
   return (
     <div
@@ -57,9 +59,9 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
               {pass.remainingCount}{getLocaleString({locale, key: 'remaining_count'})}
             </div>
           )}
-          {disabled && pass.reason && (
+          {disabled && (pass.reason || hasNoUsableRule) && (
             <div className="text-[11px] font-medium text-[#E55B5B] mt-0.5">
-              {pass.reason}
+              {pass.reason ?? getLocaleString({locale, key: 'pass_not_usable_here'})}
             </div>
           )}
         </div>

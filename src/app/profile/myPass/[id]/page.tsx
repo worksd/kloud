@@ -74,12 +74,12 @@ export default async function MyPassDetailPage({params}: {
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
         {/* 패스플랜 이미지 */}
-        {passPlan?.imageUrl && (
-          <div className="w-full aspect-[2/1] bg-[#F1F3F6]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+        <div className="w-full aspect-[2/1] bg-[#F1F3F6]">
+          {passPlan?.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 상단 패스 정보 */}
         <div className="px-6 pt-5 pb-4">
@@ -210,39 +210,48 @@ export default async function MyPassDetailPage({params}: {
               })}
             </div>
 
-            {/* passFeatures */}
-            {passFeatures.length > 0 && (
-              <>
-                {passRules.length > 0 && (
-                  <div className="flex items-center gap-4 mt-5 mb-4">
-                    <div className="flex-1 h-px bg-[#EBEBEB]" />
-                    <span className="text-[12px] text-[#B0B0B0] font-medium">{additionalBenefitText}</span>
-                    <div className="flex-1 h-px bg-[#EBEBEB]" />
+            {/* passFeatures - 이용 혜택에 통합 */}
+            {passFeatures.map((feature) => {
+              const isExpired = feature.status === 'Expired';
+              const bookings = feature.roomBookings ?? [];
+              return (
+                <div key={feature.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="flex-shrink-0">
+                      {featureIcon(feature.featureKey)}
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-[14px] font-semibold text-black">{feature.description ?? feature.featureKey}</span>
+                      {feature.usable && !isExpired && (
+                        <span className="text-[11px] font-bold text-[#059669]">
+                          {feature.status === 'Active' ? usableText : feature.status}
+                        </span>
+                      )}
+                      {isExpired && (
+                        <span className="text-[11px] font-bold text-[#BFBFBF]">만료</span>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div className="flex flex-col gap-3">
-                  {passFeatures.map((feature) => {
-                    const isExpired = feature.status === 'Expired';
-                    return (
-                      <div key={feature.id} className={`flex items-center gap-3 ${isExpired ? 'opacity-40' : ''}`}>
-                        <div className="w-8 h-8 rounded-full bg-[#F3F4F6] flex items-center justify-center flex-shrink-0">
-                          {featureIcon(feature.featureKey)}
+
+                  {bookings.length > 0 && (
+                    <div className="flex flex-col gap-1.5 ml-12">
+                      {bookings.map((booking) => (
+                        <div key={booking.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[#F9FAFB]">
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-[13px] font-medium text-[#333] truncate">
+                              {booking.studioRoom?.name ?? '연습실'}
+                            </span>
+                            <span className="text-[11px] text-[#999]">
+                              {booking.startDate} ~ {booking.endDate}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[13px] text-[#333] font-medium">{feature.description ?? feature.featureKey}</span>
-                          <span className="text-[11px] text-[#999]">{feature.startDate} ~ {feature.endDate}</span>
-                        </div>
-                        {feature.usable && !isExpired && (
-                          <span className="text-[10px] font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full ml-auto flex-shrink-0">
-                            {feature.status === 'Active' ? usableText : feature.status}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
+              );
+            })}
           </div>
         )}
       </div>

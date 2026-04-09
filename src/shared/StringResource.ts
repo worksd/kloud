@@ -2625,6 +2625,12 @@ export const StringResource = {
     jp: '時間を選択してください',
     zh: '请选择时间'
   },
+  pass_not_usable_here: {
+    ko: '이 결제에는 사용할 수 없는 패스권입니다',
+    en: 'This pass cannot be used for this payment',
+    jp: 'この決済には使用できないパスです',
+    zh: '此通行证不能用于此支付'
+  },
   my_bookings: {
     ko: '내 예약',
     en: 'My Bookings',

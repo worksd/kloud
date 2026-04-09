@@ -311,7 +311,6 @@ export const UnifiedPaymentInfo = ({
           depositor={depositor}
           disabled={
             priceNotAvailable ||
-            (type === 'practice-room' && !practiceRoomInfo) ||
             (paymentMethods.length > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||
