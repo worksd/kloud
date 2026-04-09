@@ -94,11 +94,7 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
   const myBookings = room?.myBookings ?? [];
 
   const getMyBooking = (time: string) =>
-    myBookings.find(b => {
-      const bStart = b.startDate.split(' ')[1] ?? '';
-      const bEnd = b.endDate.split(' ')[1] ?? '';
-      return time >= bStart && time < bEnd;
-    });
+    myBookings.find(b => time >= b.startTime && time < b.endTime);
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-24">
@@ -246,8 +242,8 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
                           id: myBooking.id,
                           roomName: room.name,
                           roomImageUrl: images[0],
-                          startDate: myBooking.startDate,
-                          endDate: myBooking.endDate,
+                          startDate: `${room.date} ${myBooking.startTime}`,
+                          endDate: `${room.date} ${myBooking.endTime}`,
                         });
                       }
                     }}

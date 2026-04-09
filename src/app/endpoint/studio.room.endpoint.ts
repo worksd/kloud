@@ -72,7 +72,7 @@ export type RoomAvailabilityResponse = {
   dailyPrice?: number;
   slots: TimeSlotResponse[];
   buttons?: GetLessonButtonResponse[];
-  myBookings?: { id: number; startDate: string; endDate: string }[];
+  myBookings?: { id: number; startTime: string; endTime: string }[];
 }
 
 export const GetRoomAvailability: Endpoint<GetRoomAvailabilityParameter, RoomAvailabilityResponse> = {

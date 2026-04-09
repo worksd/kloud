@@ -69,8 +69,8 @@ export const PracticeRoomPaymentWrapper = ({
           </span>
           <div className="flex flex-wrap gap-2">
             {myBookings.map((booking) => (
-              <div key={booking.id} className="px-3 py-1.5 bg-[#EDEDFF] rounded-lg">
-                <span className="text-[12px] font-medium text-[#5B5FF6]">
+              <div key={booking.id} className="px-3 py-1.5 bg-[#1E2124] rounded-lg">
+                <span className="text-[12px] font-medium text-white">
                   {booking.startTime} ~ {booking.endTime}
                 </span>
               </div>

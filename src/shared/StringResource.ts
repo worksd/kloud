@@ -1157,6 +1157,12 @@ export const StringResource = {
     jp: "マイページ",
     zh: "我的页面"
   },
+  my_activity: {
+    ko: "내 활동",
+    en: "My Activity",
+    jp: "マイ活動",
+    zh: "我的活动"
+  },
   account_info: {
     ko: "계정 정보",
     en: "Account Info",
@@ -2637,7 +2643,13 @@ export const StringResource = {
     jp: '予約済み',
     zh: '我的预约'
   },
-  created_at: {
+  booking_confirmed: {
+    ko: '예약완료',
+    en: 'CONFIRMED',
+    jp: '予約済',
+    zh: '已预约'
+  },
+  booked_at: {
     ko: '예약일',
     en: 'Booked on',
     jp: '予約日',

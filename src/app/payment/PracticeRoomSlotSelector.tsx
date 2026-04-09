@@ -113,17 +113,17 @@ export const PracticeRoomSlotSelector = ({
               onClick={() => handleSlotClick(index)}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all
                 ${booked
-                  ? 'border-[#5B5FF6]/30 bg-[#EDEDFF] text-[#5B5FF6] cursor-not-allowed'
+                  ? 'border-[#1E2124] bg-[#1E2124] text-white cursor-not-allowed'
                   : !isAvailable
                     ? 'border-[#F0F0F0] bg-[#FAFAFA] text-[#CCC] cursor-not-allowed'
                     : isSelected
-                      ? 'border-black bg-black text-white'
+                      ? 'border-[#3B82F6] bg-[#3B82F6] text-white'
                       : 'border-[#E8E8E8] bg-white text-black active:scale-[0.97]'
                 }`}
             >
               <div
                 className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: booked ? '#5B5FF6' : isSelected ? '#fff' : slotColor(slot) }}
+                style={{ backgroundColor: booked ? '#fff' : isSelected ? '#fff' : slotColor(slot) }}
               />
               {slot.time}
             </button>

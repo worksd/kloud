@@ -129,45 +129,9 @@ export default async function SettingPage({
           </section>
         )}
 
-        {/* 마이페이지 메뉴 그리드 */}
-        <section className="px-4">
-          <div className="text-[13px] font-bold text-[#999] mb-3 px-1 pt-2">{await translate('my_page')}</div>
-          <div className="grid grid-cols-3 gap-3">
-            <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <div className="flex items-center gap-1.5">
-                  <TicketIcon className="w-[24px] h-[24px]"/>
-                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_tickets')}</span>
-                </div>
-                <span className="text-[13px] font-bold text-black font-paperlogy">{user.ticketCount ?? 0}건</span>
-              </div>
-            </NavigateClickWrapper>
-
-            <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <div className="flex items-center gap-1.5">
-                  <PassPlanIcon className="w-[24px] h-[24px]"/>
-                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_pass')}</span>
-                </div>
-                <span className="text-[13px] font-bold text-black font-paperlogy">{user.passCount ?? 0}개</span>
-              </div>
-            </NavigateClickWrapper>
-
-            <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <div className="flex items-center gap-1.5">
-                  <ReceiptIcon className="w-[24px] h-[24px]"/>
-                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('payment_records')}</span>
-                </div>
-                <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount ?? 0}건</span>
-              </div>
-            </NavigateClickWrapper>
-          </div>
-        </section>
-
         {/* 보유 패스권 */}
         {user.myPasses && user.myPasses.length > 0 && (
-          <section className="px-4 mt-6">
+          <section className="px-4">
             <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_pass')}</div>
             <div className="flex flex-col gap-2.5">
               {user.myPasses.map((pass) => {
@@ -211,6 +175,42 @@ export default async function SettingPage({
             </div>
           </section>
         )}
+
+        {/* 내 활동 */}
+        <section className="px-4 mt-6">
+          <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_activity')}</div>
+          <div className="grid grid-cols-3 gap-3">
+            <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1.5">
+                  <TicketIcon className="w-[24px] h-[24px]"/>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_tickets')}</span>
+                </div>
+                <span className="text-[13px] font-bold text-black font-paperlogy">{user.ticketCount ?? 0}건</span>
+              </div>
+            </NavigateClickWrapper>
+
+            <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1.5">
+                  <PassPlanIcon className="w-[24px] h-[24px]"/>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('my_pass')}</span>
+                </div>
+                <span className="text-[13px] font-bold text-black font-paperlogy">{user.passCount ?? 0}개</span>
+              </div>
+            </NavigateClickWrapper>
+
+            <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                <div className="flex items-center gap-1.5">
+                  <ReceiptIcon className="w-[24px] h-[24px]"/>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy">{await translate('payment_records')}</span>
+                </div>
+                <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount ?? 0}건</span>
+              </div>
+            </NavigateClickWrapper>
+          </div>
+        </section>
         </div>
       </div>
     );
