@@ -2643,6 +2643,24 @@ export const StringResource = {
     jp: '予約済み',
     zh: '我的预约'
   },
+  notice: {
+    ko: '유의사항',
+    en: 'Notice',
+    jp: 'ご注意',
+    zh: '注意事项'
+  },
+  usage_guide: {
+    ko: '이용안내',
+    en: 'Usage Guide',
+    jp: '利用案内',
+    zh: '使用指南'
+  },
+  go_to_room: {
+    ko: '로 이동',
+    en: 'Go to',
+    jp: 'へ移動',
+    zh: '前往'
+  },
   booking_confirmed: {
     ko: '예약완료',
     en: 'CONFIRMED',

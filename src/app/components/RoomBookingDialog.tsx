@@ -5,6 +5,8 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { getRoomBookingAction } from "@/app/profile/get.room.booking.action";
 import { RoomBookingDetailResponse } from "@/app/endpoint/room.booking.endpoint";
+import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export type RoomBookingInfo = {
   id: number;
@@ -180,10 +182,27 @@ export const RoomBookingDialog = ({
                 </div>
               )}
 
+              <button
+                onClick={() => {
+                  setClosing(true);
+                  const roomId = detail?.studioRoomId ?? booking.id;
+                  setTimeout(() => {
+                    onClose();
+                    kloudNav.push(KloudScreen.StudioRoomDetail(roomId));
+                  }, 150);
+                }}
+                className="w-full mt-4 py-3 rounded-xl text-[14px] font-bold active:scale-[0.98] transition-transform
+                  bg-black text-white"
+              >
+                {locale === 'en' || locale === 'zh'
+                  ? `${getLocaleString({ locale, key: 'go_to_room' })} ${roomName}`
+                  : `${roomName} ${getLocaleString({ locale, key: 'go_to_room' })}`}
+              </button>
+
               {onCancel && (
                 <button
                   onClick={handleCancel}
-                  className="w-full mt-4 py-3 rounded-xl text-[14px] font-bold active:scale-[0.98] transition-transform
+                  className="w-full mt-2 py-3 rounded-xl text-[14px] font-bold active:scale-[0.98] transition-transform
                     bg-[#FEF2F2] text-[#EF4444] border border-[#EF4444]/20"
                 >
                   {getLocaleString({ locale, key: 'cancel_booking' })}
