@@ -123,6 +123,55 @@ export default async function SettingPage({
           </section>
         )}
 
+        {/* 연습실 예약 */}
+        {user.myBookings && user.myBookings.length > 0 && (
+          <section className="px-4 mb-6">
+            <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_bookings')}</div>
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide [&>*:last-child]:mr-4">
+              {user.myBookings.map((booking) => (
+                <NavigateClickWrapper key={booking.id} method="push" route={KloudScreen.StudioRoomDetail(booking.studioRoom?.id ?? booking.studioRoomId)}>
+                  <div className="flex-shrink-0 w-[200px] rounded-2xl overflow-hidden bg-[#F7F8F9] active:scale-[0.98] transition-all duration-150">
+                    <div className="w-full h-[80px] bg-[#E8E8EA]">
+                      {booking.studioRoom?.imageUrls?.[0] && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={booking.studioRoom.imageUrls[0]} alt="" className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <div className="px-3 py-2.5">
+                      <span className="text-[14px] font-bold text-black block truncate">{booking.studioRoom?.name ?? '연습실'}</span>
+                      <span className="text-[11px] text-[#86898C] mt-0.5 block">{booking.startDate} ~ {booking.endDate}</span>
+                    </div>
+                  </div>
+                </NavigateClickWrapper>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 보유 패스권 */}
+        {user.myPasses && user.myPasses.length > 0 && (
+          <section className="px-4 mb-6">
+            <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_pass')}</div>
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide [&>*:last-child]:mr-4">
+              {user.myPasses.map((pass) => (
+                <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
+                  <div className="flex-shrink-0 w-[160px] rounded-2xl bg-[#F7F8F9] px-3.5 py-3 active:scale-[0.98] transition-all duration-150">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      pass.status === 'Active' ? 'text-[#059669] bg-[#ECFDF5]' : 'text-[#999] bg-[#F1F3F6]'
+                    }`}>
+                      {pass.status === 'Active' ? '사용 가능' : pass.status}
+                    </span>
+                    <span className="text-[14px] font-bold text-black block mt-2 truncate">{pass.passPlan?.name}</span>
+                    {pass.passPlan?.expireDateStamp && (
+                      <span className="text-[11px] text-[#86898C] mt-1 block truncate">{pass.passPlan.expireDateStamp}</span>
+                    )}
+                  </div>
+                </NavigateClickWrapper>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* 마이페이지 메뉴 그리드 */}
         <section className="px-4 mt-4">
           <div className="text-[13px] font-bold text-[#999] mb-3 px-1 pt-2">{await translate('my_page')}</div>
