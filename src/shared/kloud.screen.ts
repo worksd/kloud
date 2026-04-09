@@ -55,7 +55,7 @@ export const KloudScreen = {
   LessonGroupTicketDetail: (id: number, isParent: boolean) => `/lesson-group-tickets/${id}?isParent=${isParent}`,
 
   /** 연습실 */
-  StudioRoomDetail: (id: number) => `/studioRooms/${id}`,
+  StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,
 
   /** 스튜디오 */
   Studios: '/studios',

@@ -45,12 +45,19 @@ const DAY_LABELS: Record<Locale, string[]> = {
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
-export const StudioRoomDetailClient = ({ roomId, locale }: {
+export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
   roomId: number;
   locale: Locale;
+  initialDate?: string;
 }) => {
   const today = new Date();
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (initialDate) {
+      const d = new Date(initialDate);
+      return isNaN(d.getTime()) ? today : d;
+    }
+    return today;
+  });
   const [room, setRoom] = useState<RoomAvailabilityResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState(0);
@@ -152,11 +159,30 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
               </span>
             )}
           </div>
-          {room.description && room.description !== '<p></p>' && room.description.trim() !== '' && (
-            <p className="text-[13px] text-[#86898C] mt-3 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: room.description }}
-            />
-          )}
+        </div>
+      )}
+
+      {/* 이용안내 */}
+      {room?.description && room.description.replace(/<[^>]*>/g, '').trim() !== '' && (
+        <div className="mx-6 mt-2 mb-4 rounded-2xl bg-[#1E2124] px-5 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="7" stroke="white" strokeWidth="1.2"/>
+              <path d="M8 5V8.5" stroke="white" strokeWidth="1.2" strokeLinecap="round"/>
+              <circle cx="8" cy="11" r="0.7" fill="white"/>
+            </svg>
+            <span className="text-[14px] font-bold text-white">{getLocaleString({ locale, key: 'usage_guide' })}</span>
+          </div>
+          <div className="text-[13px] text-white/70 leading-[1.8]
+            [&_h1]:text-[15px] [&_h1]:font-bold [&_h1]:text-white [&_h1]:mt-2
+            [&_h2]:text-[14px] [&_h2]:font-bold [&_h2]:text-white/90 [&_h2]:mt-1.5
+            [&_h3]:text-[13px] [&_h3]:font-semibold [&_h3]:text-white/80 [&_h3]:mt-1
+            [&_p]:mt-0.5 [&_p:empty]:hidden
+            [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mt-1
+            [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mt-1
+            [&_li]:mt-0.5"
+            dangerouslySetInnerHTML={{ __html: room.description }}
+          />
         </div>
       )}
 
@@ -247,7 +273,7 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
                         });
                       }
                     }}
-                    className={`h-[32px] rounded-md flex items-center px-3 ${
+                    className={`h-[32px] rounded-md flex items-center justify-between px-3 ${
                       isMine ? 'bg-[#1E2124] cursor-pointer active:opacity-80'
                         : isClosed ? 'bg-[#F3F4F6]'
                           : isFull ? 'bg-[#EF4444]'
@@ -268,6 +294,9 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
                             ? getLocaleString({ locale, key: 'slot_full' })
                             : getLocaleString({ locale, key: 'reservable' })}
                     </span>
+                    {slot.status === 'available' && !isMine && (
+                      <span className="text-[10px] text-[#4338CA]/60">{slot.currentCount}/{slot.maxCount}</span>
+                    )}
                   </div>
                 );
               })}
@@ -276,27 +305,36 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
         </div>
       )}
 
-      {/* buttons */}
-      {room?.buttons && room.buttons.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-white">
-          <div className="flex flex-col gap-2">
-            {room.buttons.map((btn, i) => (
-              <button
-                key={i}
-                disabled={!btn.route}
-                onClick={() => btn.route && kloudNav.push(btn.route)}
-                className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-transform ${
-                  btn.route
-                    ? 'bg-black text-white active:scale-[0.98]'
-                    : 'bg-[#E0E0E0] text-[#999] cursor-not-allowed'
-                }`}
-              >
-                {btn.title}
-              </button>
-            ))}
+      {/* button */}
+      {(() => {
+        const now = new Date();
+        const btn = (room?.buttons ?? [])
+          .filter(b => {
+            if (!b.activateAt) return true;
+            return now >= new Date(b.activateAt.replace(/\./g, '-'));
+          })
+          .sort((a, b) => {
+            const aTime = a.activateAt ? new Date(a.activateAt.replace(/\./g, '-')).getTime() : 0;
+            const bTime = b.activateAt ? new Date(b.activateAt.replace(/\./g, '-')).getTime() : 0;
+            return bTime - aTime;
+          })[0];
+        if (!btn) return null;
+        return (
+          <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-white">
+            <button
+              disabled={!btn.route}
+              onClick={() => btn.route && kloudNav.push(btn.route)}
+              className={`w-full py-3.5 rounded-xl text-[15px] font-bold transition-transform ${
+                btn.route
+                  ? 'bg-black text-white active:scale-[0.98]'
+                  : 'bg-[#E0E0E0] text-[#999] cursor-not-allowed'
+              }`}
+            >
+              {btn.title}
+            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 예약 상세 다이얼로그 */}
       {selectedBooking && (

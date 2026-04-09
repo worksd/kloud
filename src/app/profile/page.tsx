@@ -138,24 +138,33 @@ export default async function SettingPage({
                 const isActive = pass.status === 'Active';
                 return (
                   <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
-                    <div className={`w-full rounded-2xl px-5 py-4 active:scale-[0.98] transition-all duration-150 flex items-center justify-between ${
+                    <div className={`w-full h-[72px] rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-150 flex items-center ${
                       isActive ? 'bg-[#1E2124]' : 'bg-[#F1F3F6]'
                     }`}>
-                      <div className="flex flex-col min-w-0 flex-1">
+                      {pass.passPlan?.imageUrl ? (
+                        <div className="w-[72px] h-[72px] flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={pass.passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className={`w-[72px] h-[72px] flex-shrink-0 flex items-center justify-center ${
+                          isActive ? 'bg-white/5' : 'bg-[#E8E8EA]'
+                        }`}>
+                          <PassPlanIcon className="w-6 h-6 opacity-30" />
+                        </div>
+                      )}
+                      <div className="px-4 flex flex-col min-w-0 flex-1">
                         <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#999]'}`}>
                           {pass.passPlan?.name}
                         </span>
-                        {pass.passPlan?.expireDateStamp && (
+                        {(pass.endDate || pass.passPlan?.expireDateStamp) && (
                           <span className={`text-[11px] mt-1 truncate ${isActive ? 'text-white/40' : 'text-[#BBB]'}`}>
-                            {pass.passPlan.expireDateStamp}
+                            {pass.endDate && typeof pass.endDate === 'string'
+                              ? `~ ${formatEndDate(pass.endDate, locale)}`
+                              : pass.passPlan?.expireDateStamp}
                           </span>
                         )}
                       </div>
-                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ml-3 ${
-                        isActive ? 'text-white/80 bg-white/10' : 'text-[#999] bg-[#E0E0E0]'
-                      }`}>
-                        {isActive ? '사용 가능' : pass.status}
-                      </span>
                     </div>
                   </NavigateClickWrapper>
                 );
@@ -170,7 +179,7 @@ export default async function SettingPage({
             <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('room_booking_history')}</div>
             <div className="flex flex-col gap-2.5">
               {user.myBookings.map((booking) => (
-                <MyBookingCard key={booking.id} booking={booking} locale={locale} />
+                <MyBookingCard key={booking.id} booking={booking} />
               ))}
             </div>
           </section>
@@ -217,6 +226,28 @@ export default async function SettingPage({
 };
 
 const has = (s?: string | null) => !!s && s.trim().length > 0;
+
+const WEEKDAYS: Record<string, string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  jp: ['日', '月', '火', '水', '木', '金', '土'],
+  zh: ['日', '一', '二', '三', '四', '五', '六'],
+};
+
+const formatEndDate = (dateStr: string, locale: string) => {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const wd = (WEEKDAYS[locale] ?? WEEKDAYS['en'])[d.getDay()];
+  switch (locale) {
+    case 'ko': return `${y}년 ${m}월 ${day}일(${wd}) 까지`;
+    case 'jp': return `${y}年${m}月${day}日(${wd}) まで`;
+    case 'zh': return `${y}年${m}月${day}日(${wd})`;
+    default: return `Until ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (${wd})`;
+  }
+};
 
 const formatPhone = (phone: string) => {
   const nums = phone.replace(/\D/g, '');

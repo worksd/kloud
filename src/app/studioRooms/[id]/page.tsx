@@ -4,10 +4,13 @@ import { StudioRoomDetailClient } from "@/app/studioRooms/[id]/StudioRoomDetailC
 
 export default async function StudioRoomDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ date?: string }>;
 }) {
   const { id } = await params;
+  const { date } = await searchParams;
   const roomId = Number(id);
   const locale = await getLocale();
 
@@ -15,6 +18,7 @@ export default async function StudioRoomDetailPage({
     <StudioRoomDetailClient
       roomId={roomId}
       locale={locale}
+      initialDate={date}
     />
   );
 }
