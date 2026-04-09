@@ -201,14 +201,14 @@ export default async function SettingPage({
             <div className="flex flex-col gap-2.5">
               {user.myBookings.map((booking) => (
                 <NavigateClickWrapper key={booking.id} method="push" route={KloudScreen.StudioRoomDetail(booking.studioRoom?.id ?? booking.studioRoomId)}>
-                  <div className="w-full rounded-2xl overflow-hidden bg-[#F7F8F9] flex active:scale-[0.98] transition-all duration-150">
-                    <div className="w-[80px] h-[80px] bg-[#E8E8EA] flex-shrink-0">
+                  <div className="rounded-2xl overflow-hidden bg-[#F7F8F9] active:scale-[0.98] transition-all duration-150">
+                    <div className="w-full h-[100px] bg-[#E8E8EA]">
                       {booking.studioRoom?.imageUrls?.[0] && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={booking.studioRoom.imageUrls[0]} alt="" className="w-full h-full object-cover" />
                       )}
                     </div>
-                    <div className="flex flex-col justify-center px-3 min-w-0">
+                    <div className="flex flex-col px-4 py-3 min-w-0">
                       <span className="text-[14px] font-bold text-black truncate">{booking.studioRoom?.name ?? '연습실'}</span>
                       <span className="text-[11px] text-[#86898C] mt-0.5">{booking.startDate} ~ {booking.endDate}</span>
                     </div>
