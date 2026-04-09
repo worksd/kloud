@@ -2637,6 +2637,12 @@ export const StringResource = {
     jp: '予約済み',
     zh: '我的预约'
   },
+  created_at: {
+    ko: '예약일',
+    en: 'Booked on',
+    jp: '予約日',
+    zh: '预约日期'
+  },
   cancel_booking: {
     ko: '예약 취소',
     en: 'Cancel Booking',
