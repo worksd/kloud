@@ -29,38 +29,42 @@ export default async function SettingPage({
   const upcoming = user.upcomingLesson;
 
     return (
-      <div className="flex flex-col min-h-screen bg-white pb-8 w-full max-w-screen overflow-x-hidden">
-        {/* 아이콘 */}
-        <div className="flex justify-end items-center gap-3 px-5 py-3">
-          <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-            <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
-          </NavigateClickWrapper>
-          <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-            <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
-          </NavigateClickWrapper>
+      <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
+        {/* 고정 헤더: 아이콘 + 프로필 */}
+        <div className="flex-shrink-0 bg-white">
+          <div className="flex justify-end items-center gap-3 px-5 py-3">
+            <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+              <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+            </NavigateClickWrapper>
+            <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
+              <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+            </NavigateClickWrapper>
+          </div>
+
+          <div className="flex items-center gap-3 px-5 pb-4">
+            <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
+              <Image
+                src={user.profileImageUrl ?? ''}
+                alt="profile"
+                width={52}
+                height={52}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="font-bold text-lg text-black truncate">
+                {has(user.nickName) ? user.nickName : '-'}
+                {has(user.name) && <span className="text-[14px] font-normal text-[#999]"> ({user.name})</span>}
+              </div>
+              <div className="text-gray-500 text-[14px] truncate">
+                {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 프로필 정보 */}
-        <div className="flex items-center gap-3 px-5 mb-5">
-          <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
-            <Image
-              src={user.profileImageUrl ?? ''}
-              alt="profile"
-              width={52}
-              height={52}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="font-bold text-lg text-black truncate">
-              {has(user.nickName) ? user.nickName : '-'}
-              {has(user.name) && <span className="text-[14px] font-normal text-[#999]"> ({user.name})</span>}
-            </div>
-            <div className="text-gray-500 text-[14px] truncate">
-              {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
-            </div>
-          </div>
-        </div>
+        {/* 스크롤 영역 */}
+        <div className="flex-1 overflow-y-auto pb-8">
 
         {/* 다음 예정 수업 */}
         {upcoming && (
@@ -218,6 +222,7 @@ export default async function SettingPage({
             </div>
           </section>
         )}
+        </div>
       </div>
     );
 };
