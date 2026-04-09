@@ -75,6 +75,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
   const listRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const dateHeaderRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [bottomPadding, setBottomPadding] = useState(0);
 
   // 선택된 날짜가 속한 주의 월~일
   const visibleDates = useMemo(() => {
@@ -150,6 +151,22 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [selectedDate, onDateChange, active]);
+
+  // 마지막 날짜까지 스크롤 가능하도록 하단 패딩 계산
+  useEffect(() => {
+    const calculate = () => {
+      const lastKey = toDateStr(visibleDates[visibleDates.length - 1]);
+      const lastEl = dateHeaderRefs.current[lastKey];
+      if (!lastEl) return;
+
+      const stickyHeight = (stickyRef.current?.getBoundingClientRect().height ?? 120) + 52;
+      const viewportHeight = window.innerHeight;
+      const lastSectionHeight = lastEl.getBoundingClientRect().height;
+      const needed = Math.max(0, viewportHeight - stickyHeight - lastSectionHeight);
+      setBottomPadding(needed);
+    };
+    requestAnimationFrame(calculate);
+  }, [visibleDates, lessons]);
 
   // 마운트 시 selectedDate 섹션으로 스크롤 (한 번만)
   const didMount = useRef(false);
@@ -231,7 +248,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
       </div>
 
       {/* 수업 리스트 */}
-      <div ref={listRef} className="flex flex-col">
+      <div ref={listRef} className="flex flex-col" style={{ paddingBottom: `${bottomPadding}px` }}>
         {visibleDates.map(date => {
           const key = toDateStr(date);
           const dayLessons = lessonsByDate[key] ?? [];

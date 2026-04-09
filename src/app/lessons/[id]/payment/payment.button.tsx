@@ -239,12 +239,15 @@ export default function PaymentButton({
       const isPracticeRoom = type.apiValue === 'practice-room';
       const dialog = await createDialog({
         id: 'UsePass',
-        title: title,
+        title: isPracticeRoom
+          ? getLocaleString({locale, key: 'use_pass_confirm_question'})
+          : title,
         message: isPracticeRoom
           ? [
+              `${getLocaleString({locale, key: 'practice_room'})}: ${title}`,
+              `${getLocaleString({locale, key: 'date'})}: ${practiceRoomInfo?.targetDate ?? ''}`,
+              `${getLocaleString({locale, key: 'time'})}: ${practiceRoomInfo?.startTime ?? ''} ~ ${practiceRoomInfo?.endTime ?? ''}`,
               `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
-              ``,
-              `${getLocaleString({locale, key: 'use_pass_confirm_question'})}`
             ].join('\n')
           : [
               `${getLocaleString({locale, key: 'use_pass_confirm_lesson'})}: ${title}`,
@@ -314,10 +317,11 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
         }
       } else if (data.id == 'UsePass' && selectedPass?.id && (type.value == 'lesson' || type.value == 'practiceRoom')) {
+        if (type.value === 'practiceRoom' && !practiceRoomInfo) return;
         const res = await selectAndUsePassAction({
           passId: selectedPass.id,
           lessonId: type.value === 'lesson' ? id : undefined,
-          studioRoomId: type.value === 'practiceRoom' ? id : undefined,
+          studioRoomId: type.value === 'practiceRoom' ? practiceRoomInfo!.studioRoomId : undefined,
           targetDate: practiceRoomInfo?.targetDate,
           startTime: practiceRoomInfo?.startTime,
           endTime: practiceRoomInfo?.endTime,

@@ -61,10 +61,10 @@ export type GetPaymentResponse = {
     slotDurationMinutes: number;
     practiceMaxNumber: number;
     practiceImageUrls?: string[];
+    date?: string;
+    slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
+    myBookings?: { id: number; startTime: string; endTime: string }[];
   };
-  date?: string;
-  slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
-  myBookings?: { id: number; startTime: string; endTime: string }[];
 }
 
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {

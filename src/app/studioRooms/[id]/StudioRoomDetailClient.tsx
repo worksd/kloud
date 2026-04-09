@@ -92,30 +92,40 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-24">
-      {/* 이미지 캐러셀 */}
-      {images.length > 0 && (
-        <div className="relative">
-          <div
-            ref={imageScrollRef}
-            onScroll={handleImageScroll}
-            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-          >
-            {images.map((url, i) => (
-              <div key={i} className="w-full flex-shrink-0 snap-center aspect-[16/9] bg-[#F1F3F6]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="w-full h-full object-cover" />
-              </div>
-            ))}
-          </div>
-          {images.length > 1 && (
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-              {images.map((_, i) => (
-                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white/40'}`} />
+      {/* 이미지 영역 (항상 고정) */}
+      <div className="relative w-full aspect-[16/9] bg-[#F1F3F6]">
+        {images.length > 0 ? (
+          <>
+            <div
+              ref={imageScrollRef}
+              onScroll={handleImageScroll}
+              className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+            >
+              {images.map((url, i) => (
+                <div key={i} className="w-full flex-shrink-0 snap-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </div>
               ))}
             </div>
-          )}
-        </div>
-      )}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+                {images.map((_, i) => (
+                  <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === imageIndex ? 'bg-white' : 'bg-white/40'}`} />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg width="36" height="36" viewBox="0 0 28 28" fill="none">
+              <rect x="3" y="5" width="22" height="18" rx="3" stroke="#CDD1D5" strokeWidth="1.5"/>
+              <path d="M3 17L9 12L14 16L19 11L25 17" stroke="#CDD1D5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="9" cy="10" r="2" stroke="#CDD1D5" strokeWidth="1.5"/>
+            </svg>
+          </div>
+        )}
+      </div>
 
       {/* 룸 정보 */}
       {room && (
@@ -147,8 +157,9 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
       <div className="w-full h-2 bg-[#F7F8F9]" />
 
       {/* 날짜 선택 스트립 */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+      <div className="pt-4 pb-2">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide
+          [&>*:first-child]:ml-4 [&>*:last-child]:mr-4">
           {dateStrip.map((date) => {
             const isSelected = isSameDay(date, selectedDate);
             const isToday = isSameDay(date, today);
@@ -158,7 +169,7 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
               <button
                 key={toDateStr(date)}
                 onClick={() => setSelectedDate(date)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl flex-shrink-0 transition-all
+                className={`flex flex-col items-center gap-0.5 w-[46px] py-2 rounded-xl flex-shrink-0 transition-all
                   ${isSelected
                     ? 'bg-black'
                     : 'bg-[#F3F4F6] active:scale-[0.97]'

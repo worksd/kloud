@@ -30,9 +30,9 @@ export const PracticeRoomPaymentWrapper = ({
 }) => {
   const [selectedTime, setSelectedTime] = useState<{ startTime: string; endTime: string } | null>(null);
   const room = payment.studioRoom;
-  const slots = payment.slots ?? [];
-  const myBookings = payment.myBookings ?? [];
-  const date = payment.date;
+  const slots = room?.slots ?? [];
+  const myBookings = room?.myBookings ?? [];
+  const date = room?.date;
 
   return (
     <>
@@ -114,7 +114,7 @@ export const PracticeRoomPaymentWrapper = ({
         isProxyPayment={isProxyPayment}
         practiceRoomInfo={selectedTime ? {
           studioRoomId,
-          targetDate: date ?? '',
+          targetDate: (date ?? '').replace(/-/g, '.'),
           startTime: selectedTime.startTime,
           endTime: selectedTime.endTime,
         } : undefined}
