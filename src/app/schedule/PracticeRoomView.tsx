@@ -58,8 +58,6 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale, studioId 
     <div className="flex flex-col px-4 pt-3 pb-10 gap-3">
       {rooms.map((room) => {
         const imageUrl = room.practiceImageUrls?.[0] ?? room.imageUrls?.[0];
-        const availableCount = room.slots?.filter(s => s.time.endsWith(':00') && s.status === 'available').length ?? 0;
-        const totalCount = room.slots?.filter(s => s.time.endsWith(':00')).length ?? 0;
 
         return (
           <div
@@ -74,19 +72,13 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale, studioId 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
                   <span className="text-[18px] font-bold text-white">{room.name}</span>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-[12px] text-white/70">
-                      {getLocaleString({ locale, key: 'max_capacity' })} {room.practiceMaxNumber ?? room.maxNumber}{getLocaleString({ locale, key: 'people' })}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${availableCount > 0 ? 'bg-[#34D399]' : 'bg-[#F87171]'}`} />
-                      <span className={`text-[12px] font-medium ${availableCount > 0 ? 'text-[#34D399]' : 'text-[#F87171]'}`}>
-                        {availableCount > 0
-                          ? `${availableCount}/${totalCount} ${getLocaleString({ locale, key: 'available' })}`
-                          : getLocaleString({ locale, key: 'crowded' })}
+                  {room.practiceMaxNumber != null && room.practiceMaxNumber > 0 && (
+                    <div className="mt-1.5">
+                      <span className="text-[12px] text-white/70">
+                        {getLocaleString({ locale, key: 'max_capacity' })} {room.practiceMaxNumber}{getLocaleString({ locale, key: 'people' })}
                       </span>
                     </div>
-                  </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -102,19 +94,13 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale, studioId 
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
                   <span className="text-[18px] font-bold text-[#333]">{room.name}</span>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-[12px] text-[#86898C]">
-                      {getLocaleString({ locale, key: 'max_capacity' })} {room.practiceMaxNumber ?? room.maxNumber}{getLocaleString({ locale, key: 'people' })}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${availableCount > 0 ? 'bg-[#059669]' : 'bg-[#EF4444]'}`} />
-                      <span className={`text-[12px] font-medium ${availableCount > 0 ? 'text-[#059669]' : 'text-[#EF4444]'}`}>
-                        {availableCount > 0
-                          ? `${availableCount}/${totalCount} ${getLocaleString({ locale, key: 'available' })}`
-                          : getLocaleString({ locale, key: 'crowded' })}
+                  {room.practiceMaxNumber != null && room.practiceMaxNumber > 0 && (
+                    <div className="mt-1.5">
+                      <span className="text-[12px] text-[#86898C]">
+                        {getLocaleString({ locale, key: 'max_capacity' })} {room.practiceMaxNumber}{getLocaleString({ locale, key: 'people' })}
                       </span>
                     </div>
-                  </div>
+                  )}
                 </div>
               </>
             )}
