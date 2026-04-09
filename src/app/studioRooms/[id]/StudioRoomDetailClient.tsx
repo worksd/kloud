@@ -6,6 +6,7 @@ import { getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.act
 import { RoomAvailabilityResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { RoomBookingDialog, RoomBookingInfo } from "@/app/components/RoomBookingDialog";
 
 const getHeatColor = (current: number, max: number) => {
   if (current === 0) return '#F3F4F6';
@@ -54,6 +55,7 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState(0);
   const imageScrollRef = useRef<HTMLDivElement>(null);
+  const [selectedBooking, setSelectedBooking] = useState<RoomBookingInfo | null>(null);
   const won = getLocaleString({ locale, key: 'won' });
 
   // 날짜 변경 시 API 재호출
@@ -89,6 +91,14 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
 
   const images = room?.practiceImageUrls ?? room?.imageUrls ?? [];
   const hourlySlots = room?.slots.filter(s => s.time.endsWith(':00')) ?? [];
+  const myBookings = room?.myBookings ?? [];
+
+  const getMyBooking = (time: string) =>
+    myBookings.find(b => {
+      const bStart = b.startDate.split(' ')[1] ?? '';
+      const bEnd = b.endDate.split(' ')[1] ?? '';
+      return time >= bStart && time < bEnd;
+    });
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-24">
@@ -197,8 +207,14 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
         </div>
       ) : (
         <div className="px-6 pt-2">
-          <div className="flex items-center justify-end gap-1 mb-3">
-            <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'reservable' })}</span>
+          <div className="flex items-center justify-end gap-1 mb-3 flex-wrap">
+            {myBookings.length > 0 && (
+              <>
+                <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'my_bookings' })}</span>
+                <div className="w-2.5 h-2.5 rounded-sm bg-[#1E2124]" />
+              </>
+            )}
+            <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'reservable' })}</span>
             <div className="w-2.5 h-2.5 rounded-sm bg-[#C7D2FE]" />
             <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'slot_full' })}</span>
             <div className="w-2.5 h-2.5 rounded-sm bg-[#EF4444]" />
@@ -218,26 +234,43 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
               {hourlySlots.map((slot) => {
                 const isClosed = slot.status === 'closed';
                 const isFull = slot.status === 'full';
+                const myBooking = getMyBooking(slot.time);
+                const isMine = !!myBooking;
 
                 return (
                   <div
                     key={slot.time}
+                    onClick={() => {
+                      if (isMine && myBooking && room) {
+                        setSelectedBooking({
+                          id: myBooking.id,
+                          roomName: room.name,
+                          roomImageUrl: images[0],
+                          startDate: myBooking.startDate,
+                          endDate: myBooking.endDate,
+                        });
+                      }
+                    }}
                     className={`h-[32px] rounded-md flex items-center px-3 ${
-                      isClosed ? 'bg-[#F3F4F6]'
-                        : isFull ? 'bg-[#EF4444]'
-                          : 'bg-[#C7D2FE]'
+                      isMine ? 'bg-[#1E2124] cursor-pointer active:opacity-80'
+                        : isClosed ? 'bg-[#F3F4F6]'
+                          : isFull ? 'bg-[#EF4444]'
+                            : 'bg-[#C7D2FE]'
                     }`}
                   >
                     <span className={`text-[11px] font-medium ${
-                      isClosed ? 'text-[#BFBFBF]'
-                        : isFull ? 'text-white'
-                          : 'text-[#4338CA]'
+                      isMine ? 'text-white'
+                        : isClosed ? 'text-[#BFBFBF]'
+                          : isFull ? 'text-white'
+                            : 'text-[#4338CA]'
                     }`}>
-                      {isClosed
-                        ? getLocaleString({ locale, key: 'slot_unavailable' })
-                        : isFull
-                          ? getLocaleString({ locale, key: 'slot_full' })
-                          : getLocaleString({ locale, key: 'reservable' })}
+                      {isMine
+                        ? getLocaleString({ locale, key: 'my_bookings' })
+                        : isClosed
+                          ? getLocaleString({ locale, key: 'slot_unavailable' })
+                          : isFull
+                            ? getLocaleString({ locale, key: 'slot_full' })
+                            : getLocaleString({ locale, key: 'reservable' })}
                     </span>
                   </div>
                 );
@@ -267,6 +300,15 @@ export const StudioRoomDetailClient = ({ roomId, locale }: {
             ))}
           </div>
         </div>
+      )}
+
+      {/* 예약 상세 다이얼로그 */}
+      {selectedBooking && (
+        <RoomBookingDialog
+          booking={selectedBooking}
+          locale={locale}
+          onClose={() => setSelectedBooking(null)}
+        />
       )}
     </div>
   );

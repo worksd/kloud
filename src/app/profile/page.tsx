@@ -10,7 +10,8 @@ import PassPlanIcon from "../../../public/assets/ic_pass_plan.svg";
 import ReceiptIcon from "../../../public/assets/ic_receipt.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
+import { MyBookingCard } from "@/app/profile/MyBookingCard";
 
 export default async function SettingPage({
                                             searchParams
@@ -27,6 +28,7 @@ export default async function SettingPage({
   }
 
   const upcoming = user.upcomingLesson;
+  const locale = await getLocale();
 
     return (
       <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
@@ -204,20 +206,7 @@ export default async function SettingPage({
             <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('room_booking_history')}</div>
             <div className="flex flex-col gap-2.5">
               {user.myBookings.map((booking) => (
-                <NavigateClickWrapper key={booking.id} method="push" route={KloudScreen.StudioRoomDetail(booking.studioRoom?.id ?? booking.studioRoomId)}>
-                  <div className="rounded-2xl overflow-hidden bg-[#F7F8F9] active:scale-[0.98] transition-all duration-150">
-                    <div className="w-full h-[100px] bg-[#E8E8EA]">
-                      {booking.studioRoom?.imageUrls?.[0] && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={booking.studioRoom.imageUrls[0]} alt="" className="w-full h-full object-cover" />
-                      )}
-                    </div>
-                    <div className="flex flex-col px-4 py-3 min-w-0">
-                      <span className="text-[14px] font-bold text-black truncate">{booking.studioRoom?.name ?? '연습실'}</span>
-                      <span className="text-[11px] text-[#86898C] mt-0.5">{booking.startDate} ~ {booking.endDate}</span>
-                    </div>
-                  </div>
-                </NavigateClickWrapper>
+                <MyBookingCard key={booking.id} booking={booking} locale={locale} />
               ))}
             </div>
           </section>
