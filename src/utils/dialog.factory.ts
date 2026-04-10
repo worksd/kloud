@@ -158,6 +158,15 @@ export async function createDialog({id, message, title, customData}: {
       message: await translate('certification_code_mismatch'),
       confirmTitle: await translate('confirm'),
     }
+  } else if (id == 'CancelRoomBooking') {
+    return {
+      id: 'CancelRoomBooking',
+      type: 'YESORNO',
+      title: title ?? await translate('cancel_booking'),
+      message: message ?? await translate('cancel_booking_confirm'),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+    }
   } else if (id == 'Simple') {
     return {
       id: 'Simple',
@@ -309,6 +318,7 @@ export type DialogId =
   | 'CancelTicket'
   | 'ConfirmAttendance'
   | 'HomeAlert'
+  | 'CancelRoomBooking'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
