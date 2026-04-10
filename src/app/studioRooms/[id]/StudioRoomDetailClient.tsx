@@ -158,6 +158,16 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                 {formatPrice(room.unitPrice)}{won}/{getLocaleString({ locale, key: 'slot' })}
               </span>
             )}
+            {room.maxBookingDuration != null && (
+              <span className="text-[13px] text-[#86898C]">
+                {getLocaleString({ locale, key: 'max_booking' })} {room.maxBookingDuration}{getLocaleString({ locale, key: 'minutes' })}
+              </span>
+            )}
+            {room.dailyBookingLimit != null && (
+              <span className="text-[13px] text-[#86898C]">
+                {getLocaleString({ locale, key: 'daily_limit' })} {room.dailyBookingLimit}{getLocaleString({ locale, key: 'minutes' })}
+              </span>
+            )}
           </div>
         </div>
       )}

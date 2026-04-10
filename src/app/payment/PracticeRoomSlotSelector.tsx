@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
@@ -30,35 +30,73 @@ const calcEndTime = (time: string, duration: number) => {
 export const PracticeRoomSlotSelector = ({
   slots,
   minBookingDuration,
+  maxBookingDuration,
+  dailyBookingLimit,
   locale,
   myBookings,
   onSelectionChange,
 }: {
   slots: TimeSlotResponse[];
   minBookingDuration: number;
+  maxBookingDuration?: number | null;
+  dailyBookingLimit?: number | null;
   locale: Locale;
   myBookings?: { id: number; startTime: string; endTime: string }[];
   onSelectionChange: (selection: { startTime: string; endTime: string } | null) => void;
 }) => {
-  const hourlySlots = slots.filter(s => s.time.endsWith(':00'));
+  const filteredSlots = slots.filter(s => {
+    const [, m] = s.time.split(':').map(Number);
+    return m % minBookingDuration === 0;
+  });
 
   const isMyBooked = (time: string) =>
     (myBookings ?? []).some(b => b.startTime <= time && time < b.endTime);
+
+  const myBookedMinutes = (myBookings ?? []).reduce((sum, b) => {
+    const [sh, sm] = b.startTime.split(':').map(Number);
+    const [eh, em] = b.endTime.split(':').map(Number);
+    return sum + (eh * 60 + em) - (sh * 60 + sm);
+  }, 0);
+
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
-  const handleSlotClick = (index: number) => {
-    const slot = hourlySlots[index];
+  const maxSlots = maxBookingDuration
+    ? Math.floor(maxBookingDuration / minBookingDuration)
+    : null;
+
+  const dailyRemainingSlots = dailyBookingLimit
+    ? Math.floor((dailyBookingLimit - myBookedMinutes) / minBookingDuration)
+    : null;
+
+  const effectiveMaxSlots = Math.min(
+    maxSlots ?? Infinity,
+    dailyRemainingSlots ?? Infinity,
+  );
+
+  const applySelection = (newSet: Set<number>) => {
+    setSelectedIndices(newSet);
+    if (newSet.size > 0) {
+      const sorted = Array.from(newSet).sort((a, b) => a - b);
+      const startTime = filteredSlots[sorted[0]].time;
+      const endTime = calcEndTime(filteredSlots[sorted[sorted.length - 1]].time, minBookingDuration);
+      onSelectionChange({ startTime, endTime });
+    } else {
+      onSelectionChange(null);
+    }
+  };
+
+  const handleClick = (index: number) => {
+    const slot = filteredSlots[index];
     if (slot.status !== 'available' || isMyBooked(slot.time)) return;
 
     const newSet = new Set(selectedIndices);
+
     if (newSet.has(index)) {
       newSet.delete(index);
     } else {
       newSet.add(index);
-    }
 
-    // 연속된 범위인지 확인
-    if (newSet.size > 0) {
+      // 연속 체크 — 비연속이면 새로 클릭한 것만
       const sorted = Array.from(newSet).sort((a, b) => a - b);
       let isConsecutive = true;
       for (let i = 1; i < sorted.length; i++) {
@@ -71,18 +109,15 @@ export const PracticeRoomSlotSelector = ({
         newSet.clear();
         newSet.add(index);
       }
+
+      // max 초과 시 가장 먼저 선택된 슬롯부터 제거
+      while (effectiveMaxSlots !== Infinity && newSet.size > effectiveMaxSlots) {
+        const first = Array.from(newSet).sort((a, b) => a - b)[0];
+        newSet.delete(first);
+      }
     }
 
-    setSelectedIndices(newSet);
-
-    if (newSet.size > 0) {
-      const sorted = Array.from(newSet).sort((a, b) => a - b);
-      const startTime = hourlySlots[sorted[0]].time;
-      const endTime = calcEndTime(hourlySlots[sorted[sorted.length - 1]].time, minBookingDuration);
-      onSelectionChange({ startTime, endTime });
-    } else {
-      onSelectionChange(null);
-    }
+    applySelection(newSet);
   };
 
   return (
@@ -91,45 +126,57 @@ export const PracticeRoomSlotSelector = ({
         <span className="text-[13px] font-bold text-black">
           {getLocaleString({ locale, key: 'select_time' })}
         </span>
-        <div className="flex items-center gap-1">
-          <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'available' })}</span>
-          {[0, 1, 2, 3, 4].map((v) => (
-            <div key={v} className="w-2 h-2 rounded-sm" style={{ backgroundColor: getHeatColor(v, 5) }} />
-          ))}
-          <span className="text-[9px] text-[#9CA3AF]">{getLocaleString({ locale, key: 'crowded' })}</span>
+        {effectiveMaxSlots !== Infinity && (
+          <span className="text-[11px] text-[#86898C]">
+            {getLocaleString({ locale, key: 'max_booking' })} {effectiveMaxSlots * minBookingDuration}{getLocaleString({ locale, key: 'minutes' })}
+          </span>
+        )}
+      </div>
+
+      {/* 가로 히트맵 */}
+      <div className="overflow-x-auto scrollbar-hide">
+        <div className="flex gap-0.5" style={{ minWidth: `${filteredSlots.length * 48}px` }}>
+          {filteredSlots.map((slot, index) => {
+            const isAvailable = slot.status === 'available';
+            const isSelected = selectedIndices.has(index);
+            const booked = isMyBooked(slot.time);
+            return (
+              <div
+                key={slot.time}
+                onClick={() => handleClick(index)}
+                className={`w-[46px] flex-shrink-0 flex flex-col items-center justify-center h-[48px] rounded-md select-none transition-all ${
+                  booked
+                    ? 'bg-[#E8E8E8]'
+                    : !isAvailable
+                      ? 'bg-[#F0F0F0]'
+                      : isSelected
+                        ? 'bg-[#1E2124] active:scale-95'
+                        : 'cursor-pointer active:scale-95'
+                }`}
+                style={!booked && isAvailable && !isSelected ? { backgroundColor: slotColor(slot) } : undefined}
+              >
+                <span className={`text-[10px] font-bold ${
+                  booked ? 'text-[#BFBFBF]' : !isAvailable ? 'text-[#CCC]' : isSelected ? 'text-white' : 'text-[#555]'
+                }`}>
+                  {slot.time}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {hourlySlots.map((slot, index) => {
-          const isAvailable = slot.status === 'available';
-          const isSelected = selectedIndices.has(index);
-          const booked = isMyBooked(slot.time);
-
-          return (
-            <button
-              key={slot.time}
-              disabled={!isAvailable || booked}
-              onClick={() => handleSlotClick(index)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all
-                ${booked
-                  ? 'border-[#1E2124] bg-[#1E2124] text-white cursor-not-allowed'
-                  : !isAvailable
-                    ? 'border-[#F0F0F0] bg-[#FAFAFA] text-[#CCC] cursor-not-allowed'
-                    : isSelected
-                      ? 'border-[#3B82F6] bg-[#3B82F6] text-white'
-                      : 'border-[#E8E8E8] bg-white text-black active:scale-[0.97]'
-                }`}
-            >
-              <div
-                className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: booked ? '#fff' : isSelected ? '#fff' : slotColor(slot) }}
-              />
-              {slot.time}
-            </button>
-          );
-        })}
-      </div>
+      {/* 선택 시간 표시 */}
+      {selectedIndices.size > 0 && (
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-[13px] text-black font-bold">
+            {filteredSlots[Array.from(selectedIndices).sort((a, b) => a - b)[0]]?.time} ~ {calcEndTime(filteredSlots[Array.from(selectedIndices).sort((a, b) => a - b).pop()!]?.time, minBookingDuration)}
+          </span>
+          <span className="text-[12px] text-[#86898C]">
+            {selectedIndices.size * minBookingDuration}{getLocaleString({ locale, key: 'minutes' })}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

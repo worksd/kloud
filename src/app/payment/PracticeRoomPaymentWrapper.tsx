@@ -69,8 +69,8 @@ export const PracticeRoomPaymentWrapper = ({
           </span>
           <div className="flex flex-wrap gap-2">
             {myBookings.map((booking) => (
-              <div key={booking.id} className="px-3 py-1.5 bg-[#1E2124] rounded-lg">
-                <span className="text-[12px] font-medium text-white">
+              <div key={booking.id} className="px-3 py-1.5 bg-[#D5D5D5] rounded-lg">
+                <span className="text-[12px] font-medium text-[#666]">
                   {booking.startTime} ~ {booking.endTime}
                 </span>
               </div>
@@ -84,6 +84,8 @@ export const PracticeRoomPaymentWrapper = ({
         <PracticeRoomSlotSelector
           slots={slots}
           minBookingDuration={room?.minBookingDuration ?? 60}
+          maxBookingDuration={room?.maxBookingDuration}
+          dailyBookingLimit={room?.dailyBookingLimit}
           locale={locale}
           myBookings={myBookings}
           onSelectionChange={setSelectedTime}

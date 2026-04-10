@@ -2649,6 +2649,18 @@ export const StringResource = {
     jp: 'ご注意',
     zh: '注意事项'
   },
+  max_booking: {
+    ko: '최대',
+    en: 'Max',
+    jp: '最大',
+    zh: '最大'
+  },
+  daily_limit: {
+    ko: '1일',
+    en: 'Daily',
+    jp: '1日',
+    zh: '每日'
+  },
   usage_guide: {
     ko: '이용안내',
     en: 'Usage Guide',
