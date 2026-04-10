@@ -169,9 +169,8 @@ export type UsePassRequest = {
   passId: number
   lessonId?: number
   studioRoomId?: number
-  targetDate?: string
-  startTime?: string
-  endTime?: string
+  startDate?: string
+  endDate?: string
 }
 
 export type PassOrder = 'upcoming' | 'newest'
@@ -203,7 +202,7 @@ export const CreatePass: Endpoint<CreatePassRequest, GetPassResponse> = {
 export const UsePass: Endpoint<UsePassRequest, TicketResponse> = {
   method: 'post',
   path: (e) => `/passes/${e.passId}/use`,
-  bodyParams: ['lessonId', 'studioRoomId', 'targetDate', 'startTime', 'endTime']
+  bodyParams: ['lessonId', 'studioRoomId', 'startDate', 'endDate']
 }
 
 export enum PassPlanTier {

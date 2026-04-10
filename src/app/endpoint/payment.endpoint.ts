@@ -65,7 +65,7 @@ export type GetPaymentResponse = {
     imageUrls?: string[];
     date?: string;
     slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
-    myBookings?: { id: number; startTime: string; endTime: string }[];
+    myBookings?: { id: number; startDate: string; endDate: string }[];
   };
 }
 

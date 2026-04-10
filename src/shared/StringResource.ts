@@ -2649,6 +2649,54 @@ export const StringResource = {
     jp: 'ご注意',
     zh: '注意事项'
   },
+  all_lessons: {
+    ko: '모든 수업',
+    en: 'All lessons',
+    jp: '全レッスン',
+    zh: '所有课程'
+  },
+  exclusive_lessons: {
+    ko: '전용 수업',
+    en: 'Exclusive lessons',
+    jp: '専用レッスン',
+    zh: '专属课程'
+  },
+  unlimited: {
+    ko: '무제한',
+    en: 'Unlimited',
+    jp: '無制限',
+    zh: '无限'
+  },
+  times: {
+    ko: '회',
+    en: ' times',
+    jp: '回',
+    zh: '次'
+  },
+  exhausted: {
+    ko: '소진',
+    en: 'Used up',
+    jp: '消化済',
+    zh: '已用完'
+  },
+  discount: {
+    ko: '할인',
+    en: 'discount',
+    jp: '割引',
+    zh: '折扣'
+  },
+  pass_period: {
+    ko: '이용기한',
+    en: 'Valid Period',
+    jp: '利用期間',
+    zh: '使用期限'
+  },
+  remaining_usage: {
+    ko: '잔여 횟수',
+    en: 'Remaining',
+    jp: '残り回数',
+    zh: '剩余次数'
+  },
   max_booking: {
     ko: '최대',
     en: 'Max',
@@ -2660,6 +2708,18 @@ export const StringResource = {
     en: 'Daily',
     jp: '1日',
     zh: '每日'
+  },
+  same_day_only: {
+    ko: '당일만 예약 가능합니다',
+    en: 'Same day booking only',
+    jp: '当日のみ予約可能です',
+    zh: '仅限当天预约'
+  },
+  advance_booking_info: {
+    ko: '일 전부터 예약 가능 · 오픈 시각',
+    en: ' days in advance · opens at',
+    jp: '日前から予約可能 · オープン時間',
+    zh: '天前可预约 · 开放时间'
   },
   usage_guide: {
     ko: '이용안내',

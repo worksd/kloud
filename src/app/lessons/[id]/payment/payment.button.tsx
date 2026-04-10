@@ -92,7 +92,7 @@ export default function PaymentButton({
   locale: Locale,
   hasRefundAccount: boolean,
   onBillingCardsChange?: (cards: GetBillingResponse[]) => void,
-  practiceRoomInfo?: { studioRoomId: number; targetDate: string; startTime: string; endTime: string },
+  practiceRoomInfo?: { studioRoomId: number; startDate: string; endDate: string },
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -256,8 +256,7 @@ export default function PaymentButton({
         message: isPracticeRoom
           ? [
               `${getLocaleString({locale, key: 'practice_room'})}: ${title}`,
-              `${getLocaleString({locale, key: 'date'})}: ${practiceRoomInfo?.targetDate ?? ''}`,
-              `${getLocaleString({locale, key: 'time'})}: ${practiceRoomInfo?.startTime ?? ''} ~ ${practiceRoomInfo?.endTime ?? ''}`,
+              `${getLocaleString({locale, key: 'time'})}: ${practiceRoomInfo?.startDate ?? ''} ~ ${practiceRoomInfo?.endDate ?? ''}`,
               `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
             ].join('\n')
           : [
@@ -333,9 +332,8 @@ export default function PaymentButton({
           passId: selectedPass.id,
           lessonId: type.value === 'lesson' ? id : undefined,
           studioRoomId: type.value === 'practiceRoom' ? practiceRoomInfo!.studioRoomId : undefined,
-          targetDate: practiceRoomInfo?.targetDate,
-          startTime: practiceRoomInfo?.startTime,
-          endTime: practiceRoomInfo?.endTime,
+          startDate: practiceRoomInfo?.startDate,
+          endDate: practiceRoomInfo?.endDate,
         });
         if ('id' in res) {
           const pushRoute = KloudScreen.TicketDetail(res.id, false);

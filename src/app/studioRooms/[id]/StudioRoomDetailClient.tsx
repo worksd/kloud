@@ -101,7 +101,11 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
   const myBookings = room?.myBookings ?? [];
 
   const getMyBooking = (time: string) =>
-    myBookings.find(b => time >= b.startTime && time < b.endTime);
+    myBookings.find(b => {
+      const bStart = b.startDate.split(' ')[1] ?? '';
+      const bEnd = b.endDate.split(' ')[1] ?? '';
+      return time >= bStart && time < bEnd;
+    });
 
   return (
     <div className="flex flex-col min-h-screen bg-white pb-24">
@@ -169,6 +173,16 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
               </span>
             )}
           </div>
+
+          {room.advanceBookingDays != null && (
+            <div className="mt-3 px-3.5 py-2.5 rounded-xl bg-[#EDEDFF]">
+              <span className="text-[12px] font-medium text-[#5B5FF6]">
+                {room.advanceBookingDays === 0
+                  ? getLocaleString({ locale, key: 'same_day_only' })
+                  : `${room.advanceBookingDays}${getLocaleString({ locale, key: 'advance_booking_info' })}${room.advanceBookingOpenTime ? ` ${room.advanceBookingOpenTime}` : ''}`}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -278,8 +292,8 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                           id: myBooking.id,
                           roomName: room.name,
                           roomImageUrl: images[0],
-                          startDate: `${room.date} ${myBooking.startTime}`,
-                          endDate: `${room.date} ${myBooking.endTime}`,
+                          startDate: myBooking.startDate,
+                          endDate: myBooking.endDate,
                         });
                       }
                     }}

@@ -41,7 +41,7 @@ export const PracticeRoomSlotSelector = ({
   maxBookingDuration?: number | null;
   dailyBookingLimit?: number | null;
   locale: Locale;
-  myBookings?: { id: number; startTime: string; endTime: string }[];
+  myBookings?: { id: number; startDate: string; endDate: string }[];
   onSelectionChange: (selection: { startTime: string; endTime: string } | null) => void;
 }) => {
   const filteredSlots = slots.filter(s => {
@@ -50,11 +50,17 @@ export const PracticeRoomSlotSelector = ({
   });
 
   const isMyBooked = (time: string) =>
-    (myBookings ?? []).some(b => b.startTime <= time && time < b.endTime);
+    (myBookings ?? []).some(b => {
+      const bStart = b.startDate.split(' ')[1] ?? '';
+      const bEnd = b.endDate.split(' ')[1] ?? '';
+      return time >= bStart && time < bEnd;
+    });
 
   const myBookedMinutes = (myBookings ?? []).reduce((sum, b) => {
-    const [sh, sm] = b.startTime.split(':').map(Number);
-    const [eh, em] = b.endTime.split(':').map(Number);
+    const bStart = b.startDate.split(' ')[1] ?? '0:0';
+    const bEnd = b.endDate.split(' ')[1] ?? '0:0';
+    const [sh, sm] = bStart.split(':').map(Number);
+    const [eh, em] = bEnd.split(':').map(Number);
     return sum + (eh * 60 + em) - (sh * 60 + sm);
   }, 0);
 

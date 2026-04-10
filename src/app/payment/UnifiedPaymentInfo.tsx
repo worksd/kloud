@@ -121,7 +121,7 @@ export const UnifiedPaymentInfo = ({
   actualPayerUserId?: number,
   isProxyPayment?: boolean,
   locale: Locale,
-  practiceRoomInfo?: { studioRoomId: number; targetDate: string; startTime: string; endTime: string },
+  practiceRoomInfo?: { studioRoomId: number; startDate: string; endDate: string },
 }) => {
   // easy_pay의 providers를 개별 메서드로 풀어서 사용
   const easyPayLabel: Record<string, string> = {

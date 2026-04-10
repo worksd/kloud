@@ -67,9 +67,11 @@ export type RoomAvailabilityResponse = {
   imageUrls?: string[];
   unitPrice?: number;
   dailyPrice?: number;
+  advanceBookingDays?: number | null;
+  advanceBookingOpenTime?: string;
   slots: TimeSlotResponse[];
   buttons?: GetLessonButtonResponse[];
-  myBookings?: { id: number; startTime: string; endTime: string }[];
+  myBookings?: { id: number; startDate: string; endDate: string }[];
 }
 
 export const GetRoomAvailability: Endpoint<GetRoomAvailabilityParameter, RoomAvailabilityResponse> = {

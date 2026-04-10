@@ -1,9 +1,9 @@
 import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 import { getLocale, translate } from "@/utils/translate";
+import { Locale, StringResource } from "@/shared/StringResource";
 import { PassPlanTier, PassRuleResponse, PassFeatureResponse } from "@/app/endpoint/pass.endpoint";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
-import { DdayText } from "@/app/components/DdayText";
 import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
@@ -34,12 +34,15 @@ const ruleBenefitIcon = (benefitType: string) => {
   }
 };
 
-const ruleDescription = (rule: PassRuleResponse): string => {
-  const target = rule.targetLabel ?? (rule.targetType === 'All' ? '모든 수업' : rule.targetType === 'Exclusive' ? '전용 수업' : rule.targetType);
+const t = (locale: Locale, key: keyof typeof StringResource) => StringResource[key]?.[locale] ?? StringResource[key]?.['en'] ?? key;
+
+const ruleDescription = (rule: PassRuleResponse, locale: Locale): string => {
+  const target = rule.targetLabel
+    ?? t(locale, rule.targetType === 'All' ? 'all_lessons' : rule.targetType === 'Exclusive' ? 'exclusive_lessons' : 'all_lessons');
   switch (rule.benefitType) {
-    case 'Unlimited': return `${target} 무제한`;
-    case 'FreeCount': return `${target} ${rule.benefitValue ?? 0}회`;
-    case 'Discount': return `${target} ${(rule.benefitValue ?? 0).toLocaleString()}원 할인`;
+    case 'Unlimited': return `${target} ${t(locale, 'unlimited')}`;
+    case 'FreeCount': return `${target} ${rule.benefitValue ?? 0}${t(locale, 'times')}`;
+    case 'Discount': return `${target} ${(rule.benefitValue ?? 0).toLocaleString()}${t(locale, 'won')} ${t(locale, 'discount')}`;
     default: return target;
   }
 };
@@ -47,9 +50,8 @@ const ruleDescription = (rule: PassRuleResponse): string => {
 const TicketStatusBadge = ({ status }: { status: string }) => {
   switch (status) {
     case 'Used':
-      return <span className="text-[10px] font-bold text-[#999] bg-[#F1F3F6] px-1.5 py-0.5 rounded">사용완료</span>;
     case 'Paid':
-      return <span className="text-[10px] font-bold text-[#5B5FF6] bg-[#EDEDFF] px-1.5 py-0.5 rounded">예정</span>;
+      return <span className="text-[10px] font-bold text-[#999] bg-[#F1F3F6] px-1.5 py-0.5 rounded">완료</span>;
     case 'Cancelled':
     case 'CancelPending':
       return <span className="text-[10px] font-bold text-[#E55B5B] bg-[#FFEDED] px-1.5 py-0.5 rounded">취소</span>;
@@ -74,7 +76,7 @@ export default async function MyPassDetailPage({params}: {
     return (
       <div className="flex flex-col min-h-screen bg-white pb-20">
         {/* 패스플랜 이미지 */}
-        <div className="w-full aspect-[2/1] bg-[#F1F3F6]">
+        <div className="w-full aspect-[16/9] bg-[#F1F3F6]">
           {passPlan?.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -113,28 +115,19 @@ export default async function MyPassDetailPage({params}: {
             )}
           </div>
 
-          {/* 상태 + 잔여 */}
-          <div className="flex items-center gap-2 mt-3 mb-2">
-            <span className={`text-[12px] font-bold px-2.5 py-1 rounded-full ${
-              pass.status === 'Active' ? 'text-[#059669] bg-[#ECFDF5]'
-                : pass.status === 'Pending' ? 'text-[#D97706] bg-[#FFFBEB]'
-                  : 'text-[#999] bg-[#F1F3F6]'
-            }`}>
-              {pass.statusLabel}
-            </span>
+          {/* 이용기한 */}
+          <div className="mt-4 px-4 py-3.5 rounded-xl bg-[#F7F8F9]">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-[#86898C]">{await translate('pass_period')}</span>
+              <span className="text-[15px] font-bold text-black">{pass.startDate} ~ {pass.endDate}</span>
+            </div>
             {pass.remainingCount != null && pass.remainingCount >= 0 && (
-              <span className="text-[12px] font-bold text-[#5B5FF6] bg-[#EDEDFF] px-2.5 py-1 rounded-full">
-                {pass.remainingCount}회 남음
-              </span>
-            )}
-            {pass.endDate && (
-              <span className="text-[12px] font-bold text-black bg-[#F1F3F6] px-2.5 py-1 rounded-full">
-                <DdayText input={pass.endDate}/>
-              </span>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[13px] text-[#86898C]">{await translate('remaining_usage')}</span>
+                <span className="text-[15px] font-bold text-[#5B5FF6]">{pass.remainingCount}{await translate('remaining_count')}</span>
+              </div>
             )}
           </div>
-
-          <span className="text-[13px] text-[#AEAEAE]">{pass.startDate} ~ {pass.endDate}</span>
         </div>
 
         {/* Pending: 계좌이체 안내 */}
@@ -167,6 +160,7 @@ export default async function MyPassDetailPage({params}: {
             <div className="flex flex-col gap-5 divide-y divide-[#F0F0F0]">
               {passRules.map((rule) => {
                 const isExpired = rule.status === 'Expired' || rule.status === 'Done';
+                const hasDiffPeriod = rule.startDate !== pass.startDate || rule.endDate !== pass.endDate;
                 return (
                   <div key={rule.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
                     <div className="flex items-center gap-3 mb-2.5">
@@ -174,24 +168,27 @@ export default async function MyPassDetailPage({params}: {
                         {ruleBenefitIcon(rule.benefitType)}
                       </div>
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-[14px] font-semibold text-black">{ruleDescription(rule)}</span>
+                        <span className="text-[14px] font-semibold text-black">{ruleDescription(rule, locale)}</span>
                         <div className="flex items-center gap-2">
                           {rule.remainingCount != null && rule.benefitValue != null && (
                             <span className="text-[11px] font-bold text-[#5B5FF6]">
-                              {rule.usageCount}/{rule.benefitValue}회 사용
+                              {rule.usageCount}/{rule.benefitValue}{t(locale, 'times')}
                             </span>
                           )}
                           {isExpired && (
                             <span className="text-[11px] font-bold text-[#BFBFBF]">
-                              {rule.status === 'Done' ? '소진' : '만료'}
+                              {rule.status === 'Done' ? t(locale, 'exhausted') : t(locale, 'expired')}
                             </span>
                           )}
                         </div>
+                        {hasDiffPeriod && (
+                          <span className="text-[11px] text-[#AEAEAE]">{rule.startDate} ~ {rule.endDate}</span>
+                        )}
                       </div>
                     </div>
 
                     {rule.tickets.length > 0 && (
-                      <div className="flex flex-col gap-1.5 ml-12">
+                      <div className="flex flex-col gap-1.5 ml-2">
                         {rule.tickets.map((ticket) => (
                           <NavigateClickWrapper key={ticket.id} method="push" route={KloudScreen.TicketDetail(ticket.id, false)}>
                             <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-[#F9FAFB] active:bg-[#F0F0F0] transition-colors">
@@ -214,6 +211,7 @@ export default async function MyPassDetailPage({params}: {
             {passFeatures.map((feature) => {
               const isExpired = feature.status === 'Expired';
               const bookings = feature.roomBookings ?? [];
+              const hasDiffPeriod = feature.startDate !== pass.startDate || feature.endDate !== pass.endDate;
               return (
                 <div key={feature.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
                   <div className="flex items-center gap-3 mb-2.5">
@@ -228,13 +226,16 @@ export default async function MyPassDetailPage({params}: {
                         </span>
                       )}
                       {isExpired && (
-                        <span className="text-[11px] font-bold text-[#BFBFBF]">만료</span>
+                        <span className="text-[11px] font-bold text-[#BFBFBF]">{t(locale, 'expired')}</span>
+                      )}
+                      {hasDiffPeriod && (
+                        <span className="text-[11px] text-[#AEAEAE]">{feature.startDate} ~ {feature.endDate}</span>
                       )}
                     </div>
                   </div>
 
                   {bookings.length > 0 && (
-                    <div className="flex flex-col gap-1.5 ml-12">
+                    <div className="flex flex-col gap-1.5 ml-2">
                       {bookings.map((booking) => (
                         <div key={booking.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[#F9FAFB]">
                           <div className="flex flex-col gap-0.5 min-w-0">

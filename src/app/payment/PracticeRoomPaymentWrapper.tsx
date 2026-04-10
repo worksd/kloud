@@ -71,7 +71,7 @@ export const PracticeRoomPaymentWrapper = ({
             {myBookings.map((booking) => (
               <div key={booking.id} className="px-3 py-1.5 bg-[#D5D5D5] rounded-lg">
                 <span className="text-[12px] font-medium text-[#666]">
-                  {booking.startTime} ~ {booking.endTime}
+                  {booking.startDate.split(' ')[1] ?? booking.startDate} ~ {booking.endDate.split(' ')[1] ?? booking.endDate}
                 </span>
               </div>
             ))}
@@ -116,9 +116,8 @@ export const PracticeRoomPaymentWrapper = ({
         isProxyPayment={isProxyPayment}
         practiceRoomInfo={selectedTime ? {
           studioRoomId,
-          targetDate: (date ?? '').replace(/-/g, '.'),
-          startTime: selectedTime.startTime,
-          endTime: selectedTime.endTime,
+          startDate: `${(date ?? '').replace(/-/g, '.')} ${selectedTime.startTime}`,
+          endDate: `${(date ?? '').replace(/-/g, '.')} ${selectedTime.endTime}`,
         } : undefined}
       />
     </>
