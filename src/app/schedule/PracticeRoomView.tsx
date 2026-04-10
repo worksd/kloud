@@ -57,7 +57,7 @@ export const PracticeRoomView = ({ selectedDate, onChangeDate, locale, studioId 
   return (
     <div className="flex flex-col px-4 pt-3 pb-10 gap-3">
       {rooms.map((room) => {
-        const imageUrl = room.practiceImageUrls?.[0] ?? room.imageUrls?.[0];
+        const imageUrl = room.imageUrls?.[0];
 
         return (
           <div

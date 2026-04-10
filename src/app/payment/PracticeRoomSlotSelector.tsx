@@ -29,13 +29,13 @@ const calcEndTime = (time: string, duration: number) => {
 
 export const PracticeRoomSlotSelector = ({
   slots,
-  slotDurationMinutes,
+  minBookingDuration,
   locale,
   myBookings,
   onSelectionChange,
 }: {
   slots: TimeSlotResponse[];
-  slotDurationMinutes: number;
+  minBookingDuration: number;
   locale: Locale;
   myBookings?: { id: number; startTime: string; endTime: string }[];
   onSelectionChange: (selection: { startTime: string; endTime: string } | null) => void;
@@ -78,7 +78,7 @@ export const PracticeRoomSlotSelector = ({
     if (newSet.size > 0) {
       const sorted = Array.from(newSet).sort((a, b) => a - b);
       const startTime = hourlySlots[sorted[0]].time;
-      const endTime = calcEndTime(hourlySlots[sorted[sorted.length - 1]].time, slotDurationMinutes);
+      const endTime = calcEndTime(hourlySlots[sorted[sorted.length - 1]].time, minBookingDuration);
       onSelectionChange({ startTime, endTime });
     } else {
       onSelectionChange(null);

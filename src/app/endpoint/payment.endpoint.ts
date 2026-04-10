@@ -58,9 +58,11 @@ export type GetPaymentResponse = {
     id: number;
     name: string;
     unitPrice?: number;
-    slotDurationMinutes: number;
+    minBookingDuration: number;
+    maxBookingDuration?: number | null;
+    dailyBookingLimit?: number | null;
     practiceMaxNumber: number;
-    practiceImageUrls?: string[];
+    imageUrls?: string[];
     date?: string;
     slots?: import("@/app/endpoint/studio.room.endpoint").TimeSlotResponse[];
     myBookings?: { id: number; startTime: string; endTime: string }[];

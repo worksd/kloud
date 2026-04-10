@@ -96,7 +96,7 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
     setImageIndex(Math.round(scrollLeft / width));
   };
 
-  const images = room?.practiceImageUrls ?? room?.imageUrls ?? [];
+  const images = room?.imageUrls ?? [];
   const hourlySlots = room?.slots.filter(s => s.time.endsWith(':00')) ?? [];
   const myBookings = room?.myBookings ?? [];
 
@@ -151,7 +151,7 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
               </span>
             )}
             <span className="text-[13px] text-[#86898C]">
-              {room.slotDurationMinutes}{getLocaleString({ locale, key: 'minutes' })}/{getLocaleString({ locale, key: 'slot' })}
+              {room.minBookingDuration}{getLocaleString({ locale, key: 'minutes' })}/{getLocaleString({ locale, key: 'slot' })}
             </span>
             {room.unitPrice != null && room.unitPrice > 0 && (
               <span className="text-[13px] text-[#86898C]">

@@ -83,7 +83,7 @@ export const PracticeRoomPaymentWrapper = ({
       {slots.length > 0 && (
         <PracticeRoomSlotSelector
           slots={slots}
-          slotDurationMinutes={room?.slotDurationMinutes ?? 60}
+          minBookingDuration={room?.minBookingDuration ?? 60}
           locale={locale}
           myBookings={myBookings}
           onSelectionChange={setSelectedTime}
