@@ -2679,6 +2679,12 @@ export const StringResource = {
     jp: '予約キャンセル',
     zh: '取消预约'
   },
+  cancel_booking_success: {
+    ko: '예약이 취소되었습니다',
+    en: 'Booking has been cancelled',
+    jp: '予約がキャンセルされました',
+    zh: '预约已取消'
+  },
   cancel_booking_confirm: {
     ko: '정말 예약을 취소하시겠습니까?',
     en: 'Are you sure you want to cancel?',

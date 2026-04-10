@@ -7,6 +7,7 @@ import { getRoomBookingAction, deleteRoomBookingAction } from "@/app/profile/get
 import { RoomBookingDetailResponse } from "@/app/endpoint/room.booking.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { createDialog } from "@/utils/dialog.factory";
 
 export type RoomBookingInfo = {
   id: number;
@@ -31,7 +32,6 @@ export const RoomBookingDialog = ({
   const [closing, setClosing] = useState(false);
   const [detail, setDetail] = useState<RoomBookingDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
@@ -45,22 +45,48 @@ export const RoomBookingDialog = ({
     setTimeout(onClose, 150);
   };
 
-  const handleCancelConfirm = async () => {
-    setCancelling(true);
-    try {
-      const res = await deleteRoomBookingAction(booking.id);
-      if ('success' in res && res.success) {
-        setClosing(true);
-        setTimeout(() => {
-          onClose();
-          onCancelled?.();
-        }, 150);
-      }
-    } finally {
-      setCancelling(false);
-      setConfirmCancel(false);
-    }
+  const handleCancelClick = async () => {
+    const dialog = await createDialog({
+      id: 'CancelRoomBooking',
+      title: getLocaleString({ locale, key: 'cancel_booking' }),
+      message: getLocaleString({ locale, key: 'cancel_booking_confirm' }),
+    });
+    window.KloudEvent?.showDialog(JSON.stringify(dialog));
   };
+
+  useEffect(() => {
+    const prevHandler = window.onDialogConfirm;
+    window.onDialogConfirm = async (data) => {
+      if (data.id === 'CancelRoomBooking') {
+        setCancelling(true);
+        try {
+          const res = await deleteRoomBookingAction(booking.id);
+          if ('success' in res && res.success) {
+            setClosing(true);
+            setTimeout(async () => {
+              onClose();
+              onCancelled?.();
+              const successDialog = await createDialog({
+                id: 'Simple',
+                title: getLocaleString({ locale, key: 'cancel_booking' }),
+                message: getLocaleString({ locale, key: 'cancel_booking_success' }),
+              });
+              window.KloudEvent?.showDialog(JSON.stringify(successDialog));
+            }, 150);
+          } else {
+            const msg = ('message' in res) ? (res as any).message : '';
+            const errDialog = await createDialog({ id: 'Simple', message: msg });
+            window.KloudEvent?.showDialog(JSON.stringify(errDialog));
+          }
+        } finally {
+          setCancelling(false);
+        }
+      } else {
+        prevHandler?.(data);
+      }
+    };
+    return () => { window.onDialogConfirm = prevHandler; };
+  }, [booking.id]);
 
   const roomName = detail?.studioRoom?.name ?? booking.roomName;
   const imageUrl = detail?.studioRoom?.imageUrls?.[0] ?? booking.roomImageUrl;
@@ -211,35 +237,13 @@ export const RoomBookingDialog = ({
                   : `${roomName} ${getLocaleString({ locale, key: 'go_to_room' })}`}
               </button>
 
-              {!confirmCancel ? (
-                <button
-                  onClick={() => setConfirmCancel(true)}
-                  className="w-full mt-2 py-3 rounded-xl text-[13px] font-medium text-[#999] active:text-[#EF4444] transition-colors"
-                >
-                  {getLocaleString({ locale, key: 'cancel_booking' })}
-                </button>
-              ) : (
-                <div className="mt-3 p-3.5 rounded-xl border border-[#EF4444]/20 bg-[#FEF2F2]">
-                  <p className="text-[13px] text-[#EF4444] font-medium text-center mb-3">
-                    {getLocaleString({ locale, key: 'cancel_booking_confirm' })}
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setConfirmCancel(false)}
-                      className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-white text-[#333] border border-[#E8E8E8] active:scale-[0.98] transition-transform"
-                    >
-                      {getLocaleString({ locale, key: 'no' })}
-                    </button>
-                    <button
-                      disabled={cancelling}
-                      onClick={handleCancelConfirm}
-                      className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-[#EF4444] text-white active:scale-[0.98] transition-transform disabled:opacity-50"
-                    >
-                      {cancelling ? '...' : getLocaleString({ locale, key: 'yes_cancel' })}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button
+                disabled={cancelling}
+                onClick={handleCancelClick}
+                className="w-full mt-2 py-3 rounded-xl text-[13px] font-medium text-[#999] active:text-[#EF4444] transition-colors disabled:opacity-50"
+              >
+                {cancelling ? '...' : getLocaleString({ locale, key: 'cancel_booking' })}
+              </button>
             </>
           )}
         </div>
