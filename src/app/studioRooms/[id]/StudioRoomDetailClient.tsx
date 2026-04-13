@@ -97,7 +97,7 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
   };
 
   const images = room?.imageUrls ?? [];
-  const hourlySlots = room?.slots.filter(s => s.time.endsWith(':00')) ?? [];
+  const hourlySlots = room?.slots ?? [];
   const myBookings = room?.myBookings ?? [];
 
   const getMyBooking = (time: string) =>

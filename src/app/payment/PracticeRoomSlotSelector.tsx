@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
@@ -65,6 +65,15 @@ export const PracticeRoomSlotSelector = ({
   }, 0);
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const firstAvailableIndex = filteredSlots.findIndex(s => s.status === 'available' && !isMyBooked(s.time));
+    if (firstAvailableIndex >= 0 && scrollRef.current) {
+      const scrollLeft = firstAvailableIndex * 48 - scrollRef.current.clientWidth / 2 + 24;
+      scrollRef.current.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+    }
+  }, [filteredSlots]);
 
   const maxSlots = maxBookingDuration
     ? Math.floor(maxBookingDuration / minBookingDuration)
@@ -140,7 +149,7 @@ export const PracticeRoomSlotSelector = ({
       </div>
 
       {/* 가로 히트맵 */}
-      <div className="overflow-x-auto scrollbar-hide">
+      <div ref={scrollRef} className="overflow-x-auto scrollbar-hide">
         <div className="flex gap-0.5" style={{ minWidth: `${filteredSlots.length * 48}px` }}>
           {filteredSlots.map((slot, index) => {
             const isAvailable = slot.status === 'available';
