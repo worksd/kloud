@@ -6,11 +6,12 @@ export default async function MyPassPage() {
   const res = await getMyPassListAction({order: 'newest'})
   if ('passes' in res) {
     return (
-      <div className="flex flex-col h-screen">
-        <MyPassForm
-          passes={res.passes}
-          locale={await getLocale()}
-        />
-      </div>
+        <div className="flex flex-col h-screen">
+          <MyPassForm
+              passes={res.passes}
+              locale={await getLocale()}
+          />
+        </div>
     )
   }
+}

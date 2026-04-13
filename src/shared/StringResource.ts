@@ -2716,10 +2716,16 @@ export const StringResource = {
     zh: '仅限当天预约'
   },
   advance_booking_info: {
-    ko: '일 전부터 예약 가능 · 오픈 시각',
-    en: ' days in advance · opens at',
-    jp: '日前から予約可能 · オープン時間',
-    zh: '天前可预约 · 开放时间'
+    ko: '일 전부터 예약 가능',
+    en: ' days in advance',
+    jp: '日前から予約可能',
+    zh: '天前可预约'
+  },
+  advance_booking_open_time: {
+    ko: '오픈 시각',
+    en: 'opens at',
+    jp: 'オープン時間',
+    zh: '开放时间'
   },
   usage_guide: {
     ko: '이용안내',

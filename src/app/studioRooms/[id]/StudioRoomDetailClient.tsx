@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
-import { RoomAvailabilityResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
+import { RoomAvailabilityResponse, RoomLessonResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { RoomBookingDialog, RoomBookingInfo } from "@/app/components/RoomBookingDialog";
@@ -11,7 +11,7 @@ import { RoomBookingDialog, RoomBookingInfo } from "@/app/components/RoomBooking
 const getHeatColor = (current: number, max: number) => {
   if (current === 0) return '#F3F4F6';
   const ratio = current / max;
-  if (ratio >= 0.8) return '#EF4444';
+  if (ratio >= 0.8) return '#6B7280';
   if (ratio >= 0.6) return '#F59E0B';
   if (ratio >= 0.4) return '#818CF8';
   if (ratio >= 0.2) return '#A5B4FC';
@@ -20,7 +20,7 @@ const getHeatColor = (current: number, max: number) => {
 
 const slotColor = (slot: TimeSlotResponse) => {
   if (slot.status === 'closed') return '#F3F4F6';
-  if (slot.status === 'full') return '#EF4444';
+  if (slot.status === 'full') return '#6B7280';
   return getHeatColor(slot.currentCount, slot.maxCount);
 };
 
@@ -99,12 +99,20 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
   const images = room?.imageUrls ?? [];
   const hourlySlots = room?.slots ?? [];
   const myBookings = room?.myBookings ?? [];
+  const lessons = room?.lessons ?? [];
 
   const getMyBooking = (time: string) =>
     myBookings.find(b => {
       const bStart = b.startDate.split(' ')[1] ?? '';
       const bEnd = b.endDate.split(' ')[1] ?? '';
       return time >= bStart && time < bEnd;
+    });
+
+  const getLesson = (time: string): RoomLessonResponse | undefined =>
+    lessons.find(l => {
+      const lStart = l.startDate.split(' ')[1] ?? '';
+      const lEnd = calcEndTime(lStart, l.duration);
+      return time >= lStart && time < lEnd;
     });
 
   return (
@@ -179,7 +187,7 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
               <span className="text-[12px] font-medium text-[#5B5FF6]">
                 {room.advanceBookingDays === 0
                   ? getLocaleString({ locale, key: 'same_day_only' })
-                  : `${room.advanceBookingDays}${getLocaleString({ locale, key: 'advance_booking_info' })}${room.advanceBookingOpenTime ? ` ${room.advanceBookingOpenTime}` : ''}`}
+                  : `${room.advanceBookingDays}${getLocaleString({ locale, key: 'advance_booking_info' })}${room.advanceBookingOpenTime ? ` · ${getLocaleString({ locale, key: 'advance_booking_open_time' })} ${room.advanceBookingOpenTime}` : ''}`}
               </span>
             </div>
           )}
@@ -263,7 +271,7 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
             <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'reservable' })}</span>
             <div className="w-2.5 h-2.5 rounded-sm bg-[#C7D2FE]" />
             <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'slot_full' })}</span>
-            <div className="w-2.5 h-2.5 rounded-sm bg-[#EF4444]" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-[#6B7280]" />
             <span className="text-[9px] text-[#9CA3AF] ml-1">{getLocaleString({ locale, key: 'slot_unavailable' })}</span>
             <div className="w-2.5 h-2.5 rounded-sm bg-[#F3F4F6]" />
           </div>
@@ -282,6 +290,8 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                 const isFull = slot.status === 'full';
                 const myBooking = getMyBooking(slot.time);
                 const isMine = !!myBooking;
+                const lesson = getLesson(slot.time);
+                const hasLesson = !!lesson && !isMine;
 
                 return (
                   <div
@@ -299,26 +309,32 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                     }}
                     className={`h-[32px] rounded-md flex items-center justify-between px-3 ${
                       isMine ? 'bg-[#1E2124] cursor-pointer active:opacity-80'
-                        : isClosed ? 'bg-[#F3F4F6]'
-                          : isFull ? 'bg-[#EF4444]'
-                            : 'bg-[#C7D2FE]'
+                        : hasLesson ? 'bg-[#E5E7EB] cursor-not-allowed'
+                          : isClosed ? 'bg-[#F3F4F6]'
+                            : isFull ? 'bg-[#6B7280]'
+                              : 'bg-[#C7D2FE]'
                     }`}
                   >
-                    <span className={`text-[11px] font-medium ${
+                    <span className={`text-[11px] font-medium truncate ${
                       isMine ? 'text-white'
-                        : isClosed ? 'text-[#BFBFBF]'
-                          : isFull ? 'text-white'
-                            : 'text-[#4338CA]'
+                        : hasLesson ? 'text-[#6B7280]'
+                          : isClosed ? 'text-[#BFBFBF]'
+                            : isFull ? 'text-[#E5E7EB]'
+                              : 'text-[#4338CA]'
                     }`}>
                       {isMine
                         ? getLocaleString({ locale, key: 'my_bookings' })
-                        : isClosed
-                          ? getLocaleString({ locale, key: 'slot_unavailable' })
-                          : isFull
-                            ? getLocaleString({ locale, key: 'slot_full' })
-                            : getLocaleString({ locale, key: 'reservable' })}
+                        : hasLesson
+                          ? lesson!.title
+                          : isClosed
+                            ? getLocaleString({ locale, key: 'slot_unavailable' })
+                            : isFull
+                              ? getLocaleString({ locale, key: 'slot_full' })
+                              : getLocaleString({ locale, key: 'reservable' })}
                     </span>
-                    {slot.status === 'available' && !isMine && (
+                    {hasLesson ? (
+                      <span className="text-[10px] text-[#9CA3AF] ml-2 flex-shrink-0">{lesson!.statusLabel}</span>
+                    ) : slot.status === 'available' && !isMine && (
                       <span className="text-[10px] text-[#4338CA]/60">{slot.currentCount}/{slot.maxCount}</span>
                     )}
                   </div>
