@@ -45,7 +45,7 @@ export default async function Home({
           )}
           {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
-          <HomeHeader hasStudio={!!studio}>
+          <HomeHeader hasStudio={!!studio} os={os}>
             {studio ? (
               <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>
                 <div className="flex items-center gap-2.5 cursor-pointer active:opacity-70 transition-opacity">
@@ -60,7 +60,7 @@ export default async function Home({
               <Logo className="scale-[0.7] origin-left"/>
             )}
           </HomeHeader>
-          <div className="mt-28">
+          <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
               res.myStudio ? (
                   <MyStudioPage res={res.myStudio}/>
@@ -69,7 +69,7 @@ export default async function Home({
               )}
 
           </div>
-          <div className={'fixed bottom-24 right-4 z-20'}>
+          <div className={`fixed right-4 z-20 ${os === 'Android' ? 'bottom-1' : 'bottom-24'}`}>
             <PassPurchaseButton studioId={res.myStudio?.studio?.id}/>
           </div>
         </div>
