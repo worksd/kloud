@@ -15,14 +15,6 @@ const getWeekdays = (locale: Locale) => {
   return keys.map(k => getLocaleString({ locale, key: k }));
 };
 
-const formatShortDate = (d: Date, locale: Locale) => {
-  const wd = getWeekdays(locale)[d.getDay()];
-  return `${d.getMonth() + 1}/${d.getDate()}(${wd})`;
-};
-
-const isSameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-
 const formatDateForApi = (d: Date) =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 
@@ -107,16 +99,6 @@ export const SchedulePageClient = ({
 
   // 연습실 탭 상태
   const [practiceDate, setPracticeDate] = useState(today);
-  const [showDateSheet, setShowDateSheet] = useState(false);
-  const [closingSheet, setClosingSheet] = useState(false);
-
-  const closeSheet = () => {
-    setClosingSheet(true);
-    setTimeout(() => {
-      setShowDateSheet(false);
-      setClosingSheet(false);
-    }, 150);
-  };
 
   return (
     <div className="flex flex-col">
@@ -158,20 +140,6 @@ export const SchedulePageClient = ({
             <span className="text-[13px] font-medium text-black">{getLocaleString({ locale, key: 'this_week' })}</span>
           </button>
         )}
-        {activeTab === 'practice' && (
-          <button
-            onClick={() => setShowDateSheet(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E6E8EA] active:bg-[#F9FAFB] transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="1.5" y="2.5" width="11" height="9.5" rx="1.5" stroke="#333" strokeWidth="1.1"/>
-              <path d="M1.5 5.5H12.5" stroke="#333" strokeWidth="1.1"/>
-              <path d="M4.5 1V3" stroke="#333" strokeWidth="1.1" strokeLinecap="round"/>
-              <path d="M9.5 1V3" stroke="#333" strokeWidth="1.1" strokeLinecap="round"/>
-            </svg>
-            <span className="text-[13px] font-medium text-black">{formatShortDate(practiceDate, locale)}</span>
-          </button>
-        )}
       </div>
 
       {/* 탭 콘텐츠 - hidden으로 둘 다 마운트 유지 */}
@@ -191,133 +159,6 @@ export const SchedulePageClient = ({
         <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} locale={locale} studioId={studioId} />
       </div>
 
-      {/* 날짜 선택 달력 바텀시트 */}
-      {showDateSheet && (
-        <CalendarSheet
-          selectedDate={practiceDate}
-          today={today}
-          closing={closingSheet}
-          onSelect={(date) => { setPracticeDate(date); closeSheet(); }}
-          onClose={closeSheet}
-          locale={locale}
-        />
-      )}
-
-      <style jsx>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
-      `}</style>
-    </div>
-  );
-};
-
-// 달력 바텀시트
-const CalendarSheet = ({
-  selectedDate,
-  today,
-  closing,
-  onSelect,
-  onClose,
-  locale,
-}: {
-  selectedDate: Date;
-  today: Date;
-  closing: boolean;
-  onSelect: (date: Date) => void;
-  onClose: () => void;
-  locale: Locale;
-}) => {
-  const [viewMonth, setViewMonth] = useState(selectedDate.getMonth());
-  const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
-
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
-
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-  const goPrev = () => {
-    if (viewMonth === 0) { setViewMonth(11); setViewYear(viewYear - 1); }
-    else setViewMonth(viewMonth - 1);
-  };
-  const goNext = () => {
-    if (viewMonth === 11) { setViewMonth(0); setViewYear(viewYear + 1); }
-    else setViewMonth(viewMonth + 1);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50" onClick={onClose}>
-      <div className={`absolute inset-0 bg-black/40 ${closing ? 'animate-[fadeOut_150ms_ease-in_forwards]' : 'animate-[fadeIn_150ms_ease-out]'}`} />
-      <div
-        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl pb-8 ${closing ? 'animate-[slideDown_150ms_ease-in_forwards]' : 'animate-[slideUp_150ms_ease-out]'}`}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 rounded-full bg-[#DDD]" />
-        </div>
-
-        <div className="flex items-center justify-between px-6 py-2">
-          <button onClick={goPrev} className="p-1 active:opacity-50">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12.5 15L7.5 10L12.5 5" stroke="#464C53" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <span className="text-[16px] font-bold text-[#1E2124]">
-            {locale === 'en'
-              ? `${viewYear} / ${viewMonth + 1}`
-              : `${viewYear}${getLocaleString({ locale, key: 'year_format' })} ${viewMonth + 1}${getLocaleString({ locale, key: 'month_format' })}`}
-          </span>
-          <button onClick={goNext} className="p-1 active:opacity-50">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 5L12.5 10L7.5 15" stroke="#464C53" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-7 px-6">
-          {getWeekdays(locale).map(d => (
-            <div key={d} className="flex items-center justify-center py-2">
-              <span className="text-[12px] text-[#9CA3AF] font-medium">{d}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 px-6 pb-4">
-          {cells.map((day, i) => {
-            if (day === null) return <div key={i} />;
-            const date = new Date(viewYear, viewMonth, day);
-            const isSelected = isSameDay(date, selectedDate);
-            const isToday = isSameDay(date, today);
-            const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-            return (
-              <button
-                key={i}
-                onClick={() => !isPast && onSelect(date)}
-                disabled={isPast}
-                className="flex items-center justify-center py-1.5"
-              >
-                <div className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors ${
-                  isSelected ? 'bg-[#1E2124]'
-                    : isToday ? 'border border-[#E6E8EA]'
-                      : ''
-                }`}>
-                  <span className={`text-[14px] ${
-                    isPast ? 'text-[#D1D5DB]'
-                      : isSelected ? 'font-semibold text-white'
-                        : 'text-[#33363D]'
-                  }`}>
-                    {day}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 };

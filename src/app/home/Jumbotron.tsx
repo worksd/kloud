@@ -43,7 +43,7 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
     <div className="relative py-1">
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto scrollbar-hide gap-2 snap-x snap-mandatory"
+        className="flex overflow-x-auto scrollbar-hide gap-2 snap-x snap-mandatory overscroll-x-contain"
         style={{ paddingLeft: '20px', paddingRight: '20px' }}
       >
         {items.map((item) => (

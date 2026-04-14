@@ -37,13 +37,13 @@ export const HomeAlphaBgProvider = ({ initialImage, children }: { initialImage: 
             src={bgImage}
             alt=""
             fill
-            className="object-cover scale-110 blur-[30px] opacity-50"
+            className="object-cover scale-110 blur-[30px] opacity-85"
             priority
           />
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,1) 100%)',
+              background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 100%)',
             }}
           />
         </div>
