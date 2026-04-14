@@ -58,6 +58,8 @@ export type PassRuleResponse = {
   targetLabel?: string | null;
   benefitType: string;
   benefitValue?: number | null;
+  usable?: boolean;
+  reason?: string;
   tickets: PassRuleTicket[];
 }
 
