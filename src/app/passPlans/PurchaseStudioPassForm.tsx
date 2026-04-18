@@ -31,8 +31,8 @@ export const PurchaseStudioPassForm = ({
   locale: Locale,
 }) => {
 
-  const recommendedPlan = passPlans.find(p => p.isRecommended) ?? passPlans[0];
-  const otherPlans = passPlans.filter(p => p.id !== recommendedPlan?.id);
+  const recommendedPlans = passPlans.filter(p => p.isRecommended);
+  const otherPlans = passPlans.filter(p => !p.isRecommended);
 
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
 
@@ -47,14 +47,17 @@ export const PurchaseStudioPassForm = ({
       </div>
 
       {/* 추천 패스권 */}
-      {recommendedPlan && (
-        <div className="px-6 pt-4">
-          <RecommendedPassPlanItem
-            item={recommendedPlan}
-            locale={locale}
-            isSelected={passPlan?.id === recommendedPlan.id}
-            onClickAction={(item) => setPassPlan(item)}
-          />
+      {recommendedPlans.length > 0 && (
+        <div className="flex flex-col px-6 pt-4 gap-3">
+          {recommendedPlans.map((item) => (
+            <RecommendedPassPlanItem
+              key={item.id}
+              item={item}
+              locale={locale}
+              isSelected={passPlan?.id === item.id}
+              onClickAction={(item) => setPassPlan(item)}
+            />
+          ))}
         </div>
       )}
 
