@@ -23,14 +23,15 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
     const el = scrollRef.current;
     if (!el) return;
     const handleScroll = () => {
-      const cardWidth = el.querySelector('[data-card]')?.clientWidth ?? 0;
-      if (cardWidth === 0) return;
-      const index = Math.round(el.scrollLeft / (cardWidth + 8));
-      setCurrent(index);
+      const card = el.querySelector('[data-card]') as HTMLElement | null;
+      if (!card) return;
+      const gap = 12;
+      const index = Math.round(el.scrollLeft / (card.clientWidth + gap));
+      setCurrent(Math.min(Math.max(index, 0), items.length - 1));
     };
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => el.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [items.length]);
 
   useEffect(() => {
     const newImage = items[current]?.imageUrl;
@@ -40,18 +41,18 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="relative py-1">
+    <div className="flex flex-col py-1">
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto scrollbar-hide gap-2 snap-x snap-mandatory overscroll-x-contain"
-        style={{ paddingLeft: '20px', paddingRight: '20px' }}
+        className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory overscroll-x-contain"
+        style={{ scrollPaddingLeft: '20px', scrollPaddingRight: '20px', gap: '12px', paddingLeft: '20px', paddingRight: '20px' }}
       >
         {items.map((item) => (
           <div
             key={item.id}
             data-card
-            className="relative flex-shrink-0 snap-center rounded-xl overflow-hidden bg-[#F1F3F6] cursor-pointer active:scale-[0.98] transition-transform"
-            style={{ width: 'calc(100vw - 52px)', maxWidth: '338px', aspectRatio: '350/457' }}
+            className="relative flex-shrink-0 snap-start rounded-xl overflow-hidden bg-[#F1F3F6] cursor-pointer active:scale-[0.98] transition-transform"
+            style={{ width: 'calc(100vw - 40px)', aspectRatio: '350/457', scrollSnapStop: 'always' }}
             onClick={() => kloudNav.push(KloudScreen.LessonDetail(item.id))}
           >
             {item.imageUrl ? (
@@ -97,10 +98,15 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
 
       {/* 페이지 인디케이터 */}
       {items.length > 1 && (
-        <div className="absolute bottom-4 right-8 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-          <span className="text-white text-[12px] font-bold font-paperlogy leading-4 tracking-wide">{current + 1}</span>
-          <span className="text-white/40 text-[10px] font-medium leading-4">/</span>
-          <span className="text-white/50 text-[12px] font-medium font-paperlogy leading-4 tracking-wide">{items.length}</span>
+        <div className="flex justify-center mt-3 gap-1.5">
+          {items.map((_, i) => (
+            <div
+              key={i}
+              className={`h-[6px] rounded-full transition-all duration-200 ${
+                i === current ? 'w-[18px] bg-black' : 'w-[6px] bg-black/20'
+              }`}
+            />
+          ))}
         </div>
       )}
     </div>
