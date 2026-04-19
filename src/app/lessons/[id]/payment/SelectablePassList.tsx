@@ -34,7 +34,7 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
   locale: Locale,
   onSelect: () => void
 }) => {
-  const disabled = pass.usable !== true;
+  const disabled = !pass.usable;
 
   const disabledReason = pass.reason
     ?? (pass.passRules ?? []).find(r => r.usable === false)?.reason;
