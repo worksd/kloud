@@ -34,10 +34,14 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
   locale: Locale,
   onSelect: () => void
 }) => {
-  const disabled = !pass.usable;
+  const rules = pass.passRules ?? [];
+  const features = pass.passFeatures ?? [];
+  const hasUsableRule = rules.some(r => r.usable);
+  const disabled = !hasUsableRule;
 
-  const disabledReason = pass.reason
-    ?? (pass.passRules ?? []).find(r => r.usable === false)?.reason;
+  const usableDescription = rules.find(r => r.usable)?.description;
+  const disabledReason = rules.find(r => !r.usable)?.reason
+    ?? features.find(f => !f.usable)?.reason;
 
   return (
     <div
@@ -63,6 +67,11 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
           {disabled && disabledReason && (
             <div className="text-[11px] font-medium text-[#E55B5B] mt-0.5">
               {disabledReason}
+            </div>
+          )}
+          {!disabled && usableDescription && (
+            <div className={`text-[11px] font-medium mt-0.5 ${isSelected ? 'text-white/50' : 'text-[#999]'}`}>
+              {usableDescription}
             </div>
           )}
         </div>
