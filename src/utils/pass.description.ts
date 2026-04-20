@@ -98,7 +98,7 @@ const EXCLUDE_TYPE: Record<string, Record<Locale, (label?: string | null) => str
   },
 };
 
-export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale, passName?: string): string => {
+export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale = 'ko', passName?: string): string => {
   const targetFn = RULE_TARGET[rule.target.type] ?? RULE_TARGET['All'];
   const targetText = targetFn[locale](rule.target.label, passName);
 
@@ -174,7 +174,7 @@ const FEATURE_DESC: Record<string, Record<Locale, (value?: string | null) => str
   },
 };
 
-export const formatFeatureDescription = (key: string, locale: Locale, value?: string | null): string => {
+export const formatFeatureDescription = (key: string, locale: Locale = 'ko', value?: string | null): string => {
   const fn = FEATURE_DESC[key]?.[locale];
   return fn ? fn(value) : '';
 };

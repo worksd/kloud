@@ -2,7 +2,8 @@ import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComponent";
 import { getLocale, translate } from "@/utils/translate";
 import { Locale, StringResource } from "@/shared/StringResource";
-import { PassPlanTier, PassRuleResponse, PassFeatureResponse } from "@/app/endpoint/pass.endpoint";
+import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
+import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
 import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
@@ -36,16 +37,6 @@ const ruleBenefitIcon = (benefitType: string) => {
 
 const t = (locale: Locale, key: keyof typeof StringResource) => StringResource[key]?.[locale] ?? StringResource[key]?.['en'] ?? key;
 
-const ruleDescription = (rule: PassRuleResponse, locale: Locale): string => {
-  const target = rule.targetLabel
-    ?? t(locale, rule.targetType === 'All' ? 'all_lessons' : rule.targetType === 'Exclusive' ? 'exclusive_lessons' : 'all_lessons');
-  switch (rule.benefitType) {
-    case 'Unlimited': return `${target} ${t(locale, 'unlimited')}`;
-    case 'FreeCount': return `${target} ${rule.benefitValue ?? 0}${t(locale, 'times')}`;
-    case 'Discount': return `${target} ${(rule.benefitValue ?? 0).toLocaleString()}${t(locale, 'won')} ${t(locale, 'discount')}`;
-    default: return target;
-  }
-};
 
 const TicketStatusBadge = ({ status }: { status: string }) => {
   switch (status) {
@@ -168,7 +159,10 @@ export default async function MyPassDetailPage({params}: {
                         {ruleBenefitIcon(rule.benefitType)}
                       </div>
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-[14px] font-semibold text-black">{ruleDescription(rule, locale)}</span>
+                        <span className="text-[14px] font-semibold text-black">{formatRuleDescription({
+                          target: { type: rule.targetType, label: rule.targetLabel },
+                          benefit: { type: rule.benefitType, value: rule.benefitValue },
+                        }, locale, passPlan?.name)}</span>
                         <div className="flex items-center gap-2">
                           {rule.remainingCount != null && rule.benefitValue != null && (
                             <span className="text-[11px] font-bold text-[#5B5FF6]">
@@ -219,7 +213,7 @@ export default async function MyPassDetailPage({params}: {
                       {featureIcon(feature.featureKey)}
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-[14px] font-semibold text-black">{feature.description ?? feature.featureKey}</span>
+                      <span className="text-[14px] font-semibold text-black">{formatFeatureDescription(feature.featureKey, locale, feature.featureValue)}</span>
                       {feature.usable && !isExpired && (
                         <span className="text-[11px] font-bold text-[#059669]">
                           {feature.status === 'Active' ? usableText : feature.status}
