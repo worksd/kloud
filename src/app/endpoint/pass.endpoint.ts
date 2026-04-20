@@ -80,6 +80,7 @@ export type PassFeatureResponse = {
   endDate: string;
   status: string;
   usable: boolean;
+  reason?: string;
   featureKey: string;
   featureValue?: string | null;
   duration: number;
