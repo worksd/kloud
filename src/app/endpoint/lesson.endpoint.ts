@@ -34,6 +34,7 @@ export type GetLessonResponse = {
     days?: string;
     description?: string;
     genre?: string;
+    tag?: string;
     formattedDate?: GetFormattedDateResponse;
     isAdmin?: boolean;
 };

@@ -1,7 +1,7 @@
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { formatRuleDescription, } from "@/utils/pass.description";
+import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
 
 export const SelectablePassList = ({
                                      passItems,
@@ -37,16 +37,19 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
 }) => {
   const rules = pass.passRules ?? [];
   const features = pass.passFeatures ?? [];
-  const hasUsableRule = rules.some(r => r.usable);
-  const disabled = !hasUsableRule;
+  const hasUsable = rules.some(r => r.usable) || features.some(f => f.usable);
+  const disabled = !hasUsable;
 
   const usableRule = rules.find(r => r.usable);
+  const usableFeature = features.find(f => f.usable);
   const usableDescription = usableRule && usableRule.targetType && usableRule.benefitType
     ? formatRuleDescription({
         target: { type: usableRule.targetType, label: usableRule.targetLabel },
         benefit: { type: usableRule.benefitType, value: usableRule.remainingCount ?? usableRule.benefitValue },
       }, locale, pass.passPlan?.tag ?? pass.passPlan?.name)
-    : undefined;
+    : usableFeature
+      ? formatFeatureDescription(usableFeature.featureKey, locale, usableFeature.featureValue)
+      : undefined;
 
   const disabledReason = rules.find(r => !r.usable)?.reason
     ?? features.find(f => !f.usable)?.reason;

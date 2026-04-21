@@ -38,16 +38,24 @@ const ruleBenefitIcon = (benefitType: string) => {
 const t = (locale: Locale, key: keyof typeof StringResource) => StringResource[key]?.[locale] ?? StringResource[key]?.['en'] ?? key;
 
 
-const TicketStatusBadge = ({ status }: { status: string }) => {
+const TICKET_STATUS_LABEL: Record<string, Record<Locale, string>> = {
+  Paid: { ko: '구매완료', en: 'Purchased', jp: '購入済み', zh: '已购买' },
+  Used: { ko: '구매완료', en: 'Purchased', jp: '購入済み', zh: '已购买' },
+  Cancelled: { ko: '취소', en: 'Cancelled', jp: 'キャンセル', zh: '已取消' },
+  CancelPending: { ko: '취소', en: 'Cancelled', jp: 'キャンセル', zh: '已取消' },
+};
+
+const TicketStatusBadge = ({ status, locale }: { status: string, locale: Locale }) => {
+  const label = TICKET_STATUS_LABEL[status]?.[locale] ?? TICKET_STATUS_LABEL[status]?.['ko'] ?? status;
   switch (status) {
     case 'Used':
     case 'Paid':
-      return <span className="text-[10px] font-bold text-[#999] bg-[#F1F3F6] px-1.5 py-0.5 rounded">완료</span>;
+      return <span className="text-[10px] font-bold text-[#059669] bg-[#ECFDF5] px-1.5 py-0.5 rounded">{label}</span>;
     case 'Cancelled':
     case 'CancelPending':
-      return <span className="text-[10px] font-bold text-[#E55B5B] bg-[#FFEDED] px-1.5 py-0.5 rounded">취소</span>;
+      return <span className="text-[10px] font-bold text-[#E55B5B] bg-[#FFEDED] px-1.5 py-0.5 rounded">{label}</span>;
     default:
-      return <span className="text-[10px] font-bold text-[#999] bg-[#F1F3F6] px-1.5 py-0.5 rounded">{status}</span>;
+      return <span className="text-[10px] font-bold text-[#999] bg-[#F1F3F6] px-1.5 py-0.5 rounded">{label}</span>;
   }
 };
 
@@ -99,11 +107,13 @@ export default async function MyPassDetailPage({params}: {
             </div>
 
             {/* QR 코드 */}
+            {/* QR 코드 - 추후 재사용 예정
             {pass.qrcodeUrl && pass.status === 'Active' && (
               <div className="flex-shrink-0 rounded-xl overflow-hidden bg-white p-1.5 shadow-sm border border-[#E8E8E8]">
                 <PassQRCode url={pass.qrcodeUrl} />
               </div>
             )}
+            */}
           </div>
 
           {/* 이용기한 */}
@@ -190,7 +200,7 @@ export default async function MyPassDetailPage({params}: {
                                 <span className="text-[13px] font-medium text-[#333] truncate">{ticket.lesson?.title}</span>
                                 <span className="text-[11px] text-[#999]">{ticket.lesson?.startDate}</span>
                               </div>
-                              <TicketStatusBadge status={ticket.status} />
+                              <TicketStatusBadge status={ticket.status} locale={locale} />
                             </div>
                           </NavigateClickWrapper>
                         ))}

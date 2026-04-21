@@ -104,6 +104,15 @@ export default async function UnifiedPaymentPage({ searchParams }: {
         {/* lesson / lesson-group */}
         {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
           <div className="px-5 pt-4 pb-3">
+            {paymentItem === 'lesson' && res.lesson?.tag && (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F0EDFF] mb-3">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path d="M7.58 1.17L12.83 6.42C13.07 6.66 13.07 7.05 12.83 7.29L7.29 12.83C7.05 13.07 6.66 13.07 6.42 12.83L1.17 7.58C1.06 7.47 1 7.32 1 7.17V2C1 1.45 1.45 1 2 1H7.17C7.32 1 7.47 1.06 7.58 1.17Z" stroke="#5B5FF6" strokeWidth="1.2" strokeLinejoin="round"/>
+                  <circle cx="4" cy="4" r="1" fill="#5B5FF6"/>
+                </svg>
+                <span className="text-[11px] font-bold text-[#5B5FF6]">{(await translate('exclusive_lesson_notice')).replace('{tag}', res.lesson.tag!)}</span>
+              </div>
+            )}
             <div className="flex gap-4">
               {/* 썸네일 9:16 */}
               <div className="relative w-[120px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#F1F3F6] flex-shrink-0">

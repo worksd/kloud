@@ -141,7 +141,7 @@ export const UnifiedPaymentInfo = ({
     defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined)
   );
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
-    payment.user.passes?.find(p => (p.passRules ?? []).some(r => r.usable))
+    payment.user.passes?.find(p => (p.passRules ?? []).some(r => r.usable) || (p.passFeatures ?? []).some(f => f.usable))
   );
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined

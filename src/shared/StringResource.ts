@@ -2661,6 +2661,12 @@ export const StringResource = {
     jp: '専用レッスン',
     zh: '专属课程'
   },
+  exclusive_lesson_notice: {
+    ko: '해당 수업은 {tag} 전용 수업입니다',
+    en: 'This is a {tag} exclusive class',
+    jp: 'このレッスンは{tag}専用です',
+    zh: '该课程为{tag}专属课程'
+  },
   unlimited: {
     ko: '무제한',
     en: 'Unlimited',
