@@ -172,6 +172,7 @@ export default async function MyPassDetailPage({params}: {
                         <span className="text-[14px] font-semibold text-black">{formatRuleDescription({
                           target: { type: rule.targetType, label: rule.targetLabel },
                           benefit: { type: rule.benefitType, value: rule.benefitValue },
+                          excludes: rule.excludes,
                         }, locale, passPlan?.tag ?? passPlan?.name)}</span>
                         <div className="flex items-center gap-2">
                           {rule.remainingCount != null && rule.benefitValue != null && (

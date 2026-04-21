@@ -46,6 +46,7 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
     ? formatRuleDescription({
         target: { type: usableRule.targetType, label: usableRule.targetLabel },
         benefit: { type: usableRule.benefitType, value: usableRule.remainingCount ?? usableRule.benefitValue },
+        excludes: usableRule.excludes,
       }, locale, pass.passPlan?.tag ?? pass.passPlan?.name)
     : usableFeature
       ? formatFeatureDescription(usableFeature.featureKey, locale, usableFeature.featureValue)
