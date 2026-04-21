@@ -99,6 +99,7 @@ export type PassPlanRule = {
 
 export type PassPlanFeature = {
   key: string;
+  value?: string | null;
   description?: string | null;
 }
 

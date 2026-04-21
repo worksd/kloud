@@ -1,7 +1,7 @@
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
+import { formatRuleDescription, } from "@/utils/pass.description";
 
 export const SelectablePassList = ({
                                      passItems,
@@ -44,8 +44,8 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
   const usableDescription = usableRule && usableRule.targetType && usableRule.benefitType
     ? formatRuleDescription({
         target: { type: usableRule.targetType, label: usableRule.targetLabel },
-        benefit: { type: usableRule.benefitType, value: usableRule.benefitValue },
-      }, locale, pass.passPlan?.name)
+        benefit: { type: usableRule.benefitType, value: usableRule.remainingCount ?? usableRule.benefitValue },
+      }, locale, pass.passPlan?.tag ?? pass.passPlan?.name)
     : undefined;
 
   const disabledReason = rules.find(r => !r.usable)?.reason
@@ -80,6 +80,11 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
           {!disabled && usableDescription && (
             <div className={`text-[11px] font-medium mt-0.5 ${isSelected ? 'text-white/50' : 'text-[#999]'}`}>
               {usableDescription}
+            </div>
+          )}
+          {!disabled && usableRule?.endDate && (
+            <div className={`text-[11px] font-medium ${isSelected ? 'text-white/40' : 'text-[#AEAEAE]'}`}>
+              ~ {usableRule.endDate}
             </div>
           )}
         </div>

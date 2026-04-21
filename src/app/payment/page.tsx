@@ -184,7 +184,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             )}
 
             {/* 이용 혜택 */}
-            <PassPlanBenefits passPlan={res.passPlan} />
+            <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />
           </div>
         )}
 

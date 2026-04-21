@@ -5,6 +5,8 @@ import DiscountIcon from "../../../public/assets/ic_discount.svg";
 import PassFastIcon from "../../../public/assets/ic_pass_fast.svg";
 import PassPresaleIcon from "../../../public/assets/ic_pass_presale.svg";
 import PassRoomIcon from "../../../public/assets/ic_pass_room.svg";
+import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
+import { Locale } from "@/shared/StringResource";
 
 const BenefitIcon = ({ type }: { type: PassBenefitType }) => {
   switch (type) {
@@ -38,24 +40,27 @@ const ruleBenefitToType = (benefitType?: string): PassBenefitType => {
   }
 };
 
-const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse): PassBenefit[] => {
+const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse, locale: Locale = 'ko'): PassBenefit[] => {
   const benefits: PassBenefit[] = [];
 
   if (passPlan.rules) {
     for (const rule of passPlan.rules) {
       benefits.push({
         type: ruleBenefitToType(rule.benefit?.type),
-        title: rule.description,
+        title: formatRuleDescription({
+          target: rule.target ?? { type: 'All' },
+          benefit: rule.benefit ?? { type: 'Unlimited' },
+          excludes: rule.excludes,
+        }, locale, passPlan.tag ?? passPlan.name),
       });
     }
   }
 
   if (passPlan.features) {
     for (const feature of passPlan.features) {
-      if (!feature.description) continue;
       benefits.push({
         type: featureKeyToType[feature.key] ?? 'fast_entry',
-        title: feature.description,
+        title: formatFeatureDescription(feature.key, locale, feature.value),
       });
     }
   }
@@ -64,30 +69,36 @@ const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse): PassBenefit[] => 
     if (passPlan.type === 'Unlimited') {
       benefits.push({
         type: 'unlimited',
-        title: passPlan.tag ? `${passPlan.tag} 전용 수업 무제한 이용` : '클래스 무제한 수강',
+        title: formatRuleDescription({
+          target: { type: passPlan.tag ? 'Exclusive' : 'All' },
+          benefit: { type: 'Unlimited' },
+        }, locale, passPlan.tag ?? passPlan.name),
       });
     }
     if (passPlan.type === 'Count' && passPlan.usageLimit) {
       benefits.push({
         type: 'free_count',
-        title: `모든 수업 ${passPlan.usageLimit}회 이용 가능`,
+        title: formatRuleDescription({
+          target: { type: 'All' },
+          benefit: { type: 'FreeCount', value: passPlan.usageLimit },
+        }, locale),
       });
     }
     if (passPlan.canPreSale) {
-      benefits.push({ type: 'presale', title: '사전 신청 허용' });
+      benefits.push({ type: 'presale', title: formatFeatureDescription('canPrePurchase', locale) });
     }
     if (passPlan.tier === PassPlanTier.Premium) {
-      benefits.push({ type: 'fast_entry', title: '우선 입장' });
+      benefits.push({ type: 'fast_entry', title: formatFeatureDescription('priorityEntry', locale) });
     }
   }
 
   return benefits;
 };
 
-export const PassPlanBenefits = ({ passPlan }: { passPlan: GetPassPlanResponse }) => {
+export const PassPlanBenefits = ({ passPlan, locale = 'ko' }: { passPlan: GetPassPlanResponse, locale?: Locale }) => {
   const benefits = passPlan.benefits && passPlan.benefits.length > 0
     ? passPlan.benefits
-    : buildBenefitsFromPlan(passPlan);
+    : buildBenefitsFromPlan(passPlan, locale);
 
   if (benefits.length === 0) return null;
 
