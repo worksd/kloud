@@ -66,12 +66,15 @@ export const PracticeRoomSlotSelector = ({
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasScrolled = useRef(false);
 
   useEffect(() => {
+    if (hasScrolled.current) return;
     const firstAvailableIndex = filteredSlots.findIndex(s => s.status === 'available' && !isMyBooked(s.time));
     if (firstAvailableIndex >= 0 && scrollRef.current) {
       const scrollLeft = firstAvailableIndex * 48 - scrollRef.current.clientWidth / 2 + 24;
       scrollRef.current.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+      hasScrolled.current = true;
     }
   }, [filteredSlots]);
 

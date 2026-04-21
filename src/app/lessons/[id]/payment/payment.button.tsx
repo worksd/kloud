@@ -345,10 +345,11 @@ export default function PaymentButton({
             await kloudNav.navigateMain({route: pushRoute});
           }
         } else if (type.value === 'practiceRoom' && 'success' in res && res.success) {
+          const passRoute = KloudScreen.MyPassDetail(selectedPass.id);
           if (appVersion == '') {
-            router.replace('/')
+            router.replace(passRoute)
           } else {
-            await kloudNav.navigateMain({});
+            await kloudNav.navigateMain({route: passRoute});
           }
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
