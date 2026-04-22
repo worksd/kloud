@@ -102,12 +102,21 @@ export type GetPaymentMethodResponse = {
 
 export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
 
+export type PaymentDiscount = {
+  key: string;
+  amount: number;
+  type: 'membership' | 'subscription' | 'passRule';
+  itemId: number;
+  passRuleId?: number;
+}
+
 export type CreateBillingKeyPaymentRequest = {
   billingKey: string;
   item: string;
   itemId: number;
   paymentId: string;
   targetUserId?: number;
+  discounts?: PaymentDiscount[];
 }
 
 export type CreateBillingKeyPaymentResponse = {
@@ -117,5 +126,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts']
 }

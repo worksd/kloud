@@ -373,7 +373,14 @@ export default function PaymentButton({
             itemId: id,
             billingKey: data.customData ?? '',
             paymentId,
-            targetUserId: actualPayerUserId
+            targetUserId: actualPayerUserId,
+            discounts: selectedDiscounts?.map(d => ({
+              key: d.key,
+              amount: d.amount,
+              type: d.type as 'membership' | 'subscription' | 'passRule',
+              itemId: d.itemId,
+              passRuleId: d.passRule?.id,
+            })),
           })
           if ('success' in res && res.success) {
             await new Promise(resolve => setTimeout(resolve, 2000));
