@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { DiscountResponse, CouponResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { formatRuleDescription } from "@/utils/pass.description";
 
 type DiscountTab = 'pass' | 'coupon';
 
@@ -84,7 +85,13 @@ export const DiscountSection = ({
                         <div className={`text-[12px] mt-1.5 ${disabled ? 'text-[#BBB]' : 'text-[#888]'}`}>
                           {disabled
                             ? getLocaleString({ locale, key: 'discount_pass_disabled_by_coupon' })
-                            : (discount.description ?? `${getLocaleString({ locale, key: 'discount_pass_benefit_prefix' })} ${fmt(discount.amount)}${won} ${getLocaleString({ locale, key: 'discount_pass_benefit_suffix' })}`)}
+                            : discount.passRule
+                              ? formatRuleDescription({
+                                  target: { type: discount.passRule.targetType, label: discount.passRule.targetLabel },
+                                  benefit: { type: discount.passRule.benefitType, value: discount.passRule.benefitValue },
+                                  excludes: discount.passRule.excludes,
+                                }, locale)
+                              : (discount.description ?? `${getLocaleString({ locale, key: 'discount_pass_benefit_prefix' })} ${fmt(discount.amount)}${won} ${getLocaleString({ locale, key: 'discount_pass_benefit_suffix' })}`)}
                         </div>
                       </div>
                     );

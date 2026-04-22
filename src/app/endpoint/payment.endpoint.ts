@@ -13,6 +13,22 @@ export type GetPaymentRequest = {
   date?: string
 }
 
+export type DiscountPassRule = {
+  id: number;
+  status: string;
+  startDate: string;
+  endDate: string;
+  remainingCount?: number | null;
+  usageCount: number;
+  targetType: string;
+  targetValue?: string | null;
+  targetLabel?: string | null;
+  benefitType: string;
+  benefitValue?: number | null;
+  excludes?: { type: string; value?: string | null; label?: string | null }[];
+  usable?: boolean;
+}
+
 export type DiscountResponse = {
   key: string;
   value: string;
@@ -20,6 +36,7 @@ export type DiscountResponse = {
   type: string;
   itemId: number;
   description?: string;
+  passRule?: DiscountPassRule;
 }
 
 export type CouponResponse = {
