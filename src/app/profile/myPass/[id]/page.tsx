@@ -122,12 +122,6 @@ export default async function MyPassDetailPage({params}: {
               <span className="text-[13px] text-[#86898C]">{await translate('pass_period')}</span>
               <span className="text-[15px] font-bold text-black">{pass.startDate} ~ {pass.endDate}</span>
             </div>
-            {pass.remainingCount != null && pass.remainingCount >= 0 && (
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-[13px] text-[#86898C]">{await translate('remaining_usage')}</span>
-                <span className="text-[15px] font-bold text-[#5B5FF6]">{pass.remainingCount}{await translate('remaining_count')}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -164,7 +158,7 @@ export default async function MyPassDetailPage({params}: {
                 const hasDiffPeriod = rule.startDate !== pass.startDate || rule.endDate !== pass.endDate;
                 return (
                   <div key={rule.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
-                    <div className="flex items-center gap-3 mb-2.5">
+                    <div className="flex items-start gap-3 mb-2.5">
                       <div className="flex-shrink-0">
                         {ruleBenefitIcon(rule.benefitType)}
                       </div>
@@ -219,7 +213,7 @@ export default async function MyPassDetailPage({params}: {
               const hasDiffPeriod = feature.startDate !== pass.startDate || feature.endDate !== pass.endDate;
               return (
                 <div key={feature.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
-                  <div className="flex items-center gap-3 mb-2.5">
+                  <div className="flex items-start gap-3 mb-2.5">
                     <div className="flex-shrink-0">
                       {featureIcon(feature.featureKey)}
                     </div>
