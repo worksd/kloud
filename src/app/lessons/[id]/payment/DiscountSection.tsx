@@ -14,12 +14,16 @@ export const DiscountSection = ({
   coupons,
   selectedCoupon,
   onSelectCoupon,
+  selectedDiscount,
+  onSelectDiscount,
 }: {
   locale: Locale,
   discounts?: DiscountResponse[],
   coupons?: CouponResponse[],
   selectedCoupon?: CouponResponse,
   onSelectCoupon: (coupon: CouponResponse | undefined) => void,
+  selectedDiscount?: DiscountResponse,
+  onSelectDiscount: (discount: DiscountResponse | undefined) => void,
 }) => {
   const [selectedTab, setSelectedTab] = useState<DiscountTab | null>(null);
 
@@ -68,30 +72,35 @@ export const DiscountSection = ({
               {discounts && discounts.length > 0 ? (
                 <div className="flex flex-col gap-2 mt-3">
                   {discounts.map((discount, index) => {
-                    const disabled = !!selectedCoupon && discount.type === 'Pass';
+                    const isSelected = selectedDiscount?.key === discount.key && selectedDiscount?.itemId === discount.itemId;
                     return (
                       <div
                         key={index}
-                        className={`rounded-xl px-4 py-3.5 border border-[#E8E8E8] transition-opacity duration-200 ${disabled ? 'bg-[#F5F5F5] opacity-50' : 'bg-white'}`}
+                        onClick={() => {
+                          onSelectDiscount(isSelected ? undefined : discount);
+                          if (!isSelected) onSelectCoupon(undefined);
+                        }}
+                        className={`rounded-xl px-4 py-3.5 transition-all duration-200 select-none cursor-pointer active:scale-[0.98]
+                          ${isSelected
+                            ? 'border-[1.5px] border-black bg-black text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
+                            : 'border border-[#E8E8E8] bg-white text-black'}`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className={`text-[14px] font-semibold ${disabled ? 'text-[#999] line-through' : 'text-black'}`}>
+                          <div className={`text-[14px] font-semibold ${isSelected ? 'text-white' : 'text-black'}`}>
                             {discount.key}
                           </div>
-                          <div className={`text-[14px] font-bold ${disabled ? 'text-[#CCC] line-through' : 'text-[#FF3B30]'}`}>
+                          <div className={`text-[14px] font-bold ${isSelected ? 'text-white' : 'text-[#FF3B30]'}`}>
                             -{fmt(discount.amount)}{won}
                           </div>
                         </div>
-                        <div className={`text-[12px] mt-1.5 ${disabled ? 'text-[#BBB]' : 'text-[#888]'}`}>
-                          {disabled
-                            ? getLocaleString({ locale, key: 'discount_pass_disabled_by_coupon' })
-                            : discount.passRule
-                              ? formatRuleDescription({
-                                  target: { type: discount.passRule.targetType, label: discount.passRule.targetLabel },
-                                  benefit: { type: discount.passRule.benefitType, value: discount.passRule.benefitValue },
-                                  excludes: discount.passRule.excludes,
-                                }, locale)
-                              : (discount.description ?? `${getLocaleString({ locale, key: 'discount_pass_benefit_prefix' })} ${fmt(discount.amount)}${won} ${getLocaleString({ locale, key: 'discount_pass_benefit_suffix' })}`)}
+                        <div className={`text-[12px] mt-1.5 ${isSelected ? 'text-white/60' : 'text-[#888]'}`}>
+                          {discount.passRule
+                            ? formatRuleDescription({
+                                target: { type: discount.passRule.targetType, label: discount.passRule.targetLabel },
+                                benefit: { type: discount.passRule.benefitType, value: discount.passRule.benefitValue },
+                                excludes: discount.passRule.excludes,
+                              }, locale)
+                            : (discount.description ?? `${getLocaleString({ locale, key: 'discount_pass_benefit_prefix' })} ${fmt(discount.amount)}${won} ${getLocaleString({ locale, key: 'discount_pass_benefit_suffix' })}`)}
                         </div>
                       </div>
                     );
@@ -143,7 +152,10 @@ export const DiscountSection = ({
                     return (
                       <div
                         key={coupon.id}
-                        onClick={() => onSelectCoupon(isSelected ? undefined : coupon)}
+                        onClick={() => {
+                          onSelectCoupon(isSelected ? undefined : coupon);
+                          if (!isSelected) onSelectDiscount(undefined);
+                        }}
                         className={`rounded-xl px-4 py-3.5 transition-all duration-200 select-none cursor-pointer active:scale-[0.98]
                           ${isSelected
                             ? 'border-[1.5px] border-black bg-black text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]'

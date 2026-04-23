@@ -149,6 +149,7 @@ export const UnifiedPaymentInfo = ({
   const [depositor, setDepositor] = useState(beforeDepositor);
   const [mounted, setMounted] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
+  const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(undefined);
 
   const handleSelectMethod = (method: PaymentMethodType) => {
     setSelectedMethod(method);
@@ -176,20 +177,21 @@ export const UnifiedPaymentInfo = ({
   const itemPrice = getItemPrice(payment, type);
   const priceNotAvailable = payment.price == null && payment.methods.length === 0;
 
-  // 쿠폰 선택 시 Pass 타입 할인 제외, 쿠폰 할인 적용
-  const activeDiscounts = (() => {
+  // 할인은 하나만 선택 가능 (패스 할인 or 쿠폰)
+  const activeDiscounts: DiscountResponse[] | undefined = (() => {
     if (selectedCoupon) {
-      const couponDiscount: DiscountResponse = {
+      return [{
         key: selectedCoupon.name,
         value: String(selectedCoupon.discountAmount),
         amount: selectedCoupon.discountAmount,
         type: 'Coupon',
         itemId: selectedCoupon.id,
-      };
-      const nonPassDiscounts = (payment.discounts ?? []).filter(d => d.type !== 'Pass');
-      return [...nonPassDiscounts, couponDiscount];
+      }];
     }
-    return payment.discounts;
+    if (selectedDiscount) {
+      return [selectedDiscount];
+    }
+    return undefined;
   })();
 
   const totalDiscount = (activeDiscounts ?? []).reduce((sum, d) => sum + d.amount, 0);
@@ -246,6 +248,8 @@ export const UnifiedPaymentInfo = ({
             coupons={payment.coupons}
             selectedCoupon={selectedCoupon}
             onSelectCoupon={setSelectedCoupon}
+            selectedDiscount={selectedDiscount}
+            onSelectDiscount={setSelectedDiscount}
           />
           <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
         </>
@@ -312,7 +316,7 @@ export const UnifiedPaymentInfo = ({
           disabled={
             priceNotAvailable ||
             (type === 'practice-room' && !practiceRoomInfo) ||
-            (paymentMethods.length > 0 && (
+            (totalPrice > 0 && paymentMethods.length > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
