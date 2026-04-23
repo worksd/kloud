@@ -71,11 +71,6 @@ const SelectablePassItem = ({pass, isSelected, onSelect, locale}: {
           <div className={`text-[15px] font-bold ${disabled ? 'text-[#BDBDBD]' : isSelected ? 'text-white' : 'text-black'}`}>
             {pass.passPlan?.name}
           </div>
-          {pass.remainingCount != null && (
-            <div className={`text-[12px] font-medium ${disabled ? 'text-[#CFCFCF]' : isSelected ? 'text-white/60' : 'text-[#999]'}`}>
-              {pass.remainingCount}{getLocaleString({locale, key: 'remaining_count'})}
-            </div>
-          )}
           {disabled && disabledReason && (
             <div className="text-[11px] font-medium text-[#E55B5B] mt-0.5">
               {disabledReason}

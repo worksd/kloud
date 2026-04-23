@@ -153,7 +153,6 @@ export type GetPassResponse = {
   tickets?: TicketResponse[]
   passRules?: PassRuleResponse[]
   passFeatures?: PassFeatureResponse[]
-  remainingCount?: number
   usable: boolean
   reason?: string
   qrcodeUrl?: string

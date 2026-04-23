@@ -74,11 +74,6 @@ export const ActivePassItem = ({pass, locale}: { pass: GetPassResponse, locale: 
           {isPremium && <PremiumTierIcon/>}
           {pass.status === 'Active' && (
             <div className="flex items-center gap-1.5">
-              {pass.remainingCount != null && (
-                <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full font-paperlogy">
-                  {pass.remainingCount}{getLocaleString({locale, key: 'remaining_count'})}
-                </span>
-              )}
               <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full font-paperlogy">
                 <DdayText input={pass.endDate}/>
               </span>
