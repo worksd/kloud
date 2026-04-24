@@ -90,7 +90,7 @@ export const RefundAccountEditForm = ({
             {/* 아이콘 박스 */}
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white">
               {selectedBankCode ? (
-                <BankOrCardIcon name={selectedBankCode} scale={50}/>
+                <BankOrCardIcon name={selectedBankCode} size={24}/>
               ) : (
                 // 기본(플레이스홀더) 아이콘
                 <svg

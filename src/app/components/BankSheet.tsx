@@ -100,7 +100,7 @@ export function BankSelectBottomSheet({
 
                 {/* 아이콘 */}
                 <div className="flex w-20 h-20 shrink-0 items-center justify-center">
-                  <BankOrCardIcon name={code} scale={100}/>
+                  <BankOrCardIcon name={code} size={48}/>
                 </div>
 
                 {/* 라벨 (두 줄 방지) */}

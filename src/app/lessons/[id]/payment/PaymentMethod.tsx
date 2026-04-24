@@ -347,7 +347,7 @@ export const PaymentMethodComponent = ({
                         >
                           <div className="flex items-center gap-2">
                             {selectedBankCode && selectedBankCode !== 'other' ? (
-                              <BankOrCardIcon name={selectedBankCode} scale={50}/>
+                              <BankOrCardIcon name={selectedBankCode} size={20}/>
                             ) : (
                               <div className="w-5 h-5 rounded bg-[#EEEFF0]" />
                             )}
@@ -428,7 +428,7 @@ export const PaymentMethodComponent = ({
                         onClick={() => setEditingRefund(true)}
                       >
                         {refundBank && (
-                          <BankOrCardIcon name={refundBank} scale={100}/>
+                          <BankOrCardIcon name={refundBank} size={24}/>
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="text-[13px] font-semibold text-black truncate">

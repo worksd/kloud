@@ -87,15 +87,12 @@ export function pickBankKey(raw: string): BankCode | undefined {
   return undefined;
 }
 
-export const BankOrCardIcon = ({ name, scale }: { name: string, scale: number }) => {
+export const BankOrCardIcon = ({ name, size = 20 }: { name: string, size?: number }) => {
   const key = pickBankKey(name);
   const SelectedIcon = key ? BANK_ICONS[key] : undefined;
 
   if (SelectedIcon) {
-    return <SelectedIcon className={`scale-${scale}`} />
+    return <SelectedIcon style={{ width: size, height: 'auto', flexShrink: 0 }} />
   }
-  // 기본 아이콘(없을 때)
-  return (
-    <div/>
-  );
+  return <div style={{ width: size, flexShrink: 0 }}/>;
 };
