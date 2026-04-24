@@ -50,7 +50,7 @@ export const DeveloperForm = () => {
   );
 
   const [selectedServer, setSelectedServer] = useState<ServerConfig>(defaultSelected);
-  const [customUrl, setCustomUrl] = useState<string>(''); // 개발 기본 예시
+  const [customUrl, setCustomUrl] = useState<string>('');
   const [error, setError] = useState<string>('');
 
   // 선택 항목 렌더
