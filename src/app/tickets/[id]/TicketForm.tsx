@@ -61,7 +61,18 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   const handleCopyPaymentId = async () => {
     try {
-      await navigator.clipboard.writeText(ticket.paymentId);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(ticket.paymentId);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = ticket.paymentId;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -277,9 +288,6 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         >
           <Copy className="w-3 h-3 flex-shrink-0" />
           <span className={'font-paperlogy'}>{ticket.paymentId}</span>
-          {copied && (
-            <span className="text-[10px] text-white/50 ml-1">복사됨</span>
-          )}
         </button>
 
         {/* 수업 정보 */}
@@ -611,37 +619,76 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
           <TicketUsageSSEPage ticketId={ticket.id} endpoint={endpoint} />
         )}
 
+        {/* 복사 토스트 */}
+        {copied && (
+          <div className="fixed bottom-24 left-0 right-0 z-50 flex justify-center">
+            <div
+              className="bg-black/80 text-white text-[14px] font-medium px-5 py-2.5 rounded-full backdrop-blur-sm shadow-lg"
+              style={{ animation: 'toastSlideUp 300ms ease-out' }}
+            >
+              {getLocaleString({locale, key: 'copy_complete'})}
+            </div>
+            <style>{`
+              @keyframes toastSlideUp {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+            `}</style>
+          </div>
+        )}
+
         {/* QR 코드 확대 다이얼로그 */}
         {showQrDialog && qrCodeUrl && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-            onClick={() => setShowQrDialog(false)}
-          >
-            <div
-              className="bg-white rounded-[20px] p-6 flex flex-col items-center gap-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <QRCodeCanvas
-                value={qrCodeUrl}
-                size={280}
-              />
-              <div className="flex flex-col gap-1">
-                <p className="text-[14px] text-gray-500 text-center">
-                  {getLocaleString({locale, key: 'scan_qr_code'})}
-                </p>
-                <p className="text-[11px] text-gray-400 text-center">
-                  {getLocaleString({locale, key: 'qr_capture_warning'})}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowQrDialog(false)}
-                className="w-full py-3 bg-black text-white rounded-[12px] font-medium"
-              >
-                닫기
-              </button>
-            </div>
-          </div>
+          <QrExpandDialog
+            qrCodeUrl={qrCodeUrl}
+            locale={locale}
+            onClose={() => setShowQrDialog(false)}
+          />
         )}
       </div>
   );
 }
+
+const QrExpandDialog = ({ qrCodeUrl, locale, onClose }: { qrCodeUrl: string; locale: Locale; onClose: () => void }) => {
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(onClose, 200);
+  };
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center ${closing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}
+      style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
+      onClick={handleClose}
+    >
+      <div
+        className={`bg-white rounded-[20px] p-6 flex flex-col items-center gap-4 ${closing ? 'animate-[scaleOut_200ms_ease-in_forwards]' : 'animate-[scaleIn_200ms_ease-out]'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <QRCodeCanvas value={qrCodeUrl} size={280} />
+        <div className="flex flex-col gap-1">
+          <p className="text-[14px] text-black text-center font-bold">
+            {getLocaleString({locale, key: 'scan_qr_code'})}
+          </p>
+          <p className="text-[11px] text-gray-400 text-center">
+            {getLocaleString({locale, key: 'qr_capture_warning'})}
+          </p>
+        </div>
+        <button
+          onClick={handleClose}
+          className="w-full py-3 bg-black text-white rounded-[12px] font-medium"
+        >
+          {getLocaleString({locale, key: 'confirm'})}
+        </button>
+      </div>
+      <style jsx>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes scaleOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+      `}</style>
+    </div>
+  );
+};

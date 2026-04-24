@@ -3,13 +3,15 @@
 import { api } from "@/app/api.client";
 
 export const getPaymentAction = async ({
-  type,
+  item,
   id,
-  targetUserId
+  targetUserId,
+  date,
 }: {
-  type: 'lesson' | 'pass-plan' | 'lesson-group'
+  item: string
   id: number
   targetUserId?: number
+  date?: string
 }) => {
-  return await api.payment.get({ item: type, itemId: id, targetUserId })
+  return await api.payment.get({ item, itemId: id, targetUserId, date })
 }

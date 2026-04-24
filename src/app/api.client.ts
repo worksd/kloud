@@ -92,7 +92,7 @@ export class ApiClient extends EndpointClient {
 
   readonly payment = {
     get: this.endpointBuilder(API.Payment.GetPayment),
-    createByBillingKey: this.endpointBuilder(API.Payment.CreateBillingKeyPayment),
+    billingKey: this.endpointBuilder(API.Payment.CreateBillingKeyPayment),
   }
 
   readonly paymentRecord = {
@@ -141,6 +141,16 @@ export class ApiClient extends EndpointClient {
 
   readonly student = {
     create: this.endpointBuilder(API.Student.CreateStudent),
+  }
+
+  readonly studioRoom = {
+    list: this.endpointBuilder(API.StudioRoom.ListStudioRooms),
+    getAvailability: this.endpointBuilder(API.StudioRoom.GetRoomAvailability),
+  }
+
+  readonly roomBooking = {
+    get: this.endpointBuilder(API.RoomBooking.GetRoomBooking),
+    delete: this.endpointBuilder(API.RoomBooking.DeleteRoomBooking),
   }
 }
 

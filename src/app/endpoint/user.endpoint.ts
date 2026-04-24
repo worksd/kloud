@@ -44,9 +44,40 @@ export type GetUserResponse = {
   ticketCount?: number
   paymentRecordCount?: number
   passCount?: number
+  gender?: 'male' | 'female'
   parentPhone?: string
   parentCountryCode?: string
   parentName?: string
+}
+
+export type MyBookingResponse = {
+  id: number;
+  studioRoomId: number;
+  type: string;
+  startDate: string;
+  endDate: string;
+  price: number;
+  studioRoom?: {
+    id: number;
+    name: string;
+    imageUrls?: string[];
+  };
+}
+
+export type MyPassResponse = {
+  id: number;
+  startDate: any;
+  endDate: any;
+  status: string;
+  passPlan?: {
+    id: number;
+    name: string;
+    price: number;
+    unitPrice: number;
+    imageUrl?: string;
+    isRecommended: boolean;
+    expireDateStamp?: string;
+  };
 }
 
 export type GetMeResponse = {
@@ -64,6 +95,8 @@ export type GetMeResponse = {
   ticketCount?: number
   paymentRecordCount?: number
   passCount?: number
+  myBookings?: MyBookingResponse[]
+  myPasses?: MyPassResponse[]
 }
 
 export type GetAnnouncementResponse = {

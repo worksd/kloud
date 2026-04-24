@@ -1,25 +1,24 @@
 'use server'
 import { KloudScreen } from "@/shared/kloud.screen";
 import { Thumbnail } from "@/app/components/Thumbnail";
-import Image from "next/image";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export async function RecommendPoster({
                                         id,
                                         posterUrl,
-                                        studioLogoUrl,
                                         date,
                                         title,
-                                        width = 240,
+                                        width = 160,
                                         type,
+                                        label,
                                       }: {
   id: number,
   posterUrl: string,
-  studioLogoUrl?: string,
   date: string,
   title?: string,
   width?: number,
   type?: 'default' | 'subscription',
+  label?: { dday?: string },
 }) {
   const route = type === 'subscription'
     ? KloudScreen.LessonGroupDetail(id)
@@ -28,37 +27,34 @@ export async function RecommendPoster({
   return (
     <NavigateClickWrapper method="push" route={route}>
       <div
-        className="flex flex-col active:scale-[0.98] transition-transform duration-150"
+        className="flex flex-col gap-2 active:scale-[0.98] transition-transform duration-150"
         style={{width: `${width}px`}}
       >
-        <div className="relative overflow-hidden rounded-lg">
+        {/* 이미지 */}
+        <div className="relative overflow-hidden rounded-xl">
           <Thumbnail
             className="relative z-0 object-cover w-full"
             width={width}
             url={posterUrl}
-            aspectRatio={120 / 222}
+            aspectRatio={160 / 284}
           />
 
-          {/* 타이틀 오버레이 */}
-          <div
-            className="absolute bottom-0 left-0 w-full rounded-[16px] h-[100px] bg-gradient-to-t from-black/70 to-transparent px-2 py-2 z-10 flex items-end"
-          >
-            <div className="text-white text-[18px] font-bold line-clamp-2">
-              {title}
+          {/* D-day 뱃지 — 우측 하단 */}
+          {label?.dday && (
+            <div className="absolute bottom-2 right-2 z-10 bg-black/60 rounded-xl px-2 py-1">
+              <span className="text-white text-[12px] font-medium">{label.dday}</span>
             </div>
+          )}
+        </div>
+
+        {/* 텍스트 영역 */}
+        <div className="flex flex-col gap-1 px-1">
+          <div className="text-black text-[14px] font-bold leading-[150%] line-clamp-2">
+            {title}
           </div>
-
-
-          {/* 스튜디오 로고 */}
-          {studioLogoUrl && (
-            <div className="absolute top-2 left-2 bg-white p-[2px] rounded-full shadow">
-              <Image
-                src={studioLogoUrl}
-                alt="로고 URL"
-                width={24}
-                height={24}
-                className="w-[24px] h-[24px] rounded-full"
-              />
+          {date && (
+            <div className="text-[#6D7882] text-[12px] font-medium leading-[150%]">
+              {date}
             </div>
           )}
         </div>

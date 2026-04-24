@@ -41,7 +41,7 @@ export const RefundAccountEditForm = ({
 
   // ✅ 상태: 은행 선택 바텀시트
   const [isBankSheetOpen, setIsBankSheetOpen] = useState(false);
-  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
     () => pickBankKey(initialAccountBank ?? '')
   );
   const handleClickSubmit = async () => {
@@ -90,7 +90,7 @@ export const RefundAccountEditForm = ({
             {/* 아이콘 박스 */}
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white">
               {selectedBankCode ? (
-                <BankOrCardIcon name={selectedBankCode} scale={50}/>
+                <BankOrCardIcon name={selectedBankCode} size={24}/>
               ) : (
                 // 기본(플레이스홀더) 아이콘
                 <svg

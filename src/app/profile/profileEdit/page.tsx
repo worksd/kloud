@@ -1,7 +1,7 @@
 import React from "react";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { ProfileEditForm } from "@/app/onboarding/ProfileEditForm";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
 
 export default async function ProfileEditPage() {
   const user = await getUserAction();
@@ -25,6 +25,12 @@ export default async function ProfileEditPage() {
           refundAccountNumberText={await translate('refund_account_number')}
           refundAccountDepositorText={await translate('refund_account_depositor')}
           refundAccountSectionText={await translate('refund_account')}
+          phoneText={await translate('cellphone_number')}
+          birthText={await translate('real_birthday')}
+          genderText={await translate('sex')}
+          maleText={await translate('man')}
+          femaleText={await translate('woman')}
+          locale={await getLocale()}
         />
       </div>
     )

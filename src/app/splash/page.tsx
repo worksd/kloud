@@ -1,8 +1,10 @@
 import { SplashScreen } from "@/app/splash/splash.screen";
 
-export default async function Splash({searchParams}: { searchParams: Promise<{ os: string }> }) {
-  const {os} = await searchParams
+export default async function Splash({searchParams}: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams;
+  console.log('[Splash] searchParams:', JSON.stringify(params));
+  const { os = '', link } = params;
   return (
-    <SplashScreen os={os}/>
+    <SplashScreen os={os} link={link}/>
   );
 }

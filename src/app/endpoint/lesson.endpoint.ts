@@ -34,6 +34,7 @@ export type GetLessonResponse = {
     days?: string;
     description?: string;
     genre?: string;
+    tag?: string;
     formattedDate?: GetFormattedDateResponse;
     isAdmin?: boolean;
 };
@@ -60,18 +61,20 @@ export type GetStudioRoomResponse = {
 };
 export type LessonListResponse = {
     lessons: GetBandLessonResponse[]
+    totalPage: number
 }
 
 export type GetStudioLessonParameter = {
     studioId: number;
-    page: number;
-    all: boolean;
+    page?: number;
 }
 
 export type GetStudioLessonsByDateParameter = {
     studioId: number;
-    date: string;
-    isAdmin: boolean;
+    date?: string;
+    startDate?: string;
+    endDate?: string;
+    isAdmin?: boolean;
 }
 
 export type GetBandResponse = {
@@ -98,6 +101,7 @@ export type GetBandLessonResponse = {
     startDate?: string; // yyyy-MM-dd HH:mm 형식
     startTime?: string; // HH:mm 형식
     artist?: GetArtistResponse;
+    artists?: GetArtistResponse[];
 }
 
 export type GetLabelResponse = {
@@ -128,13 +132,13 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
 export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons/ongoing`,
-    queryParams: ['studioId', 'all']
+    queryParams: ['studioId', 'page']
 }
 
 export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, GetLessonListResponse> = {
     method: 'get',
     path: `/lessons`,
-    queryParams: ['studioId', 'date', 'isAdmin']
+    queryParams: ['studioId', 'date', 'startDate', 'endDate', 'isAdmin']
 }
 
 export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {

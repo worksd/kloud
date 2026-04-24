@@ -7,29 +7,35 @@ import React from "react";
 import { UnifiedPaymentInfo } from "@/app/payment/UnifiedPaymentInfo";
 import { CircleImage } from "@/app/components/CircleImage";
 import { getLocale, translate } from "@/utils/translate";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
+import { BackButton } from "@/app/payment/BackButton";
+import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
+import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
-    type: PaymentPageType
+    type?: PaymentPageType
+    item?: PaymentPageType
     id: string
     os?: string
     appVersion?: string
     targetUserId?: string
+    date?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, id, appVersion = '', targetUserId } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, date } = params;
+  const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
 
   const res = await getPaymentAction({
-    type,
+    item: paymentItem,
     id: itemId,
-    targetUserId: parsedTargetUserId
+    targetUserId: parsedTargetUserId,
+    date: paymentItem === 'practice-room' ? date : undefined,
   });
 
   const cookieValue = (await cookies()).get(userIdKey)?.value;
@@ -43,18 +49,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const isProxyPayment = !!(actualPayerUserId && res.user.id !== actualPayerUserId);
 
   // 타입별로 데이터가 없는 경우 체크
-  if (type === 'lesson' && !res.lesson) {
-    return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
+  if (paymentItem === 'lesson' && !res.lesson) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
-  if (type === 'lesson-group' && !res.lessonGroup) {
-    return <div className="flex items-center justify-center p-4 text-black">예약 중인 수업이 아닙니다.</div>
+  if (paymentItem === 'lesson-group' && !res.lessonGroup) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
-  if (type === 'pass-plan' && !res.passPlan) {
-    return <div className="flex items-center justify-center p-4 text-black">패스권 정보를 찾을 수 없습니다.</div>
+  if (paymentItem === 'pass-plan' && !res.passPlan) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
 
   const getItemInfo = () => {
-    switch (type) {
+    switch (paymentItem) {
       case 'lesson':
         return {
           thumbnailUrl: res.lesson?.thumbnailUrl,
@@ -76,89 +82,152 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           studioName: res.passPlan?.studio?.name,
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
         };
+      default:
+        return {
+          thumbnailUrl: undefined,
+          title: undefined,
+          studioName: undefined,
+          studioImageUrl: undefined,
+        };
     }
   };
 
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
+  const timeText = await translate('time');
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto scrollbar-hide">
-      {/* 공통 헤더: back arrow + 결제하기 */}
-      {appVersion === '' && (
-        <div className="mb-2">
-          <SimpleHeader titleResource={'payment'} />
-        </div>
-      )}
-
+    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
       <div className="flex flex-col">
-        {/* 공통 상단: 상품 정보 */}
-        <div className="flex gap-4 w-full px-6 items-center">
-          {type === 'pass-plan' ? (
-            <div className="w-[56px] h-[56px] rounded-2xl bg-[#F3F3F4] flex items-center justify-center flex-shrink-0">
-              <TicketIcon className="w-6 h-6" />
-            </div>
-          ) : (
-            <Thumbnail url={thumbnailUrl ?? ''} width={86} className="rounded-lg flex-shrink-0" />
-          )}
+        {appVersion === '' && (
+          <BackButton />
+        )}
+        {/* lesson / lesson-group */}
+        {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
+          <div className="px-5 pt-4 pb-3">
+            {paymentItem === 'lesson' && res.lesson?.tag && (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F0EDFF] mb-3">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path d="M7.58 1.17L12.83 6.42C13.07 6.66 13.07 7.05 12.83 7.29L7.29 12.83C7.05 13.07 6.66 13.07 6.42 12.83L1.17 7.58C1.06 7.47 1 7.32 1 7.17V2C1 1.45 1.45 1 2 1H7.17C7.32 1 7.47 1.06 7.58 1.17Z" stroke="#5B5FF6" strokeWidth="1.2" strokeLinejoin="round"/>
+                  <circle cx="4" cy="4" r="1" fill="#5B5FF6"/>
+                </svg>
+                <span className="text-[11px] font-bold text-[#5B5FF6]">{(await translate('exclusive_lesson_notice')).replace('{tag}', res.lesson.tag!)}</span>
+              </div>
+            )}
+            <div className="flex gap-4">
+              {/* 썸네일 9:16 */}
+              <div className="relative w-[120px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#F1F3F6] flex-shrink-0">
+                {thumbnailUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={thumbnailUrl}
+                    alt={title ?? ''}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
 
-          <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-base font-bold text-left text-[#131517] break-words">{title}</p>
-            <div className="flex items-top gap-2">
-              {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
-              <div className="flex flex-col items-start">
-                <span className="font-medium text-[14px] text-[#86898c]">
-                  {studioName}
-                </span>
-                {type === 'lesson' && res.lesson?.room?.name && (
-                  <span className="font-medium text-[12px] text-[#86898C]">
-                    {res.lesson.room.name}
-                  </span>
+              {/* 메타 정보 */}
+              <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
+                <p className="text-[18px] font-bold text-black leading-snug break-words line-clamp-2">{title}</p>
+                <div className="flex items-center gap-2">
+                  {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
+                  <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
+                </div>
+                {paymentItem === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <rect x="1.5" y="2.5" width="11" height="9.5" rx="1.5" stroke="#999" strokeWidth="1.1"/>
+                        <path d="M1.5 5.5H12.5" stroke="#999" strokeWidth="1.1"/>
+                        <path d="M4.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
+                        <path d="M9.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
+                      </svg>
+                      <span className="text-[13px] font-medium text-[#666]">
+                        {res.lesson?.formattedDate
+                          ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
+                          : res.lesson?.date}
+                      </span>
+                    </div>
+                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration) && (
+                      <div className="flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <circle cx="7" cy="7" r="5.5" stroke="#999" strokeWidth="1.1"/>
+                          <path d="M7 4V7L9 9" stroke="#999" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-[13px] font-medium text-[#666]">
+                          {res.lesson?.formattedDate
+                            ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
+                            : `${res.lesson?.duration}${await translate('minutes')}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
+                  <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
                 )}
               </div>
             </div>
+          </div>
+        )}
 
-            {type === 'lesson' && res.lesson?.formattedDate && (
-              <p className="text-[#86898C] text-[13px] font-medium">
-                {res.lesson.formattedDate.date}
-                {res.lesson.formattedDate.weekday && ` (${res.lesson.formattedDate.weekday})`}
-                {' '}
-                {res.lesson.formattedDate.startTime} - {res.lesson.formattedDate.endTime}
-              </p>
-            )}
-
-            {type === 'lesson' && !res.lesson?.formattedDate && res.lesson?.date && (
-              <p className="text-[#86898C] text-[13px] font-medium">
-                {res.lesson.date}{res.lesson.duration ? ` · ${res.lesson.duration}${await translate('minutes')}` : ''}
-              </p>
-            )}
-
-            {type === 'lesson-group' && res.lessonGroup?.description && (
-              <p className="text-[#86898C] text-[14px] font-medium">{res.lessonGroup.description}</p>
-            )}
-
-            {type === 'pass-plan' && res.passPlan && (
-              <div className="text-[13px] text-[#86898C] font-medium">
-                {res.passPlan.type === 'Unlimited' && <span>모든 클래스 무제한 이용 가능</span>}
-                {res.passPlan.type === 'Count' && <span>클래스 {res.passPlan.usageLimit}회 이용 가능</span>}
+        {/* pass-plan */}
+        {paymentItem === 'pass-plan' && res.passPlan && (
+          <div className="px-5 pt-4 pb-3">
+            {/* 이미지 */}
+            {res.passPlan.imageUrl && (
+              <div className="w-full aspect-[2/1] rounded-2xl overflow-hidden bg-[#F1F3F6] mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={res.passPlan.imageUrl} alt={title ?? ''} className="w-full h-full object-cover" />
               </div>
             )}
+
+            {/* 헤더 */}
+            <div className="flex items-center gap-2.5 mb-3">
+              {studioImageUrl && <CircleImage size={24} imageUrl={studioImageUrl} />}
+              <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
+            </div>
+            <p className="text-[20px] font-bold text-black mb-1">{title}</p>
+            {res.passPlan.expireDateStamp && (
+              <p className="text-[13px] text-[#86898C] font-medium mb-4">{res.passPlan.expireDateStamp}</p>
+            )}
+
+            {/* 이용 혜택 */}
+            <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />
           </div>
-        </div>
+        )}
 
-        <div className="py-5">
-          <div className="w-full h-3 bg-[#F7F8F9]" />
-        </div>
+        {paymentItem === 'practice-room' ? (
+          <PracticeRoomPaymentWrapper
+            payment={res}
+            studioRoomId={itemId}
+            url={process.env.GUINNESS_API_SERVER ?? ''}
+            appVersion={appVersion}
+            os={os}
+            beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+            locale={await getLocale()}
+            actualPayerUserId={actualPayerUserId}
+            isProxyPayment={isProxyPayment}
+          />
+        ) : (
+          <>
+            <div className="py-1">
+              <div className="w-full h-2 bg-[#F7F8F9]" />
+            </div>
 
-        <UnifiedPaymentInfo
-          type={type}
-          url={process.env.GUINNESS_API_SERVER ?? ''}
-          appVersion={appVersion}
-          payment={res}
-          beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-          locale={await getLocale()}
-          actualPayerUserId={actualPayerUserId}
-          isProxyPayment={isProxyPayment}
-        />
+            <UnifiedPaymentInfo
+              type={paymentItem}
+              url={process.env.GUINNESS_API_SERVER ?? ''}
+              appVersion={appVersion}
+              os={os}
+              payment={res}
+              beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+              locale={await getLocale()}
+              actualPayerUserId={actualPayerUserId}
+              isProxyPayment={isProxyPayment}
+            />
+          </>
+        )}
       </div>
     </div>
   );

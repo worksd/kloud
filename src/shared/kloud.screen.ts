@@ -54,12 +54,15 @@ export const KloudScreen = {
   LessonGroupTickets: '/lesson-group-tickets',
   LessonGroupTicketDetail: (id: number, isParent: boolean) => `/lesson-group-tickets/${id}?isParent=${isParent}`,
 
+  /** 연습실 */
+  StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,
+
   /** 스튜디오 */
   Studios: '/studios',
   StudioDetail: (id: number) => `/studios/${id}`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
   StudioSettingSheet: '/studios/setting/sheet',
-  HasPassStudioList: `/studios/passPlans`,
+  StudioSetting: '/profile/setting/studio',
 
   /** 정책 / 문의 / 알림 */
   Policy: '/profile/policy',

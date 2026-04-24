@@ -14,7 +14,7 @@ import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePa
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
-import { createBillingKeyPaymentAction } from "@/app/lessons/[id]/action/create.billing.key.payment.action";
+import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
@@ -27,6 +27,7 @@ export const PaymentTypes = [
   {value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group'},
   {value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'},
   {value: 'membershipPlan', prefix: 'SM', apiValue: 'membership-plan'},
+  {value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];
@@ -47,11 +48,10 @@ type PaymentInfo = {
   pgProvider?: string
 }
 
-const pgProviderMap: Partial<Record<PaymentMethodType, string>> = {
-  naver_pay: 'NaverPay',
-  kakao_pay: 'KakaoPay',
-  ali_pay: 'AliPay',
-  wechat_pay: 'WeChatPay',
+const easyPayMethodMap: Partial<Record<PaymentMethodType, string>> = {
+  naver_pay: 'naverpay',
+  kakao_pay: 'kakaopay',
+  toss_pay: 'tosspay',
 }
 
 
@@ -71,6 +71,9 @@ export default function PaymentButton({
                                         user,
                                         actualPayerUserId,
                                         locale,
+                                        hasRefundAccount,
+                                        onBillingCardsChange,
+                                        practiceRoomInfo,
                                       }: {
   appVersion: string;
   id: number,
@@ -78,7 +81,7 @@ export default function PaymentButton({
   selectedBilling?: GetBillingResponse,
   selectedDiscounts?: DiscountResponse[],
   type: PaymentType,
-  price: number,
+  price: number | null,
   title: string,
   method?: PaymentMethodType,
   user?: GetUserResponse,
@@ -87,6 +90,9 @@ export default function PaymentButton({
   paymentId: string,
   actualPayerUserId?: number,
   locale: Locale,
+  hasRefundAccount: boolean,
+  onBillingCardsChange?: (cards: GetBillingResponse[]) => void,
+  practiceRoomInfo?: { studioRoomId: number; startDate: string; endDate: string },
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,6 +137,12 @@ export default function PaymentButton({
       return;
     }
 
+    if (type.value === 'practiceRoom' && !practiceRoomInfo) {
+      const dialog = await createDialog({ id: 'Simple', message: getLocaleString({ locale, key: 'select_time' }) });
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      return;
+    }
+
     if (price == 0) {
       setIsSubmitting(true);
       try {
@@ -139,6 +151,7 @@ export default function PaymentButton({
           item: type.apiValue,
           itemId: id,
           targetUserId: user.id,
+          discounts: selectedDiscounts,
         })
         if ('paymentId' in res) {
           const route = KloudScreen.PaymentRecordDetail(res.paymentId)
@@ -157,7 +170,7 @@ export default function PaymentButton({
       return
     }
 
-    if (method === 'credit' || method === 'naver_pay' || method === 'kakao_pay' || method === 'ali_pay' || method === 'wechat_pay') {
+    if (method === 'credit' || method === 'foreign_card' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay') {
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
@@ -170,12 +183,14 @@ export default function PaymentButton({
 
       const paymentInfo: PaymentInfo = {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? '',
+        channelKey: (method === 'foreign_card' || method === 'toss_pay')
+          ? (process.env.NEXT_PUBLIC_PORTONE_FOREIGN_CHANNEL_KEY ?? '')
+          : (process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? ''),
         paymentId,
         orderName: title,
-        price,
+        price: price ?? 0,
         userId: `${user.id}`,
-        method: method && pgProviderMap[method] ? 'EASY_PAY' : 'CARD',
+        method: method && easyPayMethodMap[method] ? easyPayMethodMap[method]! : 'CARD',
         customData: JSON.stringify({
           actualPayerUserId,
           discounts: selectedDiscounts,
@@ -183,8 +198,7 @@ export default function PaymentButton({
         userName: user.name ?? user.nickName ?? undefined,
         userPhone: user.phone ?? undefined,
         userBirth: user.birth ?? undefined,
-        locale: locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
-        pgProvider: method ? pgProviderMap[method] : undefined,
+        locale: method === 'foreign_card' ? 'EN_US' : locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
       };
 
       if (appVersion === '') {
@@ -219,8 +233,9 @@ export default function PaymentButton({
       } else {
         const dialog = await createAccountTransferMessage({
           title,
-          price,
+          price: price ?? 0,
           depositor,
+          hasRefundAccount,
         })
         if (appVersion == '' && dialog) {
           setWebDialogInfo(dialog)
@@ -229,9 +244,29 @@ export default function PaymentButton({
         }
       }
     } else if (method === 'pass') {
+      const isPracticeRoom = type.apiValue === 'practice-room';
+      if (isPracticeRoom && !practiceRoomInfo) {
+        const d = await createDialog({ id: 'Simple', message: getLocaleString({ locale, key: 'select_time' }) });
+        window.KloudEvent?.showDialog(JSON.stringify(d));
+        return;
+      }
       const dialog = await createDialog({
         id: 'UsePass',
-        message: `\n구매 패스권 : ${title}\n패스권 : ${selectedPass?.passPlan?.name}\n\n 위의 수강권을 구매하시겠습니까?`
+        title: isPracticeRoom
+          ? getLocaleString({locale, key: 'use_pass_confirm_question'})
+          : title,
+        message: isPracticeRoom
+          ? [
+              `${getLocaleString({locale, key: 'practice_room'})}: ${title}`,
+              `${getLocaleString({locale, key: 'time'})}: ${practiceRoomInfo?.startDate ?? ''} ~ ${practiceRoomInfo?.endDate ?? ''}`,
+              `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
+            ].join('\n')
+          : [
+              `${getLocaleString({locale, key: 'use_pass_confirm_lesson'})}: ${title}`,
+              `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
+              ``,
+              `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
+            ].join('\n'),
       })
       if (appVersion == '' && dialog) {
         setWebDialogInfo(dialog)
@@ -242,14 +277,12 @@ export default function PaymentButton({
       if (selectedBilling && selectedBilling.billingKey) {
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
-          title: `${title}을(를) 정기결제하시겠어요?`,
+          title: title,
           message: [
-            `해당 수업은 매월 자동으로 결제되는 정기결제 수업입니다.\n`,
-            `수업명: ${title}\n`,
-            `결제 금액: ${price.toLocaleString()}원`,
-            `결제 수단: ${selectedBilling.cardName}`,
+            `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${(price ?? 0).toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
+            `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${selectedBilling.cardName}`,
             ``,
-            `결제를 진행하시겠습니까?`
+            `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
           ].join('\n'),
           customData: selectedBilling.billingKey,
         });
@@ -261,7 +294,7 @@ export default function PaymentButton({
       }
     }
 
-  }, [id, method, depositor, selectedPass, selectedBilling]);
+  }, [id, method, depositor, selectedPass, selectedBilling, practiceRoomInfo]);
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
@@ -270,8 +303,8 @@ export default function PaymentButton({
   }, [onPaymentSuccess, selectedPass])
 
   useEffect(() => {
-    window.onErrorInvoked = async (data: { code: string }) => {
-      const dialog = await createDialog({id: 'PaymentFail'})
+    window.onErrorInvoked = async (data: { paymentId: string, message?: string }) => {
+      const dialog = await createDialog({id: 'PaymentFail', message: data.message})
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
     }
   }, [])
@@ -286,6 +319,7 @@ export default function PaymentButton({
           itemId: id,
           targetUserId: user.id,
           depositor: depositor,
+          discounts: selectedDiscounts,
         });
         if ('paymentId' in res) {
           await onPaymentSuccess({paymentId: res.paymentId, delay: 0})
@@ -294,23 +328,35 @@ export default function PaymentButton({
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
         }
-      } else if (data.id == 'UsePass' && selectedPass?.id && type.value == 'lesson') {
+      } else if (data.id == 'UsePass' && selectedPass?.id && (type.value == 'lesson' || type.value == 'practiceRoom')) {
+        if (type.value === 'practiceRoom' && !practiceRoomInfo) return;
         const res = await selectAndUsePassAction({
-          passId: selectedPass?.id,
-          lessonId: id,
+          passId: selectedPass.id,
+          lessonId: type.value === 'lesson' ? id : undefined,
+          studioRoomId: type.value === 'practiceRoom' ? practiceRoomInfo!.studioRoomId : undefined,
+          startDate: practiceRoomInfo?.startDate,
+          endDate: practiceRoomInfo?.endDate,
         });
         if ('id' in res) {
-          const pushRoute = 'id' in res ? KloudScreen.TicketDetail(res.id, false) : undefined
+          const pushRoute = KloudScreen.TicketDetail(res.id, false);
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
           } else {
             await kloudNav.navigateMain({route: pushRoute});
+          }
+        } else if (type.value === 'practiceRoom' && 'success' in res && res.success) {
+          const passRoute = KloudScreen.MyPassDetail(selectedPass.id);
+          if (appVersion == '') {
+            router.replace(passRoute)
+          } else {
+            await kloudNav.navigateMain({route: passRoute});
           }
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
+        // 구독을 직접 만들어야하니깐 유지
         if (type.value === 'lessonGroup') {
           const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
           if ('subscription' in res) {
@@ -322,11 +368,19 @@ export default function PaymentButton({
             window.KloudEvent?.showDialog(JSON.stringify(dialog));
           }
         } else {
-          const res = await createBillingKeyPaymentAction({
+          const res = await billingKeyPaymentAction({
             item: type.apiValue,
             itemId: id,
             billingKey: data.customData ?? '',
-            targetUserId: actualPayerUserId
+            paymentId,
+            targetUserId: actualPayerUserId,
+            discounts: selectedDiscounts?.map(d => ({
+              key: d.key,
+              amount: d.amount,
+              type: d.type as 'membership' | 'subscription' | 'passRule',
+              itemId: d.itemId,
+              passRuleId: d.passRule?.id,
+            })),
           })
           if ('success' in res && res.success) {
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -349,19 +403,25 @@ export default function PaymentButton({
     window.onDialogConfirm = async (data: DialogInfo) => {
       await onConfirmDialog(data)
     }
-  }, [depositor, selectedPass, isSubmitting])
+  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo])
 
 
   return (
     <div>
       <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
         <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
-          {method == 'pass'
-            ? getLocaleString({locale, key: 'use_pass'})
-            : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
-              locale,
-              key: 'won'
-            })} ${getLocaleString({locale, key: 'payment'})}`
+          {price == null
+            ? method === 'pass'
+              ? getLocaleString({locale, key: 'use_pass'})
+              : getLocaleString({locale, key: 'payment'})
+            : price === 0
+              ? `0${getLocaleString({locale, key: 'won'})} ${getLocaleString({locale, key: 'payment'})}`
+              : method == 'pass'
+                ? getLocaleString({locale, key: 'use_pass'})
+                : `${new Intl.NumberFormat("ko-KR").format(price)}${getLocaleString({
+                  locale,
+                  key: 'won'
+                })} ${getLocaleString({locale, key: 'payment'})}`
           }
         </p>
       </CommonSubmitButton>

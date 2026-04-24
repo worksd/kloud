@@ -17,6 +17,8 @@ export default async function PassPage({searchParams}: { searchParams: Promise<{
         passRefundPolicyText={await translate('pass_refund_policy')}
         purchasePassText={await translate('purchase_pass')}
         purchasePassInformationText={await translate('purchase_pass_information')}
+        selectPassPlanText={await translate('select_pass_plan')}
+        studioImageUrl={studioRes.profileImageUrl}
         locale={await getLocale()}
       />
     )

@@ -118,7 +118,9 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.Certification) ||
     route.startsWith('/membershipPlans?') ||
     route.startsWith('/qrs') ||
-    route.startsWith(KloudScreen.Kiosk)
+    route.startsWith(KloudScreen.Kiosk) ||
+    route.startsWith('/studioRooms/') ||
+    route.includes('/profile/myPass/')
 }
 
 const applyTitle = async (route: string) => {
@@ -126,8 +128,6 @@ const applyTitle = async (route: string) => {
     return ''
   } else if (route.startsWith(KloudScreen.SignUp(''))) {
     return await translate('sign_up')
-  } else if (route.startsWith(KloudScreen.HasPassStudioList)) {
-    return ''
   } else if (route.startsWith('/passPlans?studioId')) {
     return ''
   } else if (route == (KloudScreen.ProfileSetting)) {
@@ -150,6 +150,8 @@ const applyTitle = async (route: string) => {
     return await translate('service_terms_agreement')
   } else if (route == KloudScreen.ProfileEdit) {
     return await translate('edit_profile')
+  } else if (route == KloudScreen.StudioSetting) {
+    return await translate('my_ticket_studio')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
   } else if (route.startsWith('/lesson-group-tickets')) {
@@ -172,8 +174,10 @@ const applyTitle = async (route: string) => {
     return await translate('my_membership')
   } else if (route.startsWith('/tickets/')) {
     return '';
+  } else if (route.startsWith('/studioRooms/')) {
+    return ''
   } else if (route.startsWith('/payment?') || ( route.includes('/lessons/') && route.includes('/payment'))) {
-    return await translate('payment')
+    return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
   } else if (route.includes('/profile/myPass/')) {
     return '';
   }

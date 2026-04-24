@@ -38,3 +38,5 @@ export * as DynamicRoute from "./dynamic.route.endpoint"
 export * as Membership from "./membership.endpoint"
 export * as Guideline from "./guideline.endpoint"
 export * as Student from './student.endpoint'
+export * as StudioRoom from './studio.room.endpoint'
+export * as RoomBooking from './room.booking.endpoint'

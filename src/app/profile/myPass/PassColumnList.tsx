@@ -33,9 +33,6 @@ export const PassColumnList = ({
   } else {
     return (
       <div className="flex flex-col justify-center pt-36 items-center gap-4 text-center">
-        {isActivePass && <div
-          className="text-[14px] text-black font-bold border rounded-full border-black px-4 py-3 active:scale-[0.98] active:bg-gray-100 transition-transform duration-150 text-center"
-          onClick={() => kloudNav.push(KloudScreen.HasPassStudioList)}>{getLocaleString({locale, key: 'go_purchase_pass_title'})}</div>}
         <div
           className="text-[#85898C] font-medium text-[16px] text-center whitespace-pre-line">
           {isActivePass ? getLocaleString({locale, key: 'no_active_passes_message'}) : getLocaleString({locale, key: 'no_used_passes_message'})}
@@ -68,7 +65,7 @@ export const ActivePassItem = ({pass, locale}: { pass: GetPassResponse, locale: 
 
   return (
     <div
-      className={`${backgroundColor} rounded-2xl px-5 py-4 border ${borderColor} active:scale-[0.98] transition-all duration-150 select-none`}
+      className={`${backgroundColor} rounded-2xl px-5 py-4 border ${borderColor} active:bg-[#F3F4F6] active:scale-[0.98] transition-all duration-150 select-none cursor-pointer`}
       onClick={() => kloudNav.push(KloudScreen.MyPassDetail(pass.id))}
     >
       <div className="flex justify-between items-start">
@@ -77,11 +74,6 @@ export const ActivePassItem = ({pass, locale}: { pass: GetPassResponse, locale: 
           {isPremium && <PremiumTierIcon/>}
           {pass.status === 'Active' && (
             <div className="flex items-center gap-1.5">
-              {pass.remainingCount != null && (
-                <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full font-paperlogy">
-                  {pass.remainingCount}{getLocaleString({locale, key: 'remaining_count'})}
-                </span>
-              )}
               <span className="text-[11px] font-bold text-black bg-[#F1F3F6] px-2 py-0.5 rounded-full font-paperlogy">
                 <DdayText input={pass.endDate}/>
               </span>

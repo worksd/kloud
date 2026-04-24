@@ -17,6 +17,9 @@ export default async function AccountSetting({
   const { os, appVersion } = await searchParams
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
+      <NavigateClickWrapper method={'push'} route={KloudScreen.StudioSetting}>
+        <MenuItem label="my_ticket_studio"/>
+      </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>
       </NavigateClickWrapper>

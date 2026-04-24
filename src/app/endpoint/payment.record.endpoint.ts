@@ -47,7 +47,7 @@ export type RequestDiscountParameter = {
 }
 
 export type ManualPaymentMethodType = 'credit' | 'pass' | 'account_transfer' | 'admin' | 'free' | 'billing';
-export type ManualPaymentItem = 'lesson' | 'lesson-group' | 'pass-plan' | 'membership-plan';
+export type ManualPaymentItem = 'lesson' | 'lesson-group' | 'pass-plan' | 'membership-plan' | 'practice-room';
 
 export type CreateManualPaymentRecordRequest = {
   methodType: ManualPaymentMethodType;
@@ -55,6 +55,7 @@ export type CreateManualPaymentRecordRequest = {
   itemId: number;
   targetUserId: number;
   depositor?: string;
+  discounts?: DiscountResponse[];
 }
 
 export type GetPaymentRecordsParameter = {
@@ -75,7 +76,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
   path: '/paymentRecords/manual',
-  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor']
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor', 'discounts']
 }
 
 export type RefundPassResponse = {

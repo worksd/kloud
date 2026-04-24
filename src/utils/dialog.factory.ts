@@ -87,7 +87,7 @@ export async function createDialog({id, message, title, customData}: {
       id: 'PaymentFail',
       type: 'SIMPLE',
       title: await translate('payment_fail'),
-      message: message ?? await translate('payment_fail_message'),
+      message: message || await translate('payment_fail_message'),
       confirmTitle: await translate('confirm'),
     }
   } else if (id == 'UsePass') {
@@ -157,6 +157,15 @@ export async function createDialog({id, message, title, customData}: {
       title: await translate('certification_code'),
       message: await translate('certification_code_mismatch'),
       confirmTitle: await translate('confirm'),
+    }
+  } else if (id == 'CancelRoomBooking') {
+    return {
+      id: 'CancelRoomBooking',
+      type: 'YESORNO',
+      title: title ?? await translate('cancel_booking'),
+      message: message ?? await translate('cancel_booking_confirm'),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
     }
   } else if (id == 'Simple') {
     return {
@@ -265,6 +274,17 @@ export async function createDialog({id, message, title, customData}: {
       customData: customData,
     }
   }
+  else if (id == 'HomeAlert') {
+    return {
+      id: 'HomeAlert',
+      type: 'YESORNO',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      route: customData,
+    }
+  }
 }
 
 export type DialogId =
@@ -297,6 +317,8 @@ export type DialogId =
   | 'ChangePhoneNumber'
   | 'CancelTicket'
   | 'ConfirmAttendance'
+  | 'HomeAlert'
+  | 'CancelRoomBooking'
 
 type DialogType = 'YESORNO' | 'SIMPLE'
 export type DialogInfo = {
@@ -314,19 +336,25 @@ export const createAccountTransferMessage = async ({
                                                      title,
                                                      price,
                                                      depositor,
-
+                                                     hasRefundAccount,
                                                    }: {
   title: string;
   price: number;
   depositor: string;
+  hasRefundAccount: boolean;
 }): Promise<DialogInfo | undefined> => {
 
   const message = await translate('account_transfer_dialog_message')
 
-  const transformMessage = message
+  let transformMessage = message
     .replace('{title}', title)
     .replace('{price}', new Intl.NumberFormat('ko-KR').format(price))
     .replace('{depositor}', depositor);
+
+  if (!hasRefundAccount) {
+    const warning = await translate('account_transfer_no_refund_account_warning');
+    transformMessage += `\n${warning}`;
+  }
 
   return createDialog({id: 'AccountTransfer', message: transformMessage});
 };

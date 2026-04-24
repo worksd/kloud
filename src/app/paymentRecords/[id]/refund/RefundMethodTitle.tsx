@@ -25,7 +25,7 @@ export const RefundMethodTitle = ({
     number: refundPreview.refundAccountNumber ?? "",
     depositor: refundPreview.refundDepositor ?? "",
   });
-  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
       () => pickBankKey(accountInfo.bank ?? '')
   );
 
@@ -34,7 +34,7 @@ export const RefundMethodTitle = ({
     setSelectedBankCode(pickBankKey(account.bank));
   };
 
-  const handleBankSelect = (code: BankCode, label: string) => {
+  const handleBankSelect = (code: BankCode | 'other', label: string) => {
     setSelectedBankCode(code);
     setAccountInfo(prev => ({...prev, bank: label}));
     setIsBankSheetOpen(false);
@@ -44,9 +44,9 @@ export const RefundMethodTitle = ({
       <>
         <button
             onClick={() => setIsDialogOpen(true)}
-            className="flex items-center gap-1 text-[14px] font-medium text-[#191f28] active:opacity-70"
+            className="flex items-center gap-2 text-[14px] font-medium text-[#191f28] active:opacity-70"
         >
-          <EditIcon className="w-4 h-4"/>
+          <EditIcon className="w-5 h-5 flex-shrink-0"/>
           <span>
             {locale === 'ko'
                 ? '수정하기'

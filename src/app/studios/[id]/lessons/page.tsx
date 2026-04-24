@@ -1,4 +1,3 @@
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { getStudioOngoingLessons } from "@/app/studios/[id]/lessons/get.studio.lesson.list.action";
 import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
 import { notFound } from "next/navigation";
@@ -14,7 +13,7 @@ export default async function StudioLessons({params}: Props) {
     notFound();
   }
 
-  const res = await getStudioOngoingLessons({studioId: id, page: 1, all: true})
+  const res = await getStudioOngoingLessons({studioId: id});
   if ('lessons' in res) {
     return (
       <div className="flex flex-col w-full">

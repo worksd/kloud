@@ -9,7 +9,19 @@ import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export const SplashScreen = ({os}: { os: string }) => {
+const extractPath = (raw?: string): string | undefined => {
+  if (!raw) return undefined;
+  // https://staging.rawgraphy.com/lessons/1638 or staging.rawgraphy.com/lessons/1638
+  const withScheme = raw.includes('://') ? raw : `https://${raw}`;
+  try {
+    const url = new URL(withScheme);
+    return url.pathname;
+  } catch {
+    return raw.startsWith('/') ? raw : `/${raw}`;
+  }
+};
+
+export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
   useEffect(() => {
     setTimeout(async () => {
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
@@ -27,7 +39,7 @@ export const SplashScreen = ({os}: { os: string }) => {
         kloudNav.clearAndPush(KloudScreen.Onboard(''))
       }
       else if (status == UserStatus.Ready) {
-        await kloudNav.navigateMain({})
+        await kloudNav.navigateMain({ route: extractPath(link) })
       }
       else if (status == UserStatus.Deactivate) {
         kloudNav.clearAndPush(KloudScreen.LoginDeactivate)

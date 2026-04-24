@@ -1,57 +1,47 @@
 'use server'
 
 import { LessonBand } from "@/app/LessonBand";
-import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { KloudScreen } from "@/shared/kloud.screen";
-import ArrowRightIcon from "../../../public/assets/gray_right_arrow.svg"
-import { PassBand } from "@/app/studios/PassBand";
-import { getLocale, translate } from "@/utils/translate";
-import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
-import { TimeTable } from "@/app/studios/timetable/TimeTable";
-import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
+import { getLocale } from "@/utils/translate";
 import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
-import { GetMembershipResponse } from "@/app/endpoint/membership.endpoint";
 import { MembershipBand } from "@/app/home/MembershipBand";
-import EventScreen from "@/app/home/eventScreen";
+import { Jumbotron } from "@/app/home/Jumbotron";
+import { HomeBanner } from "@/app/home/HomeBanner";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
-  const hasPremiumPass = res.passes?.find((value) => value.passPlan?.tier == PassPlanTier.Premium) != null
-  const backgroundColor = hasPremiumPass ? 'bg-[#FBFBFF]' : 'bg-gray-100'
-  const borderColor =
-    hasPremiumPass ? 'border-[#E1CBFE]' : 'border-[#F1F3F6]'
+
+  // 점보트론
+  const jumbotronSource = res.jumbotrons && res.jumbotrons.length > 0
+    ? res.jumbotrons
+    : res.bands.flatMap(b => b.lessons).filter(l => l.thumbnailUrl).slice(0, 8);
+
+  const jumbotronItems = jumbotronSource.map(l => ({
+    id: l.id,
+    imageUrl: l.thumbnailUrl,
+    title: l.title,
+    artistName: (l.artists?.[0]?.name ?? l.artists?.[0]?.nickName) ?? l.artist?.nickName,
+    artistImageUrl: l.artists?.[0]?.profileImageUrl ?? l.artist?.profileImageUrl,
+  }));
+
 
   return (
-    <div className={'flex flex-col overflow-y-auto no-scrollbar pb-10'}>
-      <NavigateClickWrapper method={'showBottomSheet'} route={KloudScreen.StudioSettingSheet}>
-        <header className="flex flex-row space-x-2 p-4 bg-white items-center">
-          <h1 className="text-[18px] font-medium text-black">{await translate('my_studio')}</h1>
-          <ArrowDownIcon/>
-        </header>
-      </NavigateClickWrapper>
-      <div className={'mb-5'}>
-        <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(res.studio.id)}>
-          <div
-            className={`${backgroundColor} border ${borderColor} rounded-[16px] p-4 mx-4 shadow-sm active:scale-[0.98] active:bg-gray-100 transition-all duration-150 select-none`}>
-            <div className="flex flex-row justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <CircleImage imageUrl={res.studio.profileImageUrl} size={28}/>
-                <div className="text-lg font-bold text-black">{res.studio.name}</div>
-              </div>
-              <ArrowRightIcon/>
-            </div>
-          </div>
-        </NavigateClickWrapper>
-      </div>
+    <div className={'flex flex-col overflow-y-auto no-scrollbar pb-32'}>
+      {/* 점보트론 */}
+      {jumbotronItems.length > 0 && (
+        <Jumbotron items={jumbotronItems} />
+      )}
+
+      {/* 배너 */}
+      {res.banners && res.banners.length > 0 && (
+        <HomeBanner banners={res.banners} />
+      )}
+
       {res.membership && (
         <MembershipBand membership={res.membership} locale={await getLocale()} />
       )}
-      <TimeTableServerComponent studioId={res.studio.id} />
       {res.bands.map((value) => (
         <LessonBand
           key={value.title}
@@ -60,9 +50,6 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
           type={value.type}
         />
       ))}
-      {res.passes && res.passes.length > 0 &&
-        <PassBand title={await translate('my_pass')} passes={res.passes ?? []} locale={await getLocale()}/>
-      }
     </div>
   )
 }

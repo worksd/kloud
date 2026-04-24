@@ -33,7 +33,7 @@ export const RefundAccountEditDialog = ({
   const [refundAccountNumber, setRefundAccountNumber] = useState(initialNumber ?? "");
   const [refundAccountDepositor, setRefundAccountDepositor] = useState(initialDepositor ?? "");
   const [isBankSheetOpen, setIsBankSheetOpen] = useState(false);
-  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | undefined>(
+  const [selectedBankCode, setSelectedBankCode] = useState<BankCode | 'other' | undefined>(
     () => pickBankKey(initialBank ?? '')
   );
 
@@ -108,7 +108,7 @@ export const RefundAccountEditDialog = ({
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white">
                     {selectedBankCode ? (
-                      <BankOrCardIcon name={selectedBankCode} scale={50}/>
+                      <BankOrCardIcon name={selectedBankCode} size={24}/>
                     ) : (
                       <svg
                         viewBox="0 0 24 24"

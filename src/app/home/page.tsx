@@ -8,6 +8,17 @@ import {getHideDialogIdsAction} from "@/app/home/get.hide.dialog.ids.action";
 import EventScreen from "@/app/home/eventScreen";
 import {handleApiError} from "@/utils/handle.api.error";
 import {TokenExpiredRedirect} from "@/app/components/TokenExpiredRedirect";
+import {CircleImage} from "@/app/components/CircleImage";
+import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
+import {KloudScreen} from "@/shared/kloud.screen";
+import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
+import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
+import {HomeAlerts} from "@/app/home/HomeAlerts";
+import {cookies} from "next/headers";
+import {fcmTokenKey, studioKey} from "@/shared/cookies.key";
+import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
+import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
+import {HomeHeader} from "@/app/home/HomeHeader";
 
 export default async function Home({
                                      searchParams
@@ -17,15 +28,39 @@ export default async function Home({
   const {os} = await searchParams
   const res = await getHomeAction()
   const hideDialogIds = await getHideDialogIdsAction()
+  const cookieStore = await cookies();
+  const hasFcmToken = !!cookieStore.get(fcmTokenKey)?.value;
+  const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
   if ('studios' in res) {
-    return (
+    const studio = res.myStudio?.studio;
+    const firstThumb = res.myStudio?.jumbotrons?.[0]?.thumbnailUrl
+      ?? res.myStudio?.bands?.flatMap(b => b.lessons)?.find(l => l.thumbnailUrl)?.thumbnailUrl
+      ?? '';
+
+    const content = (
         <div>
+          <FcmTokenRequester hasFcmToken={hasFcmToken}/>
+          {!hasStudioCookie && res.myStudio?.studio?.id && (
+            <StudioCookieSetter studioId={res.myStudio.studio.id} />
+          )}
+          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
-          <div
-              className="fixed top-0 left-0 right-0 flex flex-row items-center justify-between h-16 px-6 py-2 bg-white z-10">
-            <Logo className="scale-[0.7] origin-left"/>
-          </div>
-          <div className={'mt-20'}>
+          <HomeHeader hasStudio={!!studio} os={os}>
+            {studio ? (
+              <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>
+                <div className="flex items-center gap-2.5 cursor-pointer active:opacity-70 transition-opacity">
+                  <CircleImage imageUrl={studio.profileImageUrl} size={28}/>
+                  <span className="text-[18px] font-bold text-black">{studio.name}</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 4L10 8L6 12" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              </NavigateClickWrapper>
+            ) : (
+              <Logo className="scale-[0.7] origin-left"/>
+            )}
+          </HomeHeader>
+          <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
               res.myStudio ? (
                   <MyStudioPage res={res.myStudio}/>
@@ -34,12 +69,15 @@ export default async function Home({
               )}
 
           </div>
-          <div className={'fixed bottom-4 right-4 z-10'}>
+          <div className={`fixed right-4 z-20 ${os === 'Android' ? 'bottom-1' : 'bottom-24'}`}>
             <PassPurchaseButton studioId={res.myStudio?.studio?.id}/>
           </div>
         </div>
+    );
 
-    )
+    return studio && firstThumb
+      ? <HomeAlphaBgProvider initialImage={firstThumb}>{content}</HomeAlphaBgProvider>
+      : content;
   } else {
     const result = await handleApiError(res, 'GET /home');
     if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;

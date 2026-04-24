@@ -44,9 +44,6 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
-          {label?.type &&
-            <LessonPosterTypeLabel label={label.type}/>
-          }
           {label?.isEnded == true &&
             <div
               className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">

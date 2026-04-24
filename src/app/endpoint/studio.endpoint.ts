@@ -49,6 +49,7 @@ export type GetStudioResponse = {
     timeTable?: GetTimeTableResponse;
     banners?: StudioBannerResponse[];
     youtubeContents?: YoutubeContentResponse[];
+    lessonGroups?: LessonGroupSummary[];
     day: string;
 };
 
@@ -60,13 +61,31 @@ export type YoutubeContentResponse = {
   publishedAt: string;
 };
 
+export type HomeBannerResponse = {
+  id: number;
+  imageUrl: string;
+  description: string;
+  route: string;
+}
+
+export type LessonGroupSummary = {
+  id: number;
+  title: string;
+  description: string;
+  label: { genre: string; type: string; isEnded: boolean };
+  studioImageUrl: string;
+  studioName: string;
+  thumbnailUrl: string;
+  type: string;
+}
+
 export type GetMyStudioResponse = {
   studio: GetStudioResponse;
   announcement: GetAnnouncementResponse;
-  passes: GetPassResponse[];
-  day: string;
   bands: GetBandResponse[];
-  myTodayTicket?: TicketResponse;
+  lessonGroups?: LessonGroupSummary[];
+  jumbotrons?: GetBandLessonResponse[];
+  banners?: HomeBannerResponse[];
   membership?: GetMembershipResponse;
 }
 

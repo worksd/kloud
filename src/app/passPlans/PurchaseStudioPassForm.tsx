@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { PassPlanItem } from "@/app/passPlans/PassPlanItem";
+import { RecommendedPassPlanItem } from "@/app/passPlans/RecommendedPassPlanItem";
 import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -15,6 +16,8 @@ export const PurchaseStudioPassForm = ({
                                          purchasePassInformationText,
                                          passRefundPolicyText,
                                          purchasePassText,
+                                         selectPassPlanText,
+                                         studioImageUrl,
                                          locale,
                                        }: {
   passPlans: GetPassPlanResponse[],
@@ -22,28 +25,51 @@ export const PurchaseStudioPassForm = ({
   title: string,
   purchasePassInformationText: string,
   passRefundPolicyText: string,
-  purchasePassText: string
+  purchasePassText: string,
+  selectPassPlanText: string,
+  studioImageUrl?: string,
   locale: Locale,
 }) => {
+
+  const recommendedPlans = passPlans.filter(p => p.isRecommended);
+  const otherPlans = passPlans.filter(p => !p.isRecommended);
 
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* 타이틀 */}
-      <div className="px-6 pt-6 pb-2">
-        <h1 className="text-[22px] text-black font-bold leading-tight">{title}</h1>
+      <div className="px-6 pt-3 pb-2 flex items-center gap-3">
+        {studioImageUrl && (
+          <img src={studioImageUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+        )}
+        <h1 className="text-[20px] text-black font-bold leading-tight">{selectPassPlanText}</h1>
       </div>
 
-      {/* 패스권 목록 */}
-      {passPlan && passPlans.length > 0 && (
-        <div className="flex flex-col px-6 pt-4 pb-6 gap-3">
-          {passPlans.map((item) => (
+      {/* 추천 패스권 */}
+      {recommendedPlans.length > 0 && (
+        <div className="flex flex-col px-6 pt-4 gap-3">
+          {recommendedPlans.map((item) => (
+            <RecommendedPassPlanItem
+              key={item.id}
+              item={item}
+              locale={locale}
+              isSelected={passPlan?.id === item.id}
+              onClickAction={(item) => setPassPlan(item)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* 나머지 패스권 목록 */}
+      {otherPlans.length > 0 && (
+        <div className="flex flex-col px-6 pt-3 pb-6 gap-3">
+          {otherPlans.map((item) => (
             <PassPlanItem
               key={item.id}
               item={item}
               locale={locale}
-              isSelected={passPlan ? passPlan.id === item.id : passPlans.find(p => p.isPopular)?.id === item.id}
+              isSelected={passPlan ? passPlan.id === item.id : false}
               onClickAction={(item: GetPassPlanResponse) => {
                 setPassPlan(item)
               }}/>

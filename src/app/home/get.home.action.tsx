@@ -4,8 +4,7 @@ import { studioKey } from "@/shared/cookies.key";
 import { cookies } from "next/headers";
 
 export const getHomeAction = async () => {
-  const studioId = (await cookies()).get(studioKey)?.value
-  return api.home.getHome({
-    studioId
-  })
+  const studioId = (await cookies()).get(studioKey)?.value;
+  return api.home.getHome({ studioId });
 }
+

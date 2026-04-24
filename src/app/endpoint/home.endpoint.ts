@@ -3,11 +3,18 @@ import { GetBandResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoi
 import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
+export type HomeAlertResponse = {
+  title: string;
+  description: string;
+  route: string;
+}
+
 export type GetHomeResponse = {
   studios: GetStudioResponse[];
   myStudio?: GetMyStudioResponse;
   recommendedStudios: GetStudioResponse[];
   events?: GetEventResponse[];
+  alerts?: HomeAlertResponse[];
 }
 
 export type GetStagResponse = {

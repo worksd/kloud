@@ -10,7 +10,8 @@ import PassPlanIcon from "../../../public/assets/ic_pass_plan.svg";
 import ReceiptIcon from "../../../public/assets/ic_receipt.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
+import { MyBookingCard } from "@/app/profile/MyBookingCard";
 
 export default async function SettingPage({
                                             searchParams
@@ -27,37 +28,45 @@ export default async function SettingPage({
   }
 
   const upcoming = user.upcomingLesson;
+  const locale = await getLocale();
 
     return (
-      <div className="flex flex-col min-h-screen bg-white py-8 w-full max-w-screen overflow-x-hidden">
-        <div className="flex justify-end px-4 mb-4">
-          <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-            <SettingIcon className="w-[24px] h-[24px]"/>
-          </NavigateClickWrapper>
+      <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
+        {/* 고정 헤더: 아이콘 + 프로필 */}
+        <div className="flex-shrink-0 bg-white">
+          <div className="flex justify-end items-center gap-3 px-5 py-3">
+            <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+              <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+            </NavigateClickWrapper>
+            <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
+              <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+            </NavigateClickWrapper>
+          </div>
+
+          <div className="flex items-center gap-3 px-5 pb-4">
+            <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
+              <Image
+                src={user.profileImageUrl ?? ''}
+                alt="profile"
+                width={52}
+                height={52}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <div className="font-bold text-lg text-black truncate">
+                {has(user.nickName) ? user.nickName : '-'}
+                {has(user.name) && <span className="text-[14px] font-normal text-[#999]"> ({user.name})</span>}
+              </div>
+              <div className="text-gray-500 text-[14px] truncate">
+                {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className={"flex flex-row w-full ml-6 mb-5 items-center"}>
-          <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
-            <Image
-              src={user.profileImageUrl ?? ''}
-              alt="studio logo"
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex flex-col px-4">
-              <div className="flex flex-row items-center gap-2">
-                <div className="font-bold text-lg text-black">{has(user.nickName) ? user.nickName : '-'}</div>
-                <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-                  <EditIcon className="w-[18px] h-[18px] active:opacity-50 transition-opacity duration-150"/>
-                </NavigateClickWrapper>
-              </div>
-              {has(user.email) && (
-                <div className="text-gray-500">{user.email}</div>
-              )}
-            </div>
-        </div>
+        {/* 스크롤 영역 */}
+        <div className="flex-1 overflow-y-auto pb-8">
 
         {/* 다음 예정 수업 */}
         {upcoming && (
@@ -120,9 +129,65 @@ export default async function SettingPage({
           </section>
         )}
 
-        {/* 마이페이지 메뉴 그리드 */}
-        <section className="px-4 mt-4">
-          <div className="text-[13px] font-bold text-[#999] mb-3 px-1 pt-2">{await translate('my_page')}</div>
+        {/* 보유 패스권 */}
+        {user.myPasses && user.myPasses.length > 0 && (
+          <section className="px-4">
+            <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_pass')}</div>
+            <div className="flex flex-col gap-2.5">
+              {user.myPasses.map((pass) => {
+                const isActive = pass.status === 'Active';
+                return (
+                  <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
+                    <div className={`w-full h-[72px] rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-150 flex items-center ${
+                      isActive ? 'bg-[#1E2124]' : 'bg-[#F1F3F6]'
+                    }`}>
+                      {pass.passPlan?.imageUrl ? (
+                        <div className="w-[72px] h-[72px] flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={pass.passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className={`w-[72px] h-[72px] flex-shrink-0 flex items-center justify-center ${
+                          isActive ? 'bg-white/5' : 'bg-[#E8E8EA]'
+                        }`}>
+                          <PassPlanIcon className="w-6 h-6 opacity-30" />
+                        </div>
+                      )}
+                      <div className="px-4 flex flex-col min-w-0 flex-1">
+                        <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#999]'}`}>
+                          {pass.passPlan?.name}
+                        </span>
+                        {(pass.endDate || pass.passPlan?.expireDateStamp) && (
+                          <span className={`text-[11px] mt-1 truncate ${isActive ? 'text-white/40' : 'text-[#BBB]'}`}>
+                            {pass.endDate && typeof pass.endDate === 'string'
+                              ? `~ ${formatEndDate(pass.endDate, locale)}`
+                              : pass.passPlan?.expireDateStamp}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </NavigateClickWrapper>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* 홀 예약 내역 */}
+        {user.myBookings && user.myBookings.length > 0 && (
+          <section className="px-4 mt-6">
+            <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('room_booking_history')}</div>
+            <div className="flex flex-col gap-2.5">
+              {user.myBookings.map((booking) => (
+                <MyBookingCard key={booking.id} booking={booking} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 내 활동 */}
+        <section className="px-4 mt-6">
+          <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_activity')}</div>
           <div className="grid grid-cols-3 gap-3">
             <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
               <div className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
@@ -155,8 +220,38 @@ export default async function SettingPage({
             </NavigateClickWrapper>
           </div>
         </section>
+        </div>
       </div>
     );
 };
 
 const has = (s?: string | null) => !!s && s.trim().length > 0;
+
+const WEEKDAYS: Record<string, string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  jp: ['日', '月', '火', '水', '木', '金', '土'],
+  zh: ['日', '一', '二', '三', '四', '五', '六'],
+};
+
+const formatEndDate = (dateStr: string, locale: string) => {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const wd = (WEEKDAYS[locale] ?? WEEKDAYS['en'])[d.getDay()];
+  switch (locale) {
+    case 'ko': return `${y}년 ${m}월 ${day}일(${wd}) 까지`;
+    case 'jp': return `${y}年${m}月${day}日(${wd}) まで`;
+    case 'zh': return `${y}年${m}月${day}日(${wd})`;
+    default: return `Until ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (${wd})`;
+  }
+};
+
+const formatPhone = (phone: string) => {
+  const nums = phone.replace(/\D/g, '');
+  if (nums.length === 11) return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7)}`;
+  if (nums.length === 10) return `${nums.slice(0, 3)}-${nums.slice(3, 6)}-${nums.slice(6)}`;
+  return phone;
+};

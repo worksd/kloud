@@ -65,14 +65,14 @@ export default function Error({ error, reset }: ErrorProps) {
         요청하신 페이지를 불러올 수 없습니다.
       </p>
 
-      {/* 홈으로 돌아가기 버튼 */}
+      {/* 새로고침 버튼 */}
       <div
         className="px-6 py-3 bg-black text-white rounded-lg font-semibold
           transition-transform duration-100 active:scale-[0.98]
           hover:bg-gray-800"
-        onClick={() => kloudNav.back()}
+        onClick={() => reset()}
       >
-        뒤로가기
+        새로고침
       </div>
     </div>
   );

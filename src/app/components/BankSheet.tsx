@@ -40,8 +40,8 @@ const BANK_KEYS: BankCode[] = [
 
 type BankSelectBottomSheetProps = {
   open: boolean;
-  selected?: BankCode;
-  onSelect: (code: BankCode, label: string) => void;
+  selected?: BankCode | 'other';
+  onSelect: (code: BankCode | 'other', label: string) => void;
   onClose: () => void;
   title?: string;
 };
@@ -100,7 +100,7 @@ export function BankSelectBottomSheet({
 
                 {/* 아이콘 */}
                 <div className="flex w-20 h-20 shrink-0 items-center justify-center">
-                  <BankOrCardIcon name={code} scale={100}/>
+                  <BankOrCardIcon name={code} size={48}/>
                 </div>
 
                 {/* 라벨 (두 줄 방지) */}
@@ -111,6 +111,35 @@ export function BankSelectBottomSheet({
 
             );
           })}
+
+          {/* 기타 */}
+          <button
+            type="button"
+            onClick={() => onSelect('other', '기타')}
+            className={[
+              'relative flex flex-col items-center justify-center',
+              'rounded-xl border pb-3 text-center',
+              'transition focus:outline-none focus:ring-2 focus:ring-gray-300',
+              selected === 'other' ? 'bg-gray-50 border-black' : 'bg-white border-gray-200 hover:bg-gray-50',
+            ].join(' ')}
+          >
+            {selected === 'other' && (
+              <span className="absolute right-1.5 top-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black text-white">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+            )}
+            <div className="flex w-20 h-20 shrink-0 items-center justify-center">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect x="4" y="7" width="24" height="18" rx="3" stroke="#BDBDBD" strokeWidth="1.8"/>
+                <circle cx="16" cy="16" r="2" fill="#BDBDBD"/>
+                <circle cx="10" cy="16" r="2" fill="#BDBDBD"/>
+                <circle cx="22" cy="16" r="2" fill="#BDBDBD"/>
+              </svg>
+            </div>
+            <span className="text-[13px] text-black leading-tight">기타</span>
+          </button>
         </div>
       </div>
     </CommonBottomSheet>

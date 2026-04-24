@@ -26,6 +26,97 @@ export type GetPassListRequest = {
   order: PassOrder
 }
 
+export type RuleTicket = {
+  id: number;
+  title: string;
+  date: string;
+  status: 'Used' | 'Upcoming' | 'Cancelled';
+}
+
+export type PassRuleTicket = {
+  id: number;
+  status: string;
+  paymentId: string;
+  createdAt: string;
+  lesson?: {
+    id: number;
+    title: string;
+    startDate?: string;
+    endDate?: string;
+  };
+}
+
+export type PassRuleResponse = {
+  id: number;
+  status: string;
+  startDate: string;
+  endDate: string;
+  remainingCount?: number | null;
+  usageCount: number;
+  targetType: string;
+  targetValue?: string | null;
+  targetLabel?: string | null;
+  benefitType: string;
+  benefitValue?: number | null;
+  excludes?: { type: string; value?: string | null; label?: string | null }[];
+  usable?: boolean;
+  reason?: string;
+  tickets: PassRuleTicket[];
+}
+
+export type PassRoomBookingResponse = {
+  id: number;
+  studioRoom?: {
+    id: number;
+    name: string;
+    imageUrls?: string[];
+  };
+  startDate: string;
+  endDate: string;
+}
+
+export type PassFeatureResponse = {
+  id: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  usable: boolean;
+  reason?: string;
+  featureKey: string;
+  featureValue?: string | null;
+  duration: number;
+  description?: string | null;
+  roomBookings?: PassRoomBookingResponse[];
+}
+
+export type PassPlanRule = {
+  id: number;
+  description: string;
+  target?: { type: string; value?: string | null; label?: string | null };
+  benefit?: { type: string; value?: number | null };
+  excludes?: { type: string; value?: string | null; label?: string | null }[];
+  tickets?: RuleTicket[];
+}
+
+export type PassPlanFeature = {
+  key: string;
+  value?: string | null;
+  description?: string | null;
+}
+
+export type PassBenefitType = 'unlimited' | 'free_count' | 'discount' | 'presale' | 'fast_entry' | 'room';
+
+export type PassBenefit = {
+  type: PassBenefitType;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  isAdditional?: boolean;
+  remainingCount?: number;
+  totalCount?: number;
+  isUsedUp?: boolean;
+}
+
 export type GetPassPlanResponse = {
   id: number
   name: string
@@ -38,6 +129,11 @@ export type GetPassPlanResponse = {
   tier: PassPlanTier,
   tag?: string,
   canPreSale?: boolean,
+  imageUrl?: string,
+  isRecommended?: boolean,
+  rules?: PassPlanRule[],
+  features?: PassPlanFeature[],
+  benefits?: PassBenefit[],
 }
 
 export type GetPassPlansResponse = {
@@ -55,9 +151,11 @@ export type GetPassResponse = {
   passPlan: GetPassPlanResponse
   paymentRecord?: SimplePaymentRecordResponse
   tickets?: TicketResponse[]
-  remainingCount?: number
+  passRules?: PassRuleResponse[]
+  passFeatures?: PassFeatureResponse[]
   usable: boolean
   reason?: string
+  qrcodeUrl?: string
 }
 
 export type GetPassesResponse = {
@@ -73,7 +171,10 @@ export type CreatePassRequest = {
 
 export type UsePassRequest = {
   passId: number
-  lessonId: number
+  lessonId?: number
+  studioRoomId?: number
+  startDate?: string
+  endDate?: string
 }
 
 export type PassOrder = 'upcoming' | 'newest'
@@ -105,7 +206,7 @@ export const CreatePass: Endpoint<CreatePassRequest, GetPassResponse> = {
 export const UsePass: Endpoint<UsePassRequest, TicketResponse> = {
   method: 'post',
   path: (e) => `/passes/${e.passId}/use`,
-  bodyParams: ['lessonId']
+  bodyParams: ['lessonId', 'studioRoomId', 'startDate', 'endDate']
 }
 
 export enum PassPlanTier {
