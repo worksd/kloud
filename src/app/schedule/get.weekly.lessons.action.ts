@@ -3,6 +3,7 @@
 import { api } from "@/app/api.client";
 import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
+import { LessonStatus } from "@/app/endpoint/lesson.endpoint";
 
 const formatDate = (d: Date) => {
   const y = d.getFullYear();
@@ -15,9 +16,13 @@ export const getWeeklyLessonsAction = async (startDate?: string, endDate?: strin
   const studioId = (await cookies()).get(studioKey)?.value;
   if (!studioId) return { lessons: [] };
 
-  return api.lesson.listByDate({
+  const res = await api.lesson.listByDate({
     studioId: Number(studioId),
     startDate,
     endDate,
   });
+  if ('lessons' in res) {
+    return { ...res, lessons: res.lessons.filter(l => l.status !== LessonStatus.Cancelled) };
+  }
+  return res;
 };
