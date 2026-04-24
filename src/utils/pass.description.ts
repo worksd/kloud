@@ -161,10 +161,10 @@ const FEATURE_DESC: Record<string, Record<Locale, (value?: string | null) => str
     zh: () => '上课时可以优先入场',
   },
   practiceRoom: {
-    ko: (v) => v ? `연습실을 ${v}분 이용할 수 있어요` : '연습실을 자유롭게 이용할 수 있어요',
-    en: (v) => v ? `You can use the practice room for ${v} minutes` : 'You can freely use the practice room',
-    jp: (v) => v ? `練習室を${v}分利用できます` : '練習室を自由に利用できます',
-    zh: (v) => v ? `可以使用练习室${v}分钟` : '可以自由使用练习室',
+    ko: (v) => Number(v) > 0 ? `연습실을 ${v}분 이용할 수 있어요` : '연습실을 이용할 수 있어요',
+    en: (v) => Number(v) > 0 ? `You can use the practice room for ${v} minutes` : 'You can use the practice room',
+    jp: (v) => Number(v) > 0 ? `練習室を${v}分利用できます` : '練習室を利用できます',
+    zh: (v) => Number(v) > 0 ? `可以使用练习室${v}分钟` : '可以使用练习室',
   },
   tag: {
     ko: (v) => v ? `${v} 전용 수업을 수강할 수 있어요` : '전용 수업을 수강할 수 있어요',
