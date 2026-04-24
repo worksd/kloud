@@ -131,7 +131,7 @@ export default function PaymentButton({
       setIsSubmitting(false);
     }
   }, [router, appVersion]);
-  const handlePayment = useCallback(async () => {
+  const handlePayment = async () => {
     if (!user || !('id' in user)) {
       setIsSubmitting(false);
       return;
@@ -294,7 +294,7 @@ export default function PaymentButton({
       }
     }
 
-  }, [id, method, depositor, selectedPass, selectedBilling, practiceRoomInfo]);
+  };
 
   useEffect(() => {
     window.onPaymentSuccess = async (data: { paymentId: string, transactionId: string }) => {
