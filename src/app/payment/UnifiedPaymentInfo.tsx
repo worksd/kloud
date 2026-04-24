@@ -261,7 +261,7 @@ export const UnifiedPaymentInfo = ({
           <PurchaseInformation
             originalPrice={itemPrice}
             totalPrice={totalPrice}
-            method={noPass ? undefined : selectedMethod}
+            method={selectedMethod}
             titleResource={getTitleResource(type)}
             locale={locale}
             discounts={activeDiscounts}
