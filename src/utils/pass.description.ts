@@ -16,10 +16,10 @@ interface RuleDescriptionInput {
 
 const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passName?: string) => string>> = {
   All: {
-    ko: () => '모든 수업',
-    en: () => 'all classes',
-    jp: () => 'すべてのレッスン',
-    zh: () => '所有课程',
+    ko: () => '수업',
+    en: () => 'classes',
+    jp: () => 'レッスン',
+    zh: () => '课程',
   },
   Genre: {
     ko: (label) => `${label ?? ''} 수업`,

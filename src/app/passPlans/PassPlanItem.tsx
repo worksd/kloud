@@ -3,6 +3,7 @@
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
+import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 
 export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
   item: GetPassPlanResponse,
@@ -10,6 +11,17 @@ export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
   locale: Locale,
   onClickAction: (item: GetPassPlanResponse) => void
 }) => {
+  const firstRule = item.rules?.[0];
+  const firstFeature = item.features?.[0];
+  const description = firstRule?.target && firstRule?.benefit
+    ? formatRuleDescription(
+        { target: firstRule.target, benefit: firstRule.benefit, excludes: firstRule.excludes },
+        locale,
+        item.name,
+      )
+    : firstFeature
+      ? formatFeatureDescription(firstFeature.key, locale, firstFeature.value)
+      : item.expireDateStamp;
   return (
     <div
       className={`relative flex w-full select-none cursor-pointer overflow-hidden
@@ -34,10 +46,10 @@ export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
           {item.name}
         </div>
 
-        {item.expireDateStamp && (
+        {description && (
           <div className={`text-[12px] mt-1
             ${isSelected ? 'text-white/60' : 'text-[#999]'}`}>
-            {item.expireDateStamp}
+            {description}
           </div>
         )}
       </div>
