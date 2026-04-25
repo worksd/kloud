@@ -98,9 +98,19 @@ const EXCLUDE_TYPE: Record<string, Record<Locale, (label?: string | null) => str
   },
 };
 
+const ALL_TARGET_DISCOUNT: Record<Locale, string> = {
+  ko: '모든 수업',
+  en: 'all classes',
+  jp: '全てのレッスン',
+  zh: '所有课程',
+};
+
 export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale = 'ko', passName?: string): string => {
+  const isAllDiscount = rule.target.type === 'All' && rule.benefit.type === 'Discount';
   const targetFn = RULE_TARGET[rule.target.type] ?? RULE_TARGET['All'];
-  const targetText = targetFn[locale](rule.target.label, passName);
+  const targetText = isAllDiscount
+    ? ALL_TARGET_DISCOUNT[locale]
+    : targetFn[locale](rule.target.label, passName);
 
   const benefitFn = RULE_BENEFIT[rule.benefit.type] ?? RULE_BENEFIT['FreeCount'];
   const benefitText = benefitFn[locale](rule.benefit.value);
