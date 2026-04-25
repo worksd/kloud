@@ -27,6 +27,12 @@ const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passNam
     jp: (label) => `${label ?? ''} レッスン`,
     zh: (label) => `${label ?? ''} 课程`,
   },
+  LessonType: {
+    ko: (label) => `${label ?? ''} 수업`,
+    en: (label) => `${label ?? ''} classes`,
+    jp: (label) => `${label ?? ''} レッスン`,
+    zh: (label) => `${label ?? ''} 课程`,
+  },
   Exclusive: {
     ko: (_label, passName) => `${passName || ''} 전용 수업`.trim(),
     en: (_label, passName) => `${passName || ''} exclusive classes`.trim(),
