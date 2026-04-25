@@ -178,7 +178,7 @@ export const PracticeRoomSlotSelector = ({
                   booked
                     ? 'bg-[#E8E8E8]'
                     : past
-                      ? 'bg-[#F0F0F0] cursor-not-allowed'
+                      ? 'bg-[#F0F0F0] cursor-not-allowed opacity-40'
                       : !isAvailable
                         ? 'bg-[#F0F0F0]'
                         : isSelected

@@ -316,7 +316,7 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                     }}
                     className={`h-[32px] rounded-md flex items-center justify-between px-3 ${
                       isMine ? 'bg-[#1E2124] cursor-pointer active:opacity-80'
-                        : isPast ? 'bg-[#F3F4F6] cursor-not-allowed'
+                        : isPast ? 'bg-[#F3F4F6] cursor-not-allowed opacity-40'
                           : hasLesson ? 'bg-[#E5E7EB] cursor-not-allowed'
                             : isClosed ? 'bg-[#F3F4F6]'
                               : isFull ? 'bg-[#6B7280]'
