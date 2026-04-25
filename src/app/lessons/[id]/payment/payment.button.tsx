@@ -183,9 +183,11 @@ export default function PaymentButton({
 
       const paymentInfo: PaymentInfo = {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? '',
-        channelKey: (method === 'foreign_card' || method === 'toss_pay')
-          ? (process.env.NEXT_PUBLIC_PORTONE_FOREIGN_CHANNEL_KEY ?? '')
-          : (process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? ''),
+        channelKey: method === 'toss_pay'
+          ? (process.env.NEXT_PUBLIC_PORTONE_TOSS_SIMPLE_CHANNEL_KEY ?? '')
+          : method === 'foreign_card'
+            ? (process.env.NEXT_PUBLIC_PORTONE_FOREIGN_CHANNEL_KEY ?? '')
+            : (process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? ''),
         paymentId,
         orderName: title,
         price: price ?? 0,
