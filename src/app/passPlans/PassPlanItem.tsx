@@ -47,7 +47,7 @@ export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
         </div>
 
         {description && (
-          <div className={`text-[12px] mt-1
+          <div className={`text-[11px] mt-0.5
             ${isSelected ? 'text-white/60' : 'text-[#999]'}`}>
             {description}
           </div>

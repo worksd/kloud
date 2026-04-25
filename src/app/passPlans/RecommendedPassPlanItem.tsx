@@ -43,13 +43,13 @@ export const RecommendedPassPlanItem = ({item, isSelected, onClickAction, locale
 
       {/* 메인 컨텐츠 */}
       <div className="flex items-center justify-between px-5 pb-4 pt-1">
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
           <div className={`text-[18px] font-bold transition-colors duration-200
             ${isSelected ? 'text-white' : 'text-[#1E2124]'}`}>
             {item.name}
           </div>
           {description && (
-            <div className={`text-[12px]
+            <div className={`text-[11px]
               ${isSelected ? 'text-white/50' : 'text-[#8B85B1]'}`}>
               {description}
             </div>
