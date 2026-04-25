@@ -293,6 +293,13 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                 const lesson = getLesson(slot.time);
                 const hasLesson = !!lesson && !isMine;
 
+                const now = new Date();
+                const isToday = selectedDate.toDateString() === now.toDateString();
+                const [slotHour, slotMin] = slot.time.split(':').map(Number);
+                const slotMinutes = slotHour * 60 + slotMin;
+                const nowHourFloor = now.getHours() * 60;
+                const isPast = isToday && slotMinutes < nowHourFloor && !isMine;
+
                 return (
                   <div
                     key={slot.time}
@@ -309,34 +316,38 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
                     }}
                     className={`h-[32px] rounded-md flex items-center justify-between px-3 ${
                       isMine ? 'bg-[#1E2124] cursor-pointer active:opacity-80'
-                        : hasLesson ? 'bg-[#E5E7EB] cursor-not-allowed'
-                          : isClosed ? 'bg-[#F3F4F6]'
-                            : isFull ? 'bg-[#6B7280]'
-                              : 'bg-[#C7D2FE]'
+                        : isPast ? 'bg-[#F3F4F6] cursor-not-allowed'
+                          : hasLesson ? 'bg-[#E5E7EB] cursor-not-allowed'
+                            : isClosed ? 'bg-[#F3F4F6]'
+                              : isFull ? 'bg-[#6B7280]'
+                                : 'bg-[#C7D2FE]'
                     }`}
                   >
                     <span className={`text-[11px] font-medium truncate ${
                       isMine ? 'text-white'
-                        : hasLesson ? 'text-[#6B7280]'
-                          : isClosed ? 'text-[#BFBFBF]'
-                            : isFull ? 'text-[#E5E7EB]'
-                              : 'text-[#4338CA]'
+                        : isPast ? 'text-[#BFBFBF]'
+                          : hasLesson ? 'text-[#6B7280]'
+                            : isClosed ? 'text-[#BFBFBF]'
+                              : isFull ? 'text-[#E5E7EB]'
+                                : 'text-[#4338CA]'
                     }`}>
                       {isMine
                         ? getLocaleString({ locale, key: 'my_bookings' })
-                        : hasLesson
-                          ? lesson!.title
-                          : isClosed
-                            ? getLocaleString({ locale, key: 'slot_unavailable' })
-                            : isFull
-                              ? getLocaleString({ locale, key: 'slot_full' })
-                              : getLocaleString({ locale, key: 'reservable' })}
+                        : isPast
+                          ? getLocaleString({ locale, key: 'slot_booking_closed' })
+                          : hasLesson
+                            ? lesson!.title
+                            : isClosed
+                              ? getLocaleString({ locale, key: 'slot_unavailable' })
+                              : isFull
+                                ? getLocaleString({ locale, key: 'slot_full' })
+                                : getLocaleString({ locale, key: 'reservable' })}
                     </span>
-                    {hasLesson ? (
+                    {!isPast && (hasLesson ? (
                       <span className="text-[10px] text-[#9CA3AF] ml-2 flex-shrink-0">{lesson!.statusLabel}</span>
                     ) : slot.status === 'available' && !isMine && (
                       <span className="text-[10px] text-[#4338CA]/60">{slot.currentCount}/{slot.maxCount}</span>
-                    )}
+                    ))}
                   </div>
                 );
               })}

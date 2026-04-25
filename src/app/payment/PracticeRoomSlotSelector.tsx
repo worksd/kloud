@@ -35,6 +35,7 @@ export const PracticeRoomSlotSelector = ({
   locale,
   myBookings,
   onSelectionChange,
+  date,
 }: {
   slots: TimeSlotResponse[];
   minBookingDuration: number;
@@ -43,11 +44,21 @@ export const PracticeRoomSlotSelector = ({
   locale: Locale;
   myBookings?: { id: number; startDate: string; endDate: string }[];
   onSelectionChange: (selection: { startTime: string; endTime: string } | null) => void;
+  date?: string;
 }) => {
   const filteredSlots = slots.filter(s => {
     const [, m] = s.time.split(':').map(Number);
     return m % minBookingDuration === 0;
   });
+
+  const now = new Date();
+  const isToday = !!date && date.replace(/\./g, '-') === `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const nowHourFloor = now.getHours() * 60;
+  const isPastSlot = (time: string) => {
+    if (!isToday) return false;
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m < nowHourFloor;
+  };
 
   const isMyBooked = (time: string) =>
     (myBookings ?? []).some(b => {
@@ -105,7 +116,7 @@ export const PracticeRoomSlotSelector = ({
 
   const handleClick = (index: number) => {
     const slot = filteredSlots[index];
-    if (slot.status !== 'available' || isMyBooked(slot.time)) return;
+    if (slot.status !== 'available' || isMyBooked(slot.time) || isPastSlot(slot.time)) return;
 
     const newSet = new Set(selectedIndices);
 
@@ -158,6 +169,7 @@ export const PracticeRoomSlotSelector = ({
             const isAvailable = slot.status === 'available';
             const isSelected = selectedIndices.has(index);
             const booked = isMyBooked(slot.time);
+            const past = isPastSlot(slot.time) && !booked;
             return (
               <div
                 key={slot.time}
@@ -165,16 +177,18 @@ export const PracticeRoomSlotSelector = ({
                 className={`w-[46px] flex-shrink-0 flex flex-col items-center justify-center h-[48px] rounded-md select-none transition-all ${
                   booked
                     ? 'bg-[#E8E8E8]'
-                    : !isAvailable
-                      ? 'bg-[#F0F0F0]'
-                      : isSelected
-                        ? 'bg-[#1E2124] active:scale-95'
-                        : 'cursor-pointer active:scale-95'
+                    : past
+                      ? 'bg-[#F0F0F0] cursor-not-allowed'
+                      : !isAvailable
+                        ? 'bg-[#F0F0F0]'
+                        : isSelected
+                          ? 'bg-[#1E2124] active:scale-95'
+                          : 'cursor-pointer active:scale-95'
                 }`}
-                style={!booked && isAvailable && !isSelected ? { backgroundColor: slotColor(slot) } : undefined}
+                style={!booked && !past && isAvailable && !isSelected ? { backgroundColor: slotColor(slot) } : undefined}
               >
                 <span className={`text-[10px] font-bold ${
-                  booked ? 'text-[#BFBFBF]' : !isAvailable ? 'text-[#CCC]' : isSelected ? 'text-white' : 'text-[#555]'
+                  booked ? 'text-[#BFBFBF]' : past ? 'text-[#CCC]' : !isAvailable ? 'text-[#CCC]' : isSelected ? 'text-white' : 'text-[#555]'
                 }`}>
                   {slot.time}
                 </span>

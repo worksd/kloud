@@ -2811,6 +2811,12 @@ export const StringResource = {
     jp: '予約済み',
     zh: '已约满'
   },
+  slot_booking_closed: {
+    ko: '예약 마감',
+    en: 'Booking closed',
+    jp: '予約終了',
+    zh: '预约关闭'
+  },
   closed: {
     ko: '마감',
     en: 'Closed',
