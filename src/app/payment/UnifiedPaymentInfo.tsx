@@ -149,7 +149,11 @@ export const UnifiedPaymentInfo = ({
   const [depositor, setDepositor] = useState(beforeDepositor);
   const [mounted, setMounted] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
-  const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(undefined);
+  const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(
+    (type === 'pass-plan' || type === 'membership-plan' || type === 'practice-room')
+      ? undefined
+      : payment.discounts?.[0]
+  );
 
   const handleSelectMethod = (method: PaymentMethodType) => {
     setSelectedMethod(method);
@@ -261,7 +265,7 @@ export const UnifiedPaymentInfo = ({
           <PurchaseInformation
             originalPrice={itemPrice}
             totalPrice={totalPrice}
-            method={noPass ? undefined : selectedMethod}
+            method={selectedMethod}
             titleResource={getTitleResource(type)}
             locale={locale}
             discounts={activeDiscounts}

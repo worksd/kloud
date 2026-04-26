@@ -216,7 +216,7 @@ function BillingCard({
       <div className="flex flex-row items-center p-4 gap-3">
         <div className={`w-[40px] h-[40px] rounded-xl flex items-center justify-center flex-shrink-0
           ${isSelected ? 'bg-[#F0F0F0]' : 'bg-[#F5F5F5]'}`}>
-          <BankOrCardIcon name={cardName} scale={100}/>
+          <BankOrCardIcon name={cardName} size={28}/>
         </div>
         <div className="flex flex-col flex-1 min-w-0">
           <div className={`text-[15px] font-semibold ${isSelected ? 'text-black' : 'text-[#888]'}`}>{cardName}</div>

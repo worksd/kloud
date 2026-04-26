@@ -5,6 +5,7 @@ import { DevTapLogo } from "@/app/login/DevTapToGo";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { redirect } from "next/navigation";
+import { LoginCookieCleaner } from "@/app/login/LoginCookieCleaner";
 
 export default async function Login({
                                       searchParams,
@@ -33,6 +34,7 @@ export default async function Login({
     <section
       className="w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-5"
     >
+      <LoginCookieCleaner />
       {/* ⬇️ 가운데 배치 */}
       <div className="flex-1 w-full flex justify-center pt-36">
         <DevTapLogo />

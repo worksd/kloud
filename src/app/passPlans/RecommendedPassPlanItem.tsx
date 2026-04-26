@@ -3,12 +3,24 @@
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
+import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 export const RecommendedPassPlanItem = ({item, isSelected, onClickAction, locale}: {
   item: GetPassPlanResponse,
   isSelected: boolean,
   locale: Locale,
   onClickAction: (item: GetPassPlanResponse) => void
 }) => {
+  const firstRule = item.rules?.[0];
+  const firstFeature = item.features?.[0];
+  const description = firstRule?.target && firstRule?.benefit
+    ? formatRuleDescription(
+        { target: firstRule.target, benefit: firstRule.benefit, excludes: firstRule.excludes },
+        locale,
+        item.name,
+      )
+    : firstFeature
+      ? formatFeatureDescription(firstFeature.key, locale, firstFeature.value)
+      : item.expireDateStamp;
   return (
     <div
       className={`relative flex flex-col w-full select-none cursor-pointer overflow-hidden
@@ -31,15 +43,15 @@ export const RecommendedPassPlanItem = ({item, isSelected, onClickAction, locale
 
       {/* 메인 컨텐츠 */}
       <div className="flex items-center justify-between px-5 pb-4 pt-1">
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
           <div className={`text-[18px] font-bold transition-colors duration-200
             ${isSelected ? 'text-white' : 'text-[#1E2124]'}`}>
             {item.name}
           </div>
-          {item.expireDateStamp && (
-            <div className={`text-[12px]
+          {description && (
+            <div className={`text-[11px]
               ${isSelected ? 'text-white/50' : 'text-[#8B85B1]'}`}>
-              {item.expireDateStamp}
+              {description}
             </div>
           )}
         </div>

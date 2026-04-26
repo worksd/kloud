@@ -89,6 +89,7 @@ export const PracticeRoomPaymentWrapper = ({
           locale={locale}
           myBookings={myBookings}
           onSelectionChange={setSelectedTime}
+          date={date}
         />
       )}
 

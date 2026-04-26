@@ -191,7 +191,7 @@ export const PaymentRecordRefundForm = async ({refundPreview, studio, locale}: {
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-medium text-black">{await translate('refund_method')}</span>
                     <div className="flex items-center gap-1">
-                      <BankOrCardIcon name={refundPreview.methodLabel} scale={75} />
+                      <BankOrCardIcon name={refundPreview.methodLabel} size={20} />
                       <span className="text-[14px] font-medium text-[#191f28]">{refundPreview.methodLabel}</span>
                     </div>
                   </div>

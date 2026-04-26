@@ -18,7 +18,15 @@ export default async function SchedulePage() {
     );
   }
 
-  const lessonsRes = await getWeeklyLessonsAction();
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
+  const lessonsRes = await getWeeklyLessonsAction(fmt(monday), fmt(sunday));
   const rawLessons = 'lessons' in lessonsRes ? lessonsRes.lessons : [];
 
   const lessons = rawLessons.map((l: any) => {

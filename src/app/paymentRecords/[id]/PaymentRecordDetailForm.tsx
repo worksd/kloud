@@ -205,7 +205,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                     <span
                         className="text-[14px] font-medium text-black">{await translate('deposit_account_information')}</span>
                     <div className="flex items-center gap-1">
-                      <BankOrCardIcon name={paymentRecord.studio.bank} scale={75}/>
+                      <BankOrCardIcon name={paymentRecord.studio.bank} size={20}/>
                       <span className="text-[14px] font-medium text-[#191f28]">{paymentRecord.studio.bank}</span>
                       <span
                           className="text-[14px] font-medium text-[#191f28]">{formatAccountNumber(paymentRecord.studio.accountNumber, paymentRecord.studio.bank)}</span>
@@ -268,7 +268,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
                       <div className="flex items-center justify-between">
                         <span className="text-[14px] font-medium text-black">{await translate('refund_account')}</span>
                         <div className="flex items-center gap-1">
-                          <BankOrCardIcon name={paymentRecord.refundAccountBank} scale={100}/>
+                          <BankOrCardIcon name={paymentRecord.refundAccountBank} size={20}/>
                           <span
                               className="text-[14px] font-medium text-[#191f28]">{paymentRecord.refundAccountBank}</span>
                           <span

@@ -176,7 +176,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           <div className="px-5 pt-4 pb-3">
             {/* 이미지 */}
             {res.passPlan.imageUrl && (
-              <div className="w-full aspect-[2/1] rounded-2xl overflow-hidden bg-[#F1F3F6] mb-4">
+              <div className="w-full aspect-[1/1] rounded-2xl overflow-hidden bg-[#F1F3F6] mb-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={res.passPlan.imageUrl} alt={title ?? ''} className="w-full h-full object-cover" />
               </div>
