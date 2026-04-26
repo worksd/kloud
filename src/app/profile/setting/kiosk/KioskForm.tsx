@@ -41,6 +41,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [paymentResult, setPaymentResult] = useState<{ status: 'success' | 'fail'; data: Record<string, unknown> } | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 홈 진입 시 토큰 초기화
   const goHome = useCallback(async () => {
@@ -56,6 +57,51 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   useEffect(() => {
     kioskClearTokenAction();
   }, []);
+
+  // KIS 응답 콜백을 마운트 시 한 번만 등록 (PR/결제 모두 처리)
+  useEffect(() => {
+    type KisResult = {
+      success?: boolean;
+      canceled?: boolean;
+      outTranCode?: string;
+      outReplyCode?: string;
+      outReplyMsg1?: string;
+    };
+    type KisWindow = Window & { onKisPaymentResult?: (result: KisResult) => void };
+
+    (window as KisWindow).onKisPaymentResult = (result) => {
+      console.log('KIS 응답:', result);
+      const data = (result ?? {}) as Record<string, unknown>;
+
+      // 영수증 인쇄 응답
+      if (result?.outTranCode === 'BP') {
+        if (result?.success) {
+          setToastMessage('영수증 출력 완료');
+        } else {
+          const msg = result?.outReplyMsg1 ?? '프린트에 실패했습니다.';
+          setToastMessage(`프린트 실패: ${msg}`);
+        }
+        return;
+      }
+
+      // 결제(D1 등) 응답
+      setIsPaying(false);
+      if (result?.canceled) return;
+      // TODO: 성공 시 백엔드에 거래정보 저장 (outAuthNo / outVankey / outCustomerUuid 등)
+      setPaymentResult({ status: result?.success ? 'success' : 'fail', data });
+    };
+
+    return () => {
+      delete (window as KisWindow).onKisPaymentResult;
+    };
+  }, []);
+
+  // 토스트 자동 dismiss
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 2500);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   // 결제 성공 다이얼로그 10초 후 자동 홈 이동
   useEffect(() => {
@@ -101,36 +147,32 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
     setCurrentScreen('payment-method');
   };
 
-  // 카드 결제: KIS 단말기 호출 → 응답 콜백으로 처리
+  // 영수증 인쇄: KIS PR 명령
+  const handlePrintReceipt = useCallback(() => {
+    if (!selectedLesson) return;
+    const data = paymentResult?.data ?? {};
+    const authNo = typeof data.outAuthNo === 'string' ? data.outAuthNo : '';
+    const cardNo = typeof data.outCardNo === 'string' ? data.outCardNo : '';
+    const inPrintLines: Array<Record<string, unknown>> = [
+      { align: 'C', bold: true, text: '영수증' },
+      { align: 'L', text: `상품: ${selectedLesson.title}` },
+      { align: 'L', text: `금액: ${selectedLesson.price.toLocaleString('ko-KR')}원` },
+    ];
+    if (authNo) inPrintLines.push({ align: 'L', text: `승인번호: ${authNo}` });
+    if (cardNo) inPrintLines.push({ align: 'L', text: `카드: ${cardNo}` });
+    inPrintLines.push({ blank: 3 });
+
+    window.KloudEvent?.requestKisPayment?.(JSON.stringify({
+      inTranCode: 'BP',
+      inPrintLines,
+    }));
+  }, [selectedLesson, paymentResult]);
+
+  // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
   const handleCardPayment = useCallback(() => {
     if (!selectedLesson || isPaying) return;
     setIsPaying(true);
     setPaymentResult(null);
-
-    type KisResult = {
-      success?: boolean;
-      canceled?: boolean;
-      outReplyCode?: string;
-      outReplyMsg1?: string;
-      outAuthNo?: string;
-      outAuthDate?: string;
-      outVankey?: string;
-      outCustomerUuid?: string;
-    };
-    type KisWindow = Window & { onKisPaymentResult?: (result: KisResult) => void };
-
-    (window as KisWindow).onKisPaymentResult = (result) => {
-      setIsPaying(false);
-      delete (window as KisWindow).onKisPaymentResult;
-      console.log('KIS 결제 응답:', result);
-
-      const data = (result ?? {}) as Record<string, unknown>;
-      if (result?.canceled) {
-        return;
-      }
-      // TODO: 성공 시 백엔드에 거래정보 저장 (outAuthNo / outVankey / outCustomerUuid 등)
-      setPaymentResult({ status: result?.success ? 'success' : 'fail', data });
-    };
 
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       inTestMode: 'Y',
@@ -235,10 +277,16 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
               결제를 성공했습니다
             </p>
             <button
-              onClick={() => { setPaymentResult(null); setCurrentScreen('lesson-list'); }}
+              onClick={handlePrintReceipt}
               className="mt-[min(3.7vw,40px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
             >
-              <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>다른 수업도 구매하기</span>
+              <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>영수증 인쇄</span>
+            </button>
+            <button
+              onClick={() => { setPaymentResult(null); setCurrentScreen('lesson-list'); }}
+              className="mt-[min(1.8vw,20px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+            >
+              <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>다른 수업도 구매하기</span>
             </button>
             <button
               onClick={() => { setPaymentResult(null); goHome(); }}
@@ -275,6 +323,12 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
               <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>확인</span>
             </button>
           </div>
+        </div>
+      )}
+
+      {toastMessage && (
+        <div className="fixed left-1/2 -translate-x-1/2 z-40 px-[min(3.7vw,40px)] py-[min(2.2vw,24px)] rounded-[16px] bg-black/85" style={{ bottom: 'min(7.4vw, 80px)' }}>
+          <span className="text-white font-medium" style={{ fontSize: 'min(2.6vw, 28px)' }}>{toastMessage}</span>
         </div>
       )}
 
