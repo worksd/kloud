@@ -49,19 +49,19 @@ const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passNam
 
 const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null) => string>> = {
   Unlimited: {
-    ko: () => '무제한으로 이용할 수 있습니다',
+    ko: () => '무제한으로 이용할 수 있어요',
     en: () => 'can be used unlimited',
     jp: () => '無制限で利用できます',
     zh: () => '可以无限使用',
   },
   FreeCount: {
-    ko: (v) => `${v ?? 0}회 수강할 수 있습니다`,
+    ko: (v) => `${v ?? 0}회 수강할 수 있어요`,
     en: (v) => `can be used ${v ?? 0} times`,
     jp: (v) => `${v ?? 0}回受講できます`,
     zh: (v) => `可以使用${v ?? 0}次`,
   },
   Discount: {
-    ko: (v) => `${(v ?? 0).toLocaleString('ko-KR')}원 할인 받을 수 있습니다`,
+    ko: (v) => `${(v ?? 0).toLocaleString('ko-KR')}원 할인 받을 수 있어요`,
     en: (v) => `get ${(v ?? 0).toLocaleString()} won discount`,
     jp: (v) => `${(v ?? 0).toLocaleString()}ウォン割引を受けられます`,
     zh: (v) => `可以获得${(v ?? 0).toLocaleString()}韩元折扣`,
