@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { KioskTopBar } from "@/app/profile/setting/kiosk/KioskLessonListForm";
+import { KioskTopBar } from "@/app/kiosk/KioskLessonListForm";
 
 type KioskPhoneInputFormProps = {
   locale: Locale;
@@ -43,7 +43,7 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onHome, onChangeLo
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onHome={onHome} />
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} />
 
       {/* 타이틀 */}
       <div className="shrink-0 px-[5.6%] py-[1%]">

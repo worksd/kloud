@@ -1,7 +1,7 @@
 import { api } from "@/app/api.client";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import QRPageContent from './QRPageContent';
-import { getMeAction } from "@/app/profile/setting/kiosk/get.me.action";
+import { getMeAction } from "@/app/kiosk/get.me.action";
 
 type Props = {
   searchParams: Promise<{ lessonId?: string }>;

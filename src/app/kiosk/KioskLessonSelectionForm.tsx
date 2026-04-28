@@ -1,8 +1,8 @@
 'use client';
 
 import React, {useEffect, useState} from 'react';
-import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
-import CloseIcon from '../../../../../public/assets/ic_close_black.svg';
+import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
+import CloseIcon from '../../../public/assets/ic_close_black.svg';
 import {getLessonsByDate} from './get.lessons.by.date.action';
 import {GetLessonResponse, LessonStatus, LessonStatusDisplay} from '@/app/endpoint/lesson.endpoint';
 import {Thumbnail} from '@/app/components/Thumbnail';

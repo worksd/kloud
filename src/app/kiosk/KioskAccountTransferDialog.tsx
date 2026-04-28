@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Dim from '@/app/components/Dim';
-import CloseIcon from '../../../../../public/assets/ic_close_black.svg';
-import CircleCheckIcon from '../../../../../public/assets/ic_circle_check.svg';
+import CloseIcon from '../../../public/assets/ic_close_black.svg';
+import CircleCheckIcon from '../../../public/assets/ic_circle_check.svg';
 
 type DepositRecord = {
   id: number;

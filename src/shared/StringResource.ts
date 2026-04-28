@@ -2998,10 +2998,10 @@ export const StringResource = {
     zh: '状态'
   },
   // Kiosk
-  kiosk_payment_title: { ko: '수업 결제하기', en: 'Pay for Lesson', jp: 'レッスン決済', zh: '课程支付' },
+  kiosk_payment_title: { ko: '수업 결제', en: 'Pay for Lesson', jp: 'レッスン決済', zh: '课程支付' },
   kiosk_payment_desc: { ko: '현장에서 수업을 결제할 수 있어요', en: 'Pay for lessons on-site', jp: '現場でレッスンの決済ができます', zh: '可以在现场支付课程费用' },
   kiosk_payment_tag: { ko: '현장 결제', en: 'On-site', jp: '現場決済', zh: '现场支付' },
-  kiosk_visit_title: { ko: '방문 기록 남기기', en: 'Check In / Out', jp: '訪問記録', zh: '访问记录' },
+  kiosk_visit_title: { ko: '출석 체크', en: 'Check In', jp: '出席チェック', zh: '出勤打卡' },
   kiosk_visit_desc: { ko: '회원은 방문 기록을 남길 수 있어요', en: 'Members can record their visit', jp: '会員は訪問記録を残せます', zh: '会员可以留下访问记录' },
   kiosk_visit_tag: { ko: '수강생', en: 'Members', jp: '受講生', zh: '学员' },
   kiosk_back: { ko: '이전', en: 'Back', jp: '戻る', zh: '返回' },

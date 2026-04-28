@@ -27,7 +27,7 @@ export const KloudScreen = {
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',
   BusinessInfo: '/profile/setting/businessInfo',
-  Kiosk: '/profile/setting/kiosk',
+  Kiosk: '/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
   Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan', id: number) => `/payment?type=${type}&id=${id}`,

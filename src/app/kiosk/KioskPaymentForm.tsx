@@ -1,10 +1,10 @@
 'use client';
 
 import React, {useState, useEffect, useCallback} from 'react';
-import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
+import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
 import {GetLessonResponse} from "@/app/endpoint/lesson.endpoint";
 import {Thumbnail} from '@/app/components/Thumbnail';
-import {createKioskPaymentAction} from "@/app/profile/setting/kiosk/kiosk.actions";
+import {createKioskPaymentAction} from "@/app/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {KioskPaymentResultItem} from "@/app/endpoint/payment.record.endpoint";
 import {Locale} from "@/shared/StringResource";

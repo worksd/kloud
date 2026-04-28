@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { MyPassResponse } from "@/app/endpoint/user.endpoint";
-import { kioskGetMyPassesAction } from "@/app/profile/setting/kiosk/kiosk.actions";
+import { kioskGetMyPassesAction } from "@/app/kiosk/kiosk.actions";
 
 type KioskPassSelectModalProps = {
   locale: Locale;

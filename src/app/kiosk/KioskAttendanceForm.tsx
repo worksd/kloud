@@ -1,24 +1,31 @@
 'use client';
 
-import React, {useState, useEffect} from 'react';
-import BackArrowIcon from '../../../../../public/assets/ic_back_arrow.svg';
+import React, {useState, useEffect, useCallback} from 'react';
+import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
 import {
   searchUserAction,
-  registerKioskUserAction
-} from "@/app/profile/setting/kiosk/kiosk.actions";
+  createStudioAttendanceAction
+} from "@/app/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetUserResponse} from "@/app/endpoint/user.endpoint";
-import {KioskNameKeyboard} from "@/app/profile/setting/kiosk/KioskNameKeyboard";
+import {AttendanceStatus} from "@/app/endpoint/studio.endpoint";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {COUNTRIES} from "@/app/certification/COUNTRIES";
 
-type Step = 'phone' | 'select' | 'confirm' | 'name';
+type Step = 'select-status' | 'phone' | 'select' | 'confirm' | 'loading' | 'complete';
+
+const COUNTRY_CODES = [
+  {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
+  {code: '1', label: '🇺🇸 +1', placeholder: '000-000-0000'},
+  {code: '81', label: '🇯🇵 +81', placeholder: '090-0000-0000'},
+  {code: '86', label: '🇨🇳 +86', placeholder: '000-0000-0000'},
+  {code: '44', label: '🇬🇧 +44', placeholder: '0000-000-0000'},
+];
 
 const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
 
 const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
-    <div className="grid grid-cols-3 gap-[8px] w-full max-w-[480px]">
+    <div className="grid grid-cols-3 gap-[8px] w-full max-w-[400px]">
       {KEYPAD_KEYS.map((key, i) => (
           <button
               key={i}
@@ -26,7 +33,7 @@ const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
               className="h-[64px] rounded-[12px] bg-gray-100 text-[24px] font-medium text-black flex items-center justify-center active:bg-gray-200 transition-colors select-none"
           >
             {key === 'delete' ? (
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <svg width="44" height="28" viewBox="0 0 24 24" fill="none">
                   <path d="M9 3H20a1 1 0 011 1v16a1 1 0 01-1 1H9l-7-9 7-9z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M16 9l-4 6M12 9l4 6" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
@@ -36,21 +43,21 @@ const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
     </div>
 );
 
-type KioskPhoneFormProps = {
+type KioskAttendanceFormProps = {
   studioName: string;
   onBack: () => void;
-  onComplete: (userId: number, userName?: string) => void;
+  onComplete: () => void;
   locale: Locale;
 };
 
-export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPhoneFormProps) => {
+export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: KioskAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
 
-  const [step, setStep] = useState<Step>('phone');
+  const [step, setStep] = useState<Step>('select-status');
+  const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus | null>(null);
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('82');
   const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [name, setName] = useState('');
   const [userId, setUserId] = useState<number | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userNickName, setUserNickName] = useState<string | null>(null);
@@ -61,6 +68,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(180);
+  const [completeCountdown, setCompleteCountdown] = useState(5);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -75,6 +83,22 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
     }, 1000);
     return () => clearInterval(timer);
   }, [onBack]);
+
+  useEffect(() => {
+    if (step !== 'complete') return;
+    setCompleteCountdown(5);
+    const timer = setInterval(() => {
+      setCompleteCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          onComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, onComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -102,8 +126,39 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
     }
   };
 
+  const statusLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in') : t('kiosk_check_out');
+  const statusDoLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_do') : t('kiosk_check_out_do');
+  const statusCompleteLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_complete') : t('kiosk_check_out_complete');
+
+  const callAttendanceApi = useCallback(async (targetUserId: number) => {
+    if (!attendanceStatus) return;
+    setStep('loading');
+    try {
+      const result = await createStudioAttendanceAction(targetUserId, attendanceStatus);
+      if (isGuinnessErrorCase(result)) {
+        setError(t('kiosk_attendance_failed').replace('{0}', statusLabel));
+        setStep('phone');
+      } else {
+        setStep('complete');
+      }
+    } catch {
+      setError(t('kiosk_attendance_failed').replace('{0}', statusLabel));
+      setStep('phone');
+    }
+  }, [attendanceStatus, statusLabel]);
+
+  const selectUser = (user: GetUserResponse) => {
+    setUserId(user.id);
+    setUserName(user.name || null);
+    setUserNickName(user.nickName || null);
+    setUserEmail(user.email || null);
+    setUserPhone(user.phone || null);
+    setUserProfileImageUrl(user.profileImageUrl || null);
+    setStep('confirm');
+  };
+
   const handleSearch = async () => {
-    if (phone.length < 5) {
+    if (phone.length < 10) {
       setError(t('kiosk_phone_error'));
       return;
     }
@@ -112,9 +167,9 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
     try {
       const result = await searchUserAction(phone);
       if (isGuinnessErrorCase(result)) {
-        setStep('name');
+        setError(t('kiosk_not_registered'));
       } else if (result.users.length === 0) {
-        setStep('name');
+        setError(t('kiosk_not_registered'));
       } else if (result.users.length === 1) {
         selectUser(result.users[0]);
       } else {
@@ -128,40 +183,68 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
     }
   };
 
-  const selectUser = (user: GetUserResponse) => {
-    setUserId(user.id);
-    setUserName(user.name || null);
-    setUserNickName(user.nickName || null);
-    setUserEmail(user.email || null);
-    setUserPhone(user.phone || null);
-    setUserProfileImageUrl(user.profileImageUrl || null);
-    setStep('confirm');
-  };
-
-  const handleNameSubmit = async () => {
-    if (!name.trim()) {
-      setError(t('kiosk_phone_error'));
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await registerKioskUserAction(phone, countryCode, name.trim());
-      if (isGuinnessErrorCase(result)) {
-        setError(t('kiosk_register_failed'));
-        setLoading(false);
-        return;
+  const handleBackStep = () => {
+    if (step === 'phone') {
+      setPhone('');
+      setError(null);
+      setStep('select-status');
+    } else if (step === 'select') {
+      setSearchResults([]);
+      setPhone('');
+      setError(null);
+      setStep('phone');
+    } else if (step === 'confirm') {
+      setUserId(null);
+      setUserName(null);
+      setUserNickName(null);
+      setUserEmail(null);
+      setUserPhone(null);
+      setUserProfileImageUrl(null);
+      setError(null);
+      if (searchResults.length > 1) {
+        setStep('select');
+      } else {
+        setStep('phone');
       }
-      setLoading(false);
-      onComplete(result.id, name.trim());
-    } catch {
-      setError(t('kiosk_register_failed'));
-      setLoading(false);
+    } else {
+      onBack();
     }
   };
 
   const renderContent = () => {
     switch (step) {
+      case 'select-status':
+        return (
+            <>
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
+                {t('kiosk_what_to_do')}
+              </p>
+              <p className="text-gray-400 text-[20px] mb-[48px] w-full max-w-[500px] text-center">
+                {t('kiosk_select_check')}
+              </p>
+              <div className="w-full max-w-[500px] flex flex-col gap-[16px]">
+                <button
+                    onClick={() => {
+                      setAttendanceStatus('CheckIn');
+                      setStep('phone');
+                    }}
+                    className="w-full h-[80px] rounded-[16px] bg-black text-white text-[24px] font-medium transition-colors"
+                >
+                  {t('kiosk_check_in')}
+                </button>
+                <button
+                    onClick={() => {
+                      setAttendanceStatus('CheckOut');
+                      setStep('phone');
+                    }}
+                    className="w-full h-[80px] rounded-[16px] border-2 border-gray-200 text-black text-[24px] font-medium transition-colors"
+                >
+                  {t('kiosk_check_out')}
+                </button>
+              </div>
+            </>
+        );
+
       case 'phone':
         return (
             <>
@@ -172,45 +255,38 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                 {t('kiosk_phone_desc')}
               </p>
 
-              <div className="w-full max-w-[480px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center mb-[12px] relative">
-                {/* 나라코드 */}
+              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
                 <button
                     onClick={() => setShowCountryPicker((v) => !v)}
-                    className="h-full px-[16px] flex items-center gap-[6px] border-r-2 border-gray-200 shrink-0"
+                    className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[4px] text-[20px] font-medium text-black"
                 >
-                  <span className="text-[22px] leading-none">{COUNTRIES.find((c) => c.dial === countryCode)?.flag}</span>
-                  <span className="text-[18px] font-medium text-black">+{countryCode}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  {COUNTRY_CODES.find((c) => c.code === countryCode)?.label ?? `+${countryCode}`}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
                 {showCountryPicker && (
-                    <>
-                      <div className="fixed inset-0 z-[9]" onClick={() => setShowCountryPicker(false)}/>
-                      <div className="absolute top-[76px] left-0 bg-white border border-gray-200 rounded-[16px] shadow-lg z-10 overflow-y-auto max-h-[400px] w-[320px]">
-                        {COUNTRIES.map((c) => (
-                            <button
-                                key={c.key}
-                                onClick={() => {
-                                  setCountryCode(c.dial);
-                                  setShowCountryPicker(false);
-                                }}
-                                className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left flex items-center gap-[10px] hover:bg-gray-50 active:bg-gray-100 ${c.dial === countryCode ? 'font-bold bg-gray-50' : ''}`}
-                            >
-                              <span className="text-[22px] leading-none">{c.flag}</span>
-                              <span className="flex-1">{c.nameKo}</span>
-                              <span className="text-gray-500 font-semibold">+{c.dial}</span>
-                            </button>
-                        ))}
-                      </div>
-                    </>
+                    <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[12px] shadow-lg z-10 overflow-hidden">
+                      {COUNTRY_CODES.map((c) => (
+                          <button
+                              key={c.code}
+                              onClick={() => {
+                                setCountryCode(c.code);
+                                setShowCountryPicker(false);
+                              }}
+                              className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left hover:bg-gray-50 active:bg-gray-100 ${c.code === countryCode ? 'font-bold bg-gray-50' : ''}`}
+                          >
+                            {c.label}
+                          </button>
+                      ))}
+                    </div>
                 )}
-                {/* 전화번호 */}
-                <div className="flex-1 flex items-center justify-center">
-                  <p className="text-[24px] font-medium tracking-[2px] text-black">
-                    {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">010-0000-0000</span>}
-                  </p>
-                </div>
+              </div>
+
+              <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
+                <p className="text-[32px] font-medium tracking-[2px] text-black">
+                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">{COUNTRY_CODES.find(c => c.code === countryCode)?.placeholder ?? '010-0000-0000'}</span>}
+                </p>
               </div>
 
               {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
@@ -218,9 +294,9 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
               <Keypad onPress={handleKeyPress}/>
 
               <button
-                  onPointerDown={() => { if (!loading && phone.length >= 5) handleSearch(); }}
-                  disabled={loading || phone.length < 5}
-                  className="w-full max-w-[480px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px] select-none"
+                  onClick={handleSearch}
+                  disabled={loading || phone.length < 10}
+                  className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
               >
                 {loading ? t('kiosk_checking') : t('kiosk_confirm')}
               </button>
@@ -329,11 +405,11 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
               <div className="w-full max-w-[500px] flex flex-col gap-[12px]">
                 <button
                     onClick={() => {
-                      if (userId) onComplete(userId, userName ?? undefined);
+                      if (userId) callAttendanceApi(userId);
                     }}
                     className="w-full h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
                 >
-                  {t('kiosk_confirm')}
+                  {statusDoLabel}
                 </button>
                 <button
                     onClick={() => {
@@ -355,24 +431,41 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
             </>
         );
 
-      case 'name':
+      case 'loading':
         return (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[600px] text-center">
-                {t('kiosk_welcome_title')}
+              <div className="w-[60px] h-[60px] border-4 border-gray-200 border-t-black rounded-full animate-spin mb-[32px]"/>
+              <p className="text-black text-[28px] font-bold tracking-[-0.84px]">
+                {t('kiosk_attendance_processing').replace('{0}', statusLabel)}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[600px] text-center">
-                {t('kiosk_welcome_desc')}
+            </>
+        );
+
+      case 'complete':
+        return (
+            <>
+              <div className="w-[80px] h-[80px] rounded-full bg-black flex items-center justify-center mb-[32px]">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round"
+                        strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
+                {statusCompleteLabel}
               </p>
-              <KioskNameKeyboard onChange={(text) => { setName(text); setError(null); }} />
-              {error && <p className="text-red-500 text-[16px] text-center mt-[12px]">{error}</p>}
+              <p className="text-gray-400 text-[20px] mb-[48px]">
+                {userName ? `${userName}${t('kiosk_name_suffix')}` : ''}{t('kiosk_attendance_complete_msg').replace('{0}', statusLabel)}
+              </p>
               <button
-                  onClick={handleNameSubmit}
-                  disabled={loading || !name.trim()}
-                  className="w-full max-w-[600px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
+                  onClick={onComplete}
+                  className="w-full max-w-[500px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
               >
-                {loading ? t('kiosk_processing') : t('kiosk_confirm')}
+                {t('kiosk_confirm')}
               </button>
+              <p className="text-gray-400 text-[16px] mt-[20px]">
+                <span className="font-semibold text-black">{completeCountdown}</span>
+                <span>초 {t('kiosk_countdown_suffix')}</span>
+              </p>
             </>
         );
     }
@@ -381,38 +474,34 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
         <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
-          <button onClick={() => {
-                    if (step === 'phone') {
-                      onBack();
-                    } else if (step === 'confirm' && searchResults.length > 1) {
-                      setStep('select');
-                    } else {
-                      setPhone('');
-                      setError(null);
-                      setStep('phone');
-                    }
-                  }}
-                  className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity">
-            <BackArrowIcon className="w-6 h-6"/>
-          </button>
-          <p className="absolute left-1/2 -translate-x-1/2 text-black text-[20px] font-bold">{t('kiosk_phone_verify')}</p>
-          <p className="ml-auto text-gray-500 text-[16px] tracking-[-0.48px]">
-            {studioName}
-          </p>
+          {step !== 'complete' && step !== 'loading' ? (
+              <button onClick={handleBackStep}
+                      className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10">
+                <BackArrowIcon className="w-6 h-6"/>
+              </button>
+          ) : (
+              <div className="w-[40px]"/>
+          )}
+          <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">{t('kiosk_attendance')}</p>
+          <div className="ml-auto z-10">
+            <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
+              {studioName}
+            </p>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
           {renderContent()}
         </div>
 
-        <div className="px-[48px] pb-[40px] flex justify-center shrink-0 h-[60px]">
-          {countdown <= 60 && (
-            <p className="text-[18px] tracking-[-0.54px]">
-              <span className="font-semibold text-black">{formatTime(countdown)}</span>
-              <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
-            </p>
-          )}
-        </div>
+        {step !== 'complete' && (
+            <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
+              <p className="text-[18px] tracking-[-0.54px]">
+                <span className="font-semibold text-black">{formatTime(countdown)}</span>
+                <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
+              </p>
+            </div>
+        )}
       </div>
   );
 };

@@ -8,7 +8,7 @@ import { GetLessonResponse, LessonStatus } from '@/app/endpoint/lesson.endpoint'
 import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { createDialog, DialogInfo } from '@/utils/dialog.factory';
-import { getLessonsByDate } from '@/app/profile/setting/kiosk/get.lessons.by.date.action';
+import { getLessonsByDate } from '@/app/kiosk/get.lessons.by.date.action';
 import { getLessonTicketsAction } from '@/app/qrs/get.lesson.tickets.action';
 import { Thumbnail } from '@/app/components/Thumbnail';
 

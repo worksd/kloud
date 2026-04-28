@@ -3,7 +3,7 @@
 import React from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { KioskTopBar } from "@/app/profile/setting/kiosk/KioskLessonListForm";
+import { KioskTopBar } from "@/app/kiosk/KioskLessonListForm";
 
 type KioskPaymentMethodFormProps = {
   lessonTitle: string;
@@ -32,21 +32,21 @@ export const KioskPaymentMethodForm = ({
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onHome={onHome} />
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} />
 
-      {/* 큰 안내 문구 — Figma: "어떻게 결제할까요?" fs52 bold, pt200 */}
-      <div className="shrink-0 px-[5.6%]" style={{ paddingTop: 'min(18.5vw, 200px)', paddingBottom: 'min(1.8vw, 20px)' }}>
-        <p className="text-black font-bold leading-tight" style={{ fontSize: 'min(4.8vw, 52px)' }}>
+      {/* 큰 안내 문구 — 가운데 정렬 */}
+      <div className="shrink-0 flex items-center justify-center px-[5.6%]" style={{ paddingTop: 'min(8vw, 80px)', paddingBottom: 'min(4vw, 40px)' }}>
+        <p className="text-black font-bold text-center leading-tight" style={{ fontSize: 'min(4vw, 44px)' }}>
           {t('kiosk_how_to_pay')}
         </p>
       </div>
 
-      {/* 결제 금액 바 — Figma: 960x142, r32, p40/32 */}
+      {/* 결제 금액 바 */}
       <div className="shrink-0 px-[5.6%] py-[min(1.8vw,20px)]">
-        <div className="flex items-center justify-between rounded-[32px] px-[min(3.7vw,40px)] py-[min(2.9vw,32px)]" style={{ backgroundColor: '#F9F9FB' }}>
-          <span className="text-black" style={{ fontSize: 'min(3.7vw, 40px)' }}>{t('payment_amount')}</span>
-          <span className="text-black font-bold" style={{ fontSize: 'min(4.8vw, 52px)' }}>
-            {fmt(price)}<span className="font-normal" style={{ fontSize: 'min(3.7vw, 40px)' }}>{t('won')}</span>
+        <div className="flex items-center justify-between rounded-[24px] px-[min(3.7vw,40px)] py-[min(2.4vw,28px)]" style={{ backgroundColor: '#F9F9FB' }}>
+          <span className="text-[#86898C]" style={{ fontSize: 'min(2vw, 22px)' }}>{t('payment_amount')}</span>
+          <span className="text-black font-bold" style={{ fontSize: 'min(3vw, 32px)' }}>
+            {fmt(price)}<span className="font-normal ml-[6px]" style={{ fontSize: 'min(2vw, 22px)' }}>{t('won')}</span>
           </span>
         </div>
       </div>

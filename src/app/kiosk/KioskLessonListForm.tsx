@@ -1,0 +1,227 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
+import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
+import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
+import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
+
+type MockLesson = {
+  id: number;
+  title: string;
+  time: string;
+  thumbnailUrl: string;
+  price: number;
+};
+
+const MOCK_LESSONS: MockLesson[] = [
+  { id: 1, title: 'AIKI Class', time: '17:00-18:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360972448', price: 30000 },
+  { id: 2, title: 'REDLIC Class', time: '17:00-18:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360582188', price: 25000 },
+  { id: 3, title: 'BADA LEE Class', time: '19:00-20:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360449927', price: 35000 },
+  { id: 4, title: 'EUNKI Class', time: '14:00-15:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360297269', price: 28000 },
+  { id: 5, title: 'JIKANG Class', time: '10:00-11:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360753042', price: 22000 },
+  { id: 6, title: 'DOPHAN Class', time: '20:00-21:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360016489', price: 27000 },
+];
+
+type KioskLessonListFormProps = {
+  studioId: number;
+  passPlans: GetPassPlanResponse[];
+  locale: Locale;
+  onSelectLesson: (lesson: MockLesson) => void;
+  onSelectPassPlan: (plan: GetPassPlanResponse) => void;
+  onBack: () => void;
+  onChangeLocale: (locale: Locale) => void;
+};
+
+type KioskTab = 'lessons' | 'pass-plans';
+
+export const KioskLessonListForm = ({ studioId, passPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
+  const [selectedDate] = useState('26년 4월 19일');
+  const [tab, setTab] = useState<KioskTab>('lessons');
+  const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
+  const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
+
+  const handleClickPassPlan = async (plan: GetPassPlanResponse) => {
+    if (loadingDetailId) return;
+    setLoadingDetailId(plan.id);
+    try {
+      const res = await getPassPlanAction({ id: plan.id });
+      if ('id' in res) setPassPlanDetail(res);
+    } finally {
+      setLoadingDetailId(null);
+    }
+  };
+
+  return (
+    <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
+      {/* 상단 바 — 백 + 언어/홈 */}
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} />
+
+      {/* 날짜 바 — 가운데 정렬 */}
+      <div className="shrink-0 flex items-center justify-center px-[5.6%]" style={{ gap: 'min(1vw, 8px)', paddingTop: 'min(1vw, 12px)', paddingBottom: 'min(1vw, 12px)' }}>
+        <span className="text-black font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{selectedDate}</span>
+        <div className="rounded-full bg-[#F2F4F6] flex items-center justify-center" style={{ width: 'min(2.4vh, 26px)', height: 'min(2.4vh, 26px)' }}>
+          <svg viewBox="0 0 24 14" fill="none" style={{ width: 'min(1.2vh, 12px)', height: 'auto' }}>
+            <path d="M2 2L12 12L22 2" stroke="#6D7882" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* 본문: 좌측 사이드바 + 우측 컨텐츠 */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* 좌측 사이드바 */}
+        <div className="shrink-0 flex flex-col gap-[8px] py-[16px] px-[12px] border-r border-[#F2F4F6]" style={{ width: 'min(18vw, 180px)' }}>
+          <KioskSideTab label="수업" active={tab === 'lessons'} onClick={() => setTab('lessons')} />
+          <KioskSideTab label="패스권" active={tab === 'pass-plans'} onClick={() => setTab('pass-plans')} />
+        </div>
+
+        {/* 우측 컨텐츠 */}
+        <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px' }}>
+          {tab === 'lessons' && (
+            <div className="flex flex-col gap-[12px]">
+              {MOCK_LESSONS.map((lesson) => (
+                <div
+                  key={lesson.id}
+                  onClick={() => onSelectLesson(lesson)}
+                  className="relative w-full aspect-[3/1] rounded-[20px] overflow-hidden bg-[#E8E8EA] cursor-pointer active:scale-[0.99] transition-transform"
+                >
+                  {lesson.thumbnailUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={lesson.thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+                  <div className="absolute inset-y-0 left-0 flex flex-col justify-center" style={{ paddingLeft: '4%', paddingRight: '4%' }}>
+                    <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(2.2vh, 24px)' }}>{lesson.title}</p>
+                    <p className="text-[#D5D5D5]" style={{ fontSize: 'min(1.6vh, 18px)', marginTop: '4px' }}>{lesson.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tab === 'pass-plans' && (
+            <div className="flex flex-col gap-[12px]">
+              {passPlans.length === 0 && (
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>패스권이 없습니다</div>
+              )}
+              {passPlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  onClick={() => handleClickPassPlan(plan)}
+                  className="w-full rounded-[20px] bg-[#F9F9FB] p-[20px] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-transform"
+                >
+                  <div className="flex flex-col">
+                    <p className="text-black font-bold" style={{ fontSize: 'min(2vh, 22px)' }}>{plan.name}</p>
+                    {plan.expireDateStamp && (
+                      <p className="text-[#86898C] mt-[4px]" style={{ fontSize: 'min(1.4vh, 16px)' }}>{plan.expireDateStamp}</p>
+                    )}
+                  </div>
+                  <span className="text-black font-extrabold" style={{ fontSize: 'min(2vh, 24px)' }}>
+                    {new Intl.NumberFormat('ko-KR').format(plan.price ?? 0)}{getLocaleString({ locale, key: 'won' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {passPlanDetail && (
+        <KioskPassPlanDetailModal
+          passPlan={passPlanDetail}
+          locale={locale}
+          onClose={() => setPassPlanDetail(null)}
+          onPay={() => {
+            const plan = passPlanDetail;
+            setPassPlanDetail(null);
+            onSelectPassPlan(plan);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+const KioskSideTab = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className={`w-full text-left px-[16px] py-[14px] rounded-[12px] font-bold transition-colors active:scale-[0.97] ${active ? 'bg-[#1E2124] text-white' : 'bg-transparent text-[#6D7882] hover:bg-[#F9F9FB]'}`}
+    style={{ fontSize: 'min(1.8vh, 20px)' }}
+  >
+    {label}
+  </button>
+);
+
+/* ── 공통 상단 바 ── */
+const KIOSK_LOCALES: { code: Locale; flag: string; label: string }[] = [
+  { code: 'ko', flag: '🇰🇷', label: '한국어' },
+  { code: 'en', flag: '🇺🇸', label: 'English' },
+  { code: 'jp', flag: '🇯🇵', label: '日本語' },
+  { code: 'zh', flag: '🇨🇳', label: '中文' },
+];
+
+export const KioskTopBar = ({ locale, onChangeLocale, onBack, onHome }: {
+  locale: Locale;
+  onChangeLocale: (locale: Locale) => void;
+  onBack: () => void;
+  onHome: () => void;
+}) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const current = KIOSK_LOCALES.find(l => l.code === locale) ?? KIOSK_LOCALES[0];
+
+  return (
+    <div className="shrink-0 flex items-center justify-between px-[5.6%] h-[min(7vh,72px)]">
+      {/* 백 버튼 */}
+      <button
+        onClick={onBack}
+        className="w-[min(4vh,44px)] h-[min(4vh,44px)] flex items-center justify-center active:scale-[0.97] transition-transform"
+      >
+        <svg viewBox="0 0 24 24" fill="none" className="w-[min(2.4vh,26px)] h-[min(2.4vh,26px)]">
+          <path d="M15 6L9 12L15 18" stroke="#1E2124" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      <div className="flex items-center gap-[min(1.5vw,16px)]">
+        {/* 언어 선택 */}
+        <div className="relative">
+          <button
+            onClick={() => setShowPicker(v => !v)}
+            className="h-[min(4vh,44px)] px-[1.8vw] rounded-[12px] bg-white border border-[#E6E8EA] flex items-center gap-[0.7vw] shadow-sm active:scale-[0.97] transition-transform"
+          >
+            <span className="text-[min(2vh,22px)]">{current.flag}</span>
+            <span className="text-[min(1.6vh,18px)] font-medium text-[#1E2124]">{current.label}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="w-[min(1.8vh,20px)] h-[min(1.8vh,20px)]">
+              <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {showPicker && (
+            <div className="absolute top-full mt-2 right-0 bg-white border border-[#E6E8EA] rounded-[16px] shadow-lg z-30 overflow-hidden min-w-[180px]">
+              {KIOSK_LOCALES.map(l => (
+                <button
+                  key={l.code}
+                  onClick={() => { onChangeLocale(l.code); setShowPicker(false); }}
+                  className={`w-full px-4 py-3 flex items-center gap-3 text-left active:bg-gray-100 ${l.code === locale ? 'bg-gray-50 font-bold' : ''}`}
+                >
+                  <span className="text-[24px]">{l.flag}</span>
+                  <span className="text-[16px] text-[#1E2124]">{l.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 홈 버튼 */}
+        <button
+          onClick={onHome}
+          className="w-[min(4vh,44px)] h-[min(4vh,44px)] flex items-center justify-center active:scale-[0.97] transition-transform"
+        >
+          <svg viewBox="0 0 44 46" fill="none" className="w-[min(2.4vh,26px)] h-[min(2.4vh,26px)]">
+            <path d="M6 20L22 6L38 20V40C38 41.1 37.1 42 36 42H8C6.9 42 6 41.1 6 40V20Z" stroke="#B1B8BE" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 42V24H28V42" stroke="#B1B8BE" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
