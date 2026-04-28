@@ -187,6 +187,11 @@ export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse
   queryParams: ['studioId']
 };
 
+export const GetPassPlan: Endpoint<{ id: number }, GetPassPlanResponse> = {
+  method: 'get',
+  path: (e) => `/passPlans/${e.id}`,
+};
+
 export const GetPasses: Endpoint<GetPassListRequest, GetPassesResponse> = {
   method: 'get',
   path: '/passes'
