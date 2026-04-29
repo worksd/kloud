@@ -1,10 +1,12 @@
 'use server';
+import { cookies } from "next/headers";
 import { api } from "@/app/api.client";
 import { KioskPendingPaymentItemRequest } from "@/app/endpoint/payment.record.endpoint";
 import { AttendanceStatus } from "@/app/endpoint/studio.endpoint";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { clearCookies } from "@/app/profile/clear.token.action";
+import { accessTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
 
 export const searchUserByPhoneAction = async (phone: string, countryCode: string) => {
   return await api.user.searchByPhone({ phone, countryCode });
@@ -73,4 +75,32 @@ export const kioskGetMyPassesAction = async () => {
 
 export const kioskClearTokenAction = async () => {
   await clearCookies();
+};
+
+// QR로 받은 토큰을 일반 accessToken 쿠키로 저장 → 이후 모든 API 호출에 자동 사용
+export const saveKioskOperatorTokenAction = async (token: string) => {
+  const cookieStore = await cookies();
+  cookieStore.set(accessTokenKey, token, {
+    maxAge: 60 * 60 * 24 * 30,
+    sameSite: 'lax',
+  });
+};
+
+export const clearKioskOperatorTokenAction = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete(accessTokenKey);
+  cookieStore.delete(kioskSelectedIdKey);
+};
+
+export const saveSelectedKioskIdAction = async (kioskId: number) => {
+  const cookieStore = await cookies();
+  cookieStore.set(kioskSelectedIdKey, String(kioskId), {
+    maxAge: 60 * 60 * 24 * 30,
+    sameSite: 'lax',
+  });
+};
+
+// 키오스크 목록 조회 — 쿠키의 accessToken을 자동으로 사용
+export const getKiosksAction = async () => {
+  return await api.kiosk.list({});
 };
