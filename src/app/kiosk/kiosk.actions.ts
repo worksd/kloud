@@ -73,6 +73,15 @@ export const kioskGetMyPassesAction = async () => {
   return { passes: [] };
 };
 
+// userId로 student 조회 → studentId로 passes 조회 (운영자 토큰 사용)
+export const kioskGetStudentPassesByUserAction = async (userId: number) => {
+  const studentRes = await api.student.getByUser({ userId });
+  if (!('id' in studentRes)) {
+    return studentRes; // 에러 그대로 반환
+  }
+  return await api.student.getPasses({ id: studentRes.id });
+};
+
 export const kioskClearTokenAction = async () => {
   await clearCookies();
 };

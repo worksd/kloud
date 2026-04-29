@@ -146,6 +146,8 @@ export class ApiClient extends EndpointClient {
 
   readonly student = {
     create: this.endpointBuilder(API.Student.CreateStudent),
+    getByUser: this.endpointBuilder(API.Student.GetStudentByUser),
+    getPasses: this.endpointBuilder(API.Student.GetStudentPasses),
   }
 
   readonly studioRoom = {

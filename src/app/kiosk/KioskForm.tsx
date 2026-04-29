@@ -12,7 +12,10 @@ import {KioskPaymentMethodForm} from "@/app/kiosk/KioskPaymentMethodForm";
 import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
 import {Locale} from "@/shared/StringResource";
-import {kioskPhoneLoginAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction} from "@/app/kiosk/kiosk.actions";
+import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
+import {generateRandomNickname} from "@/app/kiosk/random.nickname";
+import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
 
@@ -68,6 +71,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   const [paymentResult, setPaymentResult] = useState<{ status: 'success' | 'fail'; data: Record<string, unknown> } | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [newUserDialog, setNewUserDialog] = useState<{ phone: string; countryCode: string; suggestedName: string } | null>(null);
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
@@ -78,6 +82,29 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
     setSearchedUsers([]);
     setSelectedUser(null);
   }, []);
+
+  // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
+  useEffect(() => {
+    const hasItem = !!selectedLesson || !!selectedPassPlan;
+    const hasUser = !!selectedUser;
+    if (currentScreen === 'lesson-detail' && !selectedLesson) {
+      setCurrentScreen('lesson-list');
+      return;
+    }
+    if ((currentScreen === 'phone' || currentScreen === 'searching' || currentScreen === 'member-confirm')
+      && !hasItem) {
+      setCurrentScreen('lesson-list');
+      return;
+    }
+    if (currentScreen === 'member-confirm' && !hasUser) {
+      setCurrentScreen('phone');
+      return;
+    }
+    if ((currentScreen === 'payment-method' || currentScreen === 'pass-select')
+      && (!hasItem || !hasUser)) {
+      setCurrentScreen(hasItem ? 'phone' : 'lesson-list');
+    }
+  }, [currentScreen, selectedLesson, selectedPassPlan, selectedUser]);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
@@ -138,37 +165,71 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  // 결제 성공 다이얼로그 10초 후 자동 홈 이동
+  // 결제 성공 시 자동 영수증 인쇄 + 5초 후 자동 홈 이동
   useEffect(() => {
     if (paymentResult?.status !== 'success') return;
+    handlePrintReceipt();
     const timer = setTimeout(() => {
       setPaymentResult(null);
       goHome();
-    }, 10000);
+    }, 5000);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentResult, goHome]);
 
-  // 전화번호 입력 후 phone-login API 호출
-  const handlePhoneNext = async (phoneNumber: string) => {
+  // 전화번호 입력 → /users/search?query=phone 으로 검색 (운영자 토큰 사용)
+  const handlePhoneNext = async (phoneNumber: string, countryCode: string = '82') => {
     setPhone(phoneNumber);
     setCurrentScreen('searching');
     setErrorMessage(null);
 
     try {
-      const res = await kioskPhoneLoginAction(phoneNumber);
-      if ('success' in res) {
-        setSelectedUser({
-          id: res.userId,
-          name: res.name,
-          nickName: res.nickName,
-          accessToken: res.accessToken,
-        });
-        setCurrentScreen('member-confirm');
-      } else {
-        const msg = 'message' in res ? (res as any).message : '로그인에 실패했습니다.';
-        setErrorMessage(msg);
+      const res = await searchUserAction(phoneNumber);
+      if (isGuinnessErrorCase(res)) {
+        setErrorMessage(res.message ?? '검색에 실패했습니다.');
         setCurrentScreen('phone');
+        return;
       }
+      if (!res.users || res.users.length === 0) {
+        // 유저 없음 → 신규 가입 다이얼로그
+        setNewUserDialog({ phone: phoneNumber, countryCode, suggestedName: generateRandomNickname() });
+        setCurrentScreen('phone');
+        return;
+      }
+      // 첫 번째 매칭 유저 사용
+      const u = res.users[0];
+      setSelectedUser({
+        id: u.id,
+        name: u.name,
+        nickName: u.nickName,
+      });
+      setCurrentScreen('member-confirm');
+    } catch {
+      setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
+      setCurrentScreen('phone');
+    }
+  };
+
+  // 신규 가입 확인 → 등록 후 그 결과로 진행
+  const handleConfirmNewUser = async () => {
+    if (!newUserDialog) return;
+    const { phone: p, countryCode: cc, suggestedName } = newUserDialog;
+    setNewUserDialog(null);
+    setCurrentScreen('searching');
+    try {
+      const reg = await registerKioskUserAction(p, cc, suggestedName);
+      if (isGuinnessErrorCase(reg)) {
+        setErrorMessage('가입에 실패했습니다.\n다시 시도해주세요.');
+        setCurrentScreen('phone');
+        return;
+      }
+      // registerKioskUserAction 응답(updated user)을 그대로 사용
+      setSelectedUser({
+        id: (reg as { id: number }).id,
+        name: (reg as { name?: string }).name ?? suggestedName,
+        nickName: (reg as { nickName?: string }).nickName,
+      });
+      setCurrentScreen('member-confirm');
     } catch {
       setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
       setCurrentScreen('phone');
@@ -344,35 +405,59 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       )}
 
       {paymentResult?.status === 'success' && (
-        <div className="fixed inset-0 z-30 bg-black/50 flex items-center justify-center px-[5%]">
-          <div className="bg-white rounded-[32px] w-full max-w-[720px] p-[min(3.7vw,40px)] flex flex-col items-center">
-            <p className="text-[#1E2124] font-bold text-center" style={{ fontSize: 'min(3.7vw, 40px)' }}>
-              {paymentItem?.title ?? ''}
+        <div className="fixed inset-0 z-30 bg-white flex flex-col">
+          {/* 상단 바 placeholder (back/lang/home은 굳이 X) */}
+          <div className="flex-1 flex flex-col items-center justify-start px-[5.6%] pt-[min(20vw,200px)]">
+            {/* 체크 원형 */}
+            <div className="rounded-full bg-[#3CC0AF] flex items-center justify-center" style={{ width: 'min(8vw,84px)', height: 'min(8vw,84px)' }}>
+              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                <path d="M5 12.5L10 17.5L19 8" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+
+            {/* 결제 완료 + 안내 */}
+            <p className="text-black font-bold text-center mt-[min(2.6vw,28px)]" style={{ fontSize: 'min(3.7vw,40px)' }}>
+              결제 완료!
             </p>
-            <p className="text-[#1E2124] font-bold text-center mt-[min(1.8vw,20px)]" style={{ fontSize: 'min(4.4vw, 48px)' }}>
-              결제를 성공했습니다
+            <p className="text-[#6D7882] text-center mt-[min(0.8vw,8px)]" style={{ fontSize: 'min(2vw,22px)' }}>
+              출력된 영수증을 받아가세요
             </p>
-            <button
-              onClick={handlePrintReceipt}
-              className="mt-[min(3.7vw,40px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
-            >
-              <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>영수증 인쇄</span>
-            </button>
-            <button
-              onClick={() => { setPaymentResult(null); setCurrentScreen('lesson-list'); }}
-              className="mt-[min(1.8vw,20px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-            >
-              <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>다른 수업도 구매하기</span>
-            </button>
-            <button
-              onClick={() => { setPaymentResult(null); goHome(); }}
-              className="mt-[min(1.8vw,20px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-            >
-              <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>홈으로 돌아가기</span>
-            </button>
-            <p className="text-[#86898C] mt-[min(2.6vw,28px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-              이 페이지는 10초 후에 자동으로 돌아갑니다
+
+            {/* 결제 항목 카드 */}
+            <div className="w-full max-w-[720px] mt-[min(3.7vw,40px)] bg-white border border-[#E6E8EA] rounded-[16px] px-[min(3vw,32px)] py-[min(2.4vw,26px)] flex items-center justify-between gap-[12px]">
+              <span className="text-black font-bold leading-snug line-clamp-2 flex-1" style={{ fontSize: 'min(2.4vw,26px)' }}>
+                {paymentItem?.title ?? ''}
+              </span>
+              <span className="flex items-baseline gap-[6px] shrink-0">
+                <span className="text-black font-bold" style={{ fontSize: 'min(2.8vw,30px)' }}>
+                  {new Intl.NumberFormat('ko-KR').format(paymentItem?.price ?? 0)}
+                </span>
+                <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw,20px)' }}>원</span>
+              </span>
+            </div>
+          </div>
+
+          {/* 하단 안내 + 버튼 */}
+          <div className="shrink-0 px-[5.6%] pb-[min(4vw,44px)]">
+            <p className="text-[#86898C] text-center mb-[min(1.4vw,16px)]" style={{ fontSize: 'min(1.6vw,18px)' }}>
+              5초 뒤에 닫혀요
             </p>
+            <div className="flex gap-[min(1.4vw,16px)]">
+              {selectedPassPlan && (
+                <button
+                  onClick={() => { setPaymentResult(null); setSelectedPassPlan(null); setCurrentScreen('lesson-list'); }}
+                  className="flex-1 h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                >
+                  <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>수업 신청 하러가기</span>
+                </button>
+              )}
+              <button
+                onClick={() => { setPaymentResult(null); goHome(); }}
+                className="flex-1 h-[min(7vh,72px)] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+              >
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>처음으로</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -408,6 +493,15 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
         </div>
       )}
 
+      {newUserDialog && (
+        <KioskNewUserDialog
+          name={newUserDialog.suggestedName}
+          phone={newUserDialog.phone}
+          onConfirm={handleConfirmNewUser}
+          onCancel={() => setNewUserDialog(null)}
+        />
+      )}
+
       {currentScreen === 'pass-select' && selectedLesson && (
         <>
           <KioskPaymentMethodForm
@@ -420,11 +514,14 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
             onHome={goHome}
             onChangeLocale={setLocale}
           />
-          <KioskPassSelectModal
-            locale={locale}
-            onBack={() => setCurrentScreen('payment-method')}
-            onSelectPass={(pass) => { /* TODO: 패스 사용 처리 */ goHome(); }}
-          />
+          {selectedUser && (
+            <KioskPassSelectModal
+              userId={selectedUser.id}
+              locale={locale}
+              onBack={() => setCurrentScreen('payment-method')}
+              onSelectPass={(pass) => { /* TODO: 패스 사용 처리 */ goHome(); }}
+            />
+          )}
         </>
       )}
 

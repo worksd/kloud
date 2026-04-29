@@ -3,26 +3,29 @@
 import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { MyPassResponse } from "@/app/endpoint/user.endpoint";
-import { kioskGetMyPassesAction } from "@/app/kiosk/kiosk.actions";
+import { NewPassResponse } from "@/app/endpoint/student.endpoint";
+import { kioskGetStudentPassesByUserAction } from "@/app/kiosk/kiosk.actions";
 
 type KioskPassSelectModalProps = {
+  userId: number;
   locale: Locale;
   onBack: () => void;
-  onSelectPass: (pass: MyPassResponse) => void;
+  onSelectPass: (pass: NewPassResponse) => void;
 };
 
-export const KioskPassSelectModal = ({ locale, onBack, onSelectPass }: KioskPassSelectModalProps) => {
+export const KioskPassSelectModal = ({ userId, locale, onBack, onSelectPass }: KioskPassSelectModalProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
-  const [passes, setPasses] = useState<MyPassResponse[]>([]);
+  const [passes, setPasses] = useState<NewPassResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPass, setSelectedPass] = useState<MyPassResponse | null>(null);
+  const [selectedPass, setSelectedPass] = useState<NewPassResponse | null>(null);
 
   useEffect(() => {
-    kioskGetMyPassesAction()
-      .then(res => setPasses(res.passes))
+    kioskGetStudentPassesByUserAction(userId)
+      .then(res => {
+        if ('passes' in res) setPasses(res.passes);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
@@ -54,22 +57,30 @@ export const KioskPassSelectModal = ({ locale, onBack, onSelectPass }: KioskPass
             <div className="flex flex-col" style={{ gap: 'min(2.2vw, 24px)' }}>
               {passes.map((pass) => {
                 const isSelected = selectedPass?.id === pass.id;
+                const isActive = pass.status === 'Active';
+                const statusBadge = (() => {
+                  if (pass.status === 'Active') return { bg: '#E5F4F0', text: '#0FA37F' };
+                  if (pass.status === 'Expired') return { bg: '#F2F4F6', text: '#86898C' };
+                  if (pass.status === 'Cancelled') return { bg: '#FFE9E9', text: '#E55B5B' };
+                  return { bg: '#F2F4F6', text: '#86898C' };
+                })();
                 return (
                   <button
                     key={pass.id}
-                    onClick={() => setSelectedPass(isSelected ? null : pass)}
+                    onClick={() => isActive && setSelectedPass(isSelected ? null : pass)}
+                    disabled={!isActive}
                     className={`flex items-center rounded-[32px] transition-all text-left ${
                       isSelected
                         ? 'bg-[#1E2124] ring-2 ring-[#1E2124]'
                         : 'bg-[#F9F9FB]'
-                    }`}
+                    } ${!isActive ? 'opacity-60 cursor-not-allowed' : ''}`}
                     style={{ padding: 'min(3.7vw,40px)', gap: 'min(2.2vw,24px)' }}
                   >
                     {/* 패스 이미지 */}
                     <div className="w-[min(5.6vw,60px)] h-[min(5.6vw,60px)] rounded-[12px] bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {pass.passPlan?.imageUrl ? (
+                      {pass.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={pass.passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <img src={pass.imageUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                           <path d="M4 5H18C18.8 5 19.5 5.7 19.5 6.5V9.2C18.4 9.5 17.5 10.4 17.5 11.5C17.5 12.6 18.4 13.5 19.5 13.8V15.5C19.5 16.3 18.8 17 18 17H4C3.2 17 2.5 16.3 2.5 15.5V13.8C3.6 13.5 4.5 12.6 4.5 11.5C4.5 10.4 3.6 9.5 2.5 9.2V6.5C2.5 5.7 3.2 5 4 5Z" stroke={isSelected ? '#fff' : '#B1B8BE'} strokeWidth="1.5"/>
@@ -78,9 +89,23 @@ export const KioskPassSelectModal = ({ locale, onBack, onSelectPass }: KioskPass
                     </div>
                     {/* 패스 정보 */}
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className={`font-bold truncate ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(3vw, 32px)' }}>
-                        {pass.passPlan?.name ?? '패스권'}
-                      </span>
+                      <div className="flex items-center gap-[min(1vw,10px)]">
+                        <span className={`font-bold truncate ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(3vw, 32px)' }}>
+                          {pass.name ?? '패스권'}
+                        </span>
+                        {pass.statusLabel && (
+                          <span
+                            className="shrink-0 px-[min(1.2vw,14px)] py-[min(0.4vw,5px)] rounded-full font-bold"
+                            style={{
+                              backgroundColor: isSelected ? 'rgba(255,255,255,0.18)' : statusBadge.bg,
+                              color: isSelected ? '#fff' : statusBadge.text,
+                              fontSize: 'min(1.4vw, 16px)',
+                            }}
+                          >
+                            {pass.statusLabel}
+                          </span>
+                        )}
+                      </div>
                       <span className={isSelected ? 'text-white/60' : 'text-[#6D7882]'} style={{ fontSize: 'min(2.2vw, 24px)' }}>
                         {pass.startDate} ~ {pass.endDate}
                       </span>
