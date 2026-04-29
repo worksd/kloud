@@ -105,6 +105,10 @@ export class ApiClient extends EndpointClient {
     createKiosk: this.endpointBuilder(API.PaymentRecord.CreateKioskPendingPayment),
   }
 
+  readonly kiosk = {
+    list: this.endpointBuilder(API.Kiosk.GetKiosks),
+  }
+
   readonly billing = {
     get: this.endpointBuilder(API.Billing.List),
     create: this.endpointBuilder(API.Billing.Create),
