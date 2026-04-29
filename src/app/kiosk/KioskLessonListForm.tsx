@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
+import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
+import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 
 type MockLesson = {
   id: number;
@@ -36,17 +38,32 @@ type KioskLessonListFormProps = {
 
 type KioskTab = 'lessons' | 'pass-plans';
 
-export const KioskLessonListForm = ({ studioId, passPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
   const [selectedDate] = useState('26년 4월 19일');
   const [tab, setTab] = useState<KioskTab>('lessons');
+  const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>(initialPassPlans);
+  const [loadingPassPlans, setLoadingPassPlans] = useState(false);
   const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
   const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
+
+  // 패스권 탭 진입 시 목록 fetch (이미 받은 게 있으면 스킵)
+  useEffect(() => {
+    if (tab !== 'pass-plans' || passPlans.length > 0 || !studioId) return;
+    setLoadingPassPlans(true);
+    getPassPlanListAction({ studioId })
+      .then(async (res) => {
+        if (await handleKioskTokenExpired(res)) return;
+        if ('passPlans' in res) setPassPlans(res.passPlans);
+      })
+      .finally(() => setLoadingPassPlans(false));
+  }, [tab, studioId, passPlans.length]);
 
   const handleClickPassPlan = async (plan: GetPassPlanResponse) => {
     if (loadingDetailId) return;
     setLoadingDetailId(plan.id);
     try {
       const res = await getPassPlanAction({ id: plan.id });
+      if (await handleKioskTokenExpired(res)) return;
       if ('id' in res) setPassPlanDetail(res);
     } finally {
       setLoadingDetailId(null);
@@ -72,28 +89,38 @@ export const KioskLessonListForm = ({ studioId, passPlans, locale, onSelectLesso
       <div className="flex-1 flex overflow-hidden">
         {/* 좌측 사이드바 */}
         <div className="shrink-0 flex flex-col gap-[8px] py-[16px] px-[12px] border-r border-[#F2F4F6]" style={{ width: 'min(18vw, 180px)' }}>
-          <KioskSideTab label="수업" active={tab === 'lessons'} onClick={() => setTab('lessons')} />
-          <KioskSideTab label="패스권" active={tab === 'pass-plans'} onClick={() => setTab('pass-plans')} />
+          <KioskSideTab
+            label="수업"
+            active={tab === 'lessons'}
+            onClick={() => setTab('lessons')}
+            iconSrc="/assets/ic_kiosk_lesson.svg"
+          />
+          <KioskSideTab
+            label="패스권"
+            active={tab === 'pass-plans'}
+            onClick={() => setTab('pass-plans')}
+            iconSrc="/assets/ic_kiosk_pass_plan.svg"
+          />
         </div>
 
         {/* 우측 컨텐츠 */}
         <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px' }}>
           {tab === 'lessons' && (
-            <div className="flex flex-col gap-[12px]">
+            <div className="grid grid-cols-3 gap-[12px]">
               {MOCK_LESSONS.map((lesson) => (
                 <div
                   key={lesson.id}
                   onClick={() => onSelectLesson(lesson)}
-                  className="relative w-full aspect-[3/1] rounded-[20px] overflow-hidden bg-[#E8E8EA] cursor-pointer active:scale-[0.99] transition-transform"
+                  className="relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] cursor-pointer active:scale-[0.97] transition-transform"
                 >
                   {lesson.thumbnailUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={lesson.thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                  <div className="absolute inset-y-0 left-0 flex flex-col justify-center" style={{ paddingLeft: '4%', paddingRight: '4%' }}>
-                    <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(2.2vh, 24px)' }}>{lesson.title}</p>
-                    <p className="text-[#D5D5D5]" style={{ fontSize: 'min(1.6vh, 18px)', marginTop: '4px' }}>{lesson.time}</p>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
+                  <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
+                    <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title}</p>
+                    <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{lesson.time}</p>
                   </div>
                 </div>
               ))}
@@ -102,7 +129,10 @@ export const KioskLessonListForm = ({ studioId, passPlans, locale, onSelectLesso
 
           {tab === 'pass-plans' && (
             <div className="flex flex-col gap-[12px]">
-              {passPlans.length === 0 && (
+              {loadingPassPlans && (
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>불러오는 중...</div>
+              )}
+              {!loadingPassPlans && passPlans.length === 0 && (
                 <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>패스권이 없습니다</div>
               )}
               {passPlans.map((plan) => (
@@ -143,13 +173,17 @@ export const KioskLessonListForm = ({ studioId, passPlans, locale, onSelectLesso
   );
 };
 
-const KioskSideTab = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+const KioskSideTab = ({ label, active, onClick, iconSrc }: { label: string; active: boolean; onClick: () => void; iconSrc?: string }) => (
   <button
     onClick={onClick}
-    className={`w-full text-left px-[16px] py-[14px] rounded-[12px] font-bold transition-colors active:scale-[0.97] ${active ? 'bg-[#1E2124] text-white' : 'bg-transparent text-[#6D7882] hover:bg-[#F9F9FB]'}`}
+    className={`w-full text-left px-[16px] py-[14px] rounded-[12px] font-bold transition-colors active:scale-[0.97] flex items-center gap-[10px] ${active ? 'bg-[#F2F4F6] text-[#1E2124]' : 'bg-transparent text-[#6D7882] hover:bg-[#F9F9FB]'}`}
     style={{ fontSize: 'min(1.8vh, 20px)' }}
   >
-    {label}
+    {iconSrc && (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={iconSrc} alt="" width={20} height={20} className="shrink-0 block"/>
+    )}
+    <span>{label}</span>
   </button>
 );
 
