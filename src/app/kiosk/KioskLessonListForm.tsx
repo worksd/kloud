@@ -8,6 +8,7 @@ import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
+import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 
 type MockLesson = {
   id: number;
@@ -128,30 +129,46 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           )}
 
           {tab === 'pass-plans' && (
-            <div className="flex flex-col gap-[12px]">
+            <div className="flex flex-col gap-[10px]">
               {loadingPassPlans && (
                 <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>불러오는 중...</div>
               )}
               {!loadingPassPlans && passPlans.length === 0 && (
                 <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>패스권이 없습니다</div>
               )}
-              {passPlans.map((plan) => (
-                <div
-                  key={plan.id}
-                  onClick={() => handleClickPassPlan(plan)}
-                  className="w-full rounded-[20px] bg-[#F9F9FB] p-[20px] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-transform"
-                >
-                  <div className="flex flex-col">
-                    <p className="text-black font-bold" style={{ fontSize: 'min(2vh, 22px)' }}>{plan.name}</p>
-                    {plan.expireDateStamp && (
-                      <p className="text-[#86898C] mt-[4px]" style={{ fontSize: 'min(1.4vh, 16px)' }}>{plan.expireDateStamp}</p>
+              {passPlans.map((plan) => {
+                const firstRule = plan.rules?.[0];
+                const firstFeature = plan.features?.[0];
+                const summary = firstRule?.target && firstRule?.benefit
+                  ? formatRuleDescription({ target: firstRule.target, benefit: firstRule.benefit, excludes: firstRule.excludes }, locale, plan.name)
+                  : firstFeature
+                    ? formatFeatureDescription(firstFeature.key, locale, firstFeature.value)
+                    : plan.expireDateStamp ?? '';
+                const isLoading = loadingDetailId === plan.id;
+                return (
+                  <button
+                    key={plan.id}
+                    onClick={() => handleClickPassPlan(plan)}
+                    disabled={isLoading}
+                    className={`w-full rounded-[16px] p-[16px] flex flex-col items-start text-left cursor-pointer active:scale-[0.99] transition-all ${
+                      plan.isRecommended
+                        ? 'bg-[#F4F1FF] border-2 border-[#A8A0FF]'
+                        : 'bg-[#F9F9FB] border border-transparent'
+                    } ${isLoading ? 'opacity-60' : ''}`}
+                  >
+                    {plan.isRecommended && (
+                      <span className="inline-flex items-center gap-[4px] mb-[6px] px-[10px] py-[3px] rounded-full bg-[#1E2124]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                        <span className="text-[#FFC83D]">★</span>
+                        <span className="text-white font-bold">추천</span>
+                      </span>
                     )}
-                  </div>
-                  <span className="text-black font-extrabold" style={{ fontSize: 'min(2vh, 24px)' }}>
-                    {new Intl.NumberFormat('ko-KR').format(plan.price ?? 0)}{getLocaleString({ locale, key: 'won' })}
-                  </span>
-                </div>
-              ))}
+                    <p className="text-black font-bold leading-snug" style={{ fontSize: 'min(1.8vh, 19px)' }}>{plan.name}</p>
+                    {summary && (
+                      <p className="text-[#86898C] mt-[4px] line-clamp-1" style={{ fontSize: 'min(1.4vh, 15px)' }}>{summary}</p>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

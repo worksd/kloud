@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { Locale } from "@/shared/StringResource";
-import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
+import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 
 type Props = {
   passPlan: GetPassPlanResponse;
@@ -14,10 +14,22 @@ type Props = {
 
 export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: Props) => {
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
+  const [closing, setClosing] = useState(false);
+
+  const close = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => onClose(), 200);
+  };
+  const pay = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => onPay(), 200);
+  };
 
   return (
-    <div className="fixed inset-0 z-30 bg-black/50 flex items-center justify-center px-[5%]">
-      <div className="bg-white rounded-[24px] w-full max-w-[640px] max-h-[88vh] flex flex-col overflow-hidden">
+    <div className={`fixed inset-0 z-30 bg-black/50 flex items-center justify-center px-[5%] ${closing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}>
+      <div className={`bg-white rounded-[24px] w-full max-w-[640px] max-h-[88vh] flex flex-col overflow-hidden ${closing ? 'animate-[scaleOut_200ms_ease-in_forwards]' : 'animate-[scaleIn_200ms_ease-out]'}`}>
         {/* 헤더 */}
         <div className="flex items-start justify-between px-[24px] pt-[24px] pb-[12px]">
           <div className="flex flex-col gap-[6px] min-w-0">
@@ -27,7 +39,7 @@ export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: P
             )}
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             className="shrink-0 w-[36px] h-[36px] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -36,53 +48,31 @@ export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: P
           </button>
         </div>
 
-        {/* 본문 — rules / features */}
+        {/* 본문 — rule/feature 별 아이콘 + 문구 */}
         <div className="flex-1 overflow-y-auto px-[24px] py-[12px]">
-          {(passPlan.rules ?? []).length > 0 && (
-            <div className="mb-[16px]">
-              <p className="text-[#86898C] font-bold mb-[8px]" style={{ fontSize: 'min(1.4vh, 14px)' }}>혜택</p>
-              <ul className="flex flex-col gap-[6px]">
-                {(passPlan.rules ?? []).map((rule) => (
-                  <li key={rule.id} className="flex items-start gap-[8px]">
-                    <span className="text-[#1E2124] mt-[6px] w-[4px] h-[4px] rounded-full bg-[#1E2124] shrink-0"/>
-                    <span className="text-[#1E2124]" style={{ fontSize: 'min(1.7vh, 18px)' }}>
-                      {rule.target && rule.benefit
-                        ? formatRuleDescription({ target: rule.target, benefit: rule.benefit, excludes: rule.excludes }, locale, passPlan.name)
-                        : (rule.description ?? '')}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {(passPlan.features ?? []).length > 0 && (
-            <div className="mb-[16px]">
-              <p className="text-[#86898C] font-bold mb-[8px]" style={{ fontSize: 'min(1.4vh, 14px)' }}>부가 혜택</p>
-              <ul className="flex flex-col gap-[6px]">
-                {(passPlan.features ?? []).map((f, idx) => (
-                  <li key={`${f.key}-${idx}`} className="flex items-start gap-[8px]">
-                    <span className="text-[#1E2124] mt-[6px] w-[4px] h-[4px] rounded-full bg-[#1E2124] shrink-0"/>
-                    <span className="text-[#1E2124]" style={{ fontSize: 'min(1.7vh, 18px)' }}>
-                      {formatFeatureDescription(f.key, locale, f.value) || f.description || f.key}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <PassPlanBenefits passPlan={passPlan} locale={locale} />
         </div>
 
-        {/* 가격 + 결제 버튼 */}
-        <div className="shrink-0 border-t border-[#F2F4F6] px-[24px] py-[16px] flex items-center justify-between gap-[12px]">
-          <span className="text-black font-extrabold" style={{ fontSize: 'min(2.2vh, 24px)' }}>
+        {/* 가격 */}
+        <div className="shrink-0 px-[24px] pt-[12px] pb-[16px]">
+          <span className="text-black font-extrabold" style={{ fontSize: 'min(2.4vh, 28px)' }}>
             {fmt(passPlan.price ?? 0)}원
           </span>
+        </div>
+
+        {/* 하단 버튼 — 이전 / 패스권 구매 */}
+        <div className="shrink-0 px-[24px] pb-[20px] flex gap-[10px]">
           <button
-            onClick={onPay}
-            className="flex-1 h-[min(6vh,56px)] rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+            onClick={close}
+            className="flex-[1] h-[min(6vh,56px)] rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>결제할래</span>
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>이전</span>
+          </button>
+          <button
+            onClick={pay}
+            className="flex-[2] h-[min(6vh,56px)] rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+          >
+            <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>패스권 구매</span>
           </button>
         </div>
       </div>
