@@ -15,10 +15,11 @@ import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
 import {HomeAlerts} from "@/app/home/HomeAlerts";
 import {cookies} from "next/headers";
-import {fcmTokenKey, studioKey} from "@/shared/cookies.key";
+import {accessTokenKey, fcmTokenKey, studioKey} from "@/shared/cookies.key";
 import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
 import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
+import {KioskLoginQRButton} from "@/app/home/KioskLoginQRButton";
 
 export default async function Home({
                                      searchParams
@@ -31,6 +32,8 @@ export default async function Home({
   const cookieStore = await cookies();
   const hasFcmToken = !!cookieStore.get(fcmTokenKey)?.value;
   const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
+  const accessToken = cookieStore.get(accessTokenKey)?.value;
+  const kioskQrUrl = accessToken ? `${process.env.GUINNESS_API_SERVER ?? ''}?token=${accessToken}` : '';
   if ('studios' in res) {
     const studio = res.myStudio?.studio;
     const firstThumb = res.myStudio?.jumbotrons?.[0]?.thumbnailUrl
@@ -59,6 +62,7 @@ export default async function Home({
             ) : (
               <Logo className="scale-[0.7] origin-left"/>
             )}
+            {kioskQrUrl && <KioskLoginQRButton qrUrl={kioskQrUrl} />}
           </HomeHeader>
           <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
