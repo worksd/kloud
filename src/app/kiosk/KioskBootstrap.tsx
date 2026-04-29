@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { KioskOperatorQRScanner } from '@/app/kiosk/KioskOperatorQRScanner';
+import { KioskOperatorEmailLogin } from '@/app/kiosk/KioskOperatorEmailLogin';
 import { KioskSelector } from '@/app/kiosk/KioskSelector';
 import { KioskForm } from '@/app/kiosk/KioskForm';
 import { KioskResponse } from '@/app/endpoint/kiosk.endpoint';
@@ -12,6 +13,7 @@ import {
   saveSelectedKioskIdAction,
 } from '@/app/kiosk/kiosk.actions';
 import { getMeAction } from '@/app/kiosk/get.me.action';
+import { handleKioskTokenExpired } from '@/app/kiosk/kiosk.error';
 
 type Stage = 'scan' | 'loading' | 'selector' | 'ready' | 'error';
 
@@ -26,10 +28,14 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId }: Props) => {
   const [selected, setSelected] = useState<KioskResponse | null>(null);
   const [studio, setStudio] = useState<{ id: number; name: string; profileImageUrl?: string; kioskImageUrl?: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [emailOpen, setEmailOpen] = useState(false);
 
   // /me + /kiosks 병렬 호출 → me.studio로 스튜디오 정보, kiosks로 선택
   const loadKiosks = async (preselectedId?: number) => {
     const [meRes, kiosksRes] = await Promise.all([getMeAction(), getKiosksAction()]);
+
+    if (await handleKioskTokenExpired(meRes)) return;
+    if (await handleKioskTokenExpired(kiosksRes)) return;
 
     if (!('id' in meRes) || !meRes.studio?.id) {
       setErrorMessage((meRes as { message?: string }).message ?? '인증에 실패했습니다. 다시 로그인해주세요.');
@@ -85,6 +91,14 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId }: Props) => {
     await loadKiosks();
   };
 
+  // 이메일 로그인 성공 — 토큰은 emailLoginAction이 쿠키에 저장. 페이지 리로드로 서버에서 새 쿠키 인식하게 함
+  const handleEmailLoggedIn = async () => {
+    setEmailOpen(false);
+    setErrorMessage(null);
+    setStage('loading');
+    window.location.reload();
+  };
+
   const handleSelectKiosk = async (k: KioskResponse) => {
     if (k.status !== 'Active') return;
     await saveSelectedKioskIdAction(k.id);
@@ -96,8 +110,22 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId }: Props) => {
     return (
       <>
         <KioskOperatorQRScanner onScanned={handleScanned} />
+
+        {/* 이메일 로그인 진입 버튼 */}
+        <button
+          onClick={() => setEmailOpen(true)}
+          className="fixed left-1/2 -translate-x-1/2 px-5 py-3 rounded-full bg-[#F2F4F6] border border-[#E6E8EA] active:scale-[0.97] transition-transform"
+          style={{ bottom: 'min(8vh, 80px)' }}
+        >
+          <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vh, 16px)' }}>이메일로 로그인</span>
+        </button>
+
+        {emailOpen && (
+          <KioskOperatorEmailLogin onLoggedIn={handleEmailLoggedIn} onCancel={() => setEmailOpen(false)} />
+        )}
+
         {errorMessage && (
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl bg-black/80 text-white text-[14px]">
+          <div className="fixed bottom-[20px] left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl bg-black/80 text-white text-[14px]">
             {errorMessage}
           </div>
         )}

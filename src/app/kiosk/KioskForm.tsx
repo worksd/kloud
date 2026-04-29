@@ -12,7 +12,7 @@ import {KioskPaymentMethodForm} from "@/app/kiosk/KioskPaymentMethodForm";
 import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
 import {Locale} from "@/shared/StringResource";
-import {kioskPhoneLoginAction, kioskClearTokenAction, kioskSaveTokenAction} from "@/app/kiosk/kiosk.actions";
+import {kioskPhoneLoginAction} from "@/app/kiosk/kiosk.actions";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
 
@@ -69,7 +69,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   const [isPaying, setIsPaying] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // 홈 진입 시 토큰 초기화
+  // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
     setCurrentScreen('home');
     setSelectedLesson(null);
@@ -77,12 +77,6 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
     setPhone('');
     setSearchedUsers([]);
     setSelectedUser(null);
-    await kioskClearTokenAction();
-  }, []);
-
-  // 최초 마운트 시에도 토큰 초기화
-  useEffect(() => {
-    kioskClearTokenAction();
   }, []);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
@@ -181,10 +175,9 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
     }
   };
 
-  // 유저 확인 → 토큰 저장 → 결제 수단 선택으로 이동
+  // 유저 확인 → 결제 수단 선택으로 이동 (운영자 토큰 유지, 손님 정보는 selectedUser 상태로만 들고 감)
   const handleConfirmUser = async () => {
-    if (!selectedUser?.accessToken) return;
-    await kioskSaveTokenAction(selectedUser.accessToken, selectedUser.id);
+    if (!selectedUser) return;
     setCurrentScreen('payment-method');
   };
 

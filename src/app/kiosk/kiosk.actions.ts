@@ -77,13 +77,17 @@ export const kioskClearTokenAction = async () => {
   await clearCookies();
 };
 
-// QR로 받은 토큰을 일반 accessToken 쿠키로 저장 → 이후 모든 API 호출에 자동 사용
+// QR로 받은 토큰을 loginSuccessAction으로 저장 (이메일 로그인과 동일한 흐름)
 export const saveKioskOperatorTokenAction = async (token: string) => {
-  const cookieStore = await cookies();
-  cookieStore.set(accessTokenKey, token, {
-    maxAge: 60 * 60 * 24 * 30,
-    sameSite: 'lax',
-  });
+  // JWT payload에서 userId 추출 (단순 base64 디코드, 검증은 서버가 한다)
+  let userId = 0;
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
+    if (typeof payload?.userId === 'number') userId = payload.userId;
+  } catch {
+    // 토큰이 JWT가 아니어도 일단 저장은 진행
+  }
+  await loginSuccessAction({ accessToken: token, userId });
 };
 
 export const clearKioskOperatorTokenAction = async () => {
