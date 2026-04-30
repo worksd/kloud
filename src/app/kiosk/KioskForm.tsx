@@ -20,6 +20,7 @@ import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpo
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
 import {CompleteKioskPaymentResponse} from "@/app/endpoint/kiosk.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
+import {KioskAdminModal} from "@/app/kiosk/KioskAdminModal";
 import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
@@ -78,6 +79,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | null>(null);
   const [selectedPass, setSelectedPass] = useState<{ pass: GetPassResponse; rule: PassRuleResponse } | null>(null);
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
@@ -467,6 +469,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
           onSelectPayment={() => setCurrentScreen('lesson-list')}
           onSelectVisit={() => setCurrentScreen('attendance')}
           onChangeLocale={setLocale}
+          onAdminMode={() => setAdminOpen(true)}
         />
       )}
 
@@ -645,6 +648,10 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
         <div className="fixed left-1/2 -translate-x-1/2 z-40 px-[min(3.7vw,40px)] py-[min(2.2vw,24px)] rounded-[16px] bg-black/85" style={{ bottom: 'min(7.4vw, 80px)' }}>
           <span className="text-white font-medium" style={{ fontSize: 'min(2.6vw, 28px)' }}>{toastMessage}</span>
         </div>
+      )}
+
+      {adminOpen && (
+        <KioskAdminModal kioskId={kioskId} onClose={() => setAdminOpen(false)} />
       )}
 
       {newUserDialog && (

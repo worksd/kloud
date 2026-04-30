@@ -110,6 +110,8 @@ export class ApiClient extends EndpointClient {
     getPayment: this.endpointBuilder(API.Kiosk.GetKioskPayment),
     completePayment: this.endpointBuilder(API.Kiosk.CompleteKioskPayment),
     usePass: this.endpointBuilder(API.Kiosk.UseKioskPass),
+    listPayments: this.endpointBuilder(API.Kiosk.ListKioskPayments),
+    cancelPayment: this.endpointBuilder(API.Kiosk.CancelKioskPayment),
   }
 
   readonly billing = {

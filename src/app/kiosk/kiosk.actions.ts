@@ -136,9 +136,19 @@ export const completeKioskPaymentAction = async (
   return await api.kiosk.completePayment(body);
 };
 
-// 보유 패스권 사용 — PIN 검증 후 티켓/예약 생성
+// 보유 패스권 사용 — 티켓/예약 생성
 export const useKioskPassAction = async (
   body: import("@/app/endpoint/kiosk.endpoint").UseKioskPassRequest,
 ) => {
   return await api.kiosk.usePass(body);
+};
+
+// 관리자 모드: 키오스크에서 발생한 결제 목록 조회
+export const listKioskPaymentsAction = async (kioskId: number) => {
+  return await api.kiosk.listPayments({ kioskId });
+};
+
+// 관리자 모드: 결제 취소 — KIS 단말 취소가 선행된 후 서버에 기록
+export const cancelKioskPaymentAction = async (paymentId: string, kioskId: number) => {
+  return await api.kiosk.cancelPayment({ paymentId, kioskId });
 };

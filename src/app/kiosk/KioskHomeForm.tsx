@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 
@@ -18,12 +18,27 @@ type KioskHomeFormProps = {
   onSelectPayment: () => void;
   onSelectVisit: () => void;
   onChangeLocale: (locale: Locale) => void;
+  onAdminMode: () => void;
 };
 
-export const KioskHomeForm = ({studioName, kioskImageUrl, locale, onSelectPayment, onSelectVisit, onChangeLocale}: KioskHomeFormProps) => {
+export const KioskHomeForm = ({studioName, kioskImageUrl, locale, onSelectPayment, onSelectVisit, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const [showLocalePicker, setShowLocalePicker] = useState(false);
   const currentLocale = KIOSK_LOCALES.find((l) => l.code === locale) ?? KIOSK_LOCALES[0];
+
+  // 로우그래피 로고 5번 연속 탭 → 관리자 모드 진입 (1.5초 안에 5번)
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleLogoTap = () => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      onAdminMode();
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 1500);
+  };
 
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden relative">
@@ -67,7 +82,13 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, onSelectPaymen
       {/* 푸터 — rawgraphy 로고 + 언어 피커 */}
       <div className="flex-[80] shrink-0 flex items-center justify-between px-[5.6%] relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/logo_black.svg" alt="rawgraphy" height={14} className="h-[min(1.4vh,14px)] w-auto block"/>
+        <img
+          src="/assets/logo_black.svg"
+          alt="rawgraphy"
+          height={14}
+          className="h-[min(1.4vh,14px)] w-auto block cursor-pointer"
+          onClick={handleLogoTap}
+        />
 
         <div className="relative flex-shrink-0">
           <button

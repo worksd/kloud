@@ -70,6 +70,53 @@ export const UseKioskPass: Endpoint<UseKioskPassRequest, UseKioskPassResponse> =
   bodyParams: ['targetUserId', 'kioskId', 'lessonId', 'studioRoomId', 'startDate', 'endDate'],
 };
 
+// 키오스크 관리자 모드 — 결제 record 목록 / 취소
+export type KioskPaymentRecord = {
+  paymentId: string;
+  status: string;
+  productName: string;
+  amount: number;
+  methodType?: string;
+  createdAt?: string;
+  // 카드 단말 취소를 위한 메타
+  authNo?: string;
+  authDate?: string;
+  vanKey?: string;
+  totalAmount?: number;
+  cardBrand?: string;
+  cardNumber?: string;
+};
+
+export type ListKioskPaymentsRequest = {
+  kioskId: number;
+};
+
+export type ListKioskPaymentsResponse = {
+  payments: KioskPaymentRecord[];
+};
+
+export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaymentsResponse> = {
+  method: 'get',
+  path: '/kiosks/payments',
+  queryParams: ['kioskId'],
+};
+
+export type CancelKioskPaymentRequest = {
+  paymentId: string;
+  kioskId: number;
+};
+
+export type CancelKioskPaymentResponse = {
+  paymentId: string;
+  status: string;
+};
+
+export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKioskPaymentResponse> = {
+  method: 'post',
+  path: (e) => `/kiosks/payments/${e.paymentId}/cancel`,
+  bodyParams: ['kioskId'],
+};
+
 export type KioskResponse = {
   id: number;
   name: string;
