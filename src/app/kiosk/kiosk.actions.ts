@@ -123,3 +123,22 @@ export const saveSelectedKioskIdAction = async (kioskId: number) => {
 export const getKiosksAction = async () => {
   return await api.kiosk.list({});
 };
+
+// 키오스크에서 결제 화면 진입 시 호출 — price/discounts(적용 가능한 패스권 등)/methods 응답
+export const getKioskPaymentAction = async (params: { targetUserId: number; item: string; itemId: number }) => {
+  return await api.kiosk.getPayment(params);
+};
+
+// 결제 확정 — 카드 단말 승인 후 / 현금 결제 시 호출. 같은 paymentId 재호출은 idempotent
+export const completeKioskPaymentAction = async (
+  body: import("@/app/endpoint/kiosk.endpoint").CompleteKioskPaymentRequest,
+) => {
+  return await api.kiosk.completePayment(body);
+};
+
+// 보유 패스권 사용 — PIN 검증 후 티켓/예약 생성
+export const useKioskPassAction = async (
+  body: import("@/app/endpoint/kiosk.endpoint").UseKioskPassRequest,
+) => {
+  return await api.kiosk.usePass(body);
+};
