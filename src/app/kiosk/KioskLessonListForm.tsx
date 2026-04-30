@@ -10,15 +10,8 @@ import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
+import { formatLessonStart } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
-
-export type KioskLesson = {
-  id: number;
-  title: string;
-  time: string;
-  thumbnailUrl: string;
-  price: number;
-};
 
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
@@ -26,35 +19,11 @@ const formatApiDate = (d: Date): string =>
 const formatDisplayDate = (d: Date): string =>
   `${String(d.getFullYear()).slice(-2)}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
 
-const toAmPm = (hhmm: string): string => {
-  const [h, m] = hhmm.split(':').map(Number);
-  const period = h < 12 ? '오전' : '오후';
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
-};
-
-const lessonTimeLabel = (l: GetLessonResponse): string => {
-  if (l.startDate) {
-    const time = l.startDate.split(' ')[1];
-    if (time) return toAmPm(time);
-  }
-  if (l.formattedDate?.startTime) return toAmPm(l.formattedDate.startTime);
-  return '';
-};
-
-const toKioskLesson = (l: GetLessonResponse): KioskLesson => ({
-  id: l.id,
-  title: l.title ?? '',
-  time: lessonTimeLabel(l),
-  thumbnailUrl: l.thumbnailUrl ?? '',
-  price: l.price ?? 0,
-});
-
 type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
   locale: Locale;
-  onSelectLesson: (lesson: KioskLesson) => void;
+  onSelectLesson: (lesson: GetLessonResponse) => void;
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
   onBack: () => void;
   onChangeLocale: (locale: Locale) => void;
@@ -66,7 +35,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   const today = React.useMemo(() => new Date(), []);
   const selectedDate = React.useMemo(() => formatDisplayDate(today), [today]);
   const [tab, setTab] = useState<KioskTab>('lessons');
-  const [lessons, setLessons] = useState<KioskLesson[]>([]);
+  const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(false);
   const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>(initialPassPlans);
   const [loadingPassPlans, setLoadingPassPlans] = useState(false);
@@ -80,7 +49,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
     getLessonsByDate(studioId, formatApiDate(today))
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
-        if ('lessons' in res) setLessons(res.lessons.map(toKioskLesson));
+        if ('lessons' in res) setLessons(res.lessons);
       })
       .finally(() => setLoadingLessons(false));
   }, [tab, studioId, today]);
@@ -166,8 +135,8 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                       )}
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
                       <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
-                        <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title}</p>
-                        <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{lesson.time}</p>
+                        <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
+                        <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson)}</p>
                       </div>
                     </div>
                   ))}

@@ -5,7 +5,9 @@ import {useRouter, useSearchParams} from "next/navigation";
 import {KioskCardPaymentDialog} from "@/app/kiosk/KioskCardPaymentDialog";
 import {KioskHomeForm} from "@/app/kiosk/KioskHomeForm";
 import {KioskPrinterDebugOverlay} from "@/app/kiosk/KioskPrinterDebugOverlay";
-import {KioskLessonListForm, KioskLesson} from "@/app/kiosk/KioskLessonListForm";
+import {KioskLessonListForm} from "@/app/kiosk/KioskLessonListForm";
+import {GetLessonResponse} from "@/app/endpoint/lesson.endpoint";
+import {formatLessonStart} from "@/app/kiosk/kiosk.lesson";
 import {KioskLessonDetailModal} from "@/app/kiosk/KioskLessonDetailModal";
 import {KioskPhoneInputForm} from "@/app/kiosk/KioskPhoneInputForm";
 import {KioskMemberConfirmModal} from "@/app/kiosk/KioskMemberConfirmModal";
@@ -55,7 +57,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       router.replace(nextUrl, { scroll: false });
     }
   }, [currentScreen, router]);
-  const [selectedLesson, setSelectedLesson] = useState<KioskLesson | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<GetLessonResponse | null>(null);
   const [selectedPassPlan, setSelectedPassPlan] = useState<GetPassPlanResponse | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | null>(null);
   const [phone, setPhone] = useState('');
@@ -251,9 +253,9 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   // 결제 대상(수업/패스권 공통) — 둘 중 선택된 것을 통일된 형태로 반환
   const paymentItem = selectedLesson
     ? {
-        title: selectedLesson.title,
-        price: selectedLesson.price,
-        subtitle: selectedLesson.time,
+        title: selectedLesson.title ?? '',
+        price: selectedLesson.price ?? 0,
+        subtitle: formatLessonStart(selectedLesson),
         thumbnailUrl: selectedLesson.thumbnailUrl,
         benefits: [] as string[],
       }
@@ -340,7 +342,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
         />
       )}
 
-      {currentScreen === 'lesson-list' && (
+      {/* lesson-list / lesson-detail에서 list form은 같은 인스턴스로 유지 — 모달이 떠도 뒤에서 재마운트/재fetch 안 일어나게 */}
+      {(currentScreen === 'lesson-list' || currentScreen === 'lesson-detail') && (
         <KioskLessonListForm
           studioId={studioId}
           passPlans={passPlans}
@@ -353,26 +356,16 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       )}
 
       {currentScreen === 'lesson-detail' && selectedLesson && (
-        <>
-          <KioskLessonListForm
-            studioId={studioId}
-            passPlans={passPlans}
-            locale={locale}
-            onSelectLesson={() => {}}
-            onSelectPassPlan={() => {}}
-            onBack={goHome}
-            onChangeLocale={setLocale}
-          />
-          <KioskLessonDetailModal
-            lesson={selectedLesson}
-            locale={locale}
-            onClose={() => setCurrentScreen('lesson-list')}
-            onPayment={() => setCurrentScreen('phone')}
-          />
-        </>
+        <KioskLessonDetailModal
+          lesson={selectedLesson}
+          locale={locale}
+          onClose={() => setCurrentScreen('lesson-list')}
+          onPayment={() => setCurrentScreen('phone')}
+        />
       )}
 
-      {(currentScreen === 'phone' || currentScreen === 'searching') && (
+      {/* phone / searching / member-confirm 공유 — modal 떠도 폼 인스턴스 유지 */}
+      {(currentScreen === 'phone' || currentScreen === 'searching' || currentScreen === 'member-confirm') && (
         <KioskPhoneInputForm
           locale={locale}
           onBack={() => setCurrentScreen('lesson-list')}
@@ -386,26 +379,19 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       )}
 
       {currentScreen === 'member-confirm' && selectedUser && (
-        <>
-          <KioskPhoneInputForm
-            locale={locale}
-            onBack={() => setCurrentScreen('lesson-list')}
-            onNext={() => {}}
-            onHome={goHome}
-            onChangeLocale={setLocale}
-          />
-          <KioskMemberConfirmModal
-            phone={phone}
-            userName={selectedUser.nickName ?? selectedUser.name ?? ''}
-            profileImageUrl={selectedUser.profileImageUrl}
-            locale={locale}
-            onBack={() => setCurrentScreen('phone')}
-            onConfirm={handleConfirmUser}
-          />
-        </>
+        <KioskMemberConfirmModal
+          phone={phone}
+          name={selectedUser.name}
+          nickName={selectedUser.nickName}
+          profileImageUrl={selectedUser.profileImageUrl}
+          locale={locale}
+          onBack={() => setCurrentScreen('phone')}
+          onConfirm={handleConfirmUser}
+        />
       )}
 
-      {currentScreen === 'payment-method' && paymentItem && (
+      {/* payment-method / pass-select 공유 — modal 떠도 폼 인스턴스 유지 */}
+      {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && (
         <KioskPaymentMethodForm
           lessonTitle={paymentItem.title}
           price={paymentItem.price}
@@ -553,34 +539,20 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
         </div>
       )}
 
-      {currentScreen === 'pass-select' && selectedLesson && (
-        <>
-          <KioskPaymentMethodForm
-            lessonTitle={selectedLesson.title}
-            price={selectedLesson.price}
-            locale={locale}
-            onBack={() => setCurrentScreen('phone')}
-            onSelectPass={() => {}}
-            onSelectCard={() => {}}
-            onHome={goHome}
-            onChangeLocale={setLocale}
-          />
-          {selectedUser && (
-            <KioskPassSelectModal
-              userId={selectedUser.id}
-              locale={locale}
-              onBack={() => setCurrentScreen('payment-method')}
-              onSelectPass={(pass) => {
-                // TODO: 백엔드에 패스권 사용(차감) 거래 기록 — 현재는 영수증 출력 + 결제완료 화면 진입까지만
-                setPaymentMethod('pass');
-                setPaymentResult({
-                  status: 'success',
-                  data: { passId: pass.id, passName: pass.name ?? '' },
-                });
-              }}
-            />
-          )}
-        </>
+      {currentScreen === 'pass-select' && selectedLesson && selectedUser && (
+        <KioskPassSelectModal
+          userId={selectedUser.id}
+          locale={locale}
+          onBack={() => setCurrentScreen('payment-method')}
+          onSelectPass={(pass) => {
+            // TODO: 백엔드에 패스권 사용(차감) 거래 기록 — 현재는 영수증 출력 + 결제완료 화면 진입까지만
+            setPaymentMethod('pass');
+            setPaymentResult({
+              status: 'success',
+              data: { passId: pass.id, passName: pass.name ?? '' },
+            });
+          }}
+        />
       )}
 
       {currentScreen === 'attendance' && (

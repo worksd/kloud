@@ -14,7 +14,8 @@ type UserItem = {
 
 type KioskMemberConfirmModalProps = {
   phone: string;
-  userName: string;
+  name?: string;
+  nickName?: string;
   profileImageUrl?: string;
   locale: Locale;
   onBack: () => void;
@@ -43,7 +44,7 @@ const formatPhone = (digits: string) => {
   return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7, 11)}`;
 };
 
-export const KioskMemberConfirmModal = ({ phone, userName, profileImageUrl, locale, onBack, onConfirm, users, onSelectUser }: KioskMemberConfirmModalProps) => {
+export const KioskMemberConfirmModal = ({ phone, name, nickName, profileImageUrl, locale, onBack, onConfirm, users, onSelectUser }: KioskMemberConfirmModalProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const isSelectMode = users && users.length > 1 && onSelectUser;
 
@@ -56,7 +57,7 @@ export const KioskMemberConfirmModal = ({ phone, userName, profileImageUrl, loca
       >
         {/* 타이틀 */}
         <div className="px-[min(5.6vw,60px)] pt-[min(5.6vw,60px)] pb-[min(1.8vw,20px)]">
-          <p className="text-black text-[min(4.8vw,52px)] font-bold leading-tight">
+          <p className="text-black text-[min(3.7vw,40px)] font-bold leading-tight">
             {isSelectMode ? t('kiosk_select_user_title') : t('kiosk_member_confirm_title')}
           </p>
         </div>
@@ -72,11 +73,11 @@ export const KioskMemberConfirmModal = ({ phone, userName, profileImageUrl, loca
               >
                 <UserAvatar profileImageUrl={user.profileImageUrl} />
                 <div className="flex flex-col gap-1 text-left">
-                  <span className="text-black text-[min(3.7vw,40px)] font-bold">{user.nickName ?? user.name ?? '-'}</span>
+                  <span className="text-black text-[min(2.8vw,32px)] font-bold">{user.nickName ?? user.name ?? '-'}</span>
                   {user.name && user.nickName && (
-                    <span className="text-[#8A949E] text-[min(2.2vw,24px)]">{user.name}</span>
+                    <span className="text-[#8A949E] text-[min(1.8vw,20px)]">{user.name}</span>
                   )}
-                  {user.phone && <span className="text-[#6D7882] text-[min(2.6vw,28px)]">{user.phone}</span>}
+                  {user.phone && <span className="text-[#6D7882] text-[min(2vw,22px)]">{user.phone}</span>}
                 </div>
               </button>
             ))}
@@ -87,8 +88,11 @@ export const KioskMemberConfirmModal = ({ phone, userName, profileImageUrl, loca
             <div className="flex items-center gap-[min(2.2vw,24px)] bg-[#F9F9FB] rounded-[32px] px-[min(3.7vw,40px)] py-[min(2.9vw,32px)]">
               <UserAvatar profileImageUrl={profileImageUrl} />
               <div className="flex flex-col gap-1">
-                <span className="text-black text-[min(3.7vw,40px)] font-bold">{userName}</span>
-                <span className="text-[#6D7882] text-[min(2.6vw,28px)]">{formatPhone(phone)}</span>
+                <span className="text-black text-[min(2.8vw,32px)] font-bold">{nickName ?? name ?? '-'}</span>
+                {name && nickName && (
+                  <span className="text-[#8A949E] text-[min(1.8vw,20px)]">{name}</span>
+                )}
+                <span className="text-[#6D7882] text-[min(2vw,22px)]">{formatPhone(phone)}</span>
               </div>
             </div>
           </div>
