@@ -4,7 +4,8 @@ import React, {useState, useEffect, useCallback} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import {KioskCardPaymentDialog} from "@/app/kiosk/KioskCardPaymentDialog";
 import {KioskHomeForm} from "@/app/kiosk/KioskHomeForm";
-import {KioskLessonListForm} from "@/app/kiosk/KioskLessonListForm";
+import {KioskPrinterDebugOverlay} from "@/app/kiosk/KioskPrinterDebugOverlay";
+import {KioskLessonListForm, KioskLesson} from "@/app/kiosk/KioskLessonListForm";
 import {KioskLessonDetailModal} from "@/app/kiosk/KioskLessonDetailModal";
 import {KioskPhoneInputForm} from "@/app/kiosk/KioskPhoneInputForm";
 import {KioskMemberConfirmModal} from "@/app/kiosk/KioskMemberConfirmModal";
@@ -18,14 +19,7 @@ import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
-
-type MockLesson = {
-  id: number;
-  title: string;
-  time: string;
-  thumbnailUrl: string;
-  price: number;
-};
+import {buildCardPaymentReceipt, buildPassPaymentReceipt} from "@/app/kiosk/kiosk.receipt";
 
 type SearchedUser = {
   id: number;
@@ -61,8 +55,9 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       router.replace(nextUrl, { scroll: false });
     }
   }, [currentScreen, router]);
-  const [selectedLesson, setSelectedLesson] = useState<MockLesson | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<KioskLesson | null>(null);
   const [selectedPassPlan, setSelectedPassPlan] = useState<GetPassPlanResponse | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | null>(null);
   const [phone, setPhone] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<SearchedUser | null>(null);
@@ -72,6 +67,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   const [isPaying, setIsPaying] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [newUserDialog, setNewUserDialog] = useState<{ phone: string; countryCode: string; suggestedName: string } | null>(null);
+  const [printerDebugOpen, setPrinterDebugOpen] = useState(false);
+  const [printerDebugResult, setPrinterDebugResult] = useState<string | null>(null);
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
@@ -81,6 +78,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
     setPhone('');
     setSearchedUsers([]);
     setSelectedUser(null);
+    setPaymentMethod(null);
   }, []);
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
@@ -139,11 +137,19 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       canceled?: boolean;
       error?: string;
       resultCode?: string | number;
+      device?: string;
+      baud?: number;
+      queries?: Array<{ query?: string; len?: number; hex?: string; ascii?: string }>;
     };
     type SerialWindow = Window & { onSerialPrintResult?: (result: SerialPrintResult) => void };
 
     (window as SerialWindow).onSerialPrintResult = (result) => {
       console.log('Print result:', result);
+      // 진단 query 응답이 오면 화면에 dump
+      if (result?.queries && Array.isArray(result.queries)) {
+        setPrinterDebugResult(JSON.stringify(result, null, 2));
+        return;
+      }
       if (result?.success) {
         setToastMessage('영수증 출력 완료');
         return;
@@ -270,36 +276,48 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
         }
       : null;
 
-  // 영수증 인쇄: RS-232 시리얼 프린터
+  // 영수증 인쇄: 결제 수단에 따라 빌더 분기 (kiosk.receipt.ts)
   const handlePrintReceipt = useCallback(() => {
-    if (!paymentItem) return;
+    if (!paymentItem || !paymentMethod) return;
     const data = paymentResult?.data ?? {};
-    const authNo = typeof data.outAuthNo === 'string' ? data.outAuthNo : '';
-    const cardNo = typeof data.outCardNo === 'string' ? data.outCardNo : '';
-    const authDate = typeof data.outAuthDate === 'string' ? data.outAuthDate : '';
+    const studio = { name: studioName };
+    const items = [{ name: paymentItem.title, price: paymentItem.price }];
+    const str = (k: string): string | undefined =>
+      typeof data[k] === 'string' && data[k] ? (data[k] as string) : undefined;
 
-    const lines: Array<Record<string, unknown>> = [
-      { align: 'C', bold: true, text: studioName },
-      { blank: 1 },
-      { align: 'L', text: '------------------------------' },
-      { align: 'L', text: `상품: ${paymentItem.title}` },
-      { align: 'L', text: `금액: ${paymentItem.price.toLocaleString('ko-KR')}원` },
-    ];
-    if (authNo) lines.push({ align: 'L', text: `승인: ${authNo}` });
-    if (cardNo) lines.push({ align: 'L', text: `카드: ${cardNo}` });
-    if (authDate) lines.push({ align: 'L', text: `일시: ${authDate}` });
-    lines.push({ align: 'L', text: '------------------------------' });
-    lines.push({ align: 'C', text: '감사합니다' });
-    lines.push({ blank: 3 });
+    if (paymentMethod === 'card') {
+      const lines = buildCardPaymentReceipt({
+        studio,
+        items,
+        card: {
+          cardNo: str('outCardNo'),
+          issuerName: str('outIssuerName'),
+          authNo: str('outAuthNo'),
+          authDate: str('outAuthDate'),
+          installment: str('outInstallment'),
+          merchantNo: str('outMerchantNo'),
+        },
+      });
+      window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
+      return;
+    }
 
-    window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
-  }, [paymentItem, paymentResult, studioName]);
+    if (paymentMethod === 'pass') {
+      const lines = buildPassPaymentReceipt({
+        studio,
+        items,
+        passName: str('passName'),
+      });
+      window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
+    }
+  }, [paymentItem, paymentResult, paymentMethod, studioName]);
 
   // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
   const handleCardPayment = useCallback(() => {
     if (!paymentItem || isPaying) return;
     setIsPaying(true);
     setPaymentResult(null);
+    setPaymentMethod('card');
 
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       inTestMode: 'Y',
@@ -445,7 +463,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
             <div className="flex gap-[min(1.4vw,16px)]">
               {selectedPassPlan && (
                 <button
-                  onClick={() => { setPaymentResult(null); setSelectedPassPlan(null); setCurrentScreen('lesson-list'); }}
+                  onClick={() => { setPaymentResult(null); setPaymentMethod(null); setSelectedPassPlan(null); setCurrentScreen('lesson-list'); }}
                   className="flex-1 h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
                 >
                   <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>수업 신청 하러가기</span>
@@ -478,7 +496,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
               </pre>
             </div>
             <button
-              onClick={() => setPaymentResult(null)}
+              onClick={() => { setPaymentResult(null); setPaymentMethod(null); }}
               className="mt-[min(3.7vw,40px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
             >
               <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>확인</span>
@@ -502,6 +520,39 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
         />
       )}
 
+      {printerDebugOpen && (
+        <KioskPrinterDebugOverlay onClose={() => setPrinterDebugOpen(false)} />
+      )}
+
+      {printerDebugResult && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-[3%]">
+          <div className="bg-white rounded-[16px] w-full max-w-[920px] max-h-[88vh] flex flex-col overflow-hidden">
+            <div className="shrink-0 px-[20px] pt-[16px] pb-[10px] flex items-center justify-between">
+              <p className="text-black font-bold text-[16px]">프린터 진단 결과 (queries)</p>
+              <div className="flex gap-[8px]">
+                <button
+                  onClick={() => navigator.clipboard?.writeText(printerDebugResult)}
+                  className="px-[12px] h-[32px] rounded-[8px] bg-[#1E2124] text-white text-[12px] font-bold active:scale-[0.97]"
+                >
+                  복사
+                </button>
+                <button
+                  onClick={() => setPrinterDebugResult(null)}
+                  className="px-[12px] h-[32px] rounded-[8px] bg-[#F2F4F6] text-[#1E2124] text-[12px] font-bold active:scale-[0.97]"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto px-[16px] pb-[16px]">
+              <pre className="text-[#1E2124] text-[11px] font-mono whitespace-pre-wrap break-all bg-[#F9F9FB] p-[12px] rounded-[8px]">
+                {printerDebugResult}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
       {currentScreen === 'pass-select' && selectedLesson && (
         <>
           <KioskPaymentMethodForm
@@ -519,7 +570,14 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
               userId={selectedUser.id}
               locale={locale}
               onBack={() => setCurrentScreen('payment-method')}
-              onSelectPass={(pass) => { /* TODO: 패스 사용 처리 */ goHome(); }}
+              onSelectPass={(pass) => {
+                // TODO: 백엔드에 패스권 사용(차감) 거래 기록 — 현재는 영수증 출력 + 결제완료 화면 진입까지만
+                setPaymentMethod('pass');
+                setPaymentResult({
+                  status: 'success',
+                  data: { passId: pass.id, passName: pass.name ?? '' },
+                });
+              }}
             />
           )}
         </>

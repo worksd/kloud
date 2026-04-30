@@ -3,14 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
+import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 
-type MockLesson = {
+export type KioskLesson = {
   id: number;
   title: string;
   time: string;
@@ -18,20 +20,41 @@ type MockLesson = {
   price: number;
 };
 
-const MOCK_LESSONS: MockLesson[] = [
-  { id: 1, title: 'AIKI Class', time: '17:00-18:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360972448', price: 30000 },
-  { id: 2, title: 'REDLIC Class', time: '17:00-18:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360582188', price: 25000 },
-  { id: 3, title: 'BADA LEE Class', time: '19:00-20:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360449927', price: 35000 },
-  { id: 4, title: 'EUNKI Class', time: '14:00-15:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360297269', price: 28000 },
-  { id: 5, title: 'JIKANG Class', time: '10:00-11:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360753042', price: 22000 },
-  { id: 6, title: 'DOPHAN Class', time: '20:00-21:30', thumbnailUrl: 'https://guinness-bucket.s3.ap-northeast-2.amazonaws.com/rawgraphy/profile/1737360016489', price: 27000 },
-];
+const formatApiDate = (d: Date): string =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
+const formatDisplayDate = (d: Date): string =>
+  `${String(d.getFullYear()).slice(-2)}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+
+const toAmPm = (hhmm: string): string => {
+  const [h, m] = hhmm.split(':').map(Number);
+  const period = h < 12 ? '오전' : '오후';
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
+};
+
+const lessonTimeLabel = (l: GetLessonResponse): string => {
+  if (l.startDate) {
+    const time = l.startDate.split(' ')[1];
+    if (time) return toAmPm(time);
+  }
+  if (l.formattedDate?.startTime) return toAmPm(l.formattedDate.startTime);
+  return '';
+};
+
+const toKioskLesson = (l: GetLessonResponse): KioskLesson => ({
+  id: l.id,
+  title: l.title ?? '',
+  time: lessonTimeLabel(l),
+  thumbnailUrl: l.thumbnailUrl ?? '',
+  price: l.price ?? 0,
+});
 
 type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
   locale: Locale;
-  onSelectLesson: (lesson: MockLesson) => void;
+  onSelectLesson: (lesson: KioskLesson) => void;
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
   onBack: () => void;
   onChangeLocale: (locale: Locale) => void;
@@ -40,12 +63,27 @@ type KioskLessonListFormProps = {
 type KioskTab = 'lessons' | 'pass-plans';
 
 export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
-  const [selectedDate] = useState('26년 4월 19일');
+  const today = React.useMemo(() => new Date(), []);
+  const selectedDate = React.useMemo(() => formatDisplayDate(today), [today]);
   const [tab, setTab] = useState<KioskTab>('lessons');
+  const [lessons, setLessons] = useState<KioskLesson[]>([]);
+  const [loadingLessons, setLoadingLessons] = useState(false);
   const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>(initialPassPlans);
   const [loadingPassPlans, setLoadingPassPlans] = useState(false);
   const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
   const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
+
+  // 수업 탭: 오늘 날짜의 수업 목록 조회
+  useEffect(() => {
+    if (tab !== 'lessons' || !studioId) return;
+    setLoadingLessons(true);
+    getLessonsByDate(studioId, formatApiDate(today))
+      .then(async (res) => {
+        if (await handleKioskTokenExpired(res)) return;
+        if ('lessons' in res) setLessons(res.lessons.map(toKioskLesson));
+      })
+      .finally(() => setLoadingLessons(false));
+  }, [tab, studioId, today]);
 
   // 패스권 탭 진입 시 목록 fetch (이미 받은 게 있으면 스킵)
   useEffect(() => {
@@ -107,25 +145,35 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
         {/* 우측 컨텐츠 */}
         <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px' }}>
           {tab === 'lessons' && (
-            <div className="grid grid-cols-3 gap-[12px]">
-              {MOCK_LESSONS.map((lesson) => (
-                <div
-                  key={lesson.id}
-                  onClick={() => onSelectLesson(lesson)}
-                  className="relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] cursor-pointer active:scale-[0.97] transition-transform"
-                >
-                  {lesson.thumbnailUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={lesson.thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
-                  <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
-                    <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title}</p>
-                    <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{lesson.time}</p>
-                  </div>
+            <>
+              {loadingLessons && (
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>불러오는 중...</div>
+              )}
+              {!loadingLessons && lessons.length === 0 && (
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>오늘 예정된 수업이 없습니다</div>
+              )}
+              {!loadingLessons && lessons.length > 0 && (
+                <div className="grid grid-cols-3 gap-[12px]">
+                  {lessons.map((lesson) => (
+                    <div
+                      key={lesson.id}
+                      onClick={() => onSelectLesson(lesson)}
+                      className="relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] cursor-pointer active:scale-[0.97] transition-transform"
+                    >
+                      {lesson.thumbnailUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={lesson.thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
+                      <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
+                        <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title}</p>
+                        <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{lesson.time}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
 
           {tab === 'pass-plans' && (

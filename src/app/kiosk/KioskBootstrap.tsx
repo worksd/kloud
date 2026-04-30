@@ -9,21 +9,24 @@ import { KioskResponse } from '@/app/endpoint/kiosk.endpoint';
 import {
   clearKioskOperatorTokenAction,
   getKiosksAction,
+  getKioskOperatorTokenAction,
   saveKioskOperatorTokenAction,
   saveSelectedKioskIdAction,
 } from '@/app/kiosk/kiosk.actions';
 import { getMeAction } from '@/app/kiosk/get.me.action';
 import { handleKioskTokenExpired } from '@/app/kiosk/kiosk.error';
+import { sendKioskTokenToNative } from '@/app/kiosk/kiosk.native';
 
 type Stage = 'scan' | 'loading' | 'selector' | 'ready' | 'error';
 
 type Props = {
   hasInitialToken: boolean;
   initialKioskId?: number;
+  urlToken?: string;
 };
 
-export const KioskBootstrap = ({ hasInitialToken, initialKioskId }: Props) => {
-  const [stage, setStage] = useState<Stage>(hasInitialToken ? 'loading' : 'scan');
+export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Props) => {
+  const [stage, setStage] = useState<Stage>(hasInitialToken || urlToken ? 'loading' : 'scan');
   const [kiosks, setKiosks] = useState<KioskResponse[]>([]);
   const [selected, setSelected] = useState<KioskResponse | null>(null);
   const [studio, setStudio] = useState<{ id: number; name: string; profileImageUrl?: string; kioskImageUrl?: string } | null>(null);
@@ -77,10 +80,26 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId }: Props) => {
     setStage('selector');
   };
 
-  // 초기 마운트 시 토큰이 있으면 바로 키오스크 목록 로드
+  // 초기 마운트 시:
+  //  - URL에 ?token= 으로 들어왔으면 그 토큰을 쿠키 + 네이티브에 저장한 뒤 부트스트랩 (로그인 절차 스킵)
+  //  - 또는 이미 쿠키에 토큰이 있으면 그대로 부트스트랩
   useEffect(() => {
-    if (!hasInitialToken) return;
-    loadKiosks(initialKioskId);
+    const init = async () => {
+      if (urlToken) {
+        await saveKioskOperatorTokenAction(urlToken);
+        sendKioskTokenToNative(urlToken);
+        // URL에 토큰이 그대로 노출되지 않도록 청소
+        if (typeof window !== 'undefined') {
+          window.history.replaceState({}, '', '/kiosk');
+        }
+        await loadKiosks(initialKioskId);
+        return;
+      }
+      if (hasInitialToken) {
+        await loadKiosks(initialKioskId);
+      }
+    };
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -88,14 +107,17 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId }: Props) => {
     setErrorMessage(null);
     setStage('loading');
     await saveKioskOperatorTokenAction(scannedToken);
+    sendKioskTokenToNative(scannedToken);
     await loadKiosks();
   };
 
-  // 이메일 로그인 성공 — 토큰은 emailLoginAction이 쿠키에 저장. 페이지 리로드로 서버에서 새 쿠키 인식하게 함
+  // 이메일 로그인 성공 — 토큰은 emailLoginAction이 쿠키에 저장. 페이지 리로드 전 네이티브에도 전달
   const handleEmailLoggedIn = async () => {
     setEmailOpen(false);
     setErrorMessage(null);
     setStage('loading');
+    const token = await getKioskOperatorTokenAction();
+    if (token) sendKioskTokenToNative(token);
     window.location.reload();
   };
 

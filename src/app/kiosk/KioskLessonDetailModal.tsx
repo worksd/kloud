@@ -3,9 +3,10 @@
 import React from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { KioskLesson } from "@/app/kiosk/KioskLessonListForm";
 
 type KioskLessonDetailModalProps = {
-  lesson: { id: number; title: string; time: string; thumbnailUrl: string; price: number };
+  lesson: KioskLesson;
   locale: Locale;
   onClose: () => void;
   onPayment: () => void;

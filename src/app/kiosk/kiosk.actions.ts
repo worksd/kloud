@@ -86,6 +86,12 @@ export const kioskClearTokenAction = async () => {
   await clearCookies();
 };
 
+// 현재 운영자 accessToken 쿠키값 반환 (네이티브에 토큰 전달할 때 사용)
+export const getKioskOperatorTokenAction = async (): Promise<string | null> => {
+  const cookieStore = await cookies();
+  return cookieStore.get(accessTokenKey)?.value ?? null;
+};
+
 // QR로 받은 토큰을 loginSuccessAction으로 저장 (이메일 로그인과 동일한 흐름)
 export const saveKioskOperatorTokenAction = async (token: string) => {
   // JWT payload에서 userId 추출 (단순 base64 디코드, 검증은 서버가 한다)
