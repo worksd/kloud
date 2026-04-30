@@ -21,7 +21,7 @@ import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
-import {buildCardPaymentReceipt, buildPassPaymentReceipt} from "@/app/kiosk/kiosk.receipt";
+import {buildCardPaymentReceipt, buildCashRequestReceipt, buildPassPaymentReceipt} from "@/app/kiosk/kiosk.receipt";
 
 type SearchedUser = {
   id: number;
@@ -59,7 +59,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
   }, [currentScreen, router]);
   const [selectedLesson, setSelectedLesson] = useState<GetLessonResponse | null>(null);
   const [selectedPassPlan, setSelectedPassPlan] = useState<GetPassPlanResponse | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | 'cash' | null>(null);
   const [phone, setPhone] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<SearchedUser | null>(null);
@@ -311,10 +311,17 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
         passName: str('passName'),
       });
       window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
+      return;
+    }
+
+    if (paymentMethod === 'cash') {
+      const lines = buildCashRequestReceipt({ studio, items });
+      window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
     }
   }, [paymentItem, paymentResult, paymentMethod, studioName]);
 
   // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
+  // Apple Pay도 같은 단말기에서 NFC로 처리되므로 동일 핸들러 사용
   const handleCardPayment = useCallback(() => {
     if (!paymentItem || isPaying) return;
     setIsPaying(true);
@@ -328,6 +335,13 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
       inInstallment: '00',
     }));
   }, [paymentItem, isPaying]);
+
+  // 현금 결제 신청: 결제는 인포에서 마무리 — 영수증만 출력하고 성공 화면으로
+  const handleCashPayment = useCallback(() => {
+    if (!paymentItem) return;
+    setPaymentMethod('cash');
+    setPaymentResult({ status: 'success', data: {} });
+  }, [paymentItem]);
 
   return (
     <div className="w-full h-screen overflow-hidden">
@@ -399,6 +413,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
           onBack={() => setCurrentScreen('phone')}
           onSelectPass={() => setCurrentScreen('pass-select')}
           onSelectCard={handleCardPayment}
+          onSelectApplePay={handleCardPayment}
+          onSelectCash={handleCashPayment}
           onHome={goHome}
           onChangeLocale={setLocale}
         />
@@ -419,12 +435,12 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskIma
               </svg>
             </div>
 
-            {/* 결제 완료 + 안내 */}
+            {/* 결제 완료 + 안내 — 현금 결제 신청은 결제 미완료 상태이므로 멘트 분기 */}
             <p className="text-black font-bold text-center mt-[min(2.6vw,28px)]" style={{ fontSize: 'min(3.7vw,40px)' }}>
-              결제 완료!
+              {paymentMethod === 'cash' ? '신청 완료!' : '결제 완료!'}
             </p>
             <p className="text-[#6D7882] text-center mt-[min(0.8vw,8px)]" style={{ fontSize: 'min(2vw,22px)' }}>
-              출력된 영수증을 받아가세요
+              {paymentMethod === 'cash' ? '인포에서 결제를 마무리해주세요' : '출력된 영수증을 받아가세요'}
             </p>
 
             {/* 결제 항목 카드 */}
