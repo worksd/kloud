@@ -84,6 +84,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
   const [cashConfirmOpen, setCashConfirmOpen] = useState(false);
+  const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
@@ -336,9 +337,11 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
 
   // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
   // Apple Pay도 같은 단말기에서 NFC로 처리되므로 동일 핸들러 사용. 할인 적용 시 잔액만 청구.
-  const handleCardPayment = useCallback(() => {
+  // variant는 대기 다이얼로그 문구 분기에만 사용 (실제 KIS 호출은 동일).
+  const handleCardPayment = useCallback((variant: 'card' | 'applepay' = 'card') => {
     if (!paymentItem || isPaying) return;
     const finalAmount = Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0));
+    setCardPayingVariant(variant);
     setIsPaying(true);
     setPaymentResult(null);
     setPaymentMethod('card');
@@ -556,8 +559,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
           onBack={() => setCurrentScreen('phone')}
           onSelectPass={() => setCurrentScreen('pass-select')}
           onClearDiscount={() => { setSelectedDiscount(null); setSelectedPass(null); }}
-          onSelectCard={handleCardPayment}
-          onSelectApplePay={handleCardPayment}
+          onSelectCard={() => handleCardPayment('card')}
+          onSelectApplePay={() => handleCardPayment('applepay')}
           onSelectCash={() => setCashConfirmOpen(true)}
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
@@ -566,7 +569,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
       )}
 
       {isPaying && (
-        <KioskCardPaymentDialog locale={locale} onCancel={() => setIsPaying(false)} />
+        <KioskCardPaymentDialog method={cardPayingVariant} locale={locale} onCancel={() => setIsPaying(false)} />
       )}
 
       {paymentResult?.status === 'success' && (

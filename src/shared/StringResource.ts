@@ -3108,6 +3108,7 @@ export const StringResource = {
   kiosk_new_user_title: { ko: '신규 회원이시네요!', en: 'Welcome, new member!', jp: '新規会員ですね！', zh: '您是新会员！' },
   kiosk_new_user_desc: { ko: '아래 정보로 가입하고, 이어서 진행할게요', en: "We'll register you and continue", jp: '以下の情報で登録して進みます', zh: '将以下信息注册并继续' },
   kiosk_card_payment_waiting: { ko: '카드를 넣고 잠시만 기다려주세요', en: 'Please insert your card and wait', jp: 'カードを挿入してお待ちください', zh: '请插入您的卡并稍候' },
+  kiosk_applepay_waiting: { ko: 'Apple Pay를 단말기에 가까이 대주세요', en: 'Hold your device near the terminal', jp: '端末にデバイスをかざしてください', zh: '请将设备靠近终端' },
   kiosk_country_select: { ko: '국가 선택', en: 'Select country', jp: '国を選択', zh: '选择国家' },
   kiosk_cancel: { ko: '취소', en: 'Cancel', jp: 'キャンセル', zh: '取消' },
   kiosk_cash_confirm_title_l1: { ko: '인포데스크에서', en: 'At the info desk', jp: 'インフォデスクで', zh: '在信息台' },
