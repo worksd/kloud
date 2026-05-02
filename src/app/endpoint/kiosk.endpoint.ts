@@ -4,6 +4,7 @@ import { GetPaymentResponse, PaymentDiscount } from "@/app/endpoint/payment.endp
 export type KioskStatus = 'Active' | 'Inactive';
 
 export type GetKioskPaymentRequest = {
+  kioskId: number;
   targetUserId: number;
   item: string;
   itemId: number;
@@ -12,7 +13,7 @@ export type GetKioskPaymentRequest = {
 export const GetKioskPayment: Endpoint<GetKioskPaymentRequest, GetPaymentResponse> = {
   method: 'get',
   path: '/kiosks/payment',
-  queryParams: ['targetUserId', 'item', 'itemId'],
+  queryParams: ['kioskId', 'targetUserId', 'item', 'itemId'],
 };
 
 export type KioskPaymentType = 'card' | 'cash';

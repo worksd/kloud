@@ -126,21 +126,24 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
 
   // payment-method 화면 진입 시 GET /kiosks/payment 호출 — price/discounts/methods 응답
   useEffect(() => {
-    if (currentScreen !== 'payment-method' || !selectedUser) return;
+    if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
     if (!selectedLesson && !selectedPassPlan) return;
     const item = selectedLesson ? 'lesson' : 'pass-plan';
     const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
     if (!itemId) return;
-    getKioskPaymentAction({ targetUserId: selectedUser.id, item, itemId })
+    getKioskPaymentAction({ kioskId, targetUserId: selectedUser.id, item, itemId })
       .then((res) => {
-        if (isGuinnessErrorCase(res)) return;
+        if (isGuinnessErrorCase(res)) {
+          setToastMessage(res.message ?? '결제 정보를 불러오지 못했습니다');
+          return;
+        }
         setPaymentInfo(res as GetPaymentResponse);
       })
       .catch(() => {
         // 응답 실패는 토스트만 — UI는 prop으로 받은 price를 폴백으로 보여줌
         setToastMessage('결제 정보를 불러오지 못했습니다');
       });
-  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan]);
+  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, kioskId]);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {

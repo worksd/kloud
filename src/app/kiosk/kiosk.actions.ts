@@ -125,7 +125,7 @@ export const getKiosksAction = async () => {
 };
 
 // 키오스크에서 결제 화면 진입 시 호출 — price/discounts(적용 가능한 패스권 등)/methods 응답
-export const getKioskPaymentAction = async (params: { targetUserId: number; item: string; itemId: number }) => {
+export const getKioskPaymentAction = async (params: { kioskId: number; targetUserId: number; item: string; itemId: number }) => {
   return await api.kiosk.getPayment(params);
 };
 
