@@ -3073,6 +3073,53 @@ export const StringResource = {
   discount_pass: { ko: '패스권', en: 'Pass', jp: 'パス', zh: '通行证' },
   discount_coupon: { ko: '쿠폰', en: 'Coupon', jp: 'クーポン', zh: '优惠券' },
   no_available_coupon: { ko: '사용 가능한 쿠폰이 없습니다', en: 'No coupons available', jp: '利用可能なクーポンがありません', zh: '没有可用的优惠券' },
+
+  // Kiosk — 결제 화면 (KioskPaymentMethodForm)
+  kiosk_lesson_info: { ko: '수업 정보', en: 'Lesson Info', jp: 'レッスン情報', zh: '课程信息' },
+  kiosk_passplan_info: { ko: '패스권 정보', en: 'Pass Info', jp: 'パス券情報', zh: '通行证信息' },
+  kiosk_payment_info: { ko: '결제 정보', en: 'Payment Info', jp: '決済情報', zh: '支付信息' },
+  kiosk_discount_pass_section: { ko: '할인 / 패스권', en: 'Discount / Pass', jp: '割引 / パス券', zh: '折扣 / 通行证' },
+  kiosk_payment_method_section: { ko: '결제 방법', en: 'Payment Method', jp: 'お支払い方法', zh: '支付方式' },
+  kiosk_original_price: { ko: '원가', en: 'Original', jp: '定価', zh: '原价' },
+  kiosk_discount_apply_cta: { ko: '패스권으로 할인받기', en: 'Apply pass discount', jp: 'パス券で割引を受ける', zh: '使用通行证折扣' },
+  kiosk_card_payment: { ko: '카드 결제', en: 'Card', jp: 'カード決済', zh: '信用卡支付' },
+  kiosk_cash_payment: { ko: '현금 결제', en: 'Cash', jp: '現金決済', zh: '现金支付' },
+
+  // Kiosk — 수업/패스 리스트 (KioskLessonListForm)
+  kiosk_tab_lessons: { ko: '수업', en: 'Lessons', jp: 'レッスン', zh: '课程' },
+  kiosk_loading: { ko: '불러오는 중...', en: 'Loading...', jp: '読み込み中...', zh: '加载中...' },
+  kiosk_no_lessons_today: { ko: '오늘 예정된 수업이 없습니다', en: 'No lessons today', jp: '本日のレッスンはありません', zh: '今日无课程' },
+  kiosk_no_passplans: { ko: '패스권이 없습니다', en: 'No passes available', jp: 'パス券がありません', zh: '没有通行证' },
+  kiosk_recommended: { ko: '추천', en: 'Recommended', jp: 'おすすめ', zh: '推荐' },
+  kiosk_date_format: { ko: '{0}년 {1}월 {2}일', en: '{1}/{2}/{0}', jp: '{0}年{1}月{2}日', zh: '{0}年{1}月{2}日' },
+
+  // Kiosk — 결제 결과 화면 (KioskForm)
+  kiosk_payment_done: { ko: '결제 완료!', en: 'Payment complete!', jp: '決済完了！', zh: '支付完成！' },
+  kiosk_request_done: { ko: '신청 완료!', en: 'Request received!', jp: '申し込み完了！', zh: '申请完成！' },
+  kiosk_take_receipt: { ko: '출력된 영수증을 받아가세요', en: 'Please take your receipt', jp: 'レシートをお受け取りください', zh: '请收取打印的收据' },
+  kiosk_finish_at_info_desk: { ko: '인포에서 결제를 마무리해주세요', en: 'Please complete payment at the info desk', jp: 'インフォデスクで決済を完了してください', zh: '请到信息台完成支付' },
+  kiosk_close_in_5s: { ko: '5초 뒤에 닫혀요', en: 'Closing in 5 seconds', jp: '5秒後に閉じます', zh: '5秒后关闭' },
+  kiosk_go_apply_lesson: { ko: '수업 신청 하러가기', en: 'Apply for a lesson', jp: 'レッスン申し込みへ', zh: '去申请课程' },
+  kiosk_to_home: { ko: '처음으로', en: 'To home', jp: 'ホームへ', zh: '回到首页' },
+  kiosk_payment_failed: { ko: '결제 실패', en: 'Payment failed', jp: '決済失敗', zh: '支付失败' },
+  kiosk_no_response: { ko: '(응답 없음)', en: '(no response)', jp: '(応答なし)', zh: '(无响应)' },
+
+  // Kiosk — 신규 회원 / 카드 결제 / 현금 / 국가 선택
+  kiosk_new_user_title: { ko: '신규 회원이시네요!', en: 'Welcome, new member!', jp: '新規会員ですね！', zh: '您是新会员！' },
+  kiosk_new_user_desc: { ko: '아래 정보로 가입하고, 이어서 진행할게요', en: "We'll register you and continue", jp: '以下の情報で登録して進みます', zh: '将以下信息注册并继续' },
+  kiosk_card_payment_waiting: { ko: '카드를 넣고 잠시만 기다려주세요', en: 'Please insert your card and wait', jp: 'カードを挿入してお待ちください', zh: '请插入您的卡并稍候' },
+  kiosk_country_select: { ko: '국가 선택', en: 'Select country', jp: '国を選択', zh: '选择国家' },
+  kiosk_cancel: { ko: '취소', en: 'Cancel', jp: 'キャンセル', zh: '取消' },
+  kiosk_cash_confirm_title_l1: { ko: '인포데스크에서', en: 'At the info desk', jp: 'インフォデスクで', zh: '在信息台' },
+  kiosk_cash_confirm_title_l2: { ko: '현금 결제를 마무리해주세요', en: 'please complete cash payment', jp: '現金決済を完了してください', zh: '请完成现金支付' },
+  kiosk_cash_confirm_desc: { ko: '신청하기를 누르면 영수증이 출력됩니다.\n영수증을 들고 인포데스크에 방문해 결제를 완료해주세요.', en: 'Tap Submit to print the receipt.\nBring it to the info desk to complete payment.', jp: '申し込みを押すとレシートが出ます。\nインフォデスクで決済を完了してください。', zh: '点击申请将打印收据。\n请持收据到信息台完成支付。' },
+
+  // Kiosk — 수업/패스 상세 + 패스 선택
+  kiosk_artist: { ko: '강사', en: 'Instructor', jp: '講師', zh: '讲师' },
+  kiosk_buy_passplan: { ko: '패스권 구매', en: 'Buy Pass', jp: 'パス券購入', zh: '购买通行证' },
+  kiosk_use_action: { ko: '사용', en: 'Use', jp: '使用', zh: '使用' },
+  kiosk_discount_amount: { ko: '할인', en: 'Off', jp: '割引', zh: '折扣' },
+  kiosk_clear_input: { ko: '입력 초기화', en: 'Clear', jp: '入力をクリア', zh: '清除输入' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

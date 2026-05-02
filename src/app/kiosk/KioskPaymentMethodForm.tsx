@@ -79,7 +79,7 @@ export const KioskPaymentMethodForm = ({
       {/* 상품 정보 섹션 — 수업이냐 패스권이냐에 따라 라벨 분기 */}
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
-          {itemType === 'pass-plan' ? '패스권 정보' : '수업 정보'}
+          {itemType === 'pass-plan' ? t('kiosk_passplan_info') : t('kiosk_lesson_info')}
         </p>
         <div className="bg-[#F9F9FB] rounded-[20px] flex items-center px-[min(3vw,32px)] py-[min(2.4vw,26px)]" style={{ gap: 'min(1.8vw, 20px)' }}>
           <div
@@ -103,7 +103,7 @@ export const KioskPaymentMethodForm = ({
       {/* 결제 정보 섹션 — 회원 + 결제 금액 한 묶음 */}
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
-          결제 정보
+          {t('kiosk_payment_info')}
         </p>
         <div className="bg-[#F9F9FB] rounded-[20px] flex flex-col" style={{ padding: 'min(2.4vw,26px) min(3vw,32px)' }}>
           {/* 회원 row */}
@@ -143,11 +143,11 @@ export const KioskPaymentMethodForm = ({
             {selectedDiscount && (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw, 20px)' }}>원가</span>
+                  <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw, 20px)' }}>{t('kiosk_original_price')}</span>
                   <span className="text-[#86898C] line-through" style={{ fontSize: 'min(1.8vw, 20px)' }}>{fmt(price)}{t('won')}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw, 20px)' }}>할인</span>
+                  <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw, 20px)' }}>{t('discount_info')}</span>
                   <span className="text-[#E55B5B] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>-{fmt(discountAmount)}{t('won')}</span>
                 </div>
               </>
@@ -166,7 +166,7 @@ export const KioskPaymentMethodForm = ({
       {/* 할인 / 패스권 섹션 */}
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
-          할인 / 패스권
+          {t('kiosk_discount_pass_section')}
         </p>
         {selectedDiscount ? (
           // 적용됨 상태
@@ -178,10 +178,10 @@ export const KioskPaymentMethodForm = ({
               </svg>
               <div className="flex flex-col min-w-0">
                 <span className="text-white font-bold truncate" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-                  {selectedDiscount.description || selectedDiscount.passRule?.targetLabel || '패스권 적용됨'}
+                  {selectedDiscount.description || selectedDiscount.passRule?.targetLabel || t('kiosk_pass')}
                 </span>
                 <span className="text-white/70" style={{ fontSize: 'min(1.6vw, 18px)' }}>
-                  -{fmt(discountAmount)}{t('won')} 할인
+                  -{fmt(discountAmount)}{t('won')} {t('discount_info')}
                 </span>
               </div>
             </div>
@@ -206,7 +206,7 @@ export const KioskPaymentMethodForm = ({
                 <path d="M36 14L38.4 19L43.5 19.5L39.5 23L40.5 28.5L36 26L31.5 28.5L32.5 23L28.5 19.5L33.6 19L36 14Z" fill="white"/>
               </svg>
               <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-                패스권으로 할인받기
+                {t('kiosk_discount_apply_cta')}
               </span>
             </div>
             <svg viewBox="0 0 24 24" fill="none" style={{ width: 'min(2vw,22px)', height: 'min(2vw,22px)' }}>
@@ -220,7 +220,7 @@ export const KioskPaymentMethodForm = ({
       {!fullyCovered && (
       <div className="shrink-0 px-[5.6%] pb-[min(1.4vw,16px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
-          결제 방법
+          {t('kiosk_payment_method_section')}
         </p>
         <div className="grid grid-cols-3 gap-[min(1.4vw,16px)]">
           {/* 카드 결제 */}
@@ -233,7 +233,7 @@ export const KioskPaymentMethodForm = ({
               <circle cx="42" cy="14" r="3.5" fill="white"/>
             </svg>
             <span className="text-[#1E2124] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-              카드 결제
+              {t('kiosk_card_payment')}
             </span>
           </button>
 
@@ -266,7 +266,7 @@ export const KioskPaymentMethodForm = ({
               <rect x="56" y="38" width="6" height="3" rx="1" fill="white"/>
             </svg>
             <span className="text-[#1E2124] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-              현금 결제
+              {t('kiosk_cash_payment')}
             </span>
           </button>
         </div>
@@ -280,7 +280,7 @@ export const KioskPaymentMethodForm = ({
             onClick={onPayWithPass}
             className="w-full h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw, 26px)' }}>신청하기</span>
+            <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw, 26px)' }}>{t('kiosk_submit')}</span>
           </button>
         ) : (
           <button

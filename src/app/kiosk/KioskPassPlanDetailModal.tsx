@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: Props) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
   const [closing, setClosing] = useState(false);
 
@@ -56,7 +58,7 @@ export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: P
         {/* 가격 */}
         <div className="shrink-0 px-[24px] pt-[12px] pb-[16px]">
           <span className="text-black font-extrabold" style={{ fontSize: 'min(2.4vh, 28px)' }}>
-            {fmt(passPlan.price ?? 0)}원
+            {fmt(passPlan.price ?? 0)}{t('won')}
           </span>
         </div>
 
@@ -66,13 +68,13 @@ export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: P
             onClick={close}
             className="flex-[1] h-[min(6vh,56px)] rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>이전</span>
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_back')}</span>
           </button>
           <button
             onClick={pay}
             className="flex-[2] h-[min(6vh,56px)] rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>패스권 구매</span>
+            <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_buy_passplan')}</span>
           </button>
         </div>
       </div>

@@ -60,7 +60,7 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onHome, onChangeLo
   const handleNext = () => {
     if (loading) return;
     if (!isPhoneValid) {
-      setValidationError('휴대폰 번호를 정확히 입력해주세요');
+      setValidationError(t('kiosk_phone_error'));
       return;
     }
     onNext(digits, country.dial);
@@ -106,7 +106,7 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onHome, onChangeLo
               <button
                 type="button"
                 onClick={() => setDigits('')}
-                aria-label="입력 초기화"
+                aria-label={t('kiosk_clear_input')}
                 className="shrink-0 rounded-full bg-[#CDD1D5] flex items-center justify-center active:scale-[0.92] transition-transform"
                 style={{ width: 'min(3.7vw, 40px)', height: 'min(3.7vw, 40px)' }}
               >
@@ -161,6 +161,7 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onHome, onChangeLo
       {countryOpen && (
         <KioskCountrySelectModal
           selectedKey={countryKey}
+          locale={locale}
           onConfirm={(key) => { setCountryKey(key); setCountryOpen(false); }}
           onCancel={() => setCountryOpen(false)}
         />

@@ -106,7 +106,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
                   )}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>강사</span>
+                  <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>{t('kiosk_artist')}</span>
                   <span className="text-black font-bold truncate" style={{ fontSize: 'min(2vw, 22px)' }}>
                     {artist.nickName || artist.name}
                   </span>

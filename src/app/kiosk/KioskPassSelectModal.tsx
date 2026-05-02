@@ -93,15 +93,15 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
                       key={opt.id}
                       isSelected={isSelected}
                       onClick={() => setSelectedId(isSelected ? null : opt.id)}
-                      title={d.description || d.passRule?.targetLabel || '할인'}
-                      subtitle={d.passRule?.targetLabel ? `${d.passRule.targetLabel} 적용` : undefined}
+                      title={d.description || d.passRule?.targetLabel || t('discount_info')}
+                      subtitle={d.passRule?.targetLabel ? d.passRule.targetLabel : undefined}
                       rightLine1={`-${fmt(d.amount)}`}
-                      rightLine2="할인"
+                      rightLine2={t('discount_info')}
                     />
                   );
                 }
                 const { pass, rule } = opt.selection;
-                const passName = pass.passPlan?.name ?? '패스권';
+                const passName = pass.passPlan?.name ?? t('kiosk_pass');
                 const usableFeatures = (pass.passFeatures ?? []).filter((f) => f.usable);
                 const ruleSummary = ruleDescription(rule, locale, passName);
                 const featureSummary = usableFeatures.length > 0
@@ -115,7 +115,7 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
                     title={passName}
                     tag={pass.passPlan?.tag ?? undefined}
                     subtitle={featureSummary ? `${ruleSummary} · ${featureSummary}` : ruleSummary}
-                    rightLine1="사용"
+                    rightLine1={t('kiosk_use_action')}
                     rightLine2={rule.endDate ? `~${rule.endDate}` : undefined}
                   />
                 );

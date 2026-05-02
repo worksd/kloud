@@ -2,14 +2,18 @@
 
 import React, { useState } from 'react';
 import { COUNTRIES } from '@/app/certification/COUNTRIES';
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 type Props = {
   selectedKey: string;
+  locale: Locale;
   onConfirm: (key: string) => void;
   onCancel: () => void;
 };
 
-export const KioskCountrySelectModal = ({ selectedKey, onConfirm, onCancel }: Props) => {
+export const KioskCountrySelectModal = ({ selectedKey, locale, onConfirm, onCancel }: Props) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const [closing, setClosing] = useState(false);
   const [pickedKey, setPickedKey] = useState<string>(selectedKey);
 
@@ -36,7 +40,7 @@ export const KioskCountrySelectModal = ({ selectedKey, onConfirm, onCancel }: Pr
         {/* 타이틀 */}
         <div className="shrink-0 px-[24px] pt-[24px] pb-[16px]">
           <p className="text-black font-bold" style={{ fontSize: 'min(2.4vh, 26px)' }}>
-            국가 선택
+            {t('kiosk_country_select')}
           </p>
         </div>
 
@@ -75,13 +79,13 @@ export const KioskCountrySelectModal = ({ selectedKey, onConfirm, onCancel }: Pr
             onClick={() => close()}
             className="flex-1 h-[min(6vh,52px)] rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.7vh, 18px)' }}>취소</span>
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.7vh, 18px)' }}>{t('kiosk_cancel')}</span>
           </button>
           <button
             onClick={() => close({ confirm: true })}
             className="flex-[2] h-[min(6vh,52px)] rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-white font-bold" style={{ fontSize: 'min(1.7vh, 18px)' }}>확인</span>
+            <span className="text-white font-bold" style={{ fontSize: 'min(1.7vh, 18px)' }}>{t('kiosk_confirm')}</span>
           </button>
         </div>
       </div>

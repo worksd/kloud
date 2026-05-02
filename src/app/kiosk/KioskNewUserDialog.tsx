@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 type Props = {
   name: string;
   phone: string;
+  locale: Locale;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -16,7 +19,8 @@ const formatPhone = (digits: string) => {
   return `${d.slice(0, 3)} ${d.slice(3, 7)} ${d.slice(7, 11)}`;
 };
 
-export const KioskNewUserDialog = ({ name, phone, onConfirm, onCancel }: Props) => {
+export const KioskNewUserDialog = ({ name, phone, locale, onConfirm, onCancel }: Props) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const [closing, setClosing] = useState(false);
 
   const close = (next?: { confirm?: boolean }) => {
@@ -41,10 +45,10 @@ export const KioskNewUserDialog = ({ name, phone, onConfirm, onCancel }: Props) 
       >
         {/* 타이틀 */}
         <p className="text-black font-bold leading-snug" style={{ fontSize: 'min(2.4vh, 26px)' }}>
-          신규 회원이시네요!
+          {t('kiosk_new_user_title')}
         </p>
         <p className="text-black font-bold leading-snug mt-[4px]" style={{ fontSize: 'min(2vh, 22px)' }}>
-          아래 정보로 가입하고, 이어서 진행할게요
+          {t('kiosk_new_user_desc')}
         </p>
 
         {/* 유저 정보 카드 */}
@@ -68,13 +72,13 @@ export const KioskNewUserDialog = ({ name, phone, onConfirm, onCancel }: Props) 
             onClick={() => close()}
             className="flex-[1] h-[min(6vh,56px)] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>취소</span>
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_cancel')}</span>
           </button>
           <button
             onClick={() => close({ confirm: true })}
             className="flex-[2] h-[min(6vh,56px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
           >
-            <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>확인</span>
+            <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_confirm')}</span>
           </button>
         </div>
       </div>

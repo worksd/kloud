@@ -16,8 +16,11 @@ import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.de
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 
-const formatDisplayDate = (d: Date): string =>
-  `${String(d.getFullYear()).slice(-2)}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+const formatDisplayDate = (d: Date, locale: Locale): string =>
+  getLocaleString({ locale, key: 'kiosk_date_format' })
+    .replace('{0}', String(d.getFullYear()).slice(-2))
+    .replace('{1}', String(d.getMonth() + 1))
+    .replace('{2}', String(d.getDate()));
 
 type KioskLessonListFormProps = {
   studioId: number;
@@ -32,8 +35,9 @@ type KioskLessonListFormProps = {
 type KioskTab = 'lessons' | 'pass-plans';
 
 export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const today = React.useMemo(() => new Date(), []);
-  const selectedDate = React.useMemo(() => formatDisplayDate(today), [today]);
+  const selectedDate = React.useMemo(() => formatDisplayDate(today, locale), [today, locale]);
   const [tab, setTab] = useState<KioskTab>('lessons');
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(false);
@@ -98,13 +102,13 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
         {/* 좌측 사이드바 */}
         <div className="shrink-0 flex flex-col gap-[8px] py-[16px] px-[12px] border-r border-[#F2F4F6]" style={{ width: 'min(18vw, 180px)' }}>
           <KioskSideTab
-            label="수업"
+            label={t('kiosk_tab_lessons')}
             active={tab === 'lessons'}
             onClick={() => setTab('lessons')}
             iconSrc="/assets/ic_kiosk_lesson.svg"
           />
           <KioskSideTab
-            label="패스권"
+            label={t('kiosk_pass')}
             active={tab === 'pass-plans'}
             onClick={() => setTab('pass-plans')}
             iconSrc="/assets/ic_kiosk_pass_plan.svg"
@@ -116,10 +120,10 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           {tab === 'lessons' && (
             <>
               {loadingLessons && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>불러오는 중...</div>
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
               )}
               {!loadingLessons && lessons.length === 0 && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>오늘 예정된 수업이 없습니다</div>
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_lessons_today')}</div>
               )}
               {!loadingLessons && lessons.length > 0 && (
                 <div className="grid grid-cols-3 gap-[12px]">
@@ -148,10 +152,10 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           {tab === 'pass-plans' && (
             <div className="flex flex-col gap-[10px]">
               {loadingPassPlans && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>불러오는 중...</div>
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
               )}
               {!loadingPassPlans && passPlans.length === 0 && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>패스권이 없습니다</div>
+                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_passplans')}</div>
               )}
               {passPlans.map((plan) => {
                 const firstRule = plan.rules?.[0];
@@ -176,7 +180,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                     {plan.isRecommended && (
                       <span className="inline-flex items-center gap-[4px] mb-[6px] px-[10px] py-[3px] rounded-full bg-[#1E2124]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
                         <span className="text-[#FFC83D]">★</span>
-                        <span className="text-white font-bold">추천</span>
+                        <span className="text-white font-bold">{t('kiosk_recommended')}</span>
                       </span>
                     )}
                     <p className="text-black font-bold leading-snug" style={{ fontSize: 'min(1.8vh, 19px)' }}>{plan.name}</p>

@@ -15,12 +15,14 @@ import {KioskPaymentMethodForm} from "@/app/kiosk/KioskPaymentMethodForm";
 import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
 import {Locale} from "@/shared/StringResource";
+import {getLocaleString} from "@/app/components/locale";
 import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, completeKioskPaymentAction, useKioskPassAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
 import {CompleteKioskPaymentResponse} from "@/app/endpoint/kiosk.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
 import {KioskAdminModal} from "@/app/kiosk/KioskAdminModal";
+import {KioskCashConfirmDialog} from "@/app/kiosk/KioskCashConfirmDialog";
 import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
@@ -80,6 +82,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
   const [selectedPass, setSelectedPass] = useState<{ pass: GetPassResponse; rule: PassRuleResponse } | null>(null);
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [cashConfirmOpen, setCashConfirmOpen] = useState(false);
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
@@ -550,7 +554,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
           onClearDiscount={() => { setSelectedDiscount(null); setSelectedPass(null); }}
           onSelectCard={handleCardPayment}
           onSelectApplePay={handleCardPayment}
-          onSelectCash={handleCashPayment}
+          onSelectCash={() => setCashConfirmOpen(true)}
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
           onChangeLocale={setLocale}
@@ -558,7 +562,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
       )}
 
       {isPaying && (
-        <KioskCardPaymentDialog onCancel={() => setIsPaying(false)} />
+        <KioskCardPaymentDialog locale={locale} onCancel={() => setIsPaying(false)} />
       )}
 
       {paymentResult?.status === 'success' && (
@@ -574,10 +578,10 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
 
             {/* 결제 완료 + 안내 — 현금 결제 신청은 결제 미완료 상태이므로 멘트 분기 */}
             <p className="text-black font-bold text-center mt-[min(2.6vw,28px)]" style={{ fontSize: 'min(3.7vw,40px)' }}>
-              {paymentMethod === 'cash' ? '신청 완료!' : '결제 완료!'}
+              {paymentMethod === 'cash' ? t('kiosk_request_done') : t('kiosk_payment_done')}
             </p>
             <p className="text-[#6D7882] text-center mt-[min(0.8vw,8px)]" style={{ fontSize: 'min(2vw,22px)' }}>
-              {paymentMethod === 'cash' ? '인포에서 결제를 마무리해주세요' : '출력된 영수증을 받아가세요'}
+              {paymentMethod === 'cash' ? t('kiosk_finish_at_info_desk') : t('kiosk_take_receipt')}
             </p>
 
             {/* 결제 항목 카드 */}
@@ -589,7 +593,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
                 <span className="text-black font-bold" style={{ fontSize: 'min(2.8vw,30px)' }}>
                   {new Intl.NumberFormat('ko-KR').format(paymentItem?.price ?? 0)}
                 </span>
-                <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw,20px)' }}>원</span>
+                <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw,20px)' }}>{t('won')}</span>
               </span>
             </div>
           </div>
@@ -597,7 +601,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
           {/* 하단 안내 + 버튼 */}
           <div className="shrink-0 px-[5.6%] pb-[min(4vw,44px)]">
             <p className="text-[#86898C] text-center mb-[min(1.4vw,16px)]" style={{ fontSize: 'min(1.6vw,18px)' }}>
-              5초 뒤에 닫혀요
+              {t('kiosk_close_in_5s')}
             </p>
             <div className="flex gap-[min(1.4vw,16px)]">
               {selectedPassPlan && (
@@ -605,14 +609,14 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
                   onClick={() => { setPaymentResult(null); setPaymentMethod(null); setSelectedPassPlan(null); setCurrentScreen('lesson-list'); }}
                   className="flex-1 h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
                 >
-                  <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>수업 신청 하러가기</span>
+                  <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>{t('kiosk_go_apply_lesson')}</span>
                 </button>
               )}
               <button
                 onClick={() => { setPaymentResult(null); goHome(); }}
                 className="flex-1 h-[min(7vh,72px)] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
               >
-                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>처음으로</span>
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>{t('kiosk_to_home')}</span>
               </button>
             </div>
           </div>
@@ -623,12 +627,12 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
         <div className="fixed inset-0 z-30 bg-black/50 flex items-center justify-center px-[5%]">
           <div className="bg-white rounded-[32px] w-full max-w-[720px] p-[min(3.7vw,40px)] flex flex-col items-center">
             <p className="text-[#1E2124] font-bold text-center" style={{ fontSize: 'min(4vw, 44px)' }}>
-              결제 실패
+              {t('kiosk_payment_failed')}
             </p>
             <div className="w-full mt-[min(2.6vw,28px)] bg-[#F9F9FB] rounded-[16px] p-[min(2.2vw,24px)] max-h-[60vh] overflow-auto">
               <pre className="text-[#1E2124] whitespace-pre-wrap break-all font-mono" style={{ fontSize: 'min(2vw, 22px)' }}>
                 {Object.entries(paymentResult.data).length === 0
-                  ? '(응답 없음)'
+                  ? t('kiosk_no_response')
                   : Object.entries(paymentResult.data)
                       .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
                       .join('\n')}
@@ -638,7 +642,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
               onClick={() => { setPaymentResult(null); setPaymentMethod(null); }}
               className="mt-[min(3.7vw,40px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
             >
-              <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>확인</span>
+              <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>{t('kiosk_confirm')}</span>
             </button>
           </div>
         </div>
@@ -654,10 +658,20 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
         <KioskAdminModal kioskId={kioskId} onClose={() => setAdminOpen(false)} />
       )}
 
+      {cashConfirmOpen && paymentItem && (
+        <KioskCashConfirmDialog
+          amount={Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0))}
+          locale={locale}
+          onCancel={() => setCashConfirmOpen(false)}
+          onConfirm={() => { setCashConfirmOpen(false); handleCashPayment(); }}
+        />
+      )}
+
       {newUserDialog && (
         <KioskNewUserDialog
           name={newUserDialog.suggestedName}
           phone={newUserDialog.phone}
+          locale={locale}
           onConfirm={handleConfirmNewUser}
           onCancel={() => setNewUserDialog(null)}
         />
