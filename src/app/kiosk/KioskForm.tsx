@@ -630,7 +630,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
       )}
 
       {adminOpen && (
-        <KioskAdminModal kioskId={kioskId} onClose={() => setAdminOpen(false)} />
+        <KioskAdminModal kioskId={kioskId} studioName={studioName} onClose={() => setAdminOpen(false)} />
       )}
 
       {cashConfirmOpen && paymentItem && (

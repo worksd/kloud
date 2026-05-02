@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { listKioskPaymentsAction, cancelKioskPaymentAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
+import { buildCancellationReceipt } from "@/app/kiosk/kiosk.receipt";
+import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 
 const ADMIN_PIN = '0000';
 
@@ -11,6 +13,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'] as co
 
 type KioskAdminModalProps = {
   kioskId: number;
+  studioName: string;
   onClose: () => void;
 };
 
@@ -23,7 +26,22 @@ const isCardPayment = (record: KioskPaymentRecord): boolean =>
   || record.methodType?.toLowerCase().includes('card') === true
   || record.methodType?.toLowerCase().includes('credit') === true;
 
-export const KioskAdminModal = ({ kioskId, onClose }: KioskAdminModalProps) => {
+const printCancellationReceipt = (record: KioskPaymentRecord, studioName: string, cancelMeta?: { authNo?: string; authDate?: string }) => {
+  const lines = buildCancellationReceipt({
+    studio: { name: studioName },
+    items: [{ name: record.productName, price: record.amount }],
+    card: isCardPayment(record) ? {
+      cardNo: record.cardNumber,
+      issuerName: record.cardBrand,
+      authNo: cancelMeta?.authNo ?? record.authNo,
+      authDate: cancelMeta?.authDate ?? record.authDate,
+      merchantNo: undefined,
+    } : undefined,
+  });
+  sendReceiptToPrinter(lines);
+};
+
+export const KioskAdminModal = ({ kioskId, studioName, onClose }: KioskAdminModalProps) => {
   const [stage, setStage] = useState<Stage>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
@@ -83,7 +101,8 @@ export const KioskAdminModal = ({ kioskId, onClose }: KioskAdminModalProps) => {
         setCancelingId(null);
         return;
       }
-      // 단말 취소 성공 → 서버에 취소 기록
+      // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄
+      const target = payments.find((p) => p.paymentId === targetId);
       cancelKioskPaymentAction(targetId, kioskId)
         .then((res) => {
           if (isGuinnessErrorCase(res)) {
@@ -91,6 +110,10 @@ export const KioskAdminModal = ({ kioskId, onClose }: KioskAdminModalProps) => {
             return;
           }
           setPayments((prev) => prev.map((p) => p.paymentId === targetId ? { ...p, status: 'Cancelled' } : p));
+          if (target) {
+            const meta = result as { outAuthNo?: string; outAuthDate?: string };
+            printCancellationReceipt(target, studioName, { authNo: meta.outAuthNo, authDate: meta.outAuthDate });
+          }
           setToast('취소 완료');
         })
         .catch(() => setToast('서버 취소 요청 실패'))
@@ -123,7 +146,7 @@ export const KioskAdminModal = ({ kioskId, onClose }: KioskAdminModalProps) => {
       return;
     }
 
-    // 현금/패스 등: 단말 취소 없이 바로 서버 취소
+    // 현금/패스 등: 단말 취소 없이 바로 서버 취소 + 취소 전표 인쇄
     cancelKioskPaymentAction(record.paymentId, kioskId)
       .then((res) => {
         if (isGuinnessErrorCase(res)) {
@@ -131,6 +154,7 @@ export const KioskAdminModal = ({ kioskId, onClose }: KioskAdminModalProps) => {
           return;
         }
         setPayments((prev) => prev.map((p) => p.paymentId === record.paymentId ? { ...p, status: 'Cancelled' } : p));
+        printCancellationReceipt(record, studioName);
         setToast('취소 완료');
       })
       .catch(() => setToast('서버 취소 요청 실패'))
