@@ -249,7 +249,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
     }
   };
 
-  // 신규 가입 확인 → 등록 후 그 결과로 진행
+  // 신규 가입 확인 → 등록 후 결제 수단 선택으로 바로 진입
+  // (사용자가 이미 다이얼로그에서 가입을 명시 확인했으므로 member-confirm 단계는 생략)
   const handleConfirmNewUser = async () => {
     if (!newUserDialog) return;
     const { phone: p, countryCode: cc, suggestedName } = newUserDialog;
@@ -262,13 +263,12 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
         setCurrentScreen('phone');
         return;
       }
-      // registerKioskUserAction 응답(updated user)을 그대로 사용
       setSelectedUser({
         id: (reg as { id: number }).id,
         name: (reg as { name?: string }).name ?? suggestedName,
         nickName: (reg as { nickName?: string }).nickName,
       });
-      setCurrentScreen('member-confirm');
+      setCurrentScreen('payment-method');
     } catch {
       setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
       setCurrentScreen('phone');
