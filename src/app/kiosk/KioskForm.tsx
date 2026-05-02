@@ -27,7 +27,8 @@ import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
-import {buildCardPaymentReceipt, buildCashRequestReceipt, buildPassPaymentReceipt} from "@/app/kiosk/kiosk.receipt";
+import {buildKioskReceipt} from "@/app/kiosk/kiosk.receipt";
+import {sendReceiptToPrinter} from "@/app/kiosk/kiosk.native";
 
 type SearchedUser = {
   id: number;
@@ -313,47 +314,21 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
         }
       : null;
 
-  // 영수증 인쇄: 결제 수단에 따라 빌더 분기 (kiosk.receipt.ts)
+  // 영수증 인쇄 — 결제 컨텍스트만 buildKioskReceipt에 넘기면 수단별 dispatch + KIS 응답 파싱은 receipt 모듈이 처리
   const handlePrintReceipt = useCallback(() => {
     if (!paymentItem || !paymentMethod) return;
-    const data = paymentResult?.data ?? {};
-    const studio = { name: studioName };
-    const items = [{ name: paymentItem.title, price: paymentItem.price }];
-    const str = (k: string): string | undefined =>
-      typeof data[k] === 'string' && data[k] ? (data[k] as string) : undefined;
-
-    if (paymentMethod === 'card') {
-      const lines = buildCardPaymentReceipt({
-        studio,
-        items,
-        passDiscount: selectedDiscount?.amount ?? 0,
-        card: {
-          cardNo: str('outCardNo'),
-          issuerName: str('outIssuerName'),
-          authNo: str('outAuthNo'),
-          authDate: str('outAuthDate'),
-          installment: str('outInstallment'),
-          merchantNo: str('outMerchantNo'),
-        },
-      });
-      window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
-      return;
-    }
-
-    if (paymentMethod === 'pass') {
-      const lines = buildPassPaymentReceipt({
-        studio,
-        items,
-        passName: selectedDiscount?.description || selectedDiscount?.passRule?.targetLabel || str('passName'),
-      });
-      window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
-      return;
-    }
-
-    if (paymentMethod === 'cash') {
-      const lines = buildCashRequestReceipt({ studio, items });
-      window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
-    }
+    const lines = buildKioskReceipt({
+      paymentMethod,
+      studio: { name: studioName },
+      items: [{ name: paymentItem.title, price: paymentItem.price }],
+      discount: selectedDiscount ? {
+        amount: selectedDiscount.amount,
+        description: selectedDiscount.description,
+        targetLabel: selectedDiscount.passRule?.targetLabel ?? undefined,
+      } : undefined,
+      cardData: paymentResult?.data,
+    });
+    sendReceiptToPrinter(lines);
   }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName]);
 
   // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
