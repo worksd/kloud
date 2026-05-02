@@ -10,7 +10,7 @@ import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
-import { formatLessonStart } from "@/app/kiosk/kiosk.lesson";
+import { formatLessonStart, isLessonPayable, lessonStatusLabel } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 
 const formatApiDate = (d: Date): string =>
@@ -127,23 +127,34 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
               )}
               {!loadingLessons && lessons.length > 0 && (
                 <div className="grid grid-cols-3 gap-[12px]">
-                  {lessons.map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      onClick={() => onSelectLesson(lesson)}
-                      className="relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] cursor-pointer active:scale-[0.97] transition-transform"
-                    >
-                      {lesson.thumbnailUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={lesson.thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
-                      <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
-                        <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
-                        <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson)}</p>
+                  {lessons.map((lesson) => {
+                    const payable = isLessonPayable(lesson.status);
+                    const statusText = lessonStatusLabel(lesson.status);
+                    return (
+                      <div
+                        key={lesson.id}
+                        onClick={payable ? () => onSelectLesson(lesson) : undefined}
+                        className={`relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] transition-transform ${
+                          payable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-not-allowed'
+                        }`}
+                      >
+                        {lesson.thumbnailUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={lesson.thumbnailUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
+                        {!payable && statusText && (
+                          <div className="absolute top-[8%] right-[8%] px-[10px] py-[4px] rounded-full bg-black/70" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                            <span className="text-white font-bold">{statusText}</span>
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
+                          <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
+                          <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson)}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </>

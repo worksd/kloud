@@ -8,6 +8,8 @@ import {
   formatLessonDate,
   formatLessonDuration,
   formatLessonTimeRange,
+  isLessonPayable,
+  lessonStatusLabel,
 } from "@/app/kiosk/kiosk.lesson";
 
 type KioskLessonDetailModalProps = {
@@ -28,6 +30,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
   const roomLabel = lesson.room?.name ?? '';
   const artist = lesson.artists?.[0];
   const tags = [lesson.level, lesson.genre].filter((v): v is string => Boolean(v));
+  const payable = isLessonPayable(lesson.status);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]" onClick={onClose}>
@@ -145,11 +148,16 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
             <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(4.2vw, 45px)' }}>{t('kiosk_back')}</span>
           </button>
           <button
-            onClick={onPayment}
-            className="flex-[604] rounded-[32px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+            onClick={payable ? onPayment : undefined}
+            disabled={!payable}
+            className={`flex-[604] rounded-[32px] flex items-center justify-center transition-transform ${
+              payable ? 'bg-[#1E2124] active:scale-[0.97]' : 'bg-[#CDD1D5] cursor-not-allowed'
+            }`}
             style={{ height: 'min(13.9vw, 150px)' }}
           >
-            <span className="text-white font-bold" style={{ fontSize: 'min(4.2vw, 45px)' }}>{t('kiosk_payment_title')}</span>
+            <span className={`font-bold ${payable ? 'text-white' : 'text-[#86898C]'}`} style={{ fontSize: 'min(4.2vw, 45px)' }}>
+              {payable ? t('kiosk_payment_title') : lessonStatusLabel(lesson.status)}
+            </span>
           </button>
         </div>
       </div>

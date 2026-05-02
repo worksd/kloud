@@ -3,9 +3,25 @@
  * KioskLessonListForm / KioskLessonDetailModal 양쪽에서 쓴다.
  */
 
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonResponse, LessonStatus, LessonStatusDisplay } from "@/app/endpoint/lesson.endpoint";
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+
+const NON_PAYABLE_STATUSES: ReadonlySet<string> = new Set([
+  LessonStatus.Completed,    // 수업 종료
+  LessonStatus.Cancelled,    // 수업 취소
+  LessonStatus.SaleClosed,   // 결제 마감
+  LessonStatus.NotForSale,   // 판매 예정
+  LessonStatus.Pending,      // 공개 예정
+]);
+
+/** 수업이 결제 가능한 상태인지. status 없으면 가능으로 본다. */
+export const isLessonPayable = (status?: string): boolean =>
+  !status || !NON_PAYABLE_STATUSES.has(status);
+
+/** status 코드를 사용자 노출용 라벨로 변환. (수업 종료, 결제 마감 등) */
+export const lessonStatusLabel = (status?: string): string =>
+  status ? (LessonStatusDisplay[status] ?? '') : '';
 
 const toAmPm = (hhmm: string): string => {
   const [h, m] = hhmm.split(':').map(Number);
