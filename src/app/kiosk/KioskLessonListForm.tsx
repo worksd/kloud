@@ -129,7 +129,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                 <div className="grid grid-cols-3 gap-[12px]">
                   {lessons.map((lesson) => {
                     const payable = isLessonPayable(lesson.status);
-                    const statusText = lessonStatusLabel(lesson.status);
+                    const statusText = lessonStatusLabel(lesson.status, locale);
                     return (
                       <div
                         key={lesson.id}
@@ -150,7 +150,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                         )}
                         <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
                           <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
-                          <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson)}</p>
+                          <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
                         </div>
                       </div>
                     );

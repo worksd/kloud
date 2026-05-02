@@ -23,9 +23,9 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 
-  const dateLabel = formatLessonDate(lesson);
-  const timeRange = formatLessonTimeRange(lesson);
-  const durationLabel = formatLessonDuration(lesson);
+  const dateLabel = formatLessonDate(lesson, locale);
+  const timeRange = formatLessonTimeRange(lesson, locale);
+  const durationLabel = formatLessonDuration(lesson, locale);
   const timeLabel = timeRange && durationLabel ? `${timeRange} · ${durationLabel}` : (timeRange || durationLabel);
   const roomLabel = lesson.room?.name ?? '';
   const artist = lesson.artists?.[0];
@@ -156,7 +156,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
             style={{ height: 'min(13.9vw, 150px)' }}
           >
             <span className={`font-bold ${payable ? 'text-white' : 'text-[#86898C]'}`} style={{ fontSize: 'min(4.2vw, 45px)' }}>
-              {payable ? t('kiosk_payment_title') : lessonStatusLabel(lesson.status)}
+              {payable ? t('kiosk_payment_title') : lessonStatusLabel(lesson.status, locale)}
             </span>
           </button>
         </div>

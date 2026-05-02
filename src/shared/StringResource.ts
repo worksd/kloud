@@ -3121,6 +3121,19 @@ export const StringResource = {
   kiosk_use_action: { ko: '사용', en: 'Use', jp: '使用', zh: '使用' },
   kiosk_discount_amount: { ko: '할인', en: 'Off', jp: '割引', zh: '折扣' },
   kiosk_clear_input: { ko: '입력 초기화', en: 'Clear', jp: '入力をクリア', zh: '清除输入' },
+
+  // Kiosk — 수업 상태 라벨 (LessonStatus → 다국어 표시)
+  kiosk_lesson_status_pending:      { ko: '공개 예정', en: 'Coming soon',  jp: '公開予定',         zh: '即将公开' },
+  kiosk_lesson_status_not_for_sale: { ko: '판매 예정', en: 'Sale soon',    jp: '販売予定',         zh: '即将销售' },
+  kiosk_lesson_status_pre_sale:     { ko: '선예약 중', en: 'Pre-booking',  jp: '事前予約中',       zh: '预约中' },
+  kiosk_lesson_status_recruiting:   { ko: '예약 중',   en: 'Open',         jp: '予約受付中',       zh: '报名中' },
+  kiosk_lesson_status_ready:        { ko: '수업 예정', en: 'Upcoming',     jp: 'レッスン予定',     zh: '即将上课' },
+  kiosk_lesson_status_cancelled:    { ko: '수업 취소', en: 'Cancelled',    jp: 'レッスン中止',     zh: '已取消' },
+  kiosk_lesson_status_completed:    { ko: '수업 종료', en: 'Ended',        jp: 'レッスン終了',     zh: '已结束' },
+  kiosk_lesson_status_sale_closed:  { ko: '결제 마감', en: 'Sales closed', jp: '販売終了',         zh: '销售结束' },
+
+  // Kiosk — 분 단위 접미사 (예: 90분 / 90 min / 90分 / 90分钟)
+  kiosk_minutes_suffix: { ko: '분', en: ' min', jp: '分', zh: '分钟' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

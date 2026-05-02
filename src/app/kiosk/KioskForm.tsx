@@ -295,7 +295,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
     ? {
         title: selectedLesson.title ?? '',
         price: selectedLesson.price ?? 0,
-        subtitle: [formatLessonDate(selectedLesson), formatLessonStart(selectedLesson)].filter(Boolean).join(' · '),
+        subtitle: [formatLessonDate(selectedLesson, locale), formatLessonStart(selectedLesson, locale)].filter(Boolean).join(' · '),
         thumbnailUrl: selectedLesson.thumbnailUrl,
         benefits: [] as string[],
       }

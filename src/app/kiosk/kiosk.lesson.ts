@@ -3,9 +3,27 @@
  * KioskLessonListForm / KioskLessonDetailModal 양쪽에서 쓴다.
  */
 
-import { GetLessonResponse, LessonStatus, LessonStatusDisplay } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
+import { Locale, StringResourceKey } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
-const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const STATUS_LABEL_KEY: Record<string, StringResourceKey> = {
+  [LessonStatus.Pending]: 'kiosk_lesson_status_pending',
+  [LessonStatus.NotForSale]: 'kiosk_lesson_status_not_for_sale',
+  [LessonStatus.PreSale]: 'kiosk_lesson_status_pre_sale',
+  [LessonStatus.Recruiting]: 'kiosk_lesson_status_recruiting',
+  [LessonStatus.Ready]: 'kiosk_lesson_status_ready',
+  [LessonStatus.Cancelled]: 'kiosk_lesson_status_cancelled',
+  [LessonStatus.Completed]: 'kiosk_lesson_status_completed',
+  [LessonStatus.SaleClosed]: 'kiosk_lesson_status_sale_closed',
+};
+
+const INTL_LOCALE: Record<Locale, string> = {
+  ko: 'ko-KR',
+  en: 'en-US',
+  jp: 'ja-JP',
+  zh: 'zh-CN',
+};
 
 const NON_PAYABLE_STATUSES: ReadonlySet<string> = new Set([
   LessonStatus.Completed,    // 수업 종료
@@ -19,16 +37,24 @@ const NON_PAYABLE_STATUSES: ReadonlySet<string> = new Set([
 export const isLessonPayable = (status?: string): boolean =>
   !status || !NON_PAYABLE_STATUSES.has(status);
 
-/** status 코드를 사용자 노출용 라벨로 변환. (수업 종료, 결제 마감 등) */
-export const lessonStatusLabel = (status?: string): string =>
-  status ? (LessonStatusDisplay[status] ?? '') : '';
+/** status 코드를 다국어 라벨로 변환. (예: Completed → '수업 종료' / 'Ended' / 'レッスン終了' / '已结束') */
+export const lessonStatusLabel = (status: string | undefined, locale: Locale): string => {
+  if (!status) return '';
+  const key = STATUS_LABEL_KEY[status];
+  return key ? getLocaleString({ locale, key }) : '';
+};
 
-const toAmPm = (hhmm: string): string => {
+// "HH:mm" 문자열을 로케일 자연 포맷의 시간으로 (예: 오후 7:00 / 7:00 PM / 午後7:00 / 下午7:00)
+const toAmPm = (hhmm: string, locale: Locale): string => {
   const [h, m] = hhmm.split(':').map(Number);
   if (Number.isNaN(h) || Number.isNaN(m)) return '';
-  const period = h < 12 ? '오전' : '오후';
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toLocaleTimeString(INTL_LOCALE[locale], {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 };
 
 const addMinutes = (hhmm: string, minutes: number): string => {
@@ -54,29 +80,32 @@ const endHHMM = (lesson: GetLessonResponse): string | null => {
   return null;
 };
 
-export const formatLessonStart = (lesson: GetLessonResponse): string => {
+export const formatLessonStart = (lesson: GetLessonResponse, locale: Locale): string => {
   const t = startHHMM(lesson);
-  return t ? toAmPm(t) : '';
+  return t ? toAmPm(t, locale) : '';
 };
 
-export const formatLessonTimeRange = (lesson: GetLessonResponse): string => {
+export const formatLessonTimeRange = (lesson: GetLessonResponse, locale: Locale): string => {
   const s = startHHMM(lesson);
   const e = endHHMM(lesson);
-  if (s && e) return `${toAmPm(s)} - ${toAmPm(e)}`;
-  if (s) return toAmPm(s);
+  if (s && e) return `${toAmPm(s, locale)} - ${toAmPm(e, locale)}`;
+  if (s) return toAmPm(s, locale);
   return '';
 };
 
-export const formatLessonDuration = (lesson: GetLessonResponse): string =>
-  lesson.duration ? `${lesson.duration}분` : '';
+export const formatLessonDuration = (lesson: GetLessonResponse, locale: Locale): string =>
+  lesson.duration ? `${lesson.duration}${getLocaleString({ locale, key: 'kiosk_minutes_suffix' })}` : '';
 
-export const formatLessonDate = (lesson: GetLessonResponse): string => {
+export const formatLessonDate = (lesson: GetLessonResponse, locale: Locale): string => {
   const raw = lesson.startDate ?? lesson.date;
   if (!raw) return '';
   const datePart = raw.split(' ')[0].replace(/\./g, '-');
   const parts = datePart.split('-').map(Number);
   if (parts.length < 3 || parts.some(Number.isNaN)) return '';
   const [y, m, d] = parts;
-  const weekday = WEEKDAY_LABELS[new Date(y, m - 1, d).getDay()];
-  return `${m}월 ${d}일 (${weekday})`;
+  return new Date(y, m - 1, d).toLocaleDateString(INTL_LOCALE[locale], {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  });
 };
