@@ -24,7 +24,7 @@ export const KioskCardPaymentDialog = ({ method = 'card', locale, onCancel }: Pr
         <div className="flex items-center justify-center my-[min(3vw,32px)]">
           <div style={{ width: '100%', maxWidth: 'min(90vw, 980px)' }}>
             <DotLottieReact
-              src="/assets/card_motion.lottie"
+              src={method === 'applepay' ? '/assets/applepay_motion.lottie' : '/assets/card_motion.lottie'}
               loop
               autoplay
               style={{ width: '100%', height: 'auto' }}
