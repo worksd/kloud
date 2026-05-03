@@ -33,15 +33,24 @@ const NON_PAYABLE_STATUSES: ReadonlySet<string> = new Set([
   LessonStatus.Pending,      // 공개 예정
 ]);
 
-/** 수업이 결제 가능한 상태인지. status 없으면 가능으로 본다. */
-export const isLessonPayable = (status?: string): boolean =>
-  !status || !NON_PAYABLE_STATUSES.has(status);
+/** 수업이 결제 가능한 상태인지. price가 없거나 status가 비결제 상태면 false. */
+export const isLessonPayable = (lesson: Pick<GetLessonResponse, 'status' | 'price'>): boolean => {
+  if (lesson.price == null) return false;
+  return !lesson.status || !NON_PAYABLE_STATUSES.has(lesson.status);
+};
 
 /** status 코드를 다국어 라벨로 변환. (예: Completed → '수업 종료' / 'Ended' / 'レッスン終了' / '已结束') */
 export const lessonStatusLabel = (status: string | undefined, locale: Locale): string => {
   if (!status) return '';
   const key = STATUS_LABEL_KEY[status];
   return key ? getLocaleString({ locale, key }) : '';
+};
+
+/** 결제 불가 사유 라벨 — price 없으면 '구매불가' 우선, 그 외엔 status 라벨. 결제 가능한 수업이면 빈 문자열. */
+export const lessonBlockLabel = (lesson: Pick<GetLessonResponse, 'status' | 'price'>, locale: Locale): string => {
+  if (lesson.price == null) return getLocaleString({ locale, key: 'kiosk_lesson_unavailable' });
+  if (lesson.status && NON_PAYABLE_STATUSES.has(lesson.status)) return lessonStatusLabel(lesson.status, locale);
+  return '';
 };
 
 // "HH:mm" 문자열을 로케일 자연 포맷의 시간으로 (예: 오후 7:00 / 7:00 PM / 午後7:00 / 下午7:00)

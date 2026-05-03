@@ -10,17 +10,27 @@ import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
-import { formatLessonStart, isLessonPayable, lessonStatusLabel } from "@/app/kiosk/kiosk.lesson";
+import { formatLessonStart, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 
-const formatDisplayDate = (d: Date, locale: Locale): string =>
-  getLocaleString({ locale, key: 'kiosk_date_format' })
+const INTL_LOCALE: Record<Locale, string> = {
+  ko: 'ko-KR',
+  en: 'en-US',
+  jp: 'ja-JP',
+  zh: 'zh-CN',
+};
+
+const formatDisplayDate = (d: Date, locale: Locale): string => {
+  const date = getLocaleString({ locale, key: 'kiosk_date_format' })
     .replace('{0}', String(d.getFullYear()).slice(-2))
     .replace('{1}', String(d.getMonth() + 1))
     .replace('{2}', String(d.getDate()));
+  const weekday = d.toLocaleDateString(INTL_LOCALE[locale], { weekday: 'short' });
+  return `${date} (${weekday})`;
+};
 
 type KioskLessonListFormProps = {
   studioId: number;
@@ -128,8 +138,8 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
               {!loadingLessons && lessons.length > 0 && (
                 <div className="grid grid-cols-3 gap-[12px]">
                   {lessons.map((lesson) => {
-                    const payable = isLessonPayable(lesson.status);
-                    const statusText = lessonStatusLabel(lesson.status, locale);
+                    const payable = isLessonPayable(lesson);
+                    const statusText = lessonBlockLabel(lesson, locale);
                     return (
                       <div
                         key={lesson.id}
@@ -144,7 +154,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
                         {!payable && statusText && (
-                          <div className="absolute top-[8%] right-[8%] px-[10px] py-[4px] rounded-full bg-black/70" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                          <div className="absolute top-[8px] right-[8px] px-[10px] py-[3px] rounded-full bg-black/70" style={{ fontSize: 'min(1.2vh, 13px)' }}>
                             <span className="text-white font-bold">{statusText}</span>
                           </div>
                         )}
@@ -254,15 +264,14 @@ export const KioskTopBar = ({ locale, onChangeLocale, onBack, onHome }: {
   const current = KIOSK_LOCALES.find(l => l.code === locale) ?? KIOSK_LOCALES[0];
 
   return (
-    <div className="shrink-0 flex items-center justify-between px-[5.6%] h-[min(7vh,72px)]">
-      {/* 백 버튼 */}
+    <div className="shrink-0 flex items-center justify-between pr-[5.6%] h-[min(7vh,72px)]">
+      {/* 백 버튼 — 화면 좌측 끝에 붙이기 위해 컨테이너 좌패딩 제거 */}
       <button
         onClick={onBack}
-        className="w-[min(4vh,44px)] h-[min(4vh,44px)] flex items-center justify-center active:scale-[0.97] transition-transform"
+        className="w-[min(5.6vh,64px)] h-[min(5.6vh,64px)] flex items-center justify-center active:scale-[0.97] transition-transform"
       >
-        <svg viewBox="0 0 24 24" fill="none" className="w-[min(2.4vh,26px)] h-[min(2.4vh,26px)]">
-          <path d="M15 6L9 12L15 18" stroke="#1E2124" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/ic_back_arrow.svg" alt="" className="w-[min(4.4vh,48px)] h-[min(4.4vh,48px)]" />
       </button>
 
       <div className="flex items-center gap-[min(1.5vw,16px)]">

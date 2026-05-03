@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
@@ -9,7 +9,7 @@ import {
   formatLessonDuration,
   formatLessonTimeRange,
   isLessonPayable,
-  lessonStatusLabel,
+  lessonBlockLabel,
 } from "@/app/kiosk/kiosk.lesson";
 
 type KioskLessonDetailModalProps = {
@@ -23,6 +23,13 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 
+  const [closing, setClosing] = useState(false);
+  const close = (after?: () => void) => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => after?.(), 200);
+  };
+
   const dateLabel = formatLessonDate(lesson, locale);
   const timeRange = formatLessonTimeRange(lesson, locale);
   const durationLabel = formatLessonDuration(lesson, locale);
@@ -30,13 +37,17 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
   const roomLabel = lesson.room?.name ?? '';
   const artist = lesson.artists?.[0];
   const tags = [lesson.level, lesson.genre].filter((v): v is string => Boolean(v));
-  const payable = isLessonPayable(lesson.status);
+  const payable = isLessonPayable(lesson);
+  const blockText = lessonBlockLabel(lesson, locale);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]" onClick={onClose}>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center ${closing ? 'animate-[fadeOut_200ms_ease-out_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}
+      onClick={() => close(onClose)}
+    >
       <div className="absolute inset-0 bg-black/60" />
       <div
-        className="relative w-[92.6%] max-w-[1100px] bg-white rounded-[42px] flex flex-col overflow-hidden animate-[fadeIn_200ms_ease-out]"
+        className={`relative w-[92.6%] max-w-[1100px] bg-white rounded-[42px] flex flex-col overflow-hidden ${closing ? 'animate-[scaleOut_200ms_ease-out_forwards]' : 'animate-[scaleIn_200ms_ease-out]'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* 본문: 좌 썸네일 / 우 정보 */}
@@ -126,10 +137,16 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
           style={{ padding: 'min(2vw, 22px) min(5.6vw, 60px)' }}
         >
           <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}>{t('payment_amount')}</span>
-          <span className="flex items-baseline" style={{ gap: 'min(0.6vw, 6px)' }}>
-            <span className="text-black font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>{fmt(lesson.price ?? 0)}</span>
-            <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw, 20px)' }}>{t('won')}</span>
-          </span>
+          {lesson.price == null ? (
+            <span className="text-[#86898C] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+              {t('kiosk_lesson_unavailable')}
+            </span>
+          ) : (
+            <span className="flex items-baseline" style={{ gap: 'min(0.6vw, 6px)' }}>
+              <span className="text-black font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>{fmt(lesson.price)}</span>
+              <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw, 20px)' }}>{t('won')}</span>
+            </span>
+          )}
         </div>
 
         {/* 하단 버튼 */}
@@ -141,14 +158,14 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
           }}
         >
           <button
-            onClick={onClose}
+            onClick={() => close(onClose)}
             className="flex-[280] rounded-[32px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
             style={{ height: 'min(13.9vw, 150px)' }}
           >
             <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(4.2vw, 45px)' }}>{t('kiosk_back')}</span>
           </button>
           <button
-            onClick={payable ? onPayment : undefined}
+            onClick={payable ? () => close(onPayment) : undefined}
             disabled={!payable}
             className={`flex-[604] rounded-[32px] flex items-center justify-center transition-transform ${
               payable ? 'bg-[#1E2124] active:scale-[0.97]' : 'bg-[#CDD1D5] cursor-not-allowed'
@@ -156,7 +173,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
             style={{ height: 'min(13.9vw, 150px)' }}
           >
             <span className={`font-bold ${payable ? 'text-white' : 'text-[#86898C]'}`} style={{ fontSize: 'min(4.2vw, 45px)' }}>
-              {payable ? t('kiosk_payment_title') : lessonStatusLabel(lesson.status, locale)}
+              {payable ? t('kiosk_payment_title') : blockText}
             </span>
           </button>
         </div>

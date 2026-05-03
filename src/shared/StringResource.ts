@@ -3131,6 +3131,7 @@ export const StringResource = {
   kiosk_lesson_status_cancelled:    { ko: '수업 취소', en: 'Cancelled',    jp: 'レッスン中止',     zh: '已取消' },
   kiosk_lesson_status_completed:    { ko: '수업 종료', en: 'Ended',        jp: 'レッスン終了',     zh: '已结束' },
   kiosk_lesson_status_sale_closed:  { ko: '결제 마감', en: 'Sales closed', jp: '販売終了',         zh: '销售结束' },
+  kiosk_lesson_unavailable:         { ko: '구매불가', en: 'Unavailable',  jp: '購入不可',         zh: '不可购买' },
 
   // Kiosk — 분 단위 접미사 (예: 90분 / 90 min / 90分 / 90分钟)
   kiosk_minutes_suffix: { ko: '분', en: ' min', jp: '分', zh: '分钟' },
