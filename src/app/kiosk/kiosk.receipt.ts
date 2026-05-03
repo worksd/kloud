@@ -43,6 +43,8 @@ export type ReceiptStudio = {
 export type ReceiptTransaction = {
   posNumber?: string;
   cashier?: string;
+  /** 키오스크 이름 — 매출일시 윗줄에 노출 */
+  kioskName?: string;
   /** 거래 시각. 미지정 시 빌드 시점의 new Date(). */
   occurredAt?: Date;
 };
@@ -51,6 +53,15 @@ export type ReceiptItem = {
   name: string;
   price: number;
 };
+
+export type ReceiptUser = {
+  name?: string;
+  nickName?: string;
+  phone?: string;
+};
+
+/** 영수증의 상품 종류 — 컬럼 라벨 분기에 사용 */
+export type KioskItemType = 'lesson' | 'pass-plan';
 
 export type CardPaymentInfo = {
   cardNo?: string;
@@ -102,11 +113,47 @@ const studioHeader = (s: ReceiptStudio): PrinterLine[] => {
   return lines;
 };
 
+// 회원 정보 라인 — 닉네임/본명 합쳐 표기 + 전화번호
+const formatPhoneForReceipt = (digits: string): string => {
+  const d = digits.replace(/\D/g, '');
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7, 11)}`;
+};
+
+const userLines = (user: ReceiptUser | undefined): PrinterLine[] => {
+  if (!user) return [];
+  const display = user.nickName
+    ? (user.name && user.name !== user.nickName ? `${user.nickName} (${user.name})` : user.nickName)
+    : user.name;
+  const lines: PrinterLine[] = [];
+  if (display) lines.push({ align: 'L', text: pad('회원', display) });
+  if (user.phone) lines.push({ align: 'L', text: pad('전화번호', formatPhoneForReceipt(user.phone)) });
+  return lines;
+};
+
+// 수업 결제 영수증 상단의 임팩트 박스 — 수업명(bold center) + 강사 + 수업일시 ('===' 구분선으로 감쌈)
+const HIGHLIGHT_SEP = '='.repeat(W);
+const lessonHighlightLines = (title?: string, artists?: string[], dateTime?: string): PrinterLine[] => {
+  const hasArtist = !!(artists && artists.length > 0);
+  if (!title && !hasArtist && !dateTime) return [];
+  const lines: PrinterLine[] = [
+    { align: 'C', text: HIGHLIGHT_SEP },
+    { align: 'C', bold: true, text: '[ 수업 정보 ]' },
+  ];
+  if (title) lines.push({ align: 'C', bold: true, text: title });
+  if (hasArtist) lines.push({ align: 'C', text: `강사 ${artists!.join(', ')}` });
+  if (dateTime) lines.push({ align: 'C', text: dateTime });
+  lines.push({ align: 'C', text: HIGHLIGHT_SEP });
+  return lines;
+};
+
 const transactionLines = (tx: ReceiptTransaction | undefined): PrinterLine[] => {
   const occurredAt = tx?.occurredAt ?? new Date();
   const left = tx?.cashier ? `거래자 ${tx.cashier}` : '';
   const right = tx?.posNumber ? `POS ${tx.posNumber}` : '';
   const lines: PrinterLine[] = [];
+  if (tx?.kioskName) lines.push({ align: 'L', text: pad('키오스크', tx.kioskName) });
   if (left && right) {
     lines.push({ align: 'L', text: pad(left, right) });
   } else if (left || right) {
@@ -116,9 +163,16 @@ const transactionLines = (tx: ReceiptTransaction | undefined): PrinterLine[] => 
   return lines;
 };
 
-const itemTable = (items: ReceiptItem[]): PrinterLine[] => [
+// 상품 종류에 따라 컬럼 라벨 분기 (수업: 수업명 / 패스권: 패스권명 / 그 외: 상품명)
+const itemColumnLabel = (itemType?: KioskItemType): string => {
+  if (itemType === 'lesson') return '수업명';
+  if (itemType === 'pass-plan') return '패스권명';
+  return '상품명';
+};
+
+const itemTable = (items: ReceiptItem[], itemType?: KioskItemType): PrinterLine[] => [
   { align: 'L', text: DIVIDER },
-  { align: 'L', text: pad('상품명', '금액') },
+  { align: 'L', text: pad(itemColumnLabel(itemType), '금액') },
   { align: 'L', text: DIVIDER },
   ...items.map<PrinterLine>((item, idx) => ({
     align: 'L',
@@ -156,17 +210,35 @@ const footerLines = (footer: string | undefined): PrinterLine[] => {
   ];
 };
 
+// KIS authDate raw 문자열 → 사람이 읽기 쉬운 포맷 (YYYY/MM/DD [HH:MM:SS]). 8/12/14자리 모두 대응.
+const formatAuthDate = (raw: string): string => {
+  if (raw.length === 8) {
+    return `${raw.slice(0, 4)}/${raw.slice(4, 6)}/${raw.slice(6, 8)}`;
+  }
+  if (raw.length === 12) {
+    const yy = raw.slice(0, 2);
+    const yyyy = parseInt(yy, 10) >= 70 ? `19${yy}` : `20${yy}`;
+    return `${yyyy}/${raw.slice(2, 4)}/${raw.slice(4, 6)} ${raw.slice(6, 8)}:${raw.slice(8, 10)}:${raw.slice(10, 12)}`;
+  }
+  if (raw.length === 14) {
+    return `${raw.slice(0, 4)}/${raw.slice(4, 6)}/${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}:${raw.slice(12, 14)}`;
+  }
+  return raw;
+};
+
+// 카드 메타 라인을 좌라벨/우값 우정렬로 출력 (printer mono font에서 깔끔하게 보이도록 pad 사용)
 const cardMetaLines = (card: CardPaymentInfo, opts: { authNoLabel?: string; authDateLabel?: string } = {}): PrinterLine[] => {
+  const row = (label: string, value: string): PrinterLine => ({ align: 'L', text: pad(label, value) });
   const lines: PrinterLine[] = [];
-  if (card.cardNo) lines.push({ align: 'L', text: `카드번호 ${card.cardNo}` });
-  if (card.issuerName) lines.push({ align: 'L', text: `카드사 ${card.issuerName}` });
-  if (card.authNo) lines.push({ align: 'L', text: `${opts.authNoLabel ?? '승인번호'} ${card.authNo}` });
-  if (card.authDate) lines.push({ align: 'L', text: `${opts.authDateLabel ?? '승인일시'} ${card.authDate}` });
+  if (card.cardNo) lines.push(row('카드번호', card.cardNo));
+  if (card.issuerName) lines.push(row('카드사', card.issuerName));
+  if (card.authNo) lines.push(row(opts.authNoLabel ?? '승인번호', card.authNo));
+  if (card.authDate) lines.push(row(opts.authDateLabel ?? '승인일시', formatAuthDate(card.authDate)));
   if (card.installment) {
     const display = card.installment === '00' ? '일시불' : `${parseInt(card.installment, 10)}개월`;
-    lines.push({ align: 'L', text: `할부 ${display}` });
+    lines.push(row('할부', display));
   }
-  if (card.merchantNo) lines.push({ align: 'L', text: `가맹점 ${card.merchantNo}` });
+  if (card.merchantNo) lines.push(row('가맹점', card.merchantNo));
   return lines;
 };
 
@@ -176,6 +248,12 @@ const cardMetaLines = (card: CardPaymentInfo, opts: { authNoLabel?: string; auth
 export type CardReceiptInput = {
   studio: ReceiptStudio;
   transaction?: ReceiptTransaction;
+  user?: ReceiptUser;
+  itemType?: KioskItemType;
+  /** 수업 결제 영수증의 강사 — 상단 임팩트 박스에 노출 */
+  artists?: string[];
+  /** 수업 결제 영수증의 수업일시 — 상단 임팩트 박스에 노출 (예: '2026.05.03(일) 오후 10:00') */
+  lessonDateTime?: string;
   items: ReceiptItem[];
   /** 패스권으로 일부 차감된 금액 (없으면 0) */
   passDiscount?: number;
@@ -184,12 +262,14 @@ export type CardReceiptInput = {
 };
 
 export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] => {
-  const { studio, transaction, items, card, passDiscount = 0, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, card, passDiscount = 0, qrText } = input;
   const total = sumPrice(items);
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   const lines: PrinterLine[] = [
     ...studioHeader(studio),
     ...transactionLines(transaction),
-    ...itemTable(items),
+    ...userLines(user),
+    ...itemTable(items, itemType),
     totalsRow('합계', total),
   ];
   if (passDiscount > 0) {
@@ -199,9 +279,9 @@ export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] 
   lines.push({ blank: 1 });
   lines.push({ align: 'C', bold: true, text: '** 신용승인전표 **' });
   lines.push(...cardMetaLines(card));
+  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime));
   lines.push(...qrLine(qrText));
   lines.push(...footerLines(studio.receiptFooter));
-  lines.push({ blank: 3 });
   return lines;
 };
 
@@ -211,25 +291,33 @@ export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] 
 export type PassReceiptInput = {
   studio: ReceiptStudio;
   transaction?: ReceiptTransaction;
+  user?: ReceiptUser;
+  itemType?: KioskItemType;
+  /** 수업 결제 영수증의 강사 — 상단 임팩트 박스에 노출 */
+  artists?: string[];
+  /** 수업 결제 영수증의 수업일시 — 상단 임팩트 박스에 노출 (예: '2026.05.03(일) 오후 10:00') */
+  lessonDateTime?: string;
   items: ReceiptItem[];
   passName?: string;
   qrText?: string;
 };
 
 export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] => {
-  const { studio, transaction, items, passName, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, passName, qrText } = input;
   const total = sumPrice(items);
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   return [
     ...studioHeader(studio),
     ...transactionLines(transaction),
-    ...itemTable(items),
+    ...userLines(user),
+    ...itemTable(items, itemType),
     totalsRow('합계', total),
     totalsRow(passName ? `패스권 (${passName})` : '패스권', total, true),
     { blank: 1 },
     { align: 'C', bold: true, text: '** 결제 완료 **' },
+    ...lessonHighlightLines(highlightTitle, artists, lessonDateTime),
     ...qrLine(qrText),
     ...footerLines(studio.receiptFooter),
-    { blank: 3 },
   ];
 };
 
@@ -239,25 +327,33 @@ export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] 
 export type CashRequestReceiptInput = {
   studio: ReceiptStudio;
   transaction?: ReceiptTransaction;
+  user?: ReceiptUser;
+  itemType?: KioskItemType;
+  /** 수업 결제 영수증의 강사 — 상단 임팩트 박스에 노출 */
+  artists?: string[];
+  /** 수업 결제 영수증의 수업일시 — 상단 임팩트 박스에 노출 (예: '2026.05.03(일) 오후 10:00') */
+  lessonDateTime?: string;
   items: ReceiptItem[];
   qrText?: string;
 };
 
 export const buildCashRequestReceipt = (input: CashRequestReceiptInput): PrinterLine[] => {
-  const { studio, transaction, items, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, qrText } = input;
   const total = sumPrice(items);
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   return [
     ...studioHeader(studio),
     ...transactionLines(transaction),
-    ...itemTable(items),
+    ...userLines(user),
+    ...itemTable(items, itemType),
     totalsRow('합계', total),
     { blank: 1 },
     { align: 'C', bold: true, text: '** 인포에서 결제를 마무리해주세요 **' },
     { blank: 1 },
     ...stampBox(),
+    ...lessonHighlightLines(highlightTitle, artists, lessonDateTime),
     ...qrLine(qrText),
     ...footerLines(studio.receiptFooter),
-    { blank: 3 },
   ];
 };
 
@@ -267,6 +363,12 @@ export const buildCashRequestReceipt = (input: CashRequestReceiptInput): Printer
 export type CancellationReceiptInput = {
   studio: ReceiptStudio;
   transaction?: ReceiptTransaction;
+  user?: ReceiptUser;
+  itemType?: KioskItemType;
+  /** 수업 결제 영수증의 강사 — 상단 임팩트 박스에 노출 */
+  artists?: string[];
+  /** 수업 결제 영수증의 수업일시 — 상단 임팩트 박스에 노출 (예: '2026.05.03(일) 오후 10:00') */
+  lessonDateTime?: string;
   items: ReceiptItem[];
   /** 카드 취소면 카드 메타 + 취소 승인번호. 현금 등은 생략 */
   card?: CardPaymentInfo;
@@ -274,14 +376,16 @@ export type CancellationReceiptInput = {
 };
 
 export const buildCancellationReceipt = (input: CancellationReceiptInput): PrinterLine[] => {
-  const { studio, transaction, items, card, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, card, qrText } = input;
   const total = sumPrice(items);
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   const lines: PrinterLine[] = [
     ...studioHeader(studio),
     { align: 'C', bold: true, text: '*** 결제 취소 ***' },
     { blank: 1 },
     ...transactionLines(transaction),
-    ...itemTable(items),
+    ...userLines(user),
+    ...itemTable(items, itemType),
     totalsRow('취소 금액', total),
     { blank: 1 },
   ];
@@ -289,9 +393,9 @@ export const buildCancellationReceipt = (input: CancellationReceiptInput): Print
     lines.push({ align: 'C', bold: true, text: '** 신용카드 취소전표 **' });
     lines.push(...cardMetaLines(card, { authNoLabel: '취소승인번호', authDateLabel: '취소일시' }));
   }
+  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime));
   lines.push(...qrLine(qrText));
   lines.push(...footerLines(studio.receiptFooter));
-  lines.push({ blank: 3 });
   return lines;
 };
 
@@ -311,6 +415,12 @@ export type BuildKioskReceiptInput = {
   paymentMethod: KioskPaymentMethod;
   studio: ReceiptStudio;
   transaction?: ReceiptTransaction;
+  user?: ReceiptUser;
+  itemType?: KioskItemType;
+  /** 수업 결제 영수증의 강사 — 상단 임팩트 박스에 노출 */
+  artists?: string[];
+  /** 수업 결제 영수증의 수업일시 — 상단 임팩트 박스에 노출 (예: '2026.05.03(일) 오후 10:00') */
+  lessonDateTime?: string;
   items: ReceiptItem[];
   /** 선택된 할인 — card 케이스에서는 passDiscount로, pass 케이스에서는 passName 라벨로 사용 */
   discount?: KioskReceiptDiscount;
@@ -334,20 +444,20 @@ const cardInfoFromKisData = (data: Record<string, unknown>): CardPaymentInfo => 
 });
 
 export const buildKioskReceipt = (input: BuildKioskReceiptInput): PrinterLine[] => {
-  const { paymentMethod, studio, transaction, items, discount, cardData = {}, qrText } = input;
+  const { paymentMethod, studio, transaction, user, items, itemType, artists, lessonDateTime, discount, cardData = {}, qrText } = input;
   switch (paymentMethod) {
     case 'card':
       return buildCardPaymentReceipt({
-        studio, transaction, items, qrText,
+        studio, transaction, user, items, itemType, artists, lessonDateTime, qrText,
         passDiscount: discount?.amount ?? 0,
         card: cardInfoFromKisData(cardData),
       });
     case 'pass':
       return buildPassPaymentReceipt({
-        studio, transaction, items, qrText,
+        studio, transaction, user, items, itemType, artists, lessonDateTime, qrText,
         passName: discount?.description || discount?.targetLabel,
       });
     case 'cash':
-      return buildCashRequestReceipt({ studio, transaction, items, qrText });
+      return buildCashRequestReceipt({ studio, transaction, user, items, itemType, artists, lessonDateTime, qrText });
   }
 };
