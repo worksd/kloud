@@ -204,7 +204,8 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       }
       // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄. authNo/authDate는 신규 취소 거래의 값
       const target = paymentsRef.current.find((p) => p.paymentId === targetId);
-      cancelKioskPaymentAction(targetId, kioskIdRef.current)
+      if (!target) { setCancelingId(null); return; }
+      cancelKioskPaymentAction({ paymentId: targetId, targetUserId: target.user.id, kioskId: kioskIdRef.current })
         .then((res) => {
           if (isGuinnessErrorCase(res)) {
             setCancelResult({ kind: 'fail' });
@@ -270,7 +271,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
     }
 
     // 현금/패스 등: 단말 취소 없이 바로 서버 취소 + 취소 전표 인쇄
-    cancelKioskPaymentAction(record.paymentId, kioskId)
+    cancelKioskPaymentAction({ paymentId: record.paymentId, targetUserId: record.user.id, kioskId })
       .then((res) => {
         if (isGuinnessErrorCase(res)) {
           setCancelResult({ kind: 'fail' });

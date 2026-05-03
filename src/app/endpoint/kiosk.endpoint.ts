@@ -115,20 +115,22 @@ export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaym
   path: (e) => `/kiosks/${e.kioskId}/paymentRecords`,
 };
 
+// DELETE /kiosks/payments/:paymentId — body: { targetUserId, kioskId }, response: { success: true }
+// 카드 환불용 KIS 메타(authNo/authDate/vanKey/totalAmount)는 응답에 없음 — 사전 paymentRecords에서 받아둬야 함
 export type CancelKioskPaymentRequest = {
   paymentId: string;
+  targetUserId: number;
   kioskId: number;
 };
 
 export type CancelKioskPaymentResponse = {
-  paymentId: string;
-  status: string;
+  success: boolean;
 };
 
 export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKioskPaymentResponse> = {
-  method: 'post',
-  path: (e) => `/kiosks/payments/${e.paymentId}/cancel`,
-  bodyParams: ['kioskId'],
+  method: 'delete',
+  path: (e) => `/kiosks/payments/${e.paymentId}`,
+  bodyParams: ['targetUserId', 'kioskId'],
 };
 
 export type KioskResponse = {

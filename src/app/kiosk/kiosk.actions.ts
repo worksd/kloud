@@ -154,6 +154,7 @@ export const listKioskPaymentsAction = async (kioskId: number) => {
 };
 
 // 관리자 모드: 결제 취소 — KIS 단말 취소가 선행된 후 서버에 기록
-export const cancelKioskPaymentAction = async (paymentId: string, kioskId: number) => {
-  return await api.kiosk.cancelPayment({ paymentId, kioskId });
+// DELETE /kiosks/payments/:paymentId — body { targetUserId, kioskId }
+export const cancelKioskPaymentAction = async (params: { paymentId: string; targetUserId: number; kioskId: number }) => {
+  return await api.kiosk.cancelPayment(params);
 };
