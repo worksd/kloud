@@ -6,22 +6,35 @@ import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
 
 export default async function StudioSettingPage() {
-  const res = await api.studio.my({});
-  const selectedStudioId = (await cookies()).get(studioKey)?.value
-    ?? ('studios' in res && res.studios.length > 0 ? `${res.studios[0].id}` : undefined);
+  // 나의 수강 스튜디오 + 전체(추천) 스튜디오 병렬 조회 — 추천 섹션은 내가 수강 중인 스튜디오를 빼고 노출
+  const [myRes, allRes] = await Promise.all([
+    api.studio.my({}),
+    api.studio.list({}),
+  ]);
 
-  if ('studios' in res && res.studios.length > 0) {
+  const myStudios = 'studios' in myRes ? myRes.studios : [];
+  const allStudios = 'studios' in allRes ? allRes.studios : [];
+  const myIds = new Set(myStudios.map(s => s.id));
+  const recommendedStudios = allStudios.filter(s => !myIds.has(s.id));
+
+  const selectedStudioId = (await cookies()).get(studioKey)?.value
+    ?? (myStudios.length > 0 ? `${myStudios[0].id}` : undefined);
+
+  if (myStudios.length === 0 && recommendedStudios.length === 0) {
     return (
-      <StudioSettingForm
-        studios={res.studios}
-        currentStudioId={selectedStudioId}
-      />
+      <div className="flex flex-col min-h-screen bg-white items-center justify-center">
+        <span className="text-[14px] text-[#AEAEAE]">{await translate('no_studio')}</span>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white items-center justify-center">
-      <span className="text-[14px] text-[#AEAEAE]">{await translate('no_studio')}</span>
-    </div>
+    <StudioSettingForm
+      myStudios={myStudios}
+      recommendedStudios={recommendedStudios}
+      currentStudioId={selectedStudioId}
+      myStudiosLabel={await translate('my_ticket_studio')}
+      recommendedStudiosLabel={await translate('recommended_studios')}
+    />
   );
 }

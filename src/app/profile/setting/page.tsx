@@ -18,7 +18,7 @@ export default async function AccountSetting({
   return (
     <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
       <NavigateClickWrapper method={'push'} route={KloudScreen.StudioSetting}>
-        <MenuItem label="my_ticket_studio"/>
+        <MenuItem label="studio_setting"/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>

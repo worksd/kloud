@@ -1715,6 +1715,18 @@ export const StringResource = {
     jp: '私のスタジオ',
     zh: '我的教室',
   },
+  studio_setting: {
+    ko: '스튜디오 설정',
+    en: 'Studio Settings',
+    jp: 'スタジオ設定',
+    zh: '教室设置',
+  },
+  recommended_studios: {
+    ko: '추천 스튜디오',
+    en: 'Recommended Studios',
+    jp: 'おすすめスタジオ',
+    zh: '推荐教室',
+  },
   certification_success_title: {
     ko: '본인인증 성공',
     en: 'Verification Success',
