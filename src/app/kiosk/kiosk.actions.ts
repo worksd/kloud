@@ -124,6 +124,11 @@ export const getKiosksAction = async () => {
   return await api.kiosk.list({});
 };
 
+// 키오스크 상세 — 영수증 하단 안내 문구 등 kiosk별 설정 조회
+export const getKioskDetailAction = async (kioskId: number) => {
+  return await api.kiosk.detail({ kioskId });
+};
+
 // 키오스크에서 결제 화면 진입 시 호출 — price/discounts(적용 가능한 패스권 등)/methods 응답
 export const getKioskPaymentAction = async (params: { kioskId: number; targetUserId: number; item: string; itemId: number }) => {
   return await api.kiosk.getPayment(params);

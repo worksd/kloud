@@ -72,20 +72,21 @@ export const UseKioskPass: Endpoint<UseKioskPassRequest, UseKioskPassResponse> =
 };
 
 // 키오스크 관리자 모드 — 결제 record 목록 / 취소
+// 백엔드: GET /kiosks/:id/paymentRecords → KioskPaymentRecordListResponse
 export type KioskPaymentRecord = {
+  id: number;
   paymentId: string;
   status: string;
-  productName: string;
+  methodType: string;
   amount: number;
-  methodType?: string;
-  createdAt?: string;
-  // 카드 단말 취소를 위한 메타
-  authNo?: string;
-  authDate?: string;
-  vanKey?: string;
-  totalAmount?: number;
-  cardBrand?: string;
-  cardNumber?: string;
+  productName: string | null;
+  userId: number;
+  cancelledAt: string | null;
+  // 카드 단말 취소를 위한 메타 (KIS 응답값)
+  authNo: string | null;
+  authDate: string | null;
+  vanKey: string | null;
+  totalAmount: number | null;
 };
 
 export type ListKioskPaymentsRequest = {
@@ -93,13 +94,12 @@ export type ListKioskPaymentsRequest = {
 };
 
 export type ListKioskPaymentsResponse = {
-  payments: KioskPaymentRecord[];
+  paymentRecords: KioskPaymentRecord[];
 };
 
 export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaymentsResponse> = {
   method: 'get',
-  path: '/kiosks/payments',
-  queryParams: ['kioskId'],
+  path: (e) => `/kiosks/${e.kioskId}/paymentRecords`,
 };
 
 export type CancelKioskPaymentRequest = {
@@ -137,4 +137,18 @@ export type KioskListResponse = {
 export const GetKiosks: Endpoint<NoParameter, KioskListResponse> = {
   method: 'get',
   path: '/kiosks',
+};
+
+export type GetKioskDetailRequest = {
+  kioskId: number;
+};
+
+// kiosk 상세 — 영수증 하단 안내 문구 등 kiosk별 설정 포함
+export type KioskDetailResponse = KioskResponse & {
+  receiptFooter?: string;
+};
+
+export const GetKioskDetail: Endpoint<GetKioskDetailRequest, KioskDetailResponse> = {
+  method: 'get',
+  path: (e) => `/kiosks/${e.kioskId}`,
 };
