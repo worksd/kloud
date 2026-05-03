@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { listKioskPaymentsAction, cancelKioskPaymentAction, getKiosksAction, saveSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
@@ -132,9 +132,9 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
     }
   };
 
-  // 결제 목록 fetch
-  useEffect(() => {
-    if (stage !== 'list' || !kioskId) return;
+  // 결제 목록 fetch — 새로고침 버튼에서도 동일 함수 호출
+  const fetchPayments = useCallback(() => {
+    if (!kioskId) return;
     setLoading(true);
     listKioskPaymentsAction(kioskId)
       .then((res) => {
@@ -146,7 +146,12 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       })
       .catch(() => setToast('목록을 불러오지 못했습니다'))
       .finally(() => setLoading(false));
-  }, [stage, kioskId]);
+  }, [kioskId]);
+
+  useEffect(() => {
+    if (stage !== 'list') return;
+    fetchPayments();
+  }, [stage, fetchPayments]);
 
   // 콜백/refs — 네이티브 단일 onKisPaymentResult 핸들러에서 outTranCode='D2' 분기로 취소 응답 처리.
   // 핸들러는 마운트 시 한 번만 설치 (deps에 객체 prop을 넣으면 매 렌더마다 재설치되어 D2 응답이 새는 케이스 발생).
@@ -345,6 +350,20 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
             <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
               <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
               <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
+                <button
+                  onClick={fetchPayments}
+                  disabled={loading}
+                  aria-label="새로고침"
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center justify-center disabled:opacity-50"
+                  style={{ width: 'min(4.4vw,48px)', height: 'min(4.4vw,48px)' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className={loading ? 'animate-spin' : ''} style={{ width: '60%', height: '60%' }}>
+                    <path d="M4 12C4 7.58 7.58 4 12 4C14.5 4 16.7 5.13 18.16 6.94" stroke="#1E2124" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M19 3V8H14" stroke="#1E2124" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M20 12C20 16.42 16.42 20 12 20C9.5 20 7.3 18.87 5.84 17.06" stroke="#1E2124" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M5 21V16H10" stroke="#1E2124" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
                 <button
                   onClick={() => setStage('switch-kiosk')}
                   className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
