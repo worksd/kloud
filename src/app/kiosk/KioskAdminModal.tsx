@@ -148,11 +148,19 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       .finally(() => setLoading(false));
   }, [stage, kioskId]);
 
-  // 콜백/refs — 네이티브 단일 onKisPaymentResult 핸들러에서 outTranCode='D2' 분기로 취소 응답 처리
+  // 콜백/refs — 네이티브 단일 onKisPaymentResult 핸들러에서 outTranCode='D2' 분기로 취소 응답 처리.
+  // 핸들러는 마운트 시 한 번만 설치 (deps에 객체 prop을 넣으면 매 렌더마다 재설치되어 D2 응답이 새는 케이스 발생).
+  // 변하는 값은 ref로 보관.
   const cancelingIdRef = useRef<string | null>(null);
   useEffect(() => { cancelingIdRef.current = cancelingId; }, [cancelingId]);
   const paymentsRef = useRef(payments);
   useEffect(() => { paymentsRef.current = payments; }, [payments]);
+  const kioskIdRef = useRef(kioskId);
+  useEffect(() => { kioskIdRef.current = kioskId; }, [kioskId]);
+  const studioRef = useRef(studio);
+  useEffect(() => { studioRef.current = studio; }, [studio]);
+  const kioskNameRef = useRef(kioskName);
+  useEffect(() => { kioskNameRef.current = kioskName; }, [kioskName]);
   const cancelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -170,6 +178,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
     const previousHandler = (window as Win).onKisPaymentResult;
 
     (window as Win).onKisPaymentResult = (response) => {
+      console.log('[KioskAdminModal] onKisPaymentResult:', response);
       if (response?.outTranCode !== 'D2') {
         previousHandler?.(response);
         return;
@@ -195,7 +204,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       }
       // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄. authNo/authDate는 신규 취소 거래의 값
       const target = paymentsRef.current.find((p) => p.paymentId === targetId);
-      cancelKioskPaymentAction(targetId, kioskId)
+      cancelKioskPaymentAction(targetId, kioskIdRef.current)
         .then((res) => {
           if (isGuinnessErrorCase(res)) {
             setCancelResult({ kind: 'fail' });
@@ -203,7 +212,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
           }
           setPayments((prev) => prev.map((p) => p.paymentId === targetId ? { ...p, status: 'Cancelled' } : p));
           if (target) {
-            printCancellationReceipt(target, studio, kioskName, {
+            printCancellationReceipt(target, studioRef.current, kioskNameRef.current, {
               authNo: response.outAuthNo,
               authDate: response.outAuthDate,
             });
@@ -214,7 +223,8 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
         .finally(() => setCancelingId(null));
     };
     return () => { (window as Win).onKisPaymentResult = previousHandler; };
-  }, [kioskId, studio, kioskName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 토스트 자동 dismiss
   useEffect(() => {
