@@ -163,6 +163,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       outAuthNo?: string;
       outAuthDate?: string;
       outReplyMsg1?: string;
+      outReplyMsg2?: string;
     };
     type Win = Window & { onKisPaymentResult?: (r: KisResponse) => void };
     // KioskForm의 D1 결제 핸들러를 보존하고, D2 응답만 가로채서 처리. D2 외엔 그대로 위임.
@@ -185,7 +186,11 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       }
       if (!response.success) {
         setCancelingId(null);
-        setCancelResult({ kind: 'fail' });
+        const reason = [response.outReplyMsg1, response.outReplyMsg2]
+          .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+          .join(' ')
+          .trim();
+        setCancelResult({ kind: 'fail', message: reason || undefined });
         return;
       }
       // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄. authNo/authDate는 신규 취소 거래의 값
@@ -600,6 +605,11 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
             <p className="text-black font-bold text-center mt-[min(1.6vw,18px)]" style={{ fontSize: 'min(2.4vw, 26px)' }}>
               {cancelResult.kind === 'success' ? '결제가 취소되었어요' : '취소를 처리하지 못했어요'}
             </p>
+            {cancelResult.kind === 'fail' && cancelResult.message && (
+              <p className="text-[#1E2124] text-center mt-[min(1vw,12px)] whitespace-pre-line" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+                {cancelResult.message}
+              </p>
+            )}
             <p className="text-[#6D7882] text-center mt-[min(0.8vw,10px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
               {cancelResult.kind === 'success' ? '취소 영수증이 출력되었어요' : '잠시 후 다시 시도해주세요'}
             </p>
