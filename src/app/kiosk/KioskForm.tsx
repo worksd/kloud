@@ -722,25 +722,25 @@ export const KioskForm = ({
       )}
 
       {paymentResult?.status === 'fail' && (
-        <div className="fixed inset-0 z-30 bg-black/50 flex items-center justify-center px-[5%]">
-          <div className="bg-white rounded-[32px] w-full max-w-[720px] p-[min(3.7vw,40px)] flex flex-col items-center">
-            <p className="text-[#1E2124] font-bold text-center" style={{ fontSize: 'min(4vw, 44px)' }}>
+        <div className="fixed inset-0 z-30 bg-black/50 flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
+          <div className="bg-white rounded-[32px] w-full max-w-[640px] p-[min(3.7vw,40px)] flex flex-col items-center animate-[scaleIn_180ms_ease-out]">
+            <div className="rounded-full bg-[#FFE9E9] flex items-center justify-center" style={{ width: 'min(8vw,84px)', height: 'min(8vw,84px)' }}>
+              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                <path d="M12 3L22 21H2L12 3Z" stroke="#E55B5B" strokeWidth="2" strokeLinejoin="round"/>
+                <path d="M12 10V14M12 17V18" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <p className="text-[#1E2124] font-bold text-center mt-[min(2.4vw,26px)]" style={{ fontSize: 'min(3.4vw, 36px)' }}>
               {t('kiosk_payment_failed')}
             </p>
-            <div className="w-full mt-[min(2.6vw,28px)] bg-[#F9F9FB] rounded-[16px] p-[min(2.2vw,24px)] max-h-[60vh] overflow-auto">
-              <pre className="text-[#1E2124] whitespace-pre-wrap break-all font-mono" style={{ fontSize: 'min(2vw, 22px)' }}>
-                {Object.entries(paymentResult.data).length === 0
-                  ? t('kiosk_no_response')
-                  : Object.entries(paymentResult.data)
-                      .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
-                      .join('\n')}
-              </pre>
-            </div>
+            <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(2vw, 22px)' }}>
+              잠시 후 다시 시도해주세요
+            </p>
             <button
               onClick={() => { setPaymentResult(null); setPaymentMethod(null); }}
-              className="mt-[min(3.7vw,40px)] w-full h-[min(11vw,120px)] rounded-[24px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+              className="mt-[min(3vw,32px)] w-full h-[min(9vw,100px)] rounded-[20px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
             >
-              <span className="text-white font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>{t('kiosk_confirm')}</span>
+              <span className="text-white font-bold" style={{ fontSize: 'min(3vw, 32px)' }}>{t('kiosk_confirm')}</span>
             </button>
           </div>
         </div>
