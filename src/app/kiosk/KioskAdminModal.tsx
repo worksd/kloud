@@ -2,9 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKiosksAction, saveSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
-import { KioskResponse } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 
@@ -19,7 +18,7 @@ type KioskAdminModalProps = {
   onClose: () => void;
 };
 
-type Stage = 'pin' | 'list' | 'switch-kiosk';
+type Stage = 'pin' | 'list';
 
 const fmtAmount = (n: number) => `${new Intl.NumberFormat('ko-KR').format(n)}원`;
 
@@ -72,9 +71,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   const [pinError, setPinError] = useState<string | null>(null);
   const [payments, setPayments] = useState<KioskPaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
-  const [kiosks, setKiosks] = useState<KioskResponse[]>([]);
-  const [loadingKiosks, setLoadingKiosks] = useState(false);
-  const [switchingKioskId, setSwitchingKioskId] = useState<number | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // 취소 확인 다이얼로그 — 사용자가 '취소' 버튼을 눌렀을 때 즉시 KIS로 가지 않고 한 번 확인받음
@@ -84,16 +80,14 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   // Pending 폐기 확인 다이얼로그
   const [discardTarget, setDiscardTarget] = useState<KioskPaymentRecord | null>(null);
   const [discardingId, setDiscardingId] = useState<string | null>(null);
-  // KIS 단말 마지막 매입 결과 조회 (Pending 검증용)
-  const [inquiryTarget, setInquiryTarget] = useState<KioskPaymentRecord | null>(null);
-  const [inquiryResult, setInquiryResult] = useState<{
-    found: boolean;
-    outAuthNo?: string;
-    outAuthDate?: string;
-    outVanKey?: string;
-    outTotAmt?: string;
-  } | null>(null);
-  const [inquiryLoading, setInquiryLoading] = useState(false);
+  // KIS 단말 ST(상태 조회) — Pending 결제 확인용
+  type VerifyOutcome =
+    | { kind: 'completed'; }                           // 0000 + auto /complete 성공
+    | { kind: 'no-record'; replyCode?: string; }       // ST97/98/99 — 단말에 매입 없음
+    | { kind: 'system-error'; message?: string; };     // E000 등 시스템 에러
+  const [verifyTarget, setVerifyTarget] = useState<KioskPaymentRecord | null>(null);
+  const [verifyOutcome, setVerifyOutcome] = useState<VerifyOutcome | null>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   // PIN 입력 처리
   const press = (k: string) => {
@@ -113,38 +107,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
     }
   };
 
-  // 키오스크 목록 fetch — switch-kiosk 단계 진입 시
-  useEffect(() => {
-    if (stage !== 'switch-kiosk') return;
-    setLoadingKiosks(true);
-    getKiosksAction()
-      .then((res) => {
-        if (isGuinnessErrorCase(res)) {
-          setToast(res.message ?? '키오스크 목록을 불러오지 못했습니다');
-          return;
-        }
-        if ('kiosks' in res) setKiosks(res.kiosks);
-      })
-      .catch(() => setToast('키오스크 목록을 불러오지 못했습니다'))
-      .finally(() => setLoadingKiosks(false));
-  }, [stage]);
-
-  const handleSwitchKiosk = async (k: KioskResponse) => {
-    if (k.status !== 'Active') return;
-    if (k.id === kioskId) {
-      setStage('list');
-      return;
-    }
-    setSwitchingKioskId(k.id);
-    try {
-      await saveSelectedKioskIdAction(k.id);
-      // 쿠키 갱신 후 페이지 리로드 — KioskBootstrap이 새 kioskId로 다시 부트스트랩
-      window.location.reload();
-    } catch {
-      setToast('키오스크 변경에 실패했습니다');
-      setSwitchingKioskId(null);
-    }
-  };
 
   // 결제 목록 fetch — 새로고침 버튼에서도 동일 함수 호출
   const fetchPayments = useCallback(() => {
@@ -320,75 +282,107 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       .finally(() => { setDiscardingId(null); setDiscardTarget(null); });
   };
 
-  // KIS 단말 마지막 매입 결과 조회 — 네이티브가 onKisLastApprovalResult로 응답
-  type KisLastApproval = {
-    found?: boolean;
+  // KIS 단말 ST(상태 조회) — 네이티브 인터페이스
+  //   web → native:  window.KloudEvent.queryKisTransaction(paymentId)  (catId는 네이티브가 자체 보유)
+  //   native → web:  window.onKisTransactionQueryResult(result)
+  // 응답 outReplyCode 분기:
+  //   '0000' → 단말에 매입 있음 → 자동으로 POST /kiosks/payments/:id/complete 호출
+  //   'ST97' / 'ST98' / 'ST99' → 단말에 매입 없음 → '폐기'로 안내
+  //   기타 (E000 등) → 시스템 에러로 노출
+  type KisQueryResult = {
+    success?: boolean;
+    canceled?: boolean;
+    outReplyCode?: string;
+    outReplyMsg1?: string;
+    outCustomerUuid?: string;  // 우리가 보낸 paymentId echo
     outAuthNo?: string;
     outAuthDate?: string;
     outVanKey?: string;
     outTotAmt?: string;
+    outCardNo?: string;
+    outIssuerName?: string;
+    outAccepterName?: string;
+    outCatId?: string;
+    outTradeNumber?: string;
   };
-  type LastApprovalWindow = Window & {
-    KloudEvent?: { requestKisLastApproval?: (payload: string) => void };
-    onKisLastApprovalResult?: (r: KisLastApproval) => void;
+  type QueryWindow = Window & {
+    KloudEvent?: { queryKisTransaction?: (paymentId: string) => void };
+    onKisTransactionQueryResult?: (r: KisQueryResult) => void;
   };
+
+  // 응답 콜백 — 0000은 자동 /complete, ST??는 폐기 안내, 그 외는 에러로 표시
+  const verifyTargetRef = useRef<KioskPaymentRecord | null>(null);
+  useEffect(() => { verifyTargetRef.current = verifyTarget; }, [verifyTarget]);
   useEffect(() => {
-    const w = window as LastApprovalWindow;
-    w.onKisLastApprovalResult = (r) => {
-      setInquiryLoading(false);
-      setInquiryResult({
-        found: r?.found === true,
-        outAuthNo: r?.outAuthNo,
-        outAuthDate: r?.outAuthDate,
-        outVanKey: r?.outVanKey,
-        outTotAmt: r?.outTotAmt,
-      });
-    };
-    return () => { delete w.onKisLastApprovalResult; };
-  }, []);
-
-  const handleStartInquiry = (record: KioskPaymentRecord) => {
-    setInquiryTarget(record);
-    setInquiryResult(null);
-    setInquiryLoading(true);
-    const w = window as LastApprovalWindow;
-    if (w.KloudEvent?.requestKisLastApproval) {
-      w.KloudEvent.requestKisLastApproval(JSON.stringify({}));
-    } else {
-      // 네이티브 미지원 환경 — 즉시 '없음'으로 마무리
-      setInquiryLoading(false);
-      setInquiryResult({ found: false });
-    }
-  };
-
-  // 단말에 매입 내역 있음 → /complete 호출 (Pending → Completed)
-  const handleCompleteFromInquiry = async () => {
-    if (!inquiryTarget || !inquiryResult?.found) return;
-    const target = inquiryTarget;
-    const r = inquiryResult;
-    const rawAuthDate = r.outAuthDate ?? '';
-    const authDate = rawAuthDate.length >= 8 ? rawAuthDate.slice(0, 8) : rawAuthDate;
-    setInquiryLoading(true);
-    try {
-      const res = await completeKioskPaymentAction({
-        paymentId: target.paymentId,
-        targetUserId: target.user.id,
-        kioskId,
-        authNo: r.outAuthNo ?? '',
-        authDate,
-        vanKey: r.outVanKey ?? '',
-        totalAmount: Number(r.outTotAmt ?? target.amount),
-      });
-      if (isGuinnessErrorCase(res)) {
-        setToast(res.message ?? '결제 완료 처리에 실패했어요');
+    const w = window as QueryWindow;
+    w.onKisTransactionQueryResult = async (r) => {
+      const target = verifyTargetRef.current;
+      if (!target) { setVerifyLoading(false); return; }
+      // outCustomerUuid가 우리 paymentId와 다르면 무시 (안전장치)
+      if (r?.outCustomerUuid && r.outCustomerUuid !== target.paymentId) {
+        setVerifyLoading(false);
         return;
       }
-      setPayments((prev) => prev.map((p) => p.paymentId === target.paymentId ? { ...p, status: 'Completed' } : p));
-      setInquiryTarget(null);
-      setInquiryResult(null);
-      setToast('결제 완료로 처리했어요');
-    } finally {
-      setInquiryLoading(false);
+
+      const code = r?.outReplyCode ?? '';
+
+      if (r?.success && code === '0000') {
+        // ✅ 단말에 매입 있음 → 자동으로 /complete 호출
+        const rawAuthDate = r.outAuthDate ?? '';
+        const authDate = rawAuthDate.length >= 8 ? rawAuthDate.slice(0, 8) : rawAuthDate;
+        try {
+          const res = await completeKioskPaymentAction({
+            paymentId: target.paymentId,
+            targetUserId: target.user.id,
+            kioskId,
+            authNo: r.outAuthNo ?? '',
+            authDate,
+            vanKey: r.outVanKey ?? '',
+            totalAmount: Number(r.outTotAmt ?? target.amount),
+            cardBrand: r.outAccepterName ?? r.outIssuerName,
+            cardNumber: r.outCardNo,
+            vanResponse: r as unknown as Record<string, unknown>,
+          });
+          if (isGuinnessErrorCase(res)) {
+            setVerifyOutcome({ kind: 'system-error', message: res.message ?? '결제 완료 처리에 실패했어요' });
+            return;
+          }
+          setPayments((prev) => prev.map((p) => p.paymentId === target.paymentId ? { ...p, status: 'Completed' } : p));
+          setVerifyOutcome({ kind: 'completed' });
+        } catch {
+          setVerifyOutcome({ kind: 'system-error', message: '결제 완료 처리에 실패했어요' });
+        } finally {
+          setVerifyLoading(false);
+        }
+        return;
+      }
+
+      if (code.startsWith('ST')) {
+        // ❌ 단말에 매입 없음 (ST97 카드사 거절 / ST98 키 오류 / ST99 거래 없음)
+        setVerifyOutcome({ kind: 'no-record', replyCode: code });
+        setVerifyLoading(false);
+        return;
+      }
+
+      // 시스템 에러 — KIS-ANDAGT 미설치 등
+      setVerifyOutcome({ kind: 'system-error', message: r?.outReplyMsg1 });
+      setVerifyLoading(false);
+    };
+    return () => { delete w.onKisTransactionQueryResult; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kioskId]);
+
+  const handleVerifyPayment = (record: KioskPaymentRecord) => {
+    setVerifyTarget(record);
+    setVerifyOutcome(null);
+    setVerifyLoading(true);
+    const w = window as QueryWindow;
+    if (w.KloudEvent?.queryKisTransaction) {
+      w.KloudEvent.queryKisTransaction(record.paymentId);
+    } else {
+      // 네이티브 미지원 환경 (웹 브라우저) — 즉시 시스템 에러로 마무리
+      setVerifyLoading(false);
+      setVerifyOutcome({ kind: 'system-error', message: '이 환경에서는 단말 조회를 지원하지 않아요' });
     }
   };
 
@@ -447,7 +441,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
               </button>
             </div>
           </>
-        ) : stage === 'list' ? (
+        ) : (
           <>
             <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
               <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
@@ -465,12 +459,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                     <path d="M20 12C20 16.42 16.42 20 12 20C9.5 20 7.3 18.87 5.84 17.06" stroke="#1E2124" strokeWidth="2" strokeLinecap="round"/>
                     <path d="M5 21V16H10" stroke="#1E2124" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </button>
-                <button
-                  onClick={() => setStage('switch-kiosk')}
-                  className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
-                >
-                  <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>키오스크 변경</span>
                 </button>
                 <button
                   onClick={onClose}
@@ -567,15 +555,15 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                           {fmtAmount(record.amount)}
                         </span>
                         {isPending ? (
-                          // Pending: '단말 확인'(KIS 마지막 매입 조회) + '폐기'(DELETE) 두 버튼
+                          // Pending: '결제 확인하기'(KIS ST 조회 → 자동 /complete) + '폐기'(DELETE) 두 버튼
                           <div className="flex items-center shrink-0" style={{ gap: 'min(0.6vw,8px)' }}>
                             <button
-                              onClick={() => handleStartInquiry(record)}
-                              disabled={isThisDiscarding || inquiryLoading}
+                              onClick={() => handleVerifyPayment(record)}
+                              disabled={isThisDiscarding || verifyLoading}
                               className="px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-50"
                             >
                               <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.6vw, 18px)' }}>
-                                단말 확인
+                                결제 확인하기
                               </span>
                             </button>
                             <button
@@ -610,66 +598,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                           </button>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            {/* switch-kiosk 단계 */}
-            <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
-              <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>키오스크 변경</p>
-              <button
-                onClick={() => setStage('list')}
-                className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
-              >
-                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>이전</span>
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto" style={{ padding: 'min(0.8vw,10px) min(3vw,32px) min(2vw,22px)' }}>
-              {loadingKiosks ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-10 h-10 border-4 border-black/20 border-t-black rounded-full animate-spin" />
-                </div>
-              ) : kiosks.length === 0 ? (
-                <div className="flex items-center justify-center py-12">
-                  <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}>등록된 키오스크가 없습니다</span>
-                </div>
-              ) : (
-                <div className="flex flex-col" style={{ gap: 'min(1vw, 12px)' }}>
-                  {kiosks.map((k) => {
-                    const isCurrent = k.id === kioskId;
-                    const isInactive = k.status !== 'Active';
-                    const isSwitchingThis = switchingKioskId === k.id;
-                    return (
-                      <button
-                        key={k.id}
-                        onClick={() => handleSwitchKiosk(k)}
-                        disabled={isInactive || switchingKioskId !== null}
-                        className={`flex items-center justify-between rounded-[16px] px-[min(2.4vw,26px)] py-[min(2vw,22px)] active:scale-[0.99] transition-all ${
-                          isCurrent ? 'bg-[#1E2124]' : isInactive ? 'bg-[#F2F4F6] opacity-60 cursor-not-allowed' : 'bg-[#F9F9FB]'
-                        }`}
-                        style={{ gap: 'min(1.6vw,18px)' }}
-                      >
-                        <div className="flex flex-col items-start min-w-0 flex-1">
-                          <span className={`font-bold truncate ${isCurrent ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
-                            {k.name}
-                          </span>
-                          {isInactive && (
-                            <span className="text-[#86898C] mt-[min(0.4vw,6px)]" style={{ fontSize: 'min(1.4vw, 16px)' }}>비활성</span>
-                          )}
-                        </div>
-                        {isCurrent && !isSwitchingThis && (
-                          <span className="shrink-0 px-[min(1vw,12px)] py-[min(0.4vw,5px)] rounded-full bg-white/15" style={{ fontSize: 'min(1.3vw, 14px)' }}>
-                            <span className="text-white font-bold">현재</span>
-                          </span>
-                        )}
-                        {isSwitchingThis && (
-                          <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>변경 중…</span>
-                        )}
-                      </button>
                     );
                   })}
                 </div>
@@ -807,7 +735,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
               결제 대기 건을 폐기할까요?
             </p>
             <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
-              단말에 매입이 안 된 결제 대기 항목을 정리해요.{'\n'}매입이 실제로 됐다면 먼저 ‘단말 확인’으로 결제 완료 처리하세요.
+              단말에 매입이 안 된 결제 대기 항목을 정리해요.{'\n'}매입이 실제로 됐다면 먼저 ‘결제 확인하기’로 완료 처리하세요.
             </p>
             <div className="mt-[min(1.4vw,16px)] bg-[#F9F9FB] rounded-[16px] flex items-center justify-between px-[min(2.4vw,26px)] py-[min(1.6vw,18px)]">
               <span className="text-[#1E2124] font-medium truncate" style={{ fontSize: 'min(1.7vw, 18px)' }}>
@@ -838,63 +766,69 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
         </div>
       )}
 
-      {/* 단말 확인(KIS 마지막 매입 조회) 결과 다이얼로그 */}
-      {inquiryTarget && (
+      {/* 결제 확인하기(KIS ST 조회) — 진행/결과 다이얼로그.
+          0000 = 자동 /complete 처리 후 'completed' 노출, ST?? = 폐기 안내, 그 외 = 시스템 에러 */}
+      {verifyTarget && (
         <div className="fixed inset-0 z-[72] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
-          <div className="absolute inset-0 bg-black/60" onClick={() => { setInquiryTarget(null); setInquiryResult(null); }} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => { if (!verifyLoading) { setVerifyTarget(null); setVerifyOutcome(null); } }} />
           <div
-            className="relative bg-white rounded-[24px] w-full max-w-[600px] flex flex-col animate-[scaleIn_180ms_ease-out]"
+            className="relative bg-white rounded-[24px] w-full max-w-[560px] flex flex-col animate-[scaleIn_180ms_ease-out]"
             style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
           >
-            <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
-              단말 매입 내역 확인
-            </p>
-
-            {inquiryLoading && (
-              <div className="flex items-center justify-center" style={{ marginTop: 'min(2vw,22px)', minHeight: 'min(8vw,80px)' }}>
-                <div className="w-10 h-10 border-4 border-black/15 border-t-black rounded-full animate-spin" />
-              </div>
-            )}
-
-            {!inquiryLoading && inquiryResult && inquiryResult.found && (
+            {verifyLoading && (
               <>
-                <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
-                  단말에 최근 매입 내역이 있어요.{'\n'}이 결제로 완료 처리할까요?
+                <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+                  단말에서 결제 내역을 확인 중이에요
                 </p>
-                <div className="mt-[min(1.6vw,18px)] bg-[#F9F9FB] rounded-[16px] flex flex-col px-[min(2.4vw,26px)] py-[min(1.4vw,16px)]" style={{ gap: 'min(0.6vw,8px)' }}>
-                  <Row label="결제 대기 금액" value={fmtAmount(inquiryTarget.amount)} />
-                  <Row label="단말 매입 금액" value={inquiryResult.outTotAmt ? `${Number(inquiryResult.outTotAmt).toLocaleString('ko-KR')}원` : '-'} />
-                  <Row label="승인번호" value={inquiryResult.outAuthNo ?? '-'} />
-                  <Row label="승인일자" value={inquiryResult.outAuthDate ?? '-'} />
-                </div>
-                <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
-                  <button
-                    onClick={() => { setInquiryTarget(null); setInquiryResult(null); }}
-                    className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-                    style={{ height: 'min(6.4vw,68px)' }}
-                  >
-                    <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>닫기</span>
-                  </button>
-                  <button
-                    onClick={handleCompleteFromInquiry}
-                    disabled={inquiryLoading}
-                    className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform disabled:opacity-60"
-                    style={{ height: 'min(6.4vw,68px)' }}
-                  >
-                    <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>결제 완료 처리</span>
-                  </button>
+                <div className="flex items-center justify-center" style={{ marginTop: 'min(2vw,22px)', minHeight: 'min(8vw,80px)' }}>
+                  <div className="w-10 h-10 border-4 border-black/15 border-t-black rounded-full animate-spin" />
                 </div>
               </>
             )}
 
-            {!inquiryLoading && inquiryResult && !inquiryResult.found && (
+            {!verifyLoading && verifyOutcome?.kind === 'completed' && (
               <>
-                <p className="text-[#6D7882] text-center mt-[min(1vw,12px)] whitespace-pre-line" style={{ fontSize: 'min(1.7vw, 18px)' }}>
-                  단말에 매입 내역이 없어요.{'\n'}안전하게 폐기 처리하세요.
+                <div className="self-center rounded-full bg-[#E5F4F0] flex items-center justify-center" style={{ width: 'min(7vw,72px)', height: 'min(7vw,72px)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                    <path d="M5 12.5L10 17.5L19.5 7" stroke="#0FA37F" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="text-black font-bold text-center mt-[min(1.6vw,18px)]" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+                  결제 완료로 처리했어요
+                </p>
+                <p className="text-[#6D7882] text-center mt-[min(0.8vw,10px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                  단말 매입이 확인되어 결제가 완료 상태로 전환됐어요
+                </p>
+                <button
+                  onClick={() => { setVerifyTarget(null); setVerifyOutcome(null); }}
+                  className="mt-[min(2vw,22px)] w-full rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                  style={{ height: 'min(6.4vw,68px)' }}
+                >
+                  <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>확인</span>
+                </button>
+              </>
+            )}
+
+            {!verifyLoading && verifyOutcome?.kind === 'no-record' && (
+              <>
+                <div className="self-center rounded-full bg-[#FFE9E9] flex items-center justify-center" style={{ width: 'min(7vw,72px)', height: 'min(7vw,72px)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                    <path d="M12 3L22 21H2L12 3Z" stroke="#E55B5B" strokeWidth="2" strokeLinejoin="round"/>
+                    <path d="M12 10V14M12 17V18" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <p className="text-black font-bold text-center mt-[min(1.6vw,18px)]" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+                  단말에 결제 내역이 없어요
+                </p>
+                <p className="text-[#6D7882] text-center mt-[min(0.8vw,10px)] whitespace-pre-line" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                  {verifyOutcome.replyCode === 'ST97' ? '결제 시도가 카드사에서 거절됐어요' :
+                   verifyOutcome.replyCode === 'ST98' ? '결제 키 정보가 잘못됐어요' :
+                   '이 결제로 단말에 매입된 거래가 없어요'}
+                  {'\n'}안전하게 폐기 처리하세요.
                 </p>
                 <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
                   <button
-                    onClick={() => { setInquiryTarget(null); setInquiryResult(null); }}
+                    onClick={() => { setVerifyTarget(null); setVerifyOutcome(null); }}
                     className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
                     style={{ height: 'min(6.4vw,68px)' }}
                   >
@@ -902,9 +836,9 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                   </button>
                   <button
                     onClick={() => {
-                      const target = inquiryTarget;
-                      setInquiryTarget(null);
-                      setInquiryResult(null);
+                      const target = verifyTarget;
+                      setVerifyTarget(null);
+                      setVerifyOutcome(null);
                       setDiscardTarget(target);
                     }}
                     className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
@@ -915,6 +849,35 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                 </div>
               </>
             )}
+
+            {!verifyLoading && verifyOutcome?.kind === 'system-error' && (
+              <>
+                <div className="self-center rounded-full bg-[#FFE9E9] flex items-center justify-center" style={{ width: 'min(7vw,72px)', height: 'min(7vw,72px)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                    <path d="M12 3L22 21H2L12 3Z" stroke="#E55B5B" strokeWidth="2" strokeLinejoin="round"/>
+                    <path d="M12 10V14M12 17V18" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <p className="text-black font-bold text-center mt-[min(1.6vw,18px)]" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+                  단말 조회에 실패했어요
+                </p>
+                {verifyOutcome.message && (
+                  <p className="text-[#1E2124] text-center mt-[min(1vw,12px)] whitespace-pre-line" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+                    {verifyOutcome.message}
+                  </p>
+                )}
+                <p className="text-[#6D7882] text-center mt-[min(0.8vw,10px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                  잠시 후 다시 시도해주세요
+                </p>
+                <button
+                  onClick={() => { setVerifyTarget(null); setVerifyOutcome(null); }}
+                  className="mt-[min(2vw,22px)] w-full rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                  style={{ height: 'min(6.4vw,68px)' }}
+                >
+                  <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>확인</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -922,9 +885,3 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   );
 };
 
-const Row = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between">
-    <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 16px)' }}>{label}</span>
-    <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.5vw, 16px)' }}>{value}</span>
-  </div>
-);
