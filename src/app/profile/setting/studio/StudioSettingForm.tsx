@@ -6,9 +6,18 @@ import { StudioSettingItem } from "@/app/profile/setting/studio/StudioSettingIte
 import { saveStudioIdAction } from "@/app/studios/save.studio.id.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export const StudioSettingForm = ({ studios, currentStudioId }: {
-  studios: GetStudioResponse[],
-  currentStudioId?: string,
+export const StudioSettingForm = ({
+  myStudios,
+  recommendedStudios,
+  currentStudioId,
+  myStudiosLabel,
+  recommendedStudiosLabel,
+}: {
+  myStudios: GetStudioResponse[];
+  recommendedStudios: GetStudioResponse[];
+  currentStudioId?: string;
+  myStudiosLabel: string;
+  recommendedStudiosLabel: string;
 }) => {
   const [selectedId, setSelectedId] = useState<number | null>(
     currentStudioId ? Number(currentStudioId) : null
@@ -27,14 +36,31 @@ export const StudioSettingForm = ({ studios, currentStudioId }: {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-1 pt-4">
-        {studios.map((studio) => (
-          <StudioSettingItem
-            key={studio.id}
-            item={studio}
-            isSelected={selectedId === studio.id}
-            onSelect={() => setSelectedId(studio.id)}
-          />
-        ))}
+        {myStudios.length > 0 && (
+          <Section label={myStudiosLabel}>
+            {myStudios.map((studio) => (
+              <StudioSettingItem
+                key={studio.id}
+                item={studio}
+                isSelected={selectedId === studio.id}
+                onSelect={() => setSelectedId(studio.id)}
+              />
+            ))}
+          </Section>
+        )}
+
+        {recommendedStudios.length > 0 && (
+          <Section label={recommendedStudiosLabel}>
+            {recommendedStudios.map((studio) => (
+              <StudioSettingItem
+                key={studio.id}
+                item={studio}
+                isSelected={selectedId === studio.id}
+                onSelect={() => setSelectedId(studio.id)}
+              />
+            ))}
+          </Section>
+        )}
       </div>
 
       <div className="sticky bottom-0 px-4 pb-8 pt-3 bg-white">
@@ -53,3 +79,12 @@ export const StudioSettingForm = ({ studios, currentStudioId }: {
     </div>
   );
 };
+
+const Section = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="mb-4">
+    <div className="px-6 pt-2 pb-2">
+      <span className="text-[13px] font-bold text-[#86898C]">{label}</span>
+    </div>
+    {children}
+  </div>
+);

@@ -7,6 +7,33 @@ import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
+const formatDotDate = (d: Date) =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
+const buildPracticeRoomInfo = (
+  studioRoomId: number,
+  date: string | undefined,
+  selectedTime: { startTime: string; endTime: string },
+) => {
+  const startDateStr = (date ?? '').replace(/-/g, '.');
+  // endTime이 startTime보다 작거나 같으면 자정을 넘긴 것 → endDate는 +1일
+  const isNextDay = selectedTime.endTime <= selectedTime.startTime;
+  let endDateStr = startDateStr;
+  if (isNextDay) {
+    const [y, m, dd] = startDateStr.split('.').map(Number);
+    if (y && m && dd) {
+      const next = new Date(y, m - 1, dd);
+      next.setDate(next.getDate() + 1);
+      endDateStr = formatDotDate(next);
+    }
+  }
+  return {
+    studioRoomId,
+    startDate: `${startDateStr} ${selectedTime.startTime}`,
+    endDate: `${endDateStr} ${selectedTime.endTime}`,
+  };
+};
+
 export const PracticeRoomPaymentWrapper = ({
   payment,
   studioRoomId,
@@ -115,11 +142,7 @@ export const PracticeRoomPaymentWrapper = ({
         locale={locale}
         actualPayerUserId={actualPayerUserId}
         isProxyPayment={isProxyPayment}
-        practiceRoomInfo={selectedTime ? {
-          studioRoomId,
-          startDate: `${(date ?? '').replace(/-/g, '.')} ${selectedTime.startTime}`,
-          endDate: `${(date ?? '').replace(/-/g, '.')} ${selectedTime.endTime}`,
-        } : undefined}
+        practiceRoomInfo={selectedTime ? buildPracticeRoomInfo(studioRoomId, date, selectedTime) : undefined}
       />
     </>
   );
