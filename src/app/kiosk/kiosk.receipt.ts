@@ -45,6 +45,8 @@ export type ReceiptTransaction = {
   cashier?: string;
   /** 키오스크 이름 — 매출일시 윗줄에 노출 */
   kioskName?: string;
+  /** 결제 ID (서버 paymentId) — 영수증 트랜잭션 블록 하단에 노출 */
+  paymentId?: string;
   /** 거래 시각. 미지정 시 빌드 시점의 new Date(). */
   occurredAt?: Date;
 };
@@ -160,6 +162,7 @@ const transactionLines = (tx: ReceiptTransaction | undefined): PrinterLine[] => 
     lines.push({ align: 'L', text: left || right });
   }
   lines.push({ align: 'L', text: `매출일시 ${fmtTimestamp(occurredAt)}` });
+  if (tx?.paymentId) lines.push({ align: 'L', text: pad('결제번호', tx.paymentId) });
   return lines;
 };
 

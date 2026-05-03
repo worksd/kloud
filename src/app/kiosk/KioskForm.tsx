@@ -457,7 +457,7 @@ export const KioskForm = ({
         // kiosk별 footer가 있으면 우선, 없으면 studio 기본값
         receiptFooter: kioskReceiptFooter ?? studioReceiptFooter,
       },
-      transaction: { kioskName },
+      transaction: { kioskName, paymentId: paymentInfo?.paymentId },
       user: selectedUser ? {
         name: selectedUser.name,
         nickName: selectedUser.nickName,

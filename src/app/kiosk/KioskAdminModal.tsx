@@ -55,7 +55,7 @@ const isCardPayment = (record: KioskPaymentRecord): boolean =>
 const printCancellationReceipt = (record: KioskPaymentRecord, studio: ReceiptStudio, kioskName: string | undefined, cancelMeta?: { authNo?: string; authDate?: string }) => {
   const lines = buildCancellationReceipt({
     studio,
-    transaction: { kioskName },
+    transaction: { kioskName, paymentId: record.paymentId },
     items: [{ name: record.productName ?? '', price: record.amount }],
     card: isCardPayment(record) ? {
       authNo: cancelMeta?.authNo ?? record.authNo ?? undefined,
