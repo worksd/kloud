@@ -16,10 +16,10 @@ import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, completeKioskPaymentAction, useKioskPassAction, getKioskDetailAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
-import {CompleteKioskPaymentResponse} from "@/app/endpoint/kiosk.endpoint";
+import {StartKioskPaymentResponse, CompleteKioskPaymentResponse} from "@/app/endpoint/kiosk.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
 import {KioskAdminModal} from "@/app/kiosk/KioskAdminModal";
 import {KioskCashConfirmDialog} from "@/app/kiosk/KioskCashConfirmDialog";
@@ -98,7 +98,8 @@ export const KioskForm = ({
   const [selectedUser, setSelectedUser] = useState<SearchedUser | null>(null);
   const [locale, setLocale] = useState<Locale>('ko');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [paymentResult, setPaymentResult] = useState<{ status: 'success' | 'fail'; data: Record<string, unknown> } | null>(null);
+  // 'canceled' = KIS 단말에서 사용자가 ESC/취소 — 실패 다이얼로그는 띄우지 않고 Pending 폐기만 트리거
+  const [paymentResult, setPaymentResult] = useState<{ status: 'success' | 'fail' | 'canceled'; data: Record<string, unknown> } | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [newUserDialog, setNewUserDialog] = useState<{ phone: string; countryCode: string; suggestedName: string } | null>(null);
@@ -211,7 +212,11 @@ export const KioskForm = ({
       const data = (result ?? {}) as Record<string, unknown>;
 
       setIsPaying(false);
-      if (result?.canceled) return;
+      if (result?.canceled) {
+        // 사용자 ESC — Pending 폐기는 paymentResult.status='canceled' 핸들러에서 처리
+        setPaymentResult({ status: 'canceled', data });
+        return;
+      }
       setPaymentResult({ status: result?.success ? 'success' : 'fail', data });
     };
 
@@ -258,61 +263,57 @@ export const KioskForm = ({
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  // 결제 성공 → 백엔드 POST → 응답의 qrCodeUrl을 영수증에 포함해서 인쇄 → 5초 후 자동 홈
-  // 패스권 사용(B흐름)은 POST 없이 바로 인쇄
+  // 결제 성공 처리:
+  //  - pass: 백엔드 record 미생성 — 바로 인쇄
+  //  - cash: handleCashPayment에서 이미 POST → qrCodeUrl 수령 → 바로 인쇄
+  //  - card: KIS 매입 성공 → POST /kiosks/payments/:id/complete → 응답의 qrCodeUrl 사용 → 인쇄
+  // 인쇄 후 5초 자동 홈.
   useEffect(() => {
     if (paymentResult?.status !== 'success') return;
 
     let cancelled = false;
     let homeTimer: ReturnType<typeof setTimeout> | undefined;
-    const scheduleHome = () => {
+    const finishUp = (qrText?: string) => {
+      if (cancelled) return;
+      handlePrintReceipt(qrText);
       homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
 
-    // 패스권 사용은 백엔드 결제 record 미생성 — 바로 인쇄
     if (paymentMethod === 'pass') {
-      handlePrintReceipt();
-      scheduleHome();
+      finishUp();
       return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
     }
 
-    if (paymentMethod !== 'card' && paymentMethod !== 'cash') return;
+    if (paymentMethod === 'cash') {
+      finishUp(paymentQrCodeUrl ?? undefined);
+      return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
+    }
+
+    if (paymentMethod !== 'card') return;
     if (!paymentInfo?.paymentId || !selectedUser || !kioskId || !paymentItem) return;
 
+    // 카드: KIS 응답에서 매입 정보 추출 → /complete 호출
     const data = paymentResult.data;
     const str = (k: string): string | undefined =>
       typeof data[k] === 'string' && data[k] ? (data[k] as string) : undefined;
     const num = (k: string): number | undefined =>
       typeof data[k] === 'number' ? (data[k] as number) : undefined;
 
-    const discounts: PaymentDiscount[] | undefined = selectedDiscount ? [{
-      key: selectedDiscount.key,
-      amount: selectedDiscount.amount,
-      type: selectedDiscount.type as PaymentDiscount['type'],
-      itemId: selectedDiscount.itemId,
-      passRuleId: selectedDiscount.passRule?.id,
-    }] : undefined;
-
     const finalAmount = Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0));
-
     const rawAuthDate = str('outAuthDate');
-    const cardFields = paymentMethod === 'card' ? {
-      authNo: str('outAuthNo'),
-      authDate: rawAuthDate ? rawAuthDate.slice(0, 8) : undefined,
-      vanKey: str('outVanKey'),
+    const authDate = rawAuthDate ? rawAuthDate.slice(0, 8) : '';
+
+    completeKioskPaymentAction({
+      paymentId: paymentInfo.paymentId,
+      targetUserId: selectedUser.id,
+      kioskId,
+      authNo: str('outAuthNo') ?? '',
+      authDate,
+      vanKey: str('outVanKey') ?? '',
       totalAmount: num('outTotAmt') ?? finalAmount,
       cardBrand: str('outIssuerName'),
       cardNumber: str('outCardNo'),
       vanResponse: data,
-    } : {};
-
-    completeKioskPaymentAction({
-      targetUserId: selectedUser.id,
-      kioskId,
-      paymentId: paymentInfo.paymentId,
-      type: paymentMethod,
-      discounts,
-      ...cardFields,
     })
       .then((res) => {
         if (cancelled) return;
@@ -327,20 +328,34 @@ export const KioskForm = ({
             qrText = ok.qrCodeUrl;
           }
         }
-        handlePrintReceipt(qrText);
-        scheduleHome();
+        finishUp(qrText);
       })
       .catch(() => {
         if (cancelled) return;
         setToastMessage('결제 기록 저장에 실패했습니다');
-        // 백엔드 실패해도 영수증은 출력 (qrText 없이)
-        handlePrintReceipt();
-        scheduleHome();
+        finishUp();
       });
 
     return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentResult, paymentMethod]);
+
+  // KIS 실패/취소 → Pending 폐기. 'fail'은 실패 다이얼로그도 함께 노출, 'canceled'는 조용히 폼으로 복귀.
+  useEffect(() => {
+    if (paymentResult?.status !== 'fail' && paymentResult?.status !== 'canceled') return;
+    if (paymentMethod !== 'card') return;
+    if (!paymentInfo?.paymentId || !kioskId) return;
+
+    discardKioskPaymentAction(paymentInfo.paymentId, kioskId).catch(() => {
+      // 폐기 실패는 사용자에게 노출 안 함 — 관리자가 paymentRecords에서 수동 폐기 가능
+      console.warn('Pending 폐기 실패');
+    });
+
+    if (paymentResult.status === 'canceled') {
+      // 사용자가 단말에서 ESC — 결제 방법 화면으로 조용히 복귀
+      setPaymentResult(null);
+    }
+  }, [paymentResult, paymentMethod, paymentInfo, kioskId]);
 
   // 전화번호 입력 → /users/search?query=phone 으로 검색 (운영자 토큰 사용)
   const handlePhoneNext = async (phoneNumber: string, countryCode: string = '82') => {
@@ -483,34 +498,83 @@ export const KioskForm = ({
     sendReceiptToPrinter(lines);
   }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo]);
 
-  // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
-  // Apple Pay도 같은 단말기에서 NFC로 처리되므로 동일 핸들러 사용. 할인 적용 시 잔액만 청구.
-  // variant는 대기 다이얼로그 문구 분기에만 사용 (실제 KIS 호출은 동일).
-  const handleCardPayment = useCallback((variant: 'card' | 'applepay' = 'card') => {
-    if (!paymentItem || isPaying) return;
-    const finalAmount = Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0));
+  // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화
+  const buildDiscounts = useCallback((): PaymentDiscount[] | undefined => {
+    if (!selectedDiscount) return undefined;
+    return [{
+      key: selectedDiscount.key,
+      amount: selectedDiscount.amount,
+      type: selectedDiscount.type as PaymentDiscount['type'],
+      itemId: selectedDiscount.itemId,
+      passRuleId: selectedDiscount.passRule?.id,
+    }];
+  }, [selectedDiscount]);
+
+  // 카드 결제 (Apple Pay 포함):
+  //  ① POST /kiosks/payments — Pending 생성 → 응답의 amount를 단말 매입 금액으로 사용
+  //  ② requestKisPayment 호출 (D1) — 응답은 onKisPaymentResult가 처리
+  //  결제 성공/실패 판정 후 ③ POST /kiosks/payments/:id/complete 또는 DELETE /kiosks/payments/:id 는 paymentResult useEffect에서 진행
+  const handleCardPayment = useCallback(async (variant: 'card' | 'applepay' = 'card') => {
+    if (!paymentItem || isPaying || !selectedUser || !paymentInfo?.paymentId || !kioskId) return;
     setCardPayingVariant(variant);
     setIsPaying(true);
     setPaymentResult(null);
     setPaymentMethod('card');
 
-    // 대기 다이얼로그가 먼저 보이고 난 뒤 단말 호출 — 사용자가 카드 대기 안내 문구를 인지할 시간 확보
-    setTimeout(() => {
-      window.KloudEvent?.requestKisPayment?.(JSON.stringify({
-        ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
-        inTranCode: 'D1',
-        inTotAmt: `${finalAmount}`,
-        inInstallment: '00',
-      }));
-    }, 1000);
-  }, [paymentItem, isPaying, selectedDiscount]);
+    const res = await startKioskPaymentAction({
+      targetUserId: selectedUser.id,
+      kioskId,
+      paymentId: paymentInfo.paymentId,
+      type: 'card',
+      discounts: buildDiscounts(),
+    });
 
-  // 현금 결제 신청: 결제는 인포에서 마무리 — 영수증만 출력하고 성공 화면으로
-  const handleCashPayment = useCallback(() => {
-    if (!paymentItem) return;
+    const r = res as { code?: string; message?: string; amount?: number };
+    if (typeof r.code === 'string' && typeof r.message === 'string' && typeof r.amount !== 'number') {
+      setIsPaying(false);
+      setPaymentMethod(null);
+      setToastMessage(r.message);
+      return;
+    }
+
+    const created = res as StartKioskPaymentResponse;
+
+    // KIS 단말 호출 — 1초 대기 제거. Pending 응답 직후 곧장 송출.
+    window.KloudEvent?.requestKisPayment?.(JSON.stringify({
+      ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
+      inTranCode: 'D1',
+      inTotAmt: `${created.amount}`,
+      inInstallment: '00',
+    }));
+  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts]);
+
+  // 현금 결제: POST /kiosks/payments(type='cash') 한 방에 즉시 Completed + qrCodeUrl 수령
+  const handleCashPayment = useCallback(async () => {
+    if (!paymentItem || !selectedUser || !paymentInfo?.paymentId || !kioskId || isPaying) return;
     setPaymentMethod('cash');
+    setIsPaying(true);
+
+    const res = await startKioskPaymentAction({
+      targetUserId: selectedUser.id,
+      kioskId,
+      paymentId: paymentInfo.paymentId,
+      type: 'cash',
+      discounts: buildDiscounts(),
+    });
+
+    setIsPaying(false);
+
+    const r = res as { code?: string; message?: string; status?: string; qrCodeUrl?: string | null };
+    if (typeof r.code === 'string' && typeof r.message === 'string' && !r.status) {
+      setPaymentMethod(null);
+      setToastMessage(r.message);
+      return;
+    }
+
+    const ok = res as StartKioskPaymentResponse;
+    if (ok.qrCodeUrl) setPaymentQrCodeUrl(ok.qrCodeUrl);
     setPaymentResult({ status: 'success', data: {} });
-  }, [paymentItem]);
+  }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, buildDiscounts]);
 
   // 패스권 사용 (B 흐름) — POST /kiosks/passes/:passId/use 직접 호출
   const handlePayWithPass = useCallback(async () => {
