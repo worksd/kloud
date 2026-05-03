@@ -309,13 +309,14 @@ export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] 
   const { studio, transaction, user, items, itemType, artists, lessonDateTime, passName, qrText } = input;
   const total = sumPrice(items);
   const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
+  // 패스권으로 풀커버되는 영수증 — 패스권 차감 라인을 먼저 노출하고, 합계는 차감 후 실결제액(0원)으로 표시
   return [
     ...studioHeader(studio),
     ...transactionLines(transaction),
     ...userLines(user),
     ...itemTable(items, itemType),
-    totalsRow('합계', total),
     totalsRow(passName ? `패스권 (${passName})` : '패스권', total, true),
+    totalsRow('합계', 0),
     { blank: 1 },
     { align: 'C', bold: true, text: '** 결제 완료 **' },
     ...lessonHighlightLines(highlightTitle, artists, lessonDateTime),
