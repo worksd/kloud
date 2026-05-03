@@ -494,12 +494,15 @@ export const KioskForm = ({
     setPaymentResult(null);
     setPaymentMethod('card');
 
-    window.KloudEvent?.requestKisPayment?.(JSON.stringify({
-      ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
-      inTranCode: 'D1',
-      inTotAmt: `${finalAmount}`,
-      inInstallment: '00',
-    }));
+    // 대기 다이얼로그가 먼저 보이고 난 뒤 단말 호출 — 사용자가 카드 대기 안내 문구를 인지할 시간 확보
+    setTimeout(() => {
+      window.KloudEvent?.requestKisPayment?.(JSON.stringify({
+        ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
+        inTranCode: 'D1',
+        inTotAmt: `${finalAmount}`,
+        inInstallment: '00',
+      }));
+    }, 1000);
   }, [paymentItem, isPaying, selectedDiscount]);
 
   // 현금 결제 신청: 결제는 인포에서 마무리 — 영수증만 출력하고 성공 화면으로

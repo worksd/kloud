@@ -201,15 +201,18 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
     setCancelingId(record.paymentId);
 
     if (isCardPayment(record)) {
-      // 카드: 단말로 D2(취소) 트랜잭션 송출 — 단일 채널 requestKisPayment 사용, 응답은 onKisPaymentResult에서 outTranCode='D2'로 분기
-      window.KloudEvent?.requestKisPayment?.(JSON.stringify({
-        inTranCode: 'D2',
-        inAuthNo: record.authNo ?? '',
-        inAuthDate: record.authDate ?? '',
-        inVanKey: record.vanKey ?? '',
-        inTotAmt: `${record.totalAmount ?? record.amount ?? 0}`,
-        // inCustomerUuid 생략 — 네이티브가 자동 생성 (idempotency)
-      }));
+      // 카드: 단말로 D2(취소) 트랜잭션 송출 — 단일 채널 requestKisPayment 사용, 응답은 onKisPaymentResult에서 outTranCode='D2'로 분기.
+      // '취소 처리 중' 다이얼로그가 먼저 보이고 난 뒤 단말 호출 — 사용자가 안내를 인지할 시간 확보
+      setTimeout(() => {
+        window.KloudEvent?.requestKisPayment?.(JSON.stringify({
+          inTranCode: 'D2',
+          inAuthNo: record.authNo ?? '',
+          inAuthDate: record.authDate ?? '',
+          inVanKey: record.vanKey ?? '',
+          inTotAmt: `${record.totalAmount ?? record.amount ?? 0}`,
+          // inCustomerUuid 생략 — 네이티브가 자동 생성 (idempotency)
+        }));
+      }, 1000);
       // 30초 타임아웃 안전망 — 네이티브 미응답 시 진행 상태 해제 + 친화적 실패 다이얼로그
       if (cancelTimeoutRef.current) clearTimeout(cancelTimeoutRef.current);
       cancelTimeoutRef.current = setTimeout(() => {
