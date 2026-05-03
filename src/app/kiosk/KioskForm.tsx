@@ -346,30 +346,6 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
     setPaymentResult(null);
     setPaymentMethod('card');
 
-    // ============ MOCK_KIS_PAYMENT 시작 ============
-    // 네이티브 KIS 단말기 없이 테스트용. 3초 후 가짜 승인 응답을 직접 트리거.
-    // "Mock 없애줘"라고 하면 이 블록 (시작 주석부터 끝 주석까지 + return 포함) 통째로 제거 → 아래 requestKisPayment가 다시 활성화됨.
-    const mockAuthDate = (() => {
-      const d = new Date();
-      const p = (n: number) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
-    })();
-    setTimeout(() => {
-      type Win = Window & { onKisPaymentResult?: (r: Record<string, unknown>) => void };
-      (window as Win).onKisPaymentResult?.({
-        success: true,
-        outAuthNo: '12345678',
-        outAuthDate: mockAuthDate,
-        outVanKey: `MOCK_VAN_${Date.now()}`,
-        outTotAmt: finalAmount,
-        outCardNo: '5570-9930-****-1234',
-        outIssuerName: 'KB국민카드',
-        outInstallment: '00',
-      });
-    }, 3000);
-    return;
-    // ============ MOCK_KIS_PAYMENT 끝 ============
-
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       inTestMode: 'Y',
       inTranCode: 'D1',
