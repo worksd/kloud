@@ -360,6 +360,20 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                         }`}
                         style={{ gap: 'min(1.6vw,18px)' }}
                       >
+                        <div
+                          className="rounded-full overflow-hidden bg-[#E8E8EA] flex-shrink-0 flex items-center justify-center"
+                          style={{ width: 'min(4.4vw,48px)', height: 'min(4.4vw,48px)' }}
+                        >
+                          {record.user.profileImageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={record.user.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <svg viewBox="0 0 24 24" fill="none" style={{ width: '60%', height: '60%' }}>
+                              <circle cx="12" cy="9" r="3.5" stroke="#A6B5C9" strokeWidth="1.8"/>
+                              <path d="M5 19C5 16 8 14 12 14S19 16 19 19" stroke="#A6B5C9" strokeWidth="1.8" strokeLinecap="round"/>
+                            </svg>
+                          )}
+                        </div>
                         <div className="flex flex-col min-w-0 flex-1" style={{ gap: 'min(0.5vw,7px)' }}>
                           <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
                             <span className="text-black font-bold truncate" style={{ fontSize: 'min(2vw, 22px)' }}>
