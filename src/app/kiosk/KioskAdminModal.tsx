@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, getKiosksAction, saveSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKiosksAction, saveSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
 import { KioskResponse } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
@@ -41,6 +41,7 @@ const fmtPhoneDisplay = (raw?: string): string => {
 };
 
 const STATUS_BADGE: Record<string, { label: string; bg: string; fg: string }> = {
+  Pending:       { label: '결제 대기',   bg: '#FFF4E0', fg: '#B58026' },
   Completed:     { label: '완료',        bg: '#E5F4F0', fg: '#0FA37F' },
   Cancelled:     { label: '취소됨',      bg: '#E6E8EA', fg: '#86898C' },
   CancelPending: { label: '취소 처리 중', bg: '#FFF4E0', fg: '#B58026' },
@@ -80,6 +81,19 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   const [confirmTarget, setConfirmTarget] = useState<KioskPaymentRecord | null>(null);
   // 취소 결과 다이얼로그 — 단일 친화적 메시지로 표시
   const [cancelResult, setCancelResult] = useState<{ kind: 'success' | 'fail'; message?: string } | null>(null);
+  // Pending 폐기 확인 다이얼로그
+  const [discardTarget, setDiscardTarget] = useState<KioskPaymentRecord | null>(null);
+  const [discardingId, setDiscardingId] = useState<string | null>(null);
+  // KIS 단말 마지막 매입 결과 조회 (Pending 검증용)
+  const [inquiryTarget, setInquiryTarget] = useState<KioskPaymentRecord | null>(null);
+  const [inquiryResult, setInquiryResult] = useState<{
+    found: boolean;
+    outAuthNo?: string;
+    outAuthDate?: string;
+    outVanKey?: string;
+    outTotAmt?: string;
+  } | null>(null);
+  const [inquiryLoading, setInquiryLoading] = useState(false);
 
   // PIN 입력 처리
   const press = (k: string) => {
@@ -290,6 +304,94 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       .finally(() => setCancelingId(null));
   };
 
+  // Pending 폐기 — DELETE /kiosks/payments/:paymentId
+  const handleDiscard = (record: KioskPaymentRecord) => {
+    if (discardingId) return;
+    setDiscardingId(record.paymentId);
+    discardKioskPaymentAction(record.paymentId, kioskId)
+      .then((res) => {
+        if (isGuinnessErrorCase(res)) {
+          setToast(res.message ?? '폐기 처리에 실패했어요');
+          return;
+        }
+        setPayments((prev) => prev.filter((p) => p.paymentId !== record.paymentId));
+      })
+      .catch(() => setToast('폐기 처리에 실패했어요'))
+      .finally(() => { setDiscardingId(null); setDiscardTarget(null); });
+  };
+
+  // KIS 단말 마지막 매입 결과 조회 — 네이티브가 onKisLastApprovalResult로 응답
+  type KisLastApproval = {
+    found?: boolean;
+    outAuthNo?: string;
+    outAuthDate?: string;
+    outVanKey?: string;
+    outTotAmt?: string;
+  };
+  type LastApprovalWindow = Window & {
+    KloudEvent?: { requestKisLastApproval?: (payload: string) => void };
+    onKisLastApprovalResult?: (r: KisLastApproval) => void;
+  };
+  useEffect(() => {
+    const w = window as LastApprovalWindow;
+    w.onKisLastApprovalResult = (r) => {
+      setInquiryLoading(false);
+      setInquiryResult({
+        found: r?.found === true,
+        outAuthNo: r?.outAuthNo,
+        outAuthDate: r?.outAuthDate,
+        outVanKey: r?.outVanKey,
+        outTotAmt: r?.outTotAmt,
+      });
+    };
+    return () => { delete w.onKisLastApprovalResult; };
+  }, []);
+
+  const handleStartInquiry = (record: KioskPaymentRecord) => {
+    setInquiryTarget(record);
+    setInquiryResult(null);
+    setInquiryLoading(true);
+    const w = window as LastApprovalWindow;
+    if (w.KloudEvent?.requestKisLastApproval) {
+      w.KloudEvent.requestKisLastApproval(JSON.stringify({}));
+    } else {
+      // 네이티브 미지원 환경 — 즉시 '없음'으로 마무리
+      setInquiryLoading(false);
+      setInquiryResult({ found: false });
+    }
+  };
+
+  // 단말에 매입 내역 있음 → /complete 호출 (Pending → Completed)
+  const handleCompleteFromInquiry = async () => {
+    if (!inquiryTarget || !inquiryResult?.found) return;
+    const target = inquiryTarget;
+    const r = inquiryResult;
+    const rawAuthDate = r.outAuthDate ?? '';
+    const authDate = rawAuthDate.length >= 8 ? rawAuthDate.slice(0, 8) : rawAuthDate;
+    setInquiryLoading(true);
+    try {
+      const res = await completeKioskPaymentAction({
+        paymentId: target.paymentId,
+        targetUserId: target.user.id,
+        kioskId,
+        authNo: r.outAuthNo ?? '',
+        authDate,
+        vanKey: r.outVanKey ?? '',
+        totalAmount: Number(r.outTotAmt ?? target.amount),
+      });
+      if (isGuinnessErrorCase(res)) {
+        setToast(res.message ?? '결제 완료 처리에 실패했어요');
+        return;
+      }
+      setPayments((prev) => prev.map((p) => p.paymentId === target.paymentId ? { ...p, status: 'Completed' } : p));
+      setInquiryTarget(null);
+      setInquiryResult(null);
+      setToast('결제 완료로 처리했어요');
+    } finally {
+      setInquiryLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -391,7 +493,9 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                 <div className="flex flex-col" style={{ gap: 'min(1vw, 12px)' }}>
                   {payments.map((record) => {
                     const isCancelled = record.status === 'Cancelled' || record.status === 'CancelPending';
+                    const isPending = record.status === 'Pending';
                     const isThisCanceling = cancelingId === record.paymentId;
+                    const isThisDiscarding = discardingId === record.paymentId;
                     const badge = STATUS_BADGE[record.status] ?? { label: record.status, bg: '#E6E8EA', fg: '#6D7882' };
                     const userDisplay = record.user.nickName || record.user.name || '';
                     const phoneDisplay = fmtPhoneDisplay(record.user.phone);
@@ -462,20 +566,49 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                         <span className="font-bold text-[#1E2124] shrink-0" style={{ fontSize: 'min(2vw, 22px)' }}>
                           {fmtAmount(record.amount)}
                         </span>
-                        <button
-                          onClick={() => setConfirmTarget(record)}
-                          disabled={isCancelled || isThisCanceling || cancelingId !== null}
-                          className={`shrink-0 px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
-                            isCancelled || cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
-                          }`}
-                        >
-                          <span
-                            className={`font-bold ${isCancelled || cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
-                            style={{ fontSize: 'min(1.6vw, 18px)' }}
+                        {isPending ? (
+                          // Pending: '단말 확인'(KIS 마지막 매입 조회) + '폐기'(DELETE) 두 버튼
+                          <div className="flex items-center shrink-0" style={{ gap: 'min(0.6vw,8px)' }}>
+                            <button
+                              onClick={() => handleStartInquiry(record)}
+                              disabled={isThisDiscarding || inquiryLoading}
+                              className="px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-50"
+                            >
+                              <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.6vw, 18px)' }}>
+                                단말 확인
+                              </span>
+                            </button>
+                            <button
+                              onClick={() => setDiscardTarget(record)}
+                              disabled={isThisDiscarding || discardingId !== null}
+                              className={`px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
+                                discardingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
+                              }`}
+                            >
+                              <span
+                                className={`font-bold ${discardingId !== null ? 'text-[#86898C]' : 'text-white'}`}
+                                style={{ fontSize: 'min(1.6vw, 18px)' }}
+                              >
+                                {isThisDiscarding ? '폐기 중…' : '폐기'}
+                              </span>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmTarget(record)}
+                            disabled={isCancelled || isThisCanceling || cancelingId !== null}
+                            className={`shrink-0 px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
+                              isCancelled || cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
+                            }`}
                           >
-                            {isThisCanceling ? '취소 중…' : '취소'}
-                          </span>
-                        </button>
+                            <span
+                              className={`font-bold ${isCancelled || cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
+                              style={{ fontSize: 'min(1.6vw, 18px)' }}
+                            >
+                              {isThisCanceling ? '취소 중…' : '취소'}
+                            </span>
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -661,6 +794,137 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
           </div>
         </div>
       )}
+
+      {/* Pending 폐기 확인 다이얼로그 */}
+      {discardTarget && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setDiscardTarget(null)} />
+          <div
+            className="relative bg-white rounded-[24px] w-full max-w-[560px] flex flex-col animate-[scaleIn_180ms_ease-out]"
+            style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
+          >
+            <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+              결제 대기 건을 폐기할까요?
+            </p>
+            <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+              단말에 매입이 안 된 결제 대기 항목을 정리해요.{'\n'}매입이 실제로 됐다면 먼저 ‘단말 확인’으로 결제 완료 처리하세요.
+            </p>
+            <div className="mt-[min(1.4vw,16px)] bg-[#F9F9FB] rounded-[16px] flex items-center justify-between px-[min(2.4vw,26px)] py-[min(1.6vw,18px)]">
+              <span className="text-[#1E2124] font-medium truncate" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                {discardTarget.productName ?? ''}
+              </span>
+              <span className="text-black font-bold shrink-0 ml-[min(1vw,12px)]" style={{ fontSize: 'min(1.9vw, 20px)' }}>
+                {fmtAmount(discardTarget.amount)}
+              </span>
+            </div>
+            <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
+              <button
+                onClick={() => setDiscardTarget(null)}
+                className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{ height: 'min(6.4vw,68px)' }}
+              >
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>아니요</span>
+              </button>
+              <button
+                onClick={() => handleDiscard(discardTarget)}
+                disabled={discardingId !== null}
+                className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform disabled:opacity-60"
+                style={{ height: 'min(6.4vw,68px)' }}
+              >
+                <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>네, 폐기할게요</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 단말 확인(KIS 마지막 매입 조회) 결과 다이얼로그 */}
+      {inquiryTarget && (
+        <div className="fixed inset-0 z-[72] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
+          <div className="absolute inset-0 bg-black/60" onClick={() => { setInquiryTarget(null); setInquiryResult(null); }} />
+          <div
+            className="relative bg-white rounded-[24px] w-full max-w-[600px] flex flex-col animate-[scaleIn_180ms_ease-out]"
+            style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
+          >
+            <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+              단말 매입 내역 확인
+            </p>
+
+            {inquiryLoading && (
+              <div className="flex items-center justify-center" style={{ marginTop: 'min(2vw,22px)', minHeight: 'min(8vw,80px)' }}>
+                <div className="w-10 h-10 border-4 border-black/15 border-t-black rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!inquiryLoading && inquiryResult && inquiryResult.found && (
+              <>
+                <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                  단말에 최근 매입 내역이 있어요.{'\n'}이 결제로 완료 처리할까요?
+                </p>
+                <div className="mt-[min(1.6vw,18px)] bg-[#F9F9FB] rounded-[16px] flex flex-col px-[min(2.4vw,26px)] py-[min(1.4vw,16px)]" style={{ gap: 'min(0.6vw,8px)' }}>
+                  <Row label="결제 대기 금액" value={fmtAmount(inquiryTarget.amount)} />
+                  <Row label="단말 매입 금액" value={inquiryResult.outTotAmt ? `${Number(inquiryResult.outTotAmt).toLocaleString('ko-KR')}원` : '-'} />
+                  <Row label="승인번호" value={inquiryResult.outAuthNo ?? '-'} />
+                  <Row label="승인일자" value={inquiryResult.outAuthDate ?? '-'} />
+                </div>
+                <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
+                  <button
+                    onClick={() => { setInquiryTarget(null); setInquiryResult(null); }}
+                    className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                    style={{ height: 'min(6.4vw,68px)' }}
+                  >
+                    <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>닫기</span>
+                  </button>
+                  <button
+                    onClick={handleCompleteFromInquiry}
+                    disabled={inquiryLoading}
+                    className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform disabled:opacity-60"
+                    style={{ height: 'min(6.4vw,68px)' }}
+                  >
+                    <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>결제 완료 처리</span>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {!inquiryLoading && inquiryResult && !inquiryResult.found && (
+              <>
+                <p className="text-[#6D7882] text-center mt-[min(1vw,12px)] whitespace-pre-line" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                  단말에 매입 내역이 없어요.{'\n'}안전하게 폐기 처리하세요.
+                </p>
+                <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
+                  <button
+                    onClick={() => { setInquiryTarget(null); setInquiryResult(null); }}
+                    className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                    style={{ height: 'min(6.4vw,68px)' }}
+                  >
+                    <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>닫기</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const target = inquiryTarget;
+                      setInquiryTarget(null);
+                      setInquiryResult(null);
+                      setDiscardTarget(target);
+                    }}
+                    className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                    style={{ height: 'min(6.4vw,68px)' }}
+                  >
+                    <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>폐기하기</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+const Row = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex items-center justify-between">
+    <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 16px)' }}>{label}</span>
+    <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.5vw, 16px)' }}>{value}</span>
+  </div>
+);
