@@ -240,13 +240,21 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
 
     if (isCardPayment(record)) {
       // 카드: 단말로 D2(취소) 트랜잭션 송출 — 단일 채널 requestKisPayment 사용, 응답은 onKisPaymentResult에서 outTranCode='D2'로 분기.
-      // '취소 처리 중' 다이얼로그가 먼저 보이고 난 뒤 단말 호출 — 사용자가 안내를 인지할 시간 확보
+      // '취소 처리 중' 다이얼로그가 먼저 보이고 난 뒤 단말 호출 — 사용자가 안내를 인지할 시간 확보.
+      //
+      // KIS-ANDAGT D2 스펙:
+      //  - inOrgAuthNo:   원거래 outAuthNo와 정확히 동일
+      //  - inOrgAuthDate: 원거래 outAuthDate가 YYYYMMDD(8) 또는 YYYYMMDDHHmmss(14)로 오므로 YY MMDD 6자리로 자름 (앞 2자리 'YY' 절단)
+      //  - inTotAmt:      원거래 outTotAmt와 동일
+      //  - inCatId:       단말 본체 값 — 네이티브가 자동 채움 (전송 X)
+      const rawAuthDate = record.authDate ?? '';
+      // 8자리 또는 14자리 모두 앞 2자리(세기)를 잘라 YYMMDD 형태로
+      const orgAuthDate = rawAuthDate.length >= 8 ? rawAuthDate.slice(2, 8) : rawAuthDate;
       setTimeout(() => {
         window.KloudEvent?.requestKisPayment?.(JSON.stringify({
           inTranCode: 'D2',
-          inAuthNo: record.authNo ?? '',
-          inAuthDate: record.authDate ?? '',
-          inVanKey: record.vanKey ?? '',
+          inOrgAuthNo: record.authNo ?? '',
+          inOrgAuthDate: orgAuthDate,
           inTotAmt: `${record.totalAmount ?? record.amount ?? 0}`,
           // inCustomerUuid 생략 — 네이티브가 자동 생성 (idempotency)
         }));
