@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { KioskOperatorQRScanner } from '@/app/kiosk/KioskOperatorQRScanner';
 import { KioskOperatorEmailLogin } from '@/app/kiosk/KioskOperatorEmailLogin';
 import { KioskSelector } from '@/app/kiosk/KioskSelector';
 import { KioskForm } from '@/app/kiosk/KioskForm';
@@ -41,7 +40,6 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
     phone?: string;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [emailOpen, setEmailOpen] = useState(false);
 
   // /me + /kiosks 병렬 호출 → me.studio로 스튜디오 정보, kiosks로 선택
   const loadKiosks = async (preselectedId?: number) => {
@@ -118,17 +116,8 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleScanned = async (scannedToken: string) => {
-    setErrorMessage(null);
-    setStage('loading');
-    await saveKioskOperatorTokenAction(scannedToken);
-    sendKioskTokenToNative(scannedToken);
-    await loadKiosks();
-  };
-
   // 이메일 로그인 성공 — 토큰은 emailLoginAction이 쿠키에 저장. 페이지 리로드 전 네이티브에도 전달
   const handleEmailLoggedIn = async () => {
-    setEmailOpen(false);
     setErrorMessage(null);
     setStage('loading');
     const token = await getKioskOperatorTokenAction();
@@ -144,22 +133,11 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
   };
 
   if (stage === 'scan') {
+    // QR 로그인 제거 — 운영자 이메일 로그인 UI를 직접 노출.
+    // 'onCancel'은 호출되어도 닫을 화면이 없으므로 noop으로 둠.
     return (
       <>
-        <KioskOperatorQRScanner onScanned={handleScanned} />
-
-        {/* 이메일 로그인 진입 버튼 */}
-        <button
-          onClick={() => setEmailOpen(true)}
-          className="fixed left-1/2 -translate-x-1/2 px-5 py-3 rounded-full bg-[#F2F4F6] border border-[#E6E8EA] active:scale-[0.97] transition-transform"
-          style={{ bottom: 'min(8vh, 80px)' }}
-        >
-          <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vh, 16px)' }}>이메일로 로그인</span>
-        </button>
-
-        {emailOpen && (
-          <KioskOperatorEmailLogin onLoggedIn={handleEmailLoggedIn} onCancel={() => setEmailOpen(false)} />
-        )}
+        <KioskOperatorEmailLogin onLoggedIn={handleEmailLoggedIn} onCancel={() => {}} />
 
         {errorMessage && (
           <div className="fixed bottom-[20px] left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl bg-black/80 text-white text-[14px]">
