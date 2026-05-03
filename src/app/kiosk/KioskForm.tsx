@@ -240,13 +240,10 @@ export const KioskForm = ({
         setPrinterDebugResult(JSON.stringify(result, null, 2));
         return;
       }
-      if (result?.success) {
-        setToastMessage('영수증 출력 완료');
-        return;
+      // 인쇄 성공/실패는 토스트로 노출하지 않음 — 영수증 종이가 곧 결과. 실패는 콘솔만 남기고 운영자가 admin에서 재인쇄.
+      if (!result?.success && !result?.canceled) {
+        console.warn('영수증 인쇄 실패:', result?.error ?? result?.resultCode);
       }
-      if (result?.canceled) return;
-      const msg = result?.error ?? (result?.resultCode != null ? String(result.resultCode) : '프린트에 실패했습니다.');
-      setToastMessage(`프린트 실패: ${msg}`);
     };
 
     return () => {

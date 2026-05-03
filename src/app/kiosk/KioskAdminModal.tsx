@@ -53,6 +53,10 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   const [switchingKioskId, setSwitchingKioskId] = useState<number | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // 취소 확인 다이얼로그 — 사용자가 '취소' 버튼을 눌렀을 때 즉시 KIS로 가지 않고 한 번 확인받음
+  const [confirmTarget, setConfirmTarget] = useState<KioskPaymentRecord | null>(null);
+  // 취소 결과 다이얼로그 — 단일 친화적 메시지로 표시
+  const [cancelResult, setCancelResult] = useState<{ kind: 'success' | 'fail'; message?: string } | null>(null);
 
   // PIN 입력 처리
   const press = (k: string) => {
@@ -152,13 +156,13 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       if (cancelTimeoutRef.current) { clearTimeout(cancelTimeoutRef.current); cancelTimeoutRef.current = null; }
 
       if (response.canceled) {
-        // 사용자가 단말 화면에서 ESC/취소 — 진행 상태만 해제
+        // 사용자가 단말 화면에서 ESC/취소 — 진행 상태만 해제, 별도 안내 없음
         setCancelingId(null);
         return;
       }
       if (!response.success) {
-        setToast(`단말 취소 실패: ${response.outReplyMsg1 ?? '알 수 없는 오류'}`);
         setCancelingId(null);
+        setCancelResult({ kind: 'fail' });
         return;
       }
       // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄. authNo/authDate는 신규 취소 거래의 값
@@ -166,7 +170,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       cancelKioskPaymentAction(targetId, kioskId)
         .then((res) => {
           if (isGuinnessErrorCase(res)) {
-            setToast(res.message ?? '서버 취소 실패');
+            setCancelResult({ kind: 'fail' });
             return;
           }
           setPayments((prev) => prev.map((p) => p.paymentId === targetId ? { ...p, status: 'Cancelled' } : p));
@@ -176,9 +180,9 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
               authDate: response.outAuthDate,
             });
           }
-          setToast('취소 완료');
+          setCancelResult({ kind: 'success' });
         })
-        .catch(() => setToast('서버 취소 요청 실패'))
+        .catch(() => setCancelResult({ kind: 'fail' }))
         .finally(() => setCancelingId(null));
     };
     return () => { (window as Win).onKisPaymentResult = previousHandler; };
@@ -206,11 +210,11 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
         inTotAmt: `${record.totalAmount ?? record.amount ?? 0}`,
         // inCustomerUuid 생략 — 네이티브가 자동 생성 (idempotency)
       }));
-      // 30초 타임아웃 안전망 — 네이티브 미응답 등 극단 케이스에서 cancelingId 강제 해제
+      // 30초 타임아웃 안전망 — 네이티브 미응답 시 진행 상태 해제 + 친화적 실패 다이얼로그
       if (cancelTimeoutRef.current) clearTimeout(cancelTimeoutRef.current);
       cancelTimeoutRef.current = setTimeout(() => {
         setCancelingId(null);
-        setToast('단말 응답 시간 초과');
+        setCancelResult({ kind: 'fail' });
         cancelTimeoutRef.current = null;
       }, 30000);
       return;
@@ -220,14 +224,14 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
     cancelKioskPaymentAction(record.paymentId, kioskId)
       .then((res) => {
         if (isGuinnessErrorCase(res)) {
-          setToast(res.message ?? '서버 취소 실패');
+          setCancelResult({ kind: 'fail' });
           return;
         }
         setPayments((prev) => prev.map((p) => p.paymentId === record.paymentId ? { ...p, status: 'Cancelled' } : p));
         printCancellationReceipt(record, studio, kioskName);
-        setToast('취소 완료');
+        setCancelResult({ kind: 'success' });
       })
-      .catch(() => setToast('서버 취소 요청 실패'))
+      .catch(() => setCancelResult({ kind: 'fail' }))
       .finally(() => setCancelingId(null));
   };
 
@@ -354,7 +358,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                           {fmtAmount(record.amount)}
                         </span>
                         <button
-                          onClick={() => handleCancel(record)}
+                          onClick={() => setConfirmTarget(record)}
                           disabled={isCancelled || isThisCanceling || cancelingId !== null}
                           className={`shrink-0 px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
                             isCancelled || cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
@@ -442,6 +446,111 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
           </div>
         )}
       </div>
+
+      {/* 취소 확인 다이얼로그 — '취소' 버튼 누르자마자 KIS 단말로 보내지 않고 한 번 확인 */}
+      {confirmTarget && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setConfirmTarget(null)} />
+          <div
+            className="relative bg-white rounded-[24px] w-full max-w-[560px] flex flex-col animate-[scaleIn_180ms_ease-out]"
+            style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
+          >
+            <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+              결제를 취소할까요?
+            </p>
+            <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+              취소 후에는 되돌릴 수 없어요.
+            </p>
+            <div className="mt-[min(1.4vw,16px)] bg-[#F9F9FB] rounded-[16px] flex items-center justify-between px-[min(2.4vw,26px)] py-[min(1.6vw,18px)]">
+              <span className="text-[#1E2124] font-medium truncate" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+                {confirmTarget.productName ?? ''}
+              </span>
+              <span className="text-black font-bold shrink-0 ml-[min(1vw,12px)]" style={{ fontSize: 'min(1.9vw, 20px)' }}>
+                {fmtAmount(confirmTarget.amount)}
+              </span>
+            </div>
+            <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
+              <button
+                onClick={() => setConfirmTarget(null)}
+                className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{ height: 'min(6.4vw,68px)' }}
+              >
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>아니요</span>
+              </button>
+              <button
+                onClick={() => {
+                  const target = confirmTarget;
+                  setConfirmTarget(null);
+                  handleCancel(target);
+                }}
+                className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{ height: 'min(6.4vw,68px)' }}
+              >
+                <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>네, 취소할게요</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 카드 단말 취소 진행 중 — KIS 단말 화면을 방해하지 않도록 가벼운 배경 + 스피너만 */}
+      {cancelingId && (
+        <div className="fixed inset-0 z-[68] flex items-center justify-center bg-black/40 animate-[fadeIn_180ms_ease-out]">
+          <div className="bg-white rounded-[20px] flex flex-col items-center" style={{ padding: 'min(3vw,32px) min(4vw,44px)' }}>
+            <div className="w-10 h-10 border-4 border-black/15 border-t-black rounded-full animate-spin" />
+            <p className="text-[#1E2124] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2vw, 22px)' }}>
+              취소 처리 중이에요
+            </p>
+            <p className="text-[#6D7882] mt-[min(0.6vw,8px)] text-center" style={{ fontSize: 'min(1.6vw, 17px)' }}>
+              단말의 안내에 따라 카드를 다시 대주세요
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 취소 결과 — 단일 친화 다이얼로그 (성공/실패) */}
+      {cancelResult && (
+        <div className="fixed inset-0 z-[72] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setCancelResult(null)} />
+          <div
+            className="relative bg-white rounded-[24px] w-full max-w-[520px] flex flex-col items-center animate-[scaleIn_180ms_ease-out]"
+            style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
+          >
+            <div
+              className="rounded-full flex items-center justify-center"
+              style={{
+                width: 'min(7vw,72px)',
+                height: 'min(7vw,72px)',
+                background: cancelResult.kind === 'success' ? '#E5F4F0' : '#FFE9E9',
+              }}
+            >
+              {cancelResult.kind === 'success' ? (
+                <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                  <path d="M5 12.5L10 17.5L19.5 7" stroke="#0FA37F" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                  <path d="M12 3L22 21H2L12 3Z" stroke="#E55B5B" strokeWidth="2" strokeLinejoin="round"/>
+                  <path d="M12 10V14M12 17V18" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
+                </svg>
+              )}
+            </div>
+            <p className="text-black font-bold text-center mt-[min(1.6vw,18px)]" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+              {cancelResult.kind === 'success' ? '결제가 취소되었어요' : '취소를 처리하지 못했어요'}
+            </p>
+            <p className="text-[#6D7882] text-center mt-[min(0.8vw,10px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+              {cancelResult.kind === 'success' ? '취소 영수증이 출력되었어요' : '잠시 후 다시 시도해주세요'}
+            </p>
+            <button
+              onClick={() => setCancelResult(null)}
+              className="mt-[min(2vw,22px)] w-full rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+              style={{ height: 'min(6.4vw,68px)' }}
+            >
+              <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>확인</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
