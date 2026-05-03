@@ -216,13 +216,13 @@ export const KioskPaymentMethodForm = ({
         )}
       </div>
 
-      {/* 결제 방법 섹션 — 패스권으로 풀 커버 시 섹션 자체가 사라지고 하단 신청하기 버튼으로 결제 */}
+      {/* 결제 방법 섹션 — 패스권으로 풀 커버 시 섹션 자체가 사라지고 하단 신청하기 버튼으로 결제. 패스권 구매는 현금 결제 미지원이라 2-col로 좁힘 */}
       {!fullyCovered && (
       <div className="shrink-0 px-[5.6%] pb-[min(1.4vw,16px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
           {t('kiosk_payment_method_section')}
         </p>
-        <div className="grid grid-cols-3 gap-[min(1.4vw,16px)]">
+        <div className={`grid ${itemType === 'pass-plan' ? 'grid-cols-2' : 'grid-cols-3'} gap-[min(1.4vw,16px)]`}>
           {/* 카드 결제 */}
           <button
             onClick={onSelectCard}
@@ -252,23 +252,25 @@ export const KioskPaymentMethodForm = ({
             </span>
           </button>
 
-          {/* 현금 결제 */}
-          <button
-            onClick={onSelectCash}
-            className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
-          >
-            <svg width="36" height="28" viewBox="0 0 72 54" fill="none">
-              <rect x="2" y="2" width="68" height="50" rx="8" fill="#A6B5C9"/>
-              <circle cx="36" cy="27" r="9" fill="none" stroke="white" strokeWidth="2.5"/>
-              <rect x="10" y="13" width="6" height="3" rx="1" fill="white"/>
-              <rect x="56" y="13" width="6" height="3" rx="1" fill="white"/>
-              <rect x="10" y="38" width="6" height="3" rx="1" fill="white"/>
-              <rect x="56" y="38" width="6" height="3" rx="1" fill="white"/>
-            </svg>
-            <span className="text-[#1E2124] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-              {t('kiosk_cash_payment')}
-            </span>
-          </button>
+          {/* 현금 결제 — 패스권 구매는 현금 결제 미지원이라 숨김 */}
+          {itemType !== 'pass-plan' && (
+            <button
+              onClick={onSelectCash}
+              className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
+            >
+              <svg width="36" height="28" viewBox="0 0 72 54" fill="none">
+                <rect x="2" y="2" width="68" height="50" rx="8" fill="#A6B5C9"/>
+                <circle cx="36" cy="27" r="9" fill="none" stroke="white" strokeWidth="2.5"/>
+                <rect x="10" y="13" width="6" height="3" rx="1" fill="white"/>
+                <rect x="56" y="13" width="6" height="3" rx="1" fill="white"/>
+                <rect x="10" y="38" width="6" height="3" rx="1" fill="white"/>
+                <rect x="56" y="38" width="6" height="3" rx="1" fill="white"/>
+              </svg>
+              <span className="text-[#1E2124] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                {t('kiosk_cash_payment')}
+              </span>
+            </button>
+          )}
         </div>
       </div>
       )}

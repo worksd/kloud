@@ -53,7 +53,7 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, onSelectPaymen
       </div>
 
       {/* 카드 영역 */}
-      <div className="flex-[270] shrink-0 flex gap-[2.9%] px-[5.6%] pt-[3.1%] pb-[2%]">
+      <div className="flex-[200] shrink-0 flex gap-[2.9%] px-[5.6%] pt-[3.1%] pb-[2%]">
         {/* 출석 체크 — 34.5% */}
         <div
           onClick={onSelectVisit}
