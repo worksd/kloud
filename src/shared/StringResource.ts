@@ -3120,7 +3120,7 @@ export const StringResource = {
   kiosk_buy_passplan: { ko: '패스권 구매', en: 'Buy Pass', jp: 'パス券購入', zh: '购买通行证' },
   kiosk_use_action: { ko: '사용', en: 'Use', jp: '使用', zh: '使用' },
   kiosk_discount_amount: { ko: '할인', en: 'Off', jp: '割引', zh: '折扣' },
-  kiosk_clear_input: { ko: '입력 초기화', en: 'Clear', jp: '入力をクリア', zh: '清除输入' },
+  kiosk_clear_input: { ko: '지우기', en: 'Clear', jp: '消す', zh: '清除' },
 
   // Kiosk — 수업 상태 라벨 (LessonStatus → 다국어 표시)
   kiosk_lesson_status_pending:      { ko: '공개 예정', en: 'Coming soon',  jp: '公開予定',         zh: '即将公开' },

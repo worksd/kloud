@@ -101,18 +101,23 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onHome, onChangeLo
                 {digits ? formatPhone(digits) : '010 0000 0000'}
               </span>
             </div>
-            {/* X 클리어 */}
+            {/* 모두 지우기 — 라벨 + X 아이콘 (디지트가 있을 때만 노출) */}
             {digits && (
               <button
                 type="button"
                 onClick={() => setDigits('')}
                 aria-label={t('kiosk_clear_input')}
-                className="shrink-0 rounded-full bg-[#CDD1D5] flex items-center justify-center active:scale-[0.92] transition-transform"
-                style={{ width: 'min(3.7vw, 40px)', height: 'min(3.7vw, 40px)' }}
+                className="shrink-0 flex items-center bg-[#E6E8EA] rounded-full active:scale-[0.96] transition-transform"
+                style={{ height: 'min(7vw, 76px)', padding: '0 min(2vw, 22px)', gap: 'min(0.8vw, 10px)' }}
               >
-                <svg viewBox="0 0 24 24" fill="none" style={{ width: '60%', height: '60%' }}>
-                  <path d="M6 6L18 18M6 18L18 6" stroke="white" strokeWidth="2.4" strokeLinecap="round"/>
-                </svg>
+                <span className="rounded-full bg-[#86898C] flex items-center justify-center" style={{ width: 'min(3vw, 32px)', height: 'min(3vw, 32px)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '60%', height: '60%' }}>
+                    <path d="M6 6L18 18M6 18L18 6" stroke="white" strokeWidth="2.6" strokeLinecap="round"/>
+                  </svg>
+                </span>
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                  {t('kiosk_clear_input')}
+                </span>
               </button>
             )}
           </div>
