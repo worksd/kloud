@@ -73,6 +73,18 @@ export const UseKioskPass: Endpoint<UseKioskPassRequest, UseKioskPassResponse> =
 
 // 키오스크 관리자 모드 — 결제 record 목록 / 취소
 // 백엔드: GET /kiosks/:id/paymentRecords → KioskPaymentRecordListResponse
+export type KioskPaymentRecordUser = {
+  id: number;
+  email?: string;
+  status?: string;
+  type?: string;
+  name?: string;
+  nickName?: string;
+  profileImageUrl?: string;
+  phone?: string;
+  countryCode?: string;
+};
+
 export type KioskPaymentRecord = {
   id: number;
   paymentId: string;
@@ -80,7 +92,8 @@ export type KioskPaymentRecord = {
   methodType: string;
   amount: number;
   productName: string | null;
-  userId: number;
+  user: KioskPaymentRecordUser;
+  createdAt: string;
   cancelledAt: string | null;
   // 카드 단말 취소를 위한 메타 (KIS 응답값)
   authNo: string | null;

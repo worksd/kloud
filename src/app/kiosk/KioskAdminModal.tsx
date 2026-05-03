@@ -23,6 +23,29 @@ type Stage = 'pin' | 'list' | 'switch-kiosk';
 
 const fmtAmount = (n: number) => `${new Intl.NumberFormat('ko-KR').format(n)}원`;
 
+const fmtMethod = (methodType: string): string => {
+  const m = methodType.toLowerCase();
+  if (m.includes('credit') || m.includes('card')) return '카드';
+  if (m.includes('cash')) return '현금';
+  if (m.includes('apple')) return '애플페이';
+  if (m.includes('pass')) return '패스권';
+  return methodType;
+};
+
+const fmtPhoneDisplay = (raw?: string): string => {
+  if (!raw) return '';
+  const d = raw.replace(/\D/g, '');
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7, 11)}`;
+};
+
+const STATUS_BADGE: Record<string, { label: string; bg: string; fg: string }> = {
+  Completed:     { label: '완료',        bg: '#E5F4F0', fg: '#0FA37F' },
+  Cancelled:     { label: '취소됨',      bg: '#E6E8EA', fg: '#86898C' },
+  CancelPending: { label: '취소 처리 중', bg: '#FFF4E0', fg: '#B58026' },
+};
+
 // 카드 결제 여부 — 백엔드는 cardNumber/cardBrand를 더 이상 안 내려주므로 KIS 메타(authNo/vanKey) 또는 methodType으로 판별
 const isCardPayment = (record: KioskPaymentRecord): boolean =>
   Boolean(record.authNo || record.vanKey)
@@ -326,34 +349,56 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                   {payments.map((record) => {
                     const isCancelled = record.status === 'Cancelled' || record.status === 'CancelPending';
                     const isThisCanceling = cancelingId === record.paymentId;
+                    const badge = STATUS_BADGE[record.status] ?? { label: record.status, bg: '#E6E8EA', fg: '#6D7882' };
+                    const userDisplay = record.user.nickName || record.user.name || '';
+                    const phoneDisplay = fmtPhoneDisplay(record.user.phone);
                     return (
                       <div
                         key={record.paymentId}
-                        className={`rounded-[16px] flex items-center px-[min(2.4vw,26px)] py-[min(2vw,22px)] ${
-                          isCancelled ? 'bg-[#F9F9FB] opacity-60' : 'bg-[#F9F9FB]'
+                        className={`rounded-[16px] flex items-center px-[min(2.4vw,26px)] py-[min(2vw,22px)] bg-[#F9F9FB] ${
+                          record.status === 'Cancelled' ? 'opacity-60' : ''
                         }`}
                         style={{ gap: 'min(1.6vw,18px)' }}
                       >
-                        <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex flex-col min-w-0 flex-1" style={{ gap: 'min(0.5vw,7px)' }}>
                           <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
                             <span className="text-black font-bold truncate" style={{ fontSize: 'min(2vw, 22px)' }}>
                               {record.productName ?? ''}
                             </span>
                             <span
-                              className={`shrink-0 px-[min(1vw,12px)] py-[min(0.3vw,4px)] rounded-full font-bold ${
-                                isCancelled ? 'bg-[#E6E8EA] text-[#86898C]' : 'bg-[#E5F4F0] text-[#0FA37F]'
-                              }`}
-                              style={{ fontSize: 'min(1.3vw, 14px)' }}
+                              className="shrink-0 px-[min(1vw,12px)] py-[min(0.3vw,4px)] rounded-full font-bold"
+                              style={{ fontSize: 'min(1.3vw, 14px)', backgroundColor: badge.bg, color: badge.fg }}
                             >
-                              {isCancelled ? '취소됨' : '완료'}
+                              {badge.label}
                             </span>
                           </div>
-                          <div className="flex items-center mt-[min(0.4vw,6px)]" style={{ gap: 'min(1vw,12px)' }}>
-                            <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 17px)' }}>
-                              {record.methodType}
+                          {(userDisplay || phoneDisplay) && (
+                            <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
+                              <span className="text-[#1E2124] font-medium truncate" style={{ fontSize: 'min(1.6vw, 17px)' }}>
+                                {userDisplay}
+                              </span>
+                              {phoneDisplay && (
+                                <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 15px)' }}>
+                                  {phoneDisplay}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
+                            <span className="text-[#6D7882]" style={{ fontSize: 'min(1.4vw, 15px)' }}>
+                              {fmtMethod(record.methodType)}
+                            </span>
+                            <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 15px)' }}>·</span>
+                            <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 15px)' }}>
+                              {record.createdAt}
                             </span>
                             {record.cancelledAt && (
-                              <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>{record.cancelledAt}</span>
+                              <>
+                                <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 15px)' }}>→ 취소</span>
+                                <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 15px)' }}>
+                                  {record.cancelledAt}
+                                </span>
+                              </>
                             )}
                           </div>
                         </div>
