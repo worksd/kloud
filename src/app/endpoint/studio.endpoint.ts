@@ -42,6 +42,8 @@ export type GetStudioResponse = {
     depositor?: string;
     instagramAddress?: string;
     kioskImageUrl?: string;
+    /** 영수증 하단에 추가로 인쇄할 안내 문구 (스튜디오별 설정, 줄바꿈 가능) */
+    receiptFooter?: string;
     lessons?: GetBandLessonResponse[];
     announcements?: GetAnnouncementResponse[];
     passPlans?: GetPassPlanResponse[];

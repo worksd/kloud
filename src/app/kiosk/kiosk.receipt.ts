@@ -36,6 +36,8 @@ export type ReceiptStudio = {
   businessNumber?: string;
   representative?: string;
   phone?: string;
+  /** 영수증 하단 안내 문구 (스튜디오별 자유 텍스트, '\n'로 줄바꿈) */
+  receiptFooter?: string;
 };
 
 export type ReceiptTransaction = {
@@ -145,6 +147,15 @@ const stampBox = (): PrinterLine[] => [
 const qrLine = (qrText: string | undefined): PrinterLine[] =>
   qrText ? [{ blank: 1 }, { align: 'C', qr: qrText, size: 6 }] : [];
 
+// 스튜디오 별 영수증 하단 안내 문구 — 줄바꿈은 '\n'으로
+const footerLines = (footer: string | undefined): PrinterLine[] => {
+  if (!footer) return [];
+  return [
+    { blank: 1 },
+    ...footer.split('\n').map<PrinterLine>((line) => ({ align: 'C', text: line })),
+  ];
+};
+
 const cardMetaLines = (card: CardPaymentInfo, opts: { authNoLabel?: string; authDateLabel?: string } = {}): PrinterLine[] => {
   const lines: PrinterLine[] = [];
   if (card.cardNo) lines.push({ align: 'L', text: `카드번호 ${card.cardNo}` });
@@ -189,6 +200,7 @@ export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] 
   lines.push({ align: 'C', bold: true, text: '** 신용승인전표 **' });
   lines.push(...cardMetaLines(card));
   lines.push(...qrLine(qrText));
+  lines.push(...footerLines(studio.receiptFooter));
   lines.push({ blank: 3 });
   return lines;
 };
@@ -216,6 +228,7 @@ export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] 
     { blank: 1 },
     { align: 'C', bold: true, text: '** 결제 완료 **' },
     ...qrLine(qrText),
+    ...footerLines(studio.receiptFooter),
     { blank: 3 },
   ];
 };
@@ -243,6 +256,7 @@ export const buildCashRequestReceipt = (input: CashRequestReceiptInput): Printer
     { blank: 1 },
     ...stampBox(),
     ...qrLine(qrText),
+    ...footerLines(studio.receiptFooter),
     { blank: 3 },
   ];
 };
@@ -276,6 +290,7 @@ export const buildCancellationReceipt = (input: CancellationReceiptInput): Print
     lines.push(...cardMetaLines(card, { authNoLabel: '취소승인번호', authDateLabel: '취소일시' }));
   }
   lines.push(...qrLine(qrText));
+  lines.push(...footerLines(studio.receiptFooter));
   lines.push({ blank: 3 });
   return lines;
 };

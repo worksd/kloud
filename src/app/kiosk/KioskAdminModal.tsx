@@ -14,6 +14,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'] as co
 type KioskAdminModalProps = {
   kioskId: number;
   studioName: string;
+  studioReceiptFooter?: string;
   onClose: () => void;
 };
 
@@ -26,9 +27,9 @@ const isCardPayment = (record: KioskPaymentRecord): boolean =>
   || record.methodType?.toLowerCase().includes('card') === true
   || record.methodType?.toLowerCase().includes('credit') === true;
 
-const printCancellationReceipt = (record: KioskPaymentRecord, studioName: string, cancelMeta?: { authNo?: string; authDate?: string }) => {
+const printCancellationReceipt = (record: KioskPaymentRecord, studioName: string, studioReceiptFooter: string | undefined, cancelMeta?: { authNo?: string; authDate?: string }) => {
   const lines = buildCancellationReceipt({
-    studio: { name: studioName },
+    studio: { name: studioName, receiptFooter: studioReceiptFooter },
     items: [{ name: record.productName, price: record.amount }],
     card: isCardPayment(record) ? {
       cardNo: record.cardNumber,
@@ -41,7 +42,7 @@ const printCancellationReceipt = (record: KioskPaymentRecord, studioName: string
   sendReceiptToPrinter(lines);
 };
 
-export const KioskAdminModal = ({ kioskId, studioName, onClose }: KioskAdminModalProps) => {
+export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onClose }: KioskAdminModalProps) => {
   const [stage, setStage] = useState<Stage>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
@@ -112,7 +113,7 @@ export const KioskAdminModal = ({ kioskId, studioName, onClose }: KioskAdminModa
           setPayments((prev) => prev.map((p) => p.paymentId === targetId ? { ...p, status: 'Cancelled' } : p));
           if (target) {
             const meta = result as { outAuthNo?: string; outAuthDate?: string };
-            printCancellationReceipt(target, studioName, { authNo: meta.outAuthNo, authDate: meta.outAuthDate });
+            printCancellationReceipt(target, studioName, studioReceiptFooter, { authNo: meta.outAuthNo, authDate: meta.outAuthDate });
           }
           setToast('취소 완료');
         })
@@ -154,7 +155,7 @@ export const KioskAdminModal = ({ kioskId, studioName, onClose }: KioskAdminModa
           return;
         }
         setPayments((prev) => prev.map((p) => p.paymentId === record.paymentId ? { ...p, status: 'Cancelled' } : p));
-        printCancellationReceipt(record, studioName);
+        printCancellationReceipt(record, studioName, studioReceiptFooter);
         setToast('취소 완료');
       })
       .catch(() => setToast('서버 취소 요청 실패'))

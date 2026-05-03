@@ -29,7 +29,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
   const [stage, setStage] = useState<Stage>(hasInitialToken || urlToken ? 'loading' : 'scan');
   const [kiosks, setKiosks] = useState<KioskResponse[]>([]);
   const [selected, setSelected] = useState<KioskResponse | null>(null);
-  const [studio, setStudio] = useState<{ id: number; name: string; profileImageUrl?: string; kioskImageUrl?: string } | null>(null);
+  const [studio, setStudio] = useState<{ id: number; name: string; profileImageUrl?: string; kioskImageUrl?: string; receiptFooter?: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
 
@@ -51,6 +51,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
       name: meRes.studio.name ?? '',
       profileImageUrl: meRes.studio.profileImageUrl,
       kioskImageUrl: (meRes.studio as { kioskImageUrl?: string }).kioskImageUrl,
+      receiptFooter: (meRes.studio as { receiptFooter?: string }).receiptFooter,
     });
 
     if (!('kiosks' in kiosksRes)) {
@@ -189,6 +190,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
       studioId={studio?.id ?? 0}
       studioName={studio?.name ?? ''}
       studioProfileImageUrl={studio?.profileImageUrl}
+      studioReceiptFooter={studio?.receiptFooter}
       kioskId={selected?.id ?? 0}
       kioskImageUrl={selected?.imageUrl ?? studio?.kioskImageUrl}
       passPlans={[]}

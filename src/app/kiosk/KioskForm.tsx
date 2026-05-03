@@ -43,7 +43,7 @@ type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searchi
 
 const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance'];
 
-export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId, kioskImageUrl, passPlans}: {studioId: number; studioName: string; studioProfileImageUrl?: string; kioskId: number; kioskImageUrl?: string; passPlans: GetPassPlanResponse[]}) => {
+export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioReceiptFooter, kioskId, kioskImageUrl, passPlans}: {studioId: number; studioName: string; studioProfileImageUrl?: string; studioReceiptFooter?: string; kioskId: number; kioskImageUrl?: string; passPlans: GetPassPlanResponse[]}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialStep = (() => {
@@ -323,7 +323,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
     if (!paymentItem || !paymentMethod) return;
     const lines = buildKioskReceipt({
       paymentMethod,
-      studio: { name: studioName },
+      studio: { name: studioName, receiptFooter: studioReceiptFooter },
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
@@ -333,7 +333,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
       cardData: paymentResult?.data,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter]);
 
   // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
   // Apple Pay도 같은 단말기에서 NFC로 처리되므로 동일 핸들러 사용. 할인 적용 시 잔액만 청구.
@@ -662,7 +662,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, kioskId,
       )}
 
       {adminOpen && (
-        <KioskAdminModal kioskId={kioskId} studioName={studioName} onClose={() => setAdminOpen(false)} />
+        <KioskAdminModal kioskId={kioskId} studioName={studioName} studioReceiptFooter={studioReceiptFooter} onClose={() => setAdminOpen(false)} />
       )}
 
       {cashConfirmOpen && paymentItem && (
