@@ -134,11 +134,23 @@ export const getKioskPaymentAction = async (params: { kioskId: number; targetUse
   return await api.kiosk.getPayment(params);
 };
 
-// 결제 확정 — 카드 단말 승인 후 / 현금 결제 시 호출. 같은 paymentId 재호출은 idempotent
+// 결제 시작 — 카드: Pending 생성 / 현금: 즉시 Completed. 응답의 amount가 KIS 단말 매입 금액
+export const startKioskPaymentAction = async (
+  body: import("@/app/endpoint/kiosk.endpoint").StartKioskPaymentRequest,
+) => {
+  return await api.kiosk.startPayment(body);
+};
+
+// 결제 확정 — KIS 단말 승인 후. POST /kiosks/payments/:paymentId/complete (Pending → Completed)
 export const completeKioskPaymentAction = async (
   body: import("@/app/endpoint/kiosk.endpoint").CompleteKioskPaymentRequest,
 ) => {
   return await api.kiosk.completePayment(body);
+};
+
+// 결제 폐기 — 단말 매입 전 사용자 취소 / 매입 실패. DELETE /kiosks/payments/:paymentId (Pending soft delete)
+export const discardKioskPaymentAction = async (paymentId: string, kioskId: number) => {
+  return await api.kiosk.discardPayment({ paymentId, kioskId });
 };
 
 // 보유 패스권 사용 — 티켓/예약 생성
@@ -153,8 +165,9 @@ export const listKioskPaymentsAction = async (kioskId: number) => {
   return await api.kiosk.listPayments({ kioskId });
 };
 
-// 관리자 모드: 결제 취소 — KIS 단말 취소가 선행된 후 서버에 기록
-// DELETE /kiosks/payments/:paymentId — body { targetUserId, kioskId }
+// 관리자 모드: Completed 결제 취소 — KIS 단말 취소가 선행된 후 서버에 기록.
+// POST /kiosks/payments/:paymentId/cancel — body { targetUserId, kioskId }.
+// (Pending 폐기는 discardKioskPaymentAction 사용)
 export const cancelKioskPaymentAction = async (params: { paymentId: string; targetUserId: number; kioskId: number }) => {
   return await api.kiosk.cancelPayment(params);
 };

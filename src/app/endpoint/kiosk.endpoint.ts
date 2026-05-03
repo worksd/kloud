@@ -18,36 +18,72 @@ export const GetKioskPayment: Endpoint<GetKioskPaymentRequest, GetPaymentRespons
 
 export type KioskPaymentType = 'card' | 'cash';
 
-export type CompleteKioskPaymentRequest = {
+// ① POST /kiosks/payments — Pending 생성 (card) / 즉시 Completed (cash)
+//    응답의 amount가 KIS 단말에 매입 요청할 금액
+export type StartKioskPaymentRequest = {
   targetUserId: number;
   kioskId: number;
   paymentId: string;
   type: KioskPaymentType;
-  authNo?: string;
-  authDate?: string;
-  vanKey?: string;
-  totalAmount?: number;
+  discounts?: PaymentDiscount[];
+};
+
+export type StartKioskPaymentResponse = {
+  paymentId: string;
+  status: string;          // 'Pending' (card) | 'Completed' (cash)
+  amount: number;          // 카드: 단말 매입 금액
+  qrCodeUrl: string | null;
+  receiptData: string;
+};
+
+export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
+  method: 'post',
+  path: '/kiosks/payments',
+  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts'],
+};
+
+// ② POST /kiosks/payments/:paymentId/complete — Pending → Completed (KIS 매입 성공 후)
+export type CompleteKioskPaymentRequest = {
+  paymentId: string;
+  targetUserId: number;
+  kioskId: number;
+  authNo: string;
+  authDate: string;
+  vanKey: string;
+  totalAmount: number;
   cardBrand?: string;
   cardNumber?: string;
   vanResponse?: Record<string, unknown>;
-  discounts?: PaymentDiscount[];
 };
 
 export type CompleteKioskPaymentResponse = {
   paymentId: string;
-  status: string;
+  status: string;          // 'Completed'
   qrCodeUrl: string | null;
   receiptData: string;
 };
 
 export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, CompleteKioskPaymentResponse> = {
   method: 'post',
-  path: '/kiosks/payments',
-  bodyParams: [
-    'targetUserId', 'kioskId', 'paymentId', 'type',
-    'authNo', 'authDate', 'vanKey', 'totalAmount',
-    'cardBrand', 'cardNumber', 'vanResponse', 'discounts',
-  ],
+  path: (e) => `/kiosks/payments/${e.paymentId}/complete`,
+  bodyParams: ['targetUserId', 'kioskId', 'authNo', 'authDate', 'vanKey', 'totalAmount', 'cardBrand', 'cardNumber', 'vanResponse'],
+};
+
+// (중간 실패) DELETE /kiosks/payments/:paymentId — Pending soft-delete
+//   단말 매입 전 사용자 취소 / 매입 자체 실패 시
+export type DiscardKioskPaymentRequest = {
+  paymentId: string;
+  kioskId: number;
+};
+
+export type DiscardKioskPaymentResponse = {
+  success: boolean;
+};
+
+export const DiscardKioskPayment: Endpoint<DiscardKioskPaymentRequest, DiscardKioskPaymentResponse> = {
+  method: 'delete',
+  path: (e) => `/kiosks/payments/${e.paymentId}`,
+  bodyParams: ['kioskId'],
 };
 
 export type UseKioskPassRequest = {
@@ -115,8 +151,8 @@ export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaym
   path: (e) => `/kiosks/${e.kioskId}/paymentRecords`,
 };
 
-// DELETE /kiosks/payments/:paymentId — body: { targetUserId, kioskId }, response: { success: true }
-// 카드 환불용 KIS 메타(authNo/authDate/vanKey/totalAmount)는 응답에 없음 — 사전 paymentRecords에서 받아둬야 함
+// POST /kiosks/payments/:paymentId/cancel — Completed → Cancelled (관리자 취소).
+// Pending 폐기는 위의 DiscardKioskPayment(DELETE) 사용.
 export type CancelKioskPaymentRequest = {
   paymentId: string;
   targetUserId: number;
@@ -128,8 +164,8 @@ export type CancelKioskPaymentResponse = {
 };
 
 export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKioskPaymentResponse> = {
-  method: 'delete',
-  path: (e) => `/kiosks/payments/${e.paymentId}`,
+  method: 'post',
+  path: (e) => `/kiosks/payments/${e.paymentId}/cancel`,
   bodyParams: ['targetUserId', 'kioskId'],
 };
 
