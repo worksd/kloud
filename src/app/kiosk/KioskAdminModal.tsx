@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { listKioskPaymentsAction, cancelKioskPaymentAction } from "@/app/kiosk/kiosk.actions";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, getKiosksAction, saveSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
-import { buildCancellationReceipt } from "@/app/kiosk/kiosk.receipt";
+import { KioskResponse } from "@/app/endpoint/kiosk.endpoint";
+import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 
 const ADMIN_PIN = '0000';
@@ -13,41 +14,43 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'] as co
 
 type KioskAdminModalProps = {
   kioskId: number;
-  studioName: string;
-  studioReceiptFooter?: string;
+  kioskName?: string;
+  studio: ReceiptStudio;
   onClose: () => void;
 };
 
-type Stage = 'pin' | 'list';
+type Stage = 'pin' | 'list' | 'switch-kiosk';
 
 const fmtAmount = (n: number) => `${new Intl.NumberFormat('ko-KR').format(n)}원`;
 
+// 카드 결제 여부 — 백엔드는 cardNumber/cardBrand를 더 이상 안 내려주므로 KIS 메타(authNo/vanKey) 또는 methodType으로 판별
 const isCardPayment = (record: KioskPaymentRecord): boolean =>
-  Boolean(record.authNo || record.vanKey || record.cardNumber)
-  || record.methodType?.toLowerCase().includes('card') === true
-  || record.methodType?.toLowerCase().includes('credit') === true;
+  Boolean(record.authNo || record.vanKey)
+  || record.methodType.toLowerCase().includes('card')
+  || record.methodType.toLowerCase().includes('credit');
 
-const printCancellationReceipt = (record: KioskPaymentRecord, studioName: string, studioReceiptFooter: string | undefined, cancelMeta?: { authNo?: string; authDate?: string }) => {
+const printCancellationReceipt = (record: KioskPaymentRecord, studio: ReceiptStudio, kioskName: string | undefined, cancelMeta?: { authNo?: string; authDate?: string }) => {
   const lines = buildCancellationReceipt({
-    studio: { name: studioName, receiptFooter: studioReceiptFooter },
-    items: [{ name: record.productName, price: record.amount }],
+    studio,
+    transaction: { kioskName },
+    items: [{ name: record.productName ?? '', price: record.amount }],
     card: isCardPayment(record) ? {
-      cardNo: record.cardNumber,
-      issuerName: record.cardBrand,
-      authNo: cancelMeta?.authNo ?? record.authNo,
-      authDate: cancelMeta?.authDate ?? record.authDate,
-      merchantNo: undefined,
+      authNo: cancelMeta?.authNo ?? record.authNo ?? undefined,
+      authDate: cancelMeta?.authDate ?? record.authDate ?? undefined,
     } : undefined,
   });
   sendReceiptToPrinter(lines);
 };
 
-export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onClose }: KioskAdminModalProps) => {
+export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAdminModalProps) => {
   const [stage, setStage] = useState<Stage>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
   const [payments, setPayments] = useState<KioskPaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [kiosks, setKiosks] = useState<KioskResponse[]>([]);
+  const [loadingKiosks, setLoadingKiosks] = useState(false);
+  const [switchingKioskId, setSwitchingKioskId] = useState<number | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -69,6 +72,39 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
     }
   };
 
+  // 키오스크 목록 fetch — switch-kiosk 단계 진입 시
+  useEffect(() => {
+    if (stage !== 'switch-kiosk') return;
+    setLoadingKiosks(true);
+    getKiosksAction()
+      .then((res) => {
+        if (isGuinnessErrorCase(res)) {
+          setToast(res.message ?? '키오스크 목록을 불러오지 못했습니다');
+          return;
+        }
+        if ('kiosks' in res) setKiosks(res.kiosks);
+      })
+      .catch(() => setToast('키오스크 목록을 불러오지 못했습니다'))
+      .finally(() => setLoadingKiosks(false));
+  }, [stage]);
+
+  const handleSwitchKiosk = async (k: KioskResponse) => {
+    if (k.status !== 'Active') return;
+    if (k.id === kioskId) {
+      setStage('list');
+      return;
+    }
+    setSwitchingKioskId(k.id);
+    try {
+      await saveSelectedKioskIdAction(k.id);
+      // 쿠키 갱신 후 페이지 리로드 — KioskBootstrap이 새 kioskId로 다시 부트스트랩
+      window.location.reload();
+    } catch {
+      setToast('키오스크 변경에 실패했습니다');
+      setSwitchingKioskId(null);
+    }
+  };
+
   // 결제 목록 fetch
   useEffect(() => {
     if (stage !== 'list' || !kioskId) return;
@@ -79,31 +115,54 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
           setToast(res.message ?? '목록을 불러오지 못했습니다');
           return;
         }
-        if ('payments' in res) setPayments(res.payments);
+        if ('paymentRecords' in res) setPayments(res.paymentRecords);
       })
       .catch(() => setToast('목록을 불러오지 못했습니다'))
       .finally(() => setLoading(false));
   }, [stage, kioskId]);
 
-  // 단말 취소 응답 콜백 — KIS에서 cancel 결과 받아 서버 취소로 이어감
-  useEffect(() => {
-    type Result = { success?: boolean; canceled?: boolean; error?: string };
-    type Win = Window & { onKisCancelResult?: (r: Result) => void };
+  // 콜백/refs — 네이티브 단일 onKisPaymentResult 핸들러에서 outTranCode='D2' 분기로 취소 응답 처리
+  const cancelingIdRef = useRef<string | null>(null);
+  useEffect(() => { cancelingIdRef.current = cancelingId; }, [cancelingId]);
+  const paymentsRef = useRef(payments);
+  useEffect(() => { paymentsRef.current = payments; }, [payments]);
+  const cancelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    (window as Win).onKisCancelResult = (result) => {
-      const targetId = cancelingId;
+  useEffect(() => {
+    type KisResponse = {
+      outTranCode?: string;
+      success?: boolean;
+      canceled?: boolean;
+      outAuthNo?: string;
+      outAuthDate?: string;
+      outReplyMsg1?: string;
+    };
+    type Win = Window & { onKisPaymentResult?: (r: KisResponse) => void };
+    // KioskForm의 D1 결제 핸들러를 보존하고, D2 응답만 가로채서 처리. D2 외엔 그대로 위임.
+    const previousHandler = (window as Win).onKisPaymentResult;
+
+    (window as Win).onKisPaymentResult = (response) => {
+      if (response?.outTranCode !== 'D2') {
+        previousHandler?.(response);
+        return;
+      }
+      const targetId = cancelingIdRef.current;
       if (!targetId) return;
-      if (result?.canceled) {
+
+      if (cancelTimeoutRef.current) { clearTimeout(cancelTimeoutRef.current); cancelTimeoutRef.current = null; }
+
+      if (response.canceled) {
+        // 사용자가 단말 화면에서 ESC/취소 — 진행 상태만 해제
         setCancelingId(null);
         return;
       }
-      if (!result?.success) {
-        setToast(`단말 취소 실패: ${result?.error ?? '알 수 없는 오류'}`);
+      if (!response.success) {
+        setToast(`단말 취소 실패: ${response.outReplyMsg1 ?? '알 수 없는 오류'}`);
         setCancelingId(null);
         return;
       }
-      // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄
-      const target = payments.find((p) => p.paymentId === targetId);
+      // 단말 취소 성공 → 서버에 취소 기록 + 취소 전표 인쇄. authNo/authDate는 신규 취소 거래의 값
+      const target = paymentsRef.current.find((p) => p.paymentId === targetId);
       cancelKioskPaymentAction(targetId, kioskId)
         .then((res) => {
           if (isGuinnessErrorCase(res)) {
@@ -112,16 +171,18 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
           }
           setPayments((prev) => prev.map((p) => p.paymentId === targetId ? { ...p, status: 'Cancelled' } : p));
           if (target) {
-            const meta = result as { outAuthNo?: string; outAuthDate?: string };
-            printCancellationReceipt(target, studioName, studioReceiptFooter, { authNo: meta.outAuthNo, authDate: meta.outAuthDate });
+            printCancellationReceipt(target, studio, kioskName, {
+              authNo: response.outAuthNo,
+              authDate: response.outAuthDate,
+            });
           }
           setToast('취소 완료');
         })
         .catch(() => setToast('서버 취소 요청 실패'))
         .finally(() => setCancelingId(null));
     };
-    return () => { delete (window as Win).onKisCancelResult; };
-  }, [cancelingId, kioskId]);
+    return () => { (window as Win).onKisPaymentResult = previousHandler; };
+  }, [kioskId, studio, kioskName]);
 
   // 토스트 자동 dismiss
   useEffect(() => {
@@ -136,14 +197,22 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
     setCancelingId(record.paymentId);
 
     if (isCardPayment(record)) {
-      // 카드: 단말로 취소 트랜잭션 송출 → onKisCancelResult에서 서버 취소
-      window.KloudEvent?.requestKisCancel?.(JSON.stringify({
+      // 카드: 단말로 D2(취소) 트랜잭션 송출 — 단일 채널 requestKisPayment 사용, 응답은 onKisPaymentResult에서 outTranCode='D2'로 분기
+      window.KloudEvent?.requestKisPayment?.(JSON.stringify({
         inTranCode: 'D2',
         inAuthNo: record.authNo ?? '',
         inAuthDate: record.authDate ?? '',
         inVanKey: record.vanKey ?? '',
         inTotAmt: `${record.totalAmount ?? record.amount ?? 0}`,
+        // inCustomerUuid 생략 — 네이티브가 자동 생성 (idempotency)
       }));
+      // 30초 타임아웃 안전망 — 네이티브 미응답 등 극단 케이스에서 cancelingId 강제 해제
+      if (cancelTimeoutRef.current) clearTimeout(cancelTimeoutRef.current);
+      cancelTimeoutRef.current = setTimeout(() => {
+        setCancelingId(null);
+        setToast('단말 응답 시간 초과');
+        cancelTimeoutRef.current = null;
+      }, 30000);
       return;
     }
 
@@ -155,7 +224,7 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
           return;
         }
         setPayments((prev) => prev.map((p) => p.paymentId === record.paymentId ? { ...p, status: 'Cancelled' } : p));
-        printCancellationReceipt(record, studioName, studioReceiptFooter);
+        printCancellationReceipt(record, studio, kioskName);
         setToast('취소 완료');
       })
       .catch(() => setToast('서버 취소 요청 실패'))
@@ -217,16 +286,24 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
               </button>
             </div>
           </>
-        ) : (
+        ) : stage === 'list' ? (
           <>
             <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
               <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
-              <button
-                onClick={onClose}
-                className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
-              >
-                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>닫기</span>
-              </button>
+              <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
+                <button
+                  onClick={() => setStage('switch-kiosk')}
+                  className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
+                >
+                  <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>키오스크 변경</span>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
+                >
+                  <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>닫기</span>
+                </button>
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto" style={{ padding: 'min(0.8vw,10px) min(3vw,32px) min(2vw,22px)' }}>
               {loading ? (
@@ -253,7 +330,7 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
                         <div className="flex flex-col min-w-0 flex-1">
                           <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
                             <span className="text-black font-bold truncate" style={{ fontSize: 'min(2vw, 22px)' }}>
-                              {record.productName}
+                              {record.productName ?? ''}
                             </span>
                             <span
                               className={`shrink-0 px-[min(1vw,12px)] py-[min(0.3vw,4px)] rounded-full font-bold ${
@@ -266,11 +343,10 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
                           </div>
                           <div className="flex items-center mt-[min(0.4vw,6px)]" style={{ gap: 'min(1vw,12px)' }}>
                             <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 17px)' }}>
-                              {record.methodType ?? ''}
-                              {record.cardNumber ? ` · ${record.cardNumber}` : ''}
+                              {record.methodType}
                             </span>
-                            {record.createdAt && (
-                              <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>{record.createdAt}</span>
+                            {record.cancelledAt && (
+                              <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>{record.cancelledAt}</span>
                             )}
                           </div>
                         </div>
@@ -292,6 +368,66 @@ export const KioskAdminModal = ({ kioskId, studioName, studioReceiptFooter, onCl
                           </span>
                         </button>
                       </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* switch-kiosk 단계 */}
+            <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
+              <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>키오스크 변경</p>
+              <button
+                onClick={() => setStage('list')}
+                className="px-[min(1.6vw,18px)] py-[min(1vw,12px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform"
+              >
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vw, 20px)' }}>이전</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto" style={{ padding: 'min(0.8vw,10px) min(3vw,32px) min(2vw,22px)' }}>
+              {loadingKiosks ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-10 h-10 border-4 border-black/20 border-t-black rounded-full animate-spin" />
+                </div>
+              ) : kiosks.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}>등록된 키오스크가 없습니다</span>
+                </div>
+              ) : (
+                <div className="flex flex-col" style={{ gap: 'min(1vw, 12px)' }}>
+                  {kiosks.map((k) => {
+                    const isCurrent = k.id === kioskId;
+                    const isInactive = k.status !== 'Active';
+                    const isSwitchingThis = switchingKioskId === k.id;
+                    return (
+                      <button
+                        key={k.id}
+                        onClick={() => handleSwitchKiosk(k)}
+                        disabled={isInactive || switchingKioskId !== null}
+                        className={`flex items-center justify-between rounded-[16px] px-[min(2.4vw,26px)] py-[min(2vw,22px)] active:scale-[0.99] transition-all ${
+                          isCurrent ? 'bg-[#1E2124]' : isInactive ? 'bg-[#F2F4F6] opacity-60 cursor-not-allowed' : 'bg-[#F9F9FB]'
+                        }`}
+                        style={{ gap: 'min(1.6vw,18px)' }}
+                      >
+                        <div className="flex flex-col items-start min-w-0 flex-1">
+                          <span className={`font-bold truncate ${isCurrent ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
+                            {k.name}
+                          </span>
+                          {isInactive && (
+                            <span className="text-[#86898C] mt-[min(0.4vw,6px)]" style={{ fontSize: 'min(1.4vw, 16px)' }}>비활성</span>
+                          )}
+                        </div>
+                        {isCurrent && !isSwitchingThis && (
+                          <span className="shrink-0 px-[min(1vw,12px)] py-[min(0.4vw,5px)] rounded-full bg-white/15" style={{ fontSize: 'min(1.3vw, 14px)' }}>
+                            <span className="text-white font-bold">현재</span>
+                          </span>
+                        )}
+                        {isSwitchingThis && (
+                          <span className="text-[#86898C]" style={{ fontSize: 'min(1.4vw, 16px)' }}>변경 중…</span>
+                        )}
+                      </button>
                     );
                   })}
                 </div>
