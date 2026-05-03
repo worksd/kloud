@@ -16,7 +16,7 @@ import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, completeKioskPaymentAction, useKioskPassAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, completeKioskPaymentAction, useKioskPassAction, getKioskDetailAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
 import {CompleteKioskPaymentResponse} from "@/app/endpoint/kiosk.endpoint";
@@ -43,7 +43,33 @@ type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searchi
 
 const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance'];
 
-export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioReceiptFooter, kioskId, kioskImageUrl, passPlans}: {studioId: number; studioName: string; studioProfileImageUrl?: string; studioReceiptFooter?: string; kioskId: number; kioskImageUrl?: string; passPlans: GetPassPlanResponse[]}) => {
+export const KioskForm = ({
+  studioId,
+  studioName,
+  studioProfileImageUrl,
+  studioReceiptFooter,
+  studioAddress,
+  studioBusinessNumber,
+  studioRepresentative,
+  studioPhone,
+  kioskId,
+  kioskName,
+  kioskImageUrl,
+  passPlans,
+}: {
+  studioId: number;
+  studioName: string;
+  studioProfileImageUrl?: string;
+  studioReceiptFooter?: string;
+  studioAddress?: string;
+  studioBusinessNumber?: string;
+  studioRepresentative?: string;
+  studioPhone?: string;
+  kioskId: number;
+  kioskName?: string;
+  kioskImageUrl?: string;
+  passPlans: GetPassPlanResponse[];
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialStep = (() => {
@@ -79,6 +105,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
   const [printerDebugOpen, setPrinterDebugOpen] = useState(false);
   const [printerDebugResult, setPrinterDebugResult] = useState<string | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<GetPaymentResponse | null>(null);
+  const [paymentInfoError, setPaymentInfoError] = useState<string | null>(null);
+  const [kioskReceiptFooter, setKioskReceiptFooter] = useState<string | null>(null);
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | null>(null);
   const [selectedPass, setSelectedPass] = useState<{ pass: GetPassResponse; rule: PassRuleResponse } | null>(null);
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
@@ -97,6 +125,8 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
     setSelectedUser(null);
     setPaymentMethod(null);
     setPaymentInfo(null);
+    setPaymentInfoError(null);
+    setKioskReceiptFooter(null);
     setSelectedDiscount(null);
     setSelectedPass(null);
     setPaymentQrCodeUrl(null);
@@ -125,26 +155,43 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
     }
   }, [currentScreen, selectedLesson, selectedPassPlan, selectedUser]);
 
-  // payment-method 화면 진입 시 GET /kiosks/payment 호출 — price/discounts/methods 응답
+  // payment-method 화면 진입 시:
+  //  1) GET /kiosks/payment — price/discounts/methods/paymentId
+  //  2) GET /kiosks/:id     — kiosk별 receiptFooter 등 상세 (영수증 하단 안내 문구)
+  // 두 호출은 서로 독립이라 병렬로 보냄.
   useEffect(() => {
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
     if (!selectedLesson && !selectedPassPlan) return;
     const item = selectedLesson ? 'lesson' : 'pass-plan';
     const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
     if (!itemId) return;
+    setPaymentInfoError(null);
+    const fallbackErr = getLocaleString({ locale, key: 'kiosk_search_failed' });
+
     getKioskPaymentAction({ kioskId, targetUserId: selectedUser.id, item, itemId })
       .then((res) => {
-        if (isGuinnessErrorCase(res)) {
-          setToastMessage(res.message ?? '결제 정보를 불러오지 못했습니다');
+        // isGuinnessErrorCase는 enum 등록된 코드만 통과시켜서 TICKET_ALREADY_EXISTS 같은
+        // 신규/도메인별 에러 코드를 못 잡음. shape으로 직접 판별 — code+message 있고 paymentId 없으면 에러.
+        const r = res as { code?: string; message?: string; paymentId?: string };
+        if (typeof r.code === 'string' && typeof r.message === 'string' && !r.paymentId) {
+          setPaymentInfoError(r.message);
           return;
         }
         setPaymentInfo(res as GetPaymentResponse);
       })
       .catch(() => {
-        // 응답 실패는 토스트만 — UI는 prop으로 받은 price를 폴백으로 보여줌
-        setToastMessage('결제 정보를 불러오지 못했습니다');
+        setPaymentInfoError(fallbackErr);
       });
-  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, kioskId]);
+
+    getKioskDetailAction(kioskId)
+      .then((res) => {
+        const r = res as { receiptFooter?: string; code?: string };
+        if (!r.code && r.receiptFooter !== undefined) setKioskReceiptFooter(r.receiptFooter ?? null);
+      })
+      .catch(() => {
+        // kiosk 상세 실패는 영수증 footer 없이 진행 — 토스트도 띄우지 않음 (결제 본 흐름엔 영향 없음)
+      });
+  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, kioskId, locale]);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
@@ -159,11 +206,12 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
 
     (window as KisWindow).onKisPaymentResult = (result) => {
       console.log('KIS 응답:', result);
+      // 단일 채널이라 D2(취소) 응답이 여기로 올 수 있음 — admin 모달이 처리. 여기선 D1만 다룸.
+      if (result?.outTranCode === 'D2') return;
       const data = (result ?? {}) as Record<string, unknown>;
 
       setIsPaying(false);
       if (result?.canceled) return;
-      // TODO: 성공 시 백엔드에 거래정보 저장 (outAuthNo / outVankey / outCustomerUuid 등)
       setPaymentResult({ status: result?.success ? 'success' : 'fail', data });
     };
 
@@ -213,17 +261,89 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  // 결제 성공 시 자동 영수증 인쇄 + 5초 후 자동 홈 이동
+  // 결제 성공 → 백엔드 POST → 응답의 qrCodeUrl을 영수증에 포함해서 인쇄 → 5초 후 자동 홈
+  // 패스권 사용(B흐름)은 POST 없이 바로 인쇄
   useEffect(() => {
     if (paymentResult?.status !== 'success') return;
-    handlePrintReceipt();
-    const timer = setTimeout(() => {
-      setPaymentResult(null);
-      goHome();
-    }, 5000);
-    return () => clearTimeout(timer);
+
+    let cancelled = false;
+    let homeTimer: ReturnType<typeof setTimeout> | undefined;
+    const scheduleHome = () => {
+      homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+    };
+
+    // 패스권 사용은 백엔드 결제 record 미생성 — 바로 인쇄
+    if (paymentMethod === 'pass') {
+      handlePrintReceipt();
+      scheduleHome();
+      return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
+    }
+
+    if (paymentMethod !== 'card' && paymentMethod !== 'cash') return;
+    if (!paymentInfo?.paymentId || !selectedUser || !kioskId || !paymentItem) return;
+
+    const data = paymentResult.data;
+    const str = (k: string): string | undefined =>
+      typeof data[k] === 'string' && data[k] ? (data[k] as string) : undefined;
+    const num = (k: string): number | undefined =>
+      typeof data[k] === 'number' ? (data[k] as number) : undefined;
+
+    const discounts: PaymentDiscount[] | undefined = selectedDiscount ? [{
+      key: selectedDiscount.key,
+      amount: selectedDiscount.amount,
+      type: selectedDiscount.type as PaymentDiscount['type'],
+      itemId: selectedDiscount.itemId,
+      passRuleId: selectedDiscount.passRule?.id,
+    }] : undefined;
+
+    const finalAmount = Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0));
+
+    const rawAuthDate = str('outAuthDate');
+    const cardFields = paymentMethod === 'card' ? {
+      authNo: str('outAuthNo'),
+      authDate: rawAuthDate ? rawAuthDate.slice(0, 8) : undefined,
+      vanKey: str('outVanKey'),
+      totalAmount: num('outTotAmt') ?? finalAmount,
+      cardBrand: str('outIssuerName'),
+      cardNumber: str('outCardNo'),
+      vanResponse: data,
+    } : {};
+
+    completeKioskPaymentAction({
+      targetUserId: selectedUser.id,
+      kioskId,
+      paymentId: paymentInfo.paymentId,
+      type: paymentMethod,
+      discounts,
+      ...cardFields,
+    })
+      .then((res) => {
+        if (cancelled) return;
+        const r = res as { code?: string; message?: string; qrCodeUrl?: string };
+        let qrText: string | undefined;
+        if (typeof r.code === 'string' && typeof r.message === 'string' && !r.qrCodeUrl) {
+          setToastMessage(r.message);
+        } else {
+          const ok = res as CompleteKioskPaymentResponse;
+          if (ok.qrCodeUrl) {
+            setPaymentQrCodeUrl(ok.qrCodeUrl);
+            qrText = ok.qrCodeUrl;
+          }
+        }
+        handlePrintReceipt(qrText);
+        scheduleHome();
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setToastMessage('결제 기록 저장에 실패했습니다');
+        // 백엔드 실패해도 영수증은 출력 (qrText 없이)
+        handlePrintReceipt();
+        scheduleHome();
+      });
+
+    return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentResult, goHome]);
+  }, [paymentResult, paymentMethod]);
 
   // 전화번호 입력 → /users/search?query=phone 으로 검색 (운영자 토큰 사용)
   const handlePhoneNext = async (phoneNumber: string, countryCode: string = '82') => {
@@ -318,12 +438,42 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
         }
       : null;
 
-  // 영수증 인쇄 — 결제 컨텍스트만 buildKioskReceipt에 넘기면 수단별 dispatch + KIS 응답 파싱은 receipt 모듈이 처리
-  const handlePrintReceipt = useCallback(() => {
+  // 영수증 인쇄 — 결제 컨텍스트만 buildKioskReceipt에 넘기면 수단별 dispatch + KIS 응답 파싱은 receipt 모듈이 처리.
+  // qrText는 백엔드 POST /kiosks/payments 응답의 qrCodeUrl을 그대로 받아 푸터 QR로 인쇄.
+  const handlePrintReceipt = useCallback((qrText?: string) => {
     if (!paymentItem || !paymentMethod) return;
+    // /me의 studio는 필드 누락 케이스가 있어 /kiosks/payment 응답의 lesson|passPlan.studio가 있으면 우선 사용
+    const itemStudio = paymentInfo?.lesson?.studio ?? paymentInfo?.passPlan?.studio;
+    // 수업일시 — 서버가 미리 포맷한 lesson.date 우선, 없으면 raw startDate
+    const lessonForReceipt = paymentInfo?.lesson ?? selectedLesson;
+    const lessonDateTime = lessonForReceipt
+      ? ((lessonForReceipt as { date?: string }).date ?? lessonForReceipt.startDate)
+      : undefined;
     const lines = buildKioskReceipt({
       paymentMethod,
-      studio: { name: studioName, receiptFooter: studioReceiptFooter },
+      studio: {
+        name: itemStudio?.name ?? studioName,
+        address: itemStudio?.address ?? studioAddress,
+        businessNumber: itemStudio?.businessRegistrationNumber ?? studioBusinessNumber,
+        representative: itemStudio?.representative ?? studioRepresentative,
+        phone: itemStudio?.phone ?? studioPhone,
+        // kiosk별 footer가 있으면 우선, 없으면 studio 기본값
+        receiptFooter: kioskReceiptFooter ?? studioReceiptFooter,
+      },
+      transaction: { kioskName },
+      user: selectedUser ? {
+        name: selectedUser.name,
+        nickName: selectedUser.nickName,
+        phone: phone || selectedUser.phone,
+      } : undefined,
+      itemType: selectedLesson ? 'lesson' : (selectedPassPlan ? 'pass-plan' : undefined),
+      // 수업 결제 시 강사 노출 — 닉네임 우선, 없으면 본명
+      artists: selectedLesson
+        ? (paymentInfo?.lesson?.artists ?? selectedLesson.artists ?? [])
+            .map((a) => a.nickName || a.name)
+            .filter((n): n is string => Boolean(n))
+        : undefined,
+      lessonDateTime: selectedLesson ? lessonDateTime : undefined,
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
@@ -331,9 +481,10 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
         targetLabel: selectedDiscount.passRule?.targetLabel ?? undefined,
       } : undefined,
       cardData: paymentResult?.data,
+      qrText,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo]);
 
   // 카드 결제: KIS 단말기 호출 (응답은 마운트 시 등록한 onKisPaymentResult가 처리)
   // Apple Pay도 같은 단말기에서 NFC로 처리되므로 동일 핸들러 사용. 할인 적용 시 잔액만 청구.
@@ -347,7 +498,7 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
     setPaymentMethod('card');
 
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
-      inTestMode: 'Y',
+      ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
       inTranCode: 'D1',
       inTotAmt: `${finalAmount}`,
       inInstallment: '00',
@@ -387,64 +538,6 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
     }
   }, [paymentItem, selectedPass, selectedUser, selectedLesson, kioskId]);
 
-  // 결제 완료 → 백엔드에 POST /kiosks/payments (idempotent — 같은 paymentId 재호출 안전)
-  // 카드: KIS 단말 승인 후 setPaymentResult가 트리거 → 이 effect가 메타데이터를 뒤로 보냄
-  // 현금: handleCashPayment에서 직접 setPaymentResult → 동일 effect로 백엔드 기록
-  // 패스(B): handlePinSubmit에서 useKioskPassAction 직접 호출 — 여기서는 스킵
-  useEffect(() => {
-    if (paymentResult?.status !== 'success') return;
-    if (paymentMethod !== 'card' && paymentMethod !== 'cash') return;
-    if (!paymentInfo?.paymentId || !selectedUser || !kioskId || !paymentItem) return;
-
-    const data = paymentResult.data;
-    const str = (k: string): string | undefined =>
-      typeof data[k] === 'string' && data[k] ? (data[k] as string) : undefined;
-    const num = (k: string): number | undefined =>
-      typeof data[k] === 'number' ? (data[k] as number) : undefined;
-
-    const discounts: PaymentDiscount[] | undefined = selectedDiscount ? [{
-      key: selectedDiscount.key,
-      amount: selectedDiscount.amount,
-      type: selectedDiscount.type as PaymentDiscount['type'],
-      itemId: selectedDiscount.itemId,
-      passRuleId: selectedDiscount.passRule?.id,
-    }] : undefined;
-
-    const finalAmount = Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0));
-
-    // KIS는 outAuthDate를 YYYYMMDDHHmmss 14자리로 주기도 하는데 백엔드 spec은 YYYYMMDD 8자리 → 앞 8자리만 절단
-    const rawAuthDate = str('outAuthDate');
-    const cardFields = paymentMethod === 'card' ? {
-      authNo: str('outAuthNo'),
-      authDate: rawAuthDate ? rawAuthDate.slice(0, 8) : undefined,
-      vanKey: str('outVanKey'),
-      totalAmount: num('outTotAmt') ?? finalAmount,
-      cardBrand: str('outIssuerName'),
-      cardNumber: str('outCardNo'),
-      vanResponse: data,
-    } : {};
-
-    completeKioskPaymentAction({
-      targetUserId: selectedUser.id,
-      kioskId,
-      paymentId: paymentInfo.paymentId,
-      type: paymentMethod,
-      discounts,
-      ...cardFields,
-    })
-      .then((res) => {
-        if (isGuinnessErrorCase(res)) {
-          setToastMessage(res.message ?? '결제 기록 저장 실패');
-          return;
-        }
-        const ok = res as CompleteKioskPaymentResponse;
-        if (ok.qrCodeUrl) setPaymentQrCodeUrl(ok.qrCodeUrl);
-      })
-      .catch(() => {
-        setToastMessage('결제 기록 저장에 실패했습니다');
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentResult, paymentMethod]);
 
   return (
     <div className="w-full h-screen overflow-hidden">
@@ -508,8 +601,33 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
         />
       )}
 
+      {/* payment-method 진입 시 GET /kiosks/payment 실패 (예: TICKET_ALREADY_EXISTS) → 에러 화면으로 대체 */}
+      {currentScreen === 'payment-method' && paymentInfoError && (
+        <div className="fixed inset-0 z-30 bg-white flex flex-col">
+          <div className="flex-1 flex flex-col items-center justify-center px-[5%]">
+            <div className="rounded-full bg-[#FFE9E9] flex items-center justify-center" style={{ width: 'min(8vw,84px)', height: 'min(8vw,84px)' }}>
+              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                <path d="M12 3L22 21H2L12 3Z" stroke="#E55B5B" strokeWidth="2" strokeLinejoin="round"/>
+                <path d="M12 10V14M12 17V18" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <p className="text-black font-bold text-center mt-[min(2.6vw,28px)] whitespace-pre-line" style={{ fontSize: 'min(3vw,32px)' }}>
+              {paymentInfoError}
+            </p>
+          </div>
+          <div className="shrink-0 px-[5.6%] pb-[min(4vw,44px)]">
+            <button
+              onClick={() => { setPaymentInfoError(null); setCurrentScreen('phone'); }}
+              className="w-full h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+            >
+              <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>{t('kiosk_back')}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* payment-method / pass-select 공유 — modal 떠도 폼 인스턴스 유지 */}
-      {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && selectedUser && (
+      {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && selectedUser && !paymentInfoError && (
         <KioskPaymentMethodForm
           itemType={selectedLesson ? 'lesson' : 'pass-plan'}
           lessonTitle={paymentItem.title}
@@ -638,7 +756,19 @@ export const KioskForm = ({studioId, studioName, studioProfileImageUrl, studioRe
       )}
 
       {adminOpen && (
-        <KioskAdminModal kioskId={kioskId} studioName={studioName} studioReceiptFooter={studioReceiptFooter} onClose={() => setAdminOpen(false)} />
+        <KioskAdminModal
+          kioskId={kioskId}
+          kioskName={kioskName}
+          studio={{
+            name: studioName,
+            address: studioAddress,
+            businessNumber: studioBusinessNumber,
+            representative: studioRepresentative,
+            phone: studioPhone,
+            receiptFooter: kioskReceiptFooter ?? studioReceiptFooter,
+          }}
+          onClose={() => setAdminOpen(false)}
+        />
       )}
 
       {cashConfirmOpen && paymentItem && (

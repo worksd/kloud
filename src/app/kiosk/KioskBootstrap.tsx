@@ -29,7 +29,17 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
   const [stage, setStage] = useState<Stage>(hasInitialToken || urlToken ? 'loading' : 'scan');
   const [kiosks, setKiosks] = useState<KioskResponse[]>([]);
   const [selected, setSelected] = useState<KioskResponse | null>(null);
-  const [studio, setStudio] = useState<{ id: number; name: string; profileImageUrl?: string; kioskImageUrl?: string; receiptFooter?: string } | null>(null);
+  const [studio, setStudio] = useState<{
+    id: number;
+    name: string;
+    profileImageUrl?: string;
+    kioskImageUrl?: string;
+    receiptFooter?: string;
+    address?: string;
+    businessNumber?: string;
+    representative?: string;
+    phone?: string;
+  } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
 
@@ -52,6 +62,10 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
       profileImageUrl: meRes.studio.profileImageUrl,
       kioskImageUrl: (meRes.studio as { kioskImageUrl?: string }).kioskImageUrl,
       receiptFooter: (meRes.studio as { receiptFooter?: string }).receiptFooter,
+      address: meRes.studio.address,
+      businessNumber: meRes.studio.businessRegistrationNumber,
+      representative: meRes.studio.representative,
+      phone: meRes.studio.phone,
     });
 
     if (!('kiosks' in kiosksRes)) {
@@ -191,7 +205,12 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
       studioName={studio?.name ?? ''}
       studioProfileImageUrl={studio?.profileImageUrl}
       studioReceiptFooter={studio?.receiptFooter}
+      studioAddress={studio?.address}
+      studioBusinessNumber={studio?.businessNumber}
+      studioRepresentative={studio?.representative}
+      studioPhone={studio?.phone}
       kioskId={selected?.id ?? 0}
+      kioskName={selected?.name}
       kioskImageUrl={selected?.imageUrl ?? studio?.kioskImageUrl}
       passPlans={[]}
     />
