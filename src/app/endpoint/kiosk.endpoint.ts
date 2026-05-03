@@ -99,6 +99,9 @@ export type UseKioskPassRequest = {
 export type UseKioskPassResponse = {
   success?: boolean;
   id?: number;
+  // 패스권 사용 영수증/QR — 카드/현금 결제와 동일하게 영수증 인쇄에 사용
+  paymentId?: string;
+  qrCodeUrl?: string | null;
 };
 
 export const UseKioskPass: Endpoint<UseKioskPassRequest, UseKioskPassResponse> = {

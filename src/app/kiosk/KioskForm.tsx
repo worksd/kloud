@@ -111,6 +111,8 @@ export const KioskForm = ({
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | null>(null);
   const [selectedPass, setSelectedPass] = useState<{ pass: GetPassResponse; rule: PassRuleResponse } | null>(null);
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
+  // 패스권 사용 시 응답으로 받는 paymentId — 영수증의 결제번호 라인에 노출 (paymentInfo.paymentId보다 우선)
+  const [receiptPaymentIdOverride, setReceiptPaymentIdOverride] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
   const [cashConfirmOpen, setCashConfirmOpen] = useState(false);
   const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay'>('card');
@@ -131,6 +133,7 @@ export const KioskForm = ({
     setSelectedDiscount(null);
     setSelectedPass(null);
     setPaymentQrCodeUrl(null);
+    setReceiptPaymentIdOverride(null);
   }, []);
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
@@ -280,7 +283,8 @@ export const KioskForm = ({
     };
 
     if (paymentMethod === 'pass') {
-      finishUp();
+      // 패스권 사용 응답의 qrCodeUrl을 영수증 QR로 사용 (paymentQrCodeUrl 상태에 이미 보관됨)
+      finishUp(paymentQrCodeUrl ?? undefined);
       return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
     }
 
@@ -317,23 +321,26 @@ export const KioskForm = ({
     })
       .then((res) => {
         if (cancelled) return;
-        const r = res as { code?: string; message?: string; qrCodeUrl?: string };
+        // paymentId 없으면 서버 기록 실패 — 영수증 인쇄 차단 + 5초 후 홈 (KIS는 이미 매입했으므로 admin '결제 확인하기'로 후처리 가능)
+        const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string };
+        if (!r.paymentId) {
+          setToastMessage(r.message ?? '결제 기록 저장에 실패했어요');
+          homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+          return;
+        }
+        const ok = res as CompleteKioskPaymentResponse;
         let qrText: string | undefined;
-        if (typeof r.code === 'string' && typeof r.message === 'string' && !r.qrCodeUrl) {
-          setToastMessage(r.message);
-        } else {
-          const ok = res as CompleteKioskPaymentResponse;
-          if (ok.qrCodeUrl) {
-            setPaymentQrCodeUrl(ok.qrCodeUrl);
-            qrText = ok.qrCodeUrl;
-          }
+        if (ok.qrCodeUrl) {
+          setPaymentQrCodeUrl(ok.qrCodeUrl);
+          qrText = ok.qrCodeUrl;
         }
         finishUp(qrText);
       })
       .catch(() => {
         if (cancelled) return;
-        setToastMessage('결제 기록 저장에 실패했습니다');
-        finishUp();
+        // 네트워크/서버 예외 — 영수증 인쇄 차단, 토스트 + 5초 후 홈
+        setToastMessage('결제 기록 저장에 실패했어요');
+        homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
       });
 
     return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
@@ -472,7 +479,7 @@ export const KioskForm = ({
         // kiosk별 footer가 있으면 우선, 없으면 studio 기본값
         receiptFooter: kioskReceiptFooter ?? studioReceiptFooter,
       },
-      transaction: { kioskName, paymentId: paymentInfo?.paymentId },
+      transaction: { kioskName, paymentId: receiptPaymentIdOverride ?? paymentInfo?.paymentId },
       user: selectedUser ? {
         name: selectedUser.name,
         nickName: selectedUser.nickName,
@@ -496,7 +503,7 @@ export const KioskForm = ({
       qrText,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride]);
 
   // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화
   const buildDiscounts = useCallback((): PaymentDiscount[] | undefined => {
@@ -529,22 +536,25 @@ export const KioskForm = ({
       discounts: buildDiscounts(),
     });
 
-    const r = res as { code?: string; message?: string; amount?: number };
-    if (typeof r.code === 'string' && typeof r.message === 'string' && typeof r.amount !== 'number') {
+    // paymentId 없으면 에러로 간주 — KIS 단말 호출/영수증 인쇄로 진행하지 않음
+    const r = res as { code?: string; message?: string; paymentId?: string; amount?: number };
+    if (!r.paymentId) {
       setIsPaying(false);
       setPaymentMethod(null);
-      setToastMessage(r.message);
+      setToastMessage(r.message ?? '결제를 시작하지 못했어요');
       return;
     }
 
     const created = res as StartKioskPaymentResponse;
 
     // KIS 단말 호출 — 1초 대기 제거. Pending 응답 직후 곧장 송출.
+    // inCustomerUuid에 우리 paymentId를 박아두면 KIS 단말에 조회 키로 저장돼서 추후 ST(상태 조회)를 같은 paymentId로 할 수 있음.
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
       inTranCode: 'D1',
       inTotAmt: `${created.amount}`,
       inInstallment: '00',
+      inCustomerUuid: created.paymentId,
     }));
   }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts]);
 
@@ -564,15 +574,15 @@ export const KioskForm = ({
 
     setIsPaying(false);
 
-    const r = res as { code?: string; message?: string; status?: string; qrCodeUrl?: string | null };
-    if (typeof r.code === 'string' && typeof r.message === 'string' && !r.status) {
+    // paymentId 없으면 에러로 간주 — 영수증 인쇄/성공 화면 진입 차단
+    const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null };
+    if (!r.paymentId) {
       setPaymentMethod(null);
-      setToastMessage(r.message);
+      setToastMessage(r.message ?? '결제를 시작하지 못했어요');
       return;
     }
 
-    const ok = res as StartKioskPaymentResponse;
-    if (ok.qrCodeUrl) setPaymentQrCodeUrl(ok.qrCodeUrl);
+    if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
     setPaymentResult({ status: 'success', data: {} });
   }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, buildDiscounts]);
 
@@ -591,10 +601,20 @@ export const KioskForm = ({
         kioskId,
         lessonId: selectedLesson.id,
       });
+      // isGuinnessErrorCase는 등록된 enum 코드만 통과 — SAME_TIME_LESSON_ALREADY_EXISTS 같은 도메인 에러 못 잡음.
+      // shape 기반 판별: paymentId 없고 code+message 있으면 에러로 간주 → 영수증 인쇄 차단.
+      const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null };
+      if (!r.paymentId && typeof r.code === 'string' && typeof r.message === 'string') {
+        setToastMessage(r.message);
+        return;
+      }
       if (isGuinnessErrorCase(res)) {
         setToastMessage(res.message ?? '패스권 사용에 실패했습니다');
         return;
       }
+      // 응답의 qrCodeUrl/paymentId를 영수증에 사용
+      if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
+      if (r.paymentId) setReceiptPaymentIdOverride(r.paymentId);
       setPaymentMethod('pass');
       setPaymentResult({ status: 'success', data: {} });
     } catch {
