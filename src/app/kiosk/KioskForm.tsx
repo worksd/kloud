@@ -733,6 +733,18 @@ export const KioskForm = ({
             <p className="text-[#1E2124] font-bold text-center mt-[min(2.4vw,26px)]" style={{ fontSize: 'min(3.4vw, 36px)' }}>
               {t('kiosk_payment_failed')}
             </p>
+            {(() => {
+              const d = paymentResult.data;
+              const msg = [d.outReplyMsg1, d.outReplyMsg2]
+                .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+                .join(' ')
+                .trim();
+              return msg ? (
+                <p className="text-[#1E2124] text-center mt-[min(1.6vw,18px)] whitespace-pre-line" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                  {msg}
+                </p>
+              ) : null;
+            })()}
             <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(2vw, 22px)' }}>
               잠시 후 다시 시도해주세요
             </p>
