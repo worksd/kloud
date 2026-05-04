@@ -518,11 +518,19 @@ export const KioskForm = ({
   }, [selectedDiscount]);
 
   // 카드 결제 (Apple Pay 포함):
+  //  ⓪ requestKisPayment 인터페이스 존재 확인 (네이티브 미설치 환경에선 진행 자체 차단 — Pending도 안 만듦)
   //  ① POST /kiosks/payments — Pending 생성 → 응답의 amount를 단말 매입 금액으로 사용
   //  ② requestKisPayment 호출 (D1) — 응답은 onKisPaymentResult가 처리
   //  결제 성공/실패 판정 후 ③ POST /kiosks/payments/:id/complete 또는 DELETE /kiosks/payments/:id 는 paymentResult useEffect에서 진행
   const handleCardPayment = useCallback(async (variant: 'card' | 'applepay' = 'card') => {
     if (!paymentItem || isPaying || !selectedUser || !paymentInfo?.paymentId || !kioskId) return;
+
+    // KIS 단말 호출 인터페이스가 없으면 Pending 생성/단말 호출 모두 진행 X (orphan Pending 방지)
+    if (typeof window.KloudEvent?.requestKisPayment !== 'function') {
+      setToastMessage('카드결제를 진행할 수 없습니다');
+      return;
+    }
+
     setCardPayingVariant(variant);
     setIsPaying(true);
     setPaymentResult(null);
