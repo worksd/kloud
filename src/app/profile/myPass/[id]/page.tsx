@@ -73,16 +73,26 @@ export default async function MyPassDetailPage({params}: {
     const additionalBenefitText = await translate('additional_benefit');
 
     return (
-      <div className="flex flex-col min-h-screen bg-white pb-20">
-        {/* 패스플랜 이미지 */}
-        <div className="w-full aspect-[16/9] bg-[#F1F3F6]">
-          {passPlan?.imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
-          )}
-        </div>
+      <div
+        className="flex flex-col min-h-screen pb-20"
+        style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}
+      >
+        {/* 노치 가리개용 top padding — 페이지가 ignoreSafeArea라 항상 필요. 그래디언트는 그 영역까지 채움.
+            이미지가 없으면 헤더가 바로 노치 아래로 붙어 답답하므로 추가 spacer 부여. */}
+        <div
+          className="w-full"
+          style={{ paddingTop: passPlan?.imageUrl ? 'env(safe-area-inset-top, 44px)' : 'calc(env(safe-area-inset-top, 44px) + 56px)' }}
+        />
 
-        {/* 상단 패스 정보 */}
+        {/* 패스플랜 이미지 — imageUrl이 있을 때만 노출. 없으면 빈 자리 안 만들고 바로 헤더로 이어지도록 */}
+        {passPlan?.imageUrl && (
+          <div className="w-full aspect-[1/1]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+
+        {/* 상단 패스 정보 — 그래디언트 배경 위 */}
         <div className="px-6 pt-5 pb-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
@@ -116,8 +126,8 @@ export default async function MyPassDetailPage({params}: {
             */}
           </div>
 
-          {/* 이용기한 */}
-          <div className="mt-4 px-4 py-3.5 rounded-xl bg-[#F7F8F9]">
+          {/* 이용기한 — 그래디언트 위라 살짝 반투명한 흰색으로 */}
+          <div className="mt-4 px-4 py-3.5 rounded-xl bg-white/70 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-[#86898C]">{await translate('pass_period')}</span>
               <span className="text-[15px] font-bold text-black">{pass.startDate} ~ {pass.endDate}</span>
@@ -146,11 +156,9 @@ export default async function MyPassDetailPage({params}: {
           </div>
         )}
 
-        <div className="w-full h-2 bg-[#F7F8F9]" />
-
-        {/* 이용 혜택 */}
+        {/* 컨텐츠 영역 — 그래디언트 헤더 위에 살짝 겹쳐 올라오면서 상단 코너 24px 라운드 */}
         {(passRules.length > 0 || passFeatures.length > 0) && (
-          <div className="px-6 pt-5">
+          <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-5">
             <h3 className="text-[15px] font-bold text-black mb-4">{await translate('pass_benefit')}</h3>
             <div className="flex flex-col gap-5 divide-y divide-[#F0F0F0]">
               {passRules.map((rule) => {
