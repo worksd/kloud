@@ -187,7 +187,7 @@ export const KioskPaymentMethodForm = ({
               </svg>
               <div className="flex flex-col min-w-0">
                 <span className="text-white font-bold truncate" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-                  {selectedDiscount.description || selectedDiscount.passRule?.targetLabel || t('kiosk_pass')}
+                  {selectedDiscount.description || selectedDiscount.passRule?.targetLabel || selectedDiscount.key || t('kiosk_pass')}
                 </span>
                 <span className="text-white/70" style={{ fontSize: 'min(1.6vw, 18px)' }}>
                   -{fmt(discountAmount)}{t('won')} {t('discount_info')}

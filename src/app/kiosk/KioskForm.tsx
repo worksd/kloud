@@ -509,7 +509,8 @@ export const KioskForm = ({
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
-        description: selectedDiscount.description,
+        // description/targetLabel이 둘 다 비어 있는 케이스(예: 1천원할인권 — key만 있음)에서 key를 폴백으로 사용
+        description: selectedDiscount.description ?? selectedDiscount.key,
         targetLabel: selectedDiscount.passRule?.targetLabel ?? undefined,
       } : undefined,
       cardData: paymentResult?.data,
@@ -518,7 +519,8 @@ export const KioskForm = ({
     sendReceiptToPrinter(lines);
   }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride]);
 
-  // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화
+  // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화.
+  // 서버가 passRule 풀 객체를 함께 요구해서 그대로 전달.
   const buildDiscounts = useCallback((): PaymentDiscount[] | undefined => {
     if (!selectedDiscount) return undefined;
     return [{
@@ -527,6 +529,7 @@ export const KioskForm = ({
       type: selectedDiscount.type as PaymentDiscount['type'],
       itemId: selectedDiscount.itemId,
       passRuleId: selectedDiscount.passRule?.id,
+      passRule: selectedDiscount.passRule,
     }];
   }, [selectedDiscount]);
 

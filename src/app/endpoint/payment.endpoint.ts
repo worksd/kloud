@@ -111,6 +111,8 @@ export type PaymentDiscount = {
   type: 'membership' | 'subscription' | 'passRule';
   itemId: number;
   passRuleId?: number;
+  // 키오스크 결제 응답이 요구 — passRule 풀 객체 동봉 (id/targetType/targetLabel/benefitType/benefitValue/excludes)
+  passRule?: DiscountPassRule;
 }
 
 export type CreateBillingKeyPaymentRequest = {
