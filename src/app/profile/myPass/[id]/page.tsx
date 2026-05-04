@@ -74,7 +74,7 @@ export default async function MyPassDetailPage({params}: {
 
     return (
       <div
-        className="flex flex-col min-h-screen pb-20"
+        className="flex flex-col min-h-screen"
         style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}
       >
         {/* 노치 가리개용 top padding — 페이지가 ignoreSafeArea라 항상 필요. 그래디언트는 그 영역까지 채움.
@@ -156,9 +156,11 @@ export default async function MyPassDetailPage({params}: {
           </div>
         )}
 
-        {/* 컨텐츠 영역 — 그래디언트 헤더 위에 살짝 겹쳐 올라오면서 상단 코너 24px 라운드 */}
-        {(passRules.length > 0 || passFeatures.length > 0) && (
-          <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-5">
+        {/* 컨텐츠 영역 — 그래디언트 헤더 아래로는 전부 흰색이 비치도록 항상 렌더(flex-1로 남은 공간 차지).
+            상단 코너 24px 라운드, 하단은 페이지 끝까지 흰색. 혜택이 없으면 빈 흰 영역이 그대로 보임. */}
+        <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-5 pb-20">
+          {(passRules.length > 0 || passFeatures.length > 0) && (
+            <>
             <h3 className="text-[15px] font-bold text-black mb-4">{await translate('pass_benefit')}</h3>
             <div className="flex flex-col gap-5 divide-y divide-[#F0F0F0]">
               {passRules.map((rule) => {
@@ -260,8 +262,9 @@ export default async function MyPassDetailPage({params}: {
                 </div>
               );
             })}
-          </div>
-        )}
+          </>
+          )}
+        </div>
       </div>
     )
   }
