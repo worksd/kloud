@@ -457,6 +457,19 @@ export const KioskForm = ({
         }
       : null;
 
+  // 결제수단 활성화 여부 — paymentInfo.methods의 isEnabled를 type별로 추출.
+  // 키오스크 응답은 paymentMethod로 wrap되어 옴, 일반 결제 응답은 root에 type. 둘 다 지원.
+  const isMethodEnabled = (type: 'credit' | 'cash' | 'pass'): boolean => {
+    const methods = paymentInfo?.methods;
+    if (!methods) return true; // paymentInfo 미수신 단계엔 일단 활성으로 둠
+    const m = methods.find((x) => (x.paymentMethod?.type ?? x.type) === type);
+    if (!m) return false;
+    return m.isEnabled ?? true;
+  };
+  const cardEnabled = isMethodEnabled('credit');
+  const cashEnabled = isMethodEnabled('cash');
+  const passEnabled = isMethodEnabled('pass');
+
   // 영수증 인쇄 — 결제 컨텍스트만 buildKioskReceipt에 넘기면 수단별 dispatch + KIS 응답 파싱은 receipt 모듈이 처리.
   // qrText는 백엔드 POST /kiosks/payments 응답의 qrCodeUrl을 그대로 받아 푸터 QR로 인쇄.
   const handlePrintReceipt = useCallback((qrText?: string) => {
@@ -751,6 +764,9 @@ export const KioskForm = ({
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
           onChangeLocale={setLocale}
+          cardEnabled={cardEnabled}
+          cashEnabled={cashEnabled}
+          passEnabled={passEnabled}
         />
       )}
 

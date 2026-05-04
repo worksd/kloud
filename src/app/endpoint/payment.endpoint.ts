@@ -98,6 +98,9 @@ export type GetPaymentMethodResponse = {
   type: PaymentMethodType;
   name: string;
   providers?: PaymentMethodType[];
+  // 키오스크 응답에선 추가로 paymentMethod 래퍼 + isEnabled가 옴 — 일반 결제 흐름에선 미사용
+  isEnabled?: boolean;
+  paymentMethod?: { id: number; type: PaymentMethodType; name: string };
 }
 
 export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
