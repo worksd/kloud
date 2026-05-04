@@ -37,21 +37,38 @@ const ruleDescription = (rule: PassRuleResponse, locale: Locale, passName?: stri
 const featureLabel = (key: string, locale: Locale): string =>
   FEATURE_LABELS[key]?.[locale] ?? key;
 
-type Option = { id: string; selection: KioskPassSelection };
+type Option = {
+  id: string;
+  selection: KioskPassSelection;
+  usable: boolean;
+  reason?: string;
+};
 
 const buildOptions = (passes: GetPassResponse[], discounts: DiscountResponse[]): Option[] => {
   const opts: Option[] = [];
-  // 할인 우선 노출 (서버가 정책으로 분류해 내려준 항목)
+  // 할인 — 서버가 이미 적용 가능한 것만 내려줌(usable 플래그 따로 없음). 전부 selectable로 노출.
   discounts.forEach((d) => {
-    opts.push({ id: `discount:${d.key}:${d.passRule?.id ?? ''}`, selection: { kind: 'discount', discount: d } });
+    opts.push({
+      id: `discount:${d.key}:${d.passRule?.id ?? ''}`,
+      selection: { kind: 'discount', discount: d },
+      usable: true,
+    });
   });
-  // 사용 가능한 rule이 하나라도 있는 패스
+  // 패스권 rule — 보유 패스의 모든 rule을 노출하고, usable 여부로 선택 가능 분기.
+  // targetType/benefitType이 누락된 정의 미완 rule은 skip.
   passes.forEach((pass) => {
-    const usableRule = (pass.passRules ?? []).find((r) => r.usable);
-    if (!usableRule) return;
-    opts.push({ id: `pass:${pass.id}:${usableRule.id}`, selection: { kind: 'pass', pass, rule: usableRule } });
+    (pass.passRules ?? []).forEach((rule) => {
+      if (!rule.targetType || !rule.benefitType) return;
+      opts.push({
+        id: `pass:${pass.id}:${rule.id}`,
+        selection: { kind: 'pass', pass, rule },
+        usable: rule.usable === true,
+        reason: rule.usable === false ? rule.reason : undefined,
+      });
+    });
   });
-  return opts;
+  // 사용 가능 항목 먼저 노출, 그 뒤에 비활성 항목
+  return opts.sort((a, b) => (a.usable === b.usable ? 0 : a.usable ? -1 : 1));
 };
 
 export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSelect }: KioskPassSelectModalProps) => {
@@ -86,14 +103,20 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
             <div className="flex flex-col" style={{ gap: 'min(1.4vw, 16px)' }}>
               {options.map((opt) => {
                 const isSelected = selectedId === opt.id;
+                const handleClick = () => {
+                  if (!opt.usable) return; // 비활성 — 클릭 무시
+                  setSelectedId(isSelected ? null : opt.id);
+                };
                 if (opt.selection.kind === 'discount') {
                   const d = opt.selection.discount;
                   return (
                     <PassOptionCard
                       key={opt.id}
                       isSelected={isSelected}
-                      onClick={() => setSelectedId(isSelected ? null : opt.id)}
-                      title={d.description || d.passRule?.targetLabel || t('discount_info')}
+                      usable={opt.usable}
+                      reason={opt.reason}
+                      onClick={handleClick}
+                      title={d.description || d.passRule?.targetLabel || d.key || t('discount_info')}
                       subtitle={d.passRule?.targetLabel ? d.passRule.targetLabel : undefined}
                       rightLine1={`-${fmt(d.amount)}`}
                       rightLine2={t('discount_info')}
@@ -102,16 +125,21 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
                 }
                 const { pass, rule } = opt.selection;
                 const passName = pass.passPlan?.name ?? t('kiosk_pass');
-                const usableFeatures = (pass.passFeatures ?? []).filter((f) => f.usable);
                 const ruleSummary = ruleDescription(rule, locale, passName);
-                const featureSummary = usableFeatures.length > 0
-                  ? usableFeatures.map((f) => featureLabel(f.featureKey, locale)).join(' · ')
+                // 활성 rule에만 추가 features를 부제로 노출 (비활성 행은 사유로 채움)
+                const featureSummary = opt.usable
+                  ? (pass.passFeatures ?? [])
+                      .filter((f) => f.usable)
+                      .map((f) => featureLabel(f.featureKey, locale))
+                      .join(' · ') || undefined
                   : undefined;
                 return (
                   <PassOptionCard
                     key={opt.id}
                     isSelected={isSelected}
-                    onClick={() => setSelectedId(isSelected ? null : opt.id)}
+                    usable={opt.usable}
+                    reason={opt.reason}
+                    onClick={handleClick}
                     title={passName}
                     tag={pass.passPlan?.tag ?? undefined}
                     subtitle={featureSummary ? `${ruleSummary} · ${featureSummary}` : ruleSummary}
@@ -151,6 +179,8 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
 
 type PassOptionCardProps = {
   isSelected: boolean;
+  usable: boolean;
+  reason?: string;
   onClick: () => void;
   title: string;
   tag?: string;
@@ -159,59 +189,74 @@ type PassOptionCardProps = {
   rightLine2?: string;
 };
 
-const PassOptionCard = ({ isSelected, onClick, title, tag, subtitle, rightLine1, rightLine2 }: PassOptionCardProps) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center rounded-[20px] transition-all text-left ${
-      isSelected ? 'bg-[#1E2124] ring-2 ring-[#1E2124]' : 'bg-[#F9F9FB]'
-    }`}
-    style={{ padding: 'min(2.2vw,24px) min(2.6vw,28px)', gap: 'min(1.6vw,18px)' }}
-  >
-    <div className="flex flex-col min-w-0 flex-1">
-      <div className="flex items-baseline" style={{ gap: 'min(0.8vw, 10px)' }}>
-        <span className={`font-bold truncate ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2.2vw, 24px)' }}>
-          {title}
-        </span>
-        {tag && (
+const PassOptionCard = ({ isSelected, usable, reason, onClick, title, tag, subtitle, rightLine1, rightLine2 }: PassOptionCardProps) => {
+  const dim = !usable;
+  return (
+    <button
+      onClick={onClick}
+      disabled={dim}
+      className={`flex items-center rounded-[20px] transition-all text-left ${
+        isSelected ? 'bg-[#1E2124] ring-2 ring-[#1E2124]' : dim ? 'bg-[#F2F4F6] cursor-not-allowed' : 'bg-[#F9F9FB]'
+      }`}
+      style={{ padding: 'min(2.2vw,24px) min(2.6vw,28px)', gap: 'min(1.6vw,18px)', opacity: dim ? 0.55 : 1 }}
+    >
+      <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex items-baseline" style={{ gap: 'min(0.8vw, 10px)' }}>
+          <span className={`font-bold truncate ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2.2vw, 24px)' }}>
+            {title}
+          </span>
+          {tag && (
+            <span
+              className={`shrink-0 px-[min(1vw,12px)] py-[min(0.3vw,4px)] rounded-full font-bold ${
+                isSelected ? 'bg-white/15 text-white' : 'bg-[#E6E8EA] text-[#1E2124]'
+              }`}
+              style={{ fontSize: 'min(1.3vw, 14px)' }}
+            >
+              {tag}
+            </span>
+          )}
+        </div>
+        {subtitle && (
           <span
-            className={`shrink-0 px-[min(1vw,12px)] py-[min(0.3vw,4px)] rounded-full font-bold ${
-              isSelected ? 'bg-white/15 text-white' : 'bg-[#E6E8EA] text-[#1E2124]'
-            }`}
-            style={{ fontSize: 'min(1.3vw, 14px)' }}
+            className={`mt-[min(0.4vw,6px)] truncate ${isSelected ? 'text-white/70' : 'text-[#6D7882]'}`}
+            style={{ fontSize: 'min(1.6vw, 18px)' }}
           >
-            {tag}
+            {subtitle}
+          </span>
+        )}
+        {dim && reason && (
+          <span
+            className="mt-[min(0.4vw,6px)] truncate text-[#86898C]"
+            style={{ fontSize: 'min(1.5vw, 16px)' }}
+          >
+            {reason}
           </span>
         )}
       </div>
-      {subtitle && (
-        <span
-          className={`mt-[min(0.4vw,6px)] truncate ${isSelected ? 'text-white/70' : 'text-[#6D7882]'}`}
-          style={{ fontSize: 'min(1.6vw, 18px)' }}
-        >
-          {subtitle}
-        </span>
+      <div className="flex flex-col items-end shrink-0">
+        {rightLine1 && (
+          <span className={`font-bold ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
+            {rightLine1}
+          </span>
+        )}
+        {rightLine2 && (
+          <span className={isSelected ? 'text-white/60' : 'text-[#86898C]'} style={{ fontSize: 'min(1.4vw, 16px)' }}>
+            {rightLine2}
+          </span>
+        )}
+      </div>
+      {/* 비활성 항목엔 라디오 자리 미노출(또는 비활성 표시) */}
+      {!dim && (
+        <div className={`w-[min(2.2vw,24px)] h-[min(2.2vw,24px)] rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+          isSelected ? 'border-white bg-white' : 'border-[#CDD1D5]'
+        }`}>
+          {isSelected && (
+            <svg width="12" height="10" viewBox="0 0 10 8" fill="none">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#1E2124" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
       )}
-    </div>
-    <div className="flex flex-col items-end shrink-0">
-      {rightLine1 && (
-        <span className={`font-bold ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
-          {rightLine1}
-        </span>
-      )}
-      {rightLine2 && (
-        <span className={isSelected ? 'text-white/60' : 'text-[#86898C]'} style={{ fontSize: 'min(1.4vw, 16px)' }}>
-          {rightLine2}
-        </span>
-      )}
-    </div>
-    <div className={`w-[min(2.2vw,24px)] h-[min(2.2vw,24px)] rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-      isSelected ? 'border-white bg-white' : 'border-[#CDD1D5]'
-    }`}>
-      {isSelected && (
-        <svg width="12" height="10" viewBox="0 0 10 8" fill="none">
-          <path d="M1 4L3.5 6.5L9 1" stroke="#1E2124" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      )}
-    </div>
-  </button>
-);
+    </button>
+  );
+};
