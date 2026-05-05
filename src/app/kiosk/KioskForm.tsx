@@ -55,6 +55,8 @@ export const KioskForm = ({
   kioskId,
   kioskName,
   kioskImageUrl,
+  canCheckIn,
+  canPurchase,
   passPlans,
 }: {
   studioId: number;
@@ -68,6 +70,8 @@ export const KioskForm = ({
   kioskId: number;
   kioskName?: string;
   kioskImageUrl?: string;
+  canCheckIn: boolean;
+  canPurchase: boolean;
   passPlans: GetPassPlanResponse[];
 }) => {
   const router = useRouter();
@@ -674,6 +678,8 @@ export const KioskForm = ({
           studioName={studioName}
           kioskImageUrl={kioskImageUrl}
           locale={locale}
+          canCheckIn={canCheckIn}
+          canPurchase={canPurchase}
           onSelectPayment={() => setCurrentScreen('lesson-list')}
           onSelectVisit={() => setCurrentScreen('attendance')}
           onChangeLocale={setLocale}
