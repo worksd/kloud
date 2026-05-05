@@ -119,6 +119,7 @@ export const KioskForm = ({
   const [receiptPaymentIdOverride, setReceiptPaymentIdOverride] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
   const [cashConfirmOpen, setCashConfirmOpen] = useState(false);
+  const [noPassDialogOpen, setNoPassDialogOpen] = useState(false);
   const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
@@ -785,7 +786,16 @@ export const KioskForm = ({
           } as DiscountResponse : null)}
           locale={locale}
           onBack={() => setCurrentScreen('phone')}
-          onSelectPass={() => setCurrentScreen('pass-select')}
+          onSelectPass={() => {
+            // 사용 가능한 패스권/할인이 둘 다 없으면 모달 진입 대신 안내 다이얼로그 노출
+            const hasPasses = (paymentInfo?.user?.passes?.length ?? 0) > 0;
+            const hasDiscounts = (paymentInfo?.discounts?.length ?? 0) > 0;
+            if (!hasPasses && !hasDiscounts) {
+              setNoPassDialogOpen(true);
+              return;
+            }
+            setCurrentScreen('pass-select');
+          }}
           onClearDiscount={() => { setSelectedDiscount(null); setSelectedPass(null); }}
           onSelectCard={() => handleCardPayment('card')}
           onSelectApplePay={() => handleCardPayment('applepay')}
@@ -901,6 +911,30 @@ export const KioskForm = ({
       {toastMessage && (
         <div className="fixed left-1/2 -translate-x-1/2 z-40 px-[min(3.7vw,40px)] py-[min(2.2vw,24px)] rounded-[16px] bg-black/85" style={{ bottom: 'min(7.4vw, 80px)' }}>
           <span className="text-white font-medium" style={{ fontSize: 'min(2.6vw, 28px)' }}>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* 사용 가능한 패스권/할인이 없을 때 안내 다이얼로그 */}
+      {noPassDialogOpen && (
+        <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center px-[5%]" onClick={() => setNoPassDialogOpen(false)}>
+          <div className="bg-white rounded-[24px] w-full max-w-[640px] flex flex-col items-center px-[min(4vw,40px)] py-[min(4vw,40px)]" onClick={(e) => e.stopPropagation()}>
+            <div className="rounded-full bg-[#F2F4F6] flex items-center justify-center" style={{ width: 'min(7vw,72px)', height: 'min(7vw,72px)' }}>
+              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                <path d="M12 8V13" stroke="#6D7882" strokeWidth="2.4" strokeLinecap="round"/>
+                <circle cx="12" cy="16.5" r="1.2" fill="#6D7882"/>
+                <circle cx="12" cy="12" r="9" stroke="#6D7882" strokeWidth="2"/>
+              </svg>
+            </div>
+            <p className="text-black font-bold text-center mt-[min(2vw,22px)]" style={{ fontSize: 'min(2.6vw,28px)' }}>
+              {t('kiosk_no_pass')}
+            </p>
+            <button
+              onClick={() => setNoPassDialogOpen(false)}
+              className="mt-[min(3vw,32px)] w-full h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+            >
+              <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>{t('kiosk_confirm')}</span>
+            </button>
+          </div>
         </div>
       )}
 
