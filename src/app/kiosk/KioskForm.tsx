@@ -136,6 +136,27 @@ export const KioskForm = ({
     setReceiptPaymentIdOverride(null);
   }, []);
 
+  // 홈 외 화면에서 2분간 사용자 인터랙션이 없으면 자동으로 홈 복귀.
+  //  - touch/mouse/keyboard 이벤트마다 타이머 리셋
+  //  - goHome이 selectedUser 등 손님 세션 전체를 초기화 (다음 사용자가 새로 시작하도록)
+  //  - 홈 화면 자체엔 타임아웃 미적용
+  useEffect(() => {
+    if (currentScreen === 'home') return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const IDLE_MS = 2 * 60 * 1000;
+    const reset = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { goHome(); }, IDLE_MS);
+    };
+    reset();
+    const events: (keyof WindowEventMap)[] = ['touchstart', 'touchmove', 'mousedown', 'keydown', 'click'];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [currentScreen, goHome]);
+
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
   useEffect(() => {
     const hasItem = !!selectedLesson || !!selectedPassPlan;
