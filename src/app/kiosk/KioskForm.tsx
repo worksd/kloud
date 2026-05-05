@@ -574,7 +574,6 @@ export const KioskForm = ({
     // KIS 단말 호출 — 1초 대기 제거. Pending 응답 직후 곧장 송출.
     // inCustomerUuid에 우리 paymentId를 박아두면 KIS 단말에 조회 키로 저장돼서 추후 ST(상태 조회)를 같은 paymentId로 할 수 있음.
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
-      ...(process.env.NEXT_PUBLIC_KIS_TEST_MODE === 'Y' ? { inTestMode: 'Y' } : {}),
       inTranCode: 'D1',
       inTotAmt: `${created.amount}`,
       inInstallment: '00',
