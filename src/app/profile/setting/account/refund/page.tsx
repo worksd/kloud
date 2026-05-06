@@ -1,5 +1,5 @@
 import React from "react";
-import { RefundAccountEditForm } from "@/app/profile/setting/refund/RefundAccountEditForm";
+import { RefundAccountEditForm } from "@/app/profile/setting/account/refund/RefundAccountEditForm";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { KloudScreen } from "@/shared/kloud.screen";

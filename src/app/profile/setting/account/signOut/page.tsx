@@ -1,6 +1,6 @@
 import React from "react";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import SignOutForm from "@/app/profile/setting/signOut/SignOutForm";
+import SignOutForm from "@/app/profile/setting/account/signOut/SignOutForm";
 import { getLocale } from "@/utils/translate";
 
 export default async function SignOut({

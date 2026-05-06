@@ -1698,10 +1698,10 @@ export const StringResource = {
     zh: '账户管理',
   },
   my_account: {
-    ko: '내 계정',
-    en: 'My Account',
-    jp: 'マイアカウント',
-    zh: '我的账户',
+    ko: '계정 관리',
+    en: 'Account Management',
+    jp: 'アカウント管理',
+    zh: '账户管理',
   },
   cell_phone_certificate: {
     ko: '휴대폰 본인인증',

@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
 import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
-import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
+import { addBillingAction } from "@/app/profile/setting/account/paymentMethod/add.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";

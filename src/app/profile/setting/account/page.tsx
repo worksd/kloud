@@ -29,6 +29,18 @@ export default async function MyAccountPage() {
         </NavigateClickWrapper>
       }
 
+      <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentMethodSetting}>
+        <MenuItem label="payment_method_management"/>
+      </NavigateClickWrapper>
+
+      <NavigateClickWrapper method={'push'} route={KloudScreen.RefundAccountSetting}>
+        <MenuItem label="refund_account"/>
+      </NavigateClickWrapper>
+
+      <NavigateClickWrapper method={'push'} route={KloudScreen.SignOut}>
+        <MenuItem label="sign_out"/>
+      </NavigateClickWrapper>
+
     </div>
   }
 }

@@ -1,10 +1,10 @@
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { RefundAccountEditForm } from "@/app/profile/setting/refund/RefundAccountEditForm";
+import { RefundAccountEditForm } from "@/app/profile/setting/account/refund/RefundAccountEditForm";
 import React from "react";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import CloseIcon from "../../../../../../public/assets/ic_close_black.svg";
+import CloseIcon from "../../../../../../../public/assets/ic_close_black.svg";
 
 export default async function RefundAccountEditSheetPage(
   {searchParams}: { searchParams: Promise<{ baseRoute: string, appVersion: string }> }

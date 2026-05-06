@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import CheckIcon from "../../../../../public/assets/check_white.svg"
+import CheckIcon from "../../../../../../public/assets/check_white.svg"
 import { clearCookies } from "@/app/profile/clear.token.action";
 import { deleteUserAction } from "@/app/profile/sign.out.action";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";

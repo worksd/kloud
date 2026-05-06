@@ -3,7 +3,7 @@
 import React from "react";
 import { CommonBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { Locale } from "@/shared/StringResource";
-import { PaymentMethodSheetForm } from "@/app/profile/setting/paymentMethod/sheet/PaymentMethodSheetForm";
+import { PaymentMethodSheetForm } from "@/app/profile/setting/account/paymentMethod/sheet/PaymentMethodSheetForm";
 import { getLocaleString } from "@/app/components/locale";
 
 export const PaymentMethodAddButton = ({locale, onSuccessAction, birth}: { locale: Locale, onSuccessAction: () => void, birth?: string | null }) => {

@@ -1,8 +1,8 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { getBillingListAction } from "@/app/profile/setting/paymentMethod/get.billing.list.action";
-import { deleteBillingAction } from "@/app/profile/setting/paymentMethod/delete.billing.action";
+import { getBillingListAction } from "@/app/profile/setting/account/paymentMethod/get.billing.list.action";
+import { deleteBillingAction } from "@/app/profile/setting/account/paymentMethod/delete.billing.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { BankOrCardIcon } from "@/app/components/Bank";
