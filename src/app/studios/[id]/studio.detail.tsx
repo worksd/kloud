@@ -15,6 +15,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import LeftArrow from "../../../../public/assets/left-arrow.svg";
 import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
 import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
+import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.action";
 import { LessonGroupBand } from "@/app/home/LessonGroupBand";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
@@ -22,6 +23,9 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
   const studio = await getStudioDetail(id);
 
   if (!('id' in studio)) return notFound();
+
+  // BE가 resolve해둔 channelKey로 YouTube API 직접 호출. 키 없거나 실패 시 빈 배열 → 영역 숨김.
+  const youtubeContents = await getYoutubeContents(studio.youtubeChannelKey);
 
   return (
     <ScrollContainer className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar studio-detail-container">
@@ -171,10 +175,10 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           )}
         </section>
 
-        {studio.youtubeContents && studio.youtubeContents.length > 0 && (
+        {youtubeContents.length > 0 && (
           <section>
             <YoutubeContentSection
-              contents={studio.youtubeContents}
+              contents={youtubeContents}
               title="최근 YouTube 영상"
               channelUrl={studio.youtubeUrl}
               locale={await getLocale()}

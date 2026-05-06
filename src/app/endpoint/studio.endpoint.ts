@@ -32,6 +32,8 @@ export type GetStudioResponse = {
     coverImageUrl?: string;
     phone?: string;
     youtubeUrl?: string;
+    /** BE가 youtubeUrl로부터 resolve해 저장한 채널 키. playlistId = `UU` + youtubeChannelKey 로 영상 호출에 사용. null이면 영상 영역 미노출. */
+    youtubeChannelKey?: string | null;
     businessName?: string;
     bank?: string;
     accountNumber?: string;
@@ -50,7 +52,6 @@ export type GetStudioResponse = {
     passes?: GetPassResponse[];
     timeTable?: GetTimeTableResponse;
     banners?: StudioBannerResponse[];
-    youtubeContents?: YoutubeContentResponse[];
     lessonGroups?: LessonGroupSummary[];
     day: string;
 };
