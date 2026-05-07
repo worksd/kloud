@@ -23,15 +23,6 @@ const INTL_LOCALE: Record<Locale, string> = {
   zh: 'zh-CN',
 };
 
-const formatDisplayDate = (d: Date, locale: Locale): string => {
-  const date = getLocaleString({ locale, key: 'kiosk_date_format' })
-    .replace('{0}', String(d.getFullYear()).slice(-2))
-    .replace('{1}', String(d.getMonth() + 1))
-    .replace('{2}', String(d.getDate()));
-  const weekday = d.toLocaleDateString(INTL_LOCALE[locale], { weekday: 'short' });
-  return `${date} (${weekday})`;
-};
-
 type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
@@ -46,9 +37,18 @@ type KioskTab = 'lessons' | 'pass-plans';
 
 export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
-  const today = React.useMemo(() => new Date(), []);
-  const selectedDate = React.useMemo(() => formatDisplayDate(today, locale), [today, locale]);
   const [tab, setTab] = useState<KioskTab>('lessons');
+  // 오늘부터 7일치 날짜 옵션 — 사용자가 pill로 선택. 자정 기준 normalize.
+  const dateOptions = React.useMemo(() => {
+    const base = new Date();
+    base.setHours(0, 0, 0, 0);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      return d;
+    });
+  }, []);
+  const [selectedDate, setSelectedDate] = useState<Date>(dateOptions[0]);
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(false);
   const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>(initialPassPlans);
@@ -56,17 +56,22 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
   const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
 
-  // 수업 탭: 오늘 날짜의 수업 목록 조회
+  const formatPillLabel = (d: Date): string => {
+    const weekday = d.toLocaleDateString(INTL_LOCALE[locale], { weekday: 'short' });
+    return `${d.getMonth() + 1}.${d.getDate()} (${weekday})`;
+  };
+
+  // 수업 탭: 선택된 날짜의 수업 목록 조회
   useEffect(() => {
     if (tab !== 'lessons' || !studioId) return;
     setLoadingLessons(true);
-    getLessonsByDate(studioId, formatApiDate(today))
+    getLessonsByDate(studioId, formatApiDate(selectedDate))
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
         if ('lessons' in res) setLessons(res.lessons);
       })
       .finally(() => setLoadingLessons(false));
-  }, [tab, studioId, today]);
+  }, [tab, studioId, selectedDate]);
 
   // 패스권 탭 진입 시 목록 fetch (이미 받은 게 있으면 스킵)
   useEffect(() => {
@@ -97,14 +102,24 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       {/* 상단 바 — 백 + 언어/홈 */}
       <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} />
 
-      {/* 날짜 바 — 가운데 정렬 */}
-      <div className="shrink-0 flex items-center justify-center px-[5.6%]" style={{ gap: 'min(1vw, 8px)', paddingTop: 'min(1vw, 12px)', paddingBottom: 'min(1vw, 12px)' }}>
-        <span className="text-black font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{selectedDate}</span>
-        <div className="rounded-full bg-[#F2F4F6] flex items-center justify-center" style={{ width: 'min(2.4vh, 26px)', height: 'min(2.4vh, 26px)' }}>
-          <svg viewBox="0 0 24 14" fill="none" style={{ width: 'min(1.2vh, 12px)', height: 'auto' }}>
-            <path d="M2 2L12 12L22 2" stroke="#6D7882" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
+      {/* 날짜 선택 — 오늘부터 7일치 pill, 가로 스크롤 */}
+      <div className="shrink-0 flex items-center overflow-x-auto scrollbar-hide" style={{ gap: 'min(1vw, 10px)', padding: 'min(1.2vw, 14px) 24px' }}>
+        {dateOptions.map((d) => {
+          const apiDate = formatApiDate(d);
+          const isSelected = apiDate === formatApiDate(selectedDate);
+          return (
+            <button
+              key={apiDate}
+              onClick={() => setSelectedDate(d)}
+              className={`shrink-0 rounded-full transition-colors active:scale-[0.97] ${
+                isSelected ? 'bg-[#1E2124] text-white' : 'bg-[#F2F4F6] text-[#1E2124]'
+              }`}
+              style={{ padding: 'min(1vh, 10px) min(2vh, 22px)', fontSize: 'min(1.8vh, 20px)', fontWeight: 600 }}
+            >
+              {formatPillLabel(d)}
+            </button>
+          );
+        })}
       </div>
 
       {/* 본문: 좌측 사이드바 + 우측 컨텐츠 */}
@@ -130,10 +145,10 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           {tab === 'lessons' && (
             <>
               {loadingLessons && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
+                <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
               )}
               {!loadingLessons && lessons.length === 0 && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_lessons_today')}</div>
+                <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_lessons')}</div>
               )}
               {!loadingLessons && lessons.length > 0 && (
                 <div className="grid grid-cols-3 gap-[12px]">
@@ -170,12 +185,12 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
             </>
           )}
 
-          {tab === 'pass-plans' && (
+          {tab === 'pass-plans' && loadingPassPlans && (
+            <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
+          )}
+          {tab === 'pass-plans' && !loadingPassPlans && (
             <div className="flex flex-col gap-[10px]">
-              {loadingPassPlans && (
-                <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
-              )}
-              {!loadingPassPlans && passPlans.length === 0 && (
+              {passPlans.length === 0 && (
                 <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_passplans')}</div>
               )}
               {passPlans.map((plan) => {
