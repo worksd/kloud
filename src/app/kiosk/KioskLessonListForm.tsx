@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
@@ -68,7 +68,8 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
     getLessonsByDate(studioId, formatApiDate(selectedDate))
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
-        if ('lessons' in res) setLessons(res.lessons);
+        // 취소된 수업은 키오스크에 노출 안 함 — 운영자/손님이 어차피 결제 못 하는 항목이라 리스트에서 제외
+        if ('lessons' in res) setLessons(res.lessons.filter((l) => l.status !== LessonStatus.Cancelled));
       })
       .finally(() => setLoadingLessons(false));
   }, [tab, studioId, selectedDate]);
@@ -102,25 +103,41 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       {/* 상단 바 — 백 + 언어/홈 */}
       <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} />
 
-      {/* 날짜 선택 — 오늘부터 7일치 pill, 가로 스크롤 */}
-      <div className="shrink-0 flex items-center overflow-x-auto scrollbar-hide" style={{ gap: 'min(1vw, 10px)', padding: 'min(1.2vw, 14px) 24px' }}>
-        {dateOptions.map((d) => {
-          const apiDate = formatApiDate(d);
-          const isSelected = apiDate === formatApiDate(selectedDate);
-          return (
-            <button
-              key={apiDate}
-              onClick={() => setSelectedDate(d)}
-              className={`shrink-0 rounded-full transition-colors active:scale-[0.97] ${
-                isSelected ? 'bg-[#1E2124] text-white' : 'bg-[#F2F4F6] text-[#1E2124]'
-              }`}
-              style={{ padding: 'min(1vh, 10px) min(2vh, 22px)', fontSize: 'min(1.8vh, 20px)', fontWeight: 600 }}
-            >
-              {formatPillLabel(d)}
-            </button>
-          );
-        })}
-      </div>
+      {/* 날짜 선택 — 오늘부터 7일치 범위에서 화살표로 하루씩 이동 */}
+      {(() => {
+        const currentIdx = dateOptions.findIndex((d) => formatApiDate(d) === formatApiDate(selectedDate));
+        const canPrev = currentIdx > 0;
+        const canNext = currentIdx >= 0 && currentIdx < dateOptions.length - 1;
+        // 비활성 시엔 invisible로 숨겨서 레이아웃은 유지하되 시각적으로 안 보이게 (가운데 날짜 위치 흔들림 방지)
+        const ArrowButton = ({ hidden, onClick, direction }: { hidden: boolean; onClick: () => void; direction: 'left' | 'right' }) => (
+          <button
+            type="button"
+            onClick={hidden ? undefined : onClick}
+            aria-label={direction === 'left' ? 'previous day' : 'next day'}
+            className="rounded-full flex items-center justify-center bg-[#F2F4F6] active:scale-[0.94] transition-transform"
+            style={{ width: 'min(4.4vh, 48px)', height: 'min(4.4vh, 48px)', visibility: hidden ? 'hidden' : 'visible' }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" style={{ width: '40%', height: '40%' }}>
+              <path
+                d={direction === 'left' ? 'M15 6L9 12L15 18' : 'M9 6L15 12L9 18'}
+                stroke="#1E2124"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        );
+        return (
+          <div className="shrink-0 flex items-center justify-center" style={{ gap: 'min(2vw, 22px)', padding: 'min(1.2vw, 14px) 24px' }}>
+            <ArrowButton hidden={!canPrev} direction="left" onClick={() => setSelectedDate(dateOptions[currentIdx - 1])} />
+            <span className="text-black font-bold text-center" style={{ fontSize: 'min(2vh, 24px)', minWidth: 'min(18vh, 180px)' }}>
+              {formatPillLabel(selectedDate)}
+            </span>
+            <ArrowButton hidden={!canNext} direction="right" onClick={() => setSelectedDate(dateOptions[currentIdx + 1])} />
+          </div>
+        );
+      })()}
 
       {/* 본문: 좌측 사이드바 + 우측 컨텐츠 */}
       <div className="flex-1 flex overflow-hidden">
@@ -280,10 +297,10 @@ export const KioskTopBar = ({ locale, onChangeLocale, onBack, onHome }: {
 
   return (
     <div className="shrink-0 flex items-center justify-between pr-[5.6%] h-[min(7vh,72px)]">
-      {/* 백 버튼 — 화면 좌측 끝에 붙이기 위해 컨테이너 좌패딩 제거 */}
+      {/* 백 버튼 — 너무 좌측 끝에 붙으면 답답해 보여서 약간 좌측 마진 */}
       <button
         onClick={onBack}
-        className="w-[min(5.6vh,64px)] h-[min(5.6vh,64px)] flex items-center justify-center active:scale-[0.97] transition-transform"
+        className="ml-[min(1.6vw,18px)] w-[min(5.6vh,64px)] h-[min(5.6vh,64px)] flex items-center justify-center active:scale-[0.97] transition-transform"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/assets/ic_back_arrow.svg" alt="" className="w-[min(4.4vh,48px)] h-[min(4.4vh,48px)]" />

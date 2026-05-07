@@ -54,68 +54,70 @@ export const KioskMemberConfirmModal = ({ phone, name, nickName, email, profileI
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
       <div className="absolute inset-0 bg-black/60" />
       <div
-        className="relative w-[92.6%] max-w-[1000px] bg-white rounded-[42px] flex flex-col overflow-hidden animate-[fadeIn_200ms_ease-out]"
+        className="relative w-[80%] max-w-[640px] bg-white rounded-[28px] flex flex-col overflow-hidden animate-[fadeIn_200ms_ease-out]"
         onClick={e => e.stopPropagation()}
       >
         {/* 타이틀 */}
-        <div className="px-[min(5.6vw,60px)] pt-[min(5.6vw,60px)] pb-[min(1.8vw,20px)]">
-          <p className="text-black text-[min(3.7vw,40px)] font-bold leading-tight">
+        <div className="px-[min(3vw,32px)] pt-[min(3vw,32px)] pb-[min(1vw,12px)]">
+          <p className="text-black font-bold leading-tight" style={{ fontSize: 'min(2.4vw, 26px)' }}>
             {isSelectMode ? t('kiosk_select_user_title') : t('kiosk_member_confirm_title')}
           </p>
         </div>
 
         {/* 유저 선택 모드 */}
         {isSelectMode ? (
-          <div className="px-[min(3.7vw,40px)] py-[min(1.8vw,20px)] flex flex-col gap-3 max-h-[50vh] overflow-y-auto">
+          <div className="px-[min(2.4vw,26px)] py-[min(1vw,12px)] flex flex-col gap-[min(1vw,12px)] max-h-[50vh] overflow-y-auto">
             {users.map((user) => (
               <button
                 key={user.id}
                 onClick={() => onSelectUser!(user)}
-                className="flex items-center gap-[min(2.2vw,24px)] bg-[#F9F9FB] rounded-[32px] px-[min(3.7vw,40px)] py-[min(2.9vw,32px)] active:bg-[#F0F0F0] transition-colors"
+                className="flex items-center gap-[min(1.4vw,16px)] bg-[#F9F9FB] rounded-[20px] px-[min(2.4vw,26px)] py-[min(1.8vw,20px)] active:bg-[#F0F0F0] transition-colors"
               >
                 <UserAvatar profileImageUrl={user.profileImageUrl} />
-                <div className="flex flex-col gap-1 text-left">
-                  <span className="text-black text-[min(2.8vw,32px)] font-bold">{user.nickName ?? user.name ?? '-'}</span>
+                <div className="flex flex-col gap-[2px] text-left min-w-0">
+                  <span className="text-black font-bold truncate" style={{ fontSize: 'min(1.9vw, 20px)' }}>{user.nickName ?? user.name ?? '-'}</span>
                   {user.name && user.nickName && (
-                    <span className="text-[#8A949E] text-[min(1.8vw,20px)]">{user.name}</span>
+                    <span className="text-[#8A949E] truncate" style={{ fontSize: 'min(1.4vw, 15px)' }}>{user.name}</span>
                   )}
-                  {user.phone && <span className="text-[#6D7882] text-[min(2vw,22px)]">{user.phone}</span>}
-                  {user.email && <span className="text-[#6D7882] text-[min(2vw,22px)] truncate">{user.email}</span>}
+                  {user.phone && <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 16px)' }}>{user.phone}</span>}
+                  {user.email && <span className="text-[#6D7882] truncate" style={{ fontSize: 'min(1.5vw, 16px)' }}>{user.email}</span>}
                 </div>
               </button>
             ))}
           </div>
         ) : (
           /* 단일 유저 확인 모드 */
-          <div className="px-[min(3.7vw,40px)] py-[min(1.8vw,20px)]">
-            <div className="flex items-center gap-[min(2.2vw,24px)] bg-[#F9F9FB] rounded-[32px] px-[min(3.7vw,40px)] py-[min(2.9vw,32px)]">
+          <div className="px-[min(2.4vw,26px)] py-[min(1vw,12px)]">
+            <div className="flex items-center gap-[min(1.4vw,16px)] bg-[#F9F9FB] rounded-[20px] px-[min(2.4vw,26px)] py-[min(1.8vw,20px)]">
               <UserAvatar profileImageUrl={profileImageUrl} />
-              <div className="flex flex-col gap-1">
-                <span className="text-black text-[min(2.8vw,32px)] font-bold">{nickName ?? name ?? '-'}</span>
+              <div className="flex flex-col gap-[2px] min-w-0">
+                <span className="text-black font-bold truncate" style={{ fontSize: 'min(1.9vw, 20px)' }}>{nickName ?? name ?? '-'}</span>
                 {name && nickName && (
-                  <span className="text-[#8A949E] text-[min(1.8vw,20px)]">{name}</span>
+                  <span className="text-[#8A949E] truncate" style={{ fontSize: 'min(1.4vw, 15px)' }}>{name}</span>
                 )}
-                {phone && <span className="text-[#6D7882] text-[min(2vw,22px)]">{formatPhone(phone)}</span>}
-                {email && <span className="text-[#6D7882] text-[min(2vw,22px)] truncate">{email}</span>}
+                {phone && <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 16px)' }}>{formatPhone(phone)}</span>}
+                {email && <span className="text-[#6D7882] truncate" style={{ fontSize: 'min(1.5vw, 16px)' }}>{email}</span>}
               </div>
             </div>
           </div>
         )}
 
         {/* 하단 버튼 */}
-        <div className="flex gap-[min(2.6vw,28px)] px-[min(4vw,44px)] pt-[min(2.9vw,32px)] pb-[min(4.4vw,48px)]">
+        <div className="flex gap-[min(1.4vw,16px)] px-[min(2.4vw,26px)] pt-[min(1.6vw,18px)] pb-[min(2.4vw,26px)]">
           <button
             onClick={onBack}
-            className="flex-[280] h-[min(13.9vw,150px)] rounded-[32px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+            className="flex-[280] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+            style={{ height: 'min(6vw, 64px)' }}
           >
-            <span className="text-[#1E2124] text-[min(4.2vw,45px)] font-bold">{t('kiosk_back')}</span>
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2vw, 22px)' }}>{t('kiosk_back')}</span>
           </button>
           {!isSelectMode && (
             <button
               onClick={onConfirm}
-              className="flex-[604] h-[min(13.9vw,150px)] rounded-[32px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+              className="flex-[604] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+              style={{ height: 'min(6vw, 64px)' }}
             >
-              <span className="text-white text-[min(4.2vw,45px)] font-bold">{t('confirm')}</span>
+              <span className="text-white font-bold" style={{ fontSize: 'min(2vw, 22px)' }}>{t('confirm')}</span>
             </button>
           )}
         </div>
