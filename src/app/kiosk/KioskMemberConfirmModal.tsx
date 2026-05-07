@@ -9,6 +9,7 @@ type UserItem = {
   name?: string;
   nickName?: string;
   phone?: string;
+  email?: string;
   profileImageUrl?: string;
 };
 
@@ -16,6 +17,7 @@ type KioskMemberConfirmModalProps = {
   phone: string;
   name?: string;
   nickName?: string;
+  email?: string;
   profileImageUrl?: string;
   locale: Locale;
   onBack: () => void;
@@ -44,7 +46,7 @@ const formatPhone = (digits: string) => {
   return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7, 11)}`;
 };
 
-export const KioskMemberConfirmModal = ({ phone, name, nickName, profileImageUrl, locale, onBack, onConfirm, users, onSelectUser }: KioskMemberConfirmModalProps) => {
+export const KioskMemberConfirmModal = ({ phone, name, nickName, email, profileImageUrl, locale, onBack, onConfirm, users, onSelectUser }: KioskMemberConfirmModalProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const isSelectMode = users && users.length > 1 && onSelectUser;
 
@@ -78,6 +80,7 @@ export const KioskMemberConfirmModal = ({ phone, name, nickName, profileImageUrl
                     <span className="text-[#8A949E] text-[min(1.8vw,20px)]">{user.name}</span>
                   )}
                   {user.phone && <span className="text-[#6D7882] text-[min(2vw,22px)]">{user.phone}</span>}
+                  {user.email && <span className="text-[#6D7882] text-[min(2vw,22px)] truncate">{user.email}</span>}
                 </div>
               </button>
             ))}
@@ -92,7 +95,8 @@ export const KioskMemberConfirmModal = ({ phone, name, nickName, profileImageUrl
                 {name && nickName && (
                   <span className="text-[#8A949E] text-[min(1.8vw,20px)]">{name}</span>
                 )}
-                <span className="text-[#6D7882] text-[min(2vw,22px)]">{formatPhone(phone)}</span>
+                {phone && <span className="text-[#6D7882] text-[min(2vw,22px)]">{formatPhone(phone)}</span>}
+                {email && <span className="text-[#6D7882] text-[min(2vw,22px)] truncate">{email}</span>}
               </div>
             </div>
           </div>

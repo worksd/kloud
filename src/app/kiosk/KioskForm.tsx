@@ -35,6 +35,7 @@ type SearchedUser = {
   name?: string;
   nickName?: string;
   phone?: string;
+  email?: string;
   profileImageUrl?: string;
   accessToken?: string;
 };
@@ -415,6 +416,37 @@ export const KioskForm = ({
         id: u.id,
         name: u.name,
         nickName: u.nickName,
+        email: u.email,
+      });
+      setCurrentScreen('member-confirm');
+    } catch {
+      setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
+      setCurrentScreen('phone');
+    }
+  };
+
+  // 이메일로 회원 검색 — 전화번호 흐름과 별개. 매칭 없으면 신규 가입 다이얼로그 대신 에러만 표시 (이메일은 자동 가입 흐름이 없음)
+  const handleEmailSearch = async (email: string) => {
+    setCurrentScreen('searching');
+    setErrorMessage(null);
+    try {
+      const res = await searchUserAction(email);
+      if (isGuinnessErrorCase(res)) {
+        setErrorMessage(res.message ?? '검색에 실패했습니다.');
+        setCurrentScreen('phone');
+        return;
+      }
+      if (!res.users || res.users.length === 0) {
+        setErrorMessage('일치하는 회원이 없습니다.');
+        setCurrentScreen('phone');
+        return;
+      }
+      const u = res.users[0];
+      setSelectedUser({
+        id: u.id,
+        name: u.name,
+        nickName: u.nickName,
+        email: u.email,
       });
       setCurrentScreen('member-confirm');
     } catch {
@@ -716,6 +748,7 @@ export const KioskForm = ({
           locale={locale}
           onBack={() => setCurrentScreen('lesson-list')}
           onNext={handlePhoneNext}
+          onSearchByEmail={handleEmailSearch}
           onHome={goHome}
           onChangeLocale={setLocale}
           loading={currentScreen === 'searching'}
@@ -729,6 +762,7 @@ export const KioskForm = ({
           phone={phone}
           name={selectedUser.name}
           nickName={selectedUser.nickName}
+          email={selectedUser.email}
           profileImageUrl={selectedUser.profileImageUrl}
           locale={locale}
           onBack={() => setCurrentScreen('phone')}
