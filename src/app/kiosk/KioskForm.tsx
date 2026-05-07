@@ -325,7 +325,7 @@ export const KioskForm = ({
     }
 
     if (paymentMethod !== 'card') return;
-    if (!paymentInfo?.paymentId || !selectedUser || !kioskId || !paymentItem) return;
+    if (!selectedUser || !kioskId || !paymentItem) return;
 
     // 카드: KIS 응답에서 매입 정보 추출 → /complete 호출
     const data = paymentResult.data;
@@ -334,12 +334,17 @@ export const KioskForm = ({
     const num = (k: string): number | undefined =>
       typeof data[k] === 'number' ? (data[k] as number) : undefined;
 
+    // KIS가 echo한 outCustomerUuid를 진짜 매입된 paymentId로 사용 — paymentInfo.paymentId가 그 사이 다른 값으로 바뀐 케이스 대비
+    // (이전에는 paymentInfo.paymentId만 사용해 KIS 매입은 됐는데 서버는 다른 paymentId로 complete 시도 → KIOSK_PAYMENT_NOT_PENDING 발생)
+    const completePaymentId = str('outCustomerUuid') ?? paymentInfo?.paymentId;
+    if (!completePaymentId) return;
+
     const finalAmount = Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0));
     const rawAuthDate = str('outAuthDate');
     const authDate = rawAuthDate ? rawAuthDate.slice(0, 8) : '';
 
     completeKioskPaymentAction({
-      paymentId: paymentInfo.paymentId,
+      paymentId: completePaymentId,
       targetUserId: selectedUser.id,
       kioskId,
       authNo: str('outAuthNo') ?? '',
@@ -379,12 +384,18 @@ export const KioskForm = ({
   }, [paymentResult, paymentMethod]);
 
   // KIS 실패/취소 → Pending 폐기. 'fail'은 실패 다이얼로그도 함께 노출, 'canceled'는 조용히 폼으로 복귀.
+  // 폐기 대상 paymentId도 outCustomerUuid를 우선 사용 (state staleness로 다른 paymentId 폐기되는 사고 방지)
   useEffect(() => {
     if (paymentResult?.status !== 'fail' && paymentResult?.status !== 'canceled') return;
     if (paymentMethod !== 'card') return;
-    if (!paymentInfo?.paymentId || !kioskId) return;
+    if (!kioskId) return;
 
-    discardKioskPaymentAction(paymentInfo.paymentId, kioskId).catch(() => {
+    const data = paymentResult.data;
+    const outCustomerUuid = typeof data?.outCustomerUuid === 'string' ? data.outCustomerUuid : undefined;
+    const discardPaymentId = outCustomerUuid || paymentInfo?.paymentId;
+    if (!discardPaymentId) return;
+
+    discardKioskPaymentAction(discardPaymentId, kioskId).catch(() => {
       // 폐기 실패는 사용자에게 노출 안 함 — 관리자가 paymentRecords에서 수동 폐기 가능
       console.warn('Pending 폐기 실패');
     });
