@@ -191,6 +191,8 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
       kioskName={selected?.name}
       kioskImageUrl={selected?.imageUrl ?? studio?.kioskImageUrl}
       kioskPassword={selected?.password}
+      canCheckIn={selected?.canCheckIn ?? false}
+      canPurchase={selected?.canPurchase ?? false}
       passPlans={[]}
     />
   );

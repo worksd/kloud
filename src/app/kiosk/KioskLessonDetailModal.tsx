@@ -153,26 +153,26 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
         <div
           className="flex"
           style={{
-            gap: 'min(2.6vw, 28px)',
-            padding: 'min(2.6vw, 28px) min(4vw, 44px) min(4.4vw, 48px)',
+            gap: 'min(2vw, 22px)',
+            padding: 'min(2vw, 22px) min(3.4vw, 36px) min(3vw, 32px)',
           }}
         >
           <button
             onClick={() => close(onClose)}
-            className="flex-[280] rounded-[32px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-            style={{ height: 'min(13.9vw, 150px)' }}
+            className="flex-[280] rounded-[24px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+            style={{ height: 'min(10vw, 110px)' }}
           >
-            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(4.2vw, 45px)' }}>{t('kiosk_back')}</span>
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(3.2vw, 34px)' }}>{t('kiosk_back')}</span>
           </button>
           <button
             onClick={payable ? () => close(onPayment) : undefined}
             disabled={!payable}
-            className={`flex-[604] rounded-[32px] flex items-center justify-center transition-transform ${
+            className={`flex-[604] rounded-[24px] flex items-center justify-center transition-transform ${
               payable ? 'bg-[#1E2124] active:scale-[0.97]' : 'bg-[#CDD1D5] cursor-not-allowed'
             }`}
-            style={{ height: 'min(13.9vw, 150px)' }}
+            style={{ height: 'min(10vw, 110px)' }}
           >
-            <span className={`font-bold ${payable ? 'text-white' : 'text-[#86898C]'}`} style={{ fontSize: 'min(4.2vw, 45px)' }}>
+            <span className={`font-bold ${payable ? 'text-white' : 'text-[#86898C]'}`} style={{ fontSize: 'min(3.2vw, 34px)' }}>
               {payable ? t('kiosk_payment_title') : blockText}
             </span>
           </button>

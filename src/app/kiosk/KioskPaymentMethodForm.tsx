@@ -171,8 +171,9 @@ export const KioskPaymentMethodForm = ({
         </div>
       </div>
 
-      {/* 할인 / 패스권 섹션 — 서버에서 pass.isEnabled=false면 섹션 자체 숨김 */}
-      {passEnabled && (
+      {/* 할인 / 패스권 섹션 — 서버에서 pass.isEnabled=false거나 패스권 구매 흐름이면 섹션 자체 숨김
+          (패스권 구매 시엔 다른 패스권으로 할인을 적용할 수 없음) */}
+      {passEnabled && itemType !== 'pass-plan' && (
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
           {t('kiosk_discount_pass_section')}
