@@ -55,6 +55,7 @@ export const KioskForm = ({
   kioskId,
   kioskName,
   kioskImageUrl,
+  kioskPassword,
   passPlans,
 }: {
   studioId: number;
@@ -68,6 +69,8 @@ export const KioskForm = ({
   kioskId: number;
   kioskName?: string;
   kioskImageUrl?: string;
+  /** 관리자 모드 진입 비밀번호 — BE에서 키오스크 단위로 내려주는 값 */
+  kioskPassword?: string;
   passPlans: GetPassPlanResponse[];
 }) => {
   const router = useRouter();
@@ -902,6 +905,7 @@ export const KioskForm = ({
         <KioskAdminModal
           kioskId={kioskId}
           kioskName={kioskName}
+          password={kioskPassword}
           studio={{
             name: studioName,
             address: studioAddress,

@@ -190,6 +190,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
       kioskId={selected?.id ?? 0}
       kioskName={selected?.name}
       kioskImageUrl={selected?.imageUrl ?? studio?.kioskImageUrl}
+      kioskPassword={selected?.password}
       passPlans={[]}
     />
   );

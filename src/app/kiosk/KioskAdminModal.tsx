@@ -7,13 +7,13 @@ import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 
-const ADMIN_PIN = '0000';
-
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'] as const;
 
 type KioskAdminModalProps = {
   kioskId: number;
   kioskName?: string;
+  /** BE에서 키오스크 단위로 내려주는 관리자 비밀번호. 미설정이면 어떤 입력도 통과시키지 않음. */
+  password?: string;
   studio: ReceiptStudio;
   onClose: () => void;
 };
@@ -65,7 +65,7 @@ const printCancellationReceipt = (record: KioskPaymentRecord, studio: ReceiptStu
   sendReceiptToPrinter(lines);
 };
 
-export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAdminModalProps) => {
+export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose }: KioskAdminModalProps) => {
   const [stage, setStage] = useState<Stage>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
@@ -89,15 +89,18 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   const [verifyOutcome, setVerifyOutcome] = useState<VerifyOutcome | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
 
-  // PIN 입력 처리
+  // PIN 입력 처리 — BE가 내려준 password와 길이 + 값 모두 일치할 때만 진입.
+  // password 미설정(undefined/'')이면 어떤 입력도 통과시키지 않음.
+  const passwordLength = password?.length ?? 0;
   const press = (k: string) => {
     if (k === '⌫') return setPin((p) => p.slice(0, -1));
     if (k === '') return;
-    if (pin.length >= 4) return;
+    if (passwordLength === 0) return;
+    if (pin.length >= passwordLength) return;
     const next = pin + k;
     setPin(next);
-    if (next.length === 4) {
-      if (next === ADMIN_PIN) {
+    if (next.length === passwordLength) {
+      if (next === password) {
         setPinError(null);
         setStage('list');
       } else {
@@ -405,7 +408,8 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
               </p>
             </div>
             <div className="flex items-center justify-center" style={{ gap: 'min(2vw,22px)', padding: 'min(2.4vw,26px) 0' }}>
-              {[0, 1, 2, 3].map((i) => (
+              {/* 비밀번호 길이만큼 점 표시 — password 미설정이면 0개 (사실상 입력 차단됨을 시각적으로 알림) */}
+              {Array.from({ length: passwordLength }, (_, i) => (
                 <div
                   key={i}
                   className={`rounded-full transition-colors ${i < pin.length ? 'bg-[#1E2124]' : 'bg-[#E6E8EA]'}`}
