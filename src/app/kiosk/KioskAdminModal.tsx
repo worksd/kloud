@@ -388,10 +388,10 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      {/* 배경 dim — 클릭으로 닫지 않음. 로고 6번째 탭(관리자 진입 직후) 같은 의도치 않은 입력으로 모달이 사라지면 곤란하기 때문. 명시적 닫기 버튼을 통해서만 닫힘 */}
+      <div className="absolute inset-0 bg-black/60" />
       <div
         className="relative w-[92.6%] max-w-[1000px] bg-white rounded-[28px] flex flex-col overflow-hidden animate-[fadeIn_200ms_ease-out]"
-        onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '88vh' }}
       >
         {stage === 'pin' ? (
