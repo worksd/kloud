@@ -30,11 +30,8 @@ export const KloudScreen = {
   Kiosk: '/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
-  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan', id: number) => `/payment?type=${type}&id=${id}`,
+  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group', id: number) => `/payment?type=${type}&id=${id}`,
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
-  MembershipPlans: (studioId?: number) => studioId ? `/membershipPlans?studioId=${studioId}` : '/membershipPlans',
-  MembershipPlanPayment: (id: number) => `/membershipPlans/${id}/payment`,
-  MembershipDetail: (id: number) => `/memberships/${id}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   MySubscription: '/profile/mySubscription',

@@ -13,7 +13,7 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan' | 'practice-room';
+type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
@@ -23,15 +23,13 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
       return { value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan' };
     case 'lesson-group':
       return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
-    case 'membership-plan':
-      return { value: 'membershipPlan', prefix: 'SM', apiValue: 'membership-plan' };
     case 'practice-room':
       return { value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room' };
   }
 }
 
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  return (type === 'pass-plan' || type === 'membership-plan') ? 'pass_plan_price' : 'lesson_price';
+  return type === 'pass-plan' ? 'pass_plan_price' : 'lesson_price';
 }
 
 const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): number => {
@@ -42,8 +40,6 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
       return payment.passPlan?.id ?? 0;
     case 'lesson-group':
       return payment.lessonGroup?.id ?? 0;
-    case 'membership-plan':
-      return payment.membershipPlan?.id ?? payment.passPlan?.id ?? 0;
     case 'practice-room':
       return payment.studioRoom?.id ?? 0;
   }
@@ -57,8 +53,6 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
       return payment.passPlan?.name ?? '';
     case 'lesson-group':
       return payment.lessonGroup?.title ?? '';
-    case 'membership-plan':
-      return payment.membershipPlan?.name ?? '';
     case 'practice-room':
       return payment.studioRoom?.name ?? '';
   }
@@ -74,8 +68,6 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
       return payment.passPlan?.price ?? 0;
     case 'lesson-group':
       return payment.lessonGroup?.price ?? 0;
-    case 'membership-plan':
-      return payment.membershipPlan?.price ?? 0;
     case 'practice-room':
       return payment.price ?? payment.studioRoom?.unitPrice ?? 0;
   }
@@ -89,16 +81,16 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
       return payment.passPlan?.studio;
     case 'lesson-group':
       return null;
-    case 'membership-plan':
-      return payment.membershipPlan?.studio ?? payment.passPlan?.studio ?? null;
+    case 'practice-room':
+      return null;
   }
 }
 
 const needsMountCheck = (type: UnifiedPaymentType) =>
-  type === 'pass-plan' || type === 'membership-plan';
+  type === 'pass-plan';
 
 const defaultMethod = (type: UnifiedPaymentType): PaymentMethodType | undefined =>
-  (type === 'pass-plan' || type === 'membership-plan') ? 'credit' : undefined;
+  type === 'pass-plan' ? 'credit' : undefined;
 
 export const UnifiedPaymentInfo = ({
   payment,
@@ -150,7 +142,7 @@ export const UnifiedPaymentInfo = ({
   const [mounted, setMounted] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(
-    (type === 'pass-plan' || type === 'membership-plan' || type === 'practice-room')
+    (type === 'pass-plan' || type === 'practice-room')
       ? undefined
       : payment.discounts?.[0]
   );
@@ -177,7 +169,7 @@ export const UnifiedPaymentInfo = ({
   if (needsMountCheck(type) && !mounted) return null;
 
   const studio = getStudio(payment, type);
-  const noPass = type === 'pass-plan' || type === 'membership-plan' || type === 'practice-room';
+  const noPass = type === 'pass-plan' || type === 'practice-room';
   const itemPrice = getItemPrice(payment, type);
   const priceNotAvailable = payment.price == null && payment.methods.length === 0;
 

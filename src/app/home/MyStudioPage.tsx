@@ -2,9 +2,7 @@
 
 import { LessonBand } from "@/app/LessonBand";
 import React from "react";
-import { getLocale } from "@/utils/translate";
 import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { MembershipBand } from "@/app/home/MembershipBand";
 import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
 
@@ -39,9 +37,6 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
         <HomeBanner banners={res.banners} />
       )}
 
-      {res.membership && (
-        <MembershipBand membership={res.membership} locale={await getLocale()} />
-      )}
       {res.bands.map((value) => (
         <LessonBand
           key={value.title}

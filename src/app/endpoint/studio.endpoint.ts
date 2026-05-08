@@ -3,7 +3,6 @@ import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
-import {GetMembershipResponse} from "@/app/endpoint/membership.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
 export type IdParameter = {
@@ -89,7 +88,6 @@ export type GetMyStudioResponse = {
   lessonGroups?: LessonGroupSummary[];
   jumbotrons?: GetBandLessonResponse[];
   banners?: HomeBannerResponse[];
-  membership?: GetMembershipResponse;
 }
 
 export type GetTimeTableResponse = {
