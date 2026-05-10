@@ -1,6 +1,9 @@
 import { StudioDetailForm } from "@/app/studios/[id]/studio.detail";
+import { StudioDesktopForm } from "@/app/studios/[id]/StudioDesktopForm";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
+import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
+import { GetTimeTableResponse } from "@/app/endpoint/studio.endpoint";
 import { Metadata, ResolvingMetadata } from "next";
 import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { cookies } from "next/headers";
@@ -19,6 +22,16 @@ export default async function StudioDetail({params, searchParams}: Props) {
 
   if (isNaN(id) || !id) {
     notFound();
+  }
+
+  // 네이티브 앱이 아닌 일반 브라우저(=Web) 진입 시엔 데스크톱 전용 페이지 노출.
+  // proxy.ts가 UA에 KloudNativeClient 토큰이 없으면 appVersion=''로 세팅 + os는 Android/iOS 외 값.
+  if (appVersion === '' && os !== 'Android' && os !== 'iOS') {
+    const studio = await getStudioDetail(id);
+    if (!('id' in studio)) notFound();
+    const tt = await getTimeTableAction({ studioId: id });
+    const timeTable: GetTimeTableResponse | null = 'cells' in tt ? tt : null;
+    return <StudioDesktopForm studio={studio} timeTable={timeTable}/>;
   }
 
   return (
