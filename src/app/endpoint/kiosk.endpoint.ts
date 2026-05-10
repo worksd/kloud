@@ -143,15 +143,23 @@ export type KioskPaymentRecord = {
 
 export type ListKioskPaymentsRequest = {
   kioskId: number;
+  /** KST 기준 yyyy-MM-dd. 미지정 시 전체 조회 */
+  date?: string;
+  /** 1부터. 미지정 또는 0 이하면 페이지네이션 없이 전체 */
+  page?: number;
 };
 
 export type ListKioskPaymentsResponse = {
   paymentRecords: KioskPaymentRecord[];
+  /** page 파라미터로 호출 시 BE가 함께 내려주는 페이지네이션 메타 */
+  totalPage?: number;
+  page?: number;
 };
 
 export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaymentsResponse> = {
   method: 'get',
   path: (e) => `/kiosks/${e.kioskId}/paymentRecords`,
+  queryParams: ['date', 'page'],
 };
 
 // POST /kiosks/payments/:paymentId/cancel — Completed → Cancelled (관리자 취소).

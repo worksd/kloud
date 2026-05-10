@@ -1,0 +1,103 @@
+/* react-calendar 톤 오버라이드 — Tailwind preflight + react-calendar 기본 CSS 위에 입힘.
+   :global()로 react-calendar 내부 BEM 클래스를 모듈 클래스 안에서 타겟. */
+
+.calendarWrapper :global(.react-calendar) {
+  width: 100%;
+  border: none;
+  font-family: inherit;
+  background: transparent;
+}
+
+/* 상단 네비게이션 — 월 이동 / 라벨 */
+.calendarWrapper :global(.react-calendar__navigation) {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.calendarWrapper :global(.react-calendar__navigation button) {
+  min-width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #191F28;
+  border-radius: 8px;
+  transition: background-color 0.15s;
+}
+.calendarWrapper :global(.react-calendar__navigation button:hover) {
+  background-color: #F7F8F9;
+}
+.calendarWrapper :global(.react-calendar__navigation button:disabled) {
+  background-color: transparent;
+  color: #B1B8BE;
+}
+.calendarWrapper :global(.react-calendar__navigation__label) {
+  flex-grow: 1;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 요일 헤더 */
+.calendarWrapper :global(.react-calendar__month-view__weekdays) {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6D7882;
+  padding-bottom: 8px;
+}
+.calendarWrapper :global(.react-calendar__month-view__weekdays__weekday) {
+  padding: 8px 0;
+}
+.calendarWrapper :global(.react-calendar__month-view__weekdays__weekday abbr) {
+  text-decoration: none;
+}
+
+/* 일자 타일 */
+.calendarWrapper :global(.react-calendar__month-view__days__day) {
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #191F28;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.calendarWrapper :global(.react-calendar__month-view__days__day:hover) {
+  background-color: #F7F8F9;
+}
+.calendarWrapper :global(.react-calendar__month-view__days__day--neighboringMonth) {
+  color: #B1B8BE;
+}
+
+/* 오늘 */
+.calendarWrapper :global(.react-calendar__tile--now) {
+  background: #F2F4F6;
+  border-radius: 8px;
+}
+.calendarWrapper :global(.react-calendar__tile--now:hover) {
+  background: #E6E8EA;
+}
+
+/* 선택된 날짜 — react-calendar의 now/active 우선순위 덮어쓰기 위해 !important */
+.calendarWrapper :global(.react-calendar__tile--active) {
+  background: #191F28 !important;
+  color: white !important;
+  border-radius: 8px;
+}
+.calendarWrapper :global(.react-calendar__tile--active:hover) {
+  background: #333D4B !important;
+}
+
+/* 일요일 빨강 / 토요일 파랑 (gregory: 일요일 시작) */
+.calendarWrapper :global(.react-calendar__month-view__weekdays__weekday:nth-child(1)) { color: #E53E3E; }
+.calendarWrapper :global(.react-calendar__month-view__days button:nth-child(7n+1))    { color: #E53E3E; }
+.calendarWrapper :global(.react-calendar__month-view__weekdays__weekday:nth-child(7)) { color: #3182F6; }
+.calendarWrapper :global(.react-calendar__month-view__days button:nth-child(7n))      { color: #3182F6; }
+
+/* 이웃 달의 주말은 흐리게 */
+.calendarWrapper :global(.react-calendar__month-view__days__day--neighboringMonth:nth-child(7n+1)) {
+  color: rgba(229, 62, 62, 0.4);
+}
+.calendarWrapper :global(.react-calendar__month-view__days__day--neighboringMonth:nth-child(7n)) {
+  color: rgba(49, 130, 246, 0.4);
+}

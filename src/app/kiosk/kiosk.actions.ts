@@ -160,9 +160,9 @@ export const useKioskPassAction = async (
   return await api.kiosk.usePass(body);
 };
 
-// 관리자 모드: 키오스크에서 발생한 결제 목록 조회
-export const listKioskPaymentsAction = async (kioskId: number) => {
-  return await api.kiosk.listPayments({ kioskId });
+// 관리자 모드: 키오스크에서 발생한 결제 목록 조회. date(yyyy-MM-dd, KST), page(1-base) 옵션.
+export const listKioskPaymentsAction = async (kioskId: number, params?: { date?: string; page?: number }) => {
+  return await api.kiosk.listPayments({ kioskId, date: params?.date, page: params?.page });
 };
 
 // 관리자 모드: Completed 결제 취소 — KIS 단말 취소가 선행된 후 서버에 기록.

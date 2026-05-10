@@ -1,11 +1,28 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css'; // 기본 CSS — 무조건 먼저 import
+import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
+
+// yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
+const formatYmd = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const parseYmd = (s: string): Date | null => {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map((n) => parseInt(n, 10));
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+};
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'] as const;
 
@@ -71,6 +88,22 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   const [pinError, setPinError] = useState<string | null>(null);
   const [payments, setPayments] = useState<KioskPaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  // KST 기준 yyyy-MM-dd. 빈 문자열이면 '전체'(date 파라미터 미전달) — 기본값
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPage, setTotalPage] = useState<number>(0);
+  // 날짜 picker(react-calendar) popover 토글 + 외부 클릭으로 닫기 위한 컨테이너 ref
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const calendarWrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!calendarOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!calendarWrapRef.current) return;
+      if (!calendarWrapRef.current.contains(e.target as Node)) setCalendarOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [calendarOpen]);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // 취소 확인 다이얼로그 — 사용자가 '취소' 버튼을 눌렀을 때 즉시 KIS로 가지 않고 한 번 확인받음
@@ -111,21 +144,27 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   };
 
 
-  // 결제 목록 fetch — 새로고침 버튼에서도 동일 함수 호출
+  // 결제 목록 fetch — 날짜/페이지 변경 시 자동 재호출 + 새로고침 버튼도 동일 함수 호출
   const fetchPayments = useCallback(() => {
     if (!kioskId) return;
     setLoading(true);
-    listKioskPaymentsAction(kioskId)
+    listKioskPaymentsAction(kioskId, {
+      date: selectedDate || undefined,
+      page: currentPage,
+    })
       .then((res) => {
         if (isGuinnessErrorCase(res)) {
           setToast(res.message ?? '목록을 불러오지 못했습니다');
           return;
         }
-        if ('paymentRecords' in res) setPayments(res.paymentRecords);
+        if ('paymentRecords' in res) {
+          setPayments(res.paymentRecords);
+          setTotalPage(typeof res.totalPage === 'number' ? res.totalPage : 0);
+        }
       })
       .catch(() => setToast('목록을 불러오지 못했습니다'))
       .finally(() => setLoading(false));
-  }, [kioskId]);
+  }, [kioskId, selectedDate, currentPage]);
 
   useEffect(() => {
     if (stage !== 'list') return;
@@ -447,9 +486,58 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
           </>
         ) : (
           <>
-            <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
+            <div className="flex items-center justify-between flex-wrap" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)', gap: 'min(1vw,12px)' }}>
               <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
               <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
+                {/* 날짜 필터 — react-calendar popover */}
+                <div className="relative" ref={calendarWrapRef}>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarOpen((v) => !v)}
+                    className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center"
+                    style={{ padding: 'min(1vw,12px) min(1.6vw,18px)', gap: 'min(0.6vw,8px)' }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" style={{ width: 'min(1.8vw,20px)', height: 'min(1.8vw,20px)' }}>
+                      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="#1E2124" strokeWidth="1.8"/>
+                      <path d="M3 10H21" stroke="#1E2124" strokeWidth="1.8"/>
+                      <path d="M8 3V7" stroke="#1E2124" strokeWidth="1.8" strokeLinecap="round"/>
+                      <path d="M16 3V7" stroke="#1E2124" strokeWidth="1.8" strokeLinecap="round"/>
+                    </svg>
+                    <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>
+                      {selectedDate || '전체'}
+                    </span>
+                  </button>
+                  {calendarOpen && (
+                    <div className={`${calendarStyles.calendarWrapper} absolute right-0 z-[80] mt-2 bg-white rounded-[16px] shadow-[0_12px_32px_rgba(0,0,0,0.12)] border border-[#E6E8EA] p-3`} style={{ width: 320 }}>
+                      <Calendar
+                        onChange={(value) => {
+                          const d = Array.isArray(value) ? value[0] : value;
+                          if (d instanceof Date) {
+                            setSelectedDate(formatYmd(d));
+                            setCurrentPage(1);
+                            setCalendarOpen(false);
+                          }
+                        }}
+                        value={parseYmd(selectedDate)}
+                        formatDay={(_locale, d) => String(d.getDate())}
+                        locale="ko-KR"
+                        calendarType="gregory"
+                      />
+                    </div>
+                  )}
+                </div>
+                {selectedDate && (
+                  <button
+                    onClick={() => { setSelectedDate(''); setCurrentPage(1); }}
+                    aria-label="날짜 필터 해제"
+                    className="rounded-full bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center justify-center"
+                    style={{ width: 'min(3.4vw,36px)', height: 'min(3.4vw,36px)' }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                      <path d="M6 6L18 18M6 18L18 6" stroke="#6D7882" strokeWidth="2.4" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                )}
                 <button
                   onClick={fetchPayments}
                   disabled={loading}
@@ -607,6 +695,30 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                 </div>
               )}
             </div>
+            {/* 페이지네이션 — page 파라미터 사용 시(BE가 totalPage 내려줌) 1보다 클 때만 노출 */}
+            {totalPage > 1 && (
+              <div className="shrink-0 flex items-center justify-center" style={{ gap: 'min(1.6vw,18px)', padding: 'min(1vw,12px) 0 min(1.6vw,18px)' }}>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1 || loading}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ padding: 'min(1vw,12px) min(1.8vw,20px)' }}
+                >
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>이전</span>
+                </button>
+                <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+                  {currentPage} / {totalPage}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPage, p + 1))}
+                  disabled={currentPage >= totalPage || loading}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ padding: 'min(1vw,12px) min(1.8vw,20px)' }}
+                >
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>다음</span>
+                </button>
+              </div>
+            )}
           </>
         )}
 
