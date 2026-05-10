@@ -20,7 +20,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
     id: l.id,
     imageUrl: l.thumbnailUrl,
     title: l.title,
-    artistName: (l.artists?.[0]?.name ?? l.artists?.[0]?.nickName) ?? l.artist?.nickName,
+    artistName: (l.artists?.[0]?.nickName ?? l.artists?.[0]?.name) ?? l.artist?.nickName,
     artistImageUrl: l.artists?.[0]?.profileImageUrl ?? l.artist?.profileImageUrl,
   }));
 
