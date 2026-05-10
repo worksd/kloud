@@ -42,6 +42,8 @@ export type GetStudioResponse = {
     representative?: string;
     depositor?: string;
     instagramAddress?: string;
+    /** vanity URL용 — /@slug 형태의 단축 식별자 */
+    slug?: string;
     kioskImageUrl?: string;
     /** 영수증 하단에 추가로 인쇄할 안내 문구 (스튜디오별 설정, 줄바꿈 가능) */
     receiptFooter?: string;
@@ -127,6 +129,16 @@ export type GetTimeTableLessonResponse = {
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
   method: "get",
   path: (e) => `/studios/${e.id}`,
+};
+
+// vanity URL — 데스크톱 웹에서 /@slug 로 접근 시 사용
+export type GetStudioBySlugRequest = {
+  slug: string;
+};
+
+export const GetStudioBySlug: Endpoint<GetStudioBySlugRequest, GetStudioResponse> = {
+  method: "get",
+  path: (e) => `/studios/by-slug/${e.slug}`,
 };
 
 export type GetStudioListResponse = {

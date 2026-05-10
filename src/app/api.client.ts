@@ -42,6 +42,7 @@ export class ApiClient extends EndpointClient {
 
   readonly studio = {
     get: this.endpointBuilder(API.Studio.GetStudio),
+    getBySlug: this.endpointBuilder(API.Studio.GetStudioBySlug),
     list: this.endpointBuilder(API.Studio.ListStudios),
     me: this.endpointBuilder(API.Studio.Me),
     my: this.endpointBuilder(API.Studio.My),
