@@ -51,7 +51,7 @@ export type GetFormattedDateResponse = {
 export type GetLessonButtonResponse = {
     title: string;
     route?: string;
-    activateAt: string;
+    activateAt?: string;
 }
 
 export type GetStudioRoomResponse = {

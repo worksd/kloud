@@ -41,10 +41,13 @@ function pickAvailableButton(
   buttons: GetLessonButtonResponse[],
   nowUtcMs: number
 ): GetLessonButtonResponse | null {
-  let latest: { btn: GetLessonButtonResponse; ts: number } | null = null;
+  // activateAt 미지정 버튼 = 항상 ON & 최우선. 있으면 무조건 그걸 사용.
+  const alwaysOn = buttons.find((b) => b.activateAt == null);
+  if (alwaysOn) return alwaysOn;
 
+  let latest: { btn: GetLessonButtonResponse; ts: number } | null = null;
   for (const btn of buttons) {
-    const ts = parseKstLocalToEpoch(btn.activateAt);
+    const ts = parseKstLocalToEpoch(btn.activateAt!);
     if (!Number.isFinite(ts) || ts > nowUtcMs) continue;
     if (!latest || ts > latest.ts) latest = { btn, ts };
   }
