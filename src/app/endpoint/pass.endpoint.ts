@@ -183,8 +183,8 @@ export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending' | 'Waiting' |
 
 export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse> = {
   method: "get",
-  path: `/passPlans`,
-  queryParams: ['studioId']
+  path: (e) => `/studios/${e.studioId}/pass-plans`,
+  pathParams: ['studioId']
 };
 
 export const GetPassPlan: Endpoint<{ id: number }, GetPassPlanResponse> = {

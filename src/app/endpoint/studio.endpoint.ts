@@ -1,7 +1,7 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
-import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
@@ -47,7 +47,6 @@ export type GetStudioResponse = {
     receiptFooter?: string;
     lessons?: GetBandLessonResponse[];
     announcements?: GetAnnouncementResponse[];
-    passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
     timeTable?: GetTimeTableResponse;
     banners?: StudioBannerResponse[];
