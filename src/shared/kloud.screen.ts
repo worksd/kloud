@@ -21,6 +21,7 @@ export const KloudScreen = {
   PasswordSetting: '/profile/setting/account/resetPassword',
   RefundAccountSetting: '/profile/setting/account/refund',
   PaymentMethodSetting: '/profile/setting/account/paymentMethod',
+  InstagramConnect: '/profile/setting/account/instagram',
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
   SignOut: '/profile/setting/account/signOut',

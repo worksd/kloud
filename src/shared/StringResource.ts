@@ -3152,6 +3152,124 @@ export const StringResource = {
 
   // Kiosk — 분 단위 접미사 (예: 90분 / 90 min / 90分 / 90分钟)
   kiosk_minutes_suffix: { ko: '분', en: ' min', jp: '分', zh: '分钟' },
+
+  // Instagram 연동
+  instagram_connect: {
+    ko: '인스타그램 계정 연동하기',
+    en: 'Connect Instagram Account',
+    jp: 'Instagramアカウント連携',
+    zh: '关联 Instagram 账户',
+  },
+  instagram_connect_title: {
+    ko: '인스타그램 연동',
+    en: 'Instagram Connect',
+    jp: 'Instagram連携',
+    zh: 'Instagram 关联',
+  },
+  instagram_connect_description: {
+    ko: '아래 메시지를 @rawgraphy.inc 계정으로 보내면\n담당자가 확인 후 계정을 연동해드려요.',
+    en: 'Send the message below to @rawgraphy.inc\nand our team will link your account.',
+    jp: '下記メッセージを@rawgraphy.incに送信すると\n担当者が確認のうえ連携いたします。',
+    zh: '将下方信息发送至 @rawgraphy.inc，\n我们将确认后为您关联账户。',
+  },
+  instagram_connect_message_preview: {
+    ko: '전송 메시지 미리보기',
+    en: 'Message preview',
+    jp: 'メッセージのプレビュー',
+    zh: '消息预览',
+  },
+  instagram_connect_send_button: {
+    ko: '인스타그램으로 메시지 보내기',
+    en: 'Send message via Instagram',
+    jp: 'Instagramでメッセージ送信',
+    zh: '通过 Instagram 发送消息',
+  },
+  instagram_connect_copied: {
+    ko: '메시지가 복사되었어요.\n인스타그램에서 붙여넣고 전송해주세요.',
+    en: 'Message copied.\nPaste it on Instagram and send.',
+    jp: 'メッセージをコピーしました。\nInstagramで貼り付けて送信してください。',
+    zh: '消息已复制。\n请在 Instagram 中粘贴并发送。',
+  },
+  instagram_connect_no_contact: {
+    ko: '연동을 위해 휴대폰 번호 또는 이메일이 필요해요.\n프로필을 먼저 등록해주세요.',
+    en: 'A phone number or email is required to link.\nPlease complete your profile first.',
+    jp: '連携には電話番号またはメールが必要です。\nまずプロフィールを登録してください。',
+    zh: '关联需要手机号或邮箱。\n请先完善个人资料。',
+  },
+
+  // Instagram 연동 — 단계별
+  instagram_step1_title: {
+    ko: '1. 아래 메시지를 복사해주세요',
+    en: '1. Copy the message below',
+    jp: '1. 下記メッセージをコピーしてください',
+    zh: '1. 请复制下方消息',
+  },
+  instagram_step1_cta: {
+    ko: '메시지 복사하기',
+    en: 'Copy message',
+    jp: 'メッセージをコピー',
+    zh: '复制消息',
+  },
+  instagram_step2_title: {
+    ko: '2. @rawgraphy.inc 에 DM으로 보내주세요',
+    en: '2. Send it as a DM to @rawgraphy.inc',
+    jp: '2. @rawgraphy.incにDMで送信してください',
+    zh: '2. 通过私信发送给 @rawgraphy.inc',
+  },
+  instagram_step2_desc: {
+    ko: 'DM 입력란을 길게 눌러 붙여넣고 전송해주세요.',
+    en: 'Long-press the DM field, paste the message, and send.',
+    jp: 'DM入力欄を長押しして貼り付け、送信してください。',
+    zh: '长按 DM 输入框粘贴消息并发送。',
+  },
+  instagram_step2_cta: {
+    ko: '인스타그램 열기',
+    en: 'Open Instagram',
+    jp: 'Instagramを開く',
+    zh: '打开 Instagram',
+  },
+  instagram_step2_already_sent: {
+    ko: '이미 보냈어요',
+    en: "I've already sent it",
+    jp: '送信済みです',
+    zh: '我已发送',
+  },
+  instagram_step3_title: {
+    ko: '3. 인증을 완료해주세요',
+    en: '3. Complete verification',
+    jp: '3. 認証を完了してください',
+    zh: '3. 完成验证',
+  },
+  instagram_step3_desc: {
+    ko: '메시지가 도착했는지 확인할게요.\n전송 후 1~2분 정도 걸릴 수 있어요.',
+    en: "We'll check if your message has arrived.\nIt may take 1–2 minutes after sending.",
+    jp: 'メッセージが届いたか確認します。\n送信後1〜2分かかる場合があります。',
+    zh: '我们将检查消息是否到达。\n发送后可能需要 1–2 分钟。',
+  },
+  instagram_step3_cta: {
+    ko: '인증하기',
+    en: 'Verify',
+    jp: '認証する',
+    zh: '验证',
+  },
+  instagram_verify_pending: {
+    ko: '아직 메시지가 도착하지 않았어요.\n잠시 후 다시 시도해주세요.',
+    en: "We haven't received your message yet.\nPlease try again in a moment.",
+    jp: 'まだメッセージが届いていません。\nしばらくしてから再度お試しください。',
+    zh: '我们尚未收到您的消息。\n请稍后再试。',
+  },
+  instagram_verify_success: {
+    ko: '인스타그램 연동이 완료됐어요!',
+    en: 'Instagram has been connected!',
+    jp: 'Instagram連携が完了しました！',
+    zh: 'Instagram 关联完成！',
+  },
+  instagram_step_prev: {
+    ko: '이전',
+    en: 'Back',
+    jp: '戻る',
+    zh: '上一步',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

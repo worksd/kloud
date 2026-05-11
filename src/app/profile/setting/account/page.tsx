@@ -37,6 +37,10 @@ export default async function MyAccountPage() {
         <MenuItem label="refund_account"/>
       </NavigateClickWrapper>
 
+      <NavigateClickWrapper method={'push'} route={KloudScreen.InstagramConnect}>
+        <MenuItem label="instagram_connect"/>
+      </NavigateClickWrapper>
+
       <NavigateClickWrapper method={'push'} route={KloudScreen.SignOut}>
         <MenuItem label="sign_out"/>
       </NavigateClickWrapper>

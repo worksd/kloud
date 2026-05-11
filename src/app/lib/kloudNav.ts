@@ -139,6 +139,8 @@ const applyTitle = async (route: string) => {
     return await translate('language_setting')
   } else if (route == KloudScreen.RefundAccountSetting) {
     return await translate('refund_account')
+  } else if (route == KloudScreen.InstagramConnect) {
+    return await translate('instagram_connect_title')
   } else if (route == KloudScreen.BusinessInfo) {
     return await translate('business_info')
   } else if (route == KloudScreen.Policy) {
