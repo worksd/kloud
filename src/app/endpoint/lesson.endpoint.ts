@@ -155,6 +155,44 @@ export const GetLessonTickets: Endpoint<GetLessonTicketsParameter, TicketListRes
     path: (e) => `/lessons/${e.id}/tickets`,
 }
 
+export type SettleUpItem = {
+    key: string;
+    value: string;
+    type?: 'Default' | 'Total' | string;
+}
+
+export type SettleUpSection = {
+    title: string;
+    items: SettleUpItem[];
+}
+
+export type SettleUpArtistResponse = {
+    id: number;
+    nickName: string;
+    profileImageUrl: string;
+    settleAmount: number;
+    totalAmount: number;
+    description: string;
+}
+
+export type SettleUpLessonResponse = {
+    id: number;
+    date: string;
+    title: string;
+    artists: SettleUpArtistResponse[];
+    sales: SettleUpSection;
+    settleUp: SettleUpSection;
+}
+
+export type GetLessonSettleUpParameter = {
+    id: number;
+}
+
+export const GetLessonSettleUp: Endpoint<GetLessonSettleUpParameter, SettleUpLessonResponse> = {
+    method: 'get',
+    path: (e) => `/lessons/${e.id}/settle-up`,
+}
+
 // LessonGroup (정기수업) 관련 타입
 export type GetLessonGroupParameter = {
     id: number;

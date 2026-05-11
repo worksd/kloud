@@ -3270,6 +3270,68 @@ export const StringResource = {
     jp: '戻る',
     zh: '上一步',
   },
+
+  // 레슨 어드민 / 정산
+  lesson_admin_students_title: {
+    ko: '수강생',
+    en: 'Students',
+    jp: '受講生',
+    zh: '学员',
+  },
+  lesson_admin_students_count: {
+    ko: '{count}명',
+    en: '{count}',
+    jp: '{count}名',
+    zh: '{count} 人',
+  },
+  lesson_admin_no_students: {
+    ko: '아직 수강생이 없어요.',
+    en: 'No students yet.',
+    jp: 'まだ受講生がいません。',
+    zh: '暂无学员。',
+  },
+  lesson_admin_qr_attendance: {
+    ko: 'QR 출석체크',
+    en: 'QR Attendance',
+    jp: 'QR出席',
+    zh: 'QR 出席',
+  },
+  lesson_settle_up_artists: {
+    ko: '강사별 정산',
+    en: 'Settlement by Instructor',
+    jp: '講師別精算',
+    zh: '讲师结算明细',
+  },
+  lesson_settle_up_settle_amount: {
+    ko: '실지급액',
+    en: 'Net Amount',
+    jp: '実支給額',
+    zh: '实付金额',
+  },
+  lesson_settle_up_total_amount: {
+    ko: '총 정산금액',
+    en: 'Total Amount',
+    jp: '総精算額',
+    zh: '总金额',
+  },
+  ticket_status_used: {
+    ko: '출석완료',
+    en: 'Attended',
+    jp: '出席済み',
+    zh: '已出席',
+  },
+  ticket_status_pending: {
+    ko: '결제대기',
+    en: 'Pending',
+    jp: '決済待ち',
+    zh: '待付款',
+  },
+  ticket_status_ready: {
+    ko: '예약완료',
+    en: 'Reserved',
+    jp: '予約完了',
+    zh: '已预约',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;
