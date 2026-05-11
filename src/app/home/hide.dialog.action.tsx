@@ -1,10 +1,11 @@
 'use server'
 
 import { cookies } from "next/headers";
+import { hideDialogIdListKey } from "@/shared/cookies.key";
 
 export const hideDialogAction = async ({id, clicked} : {id: string, clicked: boolean}) => {
   const cookieStore = await cookies();
-  const idList = cookieStore.get('hideDialogIdList')?.value ?? '';
+  const idList = cookieStore.get(hideDialogIdListKey)?.value ?? '';
   const idArray = idList.split('/').filter(Boolean); // 빈 문자열 제거
 
   let newIdList: string;
@@ -31,7 +32,7 @@ export const hideDialogAction = async ({id, clicked} : {id: string, clicked: boo
   const expiryDate = new Date();
   expiryDate.setDate(expiryDate.getDate() + 7);
 
-  cookieStore.set('hideDialogIdList', newIdList, {
+  cookieStore.set(hideDialogIdListKey, newIdList, {
     expires: expiryDate,
     path: '/',
   });
