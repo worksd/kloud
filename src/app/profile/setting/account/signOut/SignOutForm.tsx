@@ -5,6 +5,7 @@ import CheckIcon from "../../../../../../public/assets/check_white.svg"
 import { clearCookies } from "@/app/profile/clear.token.action";
 import { deleteUserAction } from "@/app/profile/sign.out.action";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
+import { syncCookiesToNative } from "@/app/lib/sync.cookies.to.native";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -47,6 +48,7 @@ export default function SignOutForm({locale}: { locale: Locale }) {
         if ('success' in res && res.success) {
           await unregisterDeviceAction()
           await clearCookies();
+          await syncCookiesToNative();
           localStorage.clear();
           sessionStorage.clear();
           window.KloudEvent?.clearToken()
