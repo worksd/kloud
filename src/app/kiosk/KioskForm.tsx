@@ -1121,7 +1121,9 @@ export const KioskForm = ({
 
       {currentScreen === 'pass-select' && selectedLesson && selectedUser && (
         <KioskPassSelectModal
-          passes={paymentInfo?.user?.passes ?? []}
+          // passEnabled=false면 보유 패스권은 modal에 노출 X → discounts만 보이도록 빈 배열 전달.
+          // discounts는 passEnabled와 무관하게 항상 노출.
+          passes={passEnabled ? (paymentInfo?.user?.passes ?? []) : []}
           discounts={paymentInfo?.discounts ?? []}
           locale={locale}
           onBack={() => setCurrentScreen('payment-method')}
