@@ -1,6 +1,6 @@
 'use client'
 
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useState, useEffect, useCallback, useRef} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import {KioskCardPaymentDialog} from "@/app/kiosk/KioskCardPaymentDialog";
 import {KioskHomeForm} from "@/app/kiosk/KioskHomeForm";
@@ -144,6 +144,7 @@ export const KioskForm = ({
     setPaymentQrCodeUrl(null);
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
+    lastFetchedKeyRef.current = null;
   }, []);
 
   // 홈 외 화면에서 2분간 사용자 인터랙션이 없으면 자동으로 홈 복귀.
@@ -194,13 +195,29 @@ export const KioskForm = ({
   //  1) GET /kiosks/payment — price/discounts/methods/paymentId
   //  2) GET /kiosks/:id     — kiosk별 receiptFooter 등 상세 (영수증 하단 안내 문구)
   // 두 호출은 서로 독립이라 병렬로 보냄.
+  const lastFetchedKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
     if (!selectedLesson && !selectedPassPlan) return;
     const item = selectedLesson ? 'lesson' : 'pass-plan';
     const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
     if (!itemId) return;
+
+    // 같은 selection으로 재진입(예: pass-select 갔다오기)일 땐 fetch/reset skip → 선택해둔 할인/패스권 보존.
+    // key 변하면 새 transaction이므로 stale state 즉시 클리어 + refetch.
+    const key = `${selectedUser.id}:${item}:${itemId}:${kioskId}`;
+    if (lastFetchedKeyRef.current === key) return;
+    lastFetchedKeyRef.current = key;
+
+    setPaymentInfo(null);
     setPaymentInfoError(null);
+    setSelectedDiscount(null);
+    setSelectedPass(null);
+    setPaymentMethod(null);
+    setPaymentResult(null);
+    setPaymentQrCodeUrl(null);
+    setReceiptPaymentIdOverride(null);
     const fallbackErr = getLocaleString({ locale, key: 'kiosk_search_failed' });
 
     getKioskPaymentAction({ kioskId, targetUserId: selectedUser.id, item, itemId })
@@ -534,7 +551,7 @@ export const KioskForm = ({
   // 키오스크 응답은 paymentMethod로 wrap되어 옴, 일반 결제 응답은 root에 type. 둘 다 지원.
   const isMethodEnabled = (type: 'credit' | 'cash' | 'pass'): boolean => {
     const methods = paymentInfo?.methods;
-    if (!methods) return true; // paymentInfo 미수신 단계엔 일단 활성으로 둠
+    if (!methods) return false; // paymentInfo 미수신 단계엔 비활성 (응답 오기 전까지 잔상 방지)
     const m = methods.find((x) => (x.paymentMethod?.type ?? x.type) === type);
     if (!m) return false;
     return m.isEnabled ?? true;
