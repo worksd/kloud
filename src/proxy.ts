@@ -1,8 +1,32 @@
 import { NextRequest, userAgent } from 'next/server'
 import { NextResponse } from 'next/server'
 import { cookies } from "next/headers";
-import { accessTokenKey } from "@/shared/cookies.key";
+import {
+  accessTokenKey,
+  COOKIE_MAX_AGE,
+  depositorKey,
+  fcmTokenKey,
+  hideDialogIdListKey,
+  kioskSelectedIdKey,
+  localeKey,
+  studioKey,
+  udidKey,
+  userIdKey,
+} from "@/shared/cookies.key";
 import { isAuthScreen, KloudScreen } from "@/shared/kloud.screen";
+
+// /splash 진입 시 native가 query로 넘기는 쿠키 sync 매핑
+const SPLASH_COOKIE_PARAMS: Array<{ param: string; cookieKey: string; httpOnly?: boolean }> = [
+  { param: 'accessToken', cookieKey: accessTokenKey },
+  { param: 'userID', cookieKey: userIdKey },
+  { param: 'udid', cookieKey: udidKey },
+  { param: 'fcmToken', cookieKey: fcmTokenKey, httpOnly: true },
+  { param: 'locale', cookieKey: localeKey },
+  { param: 'studio', cookieKey: studioKey },
+  { param: 'depositor', cookieKey: depositorKey },
+  { param: 'kioskSelectedId', cookieKey: kioskSelectedIdKey },
+  { param: 'hideDialogIdList', cookieKey: hideDialogIdListKey },
+];
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
@@ -32,6 +56,28 @@ export async function proxy(request: NextRequest) {
       sameSite: 'lax',
     });
     return response;
+  }
+
+  // /splash 진입 시 native가 query로 넘긴 쿠키 값들 → 180일 만료로 저장 후 clean URL로 redirect
+  // (server component에서는 cookies().set() 불가 → middleware에서 처리)
+  if (url.pathname === '/splash') {
+    const found = SPLASH_COOKIE_PARAMS
+      .map((m) => ({ ...m, value: url.searchParams.get(m.param) }))
+      .filter((m): m is typeof m & { value: string } => !!m.value);
+
+    if (found.length > 0) {
+      const cleanUrl = new URL(request.url);
+      SPLASH_COOKIE_PARAMS.forEach((m) => cleanUrl.searchParams.delete(m.param));
+      const response = NextResponse.redirect(cleanUrl);
+      for (const m of found) {
+        response.cookies.set(m.cookieKey, m.value, {
+          maxAge: COOKIE_MAX_AGE,
+          sameSite: 'lax',
+          ...(m.httpOnly ? { httpOnly: true } : {}),
+        });
+      }
+      return response;
+    }
   }
 
   const response = NextResponse.rewrite(url)
