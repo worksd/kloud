@@ -233,13 +233,17 @@ export const KioskPaymentMethodForm = ({
         const showCash = cashEnabled && itemType !== 'pass-plan';
         const visibleCount = (cardEnabled ? 2 : 0) + (showCash ? 1 : 0);
         if (visibleCount === 0) return null;
-        const gridCols = visibleCount === 1 ? 'grid-cols-1' : visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
+        // 단일 버튼이면 grid 대신 가운데 정렬 flex로 두고 버튼을 1/3 폭으로 제한 → aspect-square가 viewport를 잡아먹어
+        // 하단 '이전' 버튼이 잘리던 케이스 방지. 2/3개일 땐 기존 grid 그대로.
+        const isSingle = visibleCount === 1;
+        const gridCols = visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
+        const singleButtonWidth = 'w-1/3';
         return (
           <div className="shrink-0 px-[5.6%] pb-[min(1.4vw,16px)]">
             <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
               {t('kiosk_payment_method_section')}
             </p>
-            <div className={`grid ${gridCols} gap-[min(1.4vw,16px)]`}>
+            <div className={isSingle ? 'flex justify-start' : `grid ${gridCols} gap-[min(1.4vw,16px)]`}>
               {cardEnabled && (
                 <>
                   {/* 카드 결제 */}
@@ -277,7 +281,9 @@ export const KioskPaymentMethodForm = ({
               {showCash && (
                 <button
                   onClick={onSelectCash}
-                  className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
+                  className={`aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform ${
+                    isSingle ? singleButtonWidth : ''
+                  }`}
                 >
                   <svg width="36" height="28" viewBox="0 0 72 54" fill="none">
                     <rect x="2" y="2" width="68" height="50" rx="8" fill="#A6B5C9"/>
