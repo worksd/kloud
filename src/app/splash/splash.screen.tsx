@@ -8,7 +8,6 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { syncCookiesToNative } from "@/app/lib/sync.cookies.to.native";
 
 const extractPath = (raw?: string): string | undefined => {
   if (!raw) return undefined;
@@ -25,9 +24,6 @@ const extractPath = (raw?: string): string | undefined => {
 export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
   useEffect(() => {
     setTimeout(async () => {
-      // 1. 현재 쿠키 → 네이티브 sync (네이티브가 영구 저장소에 백업)
-      await syncCookiesToNative();
-
       if (process.env.NEXT_PUBLIC_MAINTENANCE == 'true') {
         kloudNav.clearAndPush(KloudScreen.Maintenance)
         return;

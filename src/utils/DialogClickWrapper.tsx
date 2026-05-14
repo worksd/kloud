@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 import { clearCookies } from "@/app/profile/clear.token.action";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { syncCookiesToNative } from "@/app/lib/sync.cookies.to.native";
 
 interface DialogClickItemProps {
   id: DialogId
@@ -19,7 +18,6 @@ export function DialogClickWrapper({ id, children }: DialogClickItemProps) {
       if (data.route && data.id == 'Logout') {
         await unregisterDeviceAction()
         await clearCookies();
-        await syncCookiesToNative();
         kloudNav.clearAndPush(data.route)
       }
     }

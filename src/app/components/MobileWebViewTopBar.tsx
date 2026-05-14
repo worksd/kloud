@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { unregisterDeviceAction } from "@/app/home/action/unregister.device.action";
 import { clearCookies } from "@/app/profile/clear.token.action";
-import { syncCookiesToNative } from "@/app/lib/sync.cookies.to.native";
 
 export const getStoreLink = ({os}: { os: string }) => {
   if (os == 'Android') {
@@ -33,7 +32,6 @@ export const MobileWebViewTopBar = ({returnUrl, os, isLogin} : {returnUrl?: stri
   const handleLogout = async () => {
     await unregisterDeviceAction()
     await clearCookies();
-    await syncCookiesToNative();
     router.replace(KloudScreen.Login(loginQuery))
   };
 
