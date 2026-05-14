@@ -1,8 +1,31 @@
 import { NextRequest, userAgent } from 'next/server'
 import { NextResponse } from 'next/server'
 import { cookies } from "next/headers";
-import { accessTokenKey } from "@/shared/cookies.key";
+import {
+  accessTokenKey,
+  COOKIE_MAX_AGE,
+  depositorKey,
+  fcmTokenKey,
+  kioskSelectedIdKey,
+  localeKey,
+  studioKey,
+  udidKey,
+  userIdKey,
+} from "@/shared/cookies.key";
 import { isAuthScreen, KloudScreen } from "@/shared/kloud.screen";
+
+// /home 진입 시 만료를 갱신할 쿠키 목록. 활성 사용자는 사실상 무기한 유지.
+// hideDialogIdList는 의도적으로 7일 만료라 제외.
+const COOKIES_TO_REFRESH: Array<{ key: string; httpOnly?: boolean }> = [
+  { key: accessTokenKey },
+  { key: userIdKey },
+  { key: udidKey },
+  { key: fcmTokenKey, httpOnly: true },
+  { key: localeKey },
+  { key: studioKey },
+  { key: depositorKey },
+  { key: kioskSelectedIdKey },
+];
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
@@ -35,6 +58,20 @@ export async function proxy(request: NextRequest) {
   }
 
   const response = NextResponse.rewrite(url)
+
+  // /home 진입마다 보유 중인 쿠키들의 만료를 365일로 갱신.
+  // 값이 없는 키는 건너뜀 (새로 생성하지 않음).
+  if (url.pathname === '/home') {
+    for (const { key, httpOnly } of COOKIES_TO_REFRESH) {
+      const v = cookie.get(key)?.value;
+      if (!v) continue;
+      response.cookies.set(key, v, {
+        maxAge: COOKIE_MAX_AGE,
+        sameSite: 'lax',
+        ...(httpOnly ? { httpOnly: true } : {}),
+      });
+    }
+  }
 
   response.headers.set(
       'x-guinness-client',
