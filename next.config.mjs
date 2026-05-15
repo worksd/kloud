@@ -12,6 +12,8 @@ const nextConfig = {
       }
     ],
     qualities: [50, 60, 70, 75],
+    // optimizer가 디스크 캐시에 보관할 최소 시간 (초). 7일.
+    minimumCacheTTL: 60 * 60 * 24 * 7,
   },
   webpack: config => {
     config.module.rules.push({

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { KioskResponse } from '@/app/endpoint/kiosk.endpoint';
+import { kioskImageSrc } from '@/app/kiosk/kiosk.image';
 
 type Props = {
   kiosks: KioskResponse[];
@@ -33,7 +34,7 @@ export const KioskSelector = ({ kiosks, onSelect }: Props) => {
               <div className="w-[64px] h-[64px] rounded-[16px] bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
                 {k.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={k.imageUrl} alt="" className="w-full h-full object-cover"/>
+                  <img src={kioskImageSrc(k.imageUrl, 160)} alt="" className="w-full h-full object-cover"/>
                 ) : (
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                     <rect x="4" y="3" width="16" height="18" rx="2" stroke="#B1B8BE" strokeWidth="1.5"/>

@@ -11,6 +11,7 @@ import {
   isLessonPayable,
   lessonBlockLabel,
 } from "@/app/kiosk/kiosk.lesson";
+import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type KioskLessonDetailModalProps = {
   lesson: GetLessonResponse;
@@ -65,7 +66,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
           >
             {lesson.thumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lesson.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+              <img src={kioskImageSrc(lesson.thumbnailUrl, 600)} alt="" className="w-full h-full object-cover" />
             ) : null}
           </div>
 
@@ -116,7 +117,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment }: K
                 >
                   {artist.profileImageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={artist.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                    <img src={kioskImageSrc(artist.profileImageUrl, 160)} alt="" className="w-full h-full object-cover" />
                   )}
                 </div>
                 <div className="flex flex-col min-w-0">

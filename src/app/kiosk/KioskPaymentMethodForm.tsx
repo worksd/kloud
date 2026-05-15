@@ -5,6 +5,7 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { KioskTopBar } from "@/app/kiosk/KioskLessonListForm";
 import { DiscountResponse } from "@/app/endpoint/payment.endpoint";
+import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type KioskPaymentMethodFormProps = {
   itemType: 'lesson' | 'pass-plan';
@@ -96,7 +97,7 @@ export const KioskPaymentMethodForm = ({
           >
             {lessonThumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lessonThumbnailUrl} alt="" className="w-full h-full object-cover" />
+              <img src={kioskImageSrc(lessonThumbnailUrl, 200)} alt="" className="w-full h-full object-cover" />
             ) : null}
           </div>
           <div className="flex flex-col min-w-0 flex-1">
@@ -122,7 +123,7 @@ export const KioskPaymentMethodForm = ({
             >
               {user.profileImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                <img src={kioskImageSrc(user.profileImageUrl, 160)} alt="" className="w-full h-full object-cover" />
               ) : (
                 <svg viewBox="0 0 24 24" fill="none" style={{ width: '60%', height: '60%' }}>
                   <path d="M20 21V19C20 16.79 18.21 15 16 15H8C5.79 15 4 16.79 4 19V21" stroke="#B1B8BE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

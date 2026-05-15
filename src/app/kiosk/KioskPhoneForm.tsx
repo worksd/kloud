@@ -12,6 +12,7 @@ import {KioskNameKeyboard} from "@/app/kiosk/KioskNameKeyboard";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 import {COUNTRIES} from "@/app/certification/COUNTRIES";
+import {kioskImageSrc} from "@/app/kiosk/kiosk.image";
 
 type Step = 'phone' | 'select' | 'confirm' | 'name';
 
@@ -246,7 +247,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
                     >
                       <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
                         {user.profileImageUrl ? (
-                            <img src={user.profileImageUrl} alt="" className="w-full h-full object-cover"/>
+                            <img src={kioskImageSrc(user.profileImageUrl, 140)} alt="" className="w-full h-full object-cover"/>
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400 text-[24px]">
                               👤
@@ -288,7 +289,7 @@ export const KioskPhoneForm = ({studioName, onBack, onComplete, locale}: KioskPh
               <div className="w-full max-w-[500px] bg-gray-50 rounded-[20px] p-[32px] flex flex-col items-center gap-[20px] mb-[32px]">
                 <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shrink-0">
                   {userProfileImageUrl ? (
-                      <img src={userProfileImageUrl} alt="" className="w-full h-full object-cover"/>
+                      <img src={kioskImageSrc(userProfileImageUrl, 200)} alt="" className="w-full h-full object-cover"/>
                   ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400 text-[32px]">
                         👤

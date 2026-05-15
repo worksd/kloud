@@ -225,7 +225,7 @@ export const KioskPaymentForm = ({studioName, lessons, userId, userName, onBack,
                   <div key={lesson.id} className="flex items-center gap-[16px]">
                     <div className="w-[52px] h-[68px] rounded-[10px] overflow-hidden shrink-0 bg-gray-200">
                       {lesson.thumbnailUrl ? (
-                          <Thumbnail url={lesson.thumbnailUrl} className="w-full h-full" aspectRatio={52 / 68}/>
+                          <Thumbnail url={lesson.thumbnailUrl} className="w-full h-full" aspectRatio={52 / 68} quality={50}/>
                       ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="text-gray-400 text-lg">🕺</span>

@@ -8,6 +8,7 @@ interface ThumbnailProps {
   width?: number;
   url: string;
   aspectRatio?: number; // 기본값 167/222
+  quality?: number;     // next/image quality. 미지정 시 next 기본(75).
 }
 
 const Placeholder = () => (
@@ -20,7 +21,7 @@ const Placeholder = () => (
     </div>
 );
 
-export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222 }: ThumbnailProps) => {
+export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222, quality }: ThumbnailProps) => {
   const [hasError, setHasError] = useState(false);
 
   const containerStyle = width ? {
@@ -41,6 +42,7 @@ export const Thumbnail = ({ className = "", width, url, aspectRatio = 167/222 }:
           draggable={false}
           className="object-cover"
           sizes={width ? `${width}px` : "100vw"}
+          quality={quality}
           onError={() => setHasError(true)}
         />
       ) : (

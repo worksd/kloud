@@ -3,6 +3,7 @@
 import React from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type UserItem = {
   id: number;
@@ -30,7 +31,7 @@ const UserAvatar = ({ profileImageUrl }: { profileImageUrl?: string }) => (
   <div className="w-[min(7.4vw,80px)] h-[min(7.4vw,80px)] rounded-full bg-[#E8E8EA] flex items-center justify-center flex-shrink-0 overflow-hidden">
     {profileImageUrl ? (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={profileImageUrl} alt="" className="w-full h-full object-cover" />
+      <img src={kioskImageSrc(profileImageUrl, 160)} alt="" className="w-full h-full object-cover" />
     ) : (
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
         <path d="M20 21V19C20 16.79 18.21 15 16 15H8C5.79 15 4 16.79 4 19V21" stroke="#B1B8BE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

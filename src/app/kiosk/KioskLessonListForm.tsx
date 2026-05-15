@@ -12,6 +12,7 @@ import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 import { formatLessonStart, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
+import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
@@ -182,7 +183,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                       >
                         {lesson.thumbnailUrl && (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={lesson.thumbnailUrl} alt="" className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
+                          <img src={kioskImageSrc(lesson.thumbnailUrl, 400)} alt="" className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
                         {!payable && statusText && (

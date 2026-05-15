@@ -6,6 +6,7 @@ import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentA
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
+import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 const ADMIN_PIN = '0000';
 
@@ -501,7 +502,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                         >
                           {record.user.profileImageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={record.user.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                            <img src={kioskImageSrc(record.user.profileImageUrl, 120)} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <svg viewBox="0 0 24 24" fill="none" style={{ width: '60%', height: '60%' }}>
                               <circle cx="12" cy="9" r="3.5" stroke="#A6B5C9" strokeWidth="1.8"/>
