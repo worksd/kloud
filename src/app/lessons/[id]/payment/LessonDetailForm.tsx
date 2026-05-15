@@ -34,7 +34,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
         </button>
       </NavigateClickWrapper>
 
-      <div className="relative w-full aspect-[1/3] max-h-[60vh] shrink-0 overflow-hidden bg-[#F1F3F6]">
+      <div className="relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6]">
         {lesson.thumbnailUrl ? (
           <Image
             src={lesson.thumbnailUrl}
