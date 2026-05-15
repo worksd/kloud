@@ -29,8 +29,6 @@ export const DiscountSection = ({
 
   const fmt = (n: number) => new Intl.NumberFormat("ko-KR").format(n);
   const won = getLocaleString({ locale, key: 'won' });
-  const hasPassDiscount = (discounts ?? []).length > 0;
-  const hasCoupon = (coupons ?? []).length > 0;
 
   return (
     <div className="flex flex-col gap-y-2 px-6">
@@ -57,8 +55,8 @@ export const DiscountSection = ({
               {getLocaleString({ locale, key: 'discount_pass' })}
             </div>
             <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-150
-              ${selectedTab === 'pass' && hasPassDiscount ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
-              {selectedTab === 'pass' && hasPassDiscount && (
+              ${selectedDiscount ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
+              {selectedDiscount && (
                 <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
                   <path d="M1 3.5L3.2 5.7L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -133,8 +131,8 @@ export const DiscountSection = ({
               {getLocaleString({ locale, key: 'discount_coupon' })}
             </div>
             <div className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-150
-              ${selectedTab === 'coupon' && hasCoupon ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
-              {selectedTab === 'coupon' && hasCoupon && (
+              ${selectedCoupon ? 'border-black bg-black' : 'border-[#D4D4D4]'}`}>
+              {selectedCoupon && (
                 <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
                   <path d="M1 3.5L3.2 5.7L8 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
