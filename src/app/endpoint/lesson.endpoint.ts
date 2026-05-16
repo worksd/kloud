@@ -149,11 +149,14 @@ export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleRespons
 
 export type GetLessonTicketsParameter = {
     id: number;
+    /** BE가 메모리에서 입장 순서로 정렬 */
+    order?: 'RankAsc';
 }
 
 export const GetLessonTickets: Endpoint<GetLessonTicketsParameter, TicketListResponse> = {
     method: 'get',
     path: (e) => `/lessons/${e.id}/tickets`,
+    queryParams: ['order'],
 }
 
 export type SettleUpItem = {
