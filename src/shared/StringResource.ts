@@ -3332,6 +3332,54 @@ export const StringResource = {
     jp: '予約完了',
     zh: '已预约',
   },
+  ticket_status_paid: {
+    ko: '결제완료',
+    en: 'Paid',
+    jp: '決済完了',
+    zh: '已付款',
+  },
+  ticket_status_cancelled: {
+    ko: '취소',
+    en: 'Cancelled',
+    jp: 'キャンセル',
+    zh: '已取消',
+  },
+  ticket_status_cancel_pending: {
+    ko: '취소중',
+    en: 'Cancelling',
+    jp: 'キャンセル中',
+    zh: '取消中',
+  },
+  ticket_status_expired: {
+    ko: '만료',
+    en: 'Expired',
+    jp: '期限切れ',
+    zh: '已过期',
+  },
+  ticket_status_active: {
+    ko: '이용중',
+    en: 'Active',
+    jp: '利用中',
+    zh: '使用中',
+  },
+  lesson_admin_attendance_button: {
+    ko: '출석하기',
+    en: 'Check in',
+    jp: '出席する',
+    zh: '出席',
+  },
+  lesson_admin_attendance_confirm_message: {
+    ko: '{name} 출석하시겠습니까?',
+    en: 'Check in {name}?',
+    jp: '{name}を出席にしますか？',
+    zh: '将 {name} 设为出席？',
+  },
+  lesson_settle_up_title: {
+    ko: '강사 정산 보기',
+    en: 'Settlement details',
+    jp: '講師精算を見る',
+    zh: '查看讲师结算',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

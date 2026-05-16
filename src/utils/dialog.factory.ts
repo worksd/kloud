@@ -259,9 +259,10 @@ export async function createDialog({id, message, title, customData}: {
       id: 'CancelTicket',
       type: 'YESORNO',
       title: await translate('do_cancel'),
-      message: await translate('confirm_cancel_ticket'),
+      message: message ?? await translate('confirm_cancel_ticket'),
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
+      customData,
     }
   } else if (id == 'ConfirmAttendance') {
     return {
