@@ -34,7 +34,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
         </button>
       </NavigateClickWrapper>
 
-      <div className="relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6]">
+      <div className={`relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6] ${lesson.adminType ? 'shrink-0 max-h-[40vh]' : ''}`}>
         {lesson.thumbnailUrl ? (
           <Image
             src={lesson.thumbnailUrl}
@@ -110,7 +110,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           }
         </div>
 
-        {lesson.isAdmin && <LessonAdminInfoSection lessonId={lesson.id}/>}
+        {lesson.adminType && <LessonAdminInfoSection lessonId={lesson.id}/>}
       </div>
 
       {/* 결제 페이지 이동 버튼 */}
