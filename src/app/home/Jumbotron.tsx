@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useAlphaBg } from "@/app/home/HomeAlphaBg";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -37,6 +37,45 @@ export const Jumbotron = ({ items }: { items: JumbotronItem[] }) => {
     const newImage = items[current]?.imageUrl;
     if (newImage) setBgImage(newImage);
   }, [current, items, setBgImage]);
+
+  // 자동 슬라이드: 5초마다 다음 카드로. 사용자 터치/포인터 다운 시 타이머 리셋(다시 5초부터).
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentRef = useRef(current);
+  useEffect(() => { currentRef.current = current; }, [current]);
+
+  const scheduleNext = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (items.length <= 1) return;
+    timerRef.current = setTimeout(() => {
+      const el = scrollRef.current;
+      const card = el?.querySelector('[data-card]') as HTMLElement | null;
+      if (el && card) {
+        const gap = 12;
+        const nextIndex = (currentRef.current + 1) % items.length;
+        el.scrollTo({ left: nextIndex * (card.clientWidth + gap), behavior: 'smooth' });
+      }
+      scheduleNext();
+    }, 5000);
+  }, [items.length]);
+
+  useEffect(() => {
+    scheduleNext();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [scheduleNext]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || items.length <= 1) return;
+    const reset = () => scheduleNext();
+    el.addEventListener('touchstart', reset, { passive: true });
+    el.addEventListener('pointerdown', reset, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', reset);
+      el.removeEventListener('pointerdown', reset);
+    };
+  }, [scheduleNext, items.length]);
 
   if (items.length === 0) return null;
 
