@@ -171,3 +171,8 @@ export const listKioskPaymentsAction = async (kioskId: number, params?: { date?:
 export const cancelKioskPaymentAction = async (params: { paymentId: string; targetUserId: number; kioskId: number }) => {
   return await api.kiosk.cancelPayment(params);
 };
+
+// 영수증 재발급용 — GET /kiosks/:id/paymentRecords/:paymentId. 인증 없음.
+export const getKioskPaymentRecordDetailAction = async (params: { kioskId: number; paymentId: string }) => {
+  return await api.kiosk.getPaymentRecordDetail(params);
+};

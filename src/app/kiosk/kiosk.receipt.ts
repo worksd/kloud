@@ -448,6 +448,99 @@ const cardInfoFromKisData = (data: Record<string, unknown>): CardPaymentInfo => 
   merchantNo: pickStr(data, 'outMerchantRegNo'),
 });
 
+// ════════════════════════════ 영수증 재발급 (Reprint) ════════════════════════════
+// GET /kiosks/:id/paymentRecords/:paymentId 응답을 받아 영수증 PrinterLine[] 생성.
+// 빌드는 기존 빌더(buildCardPaymentReceipt/buildPassPaymentReceipt/buildCashRequestReceipt)에 위임.
+
+import type {
+  KioskPaymentRecordDetailResponse,
+} from "@/app/endpoint/kiosk.endpoint";
+
+const installmentRawFromLabel = (label?: string): string | undefined => {
+  if (!label) return undefined;
+  if (label === '일시불') return '00';
+  // "3개월" → "03"
+  const m = label.match(/^(\d+)\s*개월$/);
+  if (m) return String(parseInt(m[1], 10)).padStart(2, '0');
+  return undefined;
+};
+
+export const buildReprintReceipt = (
+  detail: KioskPaymentRecordDetailResponse,
+  ctx: { kioskName?: string },
+): PrinterLine[] => {
+  const studio: ReceiptStudio = {
+    name: detail.studio?.name ?? '',
+    address: detail.studio?.address,
+    businessNumber: detail.studio?.businessRegistrationNumber,
+    representative: detail.studio?.representative,
+    phone: detail.studio?.phone,
+    receiptFooter: detail.studio?.receiptFooter,
+  };
+  const transaction: ReceiptTransaction = {
+    kioskName: ctx.kioskName,
+    paymentId: detail.paymentId,
+    // 원거래 시각 (yyyy.MM.dd HH:mm) — 빌더가 Date를 요구하므로 파싱
+    occurredAt: detail.confirmedAt || detail.createdAt
+      ? parseTimestamp(detail.confirmedAt ?? detail.createdAt ?? '')
+      : undefined,
+  };
+
+  const itemType: KioskItemType | undefined = detail.lesson ? 'lesson' : undefined;
+  const items: ReceiptItem[] = [{
+    name: detail.lesson?.title ?? detail.productName ?? '',
+    price: detail.amount,
+  }];
+  const artists = (detail.lesson?.artists ?? [])
+    .map((a) => a.nickName || a.name)
+    .filter((n): n is string => Boolean(n));
+  const lessonDateTime = detail.lesson?.startDate;
+  const qrText = detail.qrCodeUrl;
+
+  // methodType은 'Card' | 'Cash' | 'Pass' 등 — 영수증 빌더는 소문자.
+  const mt = (detail.methodType ?? '').toLowerCase();
+
+  if (mt === 'card' && detail.card) {
+    const card: CardPaymentInfo = {
+      cardNo: detail.card.cardNumber,
+      issuerName: detail.card.issuerName,
+      authNo: detail.card.authNo,
+      authDate: detail.card.authDate,
+      installment: installmentRawFromLabel(detail.card.installmentLabel),
+      merchantNo: detail.card.merchantNo,
+    };
+    const passDiscount = (detail.discounts ?? []).reduce((s, d) => s + (d.amount ?? 0), 0);
+    return buildCardPaymentReceipt({
+      studio, transaction, items, itemType, artists, lessonDateTime,
+      passDiscount,
+      card,
+      qrText,
+    });
+  }
+
+  if (mt === 'pass') {
+    const passName = (detail.discounts ?? [])[0]?.name;
+    return buildPassPaymentReceipt({
+      studio, transaction, items, itemType, artists, lessonDateTime,
+      passName,
+      qrText,
+    });
+  }
+
+  // cash (또는 그 외) — 인포에서 마무리한 현금 결제 재발급
+  return buildCashRequestReceipt({
+    studio, transaction, items, itemType, artists, lessonDateTime, qrText,
+  });
+};
+
+// 'yyyy.MM.dd HH:mm' → Date. 실패 시 undefined.
+function parseTimestamp(s: string): Date | undefined {
+  const m = s.match(/^(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2})$/);
+  if (!m) return undefined;
+  const [, y, mo, d, h, mi] = m;
+  return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi));
+}
+
 export const buildKioskReceipt = (input: BuildKioskReceiptInput): PrinterLine[] => {
   const { paymentMethod, studio, transaction, user, items, itemType, artists, lessonDateTime, discount, cardData = {}, qrText } = input;
   switch (paymentMethod) {

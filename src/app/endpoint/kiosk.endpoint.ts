@@ -162,6 +162,69 @@ export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaym
   queryParams: ['date', 'page'],
 };
 
+// GET /kiosks/:id/paymentRecords/:paymentId — 영수증 재발급용 결제 기록 상세
+export type KioskPaymentRecordDetailRequest = {
+  kioskId: number;
+  paymentId: string;
+};
+
+export type KioskPaymentRecordDetailDiscount = {
+  name: string;
+  amount: number;
+  type?: string;
+};
+
+export type KioskPaymentRecordDetailCard = {
+  cardNumber?: string;
+  issuerName?: string;
+  /** "일시불" 또는 "N개월" — BE가 변환해서 내려줌 */
+  installmentLabel?: string;
+  merchantNo?: string;
+  authNo?: string;
+  authDate?: string;
+  vanKey?: string;
+  approvedAmount?: number;
+};
+
+export type KioskPaymentRecordDetailLesson = {
+  id: number;
+  title: string;
+  startDate?: string;
+  duration?: number;
+  artists?: { id: number; name?: string; nickName?: string }[];
+};
+
+export type KioskPaymentRecordDetailStudio = {
+  name?: string;
+  address?: string;
+  businessRegistrationNumber?: string;
+  representative?: string;
+  phone?: string;
+  receiptFooter?: string;
+};
+
+export type KioskPaymentRecordDetailResponse = {
+  paymentId: string;
+  status: string;
+  productName?: string;
+  method?: string;
+  methodType?: string;
+  amount: number;
+  createdAt?: string;
+  confirmedAt?: string;
+  cancelledAt?: string | null;
+  studio?: KioskPaymentRecordDetailStudio;
+  discounts?: KioskPaymentRecordDetailDiscount[];
+  card?: KioskPaymentRecordDetailCard | null;
+  lesson?: KioskPaymentRecordDetailLesson | null;
+  qrCodeUrl?: string;
+};
+
+export const GetKioskPaymentRecordDetail: Endpoint<KioskPaymentRecordDetailRequest, KioskPaymentRecordDetailResponse> = {
+  method: 'get',
+  path: (e) => `/kiosks/${e.kioskId}/paymentRecords/${e.paymentId}`,
+};
+
 // POST /kiosks/payments/:paymentId/cancel — Completed → Cancelled (관리자 취소).
 // Pending 폐기는 위의 DiscardKioskPayment(DELETE) 사용.
 export type CancelKioskPaymentRequest = {

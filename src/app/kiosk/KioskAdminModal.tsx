@@ -5,10 +5,10 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; // 기본 CSS — 무조건 먼저 import
 import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
-import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
+import { buildCancellationReceipt, buildReprintReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction } from "@/app/kiosk/kiosk.actions";
 
 // yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
 const formatYmd = (d: Date): string => {
@@ -322,6 +322,24 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
       })
       .catch(() => setToast('폐기 처리에 실패했어요'))
       .finally(() => { setDiscardingId(null); setDiscardTarget(null); });
+  };
+
+  // 영수증 재발급 — GET /kiosks/:id/paymentRecords/:paymentId 응답을 받아 buildReprintReceipt → 시리얼 프린터 송출.
+  const [reprintingId, setReprintingId] = useState<string | null>(null);
+  const handleReprint = (record: KioskPaymentRecord) => {
+    if (reprintingId) return;
+    setReprintingId(record.paymentId);
+    getKioskPaymentRecordDetailAction({ kioskId, paymentId: record.paymentId })
+      .then((res) => {
+        if (isGuinnessErrorCase(res)) {
+          setToast(res.message ?? '영수증 재발급에 실패했어요');
+          return;
+        }
+        const lines = buildReprintReceipt(res, { kioskName: kioskNameRef.current });
+        sendReceiptToPrinter(lines);
+      })
+      .catch(() => setToast('영수증 재발급에 실패했어요'))
+      .finally(() => setReprintingId(null));
   };
 
   // KIS 단말 ST(상태 조회) — 네이티브 인터페이스
@@ -674,20 +692,33 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setConfirmTarget(record)}
-                            disabled={isCancelled || isThisCanceling || cancelingId !== null}
-                            className={`shrink-0 px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
-                              isCancelled || cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
-                            }`}
-                          >
-                            <span
-                              className={`font-bold ${isCancelled || cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
-                              style={{ fontSize: 'min(1.6vw, 18px)' }}
+                          <div className="flex items-center shrink-0" style={{ gap: 'min(0.6vw,8px)' }}>
+                            <button
+                              onClick={() => handleReprint(record)}
+                              disabled={reprintingId !== null}
+                              className="px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-50"
                             >
-                              {isThisCanceling ? '취소 중…' : '취소'}
-                            </span>
-                          </button>
+                              <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.6vw, 18px)' }}>
+                                {reprintingId === record.paymentId ? '발급 중…' : '영수증'}
+                              </span>
+                            </button>
+                            {!isCancelled && (
+                              <button
+                                onClick={() => setConfirmTarget(record)}
+                                disabled={isThisCanceling || cancelingId !== null}
+                                className={`px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
+                                  cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
+                                }`}
+                              >
+                                <span
+                                  className={`font-bold ${cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
+                                  style={{ fontSize: 'min(1.6vw, 18px)' }}
+                                >
+                                  {isThisCanceling ? '취소 중…' : '취소'}
+                                </span>
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
