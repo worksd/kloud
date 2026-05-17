@@ -1,10 +1,9 @@
 'use client'
 import React, { useEffect, useRef, useState } from "react";
-import { hideDialogAction } from "@/app/home/hide.dialog.action";
+import { setHideDialogCookie } from "@/app/home/hide.dialog.cookie";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { getHideDialogIdsAction } from "@/app/home/get.hide.dialog.ids.action";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
 /**
@@ -33,7 +32,8 @@ export default function EventScreen({os, events, hideDialogIds: initialHideDialo
         const dialogInfo = {
           id: `${event.id}`,
           route: event.route,
-          hideForeverMessage: event.hideForeverMessage,
+          // BE 응답값 무시하고 항상 고정 — 토글 ON 시 hideDialogIdList 쿠키에 event.id 누적 저장
+          hideForeverMessage: '다시 보지 않기',
           imageUrl: event.imageUrl,
           imageRatio: event.imageRatio,
           ctaButtonText: event.ctaButtonText,
@@ -55,14 +55,13 @@ export default function EventScreen({os, events, hideDialogIds: initialHideDialo
 
   useEffect(() => {
     window.onHideDialogConfirm = async (data: { id: string, clicked: boolean }) => {
-      await hideDialogAction({id: data.id, clicked: data.clicked})
-      // 숨김 처리 후 목록 업데이트
+      // 쿠키는 client에서 직접 set — server action 호출 시 Next.js가 RSC를 invalidate해 home 전체가 재페치되는 부작용 회피.
+      setHideDialogCookie(data.id, data.clicked);
+      const dialogId = parseInt(data.id, 10);
+      if (!Number.isFinite(dialogId)) return;
       if (data.clicked) {
-        const updatedIds = await getHideDialogIdsAction();
-        setHideDialogIds(updatedIds);
+        setHideDialogIds(prev => prev.includes(dialogId) ? prev : [...prev, dialogId]);
       } else {
-        // 다시 보이게 한 경우 ID 제거
-        const dialogId = parseInt(data.id, 10);
         setHideDialogIds(prev => prev.filter(id => id !== dialogId));
       }
     }
