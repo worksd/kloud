@@ -443,8 +443,9 @@ const cardInfoFromKisData = (data: Record<string, unknown>): CardPaymentInfo => 
   issuerName: pickStr(data, 'outIssuerName'),
   authNo: pickStr(data, 'outAuthNo'),
   authDate: pickStr(data, 'outAuthDate'),
-  installment: pickStr(data, 'outInstallment'),
-  merchantNo: pickStr(data, 'outMerchantNo'),
+  // KIS 실제 응답 키 — M 대문자, MerchantRegNo
+  installment: pickStr(data, 'outInstallMent'),
+  merchantNo: pickStr(data, 'outMerchantRegNo'),
 });
 
 export const buildKioskReceipt = (input: BuildKioskReceiptInput): PrinterLine[] => {
