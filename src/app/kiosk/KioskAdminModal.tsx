@@ -699,7 +699,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                               className="px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-50"
                             >
                               <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.6vw, 18px)' }}>
-                                {reprintingId === record.paymentId ? '발급 중…' : '영수증'}
+                                {reprintingId === record.paymentId ? '재발급 중…' : '영수증 재발급'}
                               </span>
                             </button>
                             {!isCancelled && (
