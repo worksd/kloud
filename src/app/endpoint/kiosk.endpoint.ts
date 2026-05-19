@@ -60,7 +60,15 @@ export type CompleteKioskPaymentResponse = {
   paymentId: string;
   status: string;          // 'Completed'
   qrCodeUrl: string | null;
-  receiptData: string;
+  receiptData?: string;
+  /** 카드 결제 흐름이라 'card' 고정 */
+  paymentType?: 'card';
+  /** 카드 매입 완료 시점이라 'completed' 고정 */
+  receiptType?: 'completed';
+  /** 레슨 결제(LT-*)일 때 입장 번호 라벨 (예: "No. 7 (A Group)"). 그 외 null */
+  rank?: string | null;
+  /** 'priority' | 'normal'. 그 외 null */
+  rankType?: 'priority' | 'normal' | null;
 };
 
 export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, CompleteKioskPaymentResponse> = {

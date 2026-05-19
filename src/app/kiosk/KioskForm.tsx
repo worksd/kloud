@@ -119,6 +119,8 @@ export const KioskForm = ({
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | null>(null);
   const [selectedPass, setSelectedPass] = useState<{ pass: GetPassResponse; rule: PassRuleResponse } | null>(null);
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
+  // BE complete 응답의 rank 라벨 (예: "No. 7 (A Group)") — 영수증 임팩트 박스에 노출
+  const [paymentRank, setPaymentRank] = useState<string | null>(null);
   // 패스권 사용 시 응답으로 받는 paymentId — 영수증의 결제번호 라인에 노출 (paymentInfo.paymentId보다 우선)
   const [receiptPaymentIdOverride, setReceiptPaymentIdOverride] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -145,6 +147,7 @@ export const KioskForm = ({
     setSelectedDiscount(null);
     setSelectedPass(null);
     setPaymentQrCodeUrl(null);
+    setPaymentRank(null);
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
   }, []);
@@ -373,6 +376,7 @@ export const KioskForm = ({
           setPaymentQrCodeUrl(ok.qrCodeUrl);
           qrText = ok.qrCodeUrl;
         }
+        if (ok.rank) setPaymentRank(ok.rank);
         finishUp(qrText);
       })
       .catch(() => {
@@ -582,6 +586,7 @@ export const KioskForm = ({
             .filter((n): n is string => Boolean(n))
         : undefined,
       lessonDateTime: selectedLesson ? lessonDateTime : undefined,
+      rank: selectedLesson ? paymentRank ?? undefined : undefined,
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
@@ -593,7 +598,7 @@ export const KioskForm = ({
       qrText,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride, paymentRank]);
 
   // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화.
   // 서버가 passRule 풀 객체를 함께 요구해서 그대로 전달.
@@ -968,6 +973,7 @@ export const KioskForm = ({
                     setSelectedPass(null);
                     setPaymentInfo(null);
                     setPaymentQrCodeUrl(null);
+                    setPaymentRank(null);
                     setReceiptPaymentIdOverride(null);
                     setCurrentScreen('lesson-list');
                   }}
