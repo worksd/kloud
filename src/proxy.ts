@@ -73,10 +73,12 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  response.headers.set(
-      'x-guinness-client',
-      appVersion !== '' ? `${os.name}` : 'Web'
-  )
+  // 키오스크 페이지(/kiosk 및 하위 경로)는 KIOSK로 고정. 그 외는 OS 이름 / Web.
+  // server action 호출도 같은 pathname으로 들어오므로 자동 적용됨.
+  const guinnessClient = url.pathname.startsWith('/kiosk')
+    ? 'KIOSK'
+    : (appVersion !== '' ? `${os.name}` : 'Web');
+  response.headers.set('x-guinness-client', guinnessClient)
   response.headers.set('x-guinness-version', appVersion)
   response.headers.set(
       'x-guinness-device-name',
