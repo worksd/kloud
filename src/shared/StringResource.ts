@@ -3392,6 +3392,12 @@ export const StringResource = {
     jp: '{name}の受講券をキャンセルしますか？',
     zh: '取消 {name} 的课程券？',
   },
+  lesson_admin_cancel_ticket_success_message: {
+    ko: '수강권이 정상적으로 취소되었어요',
+    en: 'Ticket cancelled successfully',
+    jp: '受講券が正常にキャンセルされました',
+    zh: '课程券已成功取消',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

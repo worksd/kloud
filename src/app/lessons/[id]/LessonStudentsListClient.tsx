@@ -97,6 +97,13 @@ export function LessonStudentsListClient({
           }
           // 취소 성공 시 로컬에서 상태 'Cancelled'로 즉시 전환 → 목록 필터링되어 사라짐.
           setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, status: 'Cancelled' } : t)));
+          // 성공 안내 다이얼로그 (BE 응답의 message 우선, 없으면 기본 메시지)
+          const okMessage = (res as { message?: string }).message
+            ?? getLocaleString({ locale, key: 'lesson_admin_cancel_ticket_success_message' });
+          const successDialog = await createDialog({ id: 'Simple', message: okMessage });
+          if (successDialog && window.KloudEvent) {
+            window.KloudEvent.showDialog(JSON.stringify(successDialog));
+          }
         } finally {
           markProcessing(ticketId, false);
         }
@@ -196,24 +203,22 @@ export function LessonStudentsListClient({
                 <div className={'text-[14px] font-semibold text-black truncate'}>
                   {formatUserName(ticket.user?.nickName, ticket.user?.name, ticket.user?.phone, ticket.user?.email)}
                 </div>
-                <div className={'mt-0.5 flex items-center gap-1.5 min-w-0'}>
+                <div className={'mt-0.5 flex items-center gap-1.5 min-w-0 flex-wrap'}>
                   {statusLabel && (
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${statusStyle(ticket.status)}`}>
                       {statusLabel}
                     </span>
                   )}
-                  {statusLabel && (ticket.rank || ticket.ticketTypeLabel) && (
-                    <span className={'text-[12px] text-[#919191]'}>·</span>
-                  )}
-                  {ticket.rank && (
-                    <span className={'text-[12px] text-[#919191] truncate'}>{ticket.rank}</span>
-                  )}
-                  {ticket.rank && ticket.ticketTypeLabel && (
-                    <span className={'text-[12px] text-[#919191]'}>·</span>
-                  )}
-                  {ticket.ticketTypeLabel && (
-                    <span className={'text-[12px] text-[#919191] truncate'}>{ticket.ticketTypeLabel}</span>
-                  )}
+                  {[ticket.rank, ticket.ticketTypeLabel, ticket.paymentRecord?.method]
+                    .filter((v): v is string => Boolean(v))
+                    .map((label, i, arr) => (
+                      <React.Fragment key={`${label}-${i}`}>
+                        {(i === 0 ? statusLabel : arr[i - 1]) && (
+                          <span className={'text-[12px] text-[#919191]'}>·</span>
+                        )}
+                        <span className={'text-[12px] text-[#919191] truncate'}>{label}</span>
+                      </React.Fragment>
+                    ))}
                 </div>
               </div>
             </li>
@@ -249,6 +254,12 @@ export function LessonStudentsListClient({
                 </span>
                 {sheetTicket.user?.phone && (
                   <span className={'text-[12px] text-[#919191] truncate'}>{formatPhone(sheetTicket.user.phone)}</span>
+                )}
+                {(sheetTicket.rank || sheetTicket.ticketTypeLabel || sheetTicket.paymentRecord?.method) && (
+                  <span className={'mt-0.5 text-[12px] text-[#919191] truncate'}>
+                    {[sheetTicket.rank, sheetTicket.ticketTypeLabel, sheetTicket.paymentRecord?.method]
+                      .filter(Boolean).join(' · ')}
+                  </span>
                 )}
               </div>
             </div>
