@@ -8,16 +8,18 @@ import { KloudScreen } from '@/shared/kloud.screen';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 import { SettleUpLessonResponse } from '@/app/endpoint/lesson.endpoint';
+import { getLessonSettleUpAction } from '@/app/lessons/[id]/action/get.lesson.settleup.action';
 
 type Props = {
   lessonId: number;
   locale: Locale;
-  settleUp: SettleUpLessonResponse | null;
 };
 
-export function LessonAdminMenu({ lessonId, locale, settleUp }: Props) {
+export function LessonAdminMenu({ lessonId, locale }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
+  const [settleUp, setSettleUp] = useState<SettleUpLessonResponse | null>(null);
+  const [settleLoading, setSettleLoading] = useState(false);
 
   const closeSheet = () => setSheetOpen(false);
 
@@ -26,9 +28,22 @@ export function LessonAdminMenu({ lessonId, locale, settleUp }: Props) {
     kloudNav.push(KloudScreen.QRScanWithLesson(lessonId));
   };
 
-  const onClickSettle = () => {
+  // 강사 정산 보기 클릭 시 그때 fetch — 매 진입 시 fresh 응답.
+  const onClickSettle = async () => {
     closeSheet();
-    setSettleOpen(true);
+    if (settleLoading) return;
+    setSettleLoading(true);
+    try {
+      const res = await getLessonSettleUpAction({ lessonId });
+      if (!res) {
+        window.KloudEvent?.showToast?.('정산 정보를 불러오지 못했어요');
+        return;
+      }
+      setSettleUp(res);
+      setSettleOpen(true);
+    } finally {
+      setSettleLoading(false);
+    }
   };
 
   // 시트/모달 열려있는 동안 배경 스크롤 잠금
@@ -76,16 +91,17 @@ export function LessonAdminMenu({ lessonId, locale, settleUp }: Props) {
               <QrCode size={20} className={'text-[#1E2124]'}/>
               <span className={'text-[15px] font-semibold text-black'}>{qrLabel}</span>
             </button>
-            {settleUp && (
-              <button
-                type={'button'}
-                onClick={onClickSettle}
-                className={'w-full flex items-center gap-3 px-6 py-4 active:bg-[#F7F8F9] transition-colors'}
-              >
-                <Wallet size={20} className={'text-[#1E2124]'}/>
-                <span className={'text-[15px] font-semibold text-black'}>{settleLabel}</span>
-              </button>
-            )}
+            <button
+              type={'button'}
+              onClick={onClickSettle}
+              disabled={settleLoading}
+              className={'w-full flex items-center gap-3 px-6 py-4 active:bg-[#F7F8F9] transition-colors disabled:opacity-60'}
+            >
+              <Wallet size={20} className={'text-[#1E2124]'}/>
+              <span className={'text-[15px] font-semibold text-black'}>
+                {settleLoading ? `${settleLabel}…` : settleLabel}
+              </span>
+            </button>
           </div>
         </div>
       )}

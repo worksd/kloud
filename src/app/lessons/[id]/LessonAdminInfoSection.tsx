@@ -1,23 +1,20 @@
 import { getLessonTicketsAction } from "@/app/lessons/[id]/action/get.lesson.tickets.action";
-import { getLessonSettleUpAction } from "@/app/lessons/[id]/action/get.lesson.settleup.action";
 import { getLocale, translate } from "@/utils/translate";
 import { Locale } from "@/shared/StringResource";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
-import { SettleUpLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonStudentsListClient } from "@/app/lessons/[id]/LessonStudentsListClient";
 import { LessonAdminMenu } from "@/app/lessons/[id]/LessonAdminMenu";
 
-export async function LessonAdminInfoSection({ lessonId }: { lessonId: number }) {
-  const [tickets, settleUp, locale] = await Promise.all([
+export async function LessonAdminInfoSection({ lessonId, adminType }: { lessonId: number; adminType: 'artist' | 'partner' }) {
+  const [tickets, locale] = await Promise.all([
     getLessonTicketsAction(lessonId),
-    getLessonSettleUpAction({ lessonId }),
     getLocale(),
   ]);
 
   return (
     <div className={'w-full flex flex-col'}>
       <div className={'w-full h-3 bg-[#f7f8f9]'}/>
-      <StudentsBlock tickets={tickets} lessonId={lessonId} locale={locale} settleUp={settleUp}/>
+      <StudentsBlock tickets={tickets} lessonId={lessonId} locale={locale} adminType={adminType}/>
     </div>
   );
 }
@@ -26,12 +23,12 @@ async function StudentsBlock({
   tickets,
   lessonId,
   locale,
-  settleUp,
+  adminType,
 }: {
   tickets: TicketResponse[];
   lessonId: number;
   locale: Locale;
-  settleUp: SettleUpLessonResponse | null;
+  adminType: 'artist' | 'partner';
 }) {
   const visible = tickets.filter(
     (t) => t.status !== 'Cancelled' && t.status !== 'CancelPending',
@@ -51,10 +48,10 @@ async function StudentsBlock({
           <span className={'text-[#919191] text-[13px]'}>{countText}</span>
         </div>
 
-        <LessonAdminMenu lessonId={lessonId} locale={locale} settleUp={settleUp}/>
+        <LessonAdminMenu lessonId={lessonId} locale={locale}/>
       </header>
 
-      <LessonStudentsListClient tickets={tickets} lessonId={lessonId} locale={locale}/>
+      <LessonStudentsListClient tickets={tickets} lessonId={lessonId} locale={locale} adminType={adminType}/>
     </section>
   );
 }

@@ -110,7 +110,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
           }
         </div>
 
-        {lesson.adminType && <LessonAdminInfoSection lessonId={lesson.id}/>}
+        {lesson.adminType && <LessonAdminInfoSection lessonId={lesson.id} adminType={lesson.adminType}/>}
       </div>
 
       {/* 결제 페이지 이동 버튼 */}

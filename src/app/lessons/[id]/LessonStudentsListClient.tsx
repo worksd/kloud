@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Trash2 } from 'lucide-react';
 import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { Locale, StringResourceKey } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 import { createDialog, DialogInfo } from '@/utils/dialog.factory';
-import { useAction } from '@/app/qrs/use.action';
+import { cancelTicketAction } from '@/app/lessons/[id]/action/cancel.ticket.action';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
 
 const formatPhone = (phone: string) => {
@@ -46,45 +47,58 @@ const statusStyle = (status?: string) => {
   return 'bg-[#E8F5E9] text-[#2E7D32]';
 };
 
+// row 탭 → 바텀시트로 진입할 수 있는 상태. Paid 외에도 Used/Ready/Active 등 활성 티켓은 취소 가능.
+const isActionable = (status?: string) =>
+  status !== 'Cancelled' && status !== 'CancelPending' && status !== 'Expired';
+
 export function LessonStudentsListClient({
   tickets: initial,
-  lessonId,
+  lessonId: _lessonId,
   locale,
+  adminType,
 }: {
   tickets: TicketResponse[];
   lessonId: number;
   locale: Locale;
+  /** 'partner'만 수강권 취소 가능. 'artist'는 row 탭 비활성. */
+  adminType: 'artist' | 'partner';
 }) {
+  void _lessonId; // 시그니처 호환용 (기능에는 미사용)
+
+  const canCancel = adminType === 'partner';
+
   const [tickets, setTickets] = useState<TicketResponse[]>(initial);
   const [processing, setProcessing] = useState<Set<number>>(new Set());
+  const [sheetTicket, setSheetTicket] = useState<TicketResponse | null>(null);
+  const [sheetClosing, setSheetClosing] = useState(false);
 
-  // ConfirmAttendance dialog confirm 수신용. 기존 핸들러 체인 보존.
+  const markProcessing = (ticketId: number, on: boolean) => {
+    setProcessing((s) => {
+      const next = new Set(s);
+      if (on) next.add(ticketId);
+      else next.delete(ticketId);
+      return next;
+    });
+  };
+
+  // CancelTicket dialog confirm 수신. 기존 핸들러 체인 보존.
   useEffect(() => {
     const prev = window.onDialogConfirm;
     window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.id === 'ConfirmAttendance' && data.customData) {
+      if (data.id === 'CancelTicket' && data.customData) {
         const ticketId = Number(data.customData);
         if (!Number.isFinite(ticketId)) return;
-        setProcessing((s) => {
-          const next = new Set(s);
-          next.add(ticketId);
-          return next;
-        });
+        markProcessing(ticketId, true);
         try {
-          const res = await useAction({ ticketId, lessonId });
+          const res = await cancelTicketAction(ticketId);
           if (isGuinnessErrorCase(res)) {
-            window.KloudEvent?.showToast?.(res.message ?? '출석 처리에 실패했어요');
+            window.KloudEvent?.showToast?.(res.message ?? '수강권 취소에 실패했어요');
             return;
           }
-          setTickets((prevTickets) =>
-            prevTickets.map((t) => (t.id === ticketId ? { ...t, status: 'Used' } : t)),
-          );
+          // 취소 성공 시 로컬에서 상태 'Cancelled'로 즉시 전환 → 목록 필터링되어 사라짐.
+          setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, status: 'Cancelled' } : t)));
         } finally {
-          setProcessing((s) => {
-            const next = new Set(s);
-            next.delete(ticketId);
-            return next;
-          });
+          markProcessing(ticketId, false);
         }
         return;
       }
@@ -93,22 +107,49 @@ export function LessonStudentsListClient({
     return () => {
       window.onDialogConfirm = prev;
     };
-  }, [lessonId]);
+  }, []);
 
-  const onClickAttendance = async (ticket: TicketResponse) => {
-    const userName = formatUserName(
-      ticket.user?.nickName, ticket.user?.name, ticket.user?.phone, ticket.user?.email,
-    );
-    const message = getLocaleString({ locale, key: 'lesson_admin_attendance_confirm_message' })
-      .replace('{name}', userName);
-    const dialog = await createDialog({
-      id: 'ConfirmAttendance',
-      message,
-      customData: String(ticket.id),
-    });
-    if (dialog && window.KloudEvent) {
-      window.KloudEvent.showDialog(JSON.stringify(dialog));
-    }
+  // sheet 열려있는 동안 body 스크롤 잠금
+  useEffect(() => {
+    if (!sheetTicket) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [sheetTicket]);
+
+  const closeSheet = () => {
+    if (sheetClosing) return;
+    setSheetClosing(true);
+    setTimeout(() => {
+      setSheetTicket(null);
+      setSheetClosing(false);
+    }, 200);
+  };
+
+  const onClickRow = (ticket: TicketResponse) => {
+    if (!isActionable(ticket.status)) return;
+    if (processing.has(ticket.id)) return;
+    setSheetTicket(ticket);
+  };
+
+  const onSheetCancel = async () => {
+    const t = sheetTicket;
+    if (!t) return;
+    closeSheet();
+    // 시트 닫힘 애니메이션 후 confirm dialog
+    setTimeout(async () => {
+      const userName = formatUserName(t.user?.nickName, t.user?.name, t.user?.phone, t.user?.email);
+      const message = getLocaleString({ locale, key: 'lesson_admin_cancel_ticket_confirm_message' })
+        .replace('{name}', userName);
+      const dialog = await createDialog({
+        id: 'CancelTicket',
+        message,
+        customData: String(t.id),
+      });
+      if (dialog && window.KloudEvent) {
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      }
+    }, 220);
   };
 
   const visible = tickets.filter(
@@ -123,71 +164,105 @@ export function LessonStudentsListClient({
     );
   }
 
-  return (
-    <ul className={'mt-3 flex flex-col divide-y divide-[#F1F3F6]'}>
-      {visible.map((ticket) => {
-        const key = ticketStatusKey(ticket.status);
-        const statusLabel = key ? getLocaleString({ locale, key }) : (ticket.status ?? '');
-        const isPaid = ticket.status === 'Paid';
-        const isProcessing = processing.has(ticket.id);
-        const tappable = isPaid && !isProcessing;
+  const cancelLabel = getLocaleString({ locale, key: 'lesson_admin_cancel_ticket_button' });
 
-        return (
-          <li
-            key={ticket.id}
-            onClick={tappable ? () => onClickAttendance(ticket) : undefined}
-            className={[
-              'flex items-center gap-3 py-3 -mx-2 px-2 rounded-[10px]',
-              tappable ? 'cursor-pointer active:bg-[#F7F8F9] transition-colors' : '',
-              isProcessing ? 'opacity-60' : '',
-            ].filter(Boolean).join(' ')}
-          >
-            <Image
-              src={ticket.user?.profileImageUrl || '/assets/default_profile.png'}
-              alt={''}
-              width={36}
-              height={36}
-              className={'rounded-full object-cover w-9 h-9 flex-shrink-0'}
-            />
-            <div className={'flex-1 min-w-0'}>
-              <div className={'text-[14px] font-semibold text-black truncate'}>
-                {formatUserName(ticket.user?.nickName, ticket.user?.name, ticket.user?.phone, ticket.user?.email)}
+  return (
+    <>
+      <ul className={'mt-3 flex flex-col divide-y divide-[#F1F3F6]'}>
+        {visible.map((ticket) => {
+          const key = ticketStatusKey(ticket.status);
+          const statusLabel = key ? getLocaleString({ locale, key }) : (ticket.status ?? '');
+          const isProcessing = processing.has(ticket.id);
+          const tappable = canCancel && isActionable(ticket.status) && !isProcessing;
+
+          return (
+            <li
+              key={ticket.id}
+              onClick={tappable ? () => onClickRow(ticket) : undefined}
+              className={[
+                'flex items-center gap-3 py-3 -mx-2 px-2 rounded-[10px]',
+                tappable ? 'cursor-pointer active:bg-[#F7F8F9] transition-colors' : '',
+                isProcessing ? 'opacity-60' : '',
+              ].filter(Boolean).join(' ')}
+            >
+              <Image
+                src={ticket.user?.profileImageUrl || '/assets/default_profile.png'}
+                alt={''}
+                width={36}
+                height={36}
+                className={'rounded-full object-cover w-9 h-9 flex-shrink-0'}
+              />
+              <div className={'flex-1 min-w-0'}>
+                <div className={'text-[14px] font-semibold text-black truncate'}>
+                  {formatUserName(ticket.user?.nickName, ticket.user?.name, ticket.user?.phone, ticket.user?.email)}
+                </div>
+                <div className={'mt-0.5 flex items-center gap-1.5 min-w-0'}>
+                  {statusLabel && (
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${statusStyle(ticket.status)}`}>
+                      {statusLabel}
+                    </span>
+                  )}
+                  {statusLabel && (ticket.rank || ticket.ticketTypeLabel) && (
+                    <span className={'text-[12px] text-[#919191]'}>·</span>
+                  )}
+                  {ticket.rank && (
+                    <span className={'text-[12px] text-[#919191] truncate'}>{ticket.rank}</span>
+                  )}
+                  {ticket.rank && ticket.ticketTypeLabel && (
+                    <span className={'text-[12px] text-[#919191]'}>·</span>
+                  )}
+                  {ticket.ticketTypeLabel && (
+                    <span className={'text-[12px] text-[#919191] truncate'}>{ticket.ticketTypeLabel}</span>
+                  )}
+                </div>
               </div>
-              <div className={'mt-0.5 flex items-center gap-1.5 min-w-0'}>
-                {statusLabel && (
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${statusStyle(ticket.status)}`}>
-                    {statusLabel}
-                  </span>
-                )}
-                {statusLabel && (ticket.rank || ticket.ticketTypeLabel) && (
-                  <span className={'text-[12px] text-[#919191]'}>·</span>
-                )}
-                {ticket.rank && (
-                  <span className={'text-[12px] text-[#919191] truncate'}>{ticket.rank}</span>
-                )}
-                {ticket.rank && ticket.ticketTypeLabel && (
-                  <span className={'text-[12px] text-[#919191]'}>·</span>
-                )}
-                {ticket.ticketTypeLabel && (
-                  <span className={'text-[12px] text-[#919191] truncate'}>{ticket.ticketTypeLabel}</span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* 학생 row 탭 시 노출되는 액션 바텀시트 — 현재는 '취소하기' 한 메뉴 */}
+      {sheetTicket && (
+        <div
+          className={`fixed inset-0 z-[60] flex items-end justify-center ${
+            sheetClosing ? 'animate-[fadeOut_200ms_ease-out_forwards]' : 'animate-[fadeIn_200ms_ease-out]'
+          }`}
+          onClick={closeSheet}
+        >
+          <div className={'absolute inset-0 bg-black/40'}/>
+          <div
+            className={'relative w-full max-w-[640px] bg-white rounded-t-[20px] pb-6 pt-2 animate-[slideUp_200ms_ease-out]'}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={'mx-auto my-2 w-10 h-1 rounded-full bg-[#E5E7EB]'}/>
+            <div className={'flex items-center gap-3 px-6 pb-3 pt-2'}>
+              <Image
+                src={sheetTicket.user?.profileImageUrl || '/assets/default_profile.png'}
+                alt={''}
+                width={44}
+                height={44}
+                className={'rounded-full object-cover w-11 h-11 flex-shrink-0'}
+              />
+              <div className={'flex flex-col min-w-0'}>
+                <span className={'text-[14px] font-semibold text-black truncate'}>
+                  {formatUserName(sheetTicket.user?.nickName, sheetTicket.user?.name, sheetTicket.user?.phone, sheetTicket.user?.email)}
+                </span>
+                {sheetTicket.user?.phone && (
+                  <span className={'text-[12px] text-[#919191] truncate'}>{formatPhone(sheetTicket.user.phone)}</span>
                 )}
               </div>
             </div>
-            {tappable && (
-              <svg
-                aria-hidden="true"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                className={'shrink-0 text-[#919191]'}
-              >
-                <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+            <button
+              type={'button'}
+              onClick={onSheetCancel}
+              className={'w-full flex items-center gap-3 px-6 py-4 active:bg-[#F7F8F9] transition-colors'}
+            >
+              <Trash2 size={20} className={'text-[#E55B5B]'}/>
+              <span className={'text-[15px] font-semibold text-[#E55B5B]'}>{cancelLabel}</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -3380,6 +3380,18 @@ export const StringResource = {
     jp: '講師精算を見る',
     zh: '查看讲师结算',
   },
+  lesson_admin_cancel_ticket_button: {
+    ko: '수강권 취소하기',
+    en: 'Cancel ticket',
+    jp: '受講券をキャンセル',
+    zh: '取消课程券',
+  },
+  lesson_admin_cancel_ticket_confirm_message: {
+    ko: '{name}의 수강권을 취소하시겠습니까?',
+    en: "Cancel {name}'s ticket?",
+    jp: '{name}の受講券をキャンセルしますか？',
+    zh: '取消 {name} 的课程券？',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;
