@@ -2,27 +2,31 @@
 
 import { useEffect } from "react";
 import { HomeAlertResponse } from "@/app/endpoint/home.endpoint";
-import { createDialog } from "@/utils/dialog.factory";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
-export const HomeAlerts = ({ alerts }: { alerts: HomeAlertResponse[] }) => {
+/**
+ * 홈 alert 다이얼로그.
+ *
+ * 이전엔 createDialog(server action) 호출 → Next.js가 RSC invalidate → home 무한 재페치되는 문제.
+ * 다이얼로그 객체를 client에서 직접 build해서 server action 호출 자체를 제거.
+ */
+export const HomeAlerts = ({ alerts, locale }: { alerts: HomeAlertResponse[]; locale: Locale }) => {
   useEffect(() => {
     if (alerts.length === 0) return;
 
-    const showAlert = async () => {
-      const alert = alerts[0];
-      const dialog = await createDialog({
-        id: 'HomeAlert',
-        title: alert.title,
-        message: alert.description,
-        customData: alert.route,
-      });
-      if (dialog) {
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
-      }
+    const alert = alerts[0];
+    const dialog = {
+      id: 'HomeAlert',
+      type: 'YESORNO',
+      title: alert.title,
+      message: alert.description,
+      confirmTitle: getLocaleString({ locale, key: 'confirm' }),
+      cancelTitle: getLocaleString({ locale, key: 'cancel' }),
+      route: alert.route,
     };
-
-    showAlert();
-  }, [alerts]);
+    window.KloudEvent?.showDialog(JSON.stringify(dialog));
+  }, [alerts, locale]);
 
   return null;
 };

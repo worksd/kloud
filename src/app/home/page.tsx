@@ -5,6 +5,7 @@ import {PassPurchaseButton} from "@/app/profile/PassPurchaseButton";
 import MyStudioPage from "@/app/home/MyStudioPage";
 import {NoMyStudioPage} from "@/app/home/NoMyStudioPage";
 import {getHideDialogIdsAction} from "@/app/home/get.hide.dialog.ids.action";
+import {getLocale} from "@/utils/translate";
 import EventScreen from "@/app/home/eventScreen";
 import {handleApiError} from "@/utils/handle.api.error";
 import {TokenExpiredRedirect} from "@/app/components/TokenExpiredRedirect";
@@ -28,6 +29,7 @@ export default async function Home({
   const {os} = await searchParams
   const res = await getHomeAction()
   const hideDialogIds = await getHideDialogIdsAction()
+  const locale = await getLocale()
   const cookieStore = await cookies();
   const hasFcmToken = !!cookieStore.get(fcmTokenKey)?.value;
   const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
@@ -43,7 +45,7 @@ export default async function Home({
           {!hasStudioCookie && res.myStudio?.studio?.id && (
             <StudioCookieSetter studioId={res.myStudio.studio.id} />
           )}
-          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
+          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts} locale={locale}/>}
           <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
           <HomeHeader hasStudio={!!studio} os={os}>
             {studio ? (
