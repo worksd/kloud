@@ -1,6 +1,7 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
+import { AnnouncementResponse } from "@/app/endpoint/announcement.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
@@ -82,7 +83,8 @@ export type LessonGroupSummary = {
 
 export type GetMyStudioResponse = {
   studio: GetStudioResponse;
-  announcement: GetAnnouncementResponse;
+  /** 최근 7일 이내 최신 공지 1건. 없으면 키째로 없음. */
+  announcement?: AnnouncementResponse;
   bands: GetBandResponse[];
   lessonGroups?: LessonGroupSummary[];
   jumbotrons?: GetBandLessonResponse[];

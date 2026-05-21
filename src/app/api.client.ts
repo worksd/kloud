@@ -50,6 +50,11 @@ export class ApiClient extends EndpointClient {
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
   }
 
+  readonly announcement = {
+    list: this.endpointBuilder(API.Announcement.ListAnnouncements),
+    get: this.endpointBuilder(API.Announcement.GetAnnouncement),
+  }
+
   readonly ticket = {
     get: this.endpointBuilder(API.Ticket.GetTicket),
     list: this.endpointBuilder(API.Ticket.ListTickets),

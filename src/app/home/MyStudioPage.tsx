@@ -6,6 +6,7 @@ import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
+import { AnnouncementCard } from "@/app/home/AnnouncementCard";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
   if (!res) {
@@ -31,6 +32,11 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
       {/* 점보트론 */}
       {jumbotronItems.length > 0 && (
         <Jumbotron items={jumbotronItems} />
+      )}
+
+      {/* 공지사항 — 최근 7일 내 최신 1건 */}
+      {res.announcement && (
+        <AnnouncementCard announcement={res.announcement} studioId={res.studio.id} showMore />
       )}
 
       {/* 배너 */}

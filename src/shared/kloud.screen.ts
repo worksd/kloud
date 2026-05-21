@@ -44,6 +44,10 @@ export const KloudScreen = {
   PaymentRecordDetail: (paymentId: string) => `/paymentRecords/${paymentId}`,
   PaymentRecordRefund: (paymentId: string) => `/paymentRecords/${paymentId}/refund`,
 
+  /** 공지 */
+  AnnouncementList: (studioId: number) => `/announcements?studioId=${studioId}`,
+  AnnouncementDetail: (id: number) => `/announcements/${id}`,
+
   /** 레슨 */
   LessonDetail: (id: number) => `/lessons/${id}`,
 
