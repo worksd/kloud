@@ -402,7 +402,14 @@ export const KioskForm = ({
     const discardPaymentId = outCustomerUuid || paymentInfo?.paymentId;
     if (!discardPaymentId) return;
 
-    discardKioskPaymentAction(discardPaymentId, kioskId).catch(() => {
+    // 진단용: KIS VAN 응답 raw + 클라가 매긴 status를 reason 필드로 동봉.
+    // 서버 로그에서 폐기 트리거 원인(어떤 outReplyCode/outTranCode가 들어왔는지)을 추적 가능.
+    const reason = JSON.stringify({
+      status: paymentResult.status,
+      kis: paymentResult.data ?? null,
+    });
+
+    discardKioskPaymentAction(discardPaymentId, kioskId, reason).catch(() => {
       // 폐기 실패는 사용자에게 노출 안 함 — 관리자가 paymentRecords에서 수동 폐기 가능
       console.warn('Pending 폐기 실패');
     });

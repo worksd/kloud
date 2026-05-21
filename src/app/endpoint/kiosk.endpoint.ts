@@ -78,10 +78,12 @@ export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, Complet
 };
 
 // (중간 실패) DELETE /kiosks/payments/:paymentId — Pending soft-delete
-//   단말 매입 전 사용자 취소 / 매입 자체 실패 시
+//   단말 매입 전 사용자 취소 / 매입 자체 실패 시.
+//   reason: 폐기 사유 진단용 — KIS VAN 응답 raw를 JSON 문자열로 동봉.
 export type DiscardKioskPaymentRequest = {
   paymentId: string;
   kioskId: number;
+  reason?: string;
 };
 
 export type DiscardKioskPaymentResponse = {
@@ -91,7 +93,7 @@ export type DiscardKioskPaymentResponse = {
 export const DiscardKioskPayment: Endpoint<DiscardKioskPaymentRequest, DiscardKioskPaymentResponse> = {
   method: 'delete',
   path: (e) => `/kiosks/payments/${e.paymentId}`,
-  bodyParams: ['kioskId'],
+  bodyParams: ['kioskId', 'reason'],
 };
 
 export type UseKioskPassRequest = {

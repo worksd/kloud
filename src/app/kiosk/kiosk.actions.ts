@@ -149,8 +149,9 @@ export const completeKioskPaymentAction = async (
 };
 
 // 결제 폐기 — 단말 매입 전 사용자 취소 / 매입 실패. DELETE /kiosks/payments/:paymentId (Pending soft delete)
-export const discardKioskPaymentAction = async (paymentId: string, kioskId: number) => {
-  return await api.kiosk.discardPayment({ paymentId, kioskId });
+// reason: KIS VAN 응답 raw 또는 폐기 사유 라벨. 서버 측 진단 로그용.
+export const discardKioskPaymentAction = async (paymentId: string, kioskId: number, reason?: string) => {
+  return await api.kiosk.discardPayment({ paymentId, kioskId, reason });
 };
 
 // 보유 패스권 사용 — 티켓/예약 생성
