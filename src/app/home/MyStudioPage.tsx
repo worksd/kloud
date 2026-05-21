@@ -5,6 +5,7 @@ import React from "react";
 import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
+import { TodayTimetable } from "@/app/home/TodayTimetable";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
   if (!res) {
@@ -37,14 +38,25 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
         <HomeBanner banners={res.banners} />
       )}
 
-      {res.bands.map((value) => (
-        <LessonBand
-          key={value.title}
-          title={value.title}
-          lessons={value.lessons}
-          type={value.type}
-        />
-      ))}
+      {res.bands.map((value) => {
+        if (value.type === 'Today') {
+          return (
+            <TodayTimetable
+              key={value.title}
+              title={value.title}
+              lessons={value.lessons}
+            />
+          );
+        }
+        return (
+          <LessonBand
+            key={value.title}
+            title={value.title}
+            lessons={value.lessons}
+            type={value.type}
+          />
+        );
+      })}
     </div>
   )
 }

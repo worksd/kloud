@@ -101,6 +101,8 @@ export type GetBandLessonResponse = {
     date?: string; // yyyy-MM-dd 형식
     startDate?: string; // yyyy-MM-dd HH:mm 형식
     startTime?: string; // HH:mm 형식
+    /** 수업 길이(분). 'Today' 밴드 timetable에서 진행중/종료 판단에 사용. */
+    duration?: number;
     artist?: GetArtistResponse;
     artists?: GetArtistResponse[];
 }
@@ -123,7 +125,7 @@ export type JumbotronResponse = {
     studioImageUrl: string;
 }
 
-export type BandType = 'Default' | 'Recommendation'
+export type BandType = 'Default' | 'Recommendation' | 'Today'
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     method: "get",
