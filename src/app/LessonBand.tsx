@@ -3,18 +3,6 @@ import { Poster } from "@/app/components/Poster";
 import React from "react";
 import { RecommendPoster } from "@/app/components/RecommendPoster";
 
-const calcDday = (startDate?: string): string | undefined => {
-  if (!startDate) return undefined;
-  const target = new Date(startDate.replace(' ', 'T'));
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-  const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return undefined;
-  if (diff === 0) return 'D-Day';
-  return `D-${diff}`;
-};
-
 export async function LessonBand({title, lessons, type}: {
   title: string,
   lessons: GetBandLessonResponse[],
@@ -53,7 +41,6 @@ export async function LessonBand({title, lessons, type}: {
                 date={item.description ?? ''}
                 title={item.title ?? ''}
                 type={item.type}
-                label={{ dday: calcDday(item.startDate) }}
               />
             }
           </div>
