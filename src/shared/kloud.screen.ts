@@ -66,6 +66,9 @@ export const KloudScreen = {
   StudioSettingSheet: '/studios/setting/sheet',
   StudioSetting: '/profile/setting/studio',
 
+  /** 안무 따라하기 (PoC) */
+  DanceChallenge: '/dance-challenge',
+
   /** 정책 / 문의 / 알림 */
   Policy: '/profile/policy',
   Privacy: '/profile/policy/privacy',

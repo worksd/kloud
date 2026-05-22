@@ -25,6 +25,9 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting"/>
       </NavigateClickWrapper>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.DanceChallenge}>
+        <MenuItem label="dance_challenge"/>
+      </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}
         version={appVersion}/>

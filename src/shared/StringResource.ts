@@ -1061,6 +1061,12 @@ export const StringResource = {
     jp: "言語設定",
     zh: "语言设置"
   },
+  dance_challenge: {
+    ko: "안무 따라하기",
+    en: "Dance Challenge",
+    jp: "ダンスチャレンジ",
+    zh: "舞蹈挑战"
+  },
   payment_method_management: {
     ko: "결제 수단 관리",
     en: "Payment Method Management",
