@@ -252,11 +252,13 @@ const loginTypeConfig: Record<string, { label: string; Logo?: React.FC<{ classNa
 
 const LoginTypeRow = ({ label, loginType }: { label: string; loginType: string }) => {
   const config = loginTypeConfig[loginType] ?? { label: loginType };
+  // Apple 로고 svg는 fill=white 하드코딩이라 흰 배경에서 안 보임 — 이 화면에서만 invert로 검정 tint.
+  const logoTint = loginType === 'Apple' ? 'invert' : '';
   return (
     <div className="flex items-center justify-between px-4 py-3.5">
       <span className="text-[14px] text-[#86898C]">{label}</span>
       <div className="flex items-center gap-2">
-        {config.Logo && <config.Logo className="w-5 h-5" />}
+        {config.Logo && <config.Logo className={`w-5 h-5 ${logoTint}`} />}
         <span className="text-[14px] text-black font-medium">{config.label}</span>
       </div>
     </div>
