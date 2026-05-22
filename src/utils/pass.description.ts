@@ -60,6 +60,12 @@ const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null) => str
     jp: (v) => `${v ?? 0}回受講できます`,
     zh: (v) => `可以使用${v ?? 0}次`,
   },
+  UnlimitedDay: {
+    ko: (v) => `${v ?? 0}일중 골라서 원하는 수업을 수강할 수 있어요`,
+    en: (v) => `choose and attend any class over ${v ?? 0} days`,
+    jp: (v) => `${v ?? 0}日間お好きなレッスンを受講できます`,
+    zh: (v) => `可在${v ?? 0}天内自由选择课程上课`,
+  },
   Discount: {
     ko: (v) => `${(v ?? 0).toLocaleString('ko-KR')}원 할인 받을 수 있어요`,
     en: (v) => `get ${(v ?? 0).toLocaleString()} won discount`,
