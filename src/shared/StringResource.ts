@@ -1061,6 +1061,12 @@ export const StringResource = {
     jp: "言語設定",
     zh: "语言设置"
   },
+  do_not_show_again: {
+    ko: "다시 보지 않기",
+    en: "Don't show again",
+    jp: "今後表示しない",
+    zh: "不再显示"
+  },
   payment_method_management: {
     ko: "결제 수단 관리",
     en: "Payment Method Management",

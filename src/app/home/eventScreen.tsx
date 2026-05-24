@@ -14,7 +14,7 @@ import {GetEventResponse} from "@/app/endpoint/event.endpoint";
  * @constructor
  */
 
-export default function EventScreen({os, events, hideDialogIds: initialHideDialogIds}: { os: string, events: GetEventResponse[], hideDialogIds: number[] }) {
+export default function EventScreen({os, events, hideDialogIds: initialHideDialogIds, hideForeverMessage}: { os: string, events: GetEventResponse[], hideDialogIds: number[], hideForeverMessage: string }) {
   const hasShownDialog = useRef(false);
   const [hideDialogIds, setHideDialogIds] = useState<number[]>(initialHideDialogIds);
 
@@ -32,8 +32,8 @@ export default function EventScreen({os, events, hideDialogIds: initialHideDialo
         const dialogInfo = {
           id: `${event.id}`,
           route: event.route,
-          // BE 응답값 무시하고 항상 고정 — 토글 ON 시 hideDialogIdList 쿠키에 event.id 누적 저장
-          hideForeverMessage: '다시 보지 않기',
+          // BE 응답값 무시하고 클라가 locale에 맞춰 박음 — 토글 ON 시 hideDialogIdList 쿠키에 event.id 누적 저장
+          hideForeverMessage,
           imageUrl: event.imageUrl,
           imageRatio: event.imageRatio,
           ctaButtonText: event.ctaButtonText,
