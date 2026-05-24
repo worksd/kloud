@@ -15,7 +15,7 @@ import {
 import { isAuthScreen, KloudScreen } from "@/shared/kloud.screen";
 
 // /home 진입 시 만료를 갱신할 쿠키 목록. 활성 사용자는 사실상 무기한 유지.
-// hideDialogIdList는 의도적으로 7일 만료라 제외.
+// hideDialogIdList는 의도적으로 90일 만료라 제외.
 const COOKIES_TO_REFRESH: Array<{ key: string; httpOnly?: boolean }> = [
   { key: accessTokenKey },
   { key: userIdKey },
