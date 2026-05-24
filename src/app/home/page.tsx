@@ -16,7 +16,7 @@ import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
 import {HomeAlerts} from "@/app/home/HomeAlerts";
 import {cookies} from "next/headers";
-import {fcmTokenKey, studioKey} from "@/shared/cookies.key";
+import {studioKey} from "@/shared/cookies.key";
 import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
 import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
@@ -31,7 +31,6 @@ export default async function Home({
   const hideDialogIds = await getHideDialogIdsAction()
   const locale = await getLocale()
   const cookieStore = await cookies();
-  const hasFcmToken = !!cookieStore.get(fcmTokenKey)?.value;
   const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
   if ('studios' in res) {
     const studio = res.myStudio?.studio;
@@ -41,7 +40,7 @@ export default async function Home({
 
     const content = (
         <div>
-          <FcmTokenRequester hasFcmToken={hasFcmToken}/>
+          <FcmTokenRequester/>
           {!hasStudioCookie && res.myStudio?.studio?.id && (
             <StudioCookieSetter studioId={res.myStudio.studio.id} />
           )}
