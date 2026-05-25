@@ -11,6 +11,7 @@ import TicketIcon from "../../../public/assets/ic_ticket.svg";
 import { BackButton } from "@/app/payment/BackButton";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
+import { NavigateMainRedirect } from "@/app/components/NavigateMainRedirect";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
 
@@ -37,6 +38,12 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     targetUserId: parsedTargetUserId,
     date: paymentItem === 'practice-room' ? date : undefined,
   });
+
+  // BE가 redirectUrl을 내려주면 결제 폼 진입 없이 곧장 그 route로 navigateMain
+  // (예: 이미 발급된 ticket 보러 보내기 같은 케이스).
+  if ('redirectUrl' in res && res.redirectUrl) {
+    return <NavigateMainRedirect route={res.redirectUrl}/>;
+  }
 
   const cookieValue = (await cookies()).get(userIdKey)?.value;
   const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;

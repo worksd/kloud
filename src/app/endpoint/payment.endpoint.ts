@@ -47,6 +47,8 @@ export type CouponResponse = {
 
 export type GetPaymentResponse = {
   user: GetUserResponse;
+  /** 결제 페이지 진입 직후 강제 이동시킬 라우트. BE가 지정하면 결제 폼 대신 navigateMain. */
+  redirectUrl?: string;
   price?: number;
   methods: GetPaymentMethodResponse[];
   cards?: GetBillingResponse[];

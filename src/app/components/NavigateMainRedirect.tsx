@@ -4,13 +4,14 @@ import { useEffect } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
 
 /**
- * server에서 잘못된 접근(쿼리 누락 등)을 감지했을 때 client에서 main(홈)으로 보내는 컴포넌트.
- * webview일 경우 native main 스택을 새로 시작, 일반 브라우저면 kloudNav fallback에 위임.
+ * server에서 redirect 사유를 감지했을 때 client mount 즉시 main(또는 지정 route)으로 보내는 컴포넌트.
+ * - route 미지정: 홈으로 (navigateMain({}))
+ * - route 지정: 그 route로 (navigateMain({ route }))
  */
-export const NavigateMainRedirect = () => {
+export const NavigateMainRedirect = ({ route }: { route?: string } = {}) => {
   useEffect(() => {
-    kloudNav.navigateMain({});
-  }, []);
+    kloudNav.navigateMain(route ? { route } : {});
+  }, [route]);
 
   return null;
 };
