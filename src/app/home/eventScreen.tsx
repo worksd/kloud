@@ -35,7 +35,8 @@ export default function EventScreen({os, events, hideDialogIds: initialHideDialo
           // BE 응답값 무시하고 클라가 locale에 맞춰 박음 — 토글 ON 시 hideDialogIdList 쿠키에 event.id 누적 저장
           hideForeverMessage,
           imageUrl: event.imageUrl,
-          imageRatio: event.imageRatio,
+          // BE가 imageRatio를 내려보내지 않아 클라에서 0.8 고정으로 박음.
+          imageRatio: 0.8,
           ctaButtonText: event.ctaButtonText,
           type: 'IMAGE',
         }
