@@ -94,13 +94,13 @@ export function TodayTimetable({
 
   // 끝난/남은 경계에 그려지는 marker. 단, 진행중 row가 이미 있으면 카드와 겹치므로 숨긴다.
   // - ongoing 발견 → -1 (숨김)
-  // - 첫 upcoming index → 그 위치
+  // - 첫 upcoming index → 그 위치 (단, i=0 = 아직 한 수업도 시작 안 한 상태면 어색해서 숨김)
   // - 모두 ended → sorted.length (맨 아래)
   const nowMarkerIndex = (() => {
     for (let i = 0; i < sorted.length; i++) {
       const s = statusOf(i);
       if (s === 'ongoing') return -1;
-      if (s === 'upcoming') return i;
+      if (s === 'upcoming') return i === 0 ? -1 : i;
     }
     return sorted.length;
   })();
