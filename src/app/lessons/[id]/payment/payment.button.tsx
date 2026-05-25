@@ -276,6 +276,16 @@ export default function PaymentButton({
       }
     } else if (method == 'billing') {
       if (selectedBilling && selectedBilling.billingKey) {
+        // 일반 카드 결제 흐름(credit/foreign/easy-pay)과 동일하게 빌링키 결제도
+        // lesson 정원 확인을 선행 — 정원 초과 시 결제 다이얼로그 진입 차단.
+        if (type.value === 'lesson') {
+          const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
+          if ('message' in capacityCheckResponse) {
+            const dialog = await createDialog({id: 'Simple', message: capacityCheckResponse.message});
+            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+            return;
+          }
+        }
         const dialog = await createDialog({
           id: 'RequestBillingKeyPayment',
           title: title,
