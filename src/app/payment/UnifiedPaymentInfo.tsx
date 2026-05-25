@@ -137,12 +137,17 @@ export const UnifiedPaymentInfo = ({
   // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
   const availablePasses: GetPassResponse[] = payment.passes ?? payment.user.passes ?? [];
 
-  // 통합 모델 — 패스 할인은 root discounts 배열에서 제거됨. passRules의 benefitType==='Discount'에서 직접 구성.
+  // 대표 rule = passRules의 첫 usable rule (PassesSection 부제목과 동일).
+  // - Discount 룰 → 일반 결제수단 + selectedDiscount 적용 (결제수단/패스 동시 활성 OK, 잔액 일반 결제)
+  // - FreeCount/Unlimited 룰 → selectedMethod='pass' + selectedDiscount=undefined (use pass 풀커버)
+  const getPassDiscountRule = (pass: GetPassResponse) => {
+    const rule = (pass.passRules ?? []).find(r => r.usable);
+    return rule?.benefitType === 'Discount' ? rule : undefined;
+  };
+
   const buildDiscountFromPass = (pass: GetPassResponse): DiscountResponse | undefined => {
-    const rule = (pass.passRules ?? []).find(r =>
-      r.benefitType === 'Discount' && r.usable && (r.benefitValue ?? 0) > 0
-    );
-    if (!rule) return undefined;
+    const rule = (pass.passRules ?? []).find(r => r.usable);
+    if (!rule || rule.benefitType !== 'Discount' || (rule.benefitValue ?? 0) <= 0) return undefined;
     return {
       key: pass.passPlan?.name ?? 'pass',
       value: String(rule.benefitValue ?? 0),
@@ -172,9 +177,15 @@ export const UnifiedPaymentInfo = ({
   const initialPass = availablePasses.find(p =>
     (p.passRules ?? []).some(r => r.usable) || (p.passFeatures ?? []).some(f => f.usable)
   );
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(
-    defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined)
-  );
+  // 초기 패스 분기:
+  //   - Discount 룰 → 일반 결제수단 + selectedDiscount 적용
+  //   - 그 외 룰 → 결제수단을 'pass'로 (use pass 흐름)
+  const fallbackMethod: PaymentMethodType | undefined =
+    defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined);
+  const initialPassIsDiscount = !!(initialPass && getPassDiscountRule(initialPass));
+  const initialMethod: PaymentMethodType | undefined =
+    initialPass && !initialPassIsDiscount ? 'pass' : fallbackMethod;
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(initialMethod);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(initialPass);
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
@@ -183,13 +194,18 @@ export const UnifiedPaymentInfo = ({
   const [mounted, setMounted] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(
-    (type === 'pass-plan' || type === 'practice-room' || !initialPass)
+    (type === 'pass-plan' || type === 'practice-room' || !initialPass || !initialPassIsDiscount)
       ? undefined
       : buildDiscountFromPass(initialPass)
   );
 
   const handleSelectMethod = (method: PaymentMethodType) => {
     setSelectedMethod(method);
+    // 현재 선택된 패스가 FreeCount/Unlimited(=use pass 흐름)면 일반 결제수단과 모순 → 해제.
+    // Discount 패스는 일반 결제수단과 같이 쓰는 정상 케이스 → 유지.
+    if (method !== 'pass' && selectedPass && !getPassDiscountRule(selectedPass)) {
+      setSelectedPass(undefined);
+    }
   }
 
   useEffect(() => {
@@ -276,8 +292,9 @@ export const UnifiedPaymentInfo = ({
         </>
       )}
 
-      {/* 패스권 — 결제수단/할인과 같은 레벨의 별도 영역. methods에 'pass'가 활성일 때만 노출. */}
-      {!noPass && passMethodEnabled && availablePasses.length > 0 && (
+      {/* 패스권 — 결제수단/할인과 같은 레벨의 별도 영역.
+          methods에 'pass'가 활성이면 무조건 섹션 노출(passes 비어 있어도 안내 메시지 표시). */}
+      {!noPass && passMethodEnabled && (
         <>
           <PassesSection
             locale={locale}
@@ -285,17 +302,20 @@ export const UnifiedPaymentInfo = ({
             selectedPass={selectedPass}
             onSelectPass={(pass) => {
               setSelectedPass(pass);
-              if (pass) {
-                setSelectedMethod('pass');
-                setSelectedCoupon(undefined);
-                // passRules의 benefitType==='Discount' 룰을 DiscountResponse로 변환해 적용
-                setSelectedDiscount(buildDiscountFromPass(pass));
-              } else {
-                // 패스권 해제 — 다른 결제수단 첫 번째로 fallback, 할인도 해제
+              setSelectedCoupon(undefined);
+              if (!pass) {
                 setSelectedDiscount(undefined);
-                if (selectedMethod === 'pass') {
-                  setSelectedMethod(paymentMethods[0]?.type);
-                }
+                if (selectedMethod === 'pass') setSelectedMethod(fallbackMethod);
+                return;
+              }
+              if (getPassDiscountRule(pass)) {
+                // Discount 패스 — 결제수단은 일반 그대로 유지(pass였으면 fallback), 할인만 적용
+                setSelectedDiscount(buildDiscountFromPass(pass));
+                if (selectedMethod === 'pass') setSelectedMethod(fallbackMethod);
+              } else {
+                // FreeCount/Unlimited — use pass 흐름. selectedMethod='pass', 할인 없음.
+                setSelectedMethod('pass');
+                setSelectedDiscount(undefined);
               }
             }}
           />
