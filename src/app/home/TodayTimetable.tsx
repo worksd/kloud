@@ -211,8 +211,8 @@ export function TodayTimetable({
                   {descriptionText && (
                     <div
                       className={[
-                        'mt-0.5 text-[12px] font-semibold tabular-nums truncate',
-                        isEnded ? 'text-[#919191]' : 'text-[#1E2124]',
+                        'mt-0.5 text-[11px] font-medium tabular-nums truncate',
+                        isEnded ? 'text-[#D1D6DB]' : 'text-[#B0B8C1]',
                       ].join(' ')}
                     >
                       {descriptionText}
