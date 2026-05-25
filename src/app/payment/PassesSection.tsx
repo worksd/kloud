@@ -33,7 +33,14 @@ export const PassesSection = ({
       <div className="rounded-2xl border border-[#EEEFF0] overflow-hidden">
         {passes.map((pass, idx) => {
           const isSelected = selectedPass?.id === pass.id;
-          const isUsable = pass.usable;
+          // PaymentUserPassResponse엔 패스 레벨 usable이 없음 — 룰/피쳐 레벨에서 산출
+          const rules = pass.passRules ?? [];
+          const features = pass.passFeatures ?? [];
+          const isUsable = rules.some(r => r.usable) || features.some(f => f.usable);
+          // 비활성 사유는 usable=false인 첫 룰의 reason
+          const blockedReason = isUsable
+            ? undefined
+            : rules.find(r => !r.usable && r.reason)?.reason;
           return (
             <div
               key={pass.id}
@@ -55,8 +62,8 @@ export const PassesSection = ({
                 <span className={`text-[14px] truncate ${isSelected ? 'text-black font-bold' : 'text-[#888] font-medium'}`}>
                   {pass.passPlan?.name ?? getLocaleString({ locale, key: 'pass' })}
                 </span>
-                {!isUsable && pass.reason && (
-                  <span className="text-[11px] text-[#B0B8C1] mt-0.5 truncate">{pass.reason}</span>
+                {!isUsable && blockedReason && (
+                  <span className="text-[11px] text-[#B0B8C1] mt-0.5 truncate">{blockedReason}</span>
                 )}
               </div>
 
