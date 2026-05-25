@@ -7,6 +7,7 @@ import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformat
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 import { DiscountSection } from "@/app/lessons/[id]/payment/DiscountSection";
+import { PassesSection } from "@/app/payment/PassesSection";
 import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
@@ -121,19 +122,27 @@ export const UnifiedPaymentInfo = ({
     kakao_pay: getLocaleString({ locale, key: 'kakao_pay' }),
     toss_pay: getLocaleString({ locale, key: 'toss_pay' }),
   };
-  const paymentMethods: GetPaymentMethodResponse[] = payment.methods.flatMap(m => {
-    if (m.type === 'easy_pay' && m.providers && m.providers.length > 0) {
-      return m.providers.map((p, i) => ({ id: m.id * -100 - i, type: p, name: easyPayLabel[p] ?? p }));
-    }
-    return [m];
-  });
+  // 'pass'는 결제수단 영역이 아니라 별도 PassesSection으로 렌더 — 결제수단 옵션에서 제외.
+  // 단 methods에 'pass'가 있다는 사실은 "패스 결제 활성" 신호로 PassesSection 노출 가드에 사용.
+  const passMethodEnabled = payment.methods.some(m => m.type === 'pass');
+  const paymentMethods: GetPaymentMethodResponse[] = payment.methods
+    .filter(m => m.type !== 'pass')
+    .flatMap(m => {
+      if (m.type === 'easy_pay' && m.providers && m.providers.length > 0) {
+        return m.providers.map((p, i) => ({ id: m.id * -100 - i, type: p, name: easyPayLabel[p] ?? p }));
+      }
+      return [m];
+    });
+
+  // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
+  const availablePasses: GetPassResponse[] = payment.passes ?? payment.user.passes ?? [];
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(
     defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined)
   );
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(
-    payment.user.passes?.find(p => (p.passRules ?? []).some(r => r.usable) || (p.passFeatures ?? []).some(f => f.usable))
+    availablePasses.find(p => (p.passRules ?? []).some(r => r.usable) || (p.passFeatures ?? []).some(f => f.usable))
   );
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
     payment.cards && payment.cards.length > 0 ? payment.cards[0] : undefined
@@ -208,7 +217,7 @@ export const UnifiedPaymentInfo = ({
         <>
           <PaymentMethodComponent
             locale={locale}
-            passes={payment.user.passes}
+            passes={[]}
             cards={cards ?? []}
             onCardsChangeAction={(cards) => setCards(cards)}
             selectedPass={selectedPass}
@@ -231,6 +240,36 @@ export const UnifiedPaymentInfo = ({
             titleOverride={payment.price == null ? getLocaleString({ locale, key: 'application_method' }) : undefined}
           />
 
+          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
+        </>
+      )}
+
+      {/* 패스권 — 결제수단/할인과 같은 레벨의 별도 영역. methods에 'pass'가 활성일 때만 노출. */}
+      {!noPass && passMethodEnabled && availablePasses.length > 0 && (
+        <>
+          <PassesSection
+            locale={locale}
+            passes={availablePasses}
+            selectedPass={selectedPass}
+            onSelectPass={(pass) => {
+              setSelectedPass(pass);
+              if (pass) {
+                setSelectedMethod('pass');
+                setSelectedCoupon(undefined);
+                // 매칭되는 패스권 할인이 있으면 자동 적용 (passRule.id 매칭)
+                const matched = payment.discounts?.find(d =>
+                  d.passRule?.id && (pass.passRules ?? []).some(r => r.id === d.passRule?.id)
+                );
+                setSelectedDiscount(matched);
+              } else {
+                // 패스권 해제 — 다른 결제수단 첫 번째로 fallback, 할인도 해제
+                setSelectedDiscount(undefined);
+                if (selectedMethod === 'pass') {
+                  setSelectedMethod(paymentMethods[0]?.type);
+                }
+              }
+            }}
+          />
           <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
         </>
       )}

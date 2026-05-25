@@ -1061,6 +1061,12 @@ export const StringResource = {
     jp: "言語設定",
     zh: "语言设置"
   },
+  pass: {
+    ko: "패스권",
+    en: "Pass",
+    jp: "パス",
+    zh: "通行证"
+  },
   do_not_show_again: {
     ko: "다시 보지 않기",
     en: "Don't show again",
