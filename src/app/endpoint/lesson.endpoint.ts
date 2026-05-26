@@ -34,7 +34,7 @@ export type GetLessonResponse = {
     days?: string;
     description?: string;
     genre?: string;
-    tag?: string;
+    tags?: string;
     formattedDate?: GetFormattedDateResponse;
     /** 어드민 권한 종류. truthy면 수강생/정산 정보 표시. */
     adminType?: 'artist' | 'partner';
