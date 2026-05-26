@@ -294,7 +294,7 @@ export const UnifiedPaymentInfo = ({
 
       {/* 패스권 — 결제수단/할인과 같은 레벨의 별도 영역.
           methods에 'pass'가 활성이면 무조건 섹션 노출(passes 비어 있어도 안내 메시지 표시). */}
-      {!noPass && passMethodEnabled && (
+      {passMethodEnabled && (
         <>
           <PassesSection
             locale={locale}
