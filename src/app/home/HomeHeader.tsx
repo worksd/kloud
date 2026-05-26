@@ -18,13 +18,11 @@ export const HomeHeader = ({ hasStudio, os, children }: { hasStudio: boolean, os
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-10 transition-all duration-200 flex flex-row items-center px-6 pb-4 ${isAndroid ? 'pt-4' : 'pt-16'}`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 flex flex-row items-center px-6 pb-4 ${isAndroid ? 'pt-4' : 'pt-16'}`}
       style={{
         backgroundColor: hasStudio
-          ? (scrolled ? 'rgba(255,255,255,0.3)' : 'transparent')
+          ? (scrolled ? 'white' : 'transparent')
           : 'white',
-        backdropFilter: hasStudio && scrolled ? 'blur(30px)' : 'none',
-        WebkitBackdropFilter: hasStudio && scrolled ? 'blur(30px)' : 'none',
       }}
     >
       {children}

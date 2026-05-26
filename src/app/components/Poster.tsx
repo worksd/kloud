@@ -6,6 +6,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { translate } from "@/utils/translate";
 import { LessonLabel, LessonPosterTypeLabel } from "@/app/components/LessonLabel";
 import { GetLabelResponse } from "@/app/endpoint/lesson.endpoint";
+import { LessonTags } from "@/app/components/LessonTags";
 
 export async function Poster({
                                id,
@@ -17,6 +18,7 @@ export async function Poster({
                                width,
                                label,
                                type,
+                               tags,
                              }: {
   id: number,
   posterUrl: string,
@@ -27,6 +29,7 @@ export async function Poster({
   title?: string,
   label?: GetLabelResponse,
   type?: 'default' | 'subscription',
+  tags?: string,
 }) {
   const route = type === 'subscription'
     ? KloudScreen.LessonGroupDetail(id)
@@ -44,6 +47,11 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
+          {(label?.type === 'PopUp' || label?.type === 'Workshop') && (
+            <div className="absolute top-2 left-2 bg-[#1F1F1F] px-1 py-1 rounded-[4px] text-white font-paperlogy font-bold text-[11px] leading-none">
+              {label.type === 'PopUp' ? '팝업' : '워크샵'}
+            </div>
+          )}
           {label?.isEnded == true &&
             <div
               className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">
@@ -75,6 +83,11 @@ export async function Poster({
             </div>
           )}
 
+          {/* 태그 — ','로 split해서 노출 (제목 위) */}
+          {tags && (
+            <LessonTags tags={tags} className="mb-1.5"/>
+          )}
+
           {/* 타이틀 */}
           <div
             className="text-black font-bold text-[14px]"
@@ -92,11 +105,6 @@ export async function Poster({
           {description && (
             <div className="body-200 text-gray-500 text-[12px] truncate font-medium">
               {description}
-            </div>
-          )}
-          {label?.genre && label.genre != 'Default' && (
-            <div className="mt-1">
-              <LessonLabel label={label.genre}/>
             </div>
           )}
         </div>

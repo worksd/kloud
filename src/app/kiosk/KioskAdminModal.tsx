@@ -1,20 +1,37 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css'; // 기본 CSS — 무조건 먼저 import
+import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
-import { buildCancellationReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
+import { buildCancellationReceipt, buildReprintReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction } from "@/app/kiosk/kiosk.actions";
 
-const ADMIN_PIN = '0000';
+// yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
+const formatYmd = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const parseYmd = (s: string): Date | null => {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map((n) => parseInt(n, 10));
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+};
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'] as const;
 
 type KioskAdminModalProps = {
   kioskId: number;
   kioskName?: string;
+  /** BE에서 키오스크 단위로 내려주는 관리자 비밀번호. 미설정이면 어떤 입력도 통과시키지 않음. */
+  password?: string;
   studio: ReceiptStudio;
   onClose: () => void;
 };
@@ -66,12 +83,28 @@ const printCancellationReceipt = (record: KioskPaymentRecord, studio: ReceiptStu
   sendReceiptToPrinter(lines);
 };
 
-export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAdminModalProps) => {
+export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose }: KioskAdminModalProps) => {
   const [stage, setStage] = useState<Stage>('pin');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
   const [payments, setPayments] = useState<KioskPaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  // KST 기준 yyyy-MM-dd. 빈 문자열이면 '전체'(date 파라미터 미전달) — 기본값
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPage, setTotalPage] = useState<number>(0);
+  // 날짜 picker(react-calendar) popover 토글 + 외부 클릭으로 닫기 위한 컨테이너 ref
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const calendarWrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!calendarOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!calendarWrapRef.current) return;
+      if (!calendarWrapRef.current.contains(e.target as Node)) setCalendarOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [calendarOpen]);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   // 취소 확인 다이얼로그 — 사용자가 '취소' 버튼을 눌렀을 때 즉시 KIS로 가지 않고 한 번 확인받음
@@ -90,15 +123,18 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   const [verifyOutcome, setVerifyOutcome] = useState<VerifyOutcome | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
 
-  // PIN 입력 처리
+  // PIN 입력 처리 — BE가 내려준 password와 길이 + 값 모두 일치할 때만 진입.
+  // password 미설정(undefined/'')이면 어떤 입력도 통과시키지 않음.
+  const passwordLength = password?.length ?? 0;
   const press = (k: string) => {
     if (k === '⌫') return setPin((p) => p.slice(0, -1));
     if (k === '') return;
-    if (pin.length >= 4) return;
+    if (passwordLength === 0) return;
+    if (pin.length >= passwordLength) return;
     const next = pin + k;
     setPin(next);
-    if (next.length === 4) {
-      if (next === ADMIN_PIN) {
+    if (next.length === passwordLength) {
+      if (next === password) {
         setPinError(null);
         setStage('list');
       } else {
@@ -109,21 +145,27 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
   };
 
 
-  // 결제 목록 fetch — 새로고침 버튼에서도 동일 함수 호출
+  // 결제 목록 fetch — 날짜/페이지 변경 시 자동 재호출 + 새로고침 버튼도 동일 함수 호출
   const fetchPayments = useCallback(() => {
     if (!kioskId) return;
     setLoading(true);
-    listKioskPaymentsAction(kioskId)
+    listKioskPaymentsAction(kioskId, {
+      date: selectedDate || undefined,
+      page: currentPage,
+    })
       .then((res) => {
         if (isGuinnessErrorCase(res)) {
           setToast(res.message ?? '목록을 불러오지 못했습니다');
           return;
         }
-        if ('paymentRecords' in res) setPayments(res.paymentRecords);
+        if ('paymentRecords' in res) {
+          setPayments(res.paymentRecords);
+          setTotalPage(typeof res.totalPage === 'number' ? res.totalPage : 0);
+        }
       })
       .catch(() => setToast('목록을 불러오지 못했습니다'))
       .finally(() => setLoading(false));
-  }, [kioskId]);
+  }, [kioskId, selectedDate, currentPage]);
 
   useEffect(() => {
     if (stage !== 'list') return;
@@ -283,6 +325,24 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
       .finally(() => { setDiscardingId(null); setDiscardTarget(null); });
   };
 
+  // 영수증 재발급 — GET /kiosks/:id/paymentRecords/:paymentId 응답을 받아 buildReprintReceipt → 시리얼 프린터 송출.
+  const [reprintingId, setReprintingId] = useState<string | null>(null);
+  const handleReprint = (record: KioskPaymentRecord) => {
+    if (reprintingId) return;
+    setReprintingId(record.paymentId);
+    getKioskPaymentRecordDetailAction({ kioskId, paymentId: record.paymentId })
+      .then((res) => {
+        if (isGuinnessErrorCase(res)) {
+          setToast(res.message ?? '영수증 재발급에 실패했어요');
+          return;
+        }
+        const lines = buildReprintReceipt(res, { kioskName: kioskNameRef.current });
+        sendReceiptToPrinter(lines);
+      })
+      .catch(() => setToast('영수증 재발급에 실패했어요'))
+      .finally(() => setReprintingId(null));
+  };
+
   // KIS 단말 ST(상태 조회) — 네이티브 인터페이스
   //   web → native:  window.KloudEvent.queryKisTransaction(paymentId)  (catId는 네이티브가 자체 보유)
   //   native → web:  window.onKisTransactionQueryResult(result)
@@ -406,7 +466,8 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
               </p>
             </div>
             <div className="flex items-center justify-center" style={{ gap: 'min(2vw,22px)', padding: 'min(2.4vw,26px) 0' }}>
-              {[0, 1, 2, 3].map((i) => (
+              {/* 비밀번호 길이만큼 점 표시 — password 미설정이면 0개 (사실상 입력 차단됨을 시각적으로 알림) */}
+              {Array.from({ length: passwordLength }, (_, i) => (
                 <div
                   key={i}
                   className={`rounded-full transition-colors ${i < pin.length ? 'bg-[#1E2124]' : 'bg-[#E6E8EA]'}`}
@@ -444,9 +505,58 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
           </>
         ) : (
           <>
-            <div className="flex items-center justify-between" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)' }}>
+            <div className="flex items-center justify-between flex-wrap" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)', gap: 'min(1vw,12px)' }}>
               <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
               <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
+                {/* 날짜 필터 — react-calendar popover */}
+                <div className="relative" ref={calendarWrapRef}>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarOpen((v) => !v)}
+                    className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center"
+                    style={{ padding: 'min(1vw,12px) min(1.6vw,18px)', gap: 'min(0.6vw,8px)' }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" style={{ width: 'min(1.8vw,20px)', height: 'min(1.8vw,20px)' }}>
+                      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="#1E2124" strokeWidth="1.8"/>
+                      <path d="M3 10H21" stroke="#1E2124" strokeWidth="1.8"/>
+                      <path d="M8 3V7" stroke="#1E2124" strokeWidth="1.8" strokeLinecap="round"/>
+                      <path d="M16 3V7" stroke="#1E2124" strokeWidth="1.8" strokeLinecap="round"/>
+                    </svg>
+                    <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>
+                      {selectedDate || '전체'}
+                    </span>
+                  </button>
+                  {calendarOpen && (
+                    <div className={`${calendarStyles.calendarWrapper} absolute right-0 z-[80] mt-2 bg-white rounded-[16px] shadow-[0_12px_32px_rgba(0,0,0,0.12)] border border-[#E6E8EA] p-3`} style={{ width: 320 }}>
+                      <Calendar
+                        onChange={(value) => {
+                          const d = Array.isArray(value) ? value[0] : value;
+                          if (d instanceof Date) {
+                            setSelectedDate(formatYmd(d));
+                            setCurrentPage(1);
+                            setCalendarOpen(false);
+                          }
+                        }}
+                        value={parseYmd(selectedDate)}
+                        formatDay={(_locale, d) => String(d.getDate())}
+                        locale="ko-KR"
+                        calendarType="gregory"
+                      />
+                    </div>
+                  )}
+                </div>
+                {selectedDate && (
+                  <button
+                    onClick={() => { setSelectedDate(''); setCurrentPage(1); }}
+                    aria-label="날짜 필터 해제"
+                    className="rounded-full bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center justify-center"
+                    style={{ width: 'min(3.4vw,36px)', height: 'min(3.4vw,36px)' }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
+                      <path d="M6 6L18 18M6 18L18 6" stroke="#6D7882" strokeWidth="2.4" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                )}
                 <button
                   onClick={fetchPayments}
                   disabled={loading}
@@ -583,20 +693,33 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setConfirmTarget(record)}
-                            disabled={isCancelled || isThisCanceling || cancelingId !== null}
-                            className={`shrink-0 px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
-                              isCancelled || cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
-                            }`}
-                          >
-                            <span
-                              className={`font-bold ${isCancelled || cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
-                              style={{ fontSize: 'min(1.6vw, 18px)' }}
+                          <div className="flex items-center shrink-0" style={{ gap: 'min(0.6vw,8px)' }}>
+                            <button
+                              onClick={() => handleReprint(record)}
+                              disabled={reprintingId !== null}
+                              className="px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-50"
                             >
-                              {isThisCanceling ? '취소 중…' : '취소'}
-                            </span>
-                          </button>
+                              <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.6vw, 18px)' }}>
+                                {reprintingId === record.paymentId ? '재발급 중…' : '영수증 재발급'}
+                              </span>
+                            </button>
+                            {!isCancelled && (
+                              <button
+                                onClick={() => setConfirmTarget(record)}
+                                disabled={isThisCanceling || cancelingId !== null}
+                                className={`px-[min(1.8vw,20px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
+                                  cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
+                                }`}
+                              >
+                                <span
+                                  className={`font-bold ${cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
+                                  style={{ fontSize: 'min(1.6vw, 18px)' }}
+                                >
+                                  {isThisCanceling ? '취소 중…' : '취소'}
+                                </span>
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -604,6 +727,30 @@ export const KioskAdminModal = ({ kioskId, kioskName, studio, onClose }: KioskAd
                 </div>
               )}
             </div>
+            {/* 페이지네이션 — page 파라미터 사용 시(BE가 totalPage 내려줌) 1보다 클 때만 노출 */}
+            {totalPage > 1 && (
+              <div className="shrink-0 flex items-center justify-center" style={{ gap: 'min(1.6vw,18px)', padding: 'min(1vw,12px) 0 min(1.6vw,18px)' }}>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1 || loading}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ padding: 'min(1vw,12px) min(1.8vw,20px)' }}
+                >
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>이전</span>
+                </button>
+                <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+                  {currentPage} / {totalPage}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPage, p + 1))}
+                  disabled={currentPage >= totalPage || loading}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ padding: 'min(1vw,12px) min(1.8vw,20px)' }}
+                >
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>다음</span>
+                </button>
+              </div>
+            )}
           </>
         )}
 

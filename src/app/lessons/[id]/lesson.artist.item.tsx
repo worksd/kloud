@@ -21,11 +21,11 @@ export const LessonArtistItem = ({artist, appVersion}: { artist: GetArtistRespon
           <Image
             className="w-[36px] h-[36px] rounded-full overflow-hidden flex-shrink-0"
             src={artist.profileImageUrl}
-            alt={`${artist?.nickName} 강사`}
+            alt={`${artist?.nickName ?? artist?.name} 강사`}
             width={36}
             height={36}
           />
-          <div className="text-black text-sm font-bold leading-tight">{artist.nickName}</div>
+          <div className="text-black text-sm font-bold leading-tight">{artist.nickName ?? artist.name}</div>
         </div>
 
         {artist.instagramAddress && (

@@ -3,7 +3,7 @@ import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { GetMembershipPlanResponse } from "@/app/endpoint/membership.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
 
 export type GetPaymentRequest = {
@@ -48,6 +48,13 @@ export type CouponResponse = {
 
 export type GetPaymentResponse = {
   user: GetUserResponse;
+  /**
+   * 회원이 보유한 패스권 목록 — 결제수단/할인이 아닌 별도 섹션으로 노출.
+   * 과거에는 user.passes로 내려왔지만 user와 같은 레벨로 분리됨.
+   */
+  passes?: GetPassResponse[];
+  /** 결제 페이지 진입 직후 강제 이동시킬 라우트. BE가 지정하면 결제 폼 대신 navigateMain. */
+  redirectUrl?: string;
   price?: number;
   methods: GetPaymentMethodResponse[];
   cards?: GetBillingResponse[];
@@ -64,7 +71,6 @@ export type GetPaymentResponse = {
     studio?: { id: number; name: string };
   };
   passPlan?: GetPassPlanResponse;
-  membershipPlan?: GetMembershipPlanResponse;
   paymentId: string;
   refundAccountNumber?: string
   refundAccountBank?: string

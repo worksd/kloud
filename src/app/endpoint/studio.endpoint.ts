@@ -1,9 +1,9 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
-import { GetPassPlanResponse, GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { AnnouncementResponse } from "@/app/endpoint/announcement.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
-import {GetMembershipResponse} from "@/app/endpoint/membership.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
 export type IdParameter = {
@@ -32,6 +32,8 @@ export type GetStudioResponse = {
     coverImageUrl?: string;
     phone?: string;
     youtubeUrl?: string;
+    /** BE가 youtubeUrl로부터 resolve해 저장한 채널 키. playlistId = `UU` + youtubeChannelKey 로 영상 호출에 사용. null이면 영상 영역 미노출. */
+    youtubeChannelKey?: string | null;
     businessName?: string;
     bank?: string;
     accountNumber?: string;
@@ -46,11 +48,9 @@ export type GetStudioResponse = {
     receiptFooter?: string;
     lessons?: GetBandLessonResponse[];
     announcements?: GetAnnouncementResponse[];
-    passPlans?: GetPassPlanResponse[];
     passes?: GetPassResponse[];
     timeTable?: GetTimeTableResponse;
     banners?: StudioBannerResponse[];
-    youtubeContents?: YoutubeContentResponse[];
     lessonGroups?: LessonGroupSummary[];
     day: string;
 };
@@ -83,12 +83,12 @@ export type LessonGroupSummary = {
 
 export type GetMyStudioResponse = {
   studio: GetStudioResponse;
-  announcement: GetAnnouncementResponse;
+  /** 최근 7일 이내 최신 공지 1건. 없으면 키째로 없음. */
+  announcement?: AnnouncementResponse;
   bands: GetBandResponse[];
   lessonGroups?: LessonGroupSummary[];
   jumbotrons?: GetBandLessonResponse[];
   banners?: HomeBannerResponse[];
-  membership?: GetMembershipResponse;
 }
 
 export type GetTimeTableResponse = {

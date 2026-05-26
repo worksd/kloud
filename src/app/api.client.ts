@@ -33,6 +33,7 @@ export class ApiClient extends EndpointClient {
     listByDate: this.endpointBuilder(API.Lesson.ListStudioLessonsByDate),
     checkCapacity: this.endpointBuilder(API.Lesson.CheckCapacity),
     getTickets: this.endpointBuilder(API.Lesson.GetLessonTickets),
+    getSettleUp: this.endpointBuilder(API.Lesson.GetLessonSettleUp),
   }
 
   readonly lessonGroup = {
@@ -47,6 +48,11 @@ export class ApiClient extends EndpointClient {
     my: this.endpointBuilder(API.Studio.My),
     timeTable: this.endpointBuilder(API.Studio.TimeTable),
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
+  }
+
+  readonly announcement = {
+    list: this.endpointBuilder(API.Announcement.ListAnnouncements),
+    get: this.endpointBuilder(API.Announcement.GetAnnouncement),
   }
 
   readonly ticket = {
@@ -115,6 +121,7 @@ export class ApiClient extends EndpointClient {
     usePass: this.endpointBuilder(API.Kiosk.UseKioskPass),
     listPayments: this.endpointBuilder(API.Kiosk.ListKioskPayments),
     cancelPayment: this.endpointBuilder(API.Kiosk.CancelKioskPayment),
+    getPaymentRecordDetail: this.endpointBuilder(API.Kiosk.GetKioskPaymentRecordDetail),
   }
 
   readonly billing = {
@@ -137,11 +144,6 @@ export class ApiClient extends EndpointClient {
 
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
-  }
-
-  readonly membership = {
-    listPlans: this.endpointBuilder(API.Membership.GetMembershipPlans),
-    get: this.endpointBuilder(API.Membership.GetMembership),
   }
 
   readonly common = {

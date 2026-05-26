@@ -60,7 +60,15 @@ export type CompleteKioskPaymentResponse = {
   paymentId: string;
   status: string;          // 'Completed'
   qrCodeUrl: string | null;
-  receiptData: string;
+  receiptData?: string;
+  /** 카드 결제 흐름이라 'card' 고정 */
+  paymentType?: 'card';
+  /** 카드 매입 완료 시점이라 'completed' 고정 */
+  receiptType?: 'completed';
+  /** 레슨 결제(LT-*)일 때 입장 번호 라벨 (예: "No. 7 (A Group)"). 그 외 null */
+  rank?: string | null;
+  /** 'priority' | 'normal'. 그 외 null */
+  rankType?: 'priority' | 'normal' | null;
 };
 
 export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, CompleteKioskPaymentResponse> = {
@@ -70,10 +78,12 @@ export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, Complet
 };
 
 // (중간 실패) DELETE /kiosks/payments/:paymentId — Pending soft-delete
-//   단말 매입 전 사용자 취소 / 매입 자체 실패 시
+//   단말 매입 전 사용자 취소 / 매입 자체 실패 시.
+//   reason: 폐기 사유 진단용 — KIS VAN 응답 raw를 JSON 문자열로 동봉.
 export type DiscardKioskPaymentRequest = {
   paymentId: string;
   kioskId: number;
+  reason?: string;
 };
 
 export type DiscardKioskPaymentResponse = {
@@ -83,7 +93,7 @@ export type DiscardKioskPaymentResponse = {
 export const DiscardKioskPayment: Endpoint<DiscardKioskPaymentRequest, DiscardKioskPaymentResponse> = {
   method: 'delete',
   path: (e) => `/kiosks/payments/${e.paymentId}`,
-  bodyParams: ['kioskId'],
+  bodyParams: ['kioskId', 'reason'],
 };
 
 export type UseKioskPassRequest = {
@@ -143,15 +153,86 @@ export type KioskPaymentRecord = {
 
 export type ListKioskPaymentsRequest = {
   kioskId: number;
+  /** KST 기준 yyyy-MM-dd. 미지정 시 전체 조회 */
+  date?: string;
+  /** 1부터. 미지정 또는 0 이하면 페이지네이션 없이 전체 */
+  page?: number;
 };
 
 export type ListKioskPaymentsResponse = {
   paymentRecords: KioskPaymentRecord[];
+  /** page 파라미터로 호출 시 BE가 함께 내려주는 페이지네이션 메타 */
+  totalPage?: number;
+  page?: number;
 };
 
 export const ListKioskPayments: Endpoint<ListKioskPaymentsRequest, ListKioskPaymentsResponse> = {
   method: 'get',
   path: (e) => `/kiosks/${e.kioskId}/paymentRecords`,
+  queryParams: ['date', 'page'],
+};
+
+// GET /kiosks/:id/paymentRecords/:paymentId — 영수증 재발급용 결제 기록 상세
+export type KioskPaymentRecordDetailRequest = {
+  kioskId: number;
+  paymentId: string;
+};
+
+export type KioskPaymentRecordDetailDiscount = {
+  name: string;
+  amount: number;
+  type?: string;
+};
+
+export type KioskPaymentRecordDetailCard = {
+  cardNumber?: string;
+  issuerName?: string;
+  /** "일시불" 또는 "N개월" — BE가 변환해서 내려줌 */
+  installmentLabel?: string;
+  merchantNo?: string;
+  authNo?: string;
+  authDate?: string;
+  vanKey?: string;
+  approvedAmount?: number;
+};
+
+export type KioskPaymentRecordDetailLesson = {
+  id: number;
+  title: string;
+  startDate?: string;
+  duration?: number;
+  artists?: { id: number; name?: string; nickName?: string }[];
+};
+
+export type KioskPaymentRecordDetailStudio = {
+  name?: string;
+  address?: string;
+  businessRegistrationNumber?: string;
+  representative?: string;
+  phone?: string;
+  receiptFooter?: string;
+};
+
+export type KioskPaymentRecordDetailResponse = {
+  paymentId: string;
+  status: string;
+  productName?: string;
+  method?: string;
+  methodType?: string;
+  amount: number;
+  createdAt?: string;
+  confirmedAt?: string;
+  cancelledAt?: string | null;
+  studio?: KioskPaymentRecordDetailStudio;
+  discounts?: KioskPaymentRecordDetailDiscount[];
+  card?: KioskPaymentRecordDetailCard | null;
+  lesson?: KioskPaymentRecordDetailLesson | null;
+  qrCodeUrl?: string;
+};
+
+export const GetKioskPaymentRecordDetail: Endpoint<KioskPaymentRecordDetailRequest, KioskPaymentRecordDetailResponse> = {
+  method: 'get',
+  path: (e) => `/kiosks/${e.kioskId}/paymentRecords/${e.paymentId}`,
 };
 
 // POST /kiosks/payments/:paymentId/cancel — Completed → Cancelled (관리자 취소).
@@ -180,6 +261,8 @@ export type KioskResponse = {
   imageUrl: string | null;
   canCheckIn: boolean;
   canPurchase: boolean;
+  /** 키오스크별 관리자 모드 진입 비밀번호 (BE 설정값). 미설정이면 관리자 모드 진입 불가. */
+  password?: string;
   createdAt: string;
   updatedAt: string;
 };

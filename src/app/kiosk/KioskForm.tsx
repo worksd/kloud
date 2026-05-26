@@ -56,6 +56,7 @@ export const KioskForm = ({
   kioskId,
   kioskName,
   kioskImageUrl,
+  kioskPassword,
   canCheckIn,
   canPurchase,
   passPlans,
@@ -71,6 +72,8 @@ export const KioskForm = ({
   kioskId: number;
   kioskName?: string;
   kioskImageUrl?: string;
+  /** 관리자 모드 진입 비밀번호 — BE에서 키오스크 단위로 내려주는 값 */
+  kioskPassword?: string;
   canCheckIn: boolean;
   canPurchase: boolean;
   passPlans: GetPassPlanResponse[];
@@ -116,6 +119,8 @@ export const KioskForm = ({
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | null>(null);
   const [selectedPass, setSelectedPass] = useState<{ pass: GetPassResponse; rule: PassRuleResponse } | null>(null);
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
+  // BE complete 응답의 rank 라벨 (예: "No. 7 (A Group)") — 영수증 임팩트 박스에 노출
+  const [paymentRank, setPaymentRank] = useState<string | null>(null);
   // 패스권 사용 시 응답으로 받는 paymentId — 영수증의 결제번호 라인에 노출 (paymentInfo.paymentId보다 우선)
   const [receiptPaymentIdOverride, setReceiptPaymentIdOverride] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -142,6 +147,7 @@ export const KioskForm = ({
     setSelectedDiscount(null);
     setSelectedPass(null);
     setPaymentQrCodeUrl(null);
+    setPaymentRank(null);
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
     lastFetchedKeyRef.current = null;
@@ -387,6 +393,7 @@ export const KioskForm = ({
           setPaymentQrCodeUrl(ok.qrCodeUrl);
           qrText = ok.qrCodeUrl;
         }
+        if (ok.rank) setPaymentRank(ok.rank);
         finishUp(qrText);
       })
       .catch(() => {
@@ -412,7 +419,14 @@ export const KioskForm = ({
     const discardPaymentId = outCustomerUuid || paymentInfo?.paymentId;
     if (!discardPaymentId) return;
 
-    discardKioskPaymentAction(discardPaymentId, kioskId).catch(() => {
+    // 진단용: KIS VAN 응답 raw + 클라가 매긴 status를 reason 필드로 동봉.
+    // 서버 로그에서 폐기 트리거 원인(어떤 outReplyCode/outTranCode가 들어왔는지)을 추적 가능.
+    const reason = JSON.stringify({
+      status: paymentResult.status,
+      kis: paymentResult.data ?? null,
+    });
+
+    discardKioskPaymentAction(discardPaymentId, kioskId, reason).catch(() => {
       // 폐기 실패는 사용자에게 노출 안 함 — 관리자가 paymentRecords에서 수동 폐기 가능
       console.warn('Pending 폐기 실패');
     });
@@ -596,6 +610,7 @@ export const KioskForm = ({
             .filter((n): n is string => Boolean(n))
         : undefined,
       lessonDateTime: selectedLesson ? lessonDateTime : undefined,
+      rank: selectedLesson ? paymentRank ?? undefined : undefined,
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
@@ -607,7 +622,7 @@ export const KioskForm = ({
       qrText,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride, paymentRank]);
 
   // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화.
   // 서버가 passRule 풀 객체를 함께 요구해서 그대로 전달.
@@ -982,6 +997,7 @@ export const KioskForm = ({
                     setSelectedPass(null);
                     setPaymentInfo(null);
                     setPaymentQrCodeUrl(null);
+                    setPaymentRank(null);
                     setReceiptPaymentIdOverride(null);
                     setCurrentScreen('lesson-list');
                   }}
@@ -1072,6 +1088,7 @@ export const KioskForm = ({
         <KioskAdminModal
           kioskId={kioskId}
           kioskName={kioskName}
+          password={kioskPassword}
           studio={{
             name: studioName,
             address: studioAddress,

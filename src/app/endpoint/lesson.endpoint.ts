@@ -34,9 +34,10 @@ export type GetLessonResponse = {
     days?: string;
     description?: string;
     genre?: string;
-    tag?: string;
+    tags?: string;
     formattedDate?: GetFormattedDateResponse;
-    isAdmin?: boolean;
+    /** 어드민 권한 종류. truthy면 수강생/정산 정보 표시. */
+    adminType?: 'artist' | 'partner';
 };
 
 export type GetFormattedDateResponse = {
@@ -51,7 +52,7 @@ export type GetFormattedDateResponse = {
 export type GetLessonButtonResponse = {
     title: string;
     route?: string;
-    activateAt: string;
+    activateAt?: string;
 }
 
 export type GetStudioRoomResponse = {
@@ -77,9 +78,15 @@ export type GetStudioLessonsByDateParameter = {
     isAdmin?: boolean;
 }
 
+export type BandLabel = {
+    /** true면 밴드 제목 위에 'SOON' 태그 노출 */
+    coming?: boolean;
+}
+
 export type GetBandResponse = {
     title: string;
     type: BandType;
+    label?: BandLabel;
     lessons: GetBandLessonResponse[];
 }
 
@@ -94,12 +101,16 @@ export type GetBandLessonResponse = {
     description: string;
     studioImageUrl: string;
     studioName: string;
+    /** 수업이 열리는 룸 이름 — Today 밴드에서 BE가 함께 내려줌. */
+    roomName?: string;
     thumbnailUrl: string;
     label: GetLabelResponse;
     type?: 'default' | 'subscription';
     date?: string; // yyyy-MM-dd 형식
     startDate?: string; // yyyy-MM-dd HH:mm 형식
     startTime?: string; // HH:mm 형식
+    /** 수업 길이(분). 'Today' 밴드 timetable에서 진행중/종료 판단에 사용. */
+    duration?: number;
     artist?: GetArtistResponse;
     artists?: GetArtistResponse[];
 }
@@ -108,6 +119,8 @@ export type GetLabelResponse = {
     isEnded: boolean;
     type?: LessonType;
     genre?: string;
+    /** ','로 구분된 태그 문자열 (예: '전문반,입시반'). null/undefined면 미노출 */
+    tags?: string | null;
 }
 
 export type CheckTicketCapacityParameter = {
@@ -122,7 +135,7 @@ export type JumbotronResponse = {
     studioImageUrl: string;
 }
 
-export type BandType = 'Default' | 'Recommendation'
+export type BandType = 'Default' | 'Recommendation' | 'Today'
 
 export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     method: "get",
@@ -148,11 +161,52 @@ export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleRespons
 
 export type GetLessonTicketsParameter = {
     id: number;
+    /** BE가 메모리에서 입장 순서로 정렬 */
+    order?: 'RankAsc';
 }
 
 export const GetLessonTickets: Endpoint<GetLessonTicketsParameter, TicketListResponse> = {
     method: 'get',
     path: (e) => `/lessons/${e.id}/tickets`,
+    queryParams: ['order'],
+}
+
+export type SettleUpItem = {
+    key: string;
+    value: string;
+    type?: 'Default' | 'Total' | string;
+}
+
+export type SettleUpSection = {
+    title: string;
+    items: SettleUpItem[];
+}
+
+export type SettleUpArtistResponse = {
+    id: number;
+    nickName: string;
+    profileImageUrl: string;
+    settleAmount: number;
+    totalAmount: number;
+    description: string;
+}
+
+export type SettleUpLessonResponse = {
+    id: number;
+    date: string;
+    title: string;
+    artists: SettleUpArtistResponse[];
+    sales: SettleUpSection;
+    settleUp: SettleUpSection;
+}
+
+export type GetLessonSettleUpParameter = {
+    id: number;
+}
+
+export const GetLessonSettleUp: Endpoint<GetLessonSettleUpParameter, SettleUpLessonResponse> = {
+    method: 'get',
+    path: (e) => `/lessons/${e.id}/settle-up`,
 }
 
 // LessonGroup (정기수업) 관련 타입

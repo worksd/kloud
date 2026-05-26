@@ -5,7 +5,7 @@ import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 
 export async function getLessonTicketsAction(lessonId: number): Promise<TicketResponse[]> {
   try {
-    const response = await api.lesson.getTickets({ id: lessonId });
+    const response = await api.lesson.getTickets({ id: lessonId, order: 'RankAsc' });
     if ('tickets' in response) {
       return response.tickets ?? [];
     }

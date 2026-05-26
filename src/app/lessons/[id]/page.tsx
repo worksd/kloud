@@ -7,7 +7,6 @@ import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { cookies } from "next/headers";
 import { accessTokenKey } from "@/shared/cookies.key";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { QRScanButtonForLesson } from "@/app/lessons/[id]/QRScanButtonForLesson";
 
 type Props = {
   params: Promise<{ id: string }>
@@ -44,7 +43,6 @@ export default async function LessonDetailPage({params, searchParams}: {
         returnUrl={KloudScreen.LessonDetail(lessonId)}
       />}
       <LessonDetailForm lesson={res} appVersion={appVersion}/>
-      {res.isAdmin && <QRScanButtonForLesson lessonId={lessonId} />}
     </div>
 
   )

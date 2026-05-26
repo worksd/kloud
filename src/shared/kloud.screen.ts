@@ -19,22 +19,20 @@ export const KloudScreen = {
   ProfileEdit: '/profile/profileEdit',
   MyAccount: '/profile/setting/account',
   PasswordSetting: '/profile/setting/account/resetPassword',
-  RefundAccountSetting: '/profile/setting/refund',
-  PaymentMethodSetting: '/profile/setting/paymentMethod',
+  RefundAccountSetting: '/profile/setting/account/refund',
+  PaymentMethodSetting: '/profile/setting/account/paymentMethod',
+  InstagramConnect: '/profile/setting/account/instagram',
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
-  SignOut: '/profile/setting/signOut',
+  SignOut: '/profile/setting/account/signOut',
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',
   BusinessInfo: '/profile/setting/businessInfo',
   Kiosk: '/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
-  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'membership-plan', id: number) => `/payment?type=${type}&id=${id}`,
+  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group', id: number) => `/payment?type=${type}&id=${id}`,
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
-  MembershipPlans: (studioId?: number) => studioId ? `/membershipPlans?studioId=${studioId}` : '/membershipPlans',
-  MembershipPlanPayment: (id: number) => `/membershipPlans/${id}/payment`,
-  MembershipDetail: (id: number) => `/memberships/${id}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   MySubscription: '/profile/mySubscription',
@@ -45,6 +43,10 @@ export const KloudScreen = {
   PaymentRecords: '/paymentRecords',
   PaymentRecordDetail: (paymentId: string) => `/paymentRecords/${paymentId}`,
   PaymentRecordRefund: (paymentId: string) => `/paymentRecords/${paymentId}/refund`,
+
+  /** 공지 */
+  AnnouncementList: (studioId: number) => `/announcements?studioId=${studioId}`,
+  AnnouncementDetail: (id: number) => `/announcements/${id}`,
 
   /** 레슨 */
   LessonDetail: (id: number) => `/lessons/${id}`,

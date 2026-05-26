@@ -6,7 +6,6 @@ import { DialogClickWrapper } from "@/utils/DialogClickWrapper";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
-import { KioskMenu } from "@/app/profile/setting/KioskMenu";
 import { QRScannerMenu } from "@/app/profile/setting/QRScannerMenu";
 
 export default async function AccountSetting({
@@ -23,14 +22,8 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
         <MenuItem label="my_account"/>
       </NavigateClickWrapper>
-      <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentMethodSetting}>
-        <MenuItem label="payment_method_management"/>
-      </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting"/>
-      </NavigateClickWrapper>
-      <NavigateClickWrapper method={'push'} route={KloudScreen.RefundAccountSetting}>
-        <MenuItem label="refund_account"/>
       </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}
@@ -53,11 +46,7 @@ export default async function AccountSetting({
         <MenuItem label="log_out"/>
       </DialogClickWrapper>
 
-      <NavigateClickWrapper method={'push'} route={KloudScreen.SignOut}>
-        <MenuItem label="sign_out"/>
-      </NavigateClickWrapper>
       <QRScannerMenu/>
-      <KioskMenu/>
     </div>
   )
 }

@@ -44,6 +44,7 @@ const parseLessons = (rawLessons: any[]): CalendarLesson[] =>
       endTime: '',
       room: l.room?.name,
       date: datePart,
+      tags: l.label?.tags ?? undefined,
     };
   });
 

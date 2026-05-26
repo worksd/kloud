@@ -81,7 +81,7 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
   );
 };
 
-export const LargeKloudButton = async ({ title }: { title: string }) => {
+export const LargeKloudButton = ({ title }: { title: string }) => {
   return (
     <div className="relative w-screen px-4">
       <div

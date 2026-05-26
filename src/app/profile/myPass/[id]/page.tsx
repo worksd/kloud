@@ -81,7 +81,7 @@ export default async function MyPassDetailPage({params}: {
             이미지가 없으면 헤더가 바로 노치 아래로 붙어 답답하므로 추가 spacer 부여. */}
         <div
           className="w-full"
-          style={{ paddingTop: passPlan?.imageUrl ? 'env(safe-area-inset-top, 44px)' : 'calc(env(safe-area-inset-top, 44px) + 56px)' }}
+          style={{ paddingTop: passPlan?.imageUrl ? 'env(safe-area-inset-top, 44px)' : 'calc(env(safe-area-inset-top, 44px) + 88px)' }}
         />
 
         {/* 패스플랜 이미지 — imageUrl이 있을 때만 노출. 없으면 빈 자리 안 만들고 바로 헤더로 이어지도록 */}

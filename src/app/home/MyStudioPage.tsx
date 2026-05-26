@@ -2,16 +2,20 @@
 
 import { LessonBand } from "@/app/LessonBand";
 import React from "react";
-import { getLocale } from "@/utils/translate";
 import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { MembershipBand } from "@/app/home/MembershipBand";
 import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
+import { TodayTimetable } from "@/app/home/TodayTimetable";
+import { AnnouncementCard } from "@/app/home/AnnouncementCard";
+import { getLocale, translate } from "@/utils/translate";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
+  const locale = await getLocale();
+  const endedLabel = await translate('finish');
+  const ongoingLabel = await translate('in_progress');
 
   // 점보트론
   const jumbotronSource = res.jumbotrons && res.jumbotrons.length > 0
@@ -22,7 +26,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
     id: l.id,
     imageUrl: l.thumbnailUrl,
     title: l.title,
-    artistName: (l.artists?.[0]?.name ?? l.artists?.[0]?.nickName) ?? l.artist?.nickName,
+    artistName: (l.artists?.[0]?.nickName ?? l.artists?.[0]?.name) ?? l.artist?.nickName,
     artistImageUrl: l.artists?.[0]?.profileImageUrl ?? l.artist?.profileImageUrl,
   }));
 
@@ -34,22 +38,38 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
         <Jumbotron items={jumbotronItems} />
       )}
 
+      {/* 공지사항 — 최근 7일 내 최신 1건 */}
+      {res.announcement && (
+        <AnnouncementCard announcement={res.announcement} studioId={res.studio.id} showMore locale={locale} />
+      )}
+
       {/* 배너 */}
       {res.banners && res.banners.length > 0 && (
         <HomeBanner banners={res.banners} />
       )}
 
-      {res.membership && (
-        <MembershipBand membership={res.membership} locale={await getLocale()} />
-      )}
-      {res.bands.map((value) => (
-        <LessonBand
-          key={value.title}
-          title={value.title}
-          lessons={value.lessons}
-          type={value.type}
-        />
-      ))}
+      {res.bands.map((value) => {
+        if (value.type === 'Today') {
+          return (
+            <TodayTimetable
+              key={value.title}
+              title={value.title}
+              lessons={value.lessons}
+              endedLabel={endedLabel}
+              ongoingLabel={ongoingLabel}
+            />
+          );
+        }
+        return (
+          <LessonBand
+            key={value.title}
+            title={value.title}
+            lessons={value.lessons}
+            type={value.type}
+            label={value.label}
+          />
+        );
+      })}
     </div>
   )
 }

@@ -1,17 +1,19 @@
 'use client'
 import React, { useState } from "react";
+import IcPaymentCard from "../../../../../public/assets/ic_payment_card.svg";
+import IcPaymentPass from "../../../../../public/assets/ic_payment_pass.svg";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { SelectablePassList } from "@/app/lessons/[id]/payment/SelectablePassList";
 import { GetPaymentMethodResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { SelectableBillingList } from "@/app/profile/setting/paymentMethod/BillingCardForm";
+import { SelectableBillingList } from "@/app/profile/setting/account/paymentMethod/BillingCardForm";
 import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
 import { BankSelectBottomSheet } from "@/app/components/BankSheet";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { Locale } from "@/shared/StringResource";
 import { InlineCardForm } from "@/app/lessons/[id]/payment/InlineCardForm";
 import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
-import { addBillingAction } from "@/app/profile/setting/paymentMethod/add.billing.action";
+import { addBillingAction } from "@/app/profile/setting/account/paymentMethod/add.billing.action";
 import { getLocaleString } from "@/app/components/locale";
 import { formatAccountNumber } from "@/utils/format.account";
 import NaverPayIcon from "@/../public/assets/ic_naver_pay.svg";
@@ -64,16 +66,7 @@ const PaymentMethodIcon = ({type, selected}: { type: PaymentMethodType, selected
   const color = selected ? '#111' : '#BDBDBD';
   switch (type) {
     case 'credit':
-      // 카드 + NFC 무선 결제 표시
-      return (
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1.5" y="5.5" width="15" height="11" rx="2" stroke={color} strokeWidth="1.4"/>
-          <path d="M1.5 9H16.5" stroke={color} strokeWidth="1.4"/>
-          <path d="M4.5 13H8" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
-          <path d="M17 10.5C18 9.8 18.7 8.7 18.7 7.5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
-          <path d="M18.5 12C19.8 11 20.7 9.4 20.7 7.5" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
-        </svg>
-      );
+      return <IcPaymentCard width={22} height={22} style={{ color }}/>;
     case 'account_transfer':
       // 은행 건물
       return (
@@ -88,15 +81,7 @@ const PaymentMethodIcon = ({type, selected}: { type: PaymentMethodType, selected
         </svg>
       );
     case 'pass':
-      // 티켓/패스권 (양쪽 반원 노치)
-      return (
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 5H18C18.8 5 19.5 5.7 19.5 6.5V9.2C18.4 9.5 17.5 10.4 17.5 11.5C17.5 12.6 18.4 13.5 19.5 13.8V15.5C19.5 16.3 18.8 17 18 17H4C3.2 17 2.5 16.3 2.5 15.5V13.8C3.6 13.5 4.5 12.6 4.5 11.5C4.5 10.4 3.6 9.5 2.5 9.2V6.5C2.5 5.7 3.2 5 4 5Z" stroke={color} strokeWidth="1.4"/>
-          <path d="M8.5 8L13.5 15" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
-          <circle cx="9" cy="14" r="1.2" stroke={color} strokeWidth="1.2"/>
-          <circle cx="13" cy="8.5" r="1.2" stroke={color} strokeWidth="1.2"/>
-        </svg>
-      );
+      return <IcPaymentPass width={22} height={22} style={{ color }}/>;
     case 'billing':
       // 카드 + 별(즐겨찾기) 표시
       return (

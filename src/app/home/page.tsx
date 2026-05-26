@@ -5,6 +5,7 @@ import {PassPurchaseButton} from "@/app/profile/PassPurchaseButton";
 import MyStudioPage from "@/app/home/MyStudioPage";
 import {NoMyStudioPage} from "@/app/home/NoMyStudioPage";
 import {getHideDialogIdsAction} from "@/app/home/get.hide.dialog.ids.action";
+import {getLocale, translate} from "@/utils/translate";
 import EventScreen from "@/app/home/eventScreen";
 import {handleApiError} from "@/utils/handle.api.error";
 import {TokenExpiredRedirect} from "@/app/components/TokenExpiredRedirect";
@@ -15,7 +16,7 @@ import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
 import {HomeAlerts} from "@/app/home/HomeAlerts";
 import {cookies} from "next/headers";
-import {fcmTokenKey, studioKey} from "@/shared/cookies.key";
+import {studioKey} from "@/shared/cookies.key";
 import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
 import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
@@ -28,8 +29,8 @@ export default async function Home({
   const {os} = await searchParams
   const res = await getHomeAction()
   const hideDialogIds = await getHideDialogIdsAction()
+  const locale = await getLocale()
   const cookieStore = await cookies();
-  const hasFcmToken = !!cookieStore.get(fcmTokenKey)?.value;
   const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
   if ('studios' in res) {
     const studio = res.myStudio?.studio;
@@ -39,12 +40,12 @@ export default async function Home({
 
     const content = (
         <div>
-          <FcmTokenRequester hasFcmToken={hasFcmToken}/>
+          <FcmTokenRequester/>
           {!hasStudioCookie && res.myStudio?.studio?.id && (
             <StudioCookieSetter studioId={res.myStudio.studio.id} />
           )}
-          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts}/>}
-          <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds}/>
+          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts} locale={locale}/>}
+          <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds} hideForeverMessage={await translate('do_not_show_again')}/>
           <HomeHeader hasStudio={!!studio} os={os}>
             {studio ? (
               <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>

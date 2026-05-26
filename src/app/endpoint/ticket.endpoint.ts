@@ -9,6 +9,18 @@ export type TicketListResponse = {
   tickets: [TicketResponse];
 };
 
+export type TicketPaymentRecordSummary = {
+  id?: number;
+  paymentId?: string;
+  status?: string;
+  /** 결제수단 한국어 라벨 (예: '신용카드', '계좌이체', '현장 결제', '패스권') */
+  method?: string;
+  amount?: number;
+  productName?: string;
+  depositor?: string | null;
+  createdAt?: string;
+};
+
 export type TicketResponse = {
   id: number;
   status: string;
@@ -18,10 +30,13 @@ export type TicketResponse = {
   user?: GetUserResponse;
   createdAt?: string;
   rank?: string;
+  rankType?: string;
   qrCodeUrl?: string;
   isRefundable?: boolean;
   ticketType?: 'default' | 'premium' | 'membership';
   ticketTypeLabel?: string;
+  paymentRecord?: TicketPaymentRecordSummary;
+  studentId?: number;
 }
 
 export type GetInviteTicketParameter = {

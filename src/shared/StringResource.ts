@@ -1061,6 +1061,18 @@ export const StringResource = {
     jp: "言語設定",
     zh: "语言设置"
   },
+  pass: {
+    ko: "패스권",
+    en: "Pass",
+    jp: "パス",
+    zh: "通行证"
+  },
+  do_not_show_again: {
+    ko: "다시 보지 않기",
+    en: "Don't show again",
+    jp: "今後表示しない",
+    zh: "不再显示"
+  },
   payment_method_management: {
     ko: "결제 수단 관리",
     en: "Payment Method Management",
@@ -1698,10 +1710,10 @@ export const StringResource = {
     zh: '账户管理',
   },
   my_account: {
-    ko: '내 계정',
-    en: 'My Account',
-    jp: 'マイアカウント',
-    zh: '我的账户',
+    ko: '계정 관리',
+    en: 'Account Management',
+    jp: 'アカウント管理',
+    zh: '账户管理',
   },
   cell_phone_certificate: {
     ko: '휴대폰 본인인증',
@@ -3152,6 +3164,316 @@ export const StringResource = {
 
   // Kiosk — 분 단위 접미사 (예: 90분 / 90 min / 90分 / 90分钟)
   kiosk_minutes_suffix: { ko: '분', en: ' min', jp: '分', zh: '分钟' },
+
+  // Instagram 연동
+  instagram_connect: {
+    ko: '인스타그램 계정 연동하기',
+    en: 'Connect Instagram Account',
+    jp: 'Instagramアカウント連携',
+    zh: '关联 Instagram 账户',
+  },
+  instagram_connect_title: {
+    ko: '인스타그램 연동',
+    en: 'Instagram Connect',
+    jp: 'Instagram連携',
+    zh: 'Instagram 关联',
+  },
+  instagram_connect_description: {
+    ko: '아래 메시지를 @rawgraphy.inc 계정으로 보내면\n담당자가 확인 후 계정을 연동해드려요.',
+    en: 'Send the message below to @rawgraphy.inc\nand our team will link your account.',
+    jp: '下記メッセージを@rawgraphy.incに送信すると\n担当者が確認のうえ連携いたします。',
+    zh: '将下方信息发送至 @rawgraphy.inc，\n我们将确认后为您关联账户。',
+  },
+  instagram_connect_message_preview: {
+    ko: '전송 메시지 미리보기',
+    en: 'Message preview',
+    jp: 'メッセージのプレビュー',
+    zh: '消息预览',
+  },
+  instagram_connect_send_button: {
+    ko: '인스타그램으로 메시지 보내기',
+    en: 'Send message via Instagram',
+    jp: 'Instagramでメッセージ送信',
+    zh: '通过 Instagram 发送消息',
+  },
+  instagram_connect_copied: {
+    ko: '메시지가 복사되었어요.\n인스타그램에서 붙여넣고 전송해주세요.',
+    en: 'Message copied.\nPaste it on Instagram and send.',
+    jp: 'メッセージをコピーしました。\nInstagramで貼り付けて送信してください。',
+    zh: '消息已复制。\n请在 Instagram 中粘贴并发送。',
+  },
+  instagram_connect_no_contact: {
+    ko: '연동을 위해 휴대폰 번호 또는 이메일이 필요해요.\n프로필을 먼저 등록해주세요.',
+    en: 'A phone number or email is required to link.\nPlease complete your profile first.',
+    jp: '連携には電話番号またはメールが必要です。\nまずプロフィールを登録してください。',
+    zh: '关联需要手机号或邮箱。\n请先完善个人资料。',
+  },
+
+  // Instagram 연동 — 단계별
+  instagram_step1_title: {
+    ko: '1. 아래 메시지를 복사해주세요',
+    en: '1. Copy the message below',
+    jp: '1. 下記メッセージをコピーしてください',
+    zh: '1. 请复制下方消息',
+  },
+  instagram_step1_cta: {
+    ko: '메시지 복사하기',
+    en: 'Copy message',
+    jp: 'メッセージをコピー',
+    zh: '复制消息',
+  },
+  instagram_step2_title: {
+    ko: '2. @rawgraphy.inc 에 DM으로 보내주세요',
+    en: '2. Send it as a DM to @rawgraphy.inc',
+    jp: '2. @rawgraphy.incにDMで送信してください',
+    zh: '2. 通过私信发送给 @rawgraphy.inc',
+  },
+  instagram_step2_desc: {
+    ko: 'DM 입력란을 길게 눌러 붙여넣고 전송해주세요.',
+    en: 'Long-press the DM field, paste the message, and send.',
+    jp: 'DM入力欄を長押しして貼り付け、送信してください。',
+    zh: '长按 DM 输入框粘贴消息并发送。',
+  },
+  instagram_step2_cta: {
+    ko: '인스타그램 열기',
+    en: 'Open Instagram',
+    jp: 'Instagramを開く',
+    zh: '打开 Instagram',
+  },
+  instagram_step2_already_sent: {
+    ko: '이미 보냈어요',
+    en: "I've already sent it",
+    jp: '送信済みです',
+    zh: '我已发送',
+  },
+  instagram_step3_title: {
+    ko: '3. 인증을 완료해주세요',
+    en: '3. Complete verification',
+    jp: '3. 認証を完了してください',
+    zh: '3. 完成验证',
+  },
+  instagram_step3_desc: {
+    ko: '메시지가 도착했는지 확인할게요.\n전송 후 1~2분 정도 걸릴 수 있어요.',
+    en: "We'll check if your message has arrived.\nIt may take 1–2 minutes after sending.",
+    jp: 'メッセージが届いたか確認します。\n送信後1〜2分かかる場合があります。',
+    zh: '我们将检查消息是否到达。\n发送后可能需要 1–2 分钟。',
+  },
+  instagram_step3_cta: {
+    ko: '인증하기',
+    en: 'Verify',
+    jp: '認証する',
+    zh: '验证',
+  },
+  instagram_verify_pending: {
+    ko: '아직 메시지가 도착하지 않았어요.\n잠시 후 다시 시도해주세요.',
+    en: "We haven't received your message yet.\nPlease try again in a moment.",
+    jp: 'まだメッセージが届いていません。\nしばらくしてから再度お試しください。',
+    zh: '我们尚未收到您的消息。\n请稍后再试。',
+  },
+  instagram_verify_success: {
+    ko: '인스타그램 연동이 완료됐어요!',
+    en: 'Instagram has been connected!',
+    jp: 'Instagram連携が完了しました！',
+    zh: 'Instagram 关联完成！',
+  },
+  instagram_step_prev: {
+    ko: '이전',
+    en: 'Back',
+    jp: '戻る',
+    zh: '上一步',
+  },
+
+  // 레슨 어드민 / 정산
+  lesson_admin_students_title: {
+    ko: '수강생',
+    en: 'Students',
+    jp: '受講生',
+    zh: '学员',
+  },
+  lesson_admin_students_count: {
+    ko: '{count}명',
+    en: '{count}',
+    jp: '{count}名',
+    zh: '{count} 人',
+  },
+  lesson_admin_no_students: {
+    ko: '아직 수강생이 없어요.',
+    en: 'No students yet.',
+    jp: 'まだ受講生がいません。',
+    zh: '暂无学员。',
+  },
+  lesson_admin_qr_attendance: {
+    ko: 'QR 출석체크',
+    en: 'QR Attendance',
+    jp: 'QR出席',
+    zh: 'QR 出席',
+  },
+  lesson_settle_up_artists: {
+    ko: '강사별 정산',
+    en: 'Settlement by Instructor',
+    jp: '講師別精算',
+    zh: '讲师结算明细',
+  },
+  lesson_settle_up_settle_amount: {
+    ko: '실지급액',
+    en: 'Net Amount',
+    jp: '実支給額',
+    zh: '实付金额',
+  },
+  lesson_settle_up_total_amount: {
+    ko: '총 정산금액',
+    en: 'Total Amount',
+    jp: '総精算額',
+    zh: '总金额',
+  },
+  ticket_status_used: {
+    ko: '출석완료',
+    en: 'Attended',
+    jp: '出席済み',
+    zh: '已出席',
+  },
+  ticket_status_pending: {
+    ko: '결제대기',
+    en: 'Pending',
+    jp: '決済待ち',
+    zh: '待付款',
+  },
+  ticket_status_ready: {
+    ko: '예약완료',
+    en: 'Reserved',
+    jp: '予約完了',
+    zh: '已预约',
+  },
+  ticket_status_paid: {
+    ko: '결제완료',
+    en: 'Paid',
+    jp: '決済完了',
+    zh: '已付款',
+  },
+  ticket_status_cancelled: {
+    ko: '취소',
+    en: 'Cancelled',
+    jp: 'キャンセル',
+    zh: '已取消',
+  },
+  ticket_status_cancel_pending: {
+    ko: '취소중',
+    en: 'Cancelling',
+    jp: 'キャンセル中',
+    zh: '取消中',
+  },
+  ticket_status_expired: {
+    ko: '만료',
+    en: 'Expired',
+    jp: '期限切れ',
+    zh: '已过期',
+  },
+  ticket_status_active: {
+    ko: '이용중',
+    en: 'Active',
+    jp: '利用中',
+    zh: '使用中',
+  },
+  lesson_admin_attendance_button: {
+    ko: '출석하기',
+    en: 'Check in',
+    jp: '出席する',
+    zh: '出席',
+  },
+  lesson_admin_attendance_confirm_message: {
+    ko: '{name} 출석하시겠습니까?',
+    en: 'Check in {name}?',
+    jp: '{name}を出席にしますか？',
+    zh: '将 {name} 设为出席？',
+  },
+  lesson_settle_up_title: {
+    ko: '강사 정산 보기',
+    en: 'Settlement details',
+    jp: '講師精算を見る',
+    zh: '查看讲师结算',
+  },
+  lesson_admin_cancel_ticket_button: {
+    ko: '수강권 취소하기',
+    en: 'Cancel ticket',
+    jp: '受講券をキャンセル',
+    zh: '取消课程券',
+  },
+  lesson_admin_cancel_ticket_confirm_message: {
+    ko: '{name}의 수강권을 취소하시겠습니까?',
+    en: "Cancel {name}'s ticket?",
+    jp: '{name}の受講券をキャンセルしますか？',
+    zh: '取消 {name} 的课程券？',
+  },
+  lesson_admin_cancel_ticket_success_message: {
+    ko: '수강권이 정상적으로 취소되었어요',
+    en: 'Ticket cancelled successfully',
+    jp: '受講券が正常にキャンセルされました',
+    zh: '课程券已成功取消',
+  },
+
+  // 공지사항 (AnnouncementCard / AnnouncementListClient)
+  announcement_badge: {
+    ko: '공지',
+    en: 'Notice',
+    jp: 'お知らせ',
+    zh: '公告',
+  },
+  view_more: {
+    ko: '더보기',
+    en: 'View more',
+    jp: 'もっと見る',
+    zh: '查看更多',
+  },
+  view_on_instagram: {
+    ko: 'Instagram에서 보기',
+    en: 'View on Instagram',
+    jp: 'Instagramで見る',
+    zh: '在Instagram查看',
+  },
+  announcement_title_placeholder: {
+    ko: '(제목)',
+    en: '(Title)',
+    jp: '(タイトル)',
+    zh: '(标题)',
+  },
+  announcement_body_placeholder: {
+    ko: '(내용을 입력하면 여기에 표시됩니다)',
+    en: '(Content will appear here)',
+    jp: '(内容を入力するとここに表示されます)',
+    zh: '(内容输入后将在此显示)',
+  },
+  no_announcements: {
+    ko: '공지사항이 없습니다',
+    en: 'No announcements',
+    jp: 'お知らせはありません',
+    zh: '没有公告',
+  },
+  load_more: {
+    ko: '더 불러오기',
+    en: 'Load more',
+    jp: 'もっと読み込む',
+    zh: '加载更多',
+  },
+  loading_more: {
+    ko: '불러오는 중…',
+    en: 'Loading…',
+    jp: '読み込み中…',
+    zh: '加载中…',
+  },
+  back: {
+    ko: '뒤로가기',
+    en: 'Back',
+    jp: '戻る',
+    zh: '返回',
+  },
+
+  // 오늘 열리는 수업 (TodayTimetable)
+  in_progress: {
+    ko: '진행중',
+    en: 'In progress',
+    jp: '進行中',
+    zh: '进行中',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

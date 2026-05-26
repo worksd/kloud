@@ -31,8 +31,12 @@ export const RefundFormActions = ({ locale, paymentId, methodType }: RefundFormA
         // 환불 성공 - 결제내역 상세페이지로 이동
         await kloudNav.navigateMain({ route: KloudScreen.PaymentRecordDetail(paymentId) });
       } else {
-        // 환불 실패 - 에러 다이얼로그 표시
-        const dialog = await createDialog({ id: 'PaymentFail' });
+        // PG가 거부한 케이스(예: '부분취소 불가능 거래')는 pgMessage 그대로 노출.
+        // 그 외엔 일반 PaymentFail 다이얼로그.
+        const pgMessage = (res as { pgMessage?: string }).pgMessage;
+        const dialog = pgMessage
+          ? await createDialog({ id: 'Simple', message: pgMessage })
+          : await createDialog({ id: 'PaymentFail' });
         if (window.KloudEvent && dialog) {
           window.KloudEvent.showDialog(JSON.stringify(dialog));
         }

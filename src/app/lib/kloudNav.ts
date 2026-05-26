@@ -4,7 +4,6 @@
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
-import { purgeAllCacheAction } from "@/app/lib/purge.all.cache.action";
 
 type NavMethod =
   | 'push'
@@ -79,9 +78,6 @@ export const kloudNav = {
   },
 
   async navigateMain({route}: { route?: string }) {
-    // 모든 캐시 purge
-    await purgeAllCacheAction();
-    
     const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList,
@@ -116,7 +112,6 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
     route.startsWith(KloudScreen.Certification) ||
-    route.startsWith('/membershipPlans?') ||
     route.startsWith('/qrs') ||
     route.startsWith(KloudScreen.Kiosk) ||
     route.startsWith('/studioRooms/') ||
@@ -140,6 +135,8 @@ const applyTitle = async (route: string) => {
     return await translate('language_setting')
   } else if (route == KloudScreen.RefundAccountSetting) {
     return await translate('refund_account')
+  } else if (route == KloudScreen.InstagramConnect) {
+    return await translate('instagram_connect_title')
   } else if (route == KloudScreen.BusinessInfo) {
     return await translate('business_info')
   } else if (route == KloudScreen.Policy) {
@@ -170,8 +167,6 @@ const applyTitle = async (route: string) => {
     return await translate('change_password')
   } else if (route.includes('refund')) {
     return '';
-  } else if (route.includes('/memberships')) {
-    return await translate('my_membership')
   } else if (route.startsWith('/tickets/')) {
     return '';
   } else if (route.startsWith('/studioRooms/')) {

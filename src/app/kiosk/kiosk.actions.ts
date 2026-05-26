@@ -149,8 +149,9 @@ export const completeKioskPaymentAction = async (
 };
 
 // 결제 폐기 — 단말 매입 전 사용자 취소 / 매입 실패. DELETE /kiosks/payments/:paymentId (Pending soft delete)
-export const discardKioskPaymentAction = async (paymentId: string, kioskId: number) => {
-  return await api.kiosk.discardPayment({ paymentId, kioskId });
+// reason: KIS VAN 응답 raw 또는 폐기 사유 라벨. 서버 측 진단 로그용.
+export const discardKioskPaymentAction = async (paymentId: string, kioskId: number, reason?: string) => {
+  return await api.kiosk.discardPayment({ paymentId, kioskId, reason });
 };
 
 // 보유 패스권 사용 — 티켓/예약 생성
@@ -160,9 +161,9 @@ export const useKioskPassAction = async (
   return await api.kiosk.usePass(body);
 };
 
-// 관리자 모드: 키오스크에서 발생한 결제 목록 조회
-export const listKioskPaymentsAction = async (kioskId: number) => {
-  return await api.kiosk.listPayments({ kioskId });
+// 관리자 모드: 키오스크에서 발생한 결제 목록 조회. date(yyyy-MM-dd, KST), page(1-base) 옵션.
+export const listKioskPaymentsAction = async (kioskId: number, params?: { date?: string; page?: number }) => {
+  return await api.kiosk.listPayments({ kioskId, date: params?.date, page: params?.page });
 };
 
 // 관리자 모드: Completed 결제 취소 — KIS 단말 취소가 선행된 후 서버에 기록.
@@ -170,4 +171,9 @@ export const listKioskPaymentsAction = async (kioskId: number) => {
 // (Pending 폐기는 discardKioskPaymentAction 사용)
 export const cancelKioskPaymentAction = async (params: { paymentId: string; targetUserId: number; kioskId: number }) => {
   return await api.kiosk.cancelPayment(params);
+};
+
+// 영수증 재발급용 — GET /kiosks/:id/paymentRecords/:paymentId. 인증 없음.
+export const getKioskPaymentRecordDetailAction = async (params: { kioskId: number; paymentId: string }) => {
+  return await api.kiosk.getPaymentRecordDetail(params);
 };

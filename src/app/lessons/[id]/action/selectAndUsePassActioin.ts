@@ -8,6 +8,5 @@ export const selectAndUsePassAction = async ({passId, lessonId, studioRoomId, st
   startDate?: string,
   endDate?: string,
 }) => {
-  const res = await api.pass.use({ passId, lessonId, studioRoomId, startDate, endDate })
-  return res;
+  return await api.pass.use({ passId, lessonId, studioRoomId, startDate, endDate })
 }

@@ -10,6 +10,7 @@ import { LessonDetailButton } from '@/app/lessons/[id]/LessonDetailButton';
 import Image from "next/image";
 import LeftArrow from "../../../../../public/assets/left-arrow.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { LessonAdminInfoSection } from "@/app/lessons/[id]/LessonAdminInfoSection";
 
 export default async function LessonDetailForm({lesson, appVersion}: {
   lesson: GetLessonResponse,
@@ -17,7 +18,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
 }) {
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto no-scrollbar">
+    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto overscroll-y-none no-scrollbar">
       <NavigateClickWrapper method={'back'}>
         <button
           type="button"
@@ -33,7 +34,7 @@ export default async function LessonDetailForm({lesson, appVersion}: {
         </button>
       </NavigateClickWrapper>
 
-      <div className="relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6]">
+      <div className={`relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6] ${lesson.adminType ? 'shrink-0 max-h-[40vh]' : ''}`}>
         {lesson.thumbnailUrl ? (
           <Image
             src={lesson.thumbnailUrl}
@@ -108,6 +109,8 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             </div>
           }
         </div>
+
+        {lesson.adminType && <LessonAdminInfoSection lessonId={lesson.id} adminType={lesson.adminType}/>}
       </div>
 
       {/* 결제 페이지 이동 버튼 */}

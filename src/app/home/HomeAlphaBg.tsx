@@ -1,7 +1,6 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import Image from "next/image";
 
 const AlphaBgContext = createContext<{
   bgImage: string;
@@ -26,19 +25,26 @@ export const HomeAlphaBgProvider = ({ initialImage, children }: { initialImage: 
 
   return (
     <AlphaBgContext.Provider value={{ bgImage, setBgImage }}>
-      {/* Alpha masking 배경 — fixed로 헤더 뒤까지 커버, 스크롤 시 페이드아웃 */}
+      {/* Alpha masking 배경 — fixed로 헤더 뒤까지 커버, 스크롤 시 페이드아웃.
+          inline CSS background-image 로 SSR HTML 첫 paint부터 이미지 URL이 박혀,
+          next/image의 hydration 지연으로 인한 빈/흰 깜빡임을 방지. */}
       {bgImage && bgOpacity > 0 && (
         <div
-          className="fixed top-0 left-0 right-0 overflow-hidden pointer-events-none z-0 transition-opacity duration-150"
-          style={{ height: '390px', opacity: bgOpacity }}
+          className="fixed top-0 left-0 right-0 overflow-hidden pointer-events-none z-0"
+          style={{ height: '390px', opacity: bgOpacity, backgroundColor: '#D5D8DB' }}
         >
-          <Image
-            key={bgImage}
-            src={bgImage}
-            alt=""
-            fill
-            className="object-cover scale-110 blur-[30px] opacity-85"
-            priority
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${bgImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundColor: '#D5D8DB',
+              filter: 'blur(30px)',
+              transform: 'scale(1.1) translateZ(0)',
+              willChange: 'filter, transform',
+              opacity: 0.85,
+            }}
           />
           <div
             className="absolute inset-0"
