@@ -49,7 +49,7 @@ export const PassesSection = ({
   onSelectPass: (pass: GetPassResponse | undefined) => void;
 }) => {
   return (
-    <div className="flex flex-col gap-y-2 px-6">
+    <div className="flex flex-col gap-y-2 px-6 mt-5">
       <div className="text-[15px] font-bold text-black">
         {getLocaleString({ locale, key: 'pass' })}
       </div>

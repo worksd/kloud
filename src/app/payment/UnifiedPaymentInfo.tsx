@@ -292,7 +292,7 @@ export const UnifiedPaymentInfo = ({
             titleOverride={payment.price == null ? getLocaleString({ locale, key: 'application_method' }) : undefined}
           />
 
-          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
+          <div className="mt-5 mx-6 h-px bg-[#F0F0F0]" />
         </>
       )}
 
