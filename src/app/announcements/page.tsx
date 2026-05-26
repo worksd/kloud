@@ -7,6 +7,7 @@ import { AnnouncementResponse } from "@/app/endpoint/announcement.endpoint";
 import { NavigateMainRedirect } from "@/app/components/NavigateMainRedirect";
 import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
 import { handleApiError } from "@/utils/handle.api.error";
+import { getLocale } from "@/utils/translate";
 
 export default async function AnnouncementsPage({
   searchParams,
@@ -42,6 +43,7 @@ async function AnnouncementsServer({
   }
 
   const initial: AnnouncementResponse[] = isGuinnessErrorCase(res) ? [] : res.announcements;
+  const locale = await getLocale();
 
-  return <AnnouncementListClient initial={initial} studioId={studioId}/>;
+  return <AnnouncementListClient initial={initial} studioId={studioId} locale={locale}/>;
 }

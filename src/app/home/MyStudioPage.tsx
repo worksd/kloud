@@ -7,11 +7,15 @@ import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
 import { AnnouncementCard } from "@/app/home/AnnouncementCard";
+import { getLocale, translate } from "@/utils/translate";
 
 export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
+  const locale = await getLocale();
+  const endedLabel = await translate('finish');
+  const ongoingLabel = await translate('in_progress');
 
   // 점보트론
   const jumbotronSource = res.jumbotrons && res.jumbotrons.length > 0
@@ -36,7 +40,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
 
       {/* 공지사항 — 최근 7일 내 최신 1건 */}
       {res.announcement && (
-        <AnnouncementCard announcement={res.announcement} studioId={res.studio.id} showMore />
+        <AnnouncementCard announcement={res.announcement} studioId={res.studio.id} showMore locale={locale} />
       )}
 
       {/* 배너 */}
@@ -51,6 +55,8 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
               key={value.title}
               title={value.title}
               lessons={value.lessons}
+              endedLabel={endedLabel}
+              ongoingLabel={ongoingLabel}
             />
           );
         }

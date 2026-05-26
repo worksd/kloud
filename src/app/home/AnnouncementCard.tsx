@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { AnnouncementResponse } from '@/app/endpoint/announcement.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
+import { Locale } from '@/shared/StringResource';
+import { getLocaleString } from '@/app/components/locale';
 
 // "2026-05-21 10:00" → "2026.05.21 10:00"
 const formatCreatedAt = (s: string): string => {
@@ -18,12 +20,14 @@ export function AnnouncementCard({
   announcement,
   studioId,
   showMore = false,
+  locale,
 }: {
   announcement: AnnouncementResponse;
   /** showMore=true일 때 더보기 버튼 라우팅에 사용. 미사용 시 0 등 더미 가능. */
   studioId?: number;
   /** 홈에선 true (더보기 노출), 목록 페이지 내에선 false. */
   showMore?: boolean;
+  locale: Locale;
 }) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerClosing, setViewerClosing] = useState(false);
@@ -84,7 +88,7 @@ export function AnnouncementCard({
           <div className={'flex items-center justify-between gap-2'}>
             <div className={'flex items-center gap-1.5 min-w-0'}>
               <span className={'inline-flex items-center h-5 px-2 rounded-full bg-[#F2F4F6] text-[#4E5968] text-[10px] font-semibold shrink-0'}>
-                공지
+                {getLocaleString({ locale, key: 'announcement_badge' })}
               </span>
               <span className={'text-[11px] text-[#8B95A1] tabular-nums truncate'}>
                 {formatCreatedAt(announcement.createdAt)}
@@ -96,7 +100,7 @@ export function AnnouncementCard({
                 onClick={onMore}
                 className={'inline-flex items-center gap-0.5 text-[12px] font-semibold text-[#4E5968] active:opacity-70 shrink-0'}
               >
-                더보기
+                {getLocaleString({ locale, key: 'view_more' })}
                 <svg width={'14'} height={'14'} viewBox={'0 0 24 24'} fill={'none'}>
                   <path d={'M9 6l6 6-6 6'} stroke={'#4E5968'} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'}/>
                 </svg>
@@ -107,7 +111,7 @@ export function AnnouncementCard({
           {/* 제목 */}
           {titleEmpty ? (
             <div className={'text-[17px] font-medium text-[#B0B8C1] leading-[1.4] whitespace-pre-wrap break-words'}>
-              (제목)
+              {getLocaleString({ locale, key: 'announcement_title_placeholder' })}
             </div>
           ) : (
             <div className={'text-[17px] font-bold text-[#191F28] leading-[1.4] whitespace-pre-wrap break-words'}>
@@ -118,7 +122,7 @@ export function AnnouncementCard({
           {/* 본문 */}
           {bodyEmpty ? (
             <div className={'mt-1 text-[13px] text-[#B0B8C1] leading-[1.7] whitespace-pre-wrap break-words'}>
-              (내용을 입력하면 여기에 표시됩니다)
+              {getLocaleString({ locale, key: 'announcement_body_placeholder' })}
             </div>
           ) : (
             <div className={'mt-1 text-[13px] text-[#4E5968] leading-[1.7] whitespace-pre-wrap break-words'}>
@@ -142,7 +146,7 @@ export function AnnouncementCard({
                 <circle cx={'12'} cy={'12'} r={'4'} stroke={'#4E5968'} strokeWidth={'1.6'}/>
                 <circle cx={'17.5'} cy={'6.5'} r={'1.2'} fill={'#4E5968'}/>
               </svg>
-              <span>Instagram에서 보기</span>
+              <span>{getLocaleString({ locale, key: 'view_on_instagram' })}</span>
               <svg width={'12'} height={'12'} viewBox={'0 0 24 24'} fill={'none'}>
                 <path d={'M9 6l6 6-6 6'} stroke={'#4E5968'} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'}/>
               </svg>

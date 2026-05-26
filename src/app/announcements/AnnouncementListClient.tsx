@@ -7,15 +7,19 @@ import { getAnnouncementsAction } from '@/app/announcements/get.announcements.ac
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
 import { kloudNav } from '@/app/lib/kloudNav';
 import LeftArrow from '../../../public/assets/left-arrow.svg';
+import { Locale } from '@/shared/StringResource';
+import { getLocaleString } from '@/app/components/locale';
 
 const PAGE_SIZE = 20;
 
 export function AnnouncementListClient({
   initial,
   studioId,
+  locale,
 }: {
   initial: AnnouncementResponse[];
   studioId: number;
+  locale: Locale;
 }) {
   const [items, setItems] = useState<AnnouncementResponse[]>(initial);
   const [page, setPage] = useState(1);
@@ -46,26 +50,26 @@ export function AnnouncementListClient({
           <button
             type={'button'}
             onClick={() => kloudNav.back()}
-            aria-label={'뒤로가기'}
+            aria-label={getLocaleString({ locale, key: 'back' })}
             className={'w-10 h-10 inline-flex items-center justify-center rounded-full active:bg-[#F2F4F6]'}
           >
             <LeftArrow className={'h-5 w-5'}/>
           </button>
           <h1 className={'flex-1 text-center text-[16px] font-bold text-[#191F28] -ml-10'}>
-            공지사항
+            {getLocaleString({ locale, key: 'studio_announcement' })}
           </h1>
         </div>
       </header>
 
       {items.length === 0 ? (
         <div className={'flex-1 flex items-center justify-center text-[14px] text-[#8B95A1]'}>
-          공지사항이 없습니다
+          {getLocaleString({ locale, key: 'no_announcements' })}
         </div>
       ) : (
         <ul className={'flex flex-col py-2'}>
           {items.map((a) => (
             <li key={a.id}>
-              <AnnouncementCard announcement={a} />
+              <AnnouncementCard announcement={a} locale={locale} />
             </li>
           ))}
           {!done && (
@@ -76,7 +80,7 @@ export function AnnouncementListClient({
                 disabled={loading}
                 className={'w-full h-12 rounded-2xl bg-white border border-[#E5E8EB] text-[13px] font-semibold text-[#4E5968] active:bg-[#F2F4F6] disabled:opacity-60'}
               >
-                {loading ? '불러오는 중…' : '더 불러오기'}
+                {loading ? getLocaleString({ locale, key: 'loading_more' }) : getLocaleString({ locale, key: 'load_more' })}
               </button>
             </li>
           )}

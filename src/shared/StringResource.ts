@@ -3410,6 +3410,70 @@ export const StringResource = {
     jp: '受講券が正常にキャンセルされました',
     zh: '课程券已成功取消',
   },
+
+  // 공지사항 (AnnouncementCard / AnnouncementListClient)
+  announcement_badge: {
+    ko: '공지',
+    en: 'Notice',
+    jp: 'お知らせ',
+    zh: '公告',
+  },
+  view_more: {
+    ko: '더보기',
+    en: 'View more',
+    jp: 'もっと見る',
+    zh: '查看更多',
+  },
+  view_on_instagram: {
+    ko: 'Instagram에서 보기',
+    en: 'View on Instagram',
+    jp: 'Instagramで見る',
+    zh: '在Instagram查看',
+  },
+  announcement_title_placeholder: {
+    ko: '(제목)',
+    en: '(Title)',
+    jp: '(タイトル)',
+    zh: '(标题)',
+  },
+  announcement_body_placeholder: {
+    ko: '(내용을 입력하면 여기에 표시됩니다)',
+    en: '(Content will appear here)',
+    jp: '(内容を入力するとここに表示されます)',
+    zh: '(内容输入后将在此显示)',
+  },
+  no_announcements: {
+    ko: '공지사항이 없습니다',
+    en: 'No announcements',
+    jp: 'お知らせはありません',
+    zh: '没有公告',
+  },
+  load_more: {
+    ko: '더 불러오기',
+    en: 'Load more',
+    jp: 'もっと読み込む',
+    zh: '加载更多',
+  },
+  loading_more: {
+    ko: '불러오는 중…',
+    en: 'Loading…',
+    jp: '読み込み中…',
+    zh: '加载中…',
+  },
+  back: {
+    ko: '뒤로가기',
+    en: 'Back',
+    jp: '戻る',
+    zh: '返回',
+  },
+
+  // 오늘 열리는 수업 (TodayTimetable)
+  in_progress: {
+    ko: '진행중',
+    en: 'In progress',
+    jp: '進行中',
+    zh: '进行中',
+  },
 }
 
 export type StringResourceKey = keyof typeof StringResource;
