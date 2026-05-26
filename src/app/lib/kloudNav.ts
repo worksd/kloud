@@ -4,7 +4,6 @@
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
-import { purgeAllCacheAction } from "@/app/lib/purge.all.cache.action";
 
 type NavMethod =
   | 'push'
@@ -79,9 +78,6 @@ export const kloudNav = {
   },
 
   async navigateMain({route}: { route?: string }) {
-    // 모든 캐시 purge
-    await purgeAllCacheAction();
-    
     const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList,
