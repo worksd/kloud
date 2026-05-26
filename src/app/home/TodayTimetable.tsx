@@ -48,9 +48,13 @@ type Status = 'ended' | 'ongoing' | 'upcoming';
 export function TodayTimetable({
   title,
   lessons,
+  endedLabel,
+  ongoingLabel,
 }: {
   title: string;
   lessons: GetBandLessonResponse[];
+  endedLabel: string;
+  ongoingLabel: string;
 }) {
   const [now, setNow] = useState<number>(() => Date.now());
 
@@ -150,10 +154,11 @@ export function TodayTimetable({
                   />
                 )}
 
-                {/* 점 — 진행중은 라이브 빨강 펄스, 나머지는 모노톤 */}
+                {/* 점 — 진행중은 라이브 빨강 펄스, 나머지는 모노톤.
+                    relative + z-10으로 absolute 트랙보다 위에 올라오게 함. */}
                 <span
                   className={[
-                    'mt-2 w-2.5 h-2.5 rounded-full z-10',
+                    'relative z-10 mt-2 w-2.5 h-2.5 rounded-full',
                     isOngoing
                       ? 'bg-[#EF4444] shadow-[0_0_0_4px_rgba(239,68,68,0.18)] animate-pulse'
                       : isEnded
@@ -186,6 +191,11 @@ export function TodayTimetable({
                       className={'object-cover'}
                       sizes={'56px'}
                     />
+                    {isEnded && (
+                      <div className={'absolute inset-0 bg-black/55 flex items-center justify-center'}>
+                        <span className={'text-white text-[10px] font-bold leading-none px-1 text-center'}>{endedLabel}</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className={'flex-1 min-w-0 flex flex-col justify-center'}>
@@ -193,12 +203,7 @@ export function TodayTimetable({
                     {isOngoing && (
                       <span className={'inline-flex items-center gap-1 text-[10px] font-bold text-white bg-[#1E2124] px-2 py-0.5 rounded-full shrink-0'}>
                         <span className={'w-1.5 h-1.5 rounded-full bg-[#EF4444] animate-pulse'}/>
-                        진행중
-                      </span>
-                    )}
-                    {isEnded && (
-                      <span className={'text-[10px] font-semibold text-[#919191] bg-[#F3F4F6] px-2 py-0.5 rounded-full shrink-0'}>
-                        종료
+                        {ongoingLabel}
                       </span>
                     )}
                     {lesson.studioName && (
