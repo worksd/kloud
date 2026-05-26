@@ -42,6 +42,7 @@ export default async function SchedulePage() {
       endTime: '',
       room: undefined as string | undefined,
       date: datePart,
+      tags: l.label?.tags ?? undefined,
     };
   });
 

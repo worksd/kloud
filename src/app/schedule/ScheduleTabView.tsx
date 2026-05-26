@@ -6,6 +6,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { LessonTags } from "@/app/components/LessonTags";
 
 export type CalendarLesson = {
   id: number;
@@ -15,6 +16,8 @@ export type CalendarLesson = {
   endTime: string;
   room?: string;
   date: string; // yyyy-MM-dd
+  /** ','로 구분된 태그 문자열 (예: '전문반,입시반'). null/undefined면 미노출. */
+  tags?: string;
 }
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -282,6 +285,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
                         </div>
                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                           <span className="text-[16px] font-medium text-[#33363D] line-clamp-2 leading-[150%]">{lesson.title}</span>
+                          {lesson.tags && <LessonTags tags={lesson.tags} className="mt-1" />}
                           <div className="flex items-center gap-1">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                               <circle cx="6" cy="6" r="4.5" stroke="#CDD1D5" strokeWidth="1"/>
