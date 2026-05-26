@@ -47,9 +47,9 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
-          {label?.type === 'PopUp' && (
+          {(label?.type === 'PopUp' || label?.type === 'Workshop') && (
             <div className="absolute top-2 left-2 bg-[#1F1F1F] px-1 py-1 rounded-[4px] text-white font-paperlogy font-bold text-[11px] leading-none">
-              팝업
+              {label.type === 'PopUp' ? '팝업' : '워크샵'}
             </div>
           )}
           {label?.isEnded == true &&
