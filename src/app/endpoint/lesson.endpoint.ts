@@ -78,9 +78,15 @@ export type GetStudioLessonsByDateParameter = {
     isAdmin?: boolean;
 }
 
+export type BandLabel = {
+    /** true면 밴드 제목 위에 'SOON' 태그 노출 */
+    coming?: boolean;
+}
+
 export type GetBandResponse = {
     title: string;
     type: BandType;
+    label?: BandLabel;
     lessons: GetBandLessonResponse[];
 }
 
@@ -111,6 +117,8 @@ export type GetLabelResponse = {
     isEnded: boolean;
     type?: LessonType;
     genre?: string;
+    /** ','로 구분된 태그 문자열 (예: '전문반,입시반'). null/undefined면 미노출 */
+    tags?: string | null;
 }
 
 export type CheckTicketCapacityParameter = {

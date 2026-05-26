@@ -1,19 +1,26 @@
-import { BandType, GetBandLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { BandLabel, BandType, GetBandLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { Poster } from "@/app/components/Poster";
 import React from "react";
 import { RecommendPoster } from "@/app/components/RecommendPoster";
+import ComingLabel from "../../public/assets/ic_label_comming.svg";
 
-export async function LessonBand({title, lessons, type}: {
+export async function LessonBand({title, lessons, type, label}: {
   title: string,
   lessons: GetBandLessonResponse[],
-  type: BandType
+  type: BandType,
+  label?: BandLabel,
 }) {
 
   if (lessons.length == 0) return;
 
   return (
     <div className="flex flex-col mb-2">
-      <h2 className="text-[18px] text-black font-bold pt-5 pb-2 px-6">{title}</h2>
+      {label?.coming && (
+        <div className="px-6 pt-3">
+          <ComingLabel className="h-[16px] w-auto" />
+        </div>
+      )}
+      <h2 className={`text-[18px] text-black font-bold leading-tight ${label?.coming ? 'pt-[4px]' : 'pt-5'} pb-2 px-6`}>{title}</h2>
       <div className="flex overflow-x-auto scrollbar-hide gap-2">
         {lessons.map((item: GetBandLessonResponse, index: number) => (
           <div
@@ -31,6 +38,7 @@ export async function LessonBand({title, lessons, type}: {
                 studioImageUrl={item.studioImageUrl}
                 label={item.label}
                 type={item.type}
+                tags={item.label?.tags ?? undefined}
               />
             }
             {

@@ -60,6 +60,7 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
             title={value.title}
             lessons={value.lessons}
             type={value.type}
+            label={value.label}
           />
         );
       })}
