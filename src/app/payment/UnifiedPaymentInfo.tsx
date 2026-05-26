@@ -216,17 +216,6 @@ export const UnifiedPaymentInfo = ({
     setMounted(true);
   }, []);
 
-  // lesson만 캐시 무효화
-  useEffect(() => {
-    if (type === 'lesson') {
-      fetch('/api/cache/purge-lesson', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ lessonId: payment.lesson?.id }),
-      })
-    }
-  }, [payment, type])
-
   if (needsMountCheck(type) && !mounted) return null;
 
   const studio = getStudio(payment, type);
