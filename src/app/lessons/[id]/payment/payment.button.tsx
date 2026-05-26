@@ -17,10 +17,17 @@ import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subsc
 import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
-import { putDepositorNameAction } from "@/app/lessons/[id]/payment/put.depositor.name.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
+import { depositorKey } from "@/shared/cookies.key";
+
+// depositor 쿠키를 server action 대신 client에서 직접 set.
+// server action으로 cookies().set 호출 시 Next.js가 현재 라우트 RSC를 자동 revalidate해서
+// 결제 직후 /payment SSR이 한 번 더 도는 부작용이 있었음.
+const setDepositorCookie = (depositor: string) => {
+  document.cookie = `${depositorKey}=${encodeURIComponent(depositor)}; Max-Age=15552000; Path=/; SameSite=Lax`;
+}
 
 export const PaymentTypes = [
   {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
@@ -333,8 +340,8 @@ export default function PaymentButton({
           discounts: selectedDiscounts,
         });
         if ('paymentId' in res) {
+          setDepositorCookie(depositor)
           await onPaymentSuccess({paymentId: res.paymentId, delay: 0})
-          await putDepositorNameAction({depositor})
         } else {
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
