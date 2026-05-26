@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from "@/app/api.client";
+import { revalidateTag } from "next/cache";
 
 /**
  * 관리자(artist/partner)가 학생 수강권 취소.
@@ -8,9 +9,12 @@ import { api } from "@/app/api.client";
  * 환불 정책은 JWT의 user.studioId 기준으로 자동 분기 (partner면 자유 환불).
  */
 export async function cancelTicketAction(ticketId: number) {
-  return await api.ticket.delete({
+  const res = await api.ticket.delete({
     ticketId,
     reason: '관리자 취소',
     requester: 'ADMIN',
   });
+  // @ts-ignore - Next.js 16 type definition issue
+  if (!res || 'id' in res) revalidateTag('lesson');
+  return res;
 }

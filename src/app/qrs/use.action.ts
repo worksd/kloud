@@ -3,6 +3,7 @@
 import { api } from "@/app/api.client";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { revalidateTag } from "next/cache";
 
 export async function useAction({
   ticketId,
@@ -13,9 +14,16 @@ export async function useAction({
   expiredAt?: string;
   lessonId?: number;
 }): Promise<TicketResponse | GuinnessErrorCase> {
-  return await api.ticket.toUsed({
+  const res = await api.ticket.toUsed({
     id: ticketId,
     expiredAt,
     lessonId
   });
+  if ('id' in res) {
+    // @ts-ignore - Next.js 16 type definition issue
+    if (lessonId) revalidateTag(`lesson:${lessonId}`);
+    // @ts-ignore - Next.js 16 type definition issue
+    else revalidateTag('lesson');
+  }
+  return res;
 }
