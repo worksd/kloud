@@ -31,25 +31,6 @@ const extractAmPm = (lesson: GetBandLessonResponse): { ampm: string; hm: string 
   return { ampm, hm: `${h12}:${mm}` };
 };
 
-// "2026.05.21(목) 오전 7:00" → "오전 7:00"
-const stripDatePrefix = (text: string): string =>
-  text.replace(/^\d{4}\.\d{1,2}\.\d{1,2}\s*\([^)]+\)\s*/, '').trim();
-
-const formatHHmm = (ms: number): string => {
-  const d = new Date(ms);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-};
-
-const formatAmPmKo = (ms: number): string => {
-  const d = new Date(ms);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const ampm = h < 12 ? '오전' : '오후';
-  if (h === 0) h = 12;
-  else if (h > 12) h -= 12;
-  return `${ampm} ${h}:${String(m).padStart(2, '0')}`;
-};
-
 type Status = 'ended' | 'ongoing' | 'upcoming';
 
 export function TodayTimetable({
@@ -124,7 +105,7 @@ export function TodayTimetable({
   );
 
   return (
-    <section className={'flex flex-col mb-2'}>
+    <section className={'flex flex-col mb-2 overflow-hidden'}>
       <h2 className={'text-[18px] text-black font-bold pt-5 pb-3 px-6'}>{title}</h2>
 
       <ol className={'px-5 flex flex-col gap-3'}>
@@ -137,10 +118,6 @@ export function TodayTimetable({
           const { ampm, hm } = extractAmPm(lesson);
           const artist = lesson.artists?.[0] ?? lesson.artist;
           const artistName = artist?.nickName ?? artist?.name;
-          const descriptionText = lesson.description ? stripDatePrefix(lesson.description) : '';
-          const endTimeText = isOngoing && lesson.duration && lesson.duration > 0
-            ? formatAmPmKo(parseStart(lesson) + lesson.duration * 60 * 1000)
-            : null;
 
           const row = (
             <li className={'relative flex gap-3'}>
@@ -178,7 +155,7 @@ export function TodayTimetable({
                 tabIndex={0}
                 onClick={() => onClick(lesson)}
                 className={[
-                  'flex-1 rounded-[14px] p-3 flex gap-3 cursor-pointer transition-colors',
+                  'flex-1 min-w-0 rounded-[14px] p-3 flex gap-3 cursor-pointer transition-colors',
                   'active:bg-[#F7F8F9]',
                   isOngoing
                     ? 'bg-white border-2 border-[#1E2124] shadow-[0_4px_16px_rgba(0,0,0,0.08)]'
@@ -210,24 +187,15 @@ export function TodayTimetable({
                         {ongoingLabel}
                       </span>
                     )}
-                    {lesson.studioName && (
-                      <span className={'text-[11px] text-[#919191] truncate'}>{lesson.studioName}</span>
+                    {(lesson.studioName || lesson.roomName) && (
+                      <span className={'text-[11px] text-[#919191] truncate'}>
+                        {[lesson.studioName, lesson.roomName].filter(Boolean).join(' · ')}
+                      </span>
                     )}
                   </div>
-                  <div className={'mt-0.5 text-[14px] font-bold text-black truncate'}>
+                  <div className={'mt-0.5 text-[14px] font-bold text-black leading-snug line-clamp-2 break-words'}>
                     {lesson.title}
                   </div>
-                  {descriptionText && (
-                    <div
-                      className={[
-                        'mt-0.5 text-[11px] font-medium tabular-nums truncate',
-                        isEnded ? 'text-[#D1D6DB]' : 'text-[#B0B8C1]',
-                      ].join(' ')}
-                    >
-                      {descriptionText}
-                      {endTimeText && <span> ~ {endTimeText}</span>}
-                    </div>
-                  )}
                   {artistName && (
                     <div className={'mt-0.5 text-[12px] text-[#5C5C5C] truncate'}>{artistName}</div>
                   )}
