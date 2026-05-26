@@ -404,7 +404,7 @@ export const UnifiedPaymentInfo = ({
           disabled={
             priceNotAvailable ||
             (type === 'practice-room' && !practiceRoomInfo) ||
-            (totalPrice > 0 && paymentMethods.length > 0 && (
+            (totalPrice > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
