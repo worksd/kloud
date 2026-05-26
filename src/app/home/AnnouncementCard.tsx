@@ -125,6 +125,29 @@ export function AnnouncementCard({
               {announcement.body}
             </div>
           )}
+
+          {/* 인스타그램 링크 — 클릭 시 외부 브라우저로 열어 인스타에서 게시물 확인 */}
+          {announcement.instagramLink && (
+            <button
+              type={'button'}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.KloudEvent?.openExternalBrowser(announcement.instagramLink!);
+              }}
+              className={'mt-3 inline-flex items-center gap-1.5 self-start text-[12px] font-semibold text-[#4E5968] active:opacity-70'}
+            >
+              {/* Instagram 로고 — gradient stroke */}
+              <svg width={'16'} height={'16'} viewBox={'0 0 24 24'} fill={'none'}>
+                <rect x={'2.5'} y={'2.5'} width={'19'} height={'19'} rx={'5'} stroke={'#4E5968'} strokeWidth={'1.6'}/>
+                <circle cx={'12'} cy={'12'} r={'4'} stroke={'#4E5968'} strokeWidth={'1.6'}/>
+                <circle cx={'17.5'} cy={'6.5'} r={'1.2'} fill={'#4E5968'}/>
+              </svg>
+              <span>Instagram에서 보기</span>
+              <svg width={'12'} height={'12'} viewBox={'0 0 24 24'} fill={'none'}>
+                <path d={'M9 6l6 6-6 6'} stroke={'#4E5968'} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'}/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 

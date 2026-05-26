@@ -6,6 +6,8 @@ export type AnnouncementResponse = {
   title: string;
   body: string;
   imageUrl: string | null;
+  /** 인스타그램 게시물 링크. 있으면 카드에 'Instagram에서 보기' 버튼 노출. */
+  instagramLink?: string | null;
   /** yyyy-MM-dd HH:mm (KST) */
   createdAt: string;
 };
