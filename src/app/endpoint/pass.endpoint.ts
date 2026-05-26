@@ -151,7 +151,10 @@ export type GetPassResponse = {
   passPlan: GetPassPlanResponse
   paymentRecord?: SimplePaymentRecordResponse
   tickets?: TicketResponse[]
+  /** @deprecated BE 응답이 passRule 단일 객체로 변경됨. 마이그레이션 호환을 위해 잠시 유지. */
   passRules?: PassRuleResponse[]
+  /** BE가 대표 룰 1건을 미리 골라 내려주는 새 형식. */
+  passRule?: PassRuleResponse | null
   passFeatures?: PassFeatureResponse[]
   usable: boolean
   reason?: string

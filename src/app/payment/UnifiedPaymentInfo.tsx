@@ -137,17 +137,20 @@ export const UnifiedPaymentInfo = ({
   // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
   const availablePasses: GetPassResponse[] = payment.passes ?? payment.user.passes ?? [];
 
-  // 대표 rule = passRules의 첫 usable rule (PassesSection 부제목과 동일).
+  // BE가 단일 passRule로 내려줌 (신규). legacy passRules[] 첫 요소 fallback.
   // - Discount 룰 → 일반 결제수단 + selectedDiscount 적용 (결제수단/패스 동시 활성 OK, 잔액 일반 결제)
   // - FreeCount/Unlimited 룰 → selectedMethod='pass' + selectedDiscount=undefined (use pass 풀커버)
+  const getPrimaryRule = (pass: GetPassResponse) =>
+    pass.passRule ?? (pass.passRules ?? [])[0];
+
   const getPassDiscountRule = (pass: GetPassResponse) => {
-    const rule = (pass.passRules ?? []).find(r => r.usable);
-    return rule?.benefitType === 'Discount' ? rule : undefined;
+    const rule = getPrimaryRule(pass);
+    return rule?.usable && rule.benefitType === 'Discount' ? rule : undefined;
   };
 
   const buildDiscountFromPass = (pass: GetPassResponse): DiscountResponse | undefined => {
-    const rule = (pass.passRules ?? []).find(r => r.usable);
-    if (!rule || rule.benefitType !== 'Discount' || (rule.benefitValue ?? 0) <= 0) return undefined;
+    const rule = getPrimaryRule(pass);
+    if (!rule?.usable || rule.benefitType !== 'Discount' || (rule.benefitValue ?? 0) <= 0) return undefined;
     return {
       key: pass.passPlan?.name ?? 'pass',
       value: String(rule.benefitValue ?? 0),
@@ -174,9 +177,10 @@ export const UnifiedPaymentInfo = ({
   };
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
-  const initialPass = availablePasses.find(p =>
-    (p.passRules ?? []).some(r => r.usable) || (p.passFeatures ?? []).some(f => f.usable)
-  );
+  const initialPass = availablePasses.find(p => {
+    const rule = getPrimaryRule(p);
+    return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
+  });
   // 초기 패스 분기:
   //   - Discount 룰 → 일반 결제수단 + selectedDiscount 적용
   //   - 그 외 룰 → 결제수단을 'pass'로 (use pass 흐름)

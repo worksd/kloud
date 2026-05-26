@@ -7,11 +7,16 @@ import { getLocaleString } from '@/app/components/locale';
 import { formatRuleDescription, formatFeatureDescription } from '@/utils/pass.description';
 
 /**
- * 카드 부제목 — 가장 먼저 발견되는 usable rule 또는 feature 1건을 대표로 표시.
- * rule 우선, 없으면 feature.
+ * BE가 passRule(단일)로 내려주는 새 형식 우선, legacy passRules[] fallback.
+ */
+const getPrimaryRule = (pass: GetPassResponse) =>
+  pass.passRule ?? (pass.passRules ?? [])[0];
+
+/**
+ * 카드 부제목 — 대표 rule 우선, 없으면 첫 usable feature.
  */
 const buildPrimaryBenefit = (pass: GetPassResponse, locale: Locale): string | null => {
-  const rule = (pass.passRules ?? []).find(r => r.usable);
+  const rule = getPrimaryRule(pass);
   if (rule) {
     return formatRuleDescription({
       target: { type: rule.targetType, label: rule.targetLabel },
@@ -59,14 +64,13 @@ export const PassesSection = ({
       <div className="rounded-2xl border border-[#EEEFF0] overflow-hidden">
         {passes.map((pass, idx) => {
           const isSelected = selectedPass?.id === pass.id;
-          // PaymentUserPassResponse엔 패스 레벨 usable이 없음 — 룰/피쳐 레벨에서 산출
-          const rules = pass.passRules ?? [];
+          // 단일 passRule(신규) 우선, 없으면 passRules[] (legacy) fallback.
+          const primaryRule = getPrimaryRule(pass);
           const features = pass.passFeatures ?? [];
-          const isUsable = rules.some(r => r.usable) || features.some(f => f.usable);
-          // 비활성 사유는 usable=false인 첫 룰의 reason
+          const isUsable = !!primaryRule?.usable || features.some(f => f.usable);
           const blockedReason = isUsable
             ? undefined
-            : rules.find(r => !r.usable && r.reason)?.reason;
+            : (primaryRule && !primaryRule.usable ? primaryRule.reason : undefined);
           return (
             <div
               key={pass.id}
