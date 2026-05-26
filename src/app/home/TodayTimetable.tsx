@@ -18,10 +18,17 @@ const parseStart = (lesson: GetBandLessonResponse): number => {
   return Number.isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
 };
 
-const extractHHmm = (lesson: GetBandLessonResponse): string => {
-  if (!lesson.startDate) return '';
+// 타임라인 표기용 — { ampm: 'AM' | 'PM', hm: 'H:mm' } 형태로 12시간제 분리.
+const extractAmPm = (lesson: GetBandLessonResponse): { ampm: string; hm: string } => {
+  if (!lesson.startDate) return { ampm: '', hm: '' };
   const m = lesson.startDate.match(/[T ](\d{2}):(\d{2})/);
-  return m ? `${m[1]}:${m[2]}` : '';
+  if (!m) return { ampm: '', hm: '' };
+  const hh = parseInt(m[1], 10);
+  const mm = m[2];
+  const ampm = hh < 12 ? 'AM' : 'PM';
+  let h12 = hh % 12;
+  if (h12 === 0) h12 = 12;
+  return { ampm, hm: `${h12}:${mm}` };
 };
 
 // "2026.05.21(목) 오전 7:00" → "오전 7:00"
@@ -125,8 +132,9 @@ export function TodayTimetable({
           const status = statusOf(i);
           const isOngoing = status === 'ongoing';
           const isEnded = status === 'ended';
+          const isFirst = i === 0;
           const isLast = i === sorted.length - 1;
-          const time = extractHHmm(lesson);
+          const { ampm, hm } = extractAmPm(lesson);
           const artist = lesson.artists?.[0] ?? lesson.artist;
           const artistName = artist?.nickName ?? artist?.name;
           const descriptionText = lesson.description ? stripDatePrefix(lesson.description) : '';
@@ -136,36 +144,32 @@ export function TodayTimetable({
 
           const row = (
             <li className={'relative flex gap-3'}>
-              {/* 시간 + 타임라인 트랙 */}
-              <div className={'relative flex flex-col items-center w-12 shrink-0 pt-3'}>
-                <span
+              {/* 시간 + status 막대 — 시간을 세로 중앙에 두고 막대가 위아래로 동시에 뻗는 station 라벨 스타일. */}
+              <div className={'relative flex flex-col items-center justify-center w-12 shrink-0'}>
+                {/* 막대 — column 전체 + row gap(12px)까지 확장. 첫/마지막 row만 안에서 rounded cap으로 마무리. */}
+                <div
                   className={[
-                    'text-[12px] font-semibold leading-tight tabular-nums',
+                    'absolute left-1/2 -translate-x-1/2 w-[2px] rounded-full',
+                    isFirst ? 'top-2' : '-top-3',
+                    isLast ? 'bottom-2' : '-bottom-3',
+                    isOngoing
+                      ? 'bg-[#EF4444]'
+                      : isEnded
+                        ? 'bg-[#E5E7EB]'
+                        : 'bg-[#919191]',
+                  ].join(' ')}
+                />
+
+                {/* 시간 — AM/PM 작은 라벨 + 12시간제 H:mm 큰 글자. Paperlogy로 통일. bg-white로 막대 끊김. */}
+                <div
+                  className={[
+                    'relative bg-white px-1 py-1.5 flex flex-col items-center font-paperlogy leading-none',
                     isEnded ? 'text-[#BFC2C5]' : 'text-[#1E2124]',
                   ].join(' ')}
                 >
-                  {time}
-                </span>
-
-                {/* 다음 row까지 이어지는 세로 트랙 */}
-                {!isLast && (
-                  <div
-                    className={'absolute left-1/2 -translate-x-1/2 top-10 -bottom-3 w-[2px] bg-[#F1F3F6]'}
-                  />
-                )}
-
-                {/* 점 — 진행중은 라이브 빨강 펄스, 나머지는 모노톤.
-                    relative + z-10으로 absolute 트랙보다 위에 올라오게 함. */}
-                <span
-                  className={[
-                    'relative z-10 mt-2 w-2.5 h-2.5 rounded-full',
-                    isOngoing
-                      ? 'bg-[#EF4444] shadow-[0_0_0_4px_rgba(239,68,68,0.18)] animate-pulse'
-                      : isEnded
-                        ? 'bg-[#E5E7EB]'
-                        : 'bg-[#1E2124]',
-                  ].join(' ')}
-                />
+                  <span className={'text-[9px] font-bold tracking-wider opacity-60'}>{ampm}</span>
+                  <span className={'text-[13px] font-bold tabular-nums mt-1'}>{hm}</span>
+                </div>
               </div>
 
               {/* 카드 */}
