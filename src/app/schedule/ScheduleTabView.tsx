@@ -284,8 +284,7 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
                           )}
                         </div>
                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                          <span className="text-[16px] font-medium text-[#33363D] line-clamp-2 leading-[150%]">{lesson.title}</span>
-                          {lesson.tags && <LessonTags tags={lesson.tags} className="mt-1" />}
+                          {/* 시간 — 맨 위로 배치 */}
                           <div className="flex items-center gap-1">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                               <circle cx="6" cy="6" r="4.5" stroke="#CDD1D5" strokeWidth="1"/>
@@ -293,6 +292,9 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
                             </svg>
                             <span className="text-[12px] font-medium text-[#58616A]">{formatAmPm(lesson.startTime, locale)}</span>
                           </div>
+                          {/* 제목 + 태그 — 둘 사이는 mt-0.5로 타이트하게 묶음 */}
+                          <span className="text-[16px] font-medium text-[#33363D] line-clamp-2 leading-[150%]">{lesson.title}</span>
+                          {lesson.tags && <LessonTags tags={lesson.tags} className="-mt-0.5" />}
                           {lesson.room && (
                             <div className="flex items-center gap-1">
                               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
