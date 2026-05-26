@@ -47,6 +47,11 @@ export async function Poster({
             width={width}
             url={posterUrl}
           />
+          {label?.type === 'PopUp' && (
+            <div className="absolute top-2 left-2 bg-[#1F1F1F] px-1 py-1 rounded-[4px] text-white font-paperlogy font-bold text-[11px] leading-none">
+              팝업
+            </div>
+          )}
           {label?.isEnded == true &&
             <div
               className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px] rounded-b-[16px]">
