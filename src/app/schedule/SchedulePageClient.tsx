@@ -45,6 +45,8 @@ const parseLessons = (rawLessons: any[]): CalendarLesson[] =>
       room: l.room?.name,
       date: datePart,
       tags: l.label?.tags ?? undefined,
+      duration: l.duration,
+      artistName: (l.artists?.[0]?.nickName ?? l.artists?.[0]?.name) ?? l.artist?.nickName ?? l.artist?.name ?? undefined,
     };
   });
 

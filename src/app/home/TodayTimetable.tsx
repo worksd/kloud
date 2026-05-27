@@ -2,9 +2,26 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { GetBandLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
+import { LessonTags } from '@/app/components/LessonTags';
+
+// 홈 'Today' 밴드 / 스케줄 탭이 공용으로 쓰는 타임라인 row 데이터.
+// 둘의 원본 응답 형태가 달라(GetBandLessonResponse / CalendarLesson) 컴포넌트가
+// 실제로 쓰는 필드만 추린 최소 인터페이스로 입력을 일반화한다.
+export type TimetableLesson = {
+  id: number;
+  title: string;
+  thumbnailUrl?: string;
+  startDate?: string; // 'yyyy-MM-dd HH:mm' 또는 ISO
+  duration?: number;
+  studioName?: string;
+  roomName?: string;
+  tags?: string;
+  type?: 'default' | 'subscription';
+  artist?: { nickName?: string; name?: string };
+  artists?: { nickName?: string; name?: string }[];
+};
 
 const LAST_LESSON_FALLBACK_MS = 90 * 60 * 1000;
 
@@ -12,14 +29,14 @@ const LAST_LESSON_FALLBACK_MS = 90 * 60 * 1000;
 const stripTz = (s: string): string =>
   s.replace(/Z$/, '').replace(/[+-]\d{2}:?\d{2}$/, '');
 
-const parseStart = (lesson: GetBandLessonResponse): number => {
+const parseStart = (lesson: TimetableLesson): number => {
   if (!lesson.startDate) return Number.MAX_SAFE_INTEGER;
   const t = new Date(stripTz(lesson.startDate).replace(' ', 'T')).getTime();
   return Number.isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
 };
 
 // 타임라인 표기용 — { ampm: 'AM' | 'PM', hm: 'H:mm' } 형태로 12시간제 분리.
-const extractAmPm = (lesson: GetBandLessonResponse): { ampm: string; hm: string } => {
+const extractAmPm = (lesson: TimetableLesson): { ampm: string; hm: string } => {
   if (!lesson.startDate) return { ampm: '', hm: '' };
   const m = lesson.startDate.match(/[T ](\d{2}):(\d{2})/);
   if (!m) return { ampm: '', hm: '' };
@@ -39,8 +56,8 @@ export function TodayTimetable({
   endedLabel,
   ongoingLabel,
 }: {
-  title: string;
-  lessons: GetBandLessonResponse[];
+  title?: string;
+  lessons: TimetableLesson[];
   endedLabel: string;
   ongoingLabel: string;
 }) {
@@ -77,7 +94,7 @@ export function TodayTimetable({
     return 'ended';
   };
 
-  const onClick = (lesson: GetBandLessonResponse) => {
+  const onClick = (lesson: TimetableLesson) => {
     const route = lesson.type === 'subscription'
       ? KloudScreen.LessonGroupDetail(lesson.id)
       : KloudScreen.LessonDetail(lesson.id);
@@ -106,7 +123,7 @@ export function TodayTimetable({
 
   return (
     <section className={'flex flex-col mb-2 overflow-hidden'}>
-      <h2 className={'text-[18px] text-black font-bold pt-5 pb-3 px-6'}>{title}</h2>
+      {title && <h2 className={'text-[18px] text-black font-bold pt-5 pb-3 px-6'}>{title}</h2>}
 
       <ol className={'px-5 flex flex-col gap-3'}>
         {sorted.map((lesson, i) => {
@@ -116,8 +133,6 @@ export function TodayTimetable({
           const isFirst = i === 0;
           const isLast = i === sorted.length - 1;
           const { ampm, hm } = extractAmPm(lesson);
-          const artist = lesson.artists?.[0] ?? lesson.artist;
-          const artistName = artist?.nickName ?? artist?.name;
 
           const row = (
             <li className={'relative flex gap-3'}>
@@ -196,9 +211,7 @@ export function TodayTimetable({
                   <div className={'mt-0.5 text-[14px] font-bold text-black leading-snug line-clamp-2 break-words'}>
                     {lesson.title}
                   </div>
-                  {artistName && (
-                    <div className={'mt-0.5 text-[12px] text-[#5C5C5C] truncate'}>{artistName}</div>
-                  )}
+                  {lesson.tags && <LessonTags tags={lesson.tags} className={'mt-1'} />}
                 </div>
               </div>
             </li>

@@ -1,12 +1,9 @@
 'use client'
 
 import React, { useMemo, useRef, useEffect, useCallback, useState } from "react";
-import Image from "next/image";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { LessonTags } from "@/app/components/LessonTags";
+import { TodayTimetable, TimetableLesson } from "@/app/home/TodayTimetable";
 
 export type CalendarLesson = {
   id: number;
@@ -18,6 +15,10 @@ export type CalendarLesson = {
   date: string; // yyyy-MM-dd
   /** ','로 구분된 태그 문자열 (예: '전문반,입시반'). null/undefined면 미노출. */
   tags?: string;
+  /** 수업 길이(분). 진행중/종료 판단용. */
+  duration?: number;
+  /** 대표 강사명 (nickName ?? name). */
+  artistName?: string;
 }
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
@@ -54,15 +55,17 @@ const isSameDay = (a: Date, b: Date) =>
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-const formatAmPm = (time: string, locale: Locale): string => {
-  if (!time) return '';
-  const [h, m] = time.split(':').map(Number);
-  const amLabel = getLocaleString({ locale, key: 'am' });
-  const pmLabel = getLocaleString({ locale, key: 'pm' });
-  const period = h < 12 ? amLabel : pmLabel;
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
-};
+// CalendarLesson → TodayTimetable이 받는 TimetableLesson 형태로 변환.
+const toTimetableLesson = (l: CalendarLesson): TimetableLesson => ({
+  id: l.id,
+  title: l.title,
+  thumbnailUrl: l.thumbnailUrl,
+  startDate: l.date && l.startTime ? `${l.date} ${l.startTime}` : undefined,
+  duration: l.duration,
+  roomName: l.room,
+  tags: l.tags,
+  artist: l.artistName ? { nickName: l.artistName } : undefined,
+});
 
 export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 'ko', selectedDate, onDateChange, loading, active = true }: {
   lessons: CalendarLesson[],
@@ -265,50 +268,11 @@ export const ScheduleTabView = ({ lessons, studioName, studioImageUrl, locale = 
               </div>
 
               {dayLessons.length > 0 ? (
-                <div className="flex flex-col gap-2 py-2">
-                  {dayLessons.map(lesson => (
-                    <NavigateClickWrapper key={lesson.id} method="push" route={KloudScreen.LessonDetail(lesson.id)}>
-                      <div className="flex items-start gap-3 px-5 py-2 active:bg-[#F3F4F6] transition-colors rounded-xl mx-2">
-                        <div className="w-[64px] h-[96px] rounded-lg overflow-hidden flex-shrink-0 bg-[#F1F3F6] select-none pointer-events-none">
-                          {lesson.thumbnailUrl ? (
-                            <Image
-                              src={lesson.thumbnailUrl}
-                              alt=""
-                              width={64}
-                              height={96}
-                              className="w-full h-full object-cover"
-                              draggable={false}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-[#F1F3F6]" />
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                          {/* 시간 — 맨 위로 배치 */}
-                          <div className="flex items-center gap-1">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                              <circle cx="6" cy="6" r="4.5" stroke="#CDD1D5" strokeWidth="1"/>
-                              <path d="M6 3.5V6L7.5 7.5" stroke="#CDD1D5" strokeWidth="1" strokeLinecap="round"/>
-                            </svg>
-                            <span className="text-[12px] font-medium text-[#58616A]">{formatAmPm(lesson.startTime, locale)}</span>
-                          </div>
-                          {/* 제목 + 태그 — 둘 사이는 mt-0.5로 타이트하게 묶음 */}
-                          <span className="text-[16px] font-medium text-[#33363D] line-clamp-2 leading-[150%]">{lesson.title}</span>
-                          {lesson.tags && <LessonTags tags={lesson.tags} className="-mt-0.5" />}
-                          {lesson.room && (
-                            <div className="flex items-center gap-1">
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M6 1.5C4.067 1.5 2.5 3.067 2.5 5C2.5 7.5 6 10.5 6 10.5C6 10.5 9.5 7.5 9.5 5C9.5 3.067 7.933 1.5 6 1.5Z" stroke="#CDD1D5" strokeWidth="1"/>
-                                <circle cx="6" cy="5" r="1.25" stroke="#CDD1D5" strokeWidth="1"/>
-                              </svg>
-                              <span className="text-[12px] font-medium text-[#58616A]">{lesson.room}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </NavigateClickWrapper>
-                  ))}
-                </div>
+                <TodayTimetable
+                  lessons={dayLessons.map(toTimetableLesson)}
+                  endedLabel={getLocaleString({ locale, key: 'finish' })}
+                  ongoingLabel={getLocaleString({ locale, key: 'in_progress' })}
+                />
               ) : (
                 <div className="flex flex-col items-center justify-center py-6">
                   <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
