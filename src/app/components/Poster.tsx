@@ -83,11 +83,10 @@ export async function Poster({
             </div>
           )}
 
-          {/* 태그 — ','로 split해서 노출 (제목 위). tags 롤백(임시)
+          {/* 태그 — ','로 split해서 노출 (제목 위) */}
           {tags && (
             <LessonTags tags={tags} className="mb-1.5"/>
           )}
-          */}
 
           {/* 타이틀 */}
           <div
