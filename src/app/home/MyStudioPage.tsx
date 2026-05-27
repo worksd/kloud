@@ -6,6 +6,7 @@ import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
 import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
+import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { AnnouncementCard } from "@/app/home/AnnouncementCard";
 import { getLocale, translate } from "@/utils/translate";
 
@@ -51,22 +52,25 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
       {res.bands.map((value) => {
         if (value.type === 'Today') {
           return (
-            <TodayTimetable
-              key={value.title}
-              title={value.title}
-              lessons={value.lessons.map((l) => ({
-                id: l.id,
-                title: l.title,
-                thumbnailUrl: l.thumbnailUrl,
-                startDate: l.startDate,
-                duration: l.duration,
-                type: l.type,
-                roomName: l.roomName,         // 홈 밴드: roomName 문자열 그대로
-                tags: l.label?.tags ?? undefined, // 홈 밴드: 태그는 label.tags 안에 있음
-              }))}
-              endedLabel={endedLabel}
-              ongoingLabel={ongoingLabel}
-            />
+            <React.Fragment key={value.title}>
+              {/* 오늘 밴드 위에 주간 시간표 그리드 노출 */}
+              <TimeTableServerComponent studioId={res.studio.id} />
+              <TodayTimetable
+                title={value.title}
+                lessons={value.lessons.map((l) => ({
+                  id: l.id,
+                  title: l.title,
+                  thumbnailUrl: l.thumbnailUrl,
+                  startDate: l.startDate,
+                  duration: l.duration,
+                  type: l.type,
+                  roomName: l.roomName,         // 홈 밴드: roomName 문자열 그대로
+                  tags: l.label?.tags ?? undefined, // 홈 밴드: 태그는 label.tags 안에 있음
+                }))}
+                endedLabel={endedLabel}
+                ongoingLabel={ongoingLabel}
+              />
+            </React.Fragment>
           );
         }
         return (
