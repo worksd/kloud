@@ -42,8 +42,8 @@ export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, conf
   ] as const;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white px-4 mt-14">
-      <ul className="flex flex-col w-full space-y-2 mt-4">
+    <div className="fixed inset-0 flex flex-col bg-white px-4 mt-2">
+      <ul className="flex flex-col w-full space-y-2">
         {languageOptions.map((option) => (
           <li key={option.value}>
             <label
@@ -73,7 +73,7 @@ export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, conf
                 {currentLocale === option.value && <CheckIcon/>}
               </div>
               <span
-                className={`ml-4 text-[14px] ${
+                className={`ml-4 text-[14px] font-paperlogy ${
                   currentLocale === option.value
                     ? "text-white font-bold"
                     : "text-[#222222] font-medium"
