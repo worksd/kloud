@@ -2412,7 +2412,7 @@ export const StringResource = {
     zh: '取消原因'
   },
   refund_notice_studio: {
-    ko: '환불은 스튜디오에서 직접 환불이 이뤄집니다',
+    ko: '환불은 스튜디오에서 직접 이뤄집니다',
     en: 'Refunds are processed directly by the studio',
     jp: '返金はスタジオで直接行われます',
     zh: '退款由工作室直接处理'
