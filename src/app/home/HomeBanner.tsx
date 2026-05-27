@@ -19,7 +19,7 @@ export const HomeBanner = ({ banners }: { banners: HomeBannerResponse[] }) => {
         >
           <Image
             src={banner.imageUrl}
-            alt={banner.description}
+            alt={banner.description ?? ''}
             fill
             className="object-cover"
           />
