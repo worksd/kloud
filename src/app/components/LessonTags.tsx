@@ -25,7 +25,7 @@ export const LessonTags = ({ tags, className }: { tags?: string; className?: str
           return (
             <span
               key={`${tag}-${i}`}
-              className="relative inline-flex h-[17px] items-center justify-center pl-[2px] pr-[10px]"
+              className="relative inline-flex h-[17px] items-center justify-center pl-[2px] pr-[8px]"
             >
               <svg
                 className="absolute inset-0 w-full h-full"
@@ -33,10 +33,10 @@ export const LessonTags = ({ tags, className }: { tags?: string; className?: str
                 viewBox="0 0 41 17"
                 aria-hidden
               >
-                {/* (2,0) → (39,0) → arc to (41,2) → (35.6,15) → arc to (33.6,17) → (2,17) → arc to (0,15) → (0,2) → arc to (2,0)
-                    윗변 41, 아랫변 35.6 (≈ figma vector 좌표), 각 모서리 r=2 */}
+                {/* 평행사변형 — 우변 기울기 완만하게(아랫변 우측 꼭지점을 오른쪽으로 당김).
+                    윗변 ~41, 아랫변 ~38.6, 각 모서리 r=2 */}
                 <path
-                  d="M2 0 L39 0 Q41 0 40.7 2 L35.6 15 Q35.2 17 33.2 17 L2 17 Q0 17 0 15 L0 2 Q0 0 2 0 Z"
+                  d="M2 0 L39 0 Q41 0 40.7 2 L38.6 15 Q38.2 17 36.2 17 L2 17 Q0 17 0 15 L0 2 Q0 0 2 0 Z"
                   fill="#1F1F1F"
                 />
               </svg>
