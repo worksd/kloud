@@ -212,7 +212,7 @@ export function TodayTimetable({
                   <div className={'mt-0.5 text-[14px] font-bold text-black leading-snug line-clamp-2 break-words'}>
                     {lesson.title}
                   </div>
-                  {lesson.tags && <LessonTags tags={lesson.tags} className={'mt-1'} />}
+                  {/* tags 롤백(임시) — {lesson.tags && <LessonTags tags={lesson.tags} className={'mt-1'} />} */}
                 </div>
               </div>
             </li>

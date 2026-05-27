@@ -127,9 +127,11 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               {/* 메타 정보 */}
               <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
                 <p className="text-[18px] font-bold text-black leading-snug break-words line-clamp-2">{title}</p>
+                {/* tags 롤백(임시)
                 {paymentItem === 'lesson' && res.lesson?.tags && (
                   <LessonTags tags={res.lesson.tags} />
                 )}
+                */}
                 <div className="flex items-center gap-2">
                   {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
                   <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
