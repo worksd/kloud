@@ -37,9 +37,11 @@ export default async function MyAccountPage() {
         <MenuItem label="refund_account"/>
       </NavigateClickWrapper>
 
+      {/* TODO: 인스타 연동하기 — 추후 재오픈 예정. 일단 메뉴 노출 보류.
       <NavigateClickWrapper method={'push'} route={KloudScreen.InstagramConnect}>
         <MenuItem label="instagram_connect"/>
       </NavigateClickWrapper>
+      */}
 
       <NavigateClickWrapper method={'push'} route={KloudScreen.SignOut}>
         <MenuItem label="sign_out"/>
