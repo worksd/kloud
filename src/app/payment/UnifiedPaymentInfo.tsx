@@ -368,6 +368,11 @@ export const UnifiedPaymentInfo = ({
             <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
               • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
             </div>
+            {type === 'pass-plan' && (
+              <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
+                • {getLocaleString({locale, key: 'pass_plan_point_refund_notice'})}
+              </div>
+            )}
           </div>
           {/* 판매자 정보 - lesson-group은 표시 안 함 */}
           {studio && <SellerInformation studio={studio} locale={locale}/>}

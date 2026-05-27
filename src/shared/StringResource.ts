@@ -3094,6 +3094,7 @@ export const StringResource = {
   kiosk_lessons_count: { ko: '{0}개 수업', en: '{0} lessons', jp: '{0}件のレッスン', zh: '{0}节课' },
   payment_notice: { ko: '결제 유의사항', en: 'Payment Notice', jp: '決済に関するご注意', zh: '支付注意事项' },
   apple_pay_domestic_only: { ko: 'Apple Pay는 Master/Visa 등 해외카드 결제가 불가합니다.', en: 'Apple Pay does not support international cards such as Master/Visa.', jp: 'Apple PayはMaster/Visaなどの海外カードはご利用いただけません。', zh: 'Apple Pay不支持Master/Visa等海外银行卡。' },
+  pass_plan_point_refund_notice: { ko: '간편결제(네이버페이·카카오페이 등)에서 포인트를 사용해 결제하면 환불 처리가 제한될 수 있습니다.', en: 'If you pay using points within an easy-pay method (Naver Pay, Kakao Pay, etc.), refunds may be limited.', jp: '簡単決済（NaverPay・KakaoPayなど）でポイントを利用して決済した場合、返金が制限される場合があります。', zh: '在简便支付（NaverPay、KakaoPay等）中使用积分付款时，退款可能受到限制。' },
   birth_from_profile: { ko: '회원 정보에 등록된 생년월일입니다', en: 'Date of birth from your profile', jp: 'プロフィールに登録された生年月日です', zh: '来自您个人资料中的出生日期' },
   add_new_card: { ko: '새 카드 추가', en: 'Add New Card', jp: '新しいカードを追加', zh: '添加新卡' },
   easy_payment: { ko: '간편결제', en: 'Easy Pay', jp: '簡単決済', zh: '快捷支付' },
