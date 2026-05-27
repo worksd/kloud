@@ -101,7 +101,7 @@ export type GetBandLessonResponse = {
     description: string;
     studioImageUrl: string;
     studioName: string;
-    /** 수업이 열리는 룸 이름 — Today 밴드에서 BE가 함께 내려줌. */
+    /** Today 밴드 응답이 함께 내려주는 룸 이름. */
     roomName?: string;
     thumbnailUrl: string;
     label: GetLabelResponse;

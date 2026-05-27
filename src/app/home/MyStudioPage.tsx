@@ -54,7 +54,16 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
             <TodayTimetable
               key={value.title}
               title={value.title}
-              lessons={value.lessons}
+              lessons={value.lessons.map((l) => ({
+                id: l.id,
+                title: l.title,
+                thumbnailUrl: l.thumbnailUrl,
+                startDate: l.startDate,
+                duration: l.duration,
+                type: l.type,
+                roomName: l.roomName,         // 홈 밴드: roomName 문자열 그대로
+                tags: l.label?.tags ?? undefined, // 홈 밴드: 태그는 label.tags 안에 있음
+              }))}
               endedLabel={endedLabel}
               ongoingLabel={ongoingLabel}
             />

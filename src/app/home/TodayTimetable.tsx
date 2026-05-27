@@ -16,6 +16,7 @@ export type TimetableLesson = {
   startDate?: string; // 'yyyy-MM-dd HH:mm' 또는 ISO
   duration?: number;
   studioName?: string;
+  /** 룸 이름. 호출부에서 각 응답 형태(roomName / room.name)를 매핑해 넣어준다. */
   roomName?: string;
   tags?: string;
   type?: 'default' | 'subscription';
