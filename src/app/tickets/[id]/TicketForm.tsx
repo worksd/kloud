@@ -334,10 +334,16 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 {ticket.lesson?.studio?.name}
               </p>
             </div>
-            <p className="text-[20px] text-white font-bold">
-              {ticket.lesson?.room?.name}
-              {ticket.rank && ` - ${ticket.rank}`}
-            </p>
+            <div className="flex flex-col gap-0.5">
+              {ticket.rank && (
+                <p className="text-[20px] text-white font-bold">
+                  {ticket.rank}
+                </p>
+              )}
+              <p className="text-[14px] text-white/60 font-medium">
+                {ticket.lesson?.room?.name}
+              </p>
+            </div>
           </div>
         </div>
       </div>
