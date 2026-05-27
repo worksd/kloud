@@ -23,7 +23,7 @@ export const RefundInformation = ({locale, paymentId, isRefundable}: {
         {expanded ? <ArrowUpIcon/> : <ArrowDownIcon/>}
       </div>
       {expanded && <div className={'flex flex-col space-y-4 mt-5'}>
-        <div className="text-[#86898c] text-[12px] font-medium">
+        <div className="text-[#6b6e71] text-[10px] font-medium leading-[14px]">
           <p className="pb-4">{getLocaleString({locale, key: 'lesson_refund_message_1'})}</p>
           <p>{getLocaleString({locale, key: 'lesson_refund_message_2'})}</p>
         </div>
@@ -40,7 +40,7 @@ export const RefundInformation = ({locale, paymentId, isRefundable}: {
         )}
 
         <div
-          className="mt-10 text-center text-[#6b6e71] text-[10px] font-medium leading-[14px]">
+          className="mt-10 text-[#6b6e71] text-[10px] font-medium leading-[14px]">
           <p className="pb-4">{getLocaleString({locale, key: 'lesson_refund_message_3'})}</p>
           <p>{getLocaleString({locale, key: 'lesson_refund_message_4'})}</p>
           <p>{getLocaleString({locale, key: 'lesson_refund_message_5'})}</p>
