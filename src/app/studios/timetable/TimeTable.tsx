@@ -168,24 +168,25 @@ export const TimeTable = ({timeTable, studioId, locale}: {
         <div className="text-[20px] font-bold text-black">{getLocaleString({locale, key: 'timetable_title'})}</div>
       </div>
 
-      <div className="flex flex-row items-center justify-center gap-1 px-4 w-full pb-2">
-        <div
-          onClick={onClickPrev}
-          className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
-        >
-          <BackwardIcon/>
-        </div>
-
-        <div className="flex flex-col items-center justify-center text-center">
+      <div className="flex flex-row items-center justify-between gap-1 px-4 w-full pb-2">
+        <div className="flex flex-col items-start text-left">
           <h2 className="text-[16px] text-black font-bold">{title}</h2>
           <p className="text-[12px] text-[#7A7A7A]">{description}</p>
         </div>
 
-        <div
-          onClick={onClickNext}
-          className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
-        >
-          <ForwardIcon/>
+        <div className="flex flex-row items-center gap-1 shrink-0">
+          <div
+            onClick={onClickPrev}
+            className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
+          >
+            <BackwardIcon/>
+          </div>
+          <div
+            onClick={onClickNext}
+            className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
+          >
+            <ForwardIcon/>
+          </div>
         </div>
       </div>
       <div
@@ -196,8 +197,8 @@ export const TimeTable = ({timeTable, studioId, locale}: {
           gap: '4px'
         }}
       >
-        {/* 수업 영역 배경 */}
-        {!isLoading && (
+        {/* 수업 영역 배경 — 로딩 중에도 유지(셀 언마운트 방지) */}
+        {cells.length > 0 && (
           <div
             className="bg-[#F7F8F9] rounded-[10px]"
             style={{
@@ -241,42 +242,24 @@ export const TimeTable = ({timeTable, studioId, locale}: {
             )}
           </div>
         ))}
-        {/* timetable cell */}
-        {isLoading ? (
-          <div
-            className="col-span-full mt-4 flex items-center justify-center"
-            style={{gridRowStart: 2, gridColumnStart: 1}}
-          >
-            <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
-          </div>
-        ) : isError ? (
-          <div
-            className="col-span-full mt-4 flex flex-col items-center justify-center gap-3"
-            style={{gridRowStart: 2, gridColumnStart: 1}}
-          >
-            <div className="text-[14px] text-[#7A7A7A]">시간표를 불러오지 못했습니다</div>
-            <button
-              onClick={onRetry}
-              className="px-4 py-2 bg-black text-white text-[14px] rounded-[8px] active:scale-[0.97] transition-transform"
-            >
-              다시 시도
-            </button>
-          </div>
-        ) : cells.length > 0 ? (
+        {/* timetable cell — 로딩/에러는 아래에서 오버레이로 처리하고, 셀은 계속 마운트 유지 */}
+        {cells.length > 0 ? (
           (() => {
             const timeCells = cells.filter(c => !!c.time);
             const firstTimeRow = timeCells.length > 0 ? Math.min(...timeCells.map(c => c.row)) : -1;
             const lastTimeRow = timeCells.length > 0 ? Math.max(...timeCells.map(c => c.row + (c.length ?? 1) - 1)) : -1;
 
-            return cells.map((item, i) => {
+            return cells.map((item) => {
               const isTime = !!item.time;
               const isLesson = !!item.lesson;
               const isFirstTime = isTime && item.row === firstTimeRow;
               const isLastTime = isTime && (item.row + (item.length ?? 1) - 1) === lastTimeRow;
 
+              // 인덱스 대신 grid 위치(row-column)로 키잉 — 주차 이동으로 cells가 통째로 교체돼도
+              // 같은 칸의 <Image> DOM이 유지돼 이미지가 다시 디코드/깜빡이지 않음
               return (
                 <div
-                  key={i}
+                  key={`${item.row}-${item.column}`}
                   onClick={() =>
                     isLesson && kloudNav.push(KloudScreen.LessonDetail(item.lesson!.id))
                   }
@@ -325,12 +308,32 @@ export const TimeTable = ({timeTable, studioId, locale}: {
               );
             });
           })()
-        ) : (
+        ) : (!isLoading && !isError) ? (
           <div
             className="col-span-full mt-4"
             style={{gridRowStart: 2, gridColumnStart: 1}}
           >
             <div>{getLocaleString({locale, key: 'no_this_week_lessons'})}</div>
+          </div>
+        ) : null}
+
+        {/* 로딩 오버레이 — 기존 셀 위에 덮어 깜빡임 없이 주차 전환 */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60" style={{ zIndex: 2 }}>
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* 에러 오버레이 */}
+        {isError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white" style={{ zIndex: 2 }}>
+            <div className="text-[14px] text-[#7A7A7A]">시간표를 불러오지 못했습니다</div>
+            <button
+              onClick={onRetry}
+              className="px-4 py-2 bg-black text-white text-[14px] rounded-[8px] active:scale-[0.97] transition-transform"
+            >
+              다시 시도
+            </button>
           </div>
         )}
       </div>
