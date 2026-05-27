@@ -330,9 +330,9 @@ export const KioskForm = ({
 
     let cancelled = false;
     let homeTimer: ReturnType<typeof setTimeout> | undefined;
-    const finishUp = (qrText?: string) => {
+    const finishUp = (qrText?: string, rankText?: string) => {
       if (cancelled) return;
-      handlePrintReceipt(qrText);
+      handlePrintReceipt(qrText, rankText);
       homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
 
@@ -394,7 +394,8 @@ export const KioskForm = ({
           qrText = ok.qrCodeUrl;
         }
         if (ok.rank) setPaymentRank(ok.rank);
-        finishUp(qrText);
+        // setPaymentRank는 비동기라 같은 tick의 handlePrintReceipt 클로저엔 반영 안 됨 → rank를 인자로 직접 전달
+        finishUp(qrText, ok.rank ?? undefined);
       })
       .catch(() => {
         if (cancelled) return;
@@ -576,7 +577,7 @@ export const KioskForm = ({
 
   // 영수증 인쇄 — 결제 컨텍스트만 buildKioskReceipt에 넘기면 수단별 dispatch + KIS 응답 파싱은 receipt 모듈이 처리.
   // qrText는 백엔드 POST /kiosks/payments 응답의 qrCodeUrl을 그대로 받아 푸터 QR로 인쇄.
-  const handlePrintReceipt = useCallback((qrText?: string) => {
+  const handlePrintReceipt = useCallback((qrText?: string, rankText?: string) => {
     if (!paymentItem || !paymentMethod) return;
     // /me의 studio는 필드 누락 케이스가 있어 /kiosks/payment 응답의 lesson|passPlan.studio가 있으면 우선 사용
     const itemStudio = paymentInfo?.lesson?.studio ?? paymentInfo?.passPlan?.studio;
@@ -610,7 +611,8 @@ export const KioskForm = ({
             .filter((n): n is string => Boolean(n))
         : undefined,
       lessonDateTime: selectedLesson ? lessonDateTime : undefined,
-      rank: selectedLesson ? paymentRank ?? undefined : undefined,
+      // rankText(인자) 우선 — 카드 결제 complete 직후엔 paymentRank 상태가 아직 미반영이라 인자로 받은 값을 사용
+      rank: selectedLesson ? (rankText ?? paymentRank ?? undefined) : undefined,
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
