@@ -60,6 +60,17 @@ const easyPayMethodMap: Partial<Record<PaymentMethodType, string>> = {
   toss_pay: 'tosspay',
 }
 
+// 결제 성공 직후 해당 lesson의 detail 캐시를 무효화. server action이 아닌 route handler를
+// fetch로 호출해서 /payment 페이지 RSC refresh(=GET /payment 재호출) 부작용 없이 캐시만 비움.
+// fire-and-forget — 응답 대기 불필요(사용자가 lesson으로 돌아오기까지 시간 충분).
+const purgeLessonCache = (lessonId: number) => {
+  fetch('/api/cache/purge-lesson', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lessonId }),
+  }).catch(() => {});
+}
+
 
 export default function PaymentButton({
                                         appVersion,
@@ -108,6 +119,8 @@ export default function PaymentButton({
   const onPaymentSuccess = useCallback(async ({ paymentId, delay }: { paymentId: string; delay: number }) => {
     try {
       setIsSubmitting(true);
+      // 결제 성공 → lesson detail 캐시 무효화 (티켓 보유 반영된 fresh 응답 받도록)
+      if (type.value === 'lesson') purgeLessonCache(id);
       await new Promise((r) => setTimeout(r, delay));
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
       const isWeb = !appVersion?.trim();
@@ -136,7 +149,7 @@ export default function PaymentButton({
     } finally {
       setIsSubmitting(false);
     }
-  }, [router, appVersion]);
+  }, [router, appVersion, id, type]);
   const handlePayment = async () => {
     if (!user || !('id' in user)) {
       setIsSubmitting(false);
@@ -160,6 +173,7 @@ export default function PaymentButton({
           discounts: selectedDiscounts,
         })
         if ('paymentId' in res) {
+          if (type.value === 'lesson') purgeLessonCache(id);
           const route = KloudScreen.PaymentRecordDetail(res.paymentId)
           if (appVersion == '' && route) {
             router.replace(route)
@@ -356,6 +370,7 @@ export default function PaymentButton({
           endDate: practiceRoomInfo?.endDate,
         });
         if ('id' in res) {
+          if (type.value === 'lesson') purgeLessonCache(id);
           const pushRoute = KloudScreen.TicketDetail(res.id, false);
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
@@ -401,6 +416,7 @@ export default function PaymentButton({
             })),
           })
           if ('success' in res && res.success) {
+            if (type.value === 'lesson') purgeLessonCache(id);
             await new Promise(resolve => setTimeout(resolve, 2000));
             const route = KloudScreen.PaymentRecordDetail(paymentId)
             await kloudNav.navigateMain({route});
