@@ -516,11 +516,11 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
           )}
 
           {/* 티켓 카드 */}
-          <div className="relative z-10 flex flex-col items-center justify-center pt-32">
+          <div className="relative z-10 flex flex-col items-center justify-center pt-24">
             {hasBorder ? (
               <div className={`relative p-[3px] pb-0 rounded-t-[20px] ${borderClass}`}>
                 <div className="relative rounded-t-[17px] overflow-hidden">
-                  <div className="relative w-[350px] h-[500px]">
+                  <div className="relative w-[350px] h-[560px]">
                     {renderTicketBackground()}
                     {renderTicketContent()}
                     {renderRollingBand()}
@@ -528,7 +528,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 </div>
               </div>
             ) : (
-              <div className={`relative w-[350px] h-[500px] ${borderRadius} overflow-hidden`}>
+              <div className={`relative w-[350px] h-[560px] ${borderRadius} overflow-hidden`}>
                 {renderTicketBackground()}
                 {renderTicketContent()}
                 {renderRollingBand()}
