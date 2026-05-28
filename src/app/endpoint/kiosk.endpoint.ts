@@ -34,6 +34,10 @@ export type StartKioskPaymentResponse = {
   amount: number;          // 카드: 단말 매입 금액
   qrCodeUrl: string | null;
   receiptData: string;
+  /** 레슨 결제로 티켓이 즉시 발급된 경우(cash/free) 입장 번호 라벨. 카드(Pending)는 보통 null — /complete에서 채워짐. */
+  rank?: string | null;
+  /** 'priority' | 'normal'. 그 외 null */
+  rankType?: 'priority' | 'normal' | null;
 };
 
 export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
@@ -112,6 +116,10 @@ export type UseKioskPassResponse = {
   // 패스권 사용 영수증/QR — 카드/현금 결제와 동일하게 영수증 인쇄에 사용
   paymentId?: string;
   qrCodeUrl?: string | null;
+  /** 레슨에 패스권을 사용해 티켓이 발급된 경우 입장 번호 라벨. 룸/스튜디오권은 null */
+  rank?: string | null;
+  /** 'priority' | 'normal'. 그 외 null */
+  rankType?: 'priority' | 'normal' | null;
 };
 
 export const UseKioskPass: Endpoint<UseKioskPassRequest, UseKioskPassResponse> = {
@@ -228,6 +236,10 @@ export type KioskPaymentRecordDetailResponse = {
   card?: KioskPaymentRecordDetailCard | null;
   lesson?: KioskPaymentRecordDetailLesson | null;
   qrCodeUrl?: string;
+  /** 레슨 결제로 Paid 티켓이 있을 때 입장 번호 라벨. 그 외 null — 재발급 영수증의 입장번호로 사용. */
+  rank?: string | null;
+  /** 'priority' | 'normal'. 그 외 null */
+  rankType?: 'priority' | 'normal' | null;
 };
 
 export const GetKioskPaymentRecordDetail: Endpoint<KioskPaymentRecordDetailRequest, KioskPaymentRecordDetailResponse> = {

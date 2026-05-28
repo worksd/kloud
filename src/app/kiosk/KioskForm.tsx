@@ -705,7 +705,7 @@ export const KioskForm = ({
     setIsPaying(false);
 
     // paymentId 없으면 에러로 간주 — 영수증 인쇄/성공 화면 진입 차단
-    const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null };
+    const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null; rank?: string | null };
     if (!r.paymentId) {
       setPaymentMethod(null);
       setToastMessage(r.message ?? '결제를 시작하지 못했어요');
@@ -713,6 +713,8 @@ export const KioskForm = ({
     }
 
     if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
+    // cash 즉시 발급 — BE가 함께 내려주는 입장번호 라벨을 영수증용 상태에 반영
+    if (r.rank) setPaymentRank(r.rank);
     setPaymentResult({ status: 'success', data: {} });
   }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, buildDiscounts]);
 
@@ -733,7 +735,7 @@ export const KioskForm = ({
       });
       // isGuinnessErrorCase는 등록된 enum 코드만 통과 — SAME_TIME_LESSON_ALREADY_EXISTS 같은 도메인 에러 못 잡음.
       // shape 기반 판별: paymentId 없고 code+message 있으면 에러로 간주 → 영수증 인쇄 차단.
-      const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null };
+      const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null; rank?: string | null };
       if (!r.paymentId && typeof r.code === 'string' && typeof r.message === 'string') {
         setToastMessage(r.message);
         return;
@@ -745,6 +747,8 @@ export const KioskForm = ({
       // 응답의 qrCodeUrl/paymentId를 영수증에 사용
       if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
       if (r.paymentId) setReceiptPaymentIdOverride(r.paymentId);
+      // 패스권으로 레슨 입장 시 BE가 입장번호 라벨을 함께 내려줌 — 영수증용 상태에 반영
+      if (r.rank) setPaymentRank(r.rank);
       setPaymentMethod('pass');
       setPaymentResult({ status: 'success', data: {} });
     } catch {
@@ -786,7 +790,7 @@ export const KioskForm = ({
       lessonId: selectedLesson.id,
     })
       .then((res) => {
-        const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null };
+        const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null; rank?: string | null };
         if (!r.paymentId && typeof r.code === 'string' && typeof r.message === 'string') {
           setToastMessage(r.message);
           setIsPaying(false);
@@ -799,6 +803,7 @@ export const KioskForm = ({
         }
         if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
         if (r.paymentId) setReceiptPaymentIdOverride(r.paymentId);
+        if (r.rank) setPaymentRank(r.rank);
         setPaymentMethod('pass');
         setPaymentResult({ status: 'success', data: {} });
         setIsPaying(false);

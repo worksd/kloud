@@ -512,6 +512,8 @@ export const buildReprintReceipt = (
     .filter((n): n is string => Boolean(n));
   const lessonDateTime = detail.lesson?.startDate;
   const qrText = detail.qrCodeUrl;
+  // 재발급 영수증에도 입장번호 라벨(rank)을 그대로 노출 — 원거래에서 발급된 라벨을 detail 응답에서 받아옴.
+  const rank = detail.rank ?? undefined;
 
   // methodType은 'Card' | 'Cash' | 'Pass' 등 — 영수증 빌더는 소문자.
   const mt = (detail.methodType ?? '').toLowerCase();
@@ -527,7 +529,7 @@ export const buildReprintReceipt = (
     };
     const passDiscount = (detail.discounts ?? []).reduce((s, d) => s + (d.amount ?? 0), 0);
     return buildCardPaymentReceipt({
-      studio, transaction, items, itemType, artists, lessonDateTime,
+      studio, transaction, items, itemType, artists, lessonDateTime, rank,
       passDiscount,
       card,
       qrText,
@@ -537,7 +539,7 @@ export const buildReprintReceipt = (
   if (mt === 'pass') {
     const passName = (detail.discounts ?? [])[0]?.name;
     return buildPassPaymentReceipt({
-      studio, transaction, items, itemType, artists, lessonDateTime,
+      studio, transaction, items, itemType, artists, lessonDateTime, rank,
       passName,
       qrText,
     });
@@ -546,7 +548,7 @@ export const buildReprintReceipt = (
   // cash (또는 그 외) — 인포에서 마무리한 현금 결제 재발급
   const cashPassDiscount = (detail.discounts ?? []).reduce((s, d) => s + (d.amount ?? 0), 0);
   return buildCashRequestReceipt({
-    studio, transaction, items, itemType, artists, lessonDateTime, qrText,
+    studio, transaction, items, itemType, artists, lessonDateTime, rank, qrText,
     passDiscount: cashPassDiscount,
   });
 };
