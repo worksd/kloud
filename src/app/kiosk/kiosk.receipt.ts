@@ -345,27 +345,34 @@ export type CashRequestReceiptInput = {
   /** 입장 순서 라벨 — 임팩트 박스에 노출 */
   rank?: string;
   items: ReceiptItem[];
+  /** 패스권으로 일부 차감된 금액 (없으면 0) — 카드 영수증과 동일 패턴 */
+  passDiscount?: number;
   qrText?: string;
 };
 
 export const buildCashRequestReceipt = (input: CashRequestReceiptInput): PrinterLine[] => {
-  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passDiscount = 0, qrText } = input;
   const total = sumPrice(items);
   const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
-  return [
+  const lines: PrinterLine[] = [
     ...studioHeader(studio),
     ...transactionLines(transaction),
     ...userLines(user),
     ...itemTable(items, itemType),
     totalsRow('합계', total),
-    { blank: 1 },
-    { align: 'C', bold: true, text: '** 인포에서 결제를 마무리해주세요 **' },
-    { blank: 1 },
-    ...stampBox(),
-    ...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank),
-    ...qrLine(qrText),
-    ...footerLines(studio.receiptFooter),
   ];
+  if (passDiscount > 0) {
+    lines.push(totalsRow('패스권', passDiscount, true));
+    lines.push(totalsRow('현금결제', total - passDiscount));
+  }
+  lines.push({ blank: 1 });
+  lines.push({ align: 'C', bold: true, text: '** 인포에서 결제를 마무리해주세요 **' });
+  lines.push({ blank: 1 });
+  lines.push(...stampBox());
+  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank));
+  lines.push(...qrLine(qrText));
+  lines.push(...footerLines(studio.receiptFooter));
+  return lines;
 };
 
 // ════════════════════════════ 타입 4: CANCEL ════════════════════════════
@@ -537,8 +544,10 @@ export const buildReprintReceipt = (
   }
 
   // cash (또는 그 외) — 인포에서 마무리한 현금 결제 재발급
+  const cashPassDiscount = (detail.discounts ?? []).reduce((s, d) => s + (d.amount ?? 0), 0);
   return buildCashRequestReceipt({
     studio, transaction, items, itemType, artists, lessonDateTime, qrText,
+    passDiscount: cashPassDiscount,
   });
 };
 
@@ -565,6 +574,9 @@ export const buildKioskReceipt = (input: BuildKioskReceiptInput): PrinterLine[] 
         passName: discount?.description || discount?.targetLabel,
       });
     case 'cash':
-      return buildCashRequestReceipt({ studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText });
+      return buildCashRequestReceipt({
+        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText,
+        passDiscount: discount?.amount ?? 0,
+      });
   }
 };
