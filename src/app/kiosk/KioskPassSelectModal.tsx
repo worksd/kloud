@@ -55,9 +55,11 @@ const buildOptions = (passes: GetPassResponse[], discounts: DiscountResponse[]):
     });
   });
   // 패스권 rule — 보유 패스의 모든 rule을 노출하고, usable 여부로 선택 가능 분기.
+  // BE 응답 형상: 신규는 pass.passRule 단일 객체, legacy는 pass.passRules[] 배열 — 둘 다 지원.
   // targetType/benefitType이 누락된 정의 미완 rule은 skip.
   passes.forEach((pass) => {
-    (pass.passRules ?? []).forEach((rule) => {
+    const rules: PassRuleResponse[] = pass.passRule ? [pass.passRule] : (pass.passRules ?? []);
+    rules.forEach((rule) => {
       if (!rule.targetType || !rule.benefitType) return;
       opts.push({
         id: `pass:${pass.id}:${rule.id}`,

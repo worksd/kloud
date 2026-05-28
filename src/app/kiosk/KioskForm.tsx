@@ -763,7 +763,13 @@ export const KioskForm = ({
 
     // 응답 형상: 최신은 paymentInfo.passes, 과거에는 paymentInfo.user.passes — legacy 폴백 유지
     const passes = paymentInfo.passes ?? paymentInfo.user?.passes ?? [];
-    const matchingPass = passes.find((p) => p.passPlan?.id === autoUsePassPlanId && p.usable);
+    // pass.usable은 신규 응답에서 누락되는 케이스가 있어 passRule.usable / 첫 passRules[].usable로 fallback
+    const isPassUsable = (p: GetPassResponse): boolean => {
+      if (p.usable === true) return true;
+      if (p.passRule?.usable === true) return true;
+      return (p.passRules ?? []).some((r) => r.usable === true);
+    };
+    const matchingPass = passes.find((p) => p.passPlan?.id === autoUsePassPlanId && isPassUsable(p));
     if (!matchingPass) {
       // BE에서 갓 만든 pass가 아직 안 보이거나 unusable — 폴백: 사용자가 수동 선택하도록 일반 결제 흐름 유지
       setAutoUsePassPlanId(null);
