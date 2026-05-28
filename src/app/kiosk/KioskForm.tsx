@@ -1175,10 +1175,44 @@ export const KioskForm = ({
             if (selection.kind === 'discount') {
               setSelectedDiscount(selection.discount);
               setSelectedPass(null);
-            } else {
-              setSelectedPass({ pass: selection.pass, rule: selection.rule });
-              setSelectedDiscount(null);
+              setCurrentScreen('payment-method');
+              return;
             }
+            // 보유 패스의 rule이 Discount benefitType이면 웹과 동일하게 일반 결제수단 + 할인 적용 흐름.
+            // (use pass 사용은 FreeCount/Unlimited/UnlimitedDay 등 횟수·기간 차감 룰만 해당)
+            const { pass, rule } = selection;
+            if (rule.benefitType === 'Discount') {
+              const amount = rule.benefitValue ?? 0;
+              setSelectedDiscount({
+                key: pass.passPlan?.name ?? `pass-${pass.id}`,
+                value: String(amount),
+                amount,
+                type: 'passRule',
+                itemId: pass.id,
+                description: pass.passPlan?.name,
+                passRule: {
+                  id: rule.id,
+                  status: rule.status ?? '',
+                  startDate: rule.startDate ?? '',
+                  endDate: rule.endDate ?? '',
+                  remainingCount: rule.remainingCount,
+                  usageCount: rule.usageCount ?? 0,
+                  targetType: rule.targetType,
+                  targetValue: rule.targetValue,
+                  targetLabel: rule.targetLabel,
+                  benefitType: rule.benefitType,
+                  benefitValue: rule.benefitValue,
+                  excludes: rule.excludes,
+                  usable: rule.usable,
+                },
+              });
+              setSelectedPass(null);
+              setCurrentScreen('payment-method');
+              return;
+            }
+            // FreeCount / Unlimited / UnlimitedDay → use pass(B 흐름)로 차감 사용
+            setSelectedPass({ pass, rule });
+            setSelectedDiscount(null);
             setCurrentScreen('payment-method');
           }}
         />
