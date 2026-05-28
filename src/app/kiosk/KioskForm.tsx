@@ -973,18 +973,31 @@ export const KioskForm = ({
               {paymentMethod === 'cash' ? t('kiosk_finish_at_info_desk') : t('kiosk_take_receipt')}
             </p>
 
-            {/* 결제 항목 카드 */}
-            <div className="w-full max-w-[720px] mt-[min(3.7vw,40px)] bg-white border border-[#E6E8EA] rounded-[16px] px-[min(3vw,32px)] py-[min(2.4vw,26px)] flex items-center justify-between gap-[12px]">
-              <span className="text-black font-bold leading-snug line-clamp-2 flex-1" style={{ fontSize: 'min(2.4vw,26px)' }}>
-                {paymentItem?.title ?? ''}
-              </span>
-              <span className="flex items-baseline gap-[6px] shrink-0">
-                <span className="text-black font-bold" style={{ fontSize: 'min(2.8vw,30px)' }}>
-                  {new Intl.NumberFormat('ko-KR').format(paymentItem?.price ?? 0)}
-                </span>
-                <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw,20px)' }}>{t('won')}</span>
-              </span>
-            </div>
+            {/* 결제 항목 카드 — 결제수단 폼/영수증과 동일 패턴으로 할인 반영한 실결제액 노출.
+                할인 라인이 있으면 원가는 취소선으로 부가 노출 (사용자가 차감 흐름을 한눈에 확인). */}
+            {(() => {
+              const originalPrice = paymentItem?.price ?? 0;
+              const discountAmount = selectedDiscount?.amount ?? 0;
+              const finalPrice = Math.max(0, originalPrice - discountAmount);
+              return (
+                <div className="w-full max-w-[720px] mt-[min(3.7vw,40px)] bg-white border border-[#E6E8EA] rounded-[16px] px-[min(3vw,32px)] py-[min(2.4vw,26px)] flex items-center justify-between gap-[12px]">
+                  <span className="text-black font-bold leading-snug line-clamp-2 flex-1" style={{ fontSize: 'min(2.4vw,26px)' }}>
+                    {paymentItem?.title ?? ''}
+                  </span>
+                  <span className="flex items-baseline gap-[6px] shrink-0">
+                    {discountAmount > 0 && (
+                      <span className="text-[#86898C] line-through mr-[min(1vw,12px)]" style={{ fontSize: 'min(2vw,22px)' }}>
+                        {new Intl.NumberFormat('ko-KR').format(originalPrice)}{t('won')}
+                      </span>
+                    )}
+                    <span className="text-black font-bold" style={{ fontSize: 'min(2.8vw,30px)' }}>
+                      {new Intl.NumberFormat('ko-KR').format(finalPrice)}
+                    </span>
+                    <span className="text-[#86898C]" style={{ fontSize: 'min(1.8vw,20px)' }}>{t('won')}</span>
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
           {/* 하단 안내 + 버튼 */}
