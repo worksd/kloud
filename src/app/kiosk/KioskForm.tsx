@@ -761,7 +761,8 @@ export const KioskForm = ({
     if (!paymentInfo || !selectedLesson || !selectedUser || !kioskId) return;
     if (isPaying || paymentResult) return;
 
-    const passes = paymentInfo.user?.passes ?? [];
+    // 응답 형상: 최신은 paymentInfo.passes, 과거에는 paymentInfo.user.passes — legacy 폴백 유지
+    const passes = paymentInfo.passes ?? paymentInfo.user?.passes ?? [];
     const matchingPass = passes.find((p) => p.passPlan?.id === autoUsePassPlanId && p.usable);
     if (!matchingPass) {
       // BE에서 갓 만든 pass가 아직 안 보이거나 unusable — 폴백: 사용자가 수동 선택하도록 일반 결제 흐름 유지
@@ -922,7 +923,7 @@ export const KioskForm = ({
           onBack={() => setCurrentScreen('phone')}
           onSelectPass={() => {
             // 사용 가능한 패스권/할인이 둘 다 없으면 모달 진입 대신 안내 다이얼로그 노출
-            const hasPasses = (paymentInfo?.user?.passes?.length ?? 0) > 0;
+            const hasPasses = ((paymentInfo?.passes ?? paymentInfo?.user?.passes)?.length ?? 0) > 0;
             const hasDiscounts = (paymentInfo?.discounts?.length ?? 0) > 0;
             if (!hasPasses && !hasDiscounts) {
               setNoPassDialogOpen(true);
@@ -1159,7 +1160,8 @@ export const KioskForm = ({
         <KioskPassSelectModal
           // passEnabled=false면 보유 패스권은 modal에 노출 X → discounts만 보이도록 빈 배열 전달.
           // discounts는 passEnabled와 무관하게 항상 노출.
-          passes={passEnabled ? (paymentInfo?.user?.passes ?? []) : []}
+          // 응답 형상: 최신은 paymentInfo.passes, 과거에는 paymentInfo.user.passes — legacy 폴백 유지
+          passes={passEnabled ? (paymentInfo?.passes ?? paymentInfo?.user?.passes ?? []) : []}
           discounts={paymentInfo?.discounts ?? []}
           locale={locale}
           onBack={() => setCurrentScreen('payment-method')}
