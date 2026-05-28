@@ -9,6 +9,7 @@ import { getLocaleString } from '@/app/components/locale';
 import { createDialog, DialogInfo } from '@/utils/dialog.factory';
 import { cancelTicketAction } from '@/app/lessons/[id]/action/cancel.ticket.action';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
+import { LessonTags } from '@/app/components/LessonTags';
 
 const formatPhone = (phone: string) => {
   if (phone.length === 11) return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
@@ -209,16 +210,18 @@ export function LessonStudentsListClient({
                       {statusLabel}
                     </span>
                   )}
-                  {[ticket.rank, ticket.ticketTypeLabel, ticket.paymentRecord?.method]
-                    .filter((v): v is string => Boolean(v))
-                    .map((label, i, arr) => (
-                      <React.Fragment key={`${label}-${i}`}>
-                        {(i === 0 ? statusLabel : arr[i - 1]) && (
-                          <span className={'text-[12px] text-[#919191]'}>·</span>
-                        )}
-                        <span className={'text-[12px] text-[#919191] truncate'}>{label}</span>
-                      </React.Fragment>
-                    ))}
+                  {ticket.rank && (
+                    <>
+                      {statusLabel && (
+                        <span className={'text-[12px] text-[#919191]'}>·</span>
+                      )}
+                      <span className={'text-[12px] text-[#919191] truncate'}>{ticket.rank}</span>
+                    </>
+                  )}
+                  {/* ticketTypeLabel은 홈 밴드와 동일한 LessonTags 칩으로 노출. paymentMethod는 노출 제거. */}
+                  {ticket.ticketTypeLabel && (
+                    <LessonTags tags={ticket.ticketTypeLabel} />
+                  )}
                 </div>
               </div>
             </li>
