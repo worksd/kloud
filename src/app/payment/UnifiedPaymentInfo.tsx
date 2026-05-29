@@ -177,28 +177,28 @@ export const UnifiedPaymentInfo = ({
   };
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
-  // 패스권 자동 선택은 BE가 methods에 'pass'를 포함한 경우에만 허용.
-  // (BE가 pass를 결제수단으로 안 내려줬는데 availablePasses에는 usable 패스권이 있는 부정합 케이스에
-  //  selectedMethod='pass'로 자동 진입하면 화면에는 패스권 섹션이 없는데 결제 버튼은 '패스권 사용하기'로
-  //  enabled 되는 모순이 생김 → 자동 선택 보류, 사용자가 명시적으로 결제수단을 고르도록 유도.)
-  const initialPass = passMethodEnabled
-    ? availablePasses.find(p => {
-        const rule = getPrimaryRule(p);
-        return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
-      })
-    : undefined;
+  // 사용 가능한 패스 후보 — Discount/FreeCount/Unlimited 구분 없이 일단 잡는다.
+  const detectedInitialPass = availablePasses.find(p => {
+    const rule = getPrimaryRule(p);
+    return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
+  });
+  const detectedIsDiscount = !!(detectedInitialPass && getPassDiscountRule(detectedInitialPass));
   // 초기 패스 분기:
-  //   - Discount 룰 → 일반 결제수단 + selectedDiscount 적용
-  //   - 그 외 룰 → 결제수단을 'pass'로 (use pass 흐름)
+  //   - Discount 룰 → 일반 결제수단 + selectedDiscount 자동 적용 (passMethodEnabled 무관)
+  //   - 그 외(FreeCount/Unlimited) 룰 → 결제수단을 'pass'로 진입해야 하므로 passMethodEnabled가 true일 때만 허용.
+  //     methods에 pass가 없는데 use-pass 류 패스만 보이는 부정합 케이스는 자동 method 선택을 보류해
+  //     결제 버튼이 disabled 되도록 유도(사용자에게 명시 선택 강제).
   const fallbackMethod: PaymentMethodType | undefined =
     defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined);
+  const useTypePassWithoutPassMethod =
+    !passMethodEnabled && !!detectedInitialPass && !detectedIsDiscount;
+  const initialPass: GetPassResponse | undefined = useTypePassWithoutPassMethod
+    ? undefined
+    : detectedInitialPass;
   const initialPassIsDiscount = !!(initialPass && getPassDiscountRule(initialPass));
-  // BE 응답 부정합 (pass method 없는데 사용 가능한 패스권은 노출됨) → 자동 선택 보류 = 결제 버튼 disabled.
-  const passDataInconsistent = !passMethodEnabled && availablePasses.length > 0;
-  const initialMethod: PaymentMethodType | undefined =
-    initialPass && !initialPassIsDiscount
-      ? 'pass'
-      : (passDataInconsistent ? undefined : fallbackMethod);
+  const initialMethod: PaymentMethodType | undefined = useTypePassWithoutPassMethod
+    ? undefined                                                // BE 부정합 → disabled 유도
+    : (initialPass && !initialPassIsDiscount ? 'pass' : fallbackMethod);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(initialMethod);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(initialPass);
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(
