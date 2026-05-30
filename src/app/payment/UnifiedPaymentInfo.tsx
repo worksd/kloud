@@ -177,18 +177,28 @@ export const UnifiedPaymentInfo = ({
   };
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
-  const initialPass = availablePasses.find(p => {
+  // 사용 가능한 패스 후보 — Discount/FreeCount/Unlimited 구분 없이 일단 잡는다.
+  const detectedInitialPass = availablePasses.find(p => {
     const rule = getPrimaryRule(p);
     return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
   });
+  const detectedIsDiscount = !!(detectedInitialPass && getPassDiscountRule(detectedInitialPass));
   // 초기 패스 분기:
-  //   - Discount 룰 → 일반 결제수단 + selectedDiscount 적용
-  //   - 그 외 룰 → 결제수단을 'pass'로 (use pass 흐름)
+  //   - Discount 룰 → 일반 결제수단 + selectedDiscount 자동 적용 (passMethodEnabled 무관)
+  //   - 그 외(FreeCount/Unlimited) 룰 → 결제수단을 'pass'로 진입해야 하므로 passMethodEnabled가 true일 때만 허용.
+  //     methods에 pass가 없는데 use-pass 류 패스만 보이는 부정합 케이스는 자동 method 선택을 보류해
+  //     결제 버튼이 disabled 되도록 유도(사용자에게 명시 선택 강제).
   const fallbackMethod: PaymentMethodType | undefined =
     defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined);
+  const useTypePassWithoutPassMethod =
+    !passMethodEnabled && !!detectedInitialPass && !detectedIsDiscount;
+  const initialPass: GetPassResponse | undefined = useTypePassWithoutPassMethod
+    ? undefined
+    : detectedInitialPass;
   const initialPassIsDiscount = !!(initialPass && getPassDiscountRule(initialPass));
-  const initialMethod: PaymentMethodType | undefined =
-    initialPass && !initialPassIsDiscount ? 'pass' : fallbackMethod;
+  const initialMethod: PaymentMethodType | undefined = useTypePassWithoutPassMethod
+    ? undefined                                                // BE 부정합 → disabled 유도
+    : (initialPass && !initialPassIsDiscount ? 'pass' : fallbackMethod);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | undefined>(initialMethod);
   const [selectedPass, setSelectedPass] = useState<GetPassResponse | undefined>(initialPass);
   const [selectedBillingCard, setSelectedBillingCard] = useState<GetBillingResponse | undefined>(

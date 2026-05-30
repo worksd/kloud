@@ -234,6 +234,8 @@ export type KioskPaymentRecordDetailResponse = {
   studio?: KioskPaymentRecordDetailStudio;
   discounts?: KioskPaymentRecordDetailDiscount[];
   card?: KioskPaymentRecordDetailCard | null;
+  /** KIS VAN raw 응답 — 카드 결제 재발급 시 card 메타가 비어 있으면 여기서 추출. */
+  vanResponse?: Record<string, unknown> | null;
   lesson?: KioskPaymentRecordDetailLesson | null;
   qrCodeUrl?: string;
   /** 레슨 결제로 Paid 티켓이 있을 때 입장 번호 라벨. 그 외 null — 재발급 영수증의 입장번호로 사용. */

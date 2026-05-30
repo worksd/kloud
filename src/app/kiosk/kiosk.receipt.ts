@@ -515,18 +515,27 @@ export const buildReprintReceipt = (
   // 재발급 영수증에도 입장번호 라벨(rank)을 그대로 노출 — 원거래에서 발급된 라벨을 detail 응답에서 받아옴.
   const rank = detail.rank ?? undefined;
 
-  // methodType은 'Card' | 'Cash' | 'Pass' 등 — 영수증 빌더는 소문자.
+  // methodType은 'Card' | 'Credit' | 'Cash' | 'Pass' 등 — 영수증 빌더는 소문자.
+  // BE가 'card' 외에 'credit' / easy-pay 계열도 내려주므로 카드 계열을 명시적으로 묶어서 처리.
   const mt = (detail.methodType ?? '').toLowerCase();
+  const CARD_METHODS = new Set([
+    'card', 'credit', 'foreign_card', 'billing',
+    'easy_pay', 'naver_pay', 'kakao_pay', 'toss_pay',
+  ]);
 
-  if (mt === 'card' && detail.card) {
-    const card: CardPaymentInfo = {
-      cardNo: detail.card.cardNumber,
-      issuerName: detail.card.issuerName,
-      authNo: detail.card.authNo,
-      authDate: detail.card.authDate,
-      installment: installmentRawFromLabel(detail.card.installmentLabel),
-      merchantNo: detail.card.merchantNo,
-    };
+  // 카드 계열이면 detail.card 또는 detail.vanResponse 둘 중 어느 쪽에 메타가 있어도 카드 영수증 양식으로 빌드.
+  // 둘 다 비어 있어도 카드 양식 유지 — 현금 양식으로 잘못 떨어지는 것 방지.
+  if (CARD_METHODS.has(mt)) {
+    const card: CardPaymentInfo = detail.card
+      ? {
+          cardNo: detail.card.cardNumber,
+          issuerName: detail.card.issuerName,
+          authNo: detail.card.authNo,
+          authDate: detail.card.authDate,
+          installment: installmentRawFromLabel(detail.card.installmentLabel),
+          merchantNo: detail.card.merchantNo,
+        }
+      : (detail.vanResponse ? cardInfoFromKisData(detail.vanResponse) : {});
     const passDiscount = (detail.discounts ?? []).reduce((s, d) => s + (d.amount ?? 0), 0);
     return buildCardPaymentReceipt({
       studio, transaction, items, itemType, artists, lessonDateTime, rank,
