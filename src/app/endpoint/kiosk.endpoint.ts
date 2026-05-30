@@ -226,6 +226,8 @@ export type KioskPaymentRecordDetailResponse = {
   studio?: KioskPaymentRecordDetailStudio;
   discounts?: KioskPaymentRecordDetailDiscount[];
   card?: KioskPaymentRecordDetailCard | null;
+  /** KIS VAN raw 응답 — 카드 결제 재발급 시 card 메타가 비어 있으면 여기서 추출. */
+  vanResponse?: Record<string, unknown> | null;
   lesson?: KioskPaymentRecordDetailLesson | null;
   qrCodeUrl?: string;
 };
