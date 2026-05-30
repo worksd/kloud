@@ -204,11 +204,6 @@ function SettleUpDialog({
             </section>
           )}
 
-          {/* 결제수단별 매출 */}
-          {data.sales && data.sales.items && data.sales.items.length > 0 && (
-            <SectionBlock title={data.sales.title} items={data.sales.items}/>
-          )}
-
           {/* 강사 지급 내역 */}
           {data.settleUp && data.settleUp.items && data.settleUp.items.length > 0 && (
             <SectionBlock title={data.settleUp.title} items={data.settleUp.items}/>
