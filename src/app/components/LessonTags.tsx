@@ -25,7 +25,7 @@ export const LessonTags = ({ tags, className }: { tags?: string; className?: str
           return (
             <span
               key={`${tag}-${i}`}
-              className="relative inline-flex h-[17px] items-center justify-center pl-[2px] pr-[8px]"
+              className="relative inline-flex min-h-[17px] items-center justify-center pl-[2px] pr-[8px] py-[2px]"
             >
               <svg
                 className="absolute inset-0 w-full h-full"
@@ -49,7 +49,7 @@ export const LessonTags = ({ tags, className }: { tags?: string; className?: str
         return (
           <span
             key={`${tag}-${i}`}
-            className="inline-flex h-[17px] items-center justify-center px-[4px] rounded-[2px] bg-[#1F1F1F] font-paperlogy font-bold text-[11px] leading-none text-white"
+            className="inline-flex min-h-[17px] items-center justify-center px-[4px] py-[2px] rounded-[2px] bg-[#1F1F1F] font-paperlogy font-bold text-[11px] leading-none text-white"
           >
             {tag}
           </span>
