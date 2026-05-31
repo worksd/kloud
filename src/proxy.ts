@@ -86,6 +86,9 @@ export async function proxy(request: NextRequest) {
   )
   response.headers.set('x-guinness-device-id', deviceId)
 
+  // API를 보낸 현재 경로(진입 페이지). 서버 액션도 페이지 pathname으로 들어오므로 동일하게 잡힘.
+  response.headers.set('x-guinness-entry', url.pathname)
+
   // 🔹 deviceId 헤더 추가 (핵심)
   if (deviceId) {
     response.headers.set('x-guinness-device-id', deviceId)
