@@ -3,6 +3,7 @@ import { Poster } from "@/app/components/Poster";
 import React from "react";
 import { RecommendPoster } from "@/app/components/RecommendPoster";
 import ComingLabel from "../../public/assets/ic_label_comming.svg";
+import NewLabel from "../../public/assets/new.svg";
 
 export async function LessonBand({title, lessons, type, label}: {
   title: string,
@@ -20,7 +21,12 @@ export async function LessonBand({title, lessons, type, label}: {
           <ComingLabel className="h-[16px] w-auto" />
         </div>
       )}
-      <h2 className={`text-[18px] text-black font-bold leading-tight ${label?.coming ? 'pt-[4px]' : 'pt-5'} pb-2 px-6`}>{title}</h2>
+      {label?.new && (
+        <div className="px-6 pt-3">
+          <NewLabel className="h-[16px] w-auto" />
+        </div>
+      )}
+      <h2 className={`text-[18px] text-black font-bold leading-tight ${(label?.coming || label?.new) ? 'pt-[4px]' : 'pt-5'} pb-2 px-6`}>{title}</h2>
       <div className="flex overflow-x-auto scrollbar-hide gap-2">
         {lessons.map((item: GetBandLessonResponse, index: number) => (
           <div

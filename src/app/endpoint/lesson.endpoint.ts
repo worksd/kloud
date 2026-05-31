@@ -81,6 +81,8 @@ export type GetStudioLessonsByDateParameter = {
 export type BandLabel = {
     /** true면 밴드 제목 위에 'SOON' 태그 노출 */
     coming?: boolean;
+    /** true면 밴드 제목 위에 'NEW' 태그 노출 */
+    new?: boolean;
 }
 
 export type GetBandResponse = {
