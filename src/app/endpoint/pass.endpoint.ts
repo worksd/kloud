@@ -58,6 +58,7 @@ export type PassRuleResponse = {
   targetLabel?: string | null;
   benefitType: string;
   benefitValue?: number | null;
+  duration?: number | string | null;
   excludes?: { type: string; value?: string | null; label?: string | null }[];
   usable?: boolean;
   reason?: string;
@@ -94,6 +95,7 @@ export type PassPlanRule = {
   description: string;
   target?: { type: string; value?: string | null; label?: string | null };
   benefit?: { type: string; value?: number | null };
+  duration?: number | string | null;
   excludes?: { type: string; value?: string | null; label?: string | null }[];
   tickets?: RuleTicket[];
 }

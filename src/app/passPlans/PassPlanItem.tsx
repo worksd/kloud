@@ -15,7 +15,7 @@ export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
   const firstFeature = item.features?.[0];
   const description = firstRule?.target && firstRule?.benefit
     ? formatRuleDescription(
-        { target: firstRule.target, benefit: firstRule.benefit, excludes: firstRule.excludes },
+        { target: firstRule.target, benefit: firstRule.benefit, duration: firstRule.duration, excludes: firstRule.excludes },
         locale,
         item.name,
       )

@@ -552,7 +552,7 @@ export const KioskForm = ({
           benefits: [
             ...(selectedPassPlan.rules ?? []).map((r) =>
               r.target && r.benefit
-                ? formatRuleDescription({ target: r.target, benefit: r.benefit, excludes: r.excludes }, locale, selectedPassPlan.name)
+                ? formatRuleDescription({ target: r.target, benefit: r.benefit, duration: r.duration, excludes: r.excludes }, locale, selectedPassPlan.name)
                 : (r.description ?? '')
             ),
             ...(selectedPassPlan.features ?? []).map((f) =>

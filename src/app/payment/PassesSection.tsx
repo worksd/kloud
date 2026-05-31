@@ -21,6 +21,7 @@ const buildPrimaryBenefit = (pass: GetPassResponse, locale: Locale): string | nu
     return formatRuleDescription({
       target: { type: rule.targetType, label: rule.targetLabel },
       benefit: { type: rule.benefitType, value: rule.benefitValue },
+      duration: rule.duration,
       excludes: rule.excludes,
     }, locale, pass.passPlan?.tag ?? pass.passPlan?.name);
   }

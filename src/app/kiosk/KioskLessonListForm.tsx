@@ -215,7 +215,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                 const firstRule = plan.rules?.[0];
                 const firstFeature = plan.features?.[0];
                 const summary = firstRule?.target && firstRule?.benefit
-                  ? formatRuleDescription({ target: firstRule.target, benefit: firstRule.benefit, excludes: firstRule.excludes }, locale, plan.name)
+                  ? formatRuleDescription({ target: firstRule.target, benefit: firstRule.benefit, duration: firstRule.duration, excludes: firstRule.excludes }, locale, plan.name)
                   : firstFeature
                     ? formatFeatureDescription(firstFeature.key, locale, firstFeature.value)
                     : plan.expireDateStamp ?? '';

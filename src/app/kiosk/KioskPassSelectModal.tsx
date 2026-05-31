@@ -27,6 +27,7 @@ const ruleDescription = (rule: PassRuleResponse, locale: Locale, passName?: stri
     {
       target: { type: rule.targetType, label: rule.targetLabel },
       benefit: { type: rule.benefitType, value: rule.benefitValue },
+      duration: rule.duration,
       excludes: rule.excludes,
     },
     locale,
