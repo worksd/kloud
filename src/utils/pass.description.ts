@@ -11,6 +11,7 @@ import { Locale } from "@/shared/StringResource";
 interface RuleDescriptionInput {
   target: { type: string; label?: string | null };
   benefit: { type: string; value?: number | null };
+  duration?: number | string | null;
   excludes?: { type: string; label?: string | null }[];
 }
 
@@ -47,7 +48,7 @@ const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passNam
   },
 };
 
-const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null) => string>> = {
+const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, duration?: number | string | null) => string>> = {
   Unlimited: {
     ko: () => '무제한으로 이용할 수 있어요',
     en: () => 'can be used unlimited',
@@ -61,10 +62,10 @@ const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null) => str
     zh: (v) => `可以使用${v ?? 0}次`,
   },
   UnlimitedDay: {
-    ko: (v) => `${v ?? 0}일중 골라서 원하는 수업을 수강할 수 있어요`,
-    en: (v) => `choose and attend any class over ${v ?? 0} days`,
-    jp: (v) => `${v ?? 0}日間お好きなレッスンを受講できます`,
-    zh: (v) => `可在${v ?? 0}天内自由选择课程上课`,
+    ko: (v, d) => `${d ?? 0}일 중 ${v ?? 0}일을 골라 원하는 수업을 수강할 수 있어요`,
+    en: (v, d) => `choose ${v ?? 0} days out of ${d ?? 0} and attend any class`,
+    jp: (v, d) => `${d ?? 0}日のうち${v ?? 0}日を選んでお好きなレッスンを受講できます`,
+    zh: (v, d) => `在${d ?? 0}天内自由选择${v ?? 0}天上课`,
   },
   Discount: {
     ko: (v) => `${(v ?? 0).toLocaleString('ko-KR')}원 할인 받을 수 있어요`,
@@ -125,9 +126,12 @@ export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale
     : targetFn[locale](rule.target.label, passName);
 
   const benefitFn = RULE_BENEFIT[rule.benefit.type] ?? RULE_BENEFIT['FreeCount'];
-  const benefitText = benefitFn[locale](rule.benefit.value);
+  const benefitText = benefitFn[locale](rule.benefit.value, rule.duration);
 
-  let sentence = `${targetText}${CONNECTOR[locale]}${benefitText}`;
+  // UnlimitedDay 문구는 자체에 "원하는 수업을"이 포함된 완결 문장이라 target prefix를 붙이지 않는다.
+  let sentence = rule.benefit.type === 'UnlimitedDay'
+    ? benefitText
+    : `${targetText}${CONNECTOR[locale]}${benefitText}`;
 
   if (rule.excludes && rule.excludes.length > 0) {
     const excludeTexts = rule.excludes.map((ex) => {

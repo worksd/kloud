@@ -50,6 +50,7 @@ const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse, locale: Locale = '
         title: formatRuleDescription({
           target: rule.target ?? { type: 'All' },
           benefit: rule.benefit ?? { type: 'Unlimited' },
+          duration: rule.duration,
           excludes: rule.excludes,
         }, locale, passPlan.tag ?? passPlan.name),
       });
