@@ -125,6 +125,8 @@ export abstract class EndpointClient {
     defaultHeaders["x-guinness-device-id"] = nextHeaders.get('x-guinness-device-id')?.valueOf() ?? "";
     defaultHeaders["x-guinness-version"] = !version || version === "" ? "1.0.0" : version; // 여기서만 웹/앱 구분
     defaultHeaders["x-guinness-locale"] = (await cookies()).get(localeKey)?.value ?? "ko";
+    // proxy.ts에서 세팅한 진입 경로 — API 호출이 발생한 페이지 pathname
+    defaultHeaders["x-guinness-entry"] = nextHeaders.get("x-guinness-entry")?.valueOf() ?? "";
     return defaultHeaders;
   }
 
