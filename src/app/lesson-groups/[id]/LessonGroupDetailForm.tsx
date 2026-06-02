@@ -367,8 +367,8 @@ export default function LessonGroupDetailForm({
                 </div>
               )}
               <div className="justify-center items-start gap-[3px] flex">
-                {lessonGroup.level && <LessonLevelLabel label={lessonGroup.level}/>}
-                {lessonGroup.genre && lessonGroup.genre !== 'Default' && <LessonLabel label={lessonGroup.genre}/>}
+                {lessonGroup.level && <LessonLevelLabel label={lessonGroup.level} locale={locale}/>}
+                {lessonGroup.genre && lessonGroup.genre !== 'Default' && <LessonLabel label={lessonGroup.genre} locale={locale}/>}
               </div>
             </div>
             <div className="self-stretch justify-start items-center gap-2 inline-flex">
