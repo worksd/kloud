@@ -12,6 +12,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { getLocale, translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
+import { LessonLabel } from "@/app/components/LessonLabel";
 
 export default async function SettingPage({
                                             searchParams
@@ -92,10 +93,8 @@ export default async function SettingPage({
                           {upcoming.dday}
                         </span>
                       )}
-                      {upcoming.genre && (
-                        <span className="text-[11px] font-bold text-white/70">
-                          {upcoming.genre}
-                        </span>
+                      {upcoming.genre && upcoming.genre !== 'Default' && (
+                        <LessonLabel label={upcoming.genre} locale={locale}/>
                       )}
                     </div>
 
