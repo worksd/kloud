@@ -1,7 +1,7 @@
 'use client';
 
 import React, { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type Gender = 'male' | 'female';
 
@@ -52,35 +52,39 @@ export const CommonBottomSheet = ({
   onCloseAction: () => void;
   children: React.ReactNode;
 }) => {
-  if (!open) return null;
-
+  // AnimatePresence로 unmount 직전에 exit 애니메이션이 재생되도록 처리 — 즉시 사라지지 않고 샤르륵 내려감
   return (
-    <div className="fixed inset-0 z-[100]">
-      {/* Backdrop */}
-      <motion.button
-        type="button"
-        aria-label="닫기"
-        onClick={onCloseAction}
-        className="absolute inset-0 bg-black/50 z-[100] pointer-events-auto"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      />
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[100]">
+          {/* Backdrop */}
+          <motion.button
+            type="button"
+            aria-label="닫기"
+            onClick={onCloseAction}
+            className="absolute inset-0 bg-black/50 z-[100] pointer-events-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
 
-      {/* Sheet */}
-      <motion.div
-        role="dialog"
-        aria-modal="true"
-        className="absolute inset-x-0 bottom-0 z-[101] rounded-t-3xl bg-white shadow-xl pointer-events-auto"
-        initial={{ y: 40, opacity: 0.98 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 40, opacity: 0.98 }}
-        transition={{ type: 'spring', stiffness: 420, damping: 36 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </motion.div>
-    </div>
+          {/* Sheet — 열릴 땐 spring, 닫힐 땐 tween으로 부드럽게 슬라이드 다운 */}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            className="absolute inset-x-0 bottom-0 z-[101] rounded-t-3xl bg-white shadow-xl pointer-events-auto"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {children}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 
