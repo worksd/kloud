@@ -6,6 +6,7 @@ import { LessonInfoSection } from '@/app/lessons/[id]/lesson.info.section';
 import { getLocale, translate } from '@/utils/translate';
 import React from 'react';
 import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from '@/app/components/LessonLabel';
+import { LessonTags } from '@/app/components/LessonTags';
 import { LessonDetailButton } from '@/app/lessons/[id]/LessonDetailButton';
 import Image from "next/image";
 import LeftArrow from "../../../../../public/assets/left-arrow.svg";
@@ -62,11 +63,12 @@ export default async function LessonDetailForm({lesson, appVersion}: {
             <div className="self-stretch justify-between items-start inline-flex">
               {lesson.studio && <StudioProfileImage studio={lesson.studio}/>}
               <div className="justify-center items-start gap-[3px] flex">
-                {lesson.level && <LessonLevelLabel label={lesson.level}/>}
+                {lesson.level && <LessonLevelLabel label={lesson.level} locale={await getLocale()}/>}
                 {lesson.type && <LessonTypeLabel type={lesson.type} locale={await getLocale()}/>}
-                {lesson.genre && lesson.genre != 'Default' && <LessonLabel label={lesson.genre}/>}
+                {lesson.genre && lesson.genre != 'Default' && <LessonLabel label={lesson.genre} locale={await getLocale()}/>}
               </div>
             </div>
+            {lesson.tags && <LessonTags tags={lesson.tags} />}
             <div className="self-stretch justify-start items-center gap-2 inline-flex">
               <div className="w-[342px] text-black text-xl font-bold leading-normal">{lesson.title}</div>
             </div>
