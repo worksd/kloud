@@ -23,8 +23,8 @@ export async function LessonBand({title, lessons, type, label}: {
       )}
       {label?.new && (
         <div className="px-6 pt-3">
-          {/* SVG native 52x17 — coming(54x16)과 시각 높이 맞추려고 비율 유지한 49x16 */}
-          <NewLabel className="h-[16px] w-[49px]" />
+          {/* SVG native 52x17 — SVGR가 width/height 속성을 박아서 CSS와 충돌하므로 React props로 직접 지정 */}
+          <NewLabel width={52} height={17} style={{ display: 'block' }} />
         </div>
       )}
       <h2 className={`text-[18px] text-black font-bold leading-tight ${(label?.coming || label?.new) ? 'pt-[4px]' : 'pt-5'} pb-2 px-6`}>{title}</h2>
