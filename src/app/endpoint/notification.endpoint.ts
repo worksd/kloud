@@ -21,3 +21,25 @@ export const GetNotifications: Endpoint<object, ListNotificationResponse> = {
   method: "get",
   path: `/notifications`,
 }
+
+// 알림 설정 — 사용자별 토픽 토글. 현재 공지사항/이벤트 2개 항목.
+export type NotificationSettingsResponse = {
+  announcement: boolean;
+  event: boolean;
+}
+
+export type UpdateNotificationSettingsRequest = {
+  announcement?: boolean;
+  event?: boolean;
+}
+
+export const GetNotificationSettings: Endpoint<object, NotificationSettingsResponse> = {
+  method: 'get',
+  path: `/notification-setting`,
+}
+
+export const UpdateNotificationSettings: Endpoint<UpdateNotificationSettingsRequest, NotificationSettingsResponse> = {
+  method: 'patch',
+  path: `/notification-setting`,
+  bodyParams: ['announcement', 'event'],
+}

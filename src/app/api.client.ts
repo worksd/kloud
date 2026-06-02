@@ -85,7 +85,9 @@ export class ApiClient extends EndpointClient {
   }
 
   readonly notification = {
-    get: this.endpointBuilder(API.Notification.GetNotifications)
+    get: this.endpointBuilder(API.Notification.GetNotifications),
+    getSettings: this.endpointBuilder(API.Notification.GetNotificationSettings),
+    updateSettings: this.endpointBuilder(API.Notification.UpdateNotificationSettings),
   }
 
   readonly pass = {

@@ -24,6 +24,7 @@ export const KloudScreen = {
   InstagramConnect: '/profile/setting/account/instagram',
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
+  NotificationSetting: '/profile/setting/notification',
   SignOut: '/profile/setting/account/signOut',
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',

@@ -133,6 +133,8 @@ const applyTitle = async (route: string) => {
     return await translate('payment_method_management')
   } else if (route == KloudScreen.LanguageSetting) {
     return await translate('language_setting')
+  } else if (route == KloudScreen.NotificationSetting) {
+    return await translate('notification_setting')
   } else if (route == KloudScreen.RefundAccountSetting) {
     return await translate('refund_account')
   } else if (route == KloudScreen.InstagramConnect) {

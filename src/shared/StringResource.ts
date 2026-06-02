@@ -425,6 +425,30 @@ export const StringResource = {
     jp: "通知設定",
     zh: "通知设置"
   },
+  announcement_notification: {
+    ko: "공지사항 알림",
+    en: "Announcement Notifications",
+    jp: "お知らせ通知",
+    zh: "公告通知"
+  },
+  event_notification: {
+    ko: "이벤트 알림",
+    en: "Event Notifications",
+    jp: "イベント通知",
+    zh: "活动通知"
+  },
+  notification_turned_on: {
+    ko: "{label}을 켰어요",
+    en: "Turned on {label}",
+    jp: "{label}をオンにしました",
+    zh: "已开启{label}"
+  },
+  notification_turned_off: {
+    ko: "{label}을 껐어요",
+    en: "Turned off {label}",
+    jp: "{label}をオフにしました",
+    zh: "已关闭{label}"
+  },
   upcoming_lessons: {
     ko: "다가오는 수업",
     en: "Upcoming Lessons",
