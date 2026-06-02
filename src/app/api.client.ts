@@ -90,6 +90,10 @@ export class ApiClient extends EndpointClient {
     updateSettings: this.endpointBuilder(API.Notification.UpdateNotificationSettings),
   }
 
+  readonly voucher = {
+    redeem: this.endpointBuilder(API.Voucher.RedeemVoucher),
+  }
+
   readonly pass = {
     list: this.endpointBuilder(API.Pass.GetPasses),
     listPlans: this.endpointBuilder(API.Pass.GetPassPlans),

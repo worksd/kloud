@@ -449,6 +449,84 @@ export const StringResource = {
     jp: "{label}をオフにしました",
     zh: "已关闭{label}"
   },
+  coupon_register: {
+    ko: "쿠폰 등록하기",
+    en: "Register Coupon",
+    jp: "クーポン登録",
+    zh: "注册优惠券"
+  },
+  coupon_register_description: {
+    ko: "받은 쿠폰 코드를 입력해 패스권을 받아보세요.",
+    en: "Enter your coupon code to receive a pass.",
+    jp: "クーポンコードを入力してパスを受け取りましょう。",
+    zh: "输入优惠券代码以领取通行证。"
+  },
+  coupon_register_placeholder: {
+    ko: "쿠폰 코드를 입력해주세요",
+    en: "Enter coupon code",
+    jp: "クーポンコードを入力してください",
+    zh: "请输入优惠券代码"
+  },
+  coupon_register_button: {
+    ko: "등록하기",
+    en: "Register",
+    jp: "登録する",
+    zh: "注册"
+  },
+  coupon_scan_qr: {
+    ko: "QR 코드 스캔",
+    en: "Scan QR Code",
+    jp: "QRコードをスキャン",
+    zh: "扫描二维码"
+  },
+  coupon_enter_code: {
+    ko: "쿠폰 코드 입력하기",
+    en: "Enter Coupon Code",
+    jp: "クーポンコードを入力する",
+    zh: "输入优惠券代码"
+  },
+  coupon_qr_invalid: {
+    ko: "올바르지 않은 QR 코드예요",
+    en: "Invalid QR code",
+    jp: "正しくないQRコードです",
+    zh: "无效的二维码"
+  },
+  coupon_register_success: {
+    ko: "{name} 패스권이 발급되었어요",
+    en: "{name} pass has been issued",
+    jp: "{name}パスが発行されました",
+    zh: "{name}通行证已发放"
+  },
+  coupon_error_not_found: {
+    ko: "쿠폰을 찾을 수 없어요",
+    en: "Coupon not found",
+    jp: "クーポンが見つかりません",
+    zh: "找不到优惠券"
+  },
+  coupon_error_already_used: {
+    ko: "이미 사용된 쿠폰이에요",
+    en: "This coupon has already been used",
+    jp: "このクーポンはすでに使用されています",
+    zh: "此优惠券已被使用"
+  },
+  coupon_error_expired: {
+    ko: "만료된 쿠폰이에요",
+    en: "This coupon has expired",
+    jp: "このクーポンは期限切れです",
+    zh: "此优惠券已过期"
+  },
+  coupon_error_not_active: {
+    ko: "사용할 수 없는 쿠폰이에요",
+    en: "This coupon is not available",
+    jp: "このクーポンは利用できません",
+    zh: "此优惠券不可用"
+  },
+  coupon_error_unknown: {
+    ko: "쿠폰 등록에 실패했어요",
+    en: "Failed to register coupon",
+    jp: "クーポンの登録に失敗しました",
+    zh: "注册优惠券失败"
+  },
   upcoming_lessons: {
     ko: "다가오는 수업",
     en: "Upcoming Lessons",

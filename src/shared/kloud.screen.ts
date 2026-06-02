@@ -25,6 +25,7 @@ export const KloudScreen = {
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
   NotificationSetting: '/profile/setting/notification',
+  CouponRegister: '/profile/setting/coupon',
   SignOut: '/profile/setting/account/signOut',
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',

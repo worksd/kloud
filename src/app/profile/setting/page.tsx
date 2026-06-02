@@ -28,6 +28,9 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.NotificationSetting}>
         <MenuItem label="notification_setting"/>
       </NavigateClickWrapper>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.CouponRegister}>
+        <MenuItem label="coupon_register"/>
+      </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}
         version={appVersion}/>
