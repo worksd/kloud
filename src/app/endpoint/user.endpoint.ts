@@ -21,6 +21,8 @@ export type UpcomingLessonResponse = {
   thumbnailUrl?: string
   artists?: { id: number; name: string; nickName?: string; profileImageUrl?: string }[]
   studio?: { id: number; name: string; profileImageUrl?: string }
+  /** 사용자의 해당 수업 수강권 — 있으면 카드 클릭 시 수강권 상세로 이동 */
+  ticket?: { id: number }
 }
 
 export type GetUserResponse = {
