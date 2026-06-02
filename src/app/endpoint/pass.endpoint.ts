@@ -43,6 +43,7 @@ export type PassRuleTicket = {
     title: string;
     startDate?: string;
     endDate?: string;
+    thumbnailUrl?: string;
   };
 }
 

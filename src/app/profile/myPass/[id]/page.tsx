@@ -6,6 +6,7 @@ import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
 import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
 import { CircleImage } from "@/app/components/CircleImage";
+import Image from "next/image";
 import React from "react";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
@@ -201,8 +202,22 @@ export default async function MyPassDetailPage({params}: {
                       <div className="flex flex-col gap-1.5 ml-2">
                         {rule.tickets.map((ticket) => (
                           <NavigateClickWrapper key={ticket.id} method="push" route={KloudScreen.TicketDetail(ticket.id, false)}>
-                            <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-[#F9FAFB] active:bg-[#F0F0F0] transition-colors">
-                              <div className="flex flex-col gap-0.5 min-w-0">
+                            <div className="flex items-center gap-3 py-2 pl-2 pr-3 rounded-lg bg-[#F9FAFB] active:bg-[#F0F0F0] transition-colors">
+                              {/* 수업 썸네일 — 없을 땐 회색 placeholder */}
+                              {ticket.lesson?.thumbnailUrl ? (
+                                <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0 bg-[#F1F3F6]">
+                                  <Image
+                                    src={ticket.lesson.thumbnailUrl}
+                                    alt=""
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 rounded-md bg-[#F1F3F6] shrink-0"/>
+                              )}
+                              <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                                 <span className="text-[13px] font-medium text-[#333] truncate">{ticket.lesson?.title}</span>
                                 <span className="text-[11px] text-[#999]">{ticket.lesson?.startDate}</span>
                               </div>
