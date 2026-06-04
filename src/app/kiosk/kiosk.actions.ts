@@ -16,7 +16,7 @@ export const searchUserAction = async (query: string) => {
   return await api.user.search({ query });
 };
 
-export const registerKioskUserAction = async (phone: string, countryCode: string, name: string) => {
+export const registerKioskUserAction = async (phone: string, countryCode: string, nickName: string) => {
   // 1. phone-login (isAdmin: true → 신규 유저 자동 생성)
   const loginResult = await api.auth.checkPhoneVerification({
     phone,
@@ -27,10 +27,10 @@ export const registerKioskUserAction = async (phone: string, countryCode: string
     return loginResult;
   }
 
-  // 2. 이름 업데이트
+  // 2. 닉네임 업데이트 — 키오스크 신규 가입은 name이 아니라 nickName으로 patch
   const updateResult = await api.user.update({
     id: loginResult.user.id,
-    name,
+    nickName,
     type: 'Default' as any,
   });
   if (isGuinnessErrorCase(updateResult)) {
