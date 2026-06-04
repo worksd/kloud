@@ -106,8 +106,11 @@ const applyIgnoreSafeArea = (route: string): boolean => {
   return (route.startsWith(KloudScreen.Login(''))) ||
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
-    (route.startsWith('/lessons/') && !route.includes('/payment')) ||
-    (route.startsWith('/lesson-groups/') && !route.includes('/payment')) ||
+    // /lessons/, /lesson-groups/, /bundle/는 자체 페이지든 /payment redirect든 모두 ignoreSafeArea.
+    // (예전엔 /payment만 native 헤더 썼지만, 이제 /payment도 자체 헤더 사용)
+    route.startsWith('/lessons/') ||
+    route.startsWith('/lesson-groups/') ||
+    route.startsWith('/bundle/') ||
     (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
@@ -115,7 +118,12 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith('/qrs') ||
     route.startsWith(KloudScreen.Kiosk) ||
     route.startsWith('/studioRooms/') ||
-    route.includes('/profile/myPass/')
+    route.includes('/profile/myPass/') ||
+    // 공지사항 목록(/announcements 또는 /announcements?...)만 ignoreSafeArea.
+    // 상세(/announcements/:id)는 일반 헤더 사용하도록 매칭에서 제외.
+    (route === '/announcements' || route.startsWith('/announcements?')) ||
+    // 통합 결제 페이지(/payment, /payment?type=...) — 페이지가 자체 백버튼 + 상단 패딩 처리
+    (route === '/payment' || route.startsWith('/payment?'))
 }
 
 const applyTitle = async (route: string) => {
@@ -175,12 +183,6 @@ const applyTitle = async (route: string) => {
     return '';
   } else if (route.startsWith('/studioRooms/')) {
     return ''
-  } else if (
-    route.startsWith('/payment?') ||
-    (route.includes('/lessons/') && route.includes('/payment')) ||
-    (route.includes('/bundle/') && route.includes('/payment'))
-  ) {
-    return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
   } else if (route.includes('/profile/myPass/')) {
     return '';
   }

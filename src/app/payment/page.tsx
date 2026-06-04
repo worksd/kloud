@@ -13,6 +13,7 @@ import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
+import BackIcon from "../../../public/assets/ic_back.svg";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
@@ -114,10 +115,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
-      <div className="flex flex-col">
-        {appVersion === '' && (
-          <BackButton />
-        )}
+      {/* ignoreSafeArea — fixed 헤더(back + title)를 화면 전체 너비로 흰 배경 깔아 노출.
+          뷰포트 기준 고정이라 콘텐츠 스크롤해도 항상 위에 떠 있음. */}
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white pt-16 pb-2 px-5">
+        <div className="flex gap-1 ">
+          <BackIcon className="w-6 h-6 text-black"/>
+          <h1 className="text-[16px] font-bold text-black leading-6 -mt-[2px]">
+            {await translate(paymentItem === 'practice-room' ? 'reserve' : 'payment')}
+          </h1>
+        </div>
+      </div>
+      {/* pt-24: 헤더(pt-16 + h-6 + pb-2 = 96px) 아래로 콘텐츠 띄움 */}
+      <div className="flex flex-col pt-24">
         {/* lesson / lesson-group */}
         {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
           <div className="px-5 pt-4 pb-3">

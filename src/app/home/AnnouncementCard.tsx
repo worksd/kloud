@@ -168,14 +168,15 @@ export function AnnouncementCard({
           <img
             src={announcement.imageUrl}
             alt={''}
-            className={'relative max-w-[92vw] max-h-[70vh] w-auto h-auto object-contain'}
+            className={'relative max-w-[92vw] max-h-[70vh] w-auto h-auto object-contain rounded-2xl'}
             onClick={(e) => e.stopPropagation()}
           />
           <button
             type={'button'}
             onClick={closeViewer}
             aria-label={'close'}
-            className={'absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center active:bg-white/20'}
+            // ignoreSafeArea 페이지에서 띄워지면 status bar에 X가 가려질 수 있어 top 보정 (헤더 pt-16과 정렬)
+            className={'absolute top-16 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center active:bg-white/20'}
           >
             <svg width={'18'} height={'18'} viewBox={'0 0 24 24'} fill={'none'}>
               <path d={'M6 6L18 18M6 18L18 6'} stroke={'white'} strokeWidth={'2'} strokeLinecap={'round'}/>
