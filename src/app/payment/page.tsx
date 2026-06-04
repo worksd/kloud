@@ -14,7 +14,7 @@ import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWra
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
@@ -65,6 +65,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
+  if (paymentItem === 'bundle' && !res.bundle) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
+  }
 
   const getItemInfo = () => {
     switch (paymentItem) {
@@ -88,6 +91,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.passPlan?.name,
           studioName: res.passPlan?.studio?.name,
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
+        };
+      case 'bundle':
+        return {
+          thumbnailUrl: res.bundle?.studio?.profileImageUrl,
+          title: res.bundle?.name,
+          studioName: res.bundle?.studio?.name,
+          studioImageUrl: res.bundle?.studio?.profileImageUrl,
         };
       default:
         return {
@@ -169,6 +179,60 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* bundle — 묶음 결제. 번들명 + 원가 strike + 판매 마감 + 구성 수업 리스트 */}
+        {paymentItem === 'bundle' && res.bundle && (
+          <div className="px-5 pt-4 pb-3">
+            {/* 헤더 */}
+            <div className="flex items-center gap-2.5 mb-3">
+              {studioImageUrl && <CircleImage size={24} imageUrl={studioImageUrl} />}
+              <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
+            </div>
+            <p className="text-[20px] font-bold text-black mb-1">{res.bundle.name}</p>
+            {res.bundle.description && (
+              <p className="text-[13px] text-[#86898C] font-medium mb-2">{res.bundle.description}</p>
+            )}
+            {/* 원가 strike + 마감일 */}
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              {res.bundle.originalPrice != null && res.price != null && res.bundle.originalPrice > res.price && (
+                <span className="text-[13px] text-[#BFC2C5] line-through">
+                  {new Intl.NumberFormat('ko-KR').format(res.bundle.originalPrice)}{await translate('won')}
+                </span>
+              )}
+              {res.bundle.closeDate && (
+                <span className="text-[12px] text-[#EF4444] font-medium">
+                  ~ {res.bundle.closeDate}
+                </span>
+              )}
+            </div>
+            {/* 구성 수업 리스트 */}
+            {res.bundle.items.length > 0 && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TicketIcon className="w-[14px] h-[14px]"/>
+                  <span className="text-[13px] font-bold text-black">
+                    {(await translate('bundle_total_lessons')).replace('{count}', String(res.bundle.items.length))}
+                  </span>
+                </div>
+                {res.bundle.items.map((item) => (
+                  <div key={`${item.itemType}-${item.itemId}`} className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-xl">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F1F3F6] shrink-0">
+                      {item.thumbnailUrl && (
+                        <Thumbnail url={item.thumbnailUrl} className="w-full h-full" aspectRatio={1}/>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                      <span className="text-[14px] font-medium text-black truncate">{item.title}</span>
+                      {item.startDate && (
+                        <span className="text-[12px] text-[#86898C]">{item.startDate}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

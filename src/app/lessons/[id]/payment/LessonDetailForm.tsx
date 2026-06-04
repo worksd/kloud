@@ -8,6 +8,7 @@ import React from 'react';
 import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from '@/app/components/LessonLabel';
 import { LessonTags } from '@/app/components/LessonTags';
 import { LessonDetailButton } from '@/app/lessons/[id]/LessonDetailButton';
+import { LessonBundlesSection } from '@/app/lessons/[id]/LessonBundlesSection';
 import Image from "next/image";
 import LeftArrow from "../../../../../public/assets/left-arrow.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
@@ -78,6 +79,9 @@ export default async function LessonDetailForm({lesson, appVersion}: {
 
           {/* 상세 */}
           <LessonInfoSection data={lesson}/>
+
+          {/* 이 수업이 포함된 묶음 — bundles[] 있을 때만 노출 */}
+          <LessonBundlesSection bundles={lesson.bundles}/>
 
           <div className="w-full h-3 bg-[#f7f8f9]"/>
         </div>

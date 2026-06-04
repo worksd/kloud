@@ -485,6 +485,30 @@ export const StringResource = {
     jp: "クーポンコードを入力する",
     zh: "输入优惠券代码"
   },
+  bundle_total_lessons: {
+    ko: "총 {count}개 수업",
+    en: "{count} lessons total",
+    jp: "全{count}レッスン",
+    zh: "共{count}节课"
+  },
+  bundle_included_title: {
+    ko: "이 수업이 포함된 묶음",
+    en: "Bundles including this lesson",
+    jp: "このレッスンを含むパッケージ",
+    zh: "包含此课程的套餐"
+  },
+  payment_method_voucher: {
+    ko: "교환권",
+    en: "Voucher",
+    jp: "教換券",
+    zh: "兑换券"
+  },
+  voucher_refund_not_allowed: {
+    ko: "교환권 결제는 환불할 수 없어요",
+    en: "Voucher payments cannot be refunded",
+    jp: "教換券での決済は返金できません",
+    zh: "兑换券支付无法退款"
+  },
   coupon_qr_invalid: {
     ko: "올바르지 않은 QR 코드예요",
     en: "Invalid QR code",

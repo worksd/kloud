@@ -71,6 +71,26 @@ export type GetPaymentResponse = {
     studio?: { id: number; name: string };
   };
   passPlan?: GetPassPlanResponse;
+  /** 번들(묶음) 결제 — methods에는 Pass/Billing 자동 제외돼 있음 */
+  bundle?: {
+    bundleId: number;
+    name: string;
+    description?: string;
+    /** 구성 lesson 합계가(할인 전). UI에서 strike-through 가격 표시에 사용. */
+    originalPrice?: number;
+    /** 번들 판매 종료 시각 (KST). 'yyyy.MM.dd HH:mm' 또는 ISO */
+    closeDate?: string;
+    /** 구성 수업 목록 */
+    items: {
+      itemType: string;     // 'lesson' 등
+      itemId: number;
+      title: string;
+      price: number;
+      startDate?: string;
+      thumbnailUrl?: string;
+    }[];
+    studio?: { id: number; name: string; profileImageUrl?: string };
+  };
   paymentId: string;
   refundAccountNumber?: string
   refundAccountBank?: string
@@ -109,7 +129,7 @@ export type GetPaymentMethodResponse = {
   paymentMethod?: { id: number; type: PaymentMethodType; name: string };
 }
 
-export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'voucher' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
 
 export type PaymentDiscount = {
   key: string;

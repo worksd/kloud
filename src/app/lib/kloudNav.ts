@@ -175,7 +175,11 @@ const applyTitle = async (route: string) => {
     return '';
   } else if (route.startsWith('/studioRooms/')) {
     return ''
-  } else if (route.startsWith('/payment?') || ( route.includes('/lessons/') && route.includes('/payment'))) {
+  } else if (
+    route.startsWith('/payment?') ||
+    (route.includes('/lessons/') && route.includes('/payment')) ||
+    (route.includes('/bundle/') && route.includes('/payment'))
+  ) {
     return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
   } else if (route.includes('/profile/myPass/')) {
     return '';

@@ -38,7 +38,28 @@ export type GetLessonResponse = {
     formattedDate?: GetFormattedDateResponse;
     /** 어드민 권한 종류. truthy면 수강생/정산 정보 표시. */
     adminType?: 'artist' | 'partner';
+    /** 이 수업이 포함된 판매중 묶음 목록. BE가 status=Public + closeDate>now + 본 lesson 포함 조건으로 필터해 내려줌. */
+    bundles?: BundleSummaryResponse[];
 };
+
+export type BundleSummaryResponse = {
+    id: number;
+    name: string;
+    description?: string;
+    price: number;            // 묶음 판매가
+    originalPrice: number;    // 구성 수업 합계 (할인 표시용)
+    closeDate: string;        // 'YYYY.MM.DD HH:mm' KST
+    items: BundleItemResponse[];
+}
+
+export type BundleItemResponse = {
+    itemType: string;         // 'lesson'
+    itemId: number;
+    title: string;
+    price: number;
+    startDate?: string;
+    thumbnailUrl?: string;
+}
 
 export type GetFormattedDateResponse = {
   type: 'oneTime' | 'subscription';
