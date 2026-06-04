@@ -61,6 +61,7 @@ declare global {
     showBottomDialog: (info: string) => void;
     requestPayment: (command: string) => void;
     showGallery: () => void;
+    showImage: (info: string) => void;
     closeBottomSheet: () => void;
     changeWebEndpoint: (endpoint: string) => void;
     openExternalBrowser: (url: string) => void;
