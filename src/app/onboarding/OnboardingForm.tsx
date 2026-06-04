@@ -28,7 +28,6 @@ import { translate } from "@/utils/translate";
 import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { generateRandomNickname } from "@/utils/random.nickname";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -95,10 +94,8 @@ export const OnboardingForm = ({
   const [name, setName] = useState('');
   const [birth, setBirth] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
-  // 키오스크 초기 가입과 동일하게 랜덤 닉네임 preset — 사용자는 그대로 쓰거나 수정 가능.
-  // 이미 닉네임이 있는 유저(소셜 로그인 등으로 받은 경우)는 그 값을 유지.
-  // useState initializer로 마운트 시 1회 생성해 안정 유지(매 렌더마다 새로 뽑히지 않음).
-  const [nickName, setNickName] = useState(() => user.nickName?.trim() || generateRandomNickname());
+  // 서버(GetUserResponse)에서 내려준 닉네임을 초기값으로 사용. 없으면 빈 문자열.
+  const [nickName, setNickName] = useState(user.nickName ?? '');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('KR');
   const [code, setCode] = useState('');
