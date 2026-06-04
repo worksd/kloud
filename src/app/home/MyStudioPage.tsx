@@ -8,9 +8,11 @@ import { HomeBanner } from "@/app/home/HomeBanner";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { AnnouncementCard } from "@/app/home/AnnouncementCard";
+import { HomeBundlesSection } from "@/app/home/HomeBundlesSection";
+import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
+export default async function MyStudioPage({res, bundles}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[]}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
@@ -48,6 +50,9 @@ export default async function MyStudioPage({res}: { res: GetMyStudioResponse}) {
       {res.banners && res.banners.length > 0 && (
         <HomeBanner banners={res.banners} />
       )}
+
+      {/* 이 스튜디오에서 진행중인 프로모션(번들) — bundles 있을 때만 노출 */}
+      <HomeBundlesSection bundles={bundles} studioName={res.studio.name}/>
 
       {res.bands.map((value) => {
         if (value.type === 'Today') {

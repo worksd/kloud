@@ -497,6 +497,12 @@ export const StringResource = {
     jp: "このレッスンを含むパッケージ",
     zh: "包含此课程的套餐"
   },
+  bundles_in_studio: {
+    ko: "{studioName}에서 진행중인 프로모션",
+    en: "Promotions running at {studioName}",
+    jp: "{studioName}で開催中のプロモーション",
+    zh: "{studioName}正在进行的促销"
+  },
   payment_method_voucher: {
     ko: "교환권",
     en: "Voucher",

@@ -64,7 +64,7 @@ export default async function Home({
           <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
               res.myStudio ? (
-                  <MyStudioPage res={res.myStudio}/>
+                  <MyStudioPage res={res.myStudio} bundles={res.bundles}/>
               ) : (
                   <NoMyStudioPage studios={res.recommendedStudios}/>
               )}
