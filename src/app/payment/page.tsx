@@ -93,11 +93,12 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
         };
       case 'bundle':
+        // 번들 응답엔 studio 정보가 따로 안 옴 — title만 표기, studio는 비움.
         return {
-          thumbnailUrl: res.bundle?.studio?.profileImageUrl,
+          thumbnailUrl: undefined,
           title: res.bundle?.name,
-          studioName: res.bundle?.studio?.name,
-          studioImageUrl: res.bundle?.studio?.profileImageUrl,
+          studioName: undefined,
+          studioImageUrl: undefined,
         };
       default:
         return {
@@ -182,14 +183,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
-        {/* bundle — 묶음 결제. 번들명 + 원가 strike + 판매 마감 + 구성 수업 리스트 */}
+        {/* bundle — 묶음 결제. 번들명 + 원가 strike + 판매 마감 + 구성 수업 리스트. */}
         {paymentItem === 'bundle' && res.bundle && (
           <div className="px-5 pt-4 pb-3">
-            {/* 헤더 */}
-            <div className="flex items-center gap-2.5 mb-3">
-              {studioImageUrl && <CircleImage size={24} imageUrl={studioImageUrl} />}
-              <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
-            </div>
             <p className="text-[20px] font-bold text-black mb-1">{res.bundle.name}</p>
             {res.bundle.description && (
               <p className="text-[13px] text-[#86898C] font-medium mb-2">{res.bundle.description}</p>
@@ -216,11 +212,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                     {(await translate('bundle_total_lessons')).replace('{count}', String(res.bundle.items.length))}
                   </span>
                 </div>
-                {res.bundle.items.map((item) => (
+                {res.bundle.items.map((item) => {
+                  const thumb = item.imageUrl ?? item.thumbnailUrl;
+                  return (
                   <div key={`${item.itemType}-${item.itemId}`} className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-xl">
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F1F3F6] shrink-0">
-                      {item.thumbnailUrl && (
-                        <Thumbnail url={item.thumbnailUrl} className="w-full h-full" aspectRatio={1}/>
+                      {thumb && (
+                        <Thumbnail url={thumb} className="w-full h-full" aspectRatio={1}/>
                       )}
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -230,7 +228,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

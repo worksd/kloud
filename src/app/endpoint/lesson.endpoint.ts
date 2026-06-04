@@ -58,6 +58,8 @@ export type BundleItemResponse = {
     title: string;
     price: number;
     startDate?: string;
+    /** BE가 새로 내려주는 아이템 썸네일 URL. 일부 응답은 legacy로 thumbnailUrl을 줄 수 있어 폴백. */
+    imageUrl?: string;
     thumbnailUrl?: string;
 }
 

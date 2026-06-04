@@ -32,7 +32,9 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
 }
 
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  return type === 'pass-plan' ? 'pass_plan_price' : 'lesson_price';
+  if (type === 'pass-plan') return 'pass_plan_price';
+  if (type === 'bundle') return 'promotion_price';
+  return 'lesson_price';
 }
 
 const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): number => {
@@ -46,7 +48,7 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
     case 'practice-room':
       return payment.studioRoom?.id ?? 0;
     case 'bundle':
-      return payment.bundle?.bundleId ?? 0;
+      return payment.bundle?.id ?? 0;
   }
 }
 

@@ -37,7 +37,7 @@ export const DiscountSection = ({
   const won = getLocaleString({ locale, key: 'won' });
 
   return (
-    <div className="flex flex-col gap-y-2 px-6">
+    <div className="flex flex-col gap-y-2 px-6 my-3">
       <div className="text-[15px] font-bold text-black">
         {getLocaleString({ locale, key: 'discount_section' })}
       </div>

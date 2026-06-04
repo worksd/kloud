@@ -1013,6 +1013,12 @@ export const StringResource = {
     jp: "受講券金額",
     zh: "课程价格"
   },
+  promotion_price: {
+    ko: "프로모션 금액",
+    en: "Promotion Price",
+    jp: "プロモーション料金",
+    zh: "促销金额"
+  },
   total_amount: {
     ko: "총 결제 금액",
     en: "Total Payment Amount",
