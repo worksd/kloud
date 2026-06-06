@@ -1367,6 +1367,12 @@ export const StringResource = {
     jp: "レッスンチケット情報",
     zh: "课程票信息"
   },
+  promotion_information: {
+    ko: "프로모션 정보",
+    en: "Promotion Information",
+    jp: "プロモーション情報",
+    zh: "促销信息"
+  },
   my_subscription: {
     ko: "정기결제",
     en: "My Subscription",

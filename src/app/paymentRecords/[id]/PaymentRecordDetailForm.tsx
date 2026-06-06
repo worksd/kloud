@@ -13,6 +13,7 @@ import Image from "next/image";
 import GrayRightArrow from "../../../../public/assets/gray_right_arrow.svg";
 import PassPlanIcon from "../../../../public/assets/ic_pass_plan.svg";
 import {formatAccountNumber} from "@/utils/format.account";
+import {KloudScreen} from "@/shared/kloud.screen";
 
 const formatCardNumber = (cardNumber?: string | null) => {
   if (!cardNumber) return '';
@@ -31,20 +32,25 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   const isPassPlan = paymentRecord.paymentId.startsWith('LP');
   const isLessonTicket = paymentRecord.paymentId.startsWith('LT');
   const isMembership = paymentRecord.paymentId.startsWith('SM');
-  const informationTitle = isPassPlan
-      ? await translate('pass_plan_information')
-      : isLessonTicket
-          ? await translate('lesson_ticket_information')
-          : await translate('pass_plan_information');
+  const isBundle = paymentRecord.paymentId.startsWith('BD');
+  const informationTitle = isBundle
+      ? await translate('promotion_information')
+      : isPassPlan
+          ? await translate('pass_plan_information')
+          : isLessonTicket
+              ? await translate('lesson_ticket_information')
+              : await translate('pass_plan_information');
 
   // 금액 라벨 결정
-  const amountLabel = isPassPlan
-      ? await translate('pass_plan_price')
-      : isLessonTicket
-          ? await translate('lesson_price')
-          : isMembership
-              ? await translate('membership_price')
-              : await translate('payment_amount');
+  const amountLabel = isBundle
+      ? await translate('promotion_price')
+      : isPassPlan
+          ? await translate('pass_plan_price')
+          : isLessonTicket
+              ? await translate('lesson_price')
+              : isMembership
+                  ? await translate('membership_price')
+                  : await translate('payment_amount');
 
   // 원래 가격 계산 (amount + discounts 합계)
   const totalDiscountAmount = paymentRecord.discounts?.reduce((sum, discount) => sum + discount.amount, 0) ?? 0;
@@ -67,7 +73,44 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
 
-        {/* 패스권/수강권 정보 */}
+        {/* 패스권/수강권/프로모션 정보 */}
+        {isBundle ? (
+          // 번들 — productRoute 클릭 라우팅 없이 구성 수강권 리스트만 렌더
+          <div className="px-5 py-5">
+            <p className="text-[16px] font-bold text-black mb-5">{informationTitle}</p>
+            <div className="flex flex-col">
+              <p className="text-[14px] font-medium text-black mb-3">{paymentRecord.productName}</p>
+              {paymentRecord.tickets && paymentRecord.tickets.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {paymentRecord.tickets.map((t) => (
+                    <NavigateClickWrapper key={t.id} method="push" route={KloudScreen.TicketDetail(t.id, false)}>
+                      <div className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-xl active:bg-[#EFEFEF] transition-colors">
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F1F3F6] shrink-0">
+                          {t.lesson.thumbnailUrl && (
+                            <Image
+                              src={t.lesson.thumbnailUrl}
+                              alt={t.lesson.title}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                          <span className="text-[14px] font-medium text-black truncate">{t.lesson.title}</span>
+                          {t.lesson.date && (
+                            <span className="text-[12px] text-[#6d7882]">{t.lesson.date}</span>
+                          )}
+                        </div>
+                        <GrayRightArrow className="w-5 h-5 text-[#b1b8be] shrink-0"/>
+                      </div>
+                    </NavigateClickWrapper>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
         <NavigateClickWrapper method={'push'} route={paymentRecord.productRoute || ''}>
           <RippleEffect className="px-5 py-5 active:bg-gray-50 transition-colors">
             <p className="text-[16px] font-bold text-black mb-5">
@@ -112,6 +155,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
             </div>
           </RippleEffect>
         </NavigateClickWrapper>
+        )}
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>

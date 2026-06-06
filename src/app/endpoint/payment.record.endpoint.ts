@@ -33,6 +33,20 @@ export type GetPaymentRecordResponse = {
   refundDepositor?: string;
   isRefundable?: boolean;
   discounts?: DiscountResponse[];
+  /** 번들(paymentId가 BD로 시작) 결제일 때 구성된 수강권 목록. 그 외 결제에선 빈 배열 또는 미포함. */
+  tickets?: BundleTicketResponse[];
+}
+
+export type BundleTicketResponse = {
+  id: number;
+  status: string;
+  lesson: {
+    id: number;
+    title: string;
+    startDate?: string;        // 'YYYY-MM-DD HH:mm'
+    date?: string;             // 'YYYY.MM.DD(요일) 오전/오후 HH:mm' 포맷된 표시용
+    thumbnailUrl?: string;
+  };
 }
 
 export type PaymentIdParameter = {
