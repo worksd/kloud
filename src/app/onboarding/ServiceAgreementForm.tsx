@@ -1,26 +1,20 @@
+'use client';
+
 import { ChangeEvent } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { kloudNav } from "@/app/lib/kloudNav";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: {
   checkboxes: {
     terms: boolean,
     privacy: boolean,
+    marketing: boolean,
     all: boolean,
   }, handleCheckboxChangeAction: (e: ChangeEvent<HTMLInputElement>) => void,
   locale: Locale,
 }) => {
-
-  const onClickTerms = () => {
-    kloudNav.push(KloudScreen.Terms)
-  }
-
-  const onClickPrivacy = () => {
-    kloudNav.push(KloudScreen.Privacy)
-  }
-
 
   return (
     <div className="py-6">
@@ -39,14 +33,14 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: 
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex flex-row items-center gap-1 mb-1 mr-2">
-                  <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}
-                        onClick={onClickTerms}>{getLocaleString({
-                    locale,
-                    key: 'service_terms_agreement_required'
-                  })}</span>
-              <RightArrow isChecked={checkboxes.terms}/>
-            </div>
+            <NavigateClickWrapper method={'push'} route={KloudScreen.Terms}>
+              <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+                <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}>
+                  {getLocaleString({locale, key: 'service_terms_agreement_required'})}
+                </span>
+                <RightArrow isChecked={checkboxes.terms}/>
+              </div>
+            </NavigateClickWrapper>
             <input
               type="checkbox"
               name="terms"
@@ -57,18 +51,37 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: 
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex flex-row items-center gap-1 mb-1 mr-2">
-                  <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}
-                        onClick={onClickPrivacy}>{getLocaleString({
-                    locale,
-                    key: 'service_privacy_agreement_required'
-                  })}</span>
-              <RightArrow isChecked={checkboxes.privacy}/>
-            </div>
+            <NavigateClickWrapper method={'push'} route={KloudScreen.Privacy}>
+              <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+                <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}>
+                  {getLocaleString({locale, key: 'service_privacy_agreement_required'})}
+                </span>
+                <RightArrow isChecked={checkboxes.privacy}/>
+              </div>
+            </NavigateClickWrapper>
             <input
               type="checkbox"
               name="privacy"
               checked={checkboxes.privacy}
+              onChange={handleCheckboxChangeAction}
+              className="w-5 h-5 accent-black"
+            />
+          </div>
+
+          {/* 광고성 정보 수신 동의 — 선택 항목, 진행 차단 안 함 */}
+          <div className="flex items-center justify-between">
+            <NavigateClickWrapper method={'push'} route={KloudScreen.MarketingAgreement}>
+              <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+                <span className={`${checkboxes.marketing ? 'text-black font-medium' : 'text-gray-300'}`}>
+                  {getLocaleString({locale, key: 'marketing_agreement_optional'})}
+                </span>
+                <RightArrow isChecked={checkboxes.marketing}/>
+              </div>
+            </NavigateClickWrapper>
+            <input
+              type="checkbox"
+              name="marketing"
+              checked={checkboxes.marketing}
               onChange={handleCheckboxChangeAction}
               className="w-5 h-5 accent-black"
             />

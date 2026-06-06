@@ -112,10 +112,11 @@ export const OnboardingForm = ({
 
   const [step, setStep] = useState<OnboardStep>('onboard');
 
-  const [allChecked, setAllChecked] = useState(false); // 모든 체크박스 체크 상태
+  const [allChecked, setAllChecked] = useState(false); // 진행 가능 여부 — 필수 동의(terms+privacy)만 체크
   const [checkboxes, setCheckboxes] = useState({
     terms: false,
     privacy: false,
+    marketing: false,  // 선택 동의 — 진행 차단 안 함
     all: false,
   });
   const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -127,9 +128,11 @@ export const OnboardingForm = ({
     if (name === 'all') {
       updatedCheckboxes.terms = checked;
       updatedCheckboxes.privacy = checked;
+      updatedCheckboxes.marketing = checked;
     }
+    // '전체 동의' 표시는 셋 다 체크일 때만. 진행 조건(allChecked)은 필수(terms+privacy)만.
     updatedCheckboxes.all =
-      updatedCheckboxes.terms && updatedCheckboxes.privacy;
+      updatedCheckboxes.terms && updatedCheckboxes.privacy && updatedCheckboxes.marketing;
     setCheckboxes(updatedCheckboxes);
     setAllChecked(updatedCheckboxes.terms && updatedCheckboxes.privacy);
   };

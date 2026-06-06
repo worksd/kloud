@@ -239,6 +239,12 @@ export const StringResource = {
     jp: "[必須] サービス利用規約",
     zh: "[必填] 服务使用条款"
   },
+  marketing_agreement_optional: {
+    ko: "[선택] 광고성 정보 수신 동의",
+    en: "[Optional] Marketing Communications",
+    jp: "[任意] 広告性情報の受信同意",
+    zh: "[可选] 营销信息接收同意"
+  },
   service_privacy_agreement_required: {
     ko: "[필수] 개인정보 수집 및 이용동의",
     en: "[Required] Privacy Policy",

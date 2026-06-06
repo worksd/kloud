@@ -73,6 +73,7 @@ export const KloudScreen = {
   Policy: '/profile/policy',
   Privacy: '/profile/policy/privacy',
   Terms: '/profile/policy/terms',
+  MarketingAgreement: '/profile/policy/marketing',
   Inquiry: '/profile/inquiry',
   Notification: '/notifications',
 

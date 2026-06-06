@@ -152,6 +152,8 @@ const applyTitle = async (route: string) => {
     return await translate('service_privacy_agreement')
   } else if (route == KloudScreen.Terms) {
     return await translate('service_terms_agreement')
+  } else if (route == KloudScreen.MarketingAgreement) {
+    return await translate('marketing_agreement_optional')
   } else if (route == KloudScreen.ProfileEdit) {
     return await translate('edit_profile')
   } else if (route == KloudScreen.StudioSetting) {

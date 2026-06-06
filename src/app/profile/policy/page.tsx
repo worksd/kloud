@@ -15,6 +15,9 @@ export default async function PolicyPage() {
         <NavigateClickWrapper method={'push'} route={KloudScreen.Privacy}>
           <MenuItem label={'privacy_agreement'}/>
         </NavigateClickWrapper>
+        <NavigateClickWrapper method={'push'} route={KloudScreen.MarketingAgreement}>
+          <MenuItem label={'marketing_agreement_optional'}/>
+        </NavigateClickWrapper>
       </div>
 
 
