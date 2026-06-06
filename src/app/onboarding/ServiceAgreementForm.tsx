@@ -34,7 +34,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <NavigateClickWrapper method={'push'} route={KloudScreen.Terms}>
-              <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+              <div className="flex flex-row items-center gap-1 mb-1 mr-2 cursor-pointer active:opacity-60 py-1">
                 <span className={`${checkboxes.terms ? 'text-black font-medium' : 'text-gray-300'}`}>
                   {getLocaleString({locale, key: 'service_terms_agreement_required'})}
                 </span>
@@ -52,7 +52,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: 
 
           <div className="flex items-center justify-between">
             <NavigateClickWrapper method={'push'} route={KloudScreen.Privacy}>
-              <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+              <div className="flex flex-row items-center gap-1 mb-1 mr-2 cursor-pointer active:opacity-60 py-1">
                 <span className={`${checkboxes.privacy ? 'text-black font-medium' : 'text-gray-300'}`}>
                   {getLocaleString({locale, key: 'service_privacy_agreement_required'})}
                 </span>
@@ -71,7 +71,7 @@ export const AgreementForm = ({checkboxes, handleCheckboxChangeAction, locale}: 
           {/* 광고성 정보 수신 동의 — 선택 항목, 진행 차단 안 함 */}
           <div className="flex items-center justify-between">
             <NavigateClickWrapper method={'push'} route={KloudScreen.MarketingAgreement}>
-              <div className="flex flex-row items-center gap-1 mb-1 mr-2">
+              <div className="flex flex-row items-center gap-1 mb-1 mr-2 cursor-pointer active:opacity-60 py-1">
                 <span className={`${checkboxes.marketing ? 'text-black font-medium' : 'text-gray-300'}`}>
                   {getLocaleString({locale, key: 'marketing_agreement_optional'})}
                 </span>
