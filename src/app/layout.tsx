@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { ReactNode } from "react";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
+import { WebTopNav } from "@/app/components/WebTopNav";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="en" className={`${paperFont.variable}`}>
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
+    <WebTopNav />
     {children}
     </body>
     </html>

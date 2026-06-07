@@ -1,12 +1,9 @@
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import LessonDetailForm from "@/app/lessons/[id]/payment/LessonDetailForm";
+import LessonDetailPcForm from "@/app/lessons/[id]/payment/LessonDetailPcForm";
 import { getLessonDetailAction } from "@/app/lessons/[id]/action/getLessonDetailAction";
 import { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
-import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
-import { cookies } from "next/headers";
-import { accessTokenKey } from "@/shared/cookies.key";
-import { KloudScreen } from "@/shared/kloud.screen";
 
 type Props = {
   params: Promise<{ id: string }>
@@ -16,7 +13,7 @@ export default async function LessonDetailPage({params, searchParams}: {
   params: Promise<{ id: string }>,
   searchParams: Promise<{ os: string, appVersion: string }>
 }) {
-  const { os, appVersion } = await searchParams
+  const { appVersion } = await searchParams
   const lessonId = Number((await params).id);
 
   if (isNaN(lessonId)) {
@@ -35,14 +32,24 @@ export default async function LessonDetailPage({params, searchParams}: {
     );
   }
 
+  // appVersion === '' (= 웹 직접 접근) + viewport ≥1024px(lg)일 때만 PC 폼.
+  // 그 외 (앱 웹뷰 / 좁은 웹) 는 기존 모바일 폼. 둘 다 SSR 렌더 후 CSS로 토글.
+  // 웹 top bar (로고/메뉴/로그인)는 layout의 WebTopNav가 글로벌 처리.
+  const isWeb = appVersion == '';
   return (
     <div>
-      {appVersion == '' && <MobileWebViewTopBar
-        os={os}
-        isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
-        returnUrl={KloudScreen.LessonDetail(lessonId)}
-      />}
-      <LessonDetailForm lesson={res} appVersion={appVersion}/>
+      {isWeb ? (
+        <>
+          <div className="hidden lg:block">
+            <LessonDetailPcForm lesson={res} appVersion={appVersion}/>
+          </div>
+          <div className="lg:hidden">
+            <LessonDetailForm lesson={res} appVersion={appVersion}/>
+          </div>
+        </>
+      ) : (
+        <LessonDetailForm lesson={res} appVersion={appVersion}/>
+      )}
     </div>
 
   )

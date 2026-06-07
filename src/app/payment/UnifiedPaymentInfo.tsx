@@ -405,7 +405,13 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
-      <div className="fixed bottom-2 left-0 w-full px-6">
+      {/* fixed bottom 결제 버튼.
+          - 모바일 폼(lg:hidden): full-width fixed bottom (기존)
+          - PC 폼(hidden lg:block): 중앙 정렬, max-w-md 좁은 폭으로 — Stripe Checkout류 패턴 */}
+      <div className={[
+        'fixed bottom-2 left-0 w-full px-6 z-30',
+        'lg:left-1/2 lg:-translate-x-1/2 lg:max-w-md lg:px-4 lg:bottom-6',
+      ].join(' ')}>
         <PaymentButton
           locale={locale}
           method={selectedMethod}

@@ -1,11 +1,8 @@
 import { StudioDetailForm } from "@/app/studios/[id]/studio.detail";
+import { StudioDetailPcForm } from "@/app/studios/[id]/StudioDetailPcForm";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { Metadata, ResolvingMetadata } from "next";
-import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
-import { cookies } from "next/headers";
-import { accessTokenKey } from "@/shared/cookies.key";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { notFound } from "next/navigation";
 
 export type Props = {
@@ -15,22 +12,31 @@ export type Props = {
 
 export default async function StudioDetail({params, searchParams}: Props) {
   const id = Number((await params).id);
-  const {appVersion, os} = await searchParams
+  const {appVersion} = await searchParams
 
   if (isNaN(id) || !id) {
     notFound();
   }
 
+  // 웹 + 1024px+: PC 폼. 그 외(앱 웹뷰 / 좁은 웹): 기존 모바일 폼.
+  // top bar (로고/메뉴)는 layout의 WebTopNav가 글로벌 처리.
+  const isWeb = appVersion == '';
+
   return (
     <div className={'flex flex-col'}>
-      {appVersion == '' && <MobileWebViewTopBar
-        os={os}
-        isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
-        returnUrl={KloudScreen.StudioDetail(id)}
-      />}
-      <StudioDetailForm id={id} appVersion={appVersion}/>
+      {isWeb ? (
+        <>
+          <div className="hidden lg:block">
+            <StudioDetailPcForm id={id} appVersion={appVersion}/>
+          </div>
+          <div className="lg:hidden">
+            <StudioDetailForm id={id} appVersion={appVersion}/>
+          </div>
+        </>
+      ) : (
+        <StudioDetailForm id={id} appVersion={appVersion}/>
+      )}
     </div>
-
   )
 }
 
