@@ -148,6 +148,10 @@ export class ApiClient extends EndpointClient {
     getStage: this.endpointBuilder(API.Home.GetStage),
   }
 
+  readonly trackingEvent = {
+    record: this.endpointBuilder(API.TrackingEvent.RecordTrackingEvent),
+  }
+
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
   }
