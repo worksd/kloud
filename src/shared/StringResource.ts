@@ -3323,6 +3323,36 @@ export const StringResource = {
     jp: 'Instagramアカウント連携',
     zh: '关联 Instagram 账户',
   },
+  sns_account_connect: {
+    ko: 'SNS 계정 연결하기',
+    en: 'Connect SNS Account',
+    jp: 'SNSアカウント連携',
+    zh: '关联社交账户',
+  },
+  sns_account_connect_description: {
+    ko: 'SNS 계정을 연결하면 다음부터 간편하게 로그인할 수 있어요.',
+    en: 'Connect your SNS account for easier sign-in next time.',
+    jp: 'SNSアカウントを連携すると、次回から簡単にログインできます。',
+    zh: '关联社交账户后，下次即可快捷登录。',
+  },
+  connect_with_apple: {
+    ko: 'Apple로 연결하기',
+    en: 'Connect with Apple',
+    jp: 'Appleで連携',
+    zh: '使用 Apple 关联',
+  },
+  connect_with_google: {
+    ko: '구글로 연결하기',
+    en: 'Connect with Google',
+    jp: 'Googleで連携',
+    zh: '使用 Google 关联',
+  },
+  connect_with_kakao: {
+    ko: '카카오로 연결하기',
+    en: 'Connect with Kakao',
+    jp: 'カカオで連携',
+    zh: '使用 Kakao 关联',
+  },
   instagram_connect_title: {
     ko: '인스타그램 연동',
     en: 'Instagram Connect',
