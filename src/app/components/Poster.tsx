@@ -31,9 +31,8 @@ export async function Poster({
   type?: 'default' | 'subscription',
   tags?: string,
 }) {
-  const route = type === 'subscription'
-    ? KloudScreen.LessonGroupDetail(id)
-    : KloudScreen.LessonDetail(id);
+  void type;
+  const route = KloudScreen.LessonDetail(id);
 
   return (
     <NavigateClickWrapper method={'push'} route={route}>

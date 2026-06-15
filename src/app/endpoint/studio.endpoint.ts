@@ -51,7 +51,6 @@ export type GetStudioResponse = {
     passes?: GetPassResponse[];
     timeTable?: GetTimeTableResponse;
     banners?: StudioBannerResponse[];
-    lessonGroups?: LessonGroupSummary[];
     day: string;
 };
 
@@ -70,23 +69,11 @@ export type HomeBannerResponse = {
   route: string;
 }
 
-export type LessonGroupSummary = {
-  id: number;
-  title: string;
-  description: string;
-  label: { genre: string; type: string; isEnded: boolean };
-  studioImageUrl: string;
-  studioName: string;
-  thumbnailUrl: string;
-  type: string;
-}
-
 export type GetMyStudioResponse = {
   studio: GetStudioResponse;
   /** 최근 7일 이내 최신 공지 1건. 없으면 키째로 없음. */
   announcement?: AnnouncementResponse;
   bands: GetBandResponse[];
-  lessonGroups?: LessonGroupSummary[];
   jumbotrons?: GetBandLessonResponse[];
   banners?: HomeBannerResponse[];
 }

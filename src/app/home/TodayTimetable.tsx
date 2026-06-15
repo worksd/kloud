@@ -96,10 +96,7 @@ export function TodayTimetable({
   };
 
   const onClick = (lesson: TimetableLesson) => {
-    const route = lesson.type === 'subscription'
-      ? KloudScreen.LessonGroupDetail(lesson.id)
-      : KloudScreen.LessonDetail(lesson.id);
-    kloudNav.push(route);
+    kloudNav.push(KloudScreen.LessonDetail(lesson.id));
   };
 
   // 끝난/남은 경계에 그려지는 marker. 단, 진행중 row가 이미 있으면 카드와 겹치므로 숨긴다.

@@ -14,7 +14,7 @@ import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWra
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
@@ -59,9 +59,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   if (paymentItem === 'lesson' && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
-  if (paymentItem === 'lesson-group' && !res.lessonGroup) {
-    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
-  }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
@@ -77,13 +74,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.lesson?.title,
           studioName: res.lesson?.studio?.name,
           studioImageUrl: res.lesson?.studio?.profileImageUrl,
-        };
-      case 'lesson-group':
-        return {
-          thumbnailUrl: res.lessonGroup?.thumbnailUrl,
-          title: res.lessonGroup?.title,
-          studioName: res.lessonGroup?.studioName,
-          studioImageUrl: res.lessonGroup?.studioImageUrl,
         };
       case 'pass-plan':
         return {
@@ -119,8 +109,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
         {appVersion === '' && (
           <BackButton />
         )}
-        {/* lesson / lesson-group */}
-        {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
+        {/* lesson */}
+        {paymentItem === 'lesson' && (
           <div className="px-5 pt-4 pb-3">
             <div className="flex gap-4">
               {/* 썸네일 9:16 */}
@@ -174,9 +164,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                       </div>
                     )}
                   </div>
-                )}
-                {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
-                  <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
                 )}
               </div>
             </div>

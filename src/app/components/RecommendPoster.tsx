@@ -20,9 +20,8 @@ export async function RecommendPoster({
   type?: 'default' | 'subscription',
   label?: { dday?: string },
 }) {
-  const route = type === 'subscription'
-    ? KloudScreen.LessonGroupDetail(id)
-    : KloudScreen.LessonDetail(id);
+  void type;
+  const route = KloudScreen.LessonDetail(id);
 
   return (
     <NavigateClickWrapper method="push" route={route}>

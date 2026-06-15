@@ -107,7 +107,6 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
     (route.startsWith('/lessons/') && !route.includes('/payment')) ||
-    (route.startsWith('/lesson-groups/') && !route.includes('/payment')) ||
     (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard('')) ||
@@ -160,8 +159,6 @@ const applyTitle = async (route: string) => {
     return await translate('studio_setting')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
-  } else if (route.startsWith('/lesson-group-tickets')) {
-    return await translate('my_lesson_group_tickets')
   } else if (route.startsWith(KloudScreen.MySubscription)) {
     return await translate('my_subscription')
   } else if (route.startsWith('/paymentRecords')) {

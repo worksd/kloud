@@ -16,7 +16,6 @@ import LeftArrow from "../../../../public/assets/left-arrow.svg";
 import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
 import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
 import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.action";
-import { LessonGroupBand } from "@/app/home/LessonGroupBand";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -186,12 +185,6 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           </section>
         )}
 
-        {studio.lessonGroups && studio.lessonGroups.length > 0 && (
-          <>
-            <div className="w-full h-3 bg-[#f7f8f9]"/>
-            <LessonGroupBand lessonGroups={studio.lessonGroups} locale={await getLocale()} />
-          </>
-        )}
 
         <div>
           <div className="w-full h-3 bg-[#f7f8f9]"/>
