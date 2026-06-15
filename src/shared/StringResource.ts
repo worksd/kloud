@@ -3105,11 +3105,17 @@ export const StringResource = {
     jp: '購入を進めますか？',
     zh: '是否继续购买？'
   },
-  my_lesson_group_tickets: {
-    ko: '정기 수업',
-    en: 'Lesson Group Tickets',
-    jp: '定期レッスン受講券',
-    zh: '定期课程票'
+  select_lesson_count: {
+    ko: '수강 횟수 선택',
+    en: 'Select sessions',
+    jp: '受講回数を選択',
+    zh: '选择课程次数'
+  },
+  times_unit: {
+    ko: '회',
+    en: ' sessions',
+    jp: '回',
+    zh: '次'
   },
   upcoming_payments: {
     ko: '다가오는 결제',

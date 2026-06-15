@@ -8,13 +8,14 @@ import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation"
 import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod";
 import { DiscountSection } from "@/app/lessons/[id]/payment/DiscountSection";
 import { PassesSection } from "@/app/payment/PassesSection";
-import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
+import { PricePolicySection } from "@/app/payment/PricePolicySection";
+import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, PaymentMethodType, PricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
+type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
@@ -22,8 +23,6 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
       return { value: 'lesson', prefix: 'LT', apiValue: 'lesson' };
     case 'pass-plan':
       return { value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan' };
-    case 'lesson-group':
-      return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
     case 'practice-room':
       return { value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room' };
     case 'bundle':
@@ -43,8 +42,6 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
       return payment.lesson?.id ?? 0;
     case 'pass-plan':
       return payment.passPlan?.id ?? 0;
-    case 'lesson-group':
-      return payment.lessonGroup?.id ?? 0;
     case 'practice-room':
       return payment.studioRoom?.id ?? 0;
     case 'bundle':
@@ -58,8 +55,6 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
       return payment.lesson?.title ?? '';
     case 'pass-plan':
       return payment.passPlan?.name ?? '';
-    case 'lesson-group':
-      return payment.lessonGroup?.title ?? '';
     case 'practice-room':
       return payment.studioRoom?.name ?? '';
     case 'bundle':
@@ -75,8 +70,6 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
       return payment.lesson?.price ?? 0;
     case 'pass-plan':
       return payment.passPlan?.price ?? 0;
-    case 'lesson-group':
-      return payment.lessonGroup?.price ?? 0;
     case 'practice-room':
       return payment.price ?? payment.studioRoom?.unitPrice ?? 0;
     case 'bundle':
@@ -90,8 +83,6 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
       return payment.lesson?.studio;
     case 'pass-plan':
       return payment.passPlan?.studio;
-    case 'lesson-group':
-      return null;
     case 'practice-room':
       return null;
     case 'bundle':
@@ -190,6 +181,16 @@ export const UnifiedPaymentInfo = ({
     };
   };
 
+  // 수강 횟수 가격정책 — 존재하면 옵션 선택 UI를 노출하고 선택한 정책의 price/id를 결제에 사용.
+  const pricePolicies: PricePolicyResponse[] = payment.pricePolicies ?? [];
+  const hasPolicies = pricePolicies.length > 0;
+  const [selectedPolicyId, setSelectedPolicyId] = useState<number | undefined>(
+    hasPolicies ? pricePolicies[0].id : undefined
+  );
+  const selectedPolicy = hasPolicies
+    ? (pricePolicies.find(p => p.id === selectedPolicyId) ?? pricePolicies[0])
+    : undefined;
+
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
   // 사용 가능한 패스 후보 — Discount/FreeCount/Unlimited 구분 없이 일단 잡는다.
   const detectedInitialPass = availablePasses.find(p => {
@@ -244,8 +245,10 @@ export const UnifiedPaymentInfo = ({
 
   const studio = getStudio(payment, type);
   const noPass = type === 'pass-plan' || type === 'practice-room';
-  const itemPrice = getItemPrice(payment, type);
-  const priceNotAvailable = payment.price == null && payment.methods.length === 0;
+  // 가격정책이 있으면 선택된 옵션의 가격이 상품가가 된다.
+  const itemPrice = hasPolicies ? (selectedPolicy?.price ?? 0) : getItemPrice(payment, type);
+  const priceAvailable = hasPolicies || payment.price != null;
+  const priceNotAvailable = !priceAvailable && payment.methods.length === 0;
 
   // 할인은 하나만 선택 가능 (패스 할인 or 쿠폰)
   const activeDiscounts: DiscountResponse[] | undefined = (() => {
@@ -309,6 +312,19 @@ export const UnifiedPaymentInfo = ({
         </>
       )}
 
+      {/* 수강 횟수 가격정책 선택 — 1회/4회/8회 등 옵션이 있을 때만 노출 */}
+      {hasPolicies && (
+        <>
+          <PricePolicySection
+            locale={locale}
+            policies={pricePolicies}
+            selectedPolicyId={selectedPolicyId}
+            onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
+          />
+          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
+        </>
+      )}
+
       {/* 패스권 — 결제수단/할인과 같은 레벨의 별도 영역.
           methods에 'pass'가 활성이면 무조건 섹션 노출(passes 비어 있어도 안내 메시지 표시). */}
       {passMethodEnabled && (
@@ -357,7 +373,7 @@ export const UnifiedPaymentInfo = ({
       )}
 
       {/* 결제 정보 */}
-      {payment.price != null && (
+      {priceAvailable && (
         <>
           <PurchaseInformation
             originalPrice={itemPrice}
@@ -382,7 +398,7 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
-      {payment.price != null && (
+      {priceAvailable && (
         <div className={`flex flex-col ${noPass ? 'gap-y-5' : 'space-y-4'} px-6 py-2`}>
           {/* 결제 유의사항 */}
           <div>
@@ -398,7 +414,7 @@ export const UnifiedPaymentInfo = ({
               </div>
             )}
           </div>
-          {/* 판매자 정보 - lesson-group은 표시 안 함 */}
+          {/* 판매자 정보 */}
           {studio && <SellerInformation studio={studio} locale={locale}/>}
           {/* 환불 안내 */}
           <RefundInformation locale={locale}/>
@@ -415,7 +431,8 @@ export const UnifiedPaymentInfo = ({
           selectedDiscounts={noPass ? undefined : activeDiscounts}
           type={getPaymentType(type)}
           id={getItemId(payment, type)}
-          price={payment.price != null ? totalPrice : null}
+          policyId={selectedPolicyId}
+          price={priceAvailable ? totalPrice : null}
           title={getItemTitle(payment, type)}
           user={payment.user}
           depositor={depositor}
@@ -427,7 +444,7 @@ export const UnifiedPaymentInfo = ({
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
             )) ||
-            (payment.price == null && selectedMethod === 'pass' && !selectedPass)
+            (!priceAvailable && selectedMethod === 'pass' && !selectedPass)
           }
           paymentId={payment.paymentId}
           actualPayerUserId={noPass ? undefined : actualPayerUserId}

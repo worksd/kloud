@@ -13,7 +13,6 @@ import { createManualPaymentRecordAction } from "@/app/lessons/[id]/action/creat
 import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePassActioin";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
-import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
@@ -31,7 +30,6 @@ const setDepositorCookie = (depositor: string) => {
 
 export const PaymentTypes = [
   {value: 'lesson', prefix: 'LT', apiValue: 'lesson'},
-  {value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group'},
   {value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'},
   {value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room'},
   // 번들(묶음) 결제 — paymentId prefix `BD`로 BE가 라우팅. 결제 API는 lesson/passPlan과 동일.
@@ -77,6 +75,7 @@ const purgeLessonCache = (lessonId: number) => {
 export default function PaymentButton({
                                         appVersion,
                                         id,
+                                        policyId,
                                         selectedPass,
                                         selectedBilling,
                                         selectedDiscounts,
@@ -96,6 +95,7 @@ export default function PaymentButton({
                                       }: {
   appVersion: string;
   id: number,
+  policyId?: number,
   selectedPass?: GetPassResponse,
   selectedBilling?: GetBillingResponse,
   selectedDiscounts?: DiscountResponse[],
@@ -173,6 +173,7 @@ export default function PaymentButton({
           itemId: id,
           targetUserId: user.id,
           discounts: selectedDiscounts,
+          policyId,
         })
         if ('paymentId' in res) {
           if (type.value === 'lesson') purgeLessonCache(id);
@@ -218,6 +219,7 @@ export default function PaymentButton({
         customData: JSON.stringify({
           actualPayerUserId,
           discounts: selectedDiscounts,
+          policyId,
         }),
         userName: user.name ?? user.nickName ?? undefined,
         userPhone: user.phone ?? undefined,
@@ -242,6 +244,7 @@ export default function PaymentButton({
           customData: {
             actualPayerUserId,
             discounts: selectedDiscounts,
+            policyId,
           }
         };
 
@@ -354,6 +357,7 @@ export default function PaymentButton({
           targetUserId: user.id,
           depositor: depositor,
           discounts: selectedDiscounts,
+          policyId,
         });
         if ('paymentId' in res) {
           setDepositorCookie(depositor)
@@ -391,41 +395,29 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
-        // 구독을 직접 만들어야하니깐 유지
-        if (type.value === 'lessonGroup') {
-          const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
-          if ('subscription' in res) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId)
-            await kloudNav.navigateMain({route});
-          } else if (isGuinnessErrorCase(res)) {
-            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
-          }
-        } else {
-          const res = await billingKeyPaymentAction({
-            item: type.apiValue,
-            itemId: id,
-            billingKey: data.customData ?? '',
-            paymentId,
-            targetUserId: actualPayerUserId,
-            discounts: selectedDiscounts?.map(d => ({
-              key: d.key,
-              amount: d.amount,
-              type: d.type as 'membership' | 'subscription' | 'passRule',
-              itemId: d.itemId,
-              passRuleId: d.passRule?.id,
-            })),
-          })
-          if ('success' in res && res.success) {
-            if (type.value === 'lesson') purgeLessonCache(id);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const route = KloudScreen.PaymentRecordDetail(paymentId)
-            await kloudNav.navigateMain({route});
-          } else if (isGuinnessErrorCase(res)) {
-            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
-          }
+        const res = await billingKeyPaymentAction({
+          item: type.apiValue,
+          itemId: id,
+          billingKey: data.customData ?? '',
+          paymentId,
+          targetUserId: actualPayerUserId,
+          policyId,
+          discounts: selectedDiscounts?.map(d => ({
+            key: d.key,
+            amount: d.amount,
+            type: d.type as 'membership' | 'subscription' | 'passRule',
+            itemId: d.itemId,
+            passRuleId: d.passRule?.id,
+          })),
+        })
+        if ('success' in res && res.success) {
+          if (type.value === 'lesson') purgeLessonCache(id);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          const route = KloudScreen.PaymentRecordDetail(paymentId)
+          await kloudNav.navigateMain({route});
+        } else if (isGuinnessErrorCase(res)) {
+          const dialog = await createDialog({id: 'PaymentFail', message: res.message})
+          window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       }
     } catch (e) {

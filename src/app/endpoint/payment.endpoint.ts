@@ -46,6 +46,16 @@ export type CouponResponse = {
   type: string;
 }
 
+export type PricePolicyResponse = {
+  id: number;
+  /** 수강 횟수 (예: 1, 4, 8) */
+  count: number;
+  /** 해당 횟수 옵션의 가격 */
+  price: number;
+  /** 표시용 라벨 (옵션). 없으면 count 기반으로 '{count}회' 폴백. */
+  label?: string;
+}
+
 export type GetPaymentResponse = {
   user: GetUserResponse;
   /**
@@ -56,20 +66,15 @@ export type GetPaymentResponse = {
   /** 결제 페이지 진입 직후 강제 이동시킬 라우트. BE가 지정하면 결제 폼 대신 navigateMain. */
   redirectUrl?: string;
   price?: number;
+  /**
+   * 수강 횟수별 가격정책 — 한 수업을 1회/4회/8회 등 여러 횟수 옵션으로 구매 가능할 때 내려옴.
+   * 존재하면 결제 화면에서 옵션 선택 UI를 노출하고, 선택한 정책의 id를 policyId로 결제 요청에 전송한다.
+   * 선택된 옵션의 price가 결제 금액(상품가)이 된다.
+   */
+  pricePolicies?: PricePolicyResponse[];
   methods: GetPaymentMethodResponse[];
   cards?: GetBillingResponse[];
   lesson?: GetLessonResponse;
-  lessonGroup?: {
-    id: number;
-    title: string;
-    price: number;
-    description?: string;
-    studioImageUrl?: string;
-    studioName?: string;
-    thumbnailUrl?: string;
-    type?: string;
-    studio?: { id: number; name: string };
-  };
   passPlan?: GetPassPlanResponse;
   /**
    * 번들(묶음) 결제 — LessonPaymentResponse 패턴처럼 nested 객체로 내려옴.
@@ -153,6 +158,8 @@ export type CreateBillingKeyPaymentRequest = {
   paymentId: string;
   targetUserId?: number;
   discounts?: PaymentDiscount[];
+  /** 가격정책(수강 횟수) 결제 시 선택한 정책 id */
+  policyId?: number;
 }
 
 export type CreateBillingKeyPaymentResponse = {
@@ -162,5 +169,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'policyId']
 }
