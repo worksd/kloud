@@ -63,7 +63,7 @@ export type ReceiptUser = {
 };
 
 /** 영수증의 상품 종류 — 컬럼 라벨 분기에 사용 */
-export type KioskItemType = 'lesson' | 'pass-plan' | 'practice-room';
+export type KioskItemType = 'lesson' | 'pass-plan';
 
 export type CardPaymentInfo = {
   cardNo?: string;
@@ -136,12 +136,12 @@ const userLines = (user: ReceiptUser | undefined): PrinterLine[] => {
 
 // 수업 결제 영수증 상단의 임팩트 박스 — 수업명(bold center) + 강사 + 수업일시 ('===' 구분선으로 감쌈)
 const HIGHLIGHT_SEP = '='.repeat(W);
-const lessonHighlightLines = (title?: string, artists?: string[], dateTime?: string, rank?: string, boxLabel = '수업 정보'): PrinterLine[] => {
+const lessonHighlightLines = (title?: string, artists?: string[], dateTime?: string, rank?: string): PrinterLine[] => {
   const hasArtist = !!(artists && artists.length > 0);
   if (!title && !hasArtist && !dateTime && !rank) return [];
   const lines: PrinterLine[] = [
     { align: 'C', text: HIGHLIGHT_SEP },
-    { align: 'C', bold: true, text: `[ ${boxLabel} ]` },
+    { align: 'C', bold: true, text: '[ 수업 정보 ]' },
   ];
   if (title) lines.push({ align: 'C', bold: true, text: title });
   if (hasArtist) lines.push({ align: 'C', text: `강사 ${artists!.join(', ')}` });
@@ -171,15 +171,8 @@ const transactionLines = (tx: ReceiptTransaction | undefined): PrinterLine[] => 
 const itemColumnLabel = (itemType?: KioskItemType): string => {
   if (itemType === 'lesson') return '수업명';
   if (itemType === 'pass-plan') return '패스권명';
-  if (itemType === 'practice-room') return '연습실';
   return '상품명';
 };
-
-// 임팩트 박스 노출 대상 itemType (수업/연습실) — 상단에 제목/일시를 강조 출력
-const showsHighlight = (itemType?: KioskItemType): boolean =>
-  itemType === 'lesson' || itemType === 'practice-room';
-const highlightBoxLabel = (itemType?: KioskItemType): string =>
-  itemType === 'practice-room' ? '예약 정보' : '수업 정보';
 
 const itemTable = (items: ReceiptItem[], itemType?: KioskItemType): PrinterLine[] => [
   { align: 'L', text: DIVIDER },
@@ -277,7 +270,7 @@ export type CardReceiptInput = {
 export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] => {
   const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, card, passDiscount = 0, qrText } = input;
   const total = sumPrice(items);
-  const highlightTitle = showsHighlight(itemType) ? items[0]?.name : undefined;
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   const lines: PrinterLine[] = [
     ...studioHeader(studio),
     ...transactionLines(transaction),
@@ -292,7 +285,7 @@ export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] 
   lines.push({ blank: 1 });
   lines.push({ align: 'C', bold: true, text: '** 신용승인전표 **' });
   lines.push(...cardMetaLines(card));
-  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank, highlightBoxLabel(itemType)));
+  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank));
   lines.push(...qrLine(qrText));
   lines.push(...footerLines(studio.receiptFooter));
   return lines;
@@ -320,7 +313,7 @@ export type PassReceiptInput = {
 export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] => {
   const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passName, qrText } = input;
   const total = sumPrice(items);
-  const highlightTitle = showsHighlight(itemType) ? items[0]?.name : undefined;
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   // 패스권으로 풀커버되는 영수증 — 패스권 차감 라인을 먼저 노출하고, 합계는 차감 후 실결제액(0원)으로 표시
   return [
     ...studioHeader(studio),
@@ -331,7 +324,7 @@ export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] 
     totalsRow('합계', 0),
     { blank: 1 },
     { align: 'C', bold: true, text: '** 결제 완료 **' },
-    ...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank, highlightBoxLabel(itemType)),
+    ...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank),
     ...qrLine(qrText),
     ...footerLines(studio.receiptFooter),
   ];
@@ -360,7 +353,7 @@ export type CashRequestReceiptInput = {
 export const buildCashRequestReceipt = (input: CashRequestReceiptInput): PrinterLine[] => {
   const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passDiscount = 0, qrText } = input;
   const total = sumPrice(items);
-  const highlightTitle = showsHighlight(itemType) ? items[0]?.name : undefined;
+  const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   const lines: PrinterLine[] = [
     ...studioHeader(studio),
     ...transactionLines(transaction),
@@ -376,7 +369,7 @@ export const buildCashRequestReceipt = (input: CashRequestReceiptInput): Printer
   lines.push({ align: 'C', bold: true, text: '** 인포에서 결제를 마무리해주세요 **' });
   lines.push({ blank: 1 });
   lines.push(...stampBox());
-  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank, highlightBoxLabel(itemType)));
+  lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank));
   lines.push(...qrLine(qrText));
   lines.push(...footerLines(studio.receiptFooter));
   return lines;

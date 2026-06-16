@@ -16,16 +16,6 @@ export const searchUserAction = async (query: string) => {
   return await api.user.search({ query });
 };
 
-// 연습실 목록 — practiceOnly로 연습 가능한 방만 조회 (운영자 토큰 사용)
-export const getStudioRoomsAction = async (studioId: number) => {
-  return await api.studioRoom.list({ studioId, practiceOnly: true });
-};
-
-// 특정 연습실의 날짜별 가용 슬롯 조회 — date는 'yyyy.MM.dd'
-export const getRoomAvailabilityAction = async (studioRoomId: number, date: string) => {
-  return await api.studioRoom.getAvailability({ id: studioRoomId, date });
-};
-
 export const registerKioskUserAction = async (phone: string, countryCode: string, nickName: string) => {
   // 1. phone-login (isAdmin: true → 신규 유저 자동 생성)
   const loginResult = await api.auth.checkPhoneVerification({
@@ -142,15 +132,6 @@ export const getKioskDetailAction = async (kioskId: number) => {
 // 키오스크에서 결제 화면 진입 시 호출 — price/discounts(적용 가능한 패스권 등)/methods 응답
 export const getKioskPaymentAction = async (params: { kioskId: number; targetUserId: number; item: string; itemId: number }) => {
   return await api.kiosk.getPayment(params);
-};
-
-// 장바구니 결제정보 — 수업 여러 건의 합산 결제 정보 + 수업별 패스/할인. lessonIds는 콤마 조인.
-export const getKioskCartPaymentAction = async (params: { kioskId: number; targetUserId: number; lessonIds: number[] }) => {
-  return await api.kiosk.getCartPayment({
-    kioskId: params.kioskId,
-    targetUserId: params.targetUserId,
-    lessonIds: params.lessonIds.join(','),
-  });
 };
 
 // 결제 시작 — 카드: Pending 생성 / 현금: 즉시 Completed. 응답의 amount가 KIS 단말 매입 금액

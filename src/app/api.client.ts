@@ -121,7 +121,6 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.Kiosk.GetKiosks),
     detail: this.endpointBuilder(API.Kiosk.GetKioskDetail),
     getPayment: this.endpointBuilder(API.Kiosk.GetKioskPayment),
-    getCartPayment: this.endpointBuilder(API.Kiosk.GetKioskCartPayment),
     startPayment: this.endpointBuilder(API.Kiosk.StartKioskPayment),
     completePayment: this.endpointBuilder(API.Kiosk.CompleteKioskPayment),
     discardPayment: this.endpointBuilder(API.Kiosk.DiscardKioskPayment),
