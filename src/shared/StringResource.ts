@@ -3273,6 +3273,23 @@ export const StringResource = {
   kiosk_recommended: { ko: '추천', en: 'Recommended', jp: 'おすすめ', zh: '推荐' },
   kiosk_date_format: { ko: '{0}년 {1}월 {2}일', en: '{1}/{2}/{0}', jp: '{0}年{1}月{2}日', zh: '{0}年{1}月{2}日' },
 
+  // Kiosk — 연습실 예약
+  kiosk_tab_practice_room: { ko: '연습실', en: 'Practice Room', jp: '練習室', zh: '练习室' },
+  kiosk_no_rooms: { ko: '예약 가능한 연습실이 없습니다', en: 'No practice rooms available', jp: '予約可能な練習室がありません', zh: '没有可预约的练习室' },
+  kiosk_no_slots: { ko: '예약 가능한 시간이 없습니다', en: 'No available time slots', jp: '予約可能な時間がありません', zh: '没有可预约的时间' },
+  kiosk_per_hour: { ko: '시간당', en: '/hour', jp: '時間あたり', zh: '每小时' },
+  kiosk_reserve: { ko: '예약하기', en: 'Reserve', jp: '予約する', zh: '预约' },
+  kiosk_room_pass_only: { ko: '연습실 예약은 패스권으로만 가능합니다', en: 'Practice room reservation requires a pass', jp: '練習室の予約はパス券のみ可能です', zh: '练习室预约仅限通行证' },
+  kiosk_reservation_info: { ko: '예약 정보', en: 'Reservation', jp: '予約情報', zh: '预约信息' },
+
+  // Kiosk — 장바구니(다중 수업 결제)
+  kiosk_cart_title: { ko: '신청목록', en: 'Request List', jp: '申込リスト', zh: '申请列表' },
+  kiosk_cart_checkout: { ko: '결제하기', en: 'Checkout', jp: '決済する', zh: '去结算' },
+  kiosk_cart_extra: { ko: '외 {0}건', en: '+{0} more', jp: '他{0}件', zh: '等{0}件' },
+  kiosk_applied: { ko: '적용', en: 'Applied', jp: '適用', zh: '已应用' },
+  kiosk_remove: { ko: '해제', en: 'Remove', jp: '解除', zh: '取消' },
+  kiosk_cash: { ko: '현금 결제', en: 'Cash', jp: '現金', zh: '现金' },
+
   // Kiosk — 결제 결과 화면 (KioskForm)
   kiosk_payment_done: { ko: '결제 완료!', en: 'Payment complete!', jp: '決済完了！', zh: '支付完成！' },
   kiosk_request_done: { ko: '신청 완료!', en: 'Request received!', jp: '申し込み完了！', zh: '申请完成！' },

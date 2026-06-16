@@ -1,5 +1,7 @@
 import { Endpoint, NoParameter } from "@/app/endpoint";
-import { GetPaymentResponse, PaymentDiscount } from "@/app/endpoint/payment.endpoint";
+import { GetPaymentResponse, GetPaymentMethodResponse, PaymentDiscount, DiscountResponse } from "@/app/endpoint/payment.endpoint";
+import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 
 export type KioskStatus = 'Active' | 'Inactive';
 
@@ -16,6 +18,52 @@ export const GetKioskPayment: Endpoint<GetKioskPaymentRequest, GetPaymentRespons
   queryParams: ['kioskId', 'targetUserId', 'item', 'itemId'],
 };
 
+// ════════════ 장바구니(다중 수업) 결제 ════════════
+// 수업 여러 건을 한 번에 결제. 수업별로 적용 가능한 패스권/할인을 따로 내려주고(수업별 적용),
+// 패스 풀커버를 제외한 잔액 합산을 카드/현금으로 단말 결제한다.
+
+// 장바구니 결제정보 조회 — lessonIds는 콤마 조인 문자열('1,2,3')
+export type GetKioskCartPaymentRequest = {
+  kioskId: number;
+  targetUserId: number;
+  lessonIds: string;
+};
+
+// 장바구니 한 줄(수업) — 수업 정보 + 그 수업에 쓸 수 있는 패스권/할인
+export type KioskCartItemPayment = {
+  lessonId: number;
+  title: string;
+  price: number;
+  thumbnailUrl?: string;
+  startDate?: string;
+  artists?: { id: number; name?: string; nickName?: string }[];
+  passes?: GetPassResponse[];
+  discounts?: DiscountResponse[];
+};
+
+export type KioskCartPaymentResponse = {
+  paymentId: string;                       // 합산 Pending 1건
+  methods: GetPaymentMethodResponse[];     // 카드/현금
+  user: GetUserResponse;
+  items: KioskCartItemPayment[];
+  refundAccountNumber?: string;
+  refundAccountBank?: string;
+  refundDepositor?: string;
+};
+
+export const GetKioskCartPayment: Endpoint<GetKioskCartPaymentRequest, KioskCartPaymentResponse> = {
+  method: 'get',
+  path: '/kiosks/cart-payment',
+  queryParams: ['kioskId', 'targetUserId', 'lessonIds'],
+};
+
+// 장바구니 결제 시작 시 보내는 수업별 항목 — 행별 패스(passId) 또는 할인(discount) 선택 반영
+export type KioskCartPaymentItem = {
+  lessonId: number;
+  passId?: number;
+  discount?: PaymentDiscount;
+};
+
 export type KioskPaymentType = 'card' | 'cash';
 
 // ① POST /kiosks/payments — Pending 생성 (card) / 즉시 Completed (cash)
@@ -26,6 +74,8 @@ export type StartKioskPaymentRequest = {
   paymentId: string;
   type: KioskPaymentType;
   discounts?: PaymentDiscount[];
+  /** 장바구니(다중 수업) 결제 시 수업별 패스/할인 선택. 단일 결제에선 미사용. */
+  items?: KioskCartPaymentItem[];
 };
 
 export type StartKioskPaymentResponse = {
@@ -43,7 +93,7 @@ export type StartKioskPaymentResponse = {
 export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
   method: 'post',
   path: '/kiosks/payments',
-  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts'],
+  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts', 'items'],
 };
 
 // ② POST /kiosks/payments/:paymentId/complete — Pending → Completed (KIS 매입 성공 후)
