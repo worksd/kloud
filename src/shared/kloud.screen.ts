@@ -22,6 +22,7 @@ export const KloudScreen = {
   RefundAccountSetting: '/profile/setting/account/refund',
   PaymentMethodSetting: '/profile/setting/account/paymentMethod',
   InstagramConnect: '/profile/setting/account/instagram',
+  SnsConnect: '/profile/setting/account/sns',
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
   NotificationSetting: '/profile/setting/notification',
