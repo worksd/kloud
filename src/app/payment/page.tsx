@@ -13,8 +13,10 @@ import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
+import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
@@ -49,6 +51,20 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;
 
   if (!('user' in res)) {
+    // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
+    // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
+    if (isGuinnessErrorCase(res)) {
+      // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
+      const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
+      return (
+        <PaymentErrorView
+          title={await translate('payment_error_title')}
+          message={res.message || await translate('unknown_error_message')}
+          backLabel={await translate('back')}
+          lessons={errorLessons}
+        />
+      );
+    }
     return notFound();
   }
 
@@ -64,6 +80,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
+  }
+  if (paymentItem === 'bundle' && !res.bundle) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
 
   const getItemInfo = () => {
@@ -88,6 +107,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.passPlan?.name,
           studioName: res.passPlan?.studio?.name,
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
+        };
+      case 'bundle':
+        // 번들 응답엔 studio 정보가 따로 안 옴 — title만 표기, studio는 비움.
+        return {
+          thumbnailUrl: undefined,
+          title: res.bundle?.name,
+          studioName: undefined,
+          studioImageUrl: undefined,
         };
       default:
         return {
@@ -169,6 +196,58 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* bundle — 묶음 결제. 번들명 + 원가 strike + 판매 마감 + 구성 수업 리스트. */}
+        {paymentItem === 'bundle' && res.bundle && (
+          <div className="px-5 pt-4 pb-3">
+            <p className="text-[20px] font-bold text-black mb-1">{res.bundle.name}</p>
+            {res.bundle.description && (
+              <p className="text-[13px] text-[#86898C] font-medium mb-2">{res.bundle.description}</p>
+            )}
+            {/* 원가 strike + 마감일 */}
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              {res.bundle.originalPrice != null && res.price != null && res.bundle.originalPrice > res.price && (
+                <span className="text-[13px] text-[#BFC2C5] line-through">
+                  {new Intl.NumberFormat('ko-KR').format(res.bundle.originalPrice)}{await translate('won')}
+                </span>
+              )}
+              {res.bundle.closeDate && (
+                <span className="text-[12px] text-[#EF4444] font-medium">
+                  ~ {res.bundle.closeDate}
+                </span>
+              )}
+            </div>
+            {/* 구성 수업 리스트 */}
+            {res.bundle.items.length > 0 && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TicketIcon className="w-[14px] h-[14px]"/>
+                  <span className="text-[13px] font-bold text-black">
+                    {(await translate('bundle_total_lessons')).replace('{count}', String(res.bundle.items.length))}
+                  </span>
+                </div>
+                {res.bundle.items.map((item) => {
+                  const thumb = item.imageUrl ?? item.thumbnailUrl;
+                  return (
+                  <div key={`${item.itemType}-${item.itemId}`} className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-xl">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F1F3F6] shrink-0">
+                      {thumb && (
+                        <Thumbnail url={thumb} className="w-full h-full" aspectRatio={1}/>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                      <span className="text-[14px] font-medium text-black truncate">{item.title}</span>
+                      {item.startDate && (
+                        <span className="text-[12px] text-[#86898C]">{item.startDate}</span>
+                      )}
+                    </div>
+                  </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

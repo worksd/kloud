@@ -24,6 +24,8 @@ export const KloudScreen = {
   InstagramConnect: '/profile/setting/account/instagram',
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
+  NotificationSetting: '/profile/setting/notification',
+  CouponRegister: '/profile/setting/coupon',
   SignOut: '/profile/setting/account/signOut',
   DeveloperSetting: '/profile/setting/developer',
   DeveloperAuthentication: '/profile/setting/developer/authentication',
@@ -31,7 +33,8 @@ export const KloudScreen = {
   Kiosk: '/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
-  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group', id: number) => `/payment?type=${type}&id=${id}`,
+  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
+  BundlePayment: (id: number) => `/bundle/${id}/payment`,
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
@@ -70,6 +73,7 @@ export const KloudScreen = {
   Policy: '/profile/policy',
   Privacy: '/profile/policy/privacy',
   Terms: '/profile/policy/terms',
+  MarketingAgreement: '/profile/policy/marketing',
   Inquiry: '/profile/inquiry',
   Notification: '/notifications',
 

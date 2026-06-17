@@ -14,6 +14,7 @@ const METHOD_LABEL: Record<PaymentMethodType, string> = {
   billing: '카드결제',
   admin: '관리자',
   free: '무료',
+  voucher: '교환권',
   easy_pay: '간편결제',
   naver_pay: '네이버페이',
   kakao_pay: '카카오페이',

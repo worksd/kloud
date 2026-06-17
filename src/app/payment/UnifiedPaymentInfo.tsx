@@ -14,7 +14,7 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room';
+type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
@@ -26,11 +26,15 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
       return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
     case 'practice-room':
       return { value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room' };
+    case 'bundle':
+      return { value: 'bundle', prefix: 'BD', apiValue: 'bundle' };
   }
 }
 
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  return type === 'pass-plan' ? 'pass_plan_price' : 'lesson_price';
+  if (type === 'pass-plan') return 'pass_plan_price';
+  if (type === 'bundle') return 'promotion_price';
+  return 'lesson_price';
 }
 
 const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): number => {
@@ -43,6 +47,8 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
       return payment.lessonGroup?.id ?? 0;
     case 'practice-room':
       return payment.studioRoom?.id ?? 0;
+    case 'bundle':
+      return payment.bundle?.id ?? 0;
   }
 }
 
@@ -56,6 +62,8 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
       return payment.lessonGroup?.title ?? '';
     case 'practice-room':
       return payment.studioRoom?.name ?? '';
+    case 'bundle':
+      return payment.bundle?.name ?? '';
   }
 }
 
@@ -71,6 +79,8 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
       return payment.lessonGroup?.price ?? 0;
     case 'practice-room':
       return payment.price ?? payment.studioRoom?.unitPrice ?? 0;
+    case 'bundle':
+      return 0;
   }
 }
 
@@ -83,6 +93,10 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
     case 'lesson-group':
       return null;
     case 'practice-room':
+      return null;
+    case 'bundle':
+      // bundle.studio는 간소형 — SellerInformation의 GetStudioResponse 풀 타입과 안 맞아 null 처리.
+      // 판매자 정보는 BE가 페이로드에 풀 스튜디오 보내주면 그때 연결.
       return null;
   }
 }

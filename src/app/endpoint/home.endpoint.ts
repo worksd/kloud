@@ -1,5 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { GetBandResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
+import { BundleSummaryResponse, GetBandResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
@@ -15,6 +15,8 @@ export type GetHomeResponse = {
   recommendedStudios: GetStudioResponse[];
   events?: GetEventResponse[];
   alerts?: HomeAlertResponse[];
+  /** 선택된(또는 첫 번째 가입) 스튜디오의 판매중 묶음. 없으면 []. 레슨 상세의 bundles와 동일 shape. */
+  bundles?: BundleSummaryResponse[];
 }
 
 export type GetStagResponse = {

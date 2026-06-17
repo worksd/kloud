@@ -239,6 +239,12 @@ export const StringResource = {
     jp: "[必須] サービス利用規約",
     zh: "[必填] 服务使用条款"
   },
+  marketing_agreement_optional: {
+    ko: "[선택] 광고성 정보 수신 동의",
+    en: "[Optional] Marketing Communications",
+    jp: "[任意] 広告性情報の受信同意",
+    zh: "[可选] 营销信息接收同意"
+  },
   service_privacy_agreement_required: {
     ko: "[필수] 개인정보 수집 및 이용동의",
     en: "[Required] Privacy Policy",
@@ -424,6 +430,138 @@ export const StringResource = {
     en: "Notification Settings",
     jp: "通知設定",
     zh: "通知设置"
+  },
+  announcement_notification: {
+    ko: "공지사항 알림",
+    en: "Announcement Notifications",
+    jp: "お知らせ通知",
+    zh: "公告通知"
+  },
+  event_notification: {
+    ko: "이벤트 알림",
+    en: "Event Notifications",
+    jp: "イベント通知",
+    zh: "活动通知"
+  },
+  notification_turned_on: {
+    ko: "{label}을 켰어요",
+    en: "Turned on {label}",
+    jp: "{label}をオンにしました",
+    zh: "已开启{label}"
+  },
+  notification_turned_off: {
+    ko: "{label}을 껐어요",
+    en: "Turned off {label}",
+    jp: "{label}をオフにしました",
+    zh: "已关闭{label}"
+  },
+  coupon_register: {
+    ko: "쿠폰 등록하기",
+    en: "Register Coupon",
+    jp: "クーポン登録",
+    zh: "注册优惠券"
+  },
+  coupon_register_description: {
+    ko: "받은 쿠폰 코드를 입력해 패스권을 받아보세요.",
+    en: "Enter your coupon code to receive a pass.",
+    jp: "クーポンコードを入力してパスを受け取りましょう。",
+    zh: "输入优惠券代码以领取通行证。"
+  },
+  coupon_register_placeholder: {
+    ko: "쿠폰 코드를 입력해주세요",
+    en: "Enter coupon code",
+    jp: "クーポンコードを入力してください",
+    zh: "请输入优惠券代码"
+  },
+  coupon_register_button: {
+    ko: "등록하기",
+    en: "Register",
+    jp: "登録する",
+    zh: "注册"
+  },
+  coupon_scan_qr: {
+    ko: "QR 코드 스캔",
+    en: "Scan QR Code",
+    jp: "QRコードをスキャン",
+    zh: "扫描二维码"
+  },
+  coupon_enter_code: {
+    ko: "쿠폰 코드 입력하기",
+    en: "Enter Coupon Code",
+    jp: "クーポンコードを入力する",
+    zh: "输入优惠券代码"
+  },
+  bundle_total_lessons: {
+    ko: "총 {count}개 수업",
+    en: "{count} lessons total",
+    jp: "全{count}レッスン",
+    zh: "共{count}节课"
+  },
+  bundle_included_title: {
+    ko: "이 수업이 포함된 묶음",
+    en: "Bundles including this lesson",
+    jp: "このレッスンを含むパッケージ",
+    zh: "包含此课程的套餐"
+  },
+  bundles_in_studio: {
+    ko: "{studioName}에서 진행중인 프로모션",
+    en: "Promotions running at {studioName}",
+    jp: "{studioName}で開催中のプロモーション",
+    zh: "{studioName}正在进行的促销"
+  },
+  payment_method_voucher: {
+    ko: "교환권",
+    en: "Voucher",
+    jp: "教換券",
+    zh: "兑换券"
+  },
+  voucher_refund_not_allowed: {
+    ko: "교환권 결제는 환불할 수 없어요",
+    en: "Voucher payments cannot be refunded",
+    jp: "教換券での決済は返金できません",
+    zh: "兑换券支付无法退款"
+  },
+  coupon_qr_invalid: {
+    ko: "올바르지 않은 QR 코드예요",
+    en: "Invalid QR code",
+    jp: "正しくないQRコードです",
+    zh: "无效的二维码"
+  },
+  coupon_register_success: {
+    ko: "{name} 패스권이 발급되었어요",
+    en: "{name} pass has been issued",
+    jp: "{name}パスが発行されました",
+    zh: "{name}通行证已发放"
+  },
+  coupon_error_not_found: {
+    ko: "쿠폰을 찾을 수 없어요",
+    en: "Coupon not found",
+    jp: "クーポンが見つかりません",
+    zh: "找不到优惠券"
+  },
+  coupon_error_already_used: {
+    ko: "이미 사용된 쿠폰이에요",
+    en: "This coupon has already been used",
+    jp: "このクーポンはすでに使用されています",
+    zh: "此优惠券已被使用"
+  },
+  coupon_error_expired: {
+    ko: "만료된 쿠폰이에요",
+    en: "This coupon has expired",
+    jp: "このクーポンは期限切れです",
+    zh: "此优惠券已过期"
+  },
+  coupon_error_not_active: {
+    ko: "사용할 수 없는 쿠폰이에요",
+    en: "This coupon is not available",
+    jp: "このクーポンは利用できません",
+    zh: "此优惠券不可用"
+  },
+  coupon_error_unknown: {
+    ko: "쿠폰 등록에 실패했어요",
+    en: "Failed to register coupon",
+    jp: "クーポンの登録に失敗しました",
+    zh: "注册优惠券失败"
   },
   upcoming_lessons: {
     ko: "다가오는 수업",
@@ -887,6 +1025,12 @@ export const StringResource = {
     jp: "受講券金額",
     zh: "课程价格"
   },
+  promotion_price: {
+    ko: "프로모션 금액",
+    en: "Promotion Price",
+    jp: "プロモーション料金",
+    zh: "促销金额"
+  },
   total_amount: {
     ko: "총 결제 금액",
     en: "Total Payment Amount",
@@ -1228,6 +1372,12 @@ export const StringResource = {
     en: "Lesson Ticket Information",
     jp: "レッスンチケット情報",
     zh: "课程票信息"
+  },
+  promotion_information: {
+    ko: "프로모션 정보",
+    en: "Promotion Information",
+    jp: "プロモーション情報",
+    zh: "促销信息"
   },
   my_subscription: {
     ko: "정기결제",
@@ -3466,6 +3616,12 @@ export const StringResource = {
     en: 'Back',
     jp: '戻る',
     zh: '返回',
+  },
+  payment_error_title: {
+    ko: '결제를 진행할 수 없어요',
+    en: 'Payment is unavailable',
+    jp: '決済を進められません',
+    zh: '无法继续支付',
   },
 
   // 오늘 열리는 수업 (TodayTimetable)

@@ -34,6 +34,8 @@ export const PaymentTypes = [
   {value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group'},
   {value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan'},
   {value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room'},
+  // 번들(묶음) 결제 — paymentId prefix `BD`로 BE가 라우팅. 결제 API는 lesson/passPlan과 동일.
+  {value: 'bundle', prefix: 'BD', apiValue: 'bundle'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];

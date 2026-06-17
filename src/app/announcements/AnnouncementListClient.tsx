@@ -44,8 +44,8 @@ export function AnnouncementListClient({
 
   return (
     <div className={'w-full min-h-screen bg-[#F7F8F9] flex flex-col'}>
-      {/* 헤더 */}
-      <header className={'sticky top-0 z-10 bg-white border-b border-[#F1F3F6]'}>
+      {/* 헤더 — ignoreSafeArea라 native nav bar 자리만큼 pt로 보정 (onboarding과 동일 pt-16) */}
+      <header className={'sticky top-0 z-10 bg-white border-b border-[#F1F3F6] pt-16'}>
         <div className={'flex items-center h-12 px-2'}>
           <button
             type={'button'}

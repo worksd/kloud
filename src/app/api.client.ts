@@ -85,7 +85,13 @@ export class ApiClient extends EndpointClient {
   }
 
   readonly notification = {
-    get: this.endpointBuilder(API.Notification.GetNotifications)
+    get: this.endpointBuilder(API.Notification.GetNotifications),
+    getSettings: this.endpointBuilder(API.Notification.GetNotificationSettings),
+    updateSettings: this.endpointBuilder(API.Notification.UpdateNotificationSettings),
+  }
+
+  readonly voucher = {
+    redeem: this.endpointBuilder(API.Voucher.RedeemVoucher),
   }
 
   readonly pass = {
@@ -140,6 +146,10 @@ export class ApiClient extends EndpointClient {
   readonly home = {
     getHome: this.endpointBuilder(API.Home.GetHome),
     getStage: this.endpointBuilder(API.Home.GetStage),
+  }
+
+  readonly trackingEvent = {
+    record: this.endpointBuilder(API.TrackingEvent.RecordTrackingEvent),
   }
 
   readonly artist = {

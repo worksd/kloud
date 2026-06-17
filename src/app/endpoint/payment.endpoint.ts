@@ -71,6 +71,31 @@ export type GetPaymentResponse = {
     studio?: { id: number; name: string };
   };
   passPlan?: GetPassPlanResponse;
+  /**
+   * 번들(묶음) 결제 — LessonPaymentResponse 패턴처럼 nested 객체로 내려옴.
+   * SimplePaymentResponse 공통 필드(user/methods/price/...)는 root에, 번들 전용은 이 안에.
+   * methods에는 Pass/Billing이 자동 제외됨.
+   */
+  bundle?: {
+    id: number;
+    name: string;
+    description?: string;
+    /** 구성 lesson 합계가(할인 전). UI에서 strike-through 가격 표시에 사용. */
+    originalPrice?: number;
+    /** 번들 판매 종료 시각 (KST). 'yyyy.MM.dd HH:mm' */
+    closeDate?: string;
+    /** 구성 수업 목록 */
+    items: {
+      itemType: string;     // 'lesson' 등
+      itemId: number;
+      title: string;
+      price: number;
+      startDate?: string;
+      /** BE가 새로 내려주는 아이템 썸네일 URL. legacy thumbnailUrl 폴백. */
+      imageUrl?: string;
+      thumbnailUrl?: string;
+    }[];
+  };
   paymentId: string;
   refundAccountNumber?: string
   refundAccountBank?: string
@@ -109,7 +134,7 @@ export type GetPaymentMethodResponse = {
   paymentMethod?: { id: number; type: PaymentMethodType; name: string };
 }
 
-export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
+export type PaymentMethodType = 'credit' | 'account_transfer' | 'pass' | 'billing' | 'admin' | 'free' | 'voucher' | 'easy_pay' | 'naver_pay' | 'kakao_pay' | 'toss_pay' | 'foreign_card'
 
 export type PaymentDiscount = {
   key: string;

@@ -115,7 +115,10 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith('/qrs') ||
     route.startsWith(KloudScreen.Kiosk) ||
     route.startsWith('/studioRooms/') ||
-    route.includes('/profile/myPass/')
+    route.includes('/profile/myPass/') ||
+    // 공지사항 목록(/announcements 또는 /announcements?...)만 ignoreSafeArea.
+    // 상세(/announcements/:id)는 일반 헤더 사용하도록 매칭에서 제외.
+    (route === '/announcements' || route.startsWith('/announcements?'))
 }
 
 const applyTitle = async (route: string) => {
@@ -133,6 +136,10 @@ const applyTitle = async (route: string) => {
     return await translate('payment_method_management')
   } else if (route == KloudScreen.LanguageSetting) {
     return await translate('language_setting')
+  } else if (route == KloudScreen.NotificationSetting) {
+    return await translate('notification_setting')
+  } else if (route == KloudScreen.CouponRegister) {
+    return await translate('coupon_register')
   } else if (route == KloudScreen.RefundAccountSetting) {
     return await translate('refund_account')
   } else if (route == KloudScreen.InstagramConnect) {
@@ -145,6 +152,8 @@ const applyTitle = async (route: string) => {
     return await translate('service_privacy_agreement')
   } else if (route == KloudScreen.Terms) {
     return await translate('service_terms_agreement')
+  } else if (route == KloudScreen.MarketingAgreement) {
+    return await translate('marketing_agreement_optional')
   } else if (route == KloudScreen.ProfileEdit) {
     return await translate('edit_profile')
   } else if (route == KloudScreen.StudioSetting) {
@@ -171,7 +180,11 @@ const applyTitle = async (route: string) => {
     return '';
   } else if (route.startsWith('/studioRooms/')) {
     return ''
-  } else if (route.startsWith('/payment?') || ( route.includes('/lessons/') && route.includes('/payment'))) {
+  } else if (
+    route.startsWith('/payment?') ||
+    (route.includes('/lessons/') && route.includes('/payment')) ||
+    (route.includes('/bundle/') && route.includes('/payment'))
+  ) {
     return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
   } else if (route.includes('/profile/myPass/')) {
     return '';

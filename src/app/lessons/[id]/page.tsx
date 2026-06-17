@@ -7,6 +7,7 @@ import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
 import { cookies } from "next/headers";
 import { accessTokenKey } from "@/shared/cookies.key";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { LessonViewTracker } from "@/app/lessons/[id]/LessonViewTracker";
 
 type Props = {
   params: Promise<{ id: string }>
@@ -37,6 +38,8 @@ export default async function LessonDetailPage({params, searchParams}: {
 
   return (
     <div>
+      {/* 조회수 트래킹 — 진입 시 1회 POST /tracking-events (5분 디바운스). 앱/웹 공통. */}
+      <LessonViewTracker lessonId={lessonId}/>
       {appVersion == '' && <MobileWebViewTopBar
         os={os}
         isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
