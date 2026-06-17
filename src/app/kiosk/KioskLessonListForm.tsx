@@ -5,11 +5,9 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
-import { StudioRoomResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
-import { getStudioRoomsAction } from "@/app/kiosk/kiosk.actions";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 import { formatLessonStart, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
@@ -30,23 +28,16 @@ type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
   locale: Locale;
-  /** 장바구니에 담긴 수업 목록 — 선택 표시 + 하단 미리보기용 */
-  cart: GetLessonResponse[];
-  /** 수업 카드/미리보기 탭 → 장바구니 담기/빼기 토글 */
-  onToggleLesson: (lesson: GetLessonResponse) => void;
-  /** 하단 '결제하기' → 다음 단계(전화 인증) */
-  onProceedCart: () => void;
+  onSelectLesson: (lesson: GetLessonResponse) => void;
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
-  onSelectRoom: (room: StudioRoomResponse) => void;
   onBack: () => void;
   onChangeLocale: (locale: Locale) => void;
 };
 
-type KioskTab = 'lessons' | 'pass-plans' | 'practice-rooms';
+type KioskTab = 'lessons' | 'pass-plans';
 
-export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, cart, onToggleLesson, onProceedCart, onSelectPassPlan, onSelectRoom, onBack, onChangeLocale }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
-  const cartIds = cart.map((l) => l.id);
   const [tab, setTab] = useState<KioskTab>('lessons');
   // 오늘부터 7일치 날짜 옵션 — 사용자가 pill로 선택. 자정 기준 normalize.
   const dateOptions = React.useMemo(() => {
@@ -65,9 +56,6 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   const [loadingPassPlans, setLoadingPassPlans] = useState(false);
   const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
   const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
-  const [rooms, setRooms] = useState<StudioRoomResponse[]>([]);
-  const [loadingRooms, setLoadingRooms] = useState(false);
-  const [roomsLoaded, setRoomsLoaded] = useState(false);
 
   const formatPillLabel = (d: Date): string => {
     const weekday = d.toLocaleDateString(INTL_LOCALE[locale], { weekday: 'short' });
@@ -99,19 +87,6 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       .finally(() => setLoadingPassPlans(false));
   }, [tab, studioId, passPlans.length]);
 
-  // 연습실 탭 진입 시 목록 fetch (1회만)
-  useEffect(() => {
-    if (tab !== 'practice-rooms' || roomsLoaded || !studioId) return;
-    setLoadingRooms(true);
-    getStudioRoomsAction(studioId)
-      .then(async (res) => {
-        if (await handleKioskTokenExpired(res)) return;
-        if ('studioRooms' in res) setRooms(res.studioRooms);
-        setRoomsLoaded(true);
-      })
-      .finally(() => setLoadingRooms(false));
-  }, [tab, studioId, roomsLoaded]);
-
   const handleClickPassPlan = async (plan: GetPassPlanResponse) => {
     if (loadingDetailId) return;
     setLoadingDetailId(plan.id);
@@ -125,12 +100,12 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   };
 
   return (
-    <div className="relative bg-white w-full h-screen flex flex-col overflow-hidden">
+    <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 — 백 + 언어/홈 */}
       <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} />
 
-      {/* 날짜 선택 — 오늘부터 7일치 범위에서 화살표로 하루씩 이동 (연습실 탭은 예약 모달에서 날짜 선택) */}
-      {tab !== 'practice-rooms' && (() => {
+      {/* 날짜 선택 — 오늘부터 7일치 범위에서 화살표로 하루씩 이동 */}
+      {(() => {
         const currentIdx = dateOptions.findIndex((d) => formatApiDate(d) === formatApiDate(selectedDate));
         const canPrev = currentIdx > 0;
         const canNext = currentIdx >= 0 && currentIdx < dateOptions.length - 1;
@@ -181,16 +156,10 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
             onClick={() => setTab('pass-plans')}
             iconSrc="/assets/ic_kiosk_pass_plan.svg"
           />
-          <KioskSideTab
-            label={t('kiosk_tab_practice_room')}
-            active={tab === 'practice-rooms'}
-            onClick={() => setTab('practice-rooms')}
-            iconSrc="/assets/ic_kiosk_pass_plan.svg"
-          />
         </div>
 
-        {/* 우측 컨텐츠 — 장바구니 바가 떠 있으면 하단 여백 확보(마지막 행 가림 방지) */}
-        <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px', paddingBottom: cart.length > 0 ? 'min(40vh, 360px)' : '16px' }}>
+        {/* 우측 컨텐츠 */}
+        <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px' }}>
           {tab === 'lessons' && (
             <>
               {loadingLessons && (
@@ -204,28 +173,19 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                   {lessons.map((lesson) => {
                     const payable = isLessonPayable(lesson);
                     const statusText = lessonBlockLabel(lesson, locale);
-                    const selected = cartIds.includes(lesson.id);
                     return (
                       <div
                         key={lesson.id}
-                        onClick={payable ? () => onToggleLesson(lesson) : undefined}
+                        onClick={payable ? () => onSelectLesson(lesson) : undefined}
                         className={`relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] transition-transform ${
                           payable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-not-allowed'
-                        } ${selected ? 'ring-[3px] ring-[#1E2124]' : ''}`}
+                        }`}
                       >
                         {lesson.thumbnailUrl && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={kioskImageSrc(lesson.thumbnailUrl, 400)} alt="" className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
-                        {/* 담김 표시 체크 */}
-                        {selected && (
-                          <div className="absolute top-[8px] left-[8px] rounded-full bg-[#1E2124] flex items-center justify-center" style={{ width: 'min(3.4vh,36px)', height: 'min(3.4vh,36px)' }}>
-                            <svg viewBox="0 0 24 24" fill="none" style={{ width: '55%', height: '55%' }}>
-                              <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </div>
-                        )}
                         {!payable && statusText && (
                           <div className="absolute top-[8px] right-[8px] px-[10px] py-[3px] rounded-full bg-black/70" style={{ fontSize: 'min(1.2vh, 13px)' }}>
                             <span className="text-white font-bold">{statusText}</span>
@@ -286,96 +246,8 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
               })}
             </div>
           )}
-
-          {tab === 'practice-rooms' && loadingRooms && (
-            <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
-          )}
-          {tab === 'practice-rooms' && !loadingRooms && (
-            <>
-              {rooms.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_rooms')}</div>
-              ) : (
-                <div className="grid grid-cols-2 gap-[12px]">
-                  {rooms.map((room) => {
-                    const cover = room.imageUrls?.[0];
-                    return (
-                      <button
-                        key={room.id}
-                        onClick={() => onSelectRoom(room)}
-                        className="relative aspect-[5/3] rounded-[20px] overflow-hidden bg-[#E8E8EA] text-left cursor-pointer active:scale-[0.97] transition-transform"
-                      >
-                        {cover && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={kioskImageSrc(cover, 600)} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
-                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: '6% 7%' }}>
-                          <p className="text-white font-bold leading-snug line-clamp-1" style={{ fontSize: 'min(2vh, 22px)' }}>{room.name}</p>
-                          {room.unitPrice != null && room.unitPrice > 0 && (
-                            <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>
-                              {t('kiosk_per_hour')} {new Intl.NumberFormat('ko-KR').format(room.unitPrice)}{t('won')}
-                            </p>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
-
-      {/* 장바구니 담김 → 하단: 담은 수업 미리보기 + 결제 바 */}
-      {cart.length > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 px-[5.6%] pb-[min(2.4vw,26px)] pt-[min(1.6vw,18px)] bg-white border-t border-[#EEF0F2] shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
-          {/* 담은 수업 헤더 */}
-          <div className="flex items-center gap-[8px] mb-[min(1.2vw,14px)]">
-            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh,20px)' }}>{t('kiosk_cart_title')}</span>
-            <span className="rounded-full bg-[#1E2124] text-white font-bold flex items-center justify-center" style={{ minWidth: 'min(2.8vh,30px)', height: 'min(2.8vh,30px)', fontSize: 'min(1.5vh,16px)', padding: '0 8px' }}>
-              {cart.length}
-            </span>
-          </div>
-
-          {/* 담은 수업 가로 스트립 — 개별 빼기(X) */}
-          <div className="flex gap-[10px] overflow-x-auto scrollbar-hide mb-[min(1.6vw,18px)]">
-            {cart.map((lesson) => (
-              <div key={lesson.id} className="relative shrink-0 rounded-[12px] overflow-hidden bg-[#E8E8EA]" style={{ width: 'min(11vh,120px)' }}>
-                <div className="relative w-full" style={{ aspectRatio: '3 / 4' }}>
-                  {lesson.thumbnailUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={kioskImageSrc(lesson.thumbnailUrl, 300)} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
-                  {/* 빼기 버튼 */}
-                  <button
-                    onClick={() => onToggleLesson(lesson)}
-                    aria-label="remove"
-                    className="absolute top-[6px] right-[6px] rounded-full bg-black/65 flex items-center justify-center active:scale-[0.9]"
-                    style={{ width: 'min(3vh,32px)', height: 'min(3vh,32px)' }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
-                      <path d="M6 6l12 12M18 6L6 18" stroke="white" strokeWidth="2.6" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                  <p className="absolute bottom-[6px] left-[7px] right-[7px] text-white font-bold leading-tight line-clamp-2" style={{ fontSize: 'min(1.3vh,14px)' }}>
-                    {lesson.title ?? ''}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={onProceedCart}
-            className="w-full rounded-[20px] bg-[#1E2124] flex items-center justify-center active:scale-[0.98] transition-transform"
-            style={{ height: 'min(8vh,88px)' }}
-          >
-            <span className="text-white font-bold" style={{ fontSize: 'min(2.4vh,26px)' }}>{t('kiosk_cart_checkout')}</span>
-          </button>
-        </div>
-      )}
 
       {passPlanDetail && (
         <KioskPassPlanDetailModal
