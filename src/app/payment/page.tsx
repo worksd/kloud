@@ -14,7 +14,7 @@ import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWra
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { PaymentErrorView } from "@/app/payment/PaymentErrorView";
+import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
@@ -54,11 +54,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
     // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
     if (isGuinnessErrorCase(res)) {
+      // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
+      const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
       return (
         <PaymentErrorView
           title={await translate('payment_error_title')}
           message={res.message || await translate('unknown_error_message')}
           backLabel={await translate('back')}
+          lessons={errorLessons}
         />
       );
     }
