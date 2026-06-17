@@ -13,6 +13,8 @@ import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
+import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { PaymentErrorView } from "@/app/payment/PaymentErrorView";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
@@ -49,6 +51,17 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;
 
   if (!('user' in res)) {
+    // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
+    // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
+    if (isGuinnessErrorCase(res)) {
+      return (
+        <PaymentErrorView
+          title={await translate('payment_error_title')}
+          message={res.message || await translate('unknown_error_message')}
+          backLabel={await translate('back')}
+        />
+      );
+    }
     return notFound();
   }
 

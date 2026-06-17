@@ -3634,6 +3634,12 @@ export const StringResource = {
     jp: '戻る',
     zh: '返回',
   },
+  payment_error_title: {
+    ko: '결제를 진행할 수 없어요',
+    en: 'Payment is unavailable',
+    jp: '決済を進められません',
+    zh: '无法继续支付',
+  },
 
   // 오늘 열리는 수업 (TodayTimetable)
   in_progress: {
