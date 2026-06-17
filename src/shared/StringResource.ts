@@ -3264,6 +3264,8 @@ export const StringResource = {
   kiosk_discount_apply_cta: { ko: '패스권으로 할인받기', en: 'Apply pass discount', jp: 'パス券で割引を受ける', zh: '使用通行证折扣' },
   kiosk_card_payment: { ko: '카드 결제', en: 'Card', jp: 'カード決済', zh: '信用卡支付' },
   kiosk_cash_payment: { ko: '현금 결제', en: 'Cash', jp: '現金決済', zh: '现金支付' },
+  kiosk_kakao_pay: { ko: '카카오페이', en: 'KakaoPay', jp: 'カカオペイ', zh: 'KakaoPay' },
+  kiosk_zero_pay: { ko: '제로페이', en: 'ZeroPay', jp: 'ゼロペイ', zh: 'ZeroPay' },
 
   // Kiosk — 수업/패스 리스트 (KioskLessonListForm)
   kiosk_tab_lessons: { ko: '수업', en: 'Lessons', jp: 'レッスン', zh: '课程' },
@@ -3289,6 +3291,7 @@ export const StringResource = {
   kiosk_new_user_desc: { ko: '아래 정보로 가입하고, 이어서 진행할게요', en: "We'll register you and continue", jp: '以下の情報で登録して進みます', zh: '将以下信息注册并继续' },
   kiosk_card_payment_waiting: { ko: '카드를 넣고 잠시만 기다려주세요', en: 'Please insert your card and wait', jp: 'カードを挿入してお待ちください', zh: '请插入您的卡并稍候' },
   kiosk_applepay_waiting: { ko: 'Apple Pay를 단말기에 가까이 대주세요', en: 'Hold your device near the terminal', jp: '端末にデバイスをかざしてください', zh: '请将设备靠近终端' },
+  kiosk_qr_payment_waiting: { ko: '결제 QR을 스캐너에 인식시켜주세요', en: 'Please scan your payment QR', jp: '決済QRをスキャンしてください', zh: '请扫描支付二维码' },
   kiosk_country_select: { ko: '국가 선택', en: 'Select country', jp: '国を選択', zh: '选择国家' },
   kiosk_cancel: { ko: '취소', en: 'Cancel', jp: 'キャンセル', zh: '取消' },
   kiosk_cash_confirm_title_l1: { ko: '인포데스크에서', en: 'At the info desk', jp: 'インフォデスクで', zh: '在信息台' },

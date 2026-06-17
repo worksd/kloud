@@ -129,7 +129,7 @@ export const KioskForm = ({
   // 패스권 구매 직후 "수업 신청하러 가기" 흐름에서 자동으로 사용할 passPlan id
   // 설정돼 있으면 lesson 선택 후 phone/member-confirm/payment-method 단계 모두 스킵하고 패스권을 즉시 사용
   const [autoUsePassPlanId, setAutoUsePassPlanId] = useState<number | null>(null);
-  const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay'>('card');
+  const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay' | 'kakaopay' | 'zeropay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
@@ -688,6 +688,53 @@ export const KioskForm = ({
     }));
   }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts]);
 
+  // QR 간편결제 (카카오페이/제로페이) — KIS 간편결제 흐름:
+  //  ⓪ requestKisEasyPay 네이티브 인터페이스 존재 확인
+  //  ① POST /kiosks/payments — Pending 생성 (카드와 동일, 할인 반영된 amount)
+  //  ② requestKisEasyPay 호출 — 웹은 금액만 넘기고, 스캔(1회)+KIS(D1) 전송은 네이티브가 처리
+  //  결과는 카드와 동일하게 window.onKisPaymentResult로 옴 → paymentResult → complete/영수증 재사용
+  //  (provider는 대기 다이얼로그 라벨용. KIS 페이로드엔 미포함 — 스캐너가 카카오/제로 바코드를 모두 읽음)
+  const handleQrPayment = useCallback(async (provider: 'kakaopay' | 'zeropay') => {
+    if (!paymentItem || isPaying || !selectedUser || !paymentInfo?.paymentId || !kioskId) return;
+
+    if (typeof window.KloudEvent?.requestKisEasyPay !== 'function') {
+      setToastMessage('간편결제를 진행할 수 없습니다');
+      return;
+    }
+
+    setCardPayingVariant(provider);
+    setIsPaying(true);
+    setPaymentResult(null);
+    setPaymentMethod('card');
+
+    const res = await startKioskPaymentAction({
+      targetUserId: selectedUser.id,
+      kioskId,
+      paymentId: paymentInfo.paymentId,
+      type: 'card',
+      discounts: buildDiscounts(),
+    });
+
+    const r = res as { code?: string; message?: string; paymentId?: string; amount?: number };
+    if (!r.paymentId) {
+      setIsPaying(false);
+      setPaymentMethod(null);
+      setToastMessage(r.message ?? '결제를 시작하지 못했어요');
+      return;
+    }
+
+    const created = res as StartKioskPaymentResponse;
+
+    // 네이티브 KIS 간편결제 — 웹은 금액/식별자만. 스캔·KIS 전송은 네이티브가 처리.
+    // 결과는 onKisPaymentResult로 수신 (카드 D1과 동일 채널).
+    // TODO: inTestMode는 규격 확정 후 실거래 시 false로 전환.
+    window.KloudEvent?.requestKisEasyPay?.(JSON.stringify({
+      inTotAmt: `${created.amount}`,
+      inCustomerUuid: created.paymentId,
+      inTestMode: true,
+    }));
+  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts]);
+
   // 현금 결제: POST /kiosks/payments(type='cash') 한 방에 즉시 Completed + qrCodeUrl 수령
   const handleCashPayment = useCallback(async () => {
     if (!paymentItem || !selectedUser || !paymentInfo?.paymentId || !kioskId || isPaying) return;
@@ -945,6 +992,8 @@ export const KioskForm = ({
           onClearDiscount={() => { setSelectedDiscount(null); setSelectedPass(null); }}
           onSelectCard={() => handleCardPayment('card')}
           onSelectApplePay={() => handleCardPayment('applepay')}
+          onSelectKakaoPay={() => handleQrPayment('kakaopay')}
+          onSelectZeroPay={() => handleQrPayment('zeropay')}
           onSelectCash={() => setCashConfirmOpen(true)}
           onPayWithPass={handlePayWithPass}
           onHome={goHome}

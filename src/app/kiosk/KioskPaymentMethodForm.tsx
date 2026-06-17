@@ -26,6 +26,8 @@ type KioskPaymentMethodFormProps = {
   onClearDiscount: () => void;
   onSelectCard: () => void;
   onSelectApplePay: () => void;
+  onSelectKakaoPay: () => void;
+  onSelectZeroPay: () => void;
   onSelectCash: () => void;
   onPayWithPass: () => void;
   onHome: () => void;
@@ -51,6 +53,8 @@ export const KioskPaymentMethodForm = ({
   onClearDiscount,
   onSelectCard,
   onSelectApplePay,
+  onSelectKakaoPay,
+  onSelectZeroPay,
   onSelectCash,
   onPayWithPass,
   onHome,
@@ -232,14 +236,15 @@ export const KioskPaymentMethodForm = ({
 
       {/* 결제 방법 섹션 — 패스권으로 풀 커버 시 섹션 자체가 사라지고 하단 신청하기 버튼으로 결제. */}
       {!fullyCovered && (() => {
-        // 보이는 버튼 수에 맞춰 grid-cols 결정. 카드 활성화 시 카드+Apple Pay 2개로 카운트 (둘 다 'credit' KIS 단말 사용).
+        // 보이는 버튼 수에 맞춰 grid-cols 결정. 카드 활성화 시 카드+Apple Pay+카카오페이+제로페이 4개
+        // (카드/Apple Pay는 KIS 단말, 카카오페이/제로페이는 네이티브 QR 스캔).
         const showCash = cashEnabled && itemType !== 'pass-plan';
-        const visibleCount = (cardEnabled ? 2 : 0) + (showCash ? 1 : 0);
+        const visibleCount = (cardEnabled ? 4 : 0) + (showCash ? 1 : 0);
         if (visibleCount === 0) return null;
         // 단일 버튼이면 grid 대신 가운데 정렬 flex로 두고 버튼을 1/3 폭으로 제한 → aspect-square가 viewport를 잡아먹어
-        // 하단 '이전' 버튼이 잘리던 케이스 방지. 2/3개일 땐 기존 grid 그대로.
+        // 하단 '이전' 버튼이 잘리던 케이스 방지. 그 외엔 grid.
         const isSingle = visibleCount === 1;
-        const gridCols = visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
+        const gridCols = (visibleCount === 2 || visibleCount === 4) ? 'grid-cols-2' : 'grid-cols-3';
         const singleButtonWidth = 'w-1/3';
         return (
           <div className="shrink-0 px-[5.6%] pb-[min(1.4vw,16px)]">
@@ -275,6 +280,28 @@ export const KioskPaymentMethodForm = ({
                     </svg>
                     <span className="text-[#1E2124] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
                       Apple Pay
+                    </span>
+                  </button>
+
+                  {/* 카카오페이 — 네이티브 QR 스캔 */}
+                  <button
+                    onClick={onSelectKakaoPay}
+                    className="aspect-square bg-[#FEE500] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
+                  >
+                    <QrGlyph stroke="#3C1E1E" />
+                    <span className="text-[#3C1E1E] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                      {t('kiosk_kakao_pay')}
+                    </span>
+                  </button>
+
+                  {/* 제로페이 — 네이티브 QR 스캔 */}
+                  <button
+                    onClick={onSelectZeroPay}
+                    className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
+                  >
+                    <QrGlyph stroke="#1E5BD6" />
+                    <span className="text-[#1E5BD6] font-bold mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                      {t('kiosk_zero_pay')}
                     </span>
                   </button>
                 </>
@@ -327,3 +354,13 @@ export const KioskPaymentMethodForm = ({
     </div>
   );
 };
+
+// QR 스캔 결제(카카오페이/제로페이) 버튼용 QR 아이콘
+const QrGlyph = ({ stroke }: { stroke: string }) => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+    <rect x="3" y="3" width="7" height="7" rx="1.5" stroke={stroke} strokeWidth="1.8" />
+    <rect x="3" y="14" width="7" height="7" rx="1.5" stroke={stroke} strokeWidth="1.8" />
+    <rect x="14" y="3" width="7" height="7" rx="1.5" stroke={stroke} strokeWidth="1.8" />
+    <path d="M14 14h3v3M21 14v7h-7M17 21h.5" stroke={stroke} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
