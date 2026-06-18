@@ -95,6 +95,27 @@ export const PostSocialLogin: Endpoint<SnsLoginParameter, PostAuthLoginResponse>
   bodyParams: ['provider', 'token', 'name', 'code'],
 }
 
+// SNS 계정 연결 — 현재 로그인 계정에 소셜 계정을 추가 연결.
+// 다른 계정에 이미 물려있으면 needsConfirm:true로 응답 → 동일 token/code + confirm:true로 재요청(이전).
+export type SocialLinkParameter = {
+  provider: SnsProvider;
+  token?: string;
+  code?: string;
+  name?: string;
+  confirm?: boolean;
+}
+
+export type SocialLinkResponse = {
+  provider: string;
+  needsConfirm: boolean;
+}
+
+export const PostSocialLink: Endpoint<SocialLinkParameter, SocialLinkResponse> = {
+  method: 'post',
+  path: '/auth/social-link',
+  bodyParams: ['provider', 'token', 'code', 'name', 'confirm'],
+}
+
 export const SendVerificationEmail: Endpoint<object, VerifyCodeParameter> = {
   method: 'post',
   path: '/auth/email-certificate',

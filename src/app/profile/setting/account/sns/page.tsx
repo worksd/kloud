@@ -6,6 +6,7 @@ import React from "react";
 import { headers } from "next/headers";
 import { translate } from "@/utils/translate";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
+import { getMySocialLinksAction } from "@/app/profile/setting/account/sns/sns.actions";
 import { SnsConnectForm } from "@/app/profile/setting/account/sns/SnsConnectForm";
 
 export default async function SnsConnectPage({ searchParams }: {
@@ -22,16 +23,21 @@ export default async function SnsConnectPage({ searchParams }: {
     return <div className={'text-black p-6'}>{user?.message}</div>;
   }
 
+  const connectedProviders = await getMySocialLinksAction();
+
   return (
     <div className={'flex flex-col min-h-screen bg-white'}>
       <SnsConnectForm
         os={os}
         appVersion={appVersion}
+        connectedProviders={connectedProviders}
         translations={{
           description: await translate('sns_account_connect_description'),
           connectWithApple: await translate('connect_with_apple'),
           connectWithGoogle: await translate('connect_with_google'),
           connectWithKakao: await translate('connect_with_kakao'),
+          connected: await translate('sns_connected'),
+          linkSuccess: await translate('sns_link_success'),
         }}
       />
     </div>

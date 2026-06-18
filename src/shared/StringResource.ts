@@ -3335,6 +3335,15 @@ export const StringResource = {
     jp: 'SNSアカウントを連携すると、次回から簡単にログインできます。',
     zh: '关联社交账户后，下次即可快捷登录。',
   },
+  sns_connected: { ko: '연결됨', en: 'Connected', jp: '連携済み', zh: '已关联' },
+  sns_link_success: { ko: 'SNS 계정이 연결되었습니다.', en: 'Your SNS account has been linked.', jp: 'SNSアカウントが連携されました。', zh: '社交账户已关联。' },
+  sns_transfer_title: { ko: '다른 계정에 연결된 SNS예요', en: 'Linked to another account', jp: '他のアカウントに連携済み', zh: '已关联到其他账户' },
+  sns_transfer_message: {
+    ko: '이 SNS 계정은 다른 계정에 연결되어 있어요.\n현재 계정으로 이전할까요?',
+    en: 'This SNS account is linked to another account.\nTransfer it to your current account?',
+    jp: 'このSNSアカウントは他のアカウントに連携されています。\n現在のアカウントに移しますか？',
+    zh: '该社交账户已关联到其他账户。\n要转移到当前账户吗？',
+  },
   connect_with_apple: {
     ko: 'Apple로 연결하기',
     en: 'Connect with Apple',
