@@ -23,12 +23,10 @@ export default async function MyAccountPage() {
         label={'cell_phone_certificate'}/></NavigateClickWrapper>
       }
 
-      {/* SNS 계정 연결 — 소셜 로그인 유저는 이미 연결돼 있으므로 phone/email 로그인 유저에게만 노출 */}
-      {(user.loginType == 'Phone' || user.loginType == 'Email') &&
-        <NavigateClickWrapper method={'push'} route={KloudScreen.SnsConnect}>
-          <MenuItem label={'sns_account_connect'}/>
-        </NavigateClickWrapper>
-      }
+      {/* SNS 계정 연결 — loginType 무관 항상 노출 */}
+      <NavigateClickWrapper method={'push'} route={KloudScreen.SnsConnect}>
+        <MenuItem label={'sns_account_connect'}/>
+      </NavigateClickWrapper>
 
       {user.loginType == 'Email' &&
         <NavigateClickWrapper method={'push'} route={KloudScreen.PasswordSetting}>
