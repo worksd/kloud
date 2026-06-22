@@ -1,6 +1,7 @@
 import { HeaderInDetail } from "@/app/components/headers";
 import Image from "next/image";
 import LocationIcon from "../../../../public/assets/location.svg";
+import ReceiptIcon from "../../../../public/assets/ic_receipt.svg";
 import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import React from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
@@ -91,9 +92,19 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           <div className="text-[#505356] text-[14px] font-medium">{studio.address}</div>
         </div>
 
+        {/* 프로젝트리(studioId=17) 전용 — 교육청 등록번호 (주소 행과 동일 UI) */}
+        {studio.id === 17 && (
+          <div className="flex flex-row items-center px-6 gap-2">
+            <ReceiptIcon className="w-5 h-5 flex-shrink-0"/>
+            <div className="text-[#505356] text-[14px] font-medium">교육청 등록번호 제02202500039호</div>
+          </div>
+        )}
+
         <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex py-3">
           {studio.instagramAddress && <StudioIcon type={'instagram'} url={studio.instagramAddress} appVersion={appVersion}/>}
           {studio.youtubeUrl && <StudioIcon type={'youtube'} url={studio.youtubeUrl} appVersion={appVersion}/>}
+          {/* 프로젝트리(studioId=17) 전용 — 홈페이지 링크 */}
+          {studio.id === 17 && <StudioIcon type={'homepage'} url={'https://litt.ly/projectlee'} appVersion={appVersion}/>}
         </div>
 
         <section>
