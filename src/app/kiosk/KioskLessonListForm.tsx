@@ -39,11 +39,11 @@ type KioskTab = 'lessons' | 'pass-plans';
 export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const [tab, setTab] = useState<KioskTab>('lessons');
-  // 오늘 하루치 날짜 옵션 — 자정 기준 normalize. (당일만 노출, 화살표 자동 숨김)
+  // 오늘부터 7일치 날짜 옵션 — 사용자가 pill로 선택. 자정 기준 normalize.
   const dateOptions = React.useMemo(() => {
     const base = new Date();
     base.setHours(0, 0, 0, 0);
-    return Array.from({ length: 1 }, (_, i) => {
+    return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(base);
       d.setDate(base.getDate() + i);
       return d;
