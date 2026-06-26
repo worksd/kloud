@@ -32,7 +32,6 @@ const formatCloseDate = (raw: string, locale: Locale): string => {
 // 카드는 풀 폭 vertical stack. 아이템 이미지를 한 줄에 균등 분배해 모두 노출.
 export async function HomeBundlesSection({
   bundles,
-  studioName,
 }: {
   bundles?: BundleSummaryResponse[];
   studioName?: string;
@@ -40,14 +39,11 @@ export async function HomeBundlesSection({
   if (!bundles || bundles.length === 0) return null;
 
   const locale = await getLocale();
-  const titleTemplate = await translate('bundles_in_studio');
-  const title = titleTemplate.replace('{studioName}', studioName ?? '');
   const wonLabel = await translate('won');
 
   return (
     <section className="flex flex-col">
-      <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-6">{title}</h2>
-      <div className="flex flex-col gap-3 px-5 pb-2">
+      <div className="flex flex-col gap-3 px-5 pb-2 pt-5">
         {bundles.map((b) => {
           const discountRate = b.originalPrice > 0 && b.originalPrice > b.price
             ? Math.round((1 - b.price / b.originalPrice) * 100)

@@ -503,12 +503,6 @@ export const StringResource = {
     jp: "このレッスンを含むパッケージ",
     zh: "包含此课程的套餐"
   },
-  bundles_in_studio: {
-    ko: "{studioName}에서 진행중인 프로모션",
-    en: "Promotions running at {studioName}",
-    jp: "{studioName}で開催中のプロモーション",
-    zh: "{studioName}正在进行的促销"
-  },
   payment_method_voucher: {
     ko: "교환권",
     en: "Voucher",
@@ -3343,6 +3337,36 @@ export const StringResource = {
     en: 'This SNS account is linked to another account.\nTransfer it to your current account?',
     jp: 'このSNSアカウントは他のアカウントに連携されています。\n現在のアカウントに移しますか？',
     zh: '该社交账户已关联到其他账户。\n要转移到当前账户吗？',
+  },
+  sns_transfer_warning_title: {
+    ko: '기존 계정을 잃을 수 있어요',
+    en: 'You may lose the other account',
+    jp: '既存のアカウントを失う可能性があります',
+    zh: '您可能会失去原账户',
+  },
+  sns_transfer_warning_message: {
+    ko: '이 SNS는 이미 다른 계정에 연결되어 있어요.\n현재 계정으로 이전하면 기존 계정은 이 SNS로 더 이상 로그인할 수 없게 돼요.',
+    en: 'This SNS is already linked to another account.\nIf you transfer it here, that account can no longer sign in with this SNS.',
+    jp: 'このSNSはすでに他のアカウントに連携されています。\n現在のアカウントに移すと、既存のアカウントではこのSNSでログインできなくなります。',
+    zh: '该社交账户已关联到其他账户。\n转移到当前账户后，原账户将无法再用此社交账户登录。',
+  },
+  sns_transfer_warning_bullet1: {
+    ko: '기존 계정에 더 이상 접근하지 못할 수 있어요',
+    en: 'You may lose access to the other account',
+    jp: '既存のアカウントにアクセスできなくなる場合があります',
+    zh: '可能无法再访问原账户',
+  },
+  sns_transfer_warning_bullet2: {
+    ko: '예약·패스권·결제 내역 등 데이터가 사라질 수 있어요',
+    en: 'Bookings, passes, and payment history may be lost',
+    jp: '予約・パス券・決済履歴などのデータが失われる場合があります',
+    zh: '预约、通行证、付款记录等数据可能丢失',
+  },
+  sns_transfer_warning_confirm: {
+    ko: '이해했어요, 이전할게요',
+    en: 'I understand, transfer',
+    jp: '理解しました、移します',
+    zh: '我已了解，仍要转移',
   },
   connect_with_apple: {
     ko: 'Apple로 연결하기',

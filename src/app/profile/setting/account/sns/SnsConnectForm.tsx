@@ -7,7 +7,7 @@
 //  - 에러(isGuinnessErrorCase) → KloudEvent.showDialog
 //  - 다른 계정에 물린 SNS(needsConfirm) → 이전 확인 다이얼로그 → 동일 token/code + confirm:true 재요청
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AppleLogo from "../../../../../../public/assets/logo_apple.svg";
 import GoogleLogo from "../../../../../../public/assets/logo_google.svg";
@@ -24,6 +24,12 @@ type Translations = {
   connectWithKakao: string;
   connected: string;
   linkSuccess: string;
+  transferWarnTitle: string;
+  transferWarnMessage: string;
+  transferWarnBullet1: string;
+  transferWarnBullet2: string;
+  transferWarnConfirm: string;
+  cancel: string;
 };
 
 type PendingLink = { provider: SnsProvider; token: string; name?: string };
@@ -36,9 +42,18 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
 }) => {
   const router = useRouter();
   const pendingRef = useRef<PendingLink | null>(null);
+  // 다른 계정에 물린 SNS 이전 — 먼저 경고 시트를 띄우고, 동의해야 네이티브 확인 다이얼로그로 진행
+  const [showTransferWarn, setShowTransferWarn] = useState(false);
 
   const showSimpleDialog = useCallback(async (message: string) => {
     const dialog = await createDialog({ id: 'Simple', message });
+    if (dialog) window.KloudEvent?.showDialog(JSON.stringify(dialog));
+  }, []);
+
+  // 경고 시트에서 '이해했어요' → 기존 이전 확인 다이얼로그 표시 (onDialogConfirm에서 confirm:true 재요청)
+  const proceedTransfer = useCallback(async () => {
+    setShowTransferWarn(false);
+    const dialog = await createDialog({ id: 'SnsLinkTransfer' });
     if (dialog) window.KloudEvent?.showDialog(JSON.stringify(dialog));
   }, []);
 
@@ -57,10 +72,9 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
       return;
     }
     const r = res as SocialLinkResponse;
-    // 다른 계정에 연결됨 → 이전 확인 (onDialogConfirm에서 confirm:true로 재요청)
+    // 다른 계정에 연결됨 → 곧바로 다이얼로그 대신 '계정/데이터 잃을 수 있음' 경고 시트부터 노출
     if (r.needsConfirm) {
-      const dialog = await createDialog({ id: 'SnsLinkTransfer' });
-      if (dialog) window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      setShowTransferWarn(true);
       return;
     }
     // 성공
@@ -144,6 +158,54 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
           );
         })}
       </section>
+
+      {/* 다른 계정에 물린 SNS 이전 경고 시트 */}
+      {showTransferWarn && (
+        <div className="fixed inset-0 z-[1200] flex items-end justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowTransferWarn(false)}
+          />
+          <div className="relative w-full max-w-md rounded-t-[24px] bg-white px-6 pt-7 pb-8 animate-[slideUp_0.2s_ease-out]">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#FDECEC]">
+                <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7">
+                  <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                        stroke="#E5484D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h2 className="text-[18px] font-bold text-[#1E2124]">{translations.transferWarnTitle}</h2>
+              <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed text-[#4E5256]">
+                {translations.transferWarnMessage}
+              </p>
+            </div>
+
+            <div className="mt-5 rounded-[14px] bg-[#FBF1F1] px-4 py-3.5 space-y-2">
+              {[translations.transferWarnBullet1, translations.transferWarnBullet2].map((b, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="mt-[6px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#E5484D]" />
+                  <span className="text-[13px] font-medium leading-relaxed text-[#C0383C]">{b}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={proceedTransfer}
+                className="w-full rounded-[14px] bg-[#E5484D] py-4 text-[15px] font-bold text-white active:scale-[0.98] transition-transform"
+              >
+                {translations.transferWarnConfirm}
+              </button>
+              <button
+                onClick={() => setShowTransferWarn(false)}
+                className="w-full rounded-[14px] py-4 text-[15px] font-semibold text-[#86898C] active:scale-[0.98] transition-transform"
+              >
+                {translations.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -38,6 +38,12 @@ export default async function SnsConnectPage({ searchParams }: {
           connectWithKakao: await translate('connect_with_kakao'),
           connected: await translate('sns_connected'),
           linkSuccess: await translate('sns_link_success'),
+          transferWarnTitle: await translate('sns_transfer_warning_title'),
+          transferWarnMessage: await translate('sns_transfer_warning_message'),
+          transferWarnBullet1: await translate('sns_transfer_warning_bullet1'),
+          transferWarnBullet2: await translate('sns_transfer_warning_bullet2'),
+          transferWarnConfirm: await translate('sns_transfer_warning_confirm'),
+          cancel: await translate('cancel'),
         }}
       />
     </div>
