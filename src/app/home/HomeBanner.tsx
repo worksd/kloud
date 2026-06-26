@@ -23,11 +23,6 @@ export const HomeBanner = ({ banners }: { banners: HomeBannerResponse[] }) => {
             fill
             className="object-cover"
           />
-          {banner.description && (
-            <div className="absolute inset-0 bg-black/20 flex items-end px-4 pb-3">
-              <span className="text-white text-[14px] font-bold drop-shadow">{banner.description}</span>
-            </div>
-          )}
         </div>
       ))}
     </div>
