@@ -509,6 +509,12 @@ export const StringResource = {
     jp: "教換券",
     zh: "兑换券"
   },
+  sales_period: {
+    ko: "판매기간",
+    en: "Sales period",
+    jp: "販売期間",
+    zh: "销售期间"
+  },
   voucher_refund_not_allowed: {
     ko: "교환권 결제는 환불할 수 없어요",
     en: "Voucher payments cannot be refunded",

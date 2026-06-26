@@ -18,6 +18,17 @@ import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentError
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
+// 번들 판매기간 — "2026.06.16 05:52" → "2026.06.16" 형태로 시작~종료 표시. (구) closeDate는 종료일 폴백.
+const bundleSalesPeriod = (start?: string, end?: string, close?: string): string | null => {
+  const day = (raw?: string) => raw?.match(/^\d{4}\.\d{1,2}\.\d{1,2}/)?.[0] ?? null;
+  const s = day(start);
+  const e = day(end) ?? day(close);
+  if (s && e) return `${s} ~ ${e}`;
+  if (e) return `~ ${e}`;
+  if (s) return `${s} ~`;
+  return null;
+};
+
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
     type?: PaymentPageType
@@ -213,9 +224,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                   {new Intl.NumberFormat('ko-KR').format(res.bundle.originalPrice)}{await translate('won')}
                 </span>
               )}
-              {res.bundle.closeDate && (
+              {bundleSalesPeriod(res.bundle.startDate, res.bundle.endDate, res.bundle.closeDate) && (
                 <span className="text-[12px] text-[#EF4444] font-medium">
-                  ~ {res.bundle.closeDate}
+                  {await translate('sales_period')} {bundleSalesPeriod(res.bundle.startDate, res.bundle.endDate, res.bundle.closeDate)}
                 </span>
               )}
             </div>

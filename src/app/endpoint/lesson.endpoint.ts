@@ -48,7 +48,9 @@ export type BundleSummaryResponse = {
     description?: string;
     price: number;            // 묶음 판매가
     originalPrice: number;    // 구성 수업 합계 (할인 표시용)
-    closeDate: string;        // 'YYYY.MM.DD HH:mm' KST
+    startDate?: string;       // 판매 시작 'YYYY.MM.DD HH:mm' KST
+    endDate?: string;         // 판매 종료 'YYYY.MM.DD HH:mm' KST
+    closeDate?: string;       // (구) 판매 종료 시각 — 폴백용
     items: BundleItemResponse[];
 }
 
