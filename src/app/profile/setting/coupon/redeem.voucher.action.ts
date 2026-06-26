@@ -2,15 +2,22 @@
 
 import { api } from '@/app/api.client';
 
-export const redeemVoucherAction = async ({ code }: { code: string }) => {
-  // 현재 로그인 사용자의 id를 본인 redeem 대상으로 동봉.
-  // 본인 정보 조회 실패해도 BE가 token에서 추론할 수 있으니 우선 호출만 진행하고, 가능한 경우에만 userId 포함.
+export const redeemVoucherAction = async (
+  { code, name, phone }: { code: string; name?: string; phone?: string }
+) => {
+  // 로그인 사용자면 본인 id로 redeem.
   let userId: number | undefined;
   try {
     const me = await api.user.me({});
     if ('id' in me) userId = me.id;
   } catch {
-    // ignore — userId 없이도 BE가 토큰으로 처리 가능
+    // ignore
   }
-  return await api.voucher.redeem({ code, userId });
+
+  if (userId) {
+    return await api.voucher.redeem({ code, userId });
+  }
+
+  // 토큰에 유저 정보가 없으면(비로그인) 입력받은 이름/전화번호로 redeem.
+  return await api.voucher.redeem({ code, name, phone });
 };

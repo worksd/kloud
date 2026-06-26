@@ -503,17 +503,17 @@ export const StringResource = {
     jp: "このレッスンを含むパッケージ",
     zh: "包含此课程的套餐"
   },
-  bundles_in_studio: {
-    ko: "{studioName}에서 진행중인 프로모션",
-    en: "Promotions running at {studioName}",
-    jp: "{studioName}で開催中のプロモーション",
-    zh: "{studioName}正在进行的促销"
-  },
   payment_method_voucher: {
     ko: "교환권",
     en: "Voucher",
     jp: "教換券",
     zh: "兑换券"
+  },
+  sales_period: {
+    ko: "판매기간",
+    en: "Sales period",
+    jp: "販売期間",
+    zh: "销售期间"
   },
   voucher_refund_not_allowed: {
     ko: "교환권 결제는 환불할 수 없어요",
@@ -3322,6 +3322,75 @@ export const StringResource = {
     en: 'Connect Instagram Account',
     jp: 'Instagramアカウント連携',
     zh: '关联 Instagram 账户',
+  },
+  sns_account_connect: {
+    ko: 'SNS 계정 연결하기',
+    en: 'Connect SNS Account',
+    jp: 'SNSアカウント連携',
+    zh: '关联社交账户',
+  },
+  sns_account_connect_description: {
+    ko: 'SNS 계정을 연결하면 다음부터 간편하게 로그인할 수 있어요.',
+    en: 'Connect your SNS account for easier sign-in next time.',
+    jp: 'SNSアカウントを連携すると、次回から簡単にログインできます。',
+    zh: '关联社交账户后，下次即可快捷登录。',
+  },
+  sns_connected: { ko: '연결됨', en: 'Connected', jp: '連携済み', zh: '已关联' },
+  sns_link_success: { ko: 'SNS 계정이 연결되었습니다.', en: 'Your SNS account has been linked.', jp: 'SNSアカウントが連携されました。', zh: '社交账户已关联。' },
+  sns_transfer_title: { ko: '다른 계정에 연결된 SNS예요', en: 'Linked to another account', jp: '他のアカウントに連携済み', zh: '已关联到其他账户' },
+  sns_transfer_message: {
+    ko: '이 SNS 계정은 다른 계정에 연결되어 있어요.\n현재 계정으로 이전할까요?',
+    en: 'This SNS account is linked to another account.\nTransfer it to your current account?',
+    jp: 'このSNSアカウントは他のアカウントに連携されています。\n現在のアカウントに移しますか？',
+    zh: '该社交账户已关联到其他账户。\n要转移到当前账户吗？',
+  },
+  sns_transfer_warning_title: {
+    ko: '기존 계정을 잃을 수 있어요',
+    en: 'You may lose the other account',
+    jp: '既存のアカウントを失う可能性があります',
+    zh: '您可能会失去原账户',
+  },
+  sns_transfer_warning_message: {
+    ko: '이 SNS는 이미 다른 계정에 연결되어 있어요.\n현재 계정으로 이전하면 기존 계정은 이 SNS로 더 이상 로그인할 수 없게 돼요.',
+    en: 'This SNS is already linked to another account.\nIf you transfer it here, that account can no longer sign in with this SNS.',
+    jp: 'このSNSはすでに他のアカウントに連携されています。\n現在のアカウントに移すと、既存のアカウントではこのSNSでログインできなくなります。',
+    zh: '该社交账户已关联到其他账户。\n转移到当前账户后，原账户将无法再用此社交账户登录。',
+  },
+  sns_transfer_warning_bullet1: {
+    ko: '기존 계정에 더 이상 접근하지 못할 수 있어요',
+    en: 'You may lose access to the other account',
+    jp: '既存のアカウントにアクセスできなくなる場合があります',
+    zh: '可能无法再访问原账户',
+  },
+  sns_transfer_warning_bullet2: {
+    ko: '예약·패스권·결제 내역 등 데이터가 사라질 수 있어요',
+    en: 'Bookings, passes, and payment history may be lost',
+    jp: '予約・パス券・決済履歴などのデータが失われる場合があります',
+    zh: '预约、通行证、付款记录等数据可能丢失',
+  },
+  sns_transfer_warning_confirm: {
+    ko: '이해했어요, 이전할게요',
+    en: 'I understand, transfer',
+    jp: '理解しました、移します',
+    zh: '我已了解，仍要转移',
+  },
+  connect_with_apple: {
+    ko: 'Apple로 연결하기',
+    en: 'Connect with Apple',
+    jp: 'Appleで連携',
+    zh: '使用 Apple 关联',
+  },
+  connect_with_google: {
+    ko: '구글로 연결하기',
+    en: 'Connect with Google',
+    jp: 'Googleで連携',
+    zh: '使用 Google 关联',
+  },
+  connect_with_kakao: {
+    ko: '카카오로 연결하기',
+    en: 'Connect with Kakao',
+    jp: 'カカオで連携',
+    zh: '使用 Kakao 关联',
   },
   instagram_connect_title: {
     ko: '인스타그램 연동',

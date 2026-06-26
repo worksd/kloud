@@ -175,6 +175,16 @@ export async function createDialog({id, message, title, customData}: {
       message: message ?? '',
       confirmTitle: await translate('confirm'),
     }
+  } else if (id == 'SnsLinkTransfer') {
+    return {
+      id: 'SnsLinkTransfer',
+      type: 'YESORNO',
+      title: await translate('sns_transfer_title'),
+      message: message ?? await translate('sns_transfer_message'),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      customData,
+    }
   } else if (id == 'AppUpgrade') {
     return {
       id: 'AppUpgrade',
@@ -307,6 +317,7 @@ export type DialogId =
   | 'CertificationEmail'
   | 'CertificationFail'
   | 'Simple'
+  | 'SnsLinkTransfer'
   | 'AppUpgrade'
   | 'ForeignerVerificationRequest'
   | 'CertificationComplete'

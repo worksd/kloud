@@ -82,7 +82,10 @@ export type GetPaymentResponse = {
     description?: string;
     /** 구성 lesson 합계가(할인 전). UI에서 strike-through 가격 표시에 사용. */
     originalPrice?: number;
-    /** 번들 판매 종료 시각 (KST). 'yyyy.MM.dd HH:mm' */
+    /** 번들 판매 기간 (KST). 'yyyy.MM.dd HH:mm' */
+    startDate?: string;
+    endDate?: string;
+    /** (구) 번들 판매 종료 시각 (KST). 'yyyy.MM.dd HH:mm' — 폴백용 */
     closeDate?: string;
     /** 구성 수업 목록 */
     items: {

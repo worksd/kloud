@@ -99,6 +99,8 @@ export type GetMeResponse = {
   passCount?: number
   myBookings?: MyBookingResponse[]
   myPasses?: MyPassResponse[]
+  /** 연결된 소셜 계정 — Default 유저만 채워짐 (provider: 'Google'|'Kakao'|'Apple') */
+  socialLinks?: { provider: string }[]
 }
 
 export type GetAnnouncementResponse = {
