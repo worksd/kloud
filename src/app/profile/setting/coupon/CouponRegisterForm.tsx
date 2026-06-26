@@ -17,10 +17,16 @@ const SEGMENTS = 3;
 const SEG_LEN = 4;
 const CODE_LENGTH = SEGMENTS * SEG_LEN;
 
-export const CouponRegisterForm = ({ locale }: { locale: Locale }) => {
+// 코드 문자열을 4자리 × SEGMENTS 칸으로 분할
+const toSegments = (raw?: string): string[] => {
+  const cleaned = (raw ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH);
+  return Array.from({ length: SEGMENTS }, (_, i) => cleaned.slice(i * SEG_LEN, (i + 1) * SEG_LEN));
+};
+
+export const CouponRegisterForm = ({ locale, initialCode }: { locale: Locale; initialCode?: string }) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
-  const [segments, setSegments] = useState<string[]>(Array(SEGMENTS).fill(''));
+  const [segments, setSegments] = useState<string[]>(() => toSegments(initialCode));
   const [toast, setToast] = useState<{ text: string; visible: boolean } | null>(null);
   const [, startTransition] = useTransition();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -89,7 +95,7 @@ export const CouponRegisterForm = ({ locale }: { locale: Locale }) => {
   };
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#F7F8F9]">
+    <div className="flex min-h-[100dvh] flex-col bg-white">
       {/* 안내 */}
       <div className="px-6 pt-5 pb-4">
         <p className="text-[13px] text-[#86898C] leading-relaxed">
@@ -99,36 +105,40 @@ export const CouponRegisterForm = ({ locale }: { locale: Locale }) => {
 
       {/* 코드 입력 — 4자리 × 3 */}
       <div className="px-4">
-        <div className="bg-white rounded-2xl px-4 py-5">
-          <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: SEGMENTS }).map((_, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <span className="text-[#C5C8CC] font-bold text-[18px] select-none">-</span>}
-                <input
-                  ref={(el) => { inputRefs.current[i] = el; }}
-                  type="text"
-                  value={segments[i]}
-                  onChange={(e) => handleChange(i, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(i, e)}
-                  maxLength={SEG_LEN}
-                  inputMode="text"
-                  autoCapitalize="characters"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  autoFocus={i === 0}
-                  placeholder="----"
-                  className="w-full min-w-0 text-center text-[20px] font-bold text-black placeholder:text-[#D5D8DC] bg-[#F7F8F9] rounded-xl py-3 outline-none tracking-[0.25em] font-paperlogy focus:ring-2 focus:ring-black/70"
-                />
-              </React.Fragment>
-            ))}
-          </div>
+        <div className="flex items-center gap-2">
+          {Array.from({ length: SEGMENTS }).map((_, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && (
+                <span className="shrink-0 text-[#C5C8CC] text-[16px] font-medium select-none">–</span>
+              )}
+              <input
+                ref={(el) => { inputRefs.current[i] = el; }}
+                type="text"
+                value={segments[i]}
+                onChange={(e) => handleChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                maxLength={SEG_LEN}
+                inputMode="text"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                autoFocus={i === 0}
+                placeholder="••••"
+                className={`flex-1 min-w-0 h-[56px] text-center text-[22px] font-bold text-black placeholder:text-[#D5D8DC] placeholder:font-normal placeholder:text-[16px] rounded-xl outline-none font-paperlogy border transition-colors ${
+                  segments[i]
+                    ? 'bg-white border-black'
+                    : 'bg-white border-[#E5E7EB] focus:border-black'
+                }`}
+              />
+            </React.Fragment>
+          ))}
         </div>
       </div>
 
       <div className="flex-1" />
 
       {/* 등록 버튼 */}
-      <div className="px-4 pb-6 pt-3 bg-[#F7F8F9]">
+      <div className="px-4 pb-6 pt-3 bg-white">
         <button
           type="button"
           onClick={() => submitCode(code)}
