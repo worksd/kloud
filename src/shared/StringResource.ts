@@ -515,6 +515,12 @@ export const StringResource = {
     jp: "販売期間",
     zh: "销售期间"
   },
+  ongoing_promotion: {
+    ko: "진행중인 프로모션",
+    en: "Ongoing promotions",
+    jp: "開催中のプロモーション",
+    zh: "正在进行的促销"
+  },
   voucher_refund_not_allowed: {
     ko: "교환권 결제는 환불할 수 없어요",
     en: "Voucher payments cannot be refunded",

@@ -60,7 +60,8 @@ export async function HomeBundlesSection({
 
   return (
     <section className="flex flex-col">
-      <div className="flex flex-col gap-3 px-5 pb-2 pt-5">
+      <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-6">{await translate('ongoing_promotion')}</h2>
+      <div className="flex flex-col gap-3 px-5 pb-2">
         {bundles.map((b) => {
           const discountRate = b.originalPrice > 0 && b.originalPrice > b.price
             ? Math.round((1 - b.price / b.originalPrice) * 100)
