@@ -14,7 +14,7 @@ import GoogleLogo from "../../../../../../public/assets/logo_google.svg";
 import KakaoLogo from "../../../../../../public/assets/logo_kakao.svg";
 import { SnsProvider, SocialLinkResponse } from "@/app/endpoint/auth.endpoint";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { createDialog, DialogInfo } from "@/utils/dialog.factory";
+import { createDialog } from "@/utils/dialog.factory";
 import { socialLinkAction } from "@/app/profile/setting/account/sns/sns.actions";
 
 type Translations = {
@@ -50,13 +50,6 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
     if (dialog) window.KloudEvent?.showDialog(JSON.stringify(dialog));
   }, []);
 
-  // 경고 시트에서 '이해했어요' → 기존 이전 확인 다이얼로그 표시 (onDialogConfirm에서 confirm:true 재요청)
-  const proceedTransfer = useCallback(async () => {
-    setShowTransferWarn(false);
-    const dialog = await createDialog({ id: 'SnsLinkTransfer' });
-    if (dialog) window.KloudEvent?.showDialog(JSON.stringify(dialog));
-  }, []);
-
   // 실제 연결 호출 — confirm 단계 공용
   const runLink = useCallback(async (params: { provider: SnsProvider; token: string; name?: string; confirm: boolean }) => {
     const res = await socialLinkAction({
@@ -72,7 +65,8 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
       return;
     }
     const r = res as SocialLinkResponse;
-    // 다른 계정에 연결됨 → 곧바로 다이얼로그 대신 '계정/데이터 잃을 수 있음' 경고 시트부터 노출
+    // 다른 계정에 물린 SNS(TRANSFER) → 곧바로 다이얼로그 대신 '가져오기 안내' 경고 시트부터 노출.
+    // (SNS 로그인 수단만 이전되고 옛 계정의 결제·티켓 데이터는 그대로 남음)
     if (r.needsConfirm) {
       setShowTransferWarn(true);
       return;
@@ -83,23 +77,25 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
     router.refresh();
   }, [showSimpleDialog, translations.linkSuccess, router]);
 
+  // 경고 시트에서 '가져오기' → 동일 token/code + confirm:true로 바로 재요청 (다이얼로그 단계 없이)
+  const proceedTransfer = useCallback(async () => {
+    const p = pendingRef.current;
+    setShowTransferWarn(false);
+    if (!p) return;
+    await runLink({ provider: p.provider, token: p.token, name: p.name, confirm: true });
+  }, [runLink]);
+
   const handleLink = useCallback((provider: SnsProvider, code: string, name?: string) => {
     pendingRef.current = { provider, token: code, name };
     void runLink({ provider, token: code, name, confirm: false });
   }, [runLink]);
 
-  // OAuth 콜백 + 이전 확인 콜백 등록 (이 화면에 있는 동안만 연결 핸들러로 동작)
+  // OAuth 콜백 등록 (이 화면에 있는 동안만 연결 핸들러로 동작)
   useEffect(() => {
     window.onAppleLoginSuccess = async (data: { code: string, name: string }) => handleLink(SnsProvider.Apple, data.code, data.name);
     window.onGoogleLoginSuccess = async (data: { code: string }) => handleLink(SnsProvider.Google, data.code);
     window.onKakaoLoginSuccess = async (data: { code: string }) => handleLink(SnsProvider.Kakao, data.code);
-    window.onDialogConfirm = async (data: DialogInfo) => {
-      if (data.id !== 'SnsLinkTransfer') return;
-      const p = pendingRef.current;
-      if (!p) return;
-      void runLink({ provider: p.provider, token: p.token, name: p.name, confirm: true });
-    };
-  }, [handleLink, runLink]);
+  }, [handleLink]);
 
   const startApple = () => window.KloudEvent?.sendAppleLogin();
   const startGoogle = () => window.KloudEvent?.sendGoogleLogin(JSON.stringify({
