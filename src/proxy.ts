@@ -28,8 +28,25 @@ const COOKIES_TO_REFRESH: Array<{ key: string; httpOnly?: boolean }> = [
 ];
 
 // This function can be marked `async` if using `await` inside
+// Apple Universal Links (AASA) — 도메인별로 앱 번들ID를 다르게 서빙.
+// staging.rawgraphy.com → dev 앱, 그 외(prod) → prod 앱.
+// 정적 파일 하나로는 브랜치 머지 시 dev 번들이 prod로 새어 들어가므로, Host 기준으로 동적 응답한다.
+const APPLE_TEAM_ID = 'AWMR6W6KV4';
+const buildAasa = (host: string) => {
+  const appID = host.startsWith('staging.')
+    ? `${APPLE_TEAM_ID}.com.worksd.krush.dev`
+    : `${APPLE_TEAM_ID}.com.worksd.krush`;
+  return { applinks: { apps: [], details: [{ appID, paths: ['*'] }] } };
+};
+
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl
+
+  // AASA는 라우팅/인증 로직을 타기 전에 Host 기반으로 즉시 응답 (200 + application/json, redirect 없이)
+  if (url.pathname === '/.well-known/apple-app-site-association') {
+    return NextResponse.json(buildAasa(request.headers.get('host') ?? ''));
+  }
+
   const { os, ua, device } = userAgent(request)
   const cookie = await cookies()
 
