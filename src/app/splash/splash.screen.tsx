@@ -8,17 +8,34 @@ import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { resolveRedirectTarget } from "@/app/redirect/resolve";
 
 const extractPath = (raw?: string): string | undefined => {
   if (!raw) return undefined;
+  // 이미 경로 형태면(쿼리스트링 포함) 그대로 사용 — 예: /redirect?type=UseVoucher
+  if (raw.startsWith('/')) return raw;
   // https://staging.rawgraphy.com/lessons/1638 or staging.rawgraphy.com/lessons/1638
   const withScheme = raw.includes('://') ? raw : `https://${raw}`;
   try {
     const url = new URL(withScheme);
-    return url.pathname;
+    // pathname만 쓰면 쿼리(?type=...)가 사라지므로 search·hash까지 보존
+    return `${url.pathname}${url.search}${url.hash}`;
   } catch {
-    return raw.startsWith('/') ? raw : `/${raw}`;
+    return `/${raw}`;
   }
+};
+
+// 앱 웹뷰는 서버 리다이렉트(/redirect의 307)를 따라가지 못하므로,
+// /redirect 딥링크는 splash에서 최종 화면 경로로 직접 해석해 navigateMain에 넘긴다.
+const resolveAppRoute = (raw?: string): string | undefined => {
+  const path = extractPath(raw);
+  if (!path) return undefined;
+  const [pathname, query] = path.split('?');
+  if (pathname === '/redirect') {
+    const params = new URLSearchParams(query ?? '');
+    return resolveRedirectTarget(params.get('type'), params.get('code'));
+  }
+  return path;
 };
 
 export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
@@ -39,7 +56,7 @@ export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
         kloudNav.clearAndPush(KloudScreen.Onboard(''))
       }
       else if (status == UserStatus.Ready) {
-        await kloudNav.navigateMain({ route: extractPath(link) })
+        await kloudNav.navigateMain({ route: resolveAppRoute(link) })
       }
       else if (status == UserStatus.Deactivate) {
         kloudNav.clearAndPush(KloudScreen.LoginDeactivate)
