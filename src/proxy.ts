@@ -29,14 +29,16 @@ const COOKIES_TO_REFRESH: Array<{ key: string; httpOnly?: boolean }> = [
 
 // This function can be marked `async` if using `await` inside
 // Apple Universal Links (AASA) — 도메인별로 앱 번들ID를 다르게 서빙.
-// staging.rawgraphy.com → dev 앱, 그 외(prod) → prod 앱.
-// 정적 파일 하나로는 브랜치 머지 시 dev 번들이 prod로 새어 들어가므로, Host 기준으로 동적 응답한다.
+// - prod 도메인 → prod 앱만. (dev 번들이 prod로 새면 안 됨)
+// - staging → prod + dev 둘 다. prod 앱을 staging 서버로 붙여 QA하는 경우도 링크가 걸려야 하므로.
+//   staging에 prod 번들을 넣는 건 안전(막고 싶은 건 dev→prod 유출뿐).
+// 정적 파일 하나로는 브랜치 머지 시 섞이므로 Host 기준으로 동적 응답한다.
 const APPLE_TEAM_ID = 'AWMR6W6KV4';
 const buildAasa = (host: string) => {
-  const appID = host.startsWith('staging.')
-    ? `${APPLE_TEAM_ID}.com.worksd.krush.dev`
-    : `${APPLE_TEAM_ID}.com.worksd.krush`;
-  return { applinks: { apps: [], details: [{ appID, paths: ['*'] }] } };
+  const prod = { appID: `${APPLE_TEAM_ID}.com.worksd.krush`, paths: ['*'] };
+  const dev = { appID: `${APPLE_TEAM_ID}.com.worksd.krush.dev`, paths: ['*'] };
+  const details = host.startsWith('staging.') ? [prod, dev] : [prod];
+  return { applinks: { apps: [], details } };
 };
 
 export async function proxy(request: NextRequest) {
