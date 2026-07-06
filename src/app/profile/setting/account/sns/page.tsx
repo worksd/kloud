@@ -43,6 +43,9 @@ export default async function SnsConnectPage({ searchParams }: {
           transferWarnBullet1: await translate('sns_transfer_warning_bullet1'),
           transferWarnBullet2: await translate('sns_transfer_warning_bullet2'),
           transferWarnConfirm: await translate('sns_transfer_warning_confirm'),
+          joinedSuffix: await translate('sns_transfer_joined_suffix'),
+          hourUnit: await translate('sns_transfer_hour_unit'),
+          minuteUnit: await translate('sns_transfer_minute_unit'),
           cancel: await translate('cancel'),
         }}
       />

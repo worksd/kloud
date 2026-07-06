@@ -105,9 +105,20 @@ export type SocialLinkParameter = {
   confirm?: boolean;
 }
 
+// needsConfirm일 때, 해당 SNS가 이미 물려있는 이전 계정 정보
+export type LinkedUser = {
+  id: number;
+  email: string;
+  nickName: string;
+  name: string;
+  profileImageUrl: string;
+  createdAt: string;
+}
+
 export type SocialLinkResponse = {
   provider: string;
   needsConfirm: boolean;
+  linkedUser?: LinkedUser;
 }
 
 export const PostSocialLink: Endpoint<SocialLinkParameter, SocialLinkResponse> = {

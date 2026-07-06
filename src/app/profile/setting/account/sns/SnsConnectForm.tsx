@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import AppleLogo from "../../../../../../public/assets/logo_apple.svg";
 import GoogleLogo from "../../../../../../public/assets/logo_google.svg";
 import KakaoLogo from "../../../../../../public/assets/logo_kakao.svg";
-import { SnsProvider, SocialLinkResponse } from "@/app/endpoint/auth.endpoint";
+import { LinkedUser, SnsProvider, SocialLinkResponse } from "@/app/endpoint/auth.endpoint";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { createDialog } from "@/utils/dialog.factory";
 import { socialLinkAction } from "@/app/profile/setting/account/sns/sns.actions";
@@ -29,6 +29,9 @@ type Translations = {
   transferWarnBullet1: string;
   transferWarnBullet2: string;
   transferWarnConfirm: string;
+  joinedSuffix: string;
+  hourUnit: string;
+  minuteUnit: string;
   cancel: string;
 };
 
@@ -44,6 +47,11 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
   const pendingRef = useRef<PendingLink | null>(null);
   // 다른 계정에 물린 SNS 이전 — 먼저 경고 시트를 띄우고, 동의해야 네이티브 확인 다이얼로그로 진행
   const [showTransferWarn, setShowTransferWarn] = useState(false);
+  // 닫힐 때 슬라이드 다운 애니메이션을 재생한 뒤 언마운트
+  const [isClosing, setIsClosing] = useState(false);
+  const closeTransferWarn = useCallback(() => setIsClosing(true), []);
+  // 이 SNS가 이미 물려있는 이전 계정 정보 (경고 시트에 표시)
+  const [linkedUser, setLinkedUser] = useState<LinkedUser | null>(null);
 
   const showSimpleDialog = useCallback(async (message: string) => {
     const dialog = await createDialog({ id: 'Simple', message });
@@ -68,6 +76,8 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
     // 다른 계정에 물린 SNS(TRANSFER) → 곧바로 다이얼로그 대신 '가져오기 안내' 경고 시트부터 노출.
     // (SNS 로그인 수단만 이전되고 옛 계정의 결제·티켓 데이터는 그대로 남음)
     if (r.needsConfirm) {
+      setLinkedUser(r.linkedUser ?? null);
+      setIsClosing(false);
       setShowTransferWarn(true);
       return;
     }
@@ -96,6 +106,17 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
     window.onGoogleLoginSuccess = async (data: { code: string }) => handleLink(SnsProvider.Google, data.code);
     window.onKakaoLoginSuccess = async (data: { code: string }) => handleLink(SnsProvider.Kakao, data.code);
   }, [handleLink]);
+
+  // "2025.01.28 02:13" → "02시 13분" (다국어 단위) 형태로 변환
+  const formatJoinedTime = (createdAt: string) => {
+    const time = createdAt.split(' ').pop() ?? '';
+    const [hh, mm] = time.split(':');
+    if (!hh || !mm) return createdAt;
+    // 단위 문자가 있는 로케일(ko/jp/zh)은 "02시 13분", 없는 로케일(en)은 "02:13"
+    return translations.hourUnit && translations.minuteUnit
+      ? `${hh}${translations.hourUnit} ${mm}${translations.minuteUnit}`
+      : `${hh}:${mm}`;
+  };
 
   const startApple = () => window.KloudEvent?.sendAppleLogin();
   const startGoogle = () => window.KloudEvent?.sendGoogleLogin(JSON.stringify({
@@ -156,25 +177,56 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
       </section>
 
       {/* 다른 계정에 물린 SNS 이전 경고 시트 */}
-      {showTransferWarn && (
+      {showTransferWarn && (() => {
+        // 확인 버튼 색은 이전하려는 SNS 종류에 맞춘다 (Apple:검정 / Google:흰색 / Kakao:노랑)
+        const confirmBtn = providers.find(p => p.key === pendingRef.current?.provider)?.btn
+          ?? 'bg-[#E5484D] text-white';
+        return (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setShowTransferWarn(false)}
+            className={`absolute inset-0 bg-black/50 ${isClosing ? 'animate-[fadeOut_0.2s_ease-out_forwards]' : 'animate-[fadeIn_0.2s_ease-out]'}`}
+            onClick={closeTransferWarn}
           />
-          <div className="relative w-full max-w-md rounded-t-[24px] bg-white px-6 pt-7 pb-8 animate-[slideUp_0.2s_ease-out]">
+          <div
+            className={`relative w-full max-w-md rounded-t-[24px] bg-white px-6 pt-7 pb-8 ${isClosing ? 'animate-[slideDown_0.2s_ease-out_forwards]' : 'animate-[slideUp_0.2s_ease-out]'}`}
+            onAnimationEnd={() => {
+              if (isClosing) {
+                setShowTransferWarn(false);
+                setIsClosing(false);
+              }
+            }}
+          >
+            <button
+              onClick={closeTransferWarn}
+              aria-label={translations.cancel}
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#86898C] active:scale-90 transition-transform"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#FDECEC]">
-                <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7">
-                  <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
-                        stroke="#E5484D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
               <h2 className="text-[18px] font-bold text-[#1E2124]">{translations.transferWarnTitle}</h2>
               <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed text-[#4E5256]">
                 {translations.transferWarnMessage}
               </p>
             </div>
+
+            {linkedUser && (
+              <div className="mt-5 flex items-center gap-3 rounded-[14px] bg-[#F2F4F6] px-4 py-3.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={linkedUser.profileImageUrl}
+                  alt={linkedUser.nickName}
+                  className="h-11 w-11 flex-shrink-0 rounded-full object-cover bg-[#E5E8EB]"
+                />
+                <div className="flex min-w-0 flex-col text-left">
+                  <span className="truncate text-[15px] font-bold text-[#1E2124]">{linkedUser.nickName}</span>
+                  <span className="truncate text-[13px] text-[#86898C]">{linkedUser.email}</span>
+                  <span className="mt-0.5 text-[12px] text-[#ADB1B5]">{formatJoinedTime(linkedUser.createdAt)} {translations.joinedSuffix}</span>
+                </div>
+              </div>
+            )}
 
             <div className="mt-5 rounded-[14px] bg-[#FBF1F1] px-4 py-3.5 space-y-2">
               {[translations.transferWarnBullet1, translations.transferWarnBullet2].map((b, i) => (
@@ -188,12 +240,12 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
             <div className="mt-6 flex flex-col gap-2">
               <button
                 onClick={proceedTransfer}
-                className="w-full rounded-[14px] bg-[#E5484D] py-4 text-[15px] font-bold text-white active:scale-[0.98] transition-transform"
+                className={`w-full rounded-[14px] py-4 text-[15px] font-bold active:scale-[0.98] transition-transform ${confirmBtn}`}
               >
                 {translations.transferWarnConfirm}
               </button>
               <button
-                onClick={() => setShowTransferWarn(false)}
+                onClick={closeTransferWarn}
                 className="w-full rounded-[14px] py-4 text-[15px] font-semibold text-[#86898C] active:scale-[0.98] transition-transform"
               >
                 {translations.cancel}
@@ -201,7 +253,8 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
