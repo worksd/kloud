@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { kloudNav } from '@/app/lib/kloudNav';
+import { KloudScreen } from '@/shared/kloud.screen';
 
 // 에러 응답에 함께 내려오는 충돌 수업 (예: BUNDLE_DUPLICATE_REGISTRATION의 개별구매 수업)
 export type PaymentErrorLesson = {
@@ -44,7 +46,12 @@ export function PaymentErrorView({ title, message, backLabel, lessons = [] }: {
       {lessons.length > 0 && (
         <div className="mt-7 w-full max-w-[380px] flex flex-col gap-2">
           {lessons.map((l) => (
-            <div key={l.id} className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-2xl text-left">
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => kloudNav.push(KloudScreen.LessonDetail(l.id))}
+              className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-2xl text-left w-full active:scale-[0.98] transition-transform"
+            >
               <div className="w-[52px] h-[52px] rounded-xl overflow-hidden bg-[#E8E8EA] shrink-0">
                 {l.thumbnailUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -57,7 +64,10 @@ export function PaymentErrorView({ title, message, backLabel, lessons = [] }: {
                   <span className="text-[12px] text-[#86898C] truncate mt-0.5">{l.date ?? l.startDate}</span>
                 )}
               </div>
-            </div>
+              <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0 text-[#B0B8BF]">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           ))}
         </div>
       )}

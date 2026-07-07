@@ -498,10 +498,10 @@ export const StringResource = {
     zh: "共{count}节课"
   },
   bundle_included_title: {
-    ko: "이 수업이 포함된 묶음",
-    en: "Bundles including this lesson",
-    jp: "このレッスンを含むパッケージ",
-    zh: "包含此课程的套餐"
+    ko: "진행중인 프로모션",
+    en: "Ongoing promotions",
+    jp: "実施中のプロモーション",
+    zh: "正在进行的促销"
   },
   payment_method_voucher: {
     ko: "교환권",
