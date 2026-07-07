@@ -38,13 +38,15 @@ const EasyPayMiniLogo = ({type}: { type: PaymentMethodType }) => {
   }
 };
 
-export const PurchaseInformation = ({originalPrice, totalPrice, method, titleResource, locale, discounts}: {
+export const PurchaseInformation = ({originalPrice, totalPrice, method, titleResource, locale, discounts, strikeOriginalPrice}: {
   originalPrice: number,
   totalPrice: number,
   method?: PaymentMethodType,
   titleResource: StringResourceKey,
   locale: Locale,
-  discounts?: DiscountResponse[]
+  discounts?: DiscountResponse[],
+  // 프로모션 등 원래 금액을 찍찍 긋고 할인 항목으로 내려서 보여줄 때
+  strikeOriginalPrice?: boolean
 }) => {
 
   const hasDiscount = discounts && discounts.length > 0;
@@ -63,7 +65,9 @@ export const PurchaseInformation = ({originalPrice, totalPrice, method, titleRes
         {/* 상품 가격 */}
         <div className="flex justify-between items-center px-5 pt-3.5 pb-1.5">
           <span className="text-[13px] text-[#666]">{getLocaleString({locale, key: titleResource})}</span>
-          <span className="text-[14px] font-semibold text-black">{fmt(originalPrice)}{won}</span>
+          <span className={`text-[14px] font-semibold ${strikeOriginalPrice ? 'text-[#BFC2C5] line-through' : 'text-black'}`}>
+            {fmt(originalPrice)}{won}
+          </span>
         </div>
 
         {/* 할인 항목들 */}

@@ -1037,6 +1037,18 @@ export const StringResource = {
     jp: "プロモーション料金",
     zh: "促销金额"
   },
+  original_price: {
+    ko: "기본 금액",
+    en: "Base Price",
+    jp: "基本料金",
+    zh: "基本金额"
+  },
+  promotion_discount: {
+    ko: "프로모션 할인",
+    en: "Promotion Discount",
+    jp: "プロモーション割引",
+    zh: "促销折扣"
+  },
   total_amount: {
     ko: "총 결제 금액",
     en: "Total Payment Amount",
