@@ -3567,6 +3567,24 @@ export const StringResource = {
     jp: '総精算額',
     zh: '总金额',
   },
+  lesson_settle_up_status_settled: {
+    ko: '정산완료',
+    en: 'Settled',
+    jp: '精算完了',
+    zh: '已结算',
+  },
+  lesson_settle_up_status_pending: {
+    ko: '정산예정',
+    en: 'Pending',
+    jp: '精算予定',
+    zh: '待结算',
+  },
+  lesson_settle_up_adjust_reason: {
+    ko: '조정 사유',
+    en: 'Adjustment reason',
+    jp: '調整理由',
+    zh: '调整原因',
+  },
   ticket_status_used: {
     ko: '출석완료',
     en: 'Attended',

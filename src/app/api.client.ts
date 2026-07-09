@@ -35,6 +35,7 @@ export class ApiClient extends EndpointClient {
     checkCapacity: this.endpointBuilder(API.Lesson.CheckCapacity),
     getTickets: this.endpointBuilder(API.Lesson.GetLessonTickets),
     getSettleUp: this.endpointBuilder(API.Lesson.GetLessonSettleUp),
+    getSettlementStatement: this.endpointBuilder(API.Lesson.GetArtistSettlementStatement),
   }
 
   readonly lessonGroup = {

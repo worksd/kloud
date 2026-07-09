@@ -231,9 +231,52 @@ export type GetLessonSettleUpParameter = {
     id: number;
 }
 
+// ⚠️ Deprecated — 통합된 GetArtistSettlementStatement(artistId 생략)로 이전됨.
 export const GetLessonSettleUp: Endpoint<GetLessonSettleUpParameter, SettleUpLessonResponse> = {
     method: 'get',
     path: (e) => `/lessons/${e.id}/settle-up`,
+}
+
+// 강사 정산 상태 — Pending(정산예정) | Settled(정산완료). Completed 아님.
+export type ArtistSettlementStatus = 'Pending' | 'Settled';
+
+// SettleUpArtistResponse + 강사별 정산 상태/조정 사유 (record-aware).
+export type ArtistSettlementStatementArtistResponse = SettleUpArtistResponse & {
+    status: ArtistSettlementStatus;   // 강사별 상태
+    adjustReason: string | null;      // 정산완료 시 조정 사유, 아니면 null
+}
+
+// 정산 방식 — GET /lessons/:id 파트너 상세의 settleRules 와 동일 구조.
+export type SettleRuleResponse = {
+    key?: string;
+    value?: string;
+    type?: string;
+    [k: string]: unknown;
+}
+
+// GET /artist-settlements/statement 응답. settle-up 형식 + 강사별 status/adjustReason + settleRules.
+export type ArtistSettlementStatementResponse = {
+    id: number;                       // 수업 id
+    date: string;                     // yyyy.MM.dd HH:mm (KST)
+    title: string;
+    artists: ArtistSettlementStatementArtistResponse[];   // 담당 강사 목록(대표 먼저). 단건 조회여도 배열
+    sales: SettleUpSection;
+    settleUp: SettleUpSection;
+    settleRules?: SettleRuleResponse[];
+}
+
+// 통합 정산 조회 — record-aware.
+//  - artistId 미지정: 담당 강사 전체 (강사마다 status 섞일 수 있음)
+//  - artistId 지정: 그 강사 1명 (artists[0])
+export type GetArtistSettlementStatementParameter = {
+    lessonId: number;
+    artistId?: number;
+}
+
+export const GetArtistSettlementStatement: Endpoint<GetArtistSettlementStatementParameter, ArtistSettlementStatementResponse> = {
+    method: 'get',
+    path: () => `/artist-settlements/statement`,
+    queryParams: ['lessonId', 'artistId'],
 }
 
 // LessonGroup (정기수업) 관련 타입
