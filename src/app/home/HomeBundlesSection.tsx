@@ -28,11 +28,27 @@ const formatCloseDate = (raw: string, locale: Locale): string => {
   }
 };
 
+// "2026.06.16 05:52" → "6.16"
+const toMonthDay = (raw?: string): string | null => {
+  if (!raw) return null;
+  const m = raw.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  return m ? `${parseInt(m[2], 10)}.${parseInt(m[3], 10)}` : null;
+};
+
+// 판매기간 — startDate/endDate 우선, 없으면 closeDate("~6.30") 폴백
+const formatSalesPeriod = (b: BundleSummaryResponse, locale: Locale): string | null => {
+  const s = toMonthDay(b.startDate);
+  const e = toMonthDay(b.endDate);
+  if (s && e) return `${s} ~ ${e}`;
+  if (e) return `~ ${e}`;
+  if (b.closeDate) return formatCloseDate(b.closeDate, locale);
+  return null;
+};
+
 // 홈 — 선택된 스튜디오의 판매중 묶음(프로모션) 섹션.
 // 카드는 풀 폭 vertical stack. 아이템 이미지를 한 줄에 균등 분배해 모두 노출.
 export async function HomeBundlesSection({
   bundles,
-  studioName,
 }: {
   bundles?: BundleSummaryResponse[];
   studioName?: string;
@@ -40,13 +56,11 @@ export async function HomeBundlesSection({
   if (!bundles || bundles.length === 0) return null;
 
   const locale = await getLocale();
-  const titleTemplate = await translate('bundles_in_studio');
-  const title = titleTemplate.replace('{studioName}', studioName ?? '');
   const wonLabel = await translate('won');
 
   return (
     <section className="flex flex-col">
-      <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-6">{title}</h2>
+      <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-6">{await translate('ongoing_promotion')}</h2>
       <div className="flex flex-col gap-3 px-5 pb-2">
         {bundles.map((b) => {
           const discountRate = b.originalPrice > 0 && b.originalPrice > b.price
@@ -83,21 +97,25 @@ export async function HomeBundlesSection({
                 </div>
                 {/* 텍스트 */}
                 <div className="p-4">
-                  {/* 할인율 + 마감일 칩 — 이미지 아래로 분리 */}
-                  {(discountRate > 0 || b.closeDate) && (
-                    <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                      {discountRate > 0 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#FEF2F2] text-[#EF4444] text-[11px] font-bold">
-                          {discountRate}% OFF
-                        </span>
-                      )}
-                      {b.closeDate && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#4E5968] text-[11px] font-medium">
-                          {formatCloseDate(b.closeDate, locale)}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {/* 할인율 + 판매기간 칩 — 이미지 아래로 분리 */}
+                  {(() => {
+                    const period = formatSalesPeriod(b, locale);
+                    if (discountRate <= 0 && !period) return null;
+                    return (
+                      <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                        {discountRate > 0 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#FEF2F2] text-[#EF4444] text-[11px] font-bold">
+                            {discountRate}% OFF
+                          </span>
+                        )}
+                        {period && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#4E5968] text-[11px] font-medium">
+                            {period}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div className="text-[16px] font-bold text-black truncate">{b.name}</div>
                   {b.description && (
                     <div className="mt-0.5 text-[12px] text-[#86898C] line-clamp-1">{b.description}</div>

@@ -7,7 +7,7 @@ import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
-import { SettleUpLessonResponse } from '@/app/endpoint/lesson.endpoint';
+import { ArtistSettlementStatementResponse } from '@/app/endpoint/lesson.endpoint';
 import { getLessonSettleUpAction } from '@/app/lessons/[id]/action/get.lesson.settleup.action';
 
 type Props = {
@@ -18,7 +18,7 @@ type Props = {
 export function LessonAdminMenu({ lessonId, locale }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
-  const [settleUp, setSettleUp] = useState<SettleUpLessonResponse | null>(null);
+  const [settleUp, setSettleUp] = useState<ArtistSettlementStatementResponse | null>(null);
   const [settleLoading, setSettleLoading] = useState(false);
 
   const closeSheet = () => setSheetOpen(false);
@@ -123,13 +123,16 @@ function SettleUpDialog({
   locale,
   onClose,
 }: {
-  data: SettleUpLessonResponse;
+  data: ArtistSettlementStatementResponse;
   locale: Locale;
   onClose: () => void;
 }) {
   const artistsHeading = getLocaleString({ locale, key: 'lesson_settle_up_artists' });
   const settleLabel = getLocaleString({ locale, key: 'lesson_settle_up_settle_amount' });
   const totalLabel = getLocaleString({ locale, key: 'lesson_settle_up_total_amount' });
+  const settledLabel = getLocaleString({ locale, key: 'lesson_settle_up_status_settled' });
+  const pendingLabel = getLocaleString({ locale, key: 'lesson_settle_up_status_pending' });
+  const adjustReasonLabel = getLocaleString({ locale, key: 'lesson_settle_up_adjust_reason' });
 
   const [closing, setClosing] = useState(false);
   const close = () => {
@@ -175,31 +178,54 @@ function SettleUpDialog({
             <section className={'flex flex-col'}>
               <h3 className={'text-[14px] font-bold text-black'}>{artistsHeading}</h3>
               <div className={'mt-2 flex flex-col gap-2'}>
-                {data.artists.map((a) => (
+                {data.artists.map((a) => {
+                  const settled = a.status === 'Settled';
+                  return (
                   <div
                     key={a.id}
-                    className={'flex items-center gap-3 rounded-[12px] bg-[#FAFAFA] border border-[#F1F3F6] p-3'}
+                    className={'flex flex-col rounded-[12px] bg-[#FAFAFA] border border-[#F1F3F6] p-3'}
                   >
-                    <Image
-                      src={a.profileImageUrl || '/assets/default_profile.png'}
-                      alt={''}
-                      width={40}
-                      height={40}
-                      className={'rounded-full object-cover w-10 h-10 flex-shrink-0'}
-                    />
-                    <div className={'flex-1 min-w-0'}>
-                      <div className={'text-[13px] font-semibold text-black truncate'}>{a.nickName}</div>
-                      <div className={'mt-0.5 text-[10px] text-[#919191] truncate'}>{a.description}</div>
+                    <div className={'flex items-center gap-3'}>
+                      <Image
+                        src={a.profileImageUrl || '/assets/default_profile.png'}
+                        alt={''}
+                        width={40}
+                        height={40}
+                        className={'rounded-full object-cover w-10 h-10 flex-shrink-0'}
+                      />
+                      <div className={'flex-1 min-w-0'}>
+                        <div className={'flex items-center gap-1.5'}>
+                          <span className={'text-[13px] font-semibold text-black truncate'}>{a.nickName}</span>
+                          {/* 강사별 정산 상태 배지 (record-aware) */}
+                          <span
+                            className={[
+                              'shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold',
+                              settled ? 'bg-[#E7F6F1] text-[#16A085]' : 'bg-[#FFF3E0] text-[#E08600]',
+                            ].join(' ')}
+                          >
+                            {settled ? settledLabel : pendingLabel}
+                          </span>
+                        </div>
+                        <div className={'mt-0.5 text-[10px] text-[#919191] truncate'}>{a.description}</div>
+                      </div>
+                      <div className={'flex flex-col items-end shrink-0'}>
+                        <span className={'text-[10px] text-[#919191]'}>{settleLabel}</span>
+                        <span className={'text-[14px] font-bold text-black leading-tight'}>{a.settleAmount.toLocaleString()}원</span>
+                        <span className={'mt-0.5 text-[10px] text-[#919191]'}>
+                          {totalLabel} {a.totalAmount.toLocaleString()}원
+                        </span>
+                      </div>
                     </div>
-                    <div className={'flex flex-col items-end shrink-0'}>
-                      <span className={'text-[10px] text-[#919191]'}>{settleLabel}</span>
-                      <span className={'text-[14px] font-bold text-black leading-tight'}>{a.settleAmount.toLocaleString()}원</span>
-                      <span className={'mt-0.5 text-[10px] text-[#919191]'}>
-                        {totalLabel} {a.totalAmount.toLocaleString()}원
-                      </span>
-                    </div>
+                    {/* 정산완료 시 조정 사유 */}
+                    {settled && a.adjustReason && (
+                      <div className={'mt-2 rounded-[8px] bg-white border border-[#F1F3F6] px-2.5 py-1.5'}>
+                        <span className={'text-[10px] font-semibold text-[#919191]'}>{adjustReasonLabel}</span>
+                        <span className={'ml-1 text-[10px] text-[#5C5C5C]'}>{a.adjustReason}</span>
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}

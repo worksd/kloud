@@ -11,6 +11,7 @@ export class ApiClient extends EndpointClient {
     comparePassword: this.endpointBuilder(API.Auth.ComparePassword),
     signUp: this.endpointBuilder(API.Auth.PostSignUpEmail),
     socialLogin: this.endpointBuilder(API.Auth.PostSocialLogin),
+    socialLink: this.endpointBuilder(API.Auth.PostSocialLink),
     sendEmailVerification: this.endpointBuilder(API.Auth.SendVerificationEmail),
     sendPhoneVerification: this.endpointBuilder(API.Auth.SendPhoneVerification),
     checkPhoneVerification: this.endpointBuilder(API.Auth.CheckPhoneVerification),
@@ -34,6 +35,7 @@ export class ApiClient extends EndpointClient {
     checkCapacity: this.endpointBuilder(API.Lesson.CheckCapacity),
     getTickets: this.endpointBuilder(API.Lesson.GetLessonTickets),
     getSettleUp: this.endpointBuilder(API.Lesson.GetLessonSettleUp),
+    getSettlementStatement: this.endpointBuilder(API.Lesson.GetArtistSettlementStatement),
   }
 
   readonly lessonGroup = {

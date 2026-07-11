@@ -83,6 +83,15 @@ export const ProfileEditForm = ({
   const [refundBank, setRefundBank] = React.useState<string>(user.refundAccountBank ?? "");
   const [refundNumber, setRefundNumber] = React.useState<string>(user.refundAccountNumber ?? "");
   const [refundDepositor, setRefundDepositor] = React.useState<string>(user.refundAccountDepositor ?? "");
+
+  // 다이얼로그는 네이티브 앱 브릿지(window.KloudEvent) 전용이라 웹에선 안 뜬다 → 웹에선 토스트로 폴백.
+  const isApp = () => typeof window !== 'undefined' && typeof window.KloudEvent?.showDialog === 'function';
+  const [toast, setToast] = React.useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    window.setTimeout(() => setToast(null), 2500);
+  };
+
   const hasChanges =
     (nickName !== (user.nickName ?? "") && nickName.length > 0) ||
     (name !== (user.name ?? "")) ||
@@ -103,18 +112,26 @@ export const ProfileEditForm = ({
       refundDepositor: refundDepositor !== (user.refundAccountDepositor ?? "") ? refundDepositor : undefined,
     });
     if (res.success) {
-      const dialog = await createDialog({
-        id: "Simple",
-        title: await translate("edit_profile_complete"),
-      });
-      window.KloudEvent.showDialog(JSON.stringify(dialog));
+      const completeText = await translate("edit_profile_complete");
+      if (isApp()) {
+        const dialog = await createDialog({ id: "Simple", title: completeText });
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      } else {
+        // 웹 폴백 — 완료 토스트
+        showToast(completeText);
+      }
     } else if (res.errorMessage) {
-      const dialog = await createDialog({
-        id: "Simple",
-        title: await translate("edit_profile"),
-        message: res.errorMessage,
-      });
-      window.KloudEvent.showDialog(JSON.stringify(dialog));
+      if (isApp()) {
+        const dialog = await createDialog({
+          id: "Simple",
+          title: await translate("edit_profile"),
+          message: res.errorMessage,
+        });
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      } else {
+        // 웹 폴백 — 토스트 (예: NICK_NAME_ALREADY_EXISTS)
+        showToast(res.errorMessage);
+      }
     }
   };
 
@@ -238,6 +255,15 @@ export const ProfileEditForm = ({
           {confirmText}
         </AsyncCommonSubmitButton>
       </div>
+
+      {/* 웹 폴백 토스트 (앱에선 네이티브 다이얼로그 사용) */}
+      {toast && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100] max-w-[88%] pointer-events-none">
+          <div className="px-4 py-2.5 rounded-full bg-black/85 text-white text-[13px] font-medium text-center shadow-lg animate-[toastIn_250ms_ease-out]">
+            {toast}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

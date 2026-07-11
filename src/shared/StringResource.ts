@@ -498,22 +498,28 @@ export const StringResource = {
     zh: "共{count}节课"
   },
   bundle_included_title: {
-    ko: "이 수업이 포함된 묶음",
-    en: "Bundles including this lesson",
-    jp: "このレッスンを含むパッケージ",
-    zh: "包含此课程的套餐"
-  },
-  bundles_in_studio: {
-    ko: "{studioName}에서 진행중인 프로모션",
-    en: "Promotions running at {studioName}",
-    jp: "{studioName}で開催中のプロモーション",
-    zh: "{studioName}正在进行的促销"
+    ko: "진행중인 프로모션",
+    en: "Ongoing promotions",
+    jp: "実施中のプロモーション",
+    zh: "正在进行的促销"
   },
   payment_method_voucher: {
     ko: "교환권",
     en: "Voucher",
     jp: "教換券",
     zh: "兑换券"
+  },
+  sales_period: {
+    ko: "판매기간",
+    en: "Sales period",
+    jp: "販売期間",
+    zh: "销售期间"
+  },
+  ongoing_promotion: {
+    ko: "진행중인 프로모션",
+    en: "Ongoing promotions",
+    jp: "開催中のプロモーション",
+    zh: "正在进行的促销"
   },
   voucher_refund_not_allowed: {
     ko: "교환권 결제는 환불할 수 없어요",
@@ -1030,6 +1036,18 @@ export const StringResource = {
     en: "Promotion Price",
     jp: "プロモーション料金",
     zh: "促销金额"
+  },
+  original_price: {
+    ko: "기본 금액",
+    en: "Base Price",
+    jp: "基本料金",
+    zh: "基本金额"
+  },
+  promotion_discount: {
+    ko: "프로모션 할인",
+    en: "Promotion Discount",
+    jp: "プロモーション割引",
+    zh: "促销折扣"
   },
   total_amount: {
     ko: "총 결제 금액",
@@ -3326,6 +3344,78 @@ export const StringResource = {
     jp: 'Instagramアカウント連携',
     zh: '关联 Instagram 账户',
   },
+  sns_account_connect: {
+    ko: 'SNS 계정 연결하기',
+    en: 'Connect SNS Account',
+    jp: 'SNSアカウント連携',
+    zh: '关联社交账户',
+  },
+  sns_account_connect_description: {
+    ko: 'SNS 계정을 연결하면 다음부터 간편하게 로그인할 수 있어요.',
+    en: 'Connect your SNS account for easier sign-in next time.',
+    jp: 'SNSアカウントを連携すると、次回から簡単にログインできます。',
+    zh: '关联社交账户后，下次即可快捷登录。',
+  },
+  sns_connected: { ko: '연결됨', en: 'Connected', jp: '連携済み', zh: '已关联' },
+  sns_link_success: { ko: 'SNS 계정이 연결되었습니다.', en: 'Your SNS account has been linked.', jp: 'SNSアカウントが連携されました。', zh: '社交账户已关联。' },
+  sns_transfer_title: { ko: '다른 계정에 연결된 SNS예요', en: 'Linked to another account', jp: '他のアカウントに連携済み', zh: '已关联到其他账户' },
+  sns_transfer_message: {
+    ko: '이 SNS 계정은 다른 계정에 연결되어 있어요.\n현재 계정으로 이전할까요?',
+    en: 'This SNS account is linked to another account.\nTransfer it to your current account?',
+    jp: 'このSNSアカウントは他のアカウントに連携されています。\n現在のアカウントに移しますか？',
+    zh: '该社交账户已关联到其他账户。\n要转移到当前账户吗？',
+  },
+  sns_transfer_warning_title: {
+    ko: '다른 계정에 연결된 SNS예요',
+    en: 'Linked to another account',
+    jp: '他のアカウントに連携済みのSNSです',
+    zh: '该社交账户已关联其他账户',
+  },
+  sns_transfer_warning_message: {
+    ko: '이 SNS는 다른 계정에 연결되어 있어요.\n이 계정으로 연동하면 이전 계정에서는 이 SNS로 더 이상 로그인할 수 없어요.',
+    en: 'This SNS is linked to another account.\nIf you bring it here, that account can no longer sign in with this SNS.',
+    jp: 'このSNSは他のアカウントに連携されています。\nこのアカウントに移すと、以前のアカウントではこのSNSでログインできなくなります。',
+    zh: '该社交账户已关联到其他账户。\n转移到当前账户后，原账户将无法再用此社交账户登录。',
+  },
+  sns_transfer_warning_bullet1: {
+    ko: '이전 계정은 연동 이후 더 이상 로그인할 수 없게 돼요',
+    en: 'The other account can no longer sign in after linking',
+    jp: '以前のアカウントは連携後、ログインできなくなります',
+    zh: '关联后原账户将无法再登录',
+  },
+  sns_transfer_warning_bullet2: {
+    ko: '이전 계정의 결제·수강권 등 데이터는 이관되지 않습니다',
+    en: 'Payments, courses, and other data are not transferred',
+    jp: '以前のアカウントの決済・受講券などのデータは移管されません',
+    zh: '原账户的付款、课程券等数据不会迁移',
+  },
+  sns_transfer_joined_suffix: { ko: '가입', en: 'joined', jp: '登録', zh: '注册' },
+  sns_transfer_hour_unit: { ko: '시', en: '', jp: '時', zh: '时' },
+  sns_transfer_minute_unit: { ko: '분', en: '', jp: '分', zh: '分' },
+  sns_transfer_warning_confirm: {
+    ko: '연동하기',
+    en: 'Bring it to this account',
+    jp: 'このアカウントに移す',
+    zh: '转移到当前账户',
+  },
+  connect_with_apple: {
+    ko: 'Apple로 연결하기',
+    en: 'Connect with Apple',
+    jp: 'Appleで連携',
+    zh: '使用 Apple 关联',
+  },
+  connect_with_google: {
+    ko: '구글로 연결하기',
+    en: 'Connect with Google',
+    jp: 'Googleで連携',
+    zh: '使用 Google 关联',
+  },
+  connect_with_kakao: {
+    ko: '카카오로 연결하기',
+    en: 'Connect with Kakao',
+    jp: 'カカオで連携',
+    zh: '使用 Kakao 关联',
+  },
   instagram_connect_title: {
     ko: '인스타그램 연동',
     en: 'Instagram Connect',
@@ -3480,6 +3570,24 @@ export const StringResource = {
     jp: '総精算額',
     zh: '总金额',
   },
+  lesson_settle_up_status_settled: {
+    ko: '정산완료',
+    en: 'Settled',
+    jp: '精算完了',
+    zh: '已结算',
+  },
+  lesson_settle_up_status_pending: {
+    ko: '정산예정',
+    en: 'Pending',
+    jp: '精算予定',
+    zh: '待结算',
+  },
+  lesson_settle_up_adjust_reason: {
+    ko: '조정 사유',
+    en: 'Adjustment reason',
+    jp: '調整理由',
+    zh: '调整原因',
+  },
   ticket_status_used: {
     ko: '출석완료',
     en: 'Attended',
@@ -3619,6 +3727,12 @@ export const StringResource = {
     en: 'Back',
     jp: '戻る',
     zh: '返回',
+  },
+  payment_error_title: {
+    ko: '결제를 진행할 수 없어요',
+    en: 'Payment is unavailable',
+    jp: '決済を進められません',
+    zh: '无法继续支付',
   },
 
   // 오늘 열리는 수업 (TodayTimetable)

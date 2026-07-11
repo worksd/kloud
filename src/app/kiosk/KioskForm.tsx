@@ -151,6 +151,9 @@ export const KioskForm = ({
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
     lastFetchedKeyRef.current = null;
+    completedPaymentIdsRef.current.clear();
+    activePaymentIdRef.current = null;
+    discardContextRef.current = null;
   }, []);
 
   // 홈 외 화면에서 2분간 사용자 인터랙션이 없으면 자동으로 홈 복귀.
@@ -202,6 +205,13 @@ export const KioskForm = ({
   //  2) GET /kiosks/:id     — kiosk별 receiptFooter 등 상세 (영수증 하단 안내 문구)
   // 두 호출은 서로 독립이라 병렬로 보냄.
   const lastFetchedKeyRef = useRef<string | null>(null);
+  // Fix A — complete 성공으로 확정된 paymentId 집합. 같은 paymentId로 2차 create/단말 호출을 원천 차단.
+  const completedPaymentIdsRef = useRef<Set<string>>(new Set());
+  // Fix B — 현재 진행 중인 활성 카드결제 시도의 paymentId. 단말 호출 직전 설정, 결과 처리 시 해제.
+  //         값이 없으면 이미 완료/폐기된 세션에 뒤늦게 온 '유령' 단말 응답으로 본다.
+  const activePaymentIdRef = useRef<string | null>(null);
+  // 유령 응답에서 폐기 DELETE를 쏠 때 쓰는 컨텍스트(paymentId/kioskId). 스테일 클로저 회피용으로 단말 호출 직전 갱신.
+  const discardContextRef = useRef<{ paymentId: string; kioskId: number } | null>(null);
 
   useEffect(() => {
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
@@ -266,7 +276,25 @@ export const KioskForm = ({
       console.log('KIS 응답:', result);
       // 단일 채널이라 D2(취소) 응답이 여기로 올 수 있음 — admin 모달이 처리. 여기선 D1만 다룸.
       if (result?.outTranCode === 'D2') return;
+
       const data = (result ?? {}) as Record<string, unknown>;
+
+      // Fix B — 진행 중인 활성 카드결제 시도가 없으면(이미 완료/폐기된 세션에 뒤늦게 온 유령 단말 응답).
+      //         이 핸들러는 마운트 시 1회만 등록되어 state 클로저가 스테일하므로 활성 여부는 반드시 ref로 판단.
+      //         유령 실패/취소는 폐기 DELETE만 fire-and-forget로 쏘고(응답 미참조), paymentResult는 건드리지 않아
+      //         진행 중인 성공 화면/영수증 등 UI를 그대로 유지한다(오탐 실패 다이얼로그 방지).
+      if (!activePaymentIdRef.current) {
+        if (!result?.success) {
+          const ctx = discardContextRef.current;
+          if (ctx) {
+            const reason = JSON.stringify({ status: result?.canceled ? 'canceled' : 'fail', kis: data });
+            discardKioskPaymentAction(ctx.paymentId, ctx.kioskId, reason).catch(() => {});
+          }
+        }
+        return;
+      }
+      // 이 결과로 활성 시도를 소비 — 같은 시도에 대한 중복/후속 유령 응답을 차단.
+      activePaymentIdRef.current = null;
 
       setIsPaying(false);
       if (result?.canceled) {
@@ -387,6 +415,9 @@ export const KioskForm = ({
           homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
           return;
         }
+        // Fix A — complete 성공으로 확정된 paymentId 기록 → 같은 paymentId로 2차 create/단말 호출 차단.
+        completedPaymentIdsRef.current.add(completePaymentId);
+        if (paymentInfo?.paymentId) completedPaymentIdsRef.current.add(paymentInfo.paymentId);
         const ok = res as CompleteKioskPaymentResponse;
         let qrText: string | undefined;
         if (ok.qrCodeUrl) {
@@ -648,6 +679,10 @@ export const KioskForm = ({
   const handleCardPayment = useCallback(async (variant: 'card' | 'applepay' = 'card') => {
     if (!paymentItem || isPaying || !selectedUser || !paymentInfo?.paymentId || !kioskId) return;
 
+    // Fix A — 이미 complete로 확정된 paymentId면 재결제/단말 호출 차단.
+    // (결제 성공 직후 홈 전환 전 버튼 재탭으로 같은 paymentId로 2차 create가 나가는 사고 방지)
+    if (completedPaymentIdsRef.current.has(paymentInfo.paymentId)) return;
+
     // KIS 단말 호출 인터페이스가 없으면 Pending 생성/단말 호출 모두 진행 X (orphan Pending 방지)
     if (typeof window.KloudEvent?.requestKisPayment !== 'function') {
       setToastMessage('카드결제를 진행할 수 없습니다');
@@ -677,6 +712,11 @@ export const KioskForm = ({
     }
 
     const created = res as StartKioskPaymentResponse;
+
+    // Fix B — 단말 호출 직전 활성 시도 + 폐기 컨텍스트 등록. 이 이후 도착하는 D1 결과만 유효 처리되고,
+    //         완료/폐기 뒤 유령 응답은 discardContext로 폐기 DELETE만 쏘고 UI는 유지된다.
+    activePaymentIdRef.current = created.paymentId;
+    discardContextRef.current = { paymentId: created.paymentId, kioskId };
 
     // KIS 단말 호출 — 1초 대기 제거. Pending 응답 직후 곧장 송출.
     // inCustomerUuid에 우리 paymentId를 박아두면 KIS 단말에 조회 키로 저장돼서 추후 ST(상태 조회)를 같은 paymentId로 할 수 있음.

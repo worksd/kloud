@@ -20,23 +20,23 @@ export default async function LessonDetailForm({lesson, appVersion}: {
 }) {
 
   return (
-    <div className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-auto overscroll-y-none no-scrollbar">
+    <div className="w-full min-h-screen bg-white flex flex-col pb-[120px] box-border">
       <NavigateClickWrapper method={'back'}>
         <button
           type="button"
           aria-label="뒤로가기"
           className={[
-            'absolute left-3 z-10',
+            'fixed left-3 top-10 z-20',
             // 큰 터치 타깃 + 반투명 배경
             'inline-flex h-10 w-10 items-center justify-center rounded-full',
-            'backdrop-blur text-white shadow mt-10',
+            'backdrop-blur text-white shadow',
           ].join(' ')}
         >
           <LeftArrow className="h-5 w-5"/>
         </button>
       </NavigateClickWrapper>
 
-      <div className={`relative w-full aspect-[1/3] overflow-hidden bg-[#F1F3F6] ${lesson.adminType ? 'shrink-0 max-h-[40vh]' : ''}`}>
+      <div className="relative w-full h-[50vh] shrink-0 overflow-hidden bg-[#F1F3F6]">
         {lesson.thumbnailUrl ? (
           <Image
             src={lesson.thumbnailUrl}

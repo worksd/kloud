@@ -13,8 +13,31 @@ import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
+import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
+
+// 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
+// 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
+// (구) closeDate는 종료일 폴백.
+const bundleSalesPeriod = (start?: string, end?: string, close?: string): string | null => {
+  const parse = (raw?: string) => {
+    const m = raw?.match(/^(\d{4}\.\d{1,2}\.\d{1,2})(?:\s+(\d{1,2}:\d{2}))?/);
+    return m ? { day: m[1], time: m[2] ?? null } : null;
+  };
+  const s = parse(start);
+  const e = parse(end) ?? parse(close);
+  if (s && e) {
+    if (s.day === e.day) {
+      return s.time && e.time ? `${s.day} ${s.time} ~ ${e.time}` : s.day;
+    }
+    return `${s.day} ~ ${e.day}`;
+  }
+  if (e) return `~ ${e.day}`;
+  if (s) return `${s.day} ~`;
+  return null;
+};
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
@@ -49,6 +72,20 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;
 
   if (!('user' in res)) {
+    // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
+    // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
+    if (isGuinnessErrorCase(res)) {
+      // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
+      const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
+      return (
+        <PaymentErrorView
+          title={await translate('payment_error_title')}
+          message={res.message || await translate('unknown_error_message')}
+          backLabel={await translate('back')}
+          lessons={errorLessons}
+        />
+      );
+    }
     return notFound();
   }
 
@@ -190,19 +227,23 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             {res.bundle.description && (
               <p className="text-[13px] text-[#86898C] font-medium mb-2">{res.bundle.description}</p>
             )}
-            {/* 원가 strike + 마감일 */}
-            <div className="flex items-center gap-2 flex-wrap mb-4">
-              {res.bundle.originalPrice != null && res.price != null && res.bundle.originalPrice > res.price && (
-                <span className="text-[13px] text-[#BFC2C5] line-through">
-                  {new Intl.NumberFormat('ko-KR').format(res.bundle.originalPrice)}{await translate('won')}
+            {/* 판매기간 배지 */}
+            {bundleSalesPeriod(res.bundle.startDate, res.bundle.endDate, res.bundle.closeDate) && (
+              <div className="mb-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF2F2] px-2.5 py-1.5">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 shrink-0">
+                    <circle cx="12" cy="12" r="8.5" stroke="#EF4444" strokeWidth="1.6"/>
+                    <path d="M12 8v4.2l2.6 2" stroke="#EF4444" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span className="text-[11px] font-semibold text-[#EF4444]">
+                    {await translate('sales_period')}
+                  </span>
+                  <span className="text-[11px] font-medium text-[#F87171]">
+                    {bundleSalesPeriod(res.bundle.startDate, res.bundle.endDate, res.bundle.closeDate)}
+                  </span>
                 </span>
-              )}
-              {res.bundle.closeDate && (
-                <span className="text-[12px] text-[#EF4444] font-medium">
-                  ~ {res.bundle.closeDate}
-                </span>
-              )}
-            </div>
+              </div>
+            )}
             {/* 구성 수업 리스트 */}
             {res.bundle.items.length > 0 && (
               <div className="flex flex-col gap-2 mt-3">
