@@ -91,6 +91,20 @@ export const OnboardingForm = ({
   const [isGenderInputVisible, setIsGenderInputVisible] = useState(false);
   const [isNickNameInputVisible, setIsNickNameInputVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // 다이얼로그는 네이티브 앱 브릿지(window.KloudEvent) 전용이라 웹에선 안 뜬다 → 웹에선 토스트로 폴백.
+  const isApp = () => typeof window !== 'undefined' && typeof window.KloudEvent?.showDialog === 'function';
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = (msg: string) => { setToast(msg); window.setTimeout(() => setToast(null), 2500); };
+  // 앱: 네이티브 다이얼로그 / 웹: 토스트
+  const notify = async (message: string, dialog: Parameters<typeof createDialog>[0]) => {
+    if (isApp()) {
+      const d = await createDialog(dialog);
+      window.KloudEvent?.showDialog(JSON.stringify(d));
+    } else {
+      showToast(message);
+    }
+  };
   const [name, setName] = useState('');
   const [birth, setBirth] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
@@ -149,8 +163,7 @@ export const OnboardingForm = ({
       });
       focusField('code')
     } else if ('message' in res && res.message) {
-      const dialog = await createDialog({id: 'Simple', message: res.message});
-      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      await notify(res.message, {id: 'Simple', message: res.message});
     }
   }
 
@@ -175,8 +188,7 @@ export const OnboardingForm = ({
       if ('success' in res && res.success) {
         setStep('studio')
       } else if ('errorMessage' in res && res.errorMessage) {
-        const dialog = await createDialog({id: 'Simple', message: res.errorMessage});
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        await notify(res.errorMessage, {id: 'Simple', message: res.errorMessage});
       }
     } else if (step == 'phone' && !smsSent) {
       const errorTitle = await translate('send_code_fail_title')
@@ -185,11 +197,10 @@ export const OnboardingForm = ({
         await sendSmsCode()
       } else if ('message' in duplicateCheck) {
         if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
-          const dialog = await createDialog({id: 'Simple', message: duplicateCheck.message, title: errorTitle});
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          await notify(duplicateCheck.message, {id: 'Simple', message: duplicateCheck.message, title: errorTitle});
         } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
-          const dialog = await createDialog({id: 'ChangePhoneNumber'})
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          // ChangePhoneNumber는 네이티브 전용 다이얼로그 — 웹에선 메시지 토스트/인라인으로 폴백
+          await notify(duplicateCheck.message, {id: 'ChangePhoneNumber'});
         }
       }
     } else if (isNickNameInputVisible) {
@@ -203,8 +214,7 @@ export const OnboardingForm = ({
         if ('success' in res && res.success) {
           setStep('studio');
         } else if ('errorMessage' in res && res.errorMessage) {
-          const dialog = await createDialog({id: 'Simple', message: res.errorMessage});
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          await notify(res.errorMessage, {id: 'Simple', message: res.errorMessage});
         }
       } else {
         if ('success' in res && res.success) {
@@ -213,8 +223,7 @@ export const OnboardingForm = ({
           });
           focusField('phone')
         } else if ('errorMessage' in res && res.errorMessage) {
-          const dialog = await createDialog({id: 'Simple', message: res.errorMessage, title: failSignUpText});
-          window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          await notify(res.errorMessage, {id: 'Simple', message: res.errorMessage, title: failSignUpText});
         }
 
       }
@@ -574,6 +583,15 @@ export const OnboardingForm = ({
             {confirmText}
           </CommonSubmitButton>
         </div>
+
+        {/* 웹 폴백 토스트 (앱에선 네이티브 다이얼로그 사용) */}
+        {toast && (
+          <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100] max-w-[88%] pointer-events-none">
+            <div className="px-4 py-2.5 rounded-full bg-black/85 text-white text-[13px] font-medium text-center shadow-lg animate-[toastIn_250ms_ease-out]">
+              {toast}
+            </div>
+          </div>
+        )}
 
         <GenderBottomSheet
           open={genderSheetOpen}
