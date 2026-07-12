@@ -8,7 +8,7 @@ import { DiscountResponse } from "@/app/endpoint/payment.endpoint";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type KioskPaymentMethodFormProps = {
-  itemType: 'lesson' | 'pass-plan';
+  itemType: 'lesson' | 'pass-plan' | 'bundle';
   lessonTitle: string;
   lessonSubtitle?: string;
   lessonThumbnailUrl?: string;

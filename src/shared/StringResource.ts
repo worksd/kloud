@@ -3224,6 +3224,7 @@ export const StringResource = {
   kiosk_admin_pay_onsite: { ko: '현장결제', en: 'On-site', jp: '現場決済', zh: '现场支付' },
   kiosk_admin_onsite_confirm: { ko: '현장결제 하시겠습니까?', en: 'Proceed with on-site payment?', jp: '現場決済を進めますか？', zh: '要进行现场支付吗？' },
   kiosk_admin_payment_done: { ko: '결제 완료했습니다', en: 'Payment completed', jp: '決済が完了しました', zh: '支付已完成' },
+  kiosk_admin_issue_receipt: { ko: '전자영수증 발급하기', en: 'Issue e-receipt', jp: '電子領収書を発行', zh: '开具电子收据' },
   kiosk_admin_new_user_name_placeholder: { ko: '이름을 입력해주세요', en: 'Enter a name', jp: '名前を入力してください', zh: '请输入姓名' },
   kiosk_visit_desc: { ko: '회원은 방문 기록을 남길 수 있어요', en: 'Members can record their visit', jp: '会員は訪問記録を残せます', zh: '会员可以留下访问记录' },
   kiosk_visit_tag: { ko: '수강생', en: 'Members', jp: '受講生', zh: '学员' },
@@ -3318,6 +3319,8 @@ export const StringResource = {
 
   // Kiosk — 수업/패스 리스트 (KioskLessonListForm)
   kiosk_tab_lessons: { ko: '수업', en: 'Lessons', jp: 'レッスン', zh: '课程' },
+  kiosk_tab_promotion: { ko: '프로모션', en: 'Promotion', jp: 'プロモーション', zh: '促销' },
+  kiosk_private: { ko: '비공개', en: 'Private', jp: '非公開', zh: '未公开' },
   kiosk_loading: { ko: '불러오는 중...', en: 'Loading...', jp: '読み込み中...', zh: '加载中...' },
   kiosk_no_lessons_today: { ko: '오늘 예정된 수업이 없습니다', en: 'No lessons today', jp: '本日のレッスンはありません', zh: '今日无课程' },
   kiosk_no_passplans: { ko: '패스권이 없습니다', en: 'No passes available', jp: 'パス券がありません', zh: '没有通行证' },

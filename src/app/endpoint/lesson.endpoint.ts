@@ -65,6 +65,22 @@ export type BundleItemResponse = {
     thumbnailUrl?: string;
 }
 
+// GET /bundles — onSale=true면 판매중만(키오스크), 생략이면 전부(admin 키오스크). 페이지당 20개.
+export type GetBundlesRequest = {
+    onSale?: boolean;
+    page?: number;
+}
+
+export type BundleListResponse = {
+    bundle: BundleSummaryResponse[];
+}
+
+export const GetBundles: Endpoint<GetBundlesRequest, BundleListResponse> = {
+    method: 'get',
+    path: '/bundle',
+    queryParams: ['onSale', 'page'],
+}
+
 export type GetFormattedDateResponse = {
   type: 'oneTime' | 'subscription';
   date?: string;

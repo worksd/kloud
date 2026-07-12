@@ -16,6 +16,10 @@ export type SimplePaymentRecordResponse = {
 
 export type GetPassPlanListRequest = {
   studioId: number
+  /** admin(키오스크 상담실): 전부 불러오기 (KIOSK+withAll 분기). 응답은 기존 StudioPassPlanListResponse 유지. */
+  withAll?: boolean
+  /** 'active'(Ready+Private) 등 상태 필터. 생략 시 전부. */
+  status?: string
 }
 
 export type GetPassRequest = {
@@ -125,6 +129,8 @@ export type GetPassPlanResponse = {
   name: string
   price?: number
   studio?: GetStudioResponse
+  /** 공개 상태 — 'Private'면 비공개(admin withAll 조회에 포함). 'Public'/'Ready' 등. */
+  status?: string
   isPopular: boolean,
   usageLimit?: number,
   expireDateStamp?: string,
@@ -190,7 +196,8 @@ export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending' | 'Waiting' |
 export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse> = {
   method: "get",
   path: (e) => `/studios/${e.studioId}/pass-plans`,
-  pathParams: ['studioId']
+  pathParams: ['studioId'],
+  queryParams: ['withAll', 'status']
 };
 
 export const GetPassPlan: Endpoint<{ id: number }, GetPassPlanResponse> = {
