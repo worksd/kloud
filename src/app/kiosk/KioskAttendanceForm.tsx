@@ -49,10 +49,13 @@ type KioskAttendanceFormProps = {
   onBack: () => void;
   onComplete: () => void;
   locale: Locale;
+  /** 'admin'(상담실)이면 자동 홈복귀/완료 카운트다운 미표시·미동작 */
+  variant?: 'kiosk' | 'admin';
 };
 
-export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: KioskAttendanceFormProps) => {
+export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, variant = 'kiosk'}: KioskAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
+  const admin = variant === 'admin';
 
   const [step, setStep] = useState<Step>('select-status');
   const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus | null>(null);
@@ -72,6 +75,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
   const [completeCountdown, setCompleteCountdown] = useState(5);
 
   useEffect(() => {
+    if (admin) return; // admin은 무입력 자동 홈복귀 없음
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -83,10 +87,10 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [onBack]);
+  }, [onBack, admin]);
 
   useEffect(() => {
-    if (step !== 'complete') return;
+    if (step !== 'complete' || admin) return; // admin은 완료 후 자동 이동 없음
     setCompleteCountdown(5);
     const timer = setInterval(() => {
       setCompleteCountdown((prev) => {
@@ -99,7 +103,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [step, onComplete]);
+  }, [step, onComplete, admin]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -463,10 +467,12 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
               >
                 {t('kiosk_confirm')}
               </button>
-              <p className="text-gray-400 text-[16px] mt-[20px]">
-                <span className="font-semibold text-black">{completeCountdown}</span>
-                <span>초 {t('kiosk_countdown_suffix')}</span>
-              </p>
+              {!admin && (
+                <p className="text-gray-400 text-[16px] mt-[20px]">
+                  <span className="font-semibold text-black">{completeCountdown}</span>
+                  <span>초 {t('kiosk_countdown_suffix')}</span>
+                </p>
+              )}
             </>
         );
     }
@@ -495,7 +501,7 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
           {renderContent()}
         </div>
 
-        {step !== 'complete' && (
+        {step !== 'complete' && !admin && (
             <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
               <p className="text-[18px] tracking-[-0.54px]">
                 <span className="font-semibold text-black">{formatTime(countdown)}</span>
