@@ -48,7 +48,15 @@ export const AdminKioskPaymentSuccess = ({title, thumbnailUrl, amount, locale, o
         </div>
       </div>
 
-      <div className="shrink-0 px-[56px] pb-[40px]">
+      <div className="shrink-0 px-[56px] pb-[40px] flex flex-col gap-[12px]">
+        {/* 전자영수증 발급 — 액션은 추후 연동 */}
+        <button
+          onClick={() => { /* TODO: 전자영수증 발급 연동 */ }}
+          className="w-full rounded-[16px] border-2 border-[#1E2124] bg-white flex items-center justify-center active:scale-[0.98] transition-transform"
+          style={{height: 76}}
+        >
+          <span className="text-[#1E2124] text-[24px] font-bold">{t('kiosk_admin_issue_receipt')}</span>
+        </button>
         <button
           onClick={onHome}
           className="w-full rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.98] transition-transform"
