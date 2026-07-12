@@ -18,7 +18,7 @@ type AdminKioskPaymentFormProps = {
   locale: Locale;
   loading?: boolean;
   onBack: () => void;
-  onPay: (amount: number, method: 'card' | 'cash') => void;
+  onPay: (amount: number, method: 'card' | 'onsite') => void;
 };
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '←'];
@@ -30,6 +30,7 @@ export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onPay}: Ad
 
   // 금액은 숫자 문자열(원 단위)로 관리 — 상품가로 초기화, 직원이 키패드로 수정
   const [amountStr, setAmountStr] = useState<string>(String(Math.max(0, Math.round(item.price))));
+  const [showOnsiteConfirm, setShowOnsiteConfirm] = useState(false);
   const amount = Number(amountStr || '0');
 
   const handleKey = (key: string) => {
@@ -106,7 +107,7 @@ export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onPay}: Ad
               )}
             </button>
             <button
-              onClick={() => canPay && onPay(amount, 'cash')}
+              onClick={() => { if (canPay) setShowOnsiteConfirm(true); }}
               disabled={!canPay}
               className={`flex-1 rounded-[18px] flex items-center justify-center border-2 active:scale-[0.98] transition-all ${canPay ? 'border-[#1E2124] bg-white' : 'border-[#E6E8EA] bg-white'}`}
               style={{height: 84}}
@@ -132,6 +133,35 @@ export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onPay}: Ad
           </div>
         </div>
       </div>
+
+      {/* 현장결제 확인 다이얼로그 — 카드단말 없이 확인만 받고 즉시 처리 */}
+      {showOnsiteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_180ms_ease-out]">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowOnsiteConfirm(false)}/>
+          <div className="relative bg-white rounded-[24px] w-full max-w-[480px] p-[32px] flex flex-col animate-[scaleIn_180ms_ease-out]">
+            <p className="text-black text-[26px] font-bold text-center">{t('kiosk_admin_onsite_confirm')}</p>
+            <p className="text-gray-500 text-[20px] text-center mt-[10px]">
+              {amount.toLocaleString('ko-KR')} {t('won')}
+            </p>
+            <div className="mt-[28px] flex gap-[12px]">
+              <button
+                onClick={() => setShowOnsiteConfirm(false)}
+                className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{height: 68}}
+              >
+                <span className="text-[#1E2124] text-[22px] font-bold">{t('kiosk_cancel')}</span>
+              </button>
+              <button
+                onClick={() => { setShowOnsiteConfirm(false); onPay(amount, 'onsite'); }}
+                className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{height: 68}}
+              >
+                <span className="text-white text-[22px] font-bold">{t('kiosk_confirm')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

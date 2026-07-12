@@ -15,7 +15,7 @@ export const searchUserAction = async (query: string) => {
   return await api.user.search({ query });
 };
 
-export const registerKioskUserAction = async (phone: string, countryCode: string, nickName: string) => {
+export const registerKioskUserAction = async (phone: string, countryCode: string, nickName: string, name?: string) => {
   // 1. phone-login (isAdmin: true → 신규 유저 자동 생성)
   const loginResult = await api.auth.checkPhoneVerification({
     phone,
@@ -26,10 +26,11 @@ export const registerKioskUserAction = async (phone: string, countryCode: string
     return loginResult;
   }
 
-  // 2. 닉네임 업데이트 — 키오스크 신규 가입은 name이 아니라 nickName으로 patch
+  // 2. 닉네임(+admin은 직원이 입력한 name) 업데이트
   const updateResult = await api.user.update({
     id: loginResult.user.id,
     nickName,
+    name,
     type: 'Default' as any,
   });
   if (isGuinnessErrorCase(updateResult)) {
@@ -156,6 +157,7 @@ export const createAdminManualPaymentAction = async (params: {
   item: import("@/app/endpoint/payment.record.endpoint").ManualPaymentItem;
   itemId: number;
   targetUserId: number;
+  amount?: number;
   discounts?: import("@/app/endpoint/payment.endpoint").DiscountResponse[];
 }) => {
   return await api.paymentRecord.createManual({ methodType: 'admin', ...params });

@@ -68,6 +68,8 @@ export type CreateManualPaymentRecordRequest = {
   item: ManualPaymentItem;
   itemId: number;
   targetUserId: number;
+  /** 직원이 편집한 실결제 금액 (admin 현장결제 등). 미지정이면 서버가 상품가로 계산. */
+  amount?: number;
   depositor?: string;
   discounts?: DiscountResponse[];
 }
@@ -90,7 +92,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
   path: '/paymentRecords/manual',
-  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor', 'discounts']
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'amount', 'depositor', 'discounts']
 }
 
 export type RefundPassResponse = {
