@@ -45,6 +45,8 @@ export const kloudNav = {
       );
       return;
     }
+    // 웹(네이티브 아님) 폴백 — 브라우저 네비게이션
+    if (typeof window !== 'undefined') window.location.href = finalRoute;
   },
 
   back() {
@@ -52,13 +54,18 @@ export const kloudNav = {
       (window as any).KloudEvent.back();
       return;
     }
+    if (typeof window !== 'undefined') window.history.back();
   },
 
   clearAndPush(route: string) {
-    if (isMobile()) (window as any).KloudEvent.clearAndPush(JSON.stringify({
-      route,
-      ignoreSafeArea: applyIgnoreSafeArea(route),
-    }));
+    if (isMobile()) {
+      (window as any).KloudEvent.clearAndPush(JSON.stringify({
+        route,
+        ignoreSafeArea: applyIgnoreSafeArea(route),
+      }));
+      return;
+    }
+    if (typeof window !== 'undefined') window.location.href = route;
   },
 
   rootNext(route: string) {
