@@ -9,7 +9,7 @@ import {AdminKioskPaymentForm} from "@/app/kiosk/AdminKioskPaymentForm";
 import {AdminKioskPaymentSuccess} from "@/app/kiosk/AdminKioskPaymentSuccess";
 import {KioskPrinterDebugOverlay} from "@/app/kiosk/KioskPrinterDebugOverlay";
 import {KioskLessonListForm} from "@/app/kiosk/KioskLessonListForm";
-import {GetLessonResponse} from "@/app/endpoint/lesson.endpoint";
+import {GetLessonResponse, BundleSummaryResponse} from "@/app/endpoint/lesson.endpoint";
 import {formatLessonDate, formatLessonStart} from "@/app/kiosk/kiosk.lesson";
 import {KioskLessonDetailModal} from "@/app/kiosk/KioskLessonDetailModal";
 import {KioskPhoneInputForm} from "@/app/kiosk/KioskPhoneInputForm";
@@ -136,6 +136,7 @@ export const KioskForm = ({
   }, [currentScreen, router]);
   const [selectedLesson, setSelectedLesson] = useState<GetLessonResponse | null>(null);
   const [selectedPassPlan, setSelectedPassPlan] = useState<GetPassPlanResponse | null>(null);
+  const [selectedBundle, setSelectedBundle] = useState<BundleSummaryResponse | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | 'cash' | 'onsite' | null>(null);
   // admin 현장결제 중복 제출 방지
   const adminOnsiteBusyRef = useRef(false);
@@ -177,6 +178,7 @@ export const KioskForm = ({
     setCurrentScreen('home');
     setSelectedLesson(null);
     setSelectedPassPlan(null);
+    setSelectedBundle(null);
     setPhone('');
     setSearchedUsers([]);
     setSelectedUser(null);
@@ -221,7 +223,7 @@ export const KioskForm = ({
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
   useEffect(() => {
-    const hasItem = !!selectedLesson || !!selectedPassPlan;
+    const hasItem = !!selectedLesson || !!selectedPassPlan || !!selectedBundle;
     const hasUser = !!selectedUser;
     if (currentScreen === 'lesson-detail' && !selectedLesson) {
       setCurrentScreen('lesson-list');
@@ -258,9 +260,9 @@ export const KioskForm = ({
   useEffect(() => {
     // admin-payment는 경량 GET /kiosks/admin/payment로 결제 시점에 paymentId를 따로 받으므로 여기서 heavy fetch 안 함
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
-    if (!selectedLesson && !selectedPassPlan) return;
-    const item = selectedLesson ? 'lesson' : 'pass-plan';
-    const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
+    if (!selectedLesson && !selectedPassPlan && !selectedBundle) return;
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'bundle';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? selectedBundle?.id;
     if (!itemId) return;
 
     // 같은 selection으로 재진입(예: pass-select 갔다오기)일 땐 fetch/reset skip → 선택해둔 할인/패스권 보존.
@@ -625,7 +627,15 @@ export const KioskForm = ({
             ),
           ].filter(Boolean),
         }
-      : null;
+      : selectedBundle
+        ? {
+            title: selectedBundle.name,
+            price: selectedBundle.price ?? 0,
+            subtitle: selectedBundle.description ?? '',
+            thumbnailUrl: selectedBundle.items?.[0]?.imageUrl ?? selectedBundle.items?.[0]?.thumbnailUrl,
+            benefits: (selectedBundle.items ?? []).map((it) => it.title).filter(Boolean),
+          }
+        : null;
 
   // 결제수단 활성화 여부 — paymentInfo.methods의 isEnabled를 type별로 추출.
   // 키오스크 응답은 paymentMethod로 wrap되어 옴, 일반 결제 응답은 root에 type. 둘 다 지원.
@@ -669,7 +679,7 @@ export const KioskForm = ({
         nickName: selectedUser.nickName,
         phone: phone || selectedUser.phone,
       } : undefined,
-      itemType: selectedLesson ? 'lesson' : (selectedPassPlan ? 'pass-plan' : undefined),
+      itemType: selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : selectedBundle ? 'bundle' : undefined,
       // 수업 결제 시 강사 노출 — 닉네임 우선, 없으면 본명
       artists: selectedLesson
         ? (paymentInfo?.lesson?.artists ?? selectedLesson.artists ?? [])
@@ -790,8 +800,8 @@ export const KioskForm = ({
     }
     if (!Number.isFinite(customAmount) || customAmount <= 0) { setToastMessage('금액을 확인해주세요'); return; }
     if (!paymentItem || isPaying || !selectedUser || !kioskId) return;
-    const item = selectedLesson ? 'lesson' : 'pass-plan';
-    const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'bundle';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? selectedBundle?.id;
     if (!itemId) return;
 
     setCardPayingVariant('card');
@@ -832,8 +842,8 @@ export const KioskForm = ({
     if (adminOnsiteBusyRef.current) return;
     if (!paymentItem || !selectedUser) return;
     if (!Number.isFinite(customAmount) || customAmount <= 0) { setToastMessage('금액을 확인해주세요'); return; }
-    const item = selectedLesson ? 'lesson' : 'pass-plan';
-    const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'bundle';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? selectedBundle?.id;
     if (!itemId) return;
 
     adminOnsiteBusyRef.current = true;
@@ -1030,8 +1040,9 @@ export const KioskForm = ({
           passPlans={passPlans}
           locale={locale}
           variant={variant}
-          onSelectLesson={(lesson) => { setSelectedLesson(lesson); setSelectedPassPlan(null); setCurrentScreen('lesson-detail'); }}
-          onSelectPassPlan={(plan) => { setSelectedPassPlan(plan); setSelectedLesson(null); setCurrentScreen('phone'); }}
+          onSelectLesson={(lesson) => { setSelectedLesson(lesson); setSelectedPassPlan(null); setSelectedBundle(null); setCurrentScreen('lesson-detail'); }}
+          onSelectPassPlan={(plan) => { setSelectedPassPlan(plan); setSelectedLesson(null); setSelectedBundle(null); setCurrentScreen('phone'); }}
+          onSelectBundle={(bundle) => { setSelectedBundle(bundle); setSelectedLesson(null); setSelectedPassPlan(null); setCurrentScreen('phone'); }}
           onBack={goHome}
           onChangeLocale={setLocale}
         />
@@ -1121,7 +1132,7 @@ export const KioskForm = ({
       {/* payment-method / pass-select 공유 — modal 떠도 폼 인스턴스 유지 */}
       {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && selectedUser && !paymentInfoError && (
         <KioskPaymentMethodForm
-          itemType={selectedLesson ? 'lesson' : 'pass-plan'}
+          itemType={selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'bundle'}
           lessonTitle={paymentItem.title}
           lessonSubtitle={paymentItem.subtitle}
           lessonThumbnailUrl={paymentItem.thumbnailUrl}

@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
+import { GetLessonResponse, LessonStatus, BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
+import { getBundlesAction } from "@/app/kiosk/get.bundles.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 import { formatLessonStart, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
@@ -24,24 +25,56 @@ const INTL_LOCALE: Record<Locale, string> = {
   zh: 'zh-CN',
 };
 
+// "2026.06.16 05:52" → "6.16"
+const bundleMonthDay = (raw?: string): string | null => {
+  if (!raw) return null;
+  const m = raw.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  return m ? `${parseInt(m[2], 10)}.${parseInt(m[3], 10)}` : null;
+};
+const bundleSalesPeriod = (b: BundleSummaryResponse): string | null => {
+  const s = bundleMonthDay(b.startDate);
+  const e = bundleMonthDay(b.endDate) ?? bundleMonthDay(b.closeDate);
+  if (s && e) return `${s} ~ ${e}`;
+  if (e) return `~ ${e}`;
+  return null;
+};
+
 type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
   locale: Locale;
   onSelectLesson: (lesson: GetLessonResponse) => void;
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
+  onSelectBundle?: (bundle: BundleSummaryResponse) => void;
   onBack: () => void;
   onChangeLocale: (locale: Locale) => void;
   /** 'admin'(태블릿 상담실)이면 수업 그리드를 6열로 넓게 노출. 기본 'kiosk'는 3열. */
   variant?: 'kiosk' | 'admin';
 };
 
-type KioskTab = 'lessons' | 'pass-plans';
+type KioskTab = 'promotion' | 'lessons' | 'pass-plans';
 
-export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale, variant = 'kiosk' }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onSelectBundle, onBack, onChangeLocale, variant = 'kiosk' }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
   const [tab, setTab] = useState<KioskTab>('lessons');
+  // 프로모션(번들) — 무인은 onSale=true, admin은 전부. 비어있으면 탭 자체를 숨긴다.
+  const [bundles, setBundles] = useState<BundleSummaryResponse[]>([]);
+  useEffect(() => {
+    if (!studioId) return;
+    getBundlesAction(admin ? undefined : true)
+      .then(async (res) => {
+        if (await handleKioskTokenExpired(res)) return;
+        // 응답 껍데기가 { bundles } / { content } / { items } / 배열 등 어떤 형태로 와도 배열을 추출
+        const r = res as Record<string, unknown> | BundleSummaryResponse[];
+        const list = Array.isArray(r)
+          ? r
+          : (r.bundle ?? r.bundles ?? r.content ?? r.items ?? r.data ?? r.list ?? []);
+        if (process.env.NODE_ENV !== 'production') console.log('[kiosk bundles]', admin ? '(all)' : '(onSale)', res);
+        setBundles(Array.isArray(list) ? (list as BundleSummaryResponse[]) : []);
+      })
+      .catch((e) => { console.warn('[kiosk bundles] failed', e); });
+  }, [studioId, admin]);
   // 날짜 옵션 — 자정 기준 normalize.
   //  - kiosk(무인): 오늘부터 7일(오늘 ~ +6). 과거 결제 없음.
   //  - admin(상담실): 지난 한 달 조회 가능하도록 과거 30일 ~ +6일. 기본 선택은 항상 오늘.
@@ -90,13 +123,14 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   useEffect(() => {
     if (tab !== 'pass-plans' || passPlans.length > 0 || !studioId) return;
     setLoadingPassPlans(true);
-    getPassPlanListAction({ studioId })
+    // admin(상담실)은 전부(withAll) 불러온다. 응답 형태는 기존 StudioPassPlanListResponse 유지.
+    getPassPlanListAction({ studioId, withAll: admin ? true : undefined })
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
         if ('passPlans' in res) setPassPlans(res.passPlans);
       })
       .finally(() => setLoadingPassPlans(false));
-  }, [tab, studioId, passPlans.length]);
+  }, [tab, studioId, passPlans.length, admin]);
 
   const handleClickPassPlan = async (plan: GetPassPlanResponse) => {
     if (loadingDetailId) return;
@@ -155,6 +189,15 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       <div className="flex-1 flex overflow-hidden">
         {/* 좌측 사이드바 */}
         <div className="shrink-0 flex flex-col gap-[8px] py-[16px] px-[12px] border-r border-[#F2F4F6]" style={{ width: 'min(18vw, 180px)' }}>
+          {/* 프로모션(번들) — 번들이 있을 때만 맨 위에 노출 */}
+          {bundles.length > 0 && (
+            <KioskSideTab
+              label={t('kiosk_tab_promotion')}
+              active={tab === 'promotion'}
+              onClick={() => setTab('promotion')}
+              iconSrc="/assets/ic_kiosk_pass_plan.svg"
+            />
+          )}
           <KioskSideTab
             label={t('kiosk_tab_lessons')}
             active={tab === 'lessons'}
@@ -171,6 +214,73 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
 
         {/* 우측 컨텐츠 */}
         <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px' }}>
+          {tab === 'promotion' && (
+            <div className={`grid gap-[16px] ${admin ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {bundles.map((b) => {
+                const discountRate = b.originalPrice > b.price && b.originalPrice > 0
+                  ? Math.round((1 - b.price / b.originalPrice) * 100) : 0;
+                const visible = b.items.slice(0, 4);
+                const remaining = b.items.length - visible.length;
+                const period = bundleSalesPeriod(b);
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => onSelectBundle?.(b)}
+                    className="w-full rounded-[16px] bg-white border border-[#F1F3F6] overflow-hidden active:bg-[#F7F8F9] transition-colors text-left"
+                  >
+                    {/* 아이템 이미지 — 균등 분배 */}
+                    <div className="w-full flex gap-px bg-white" style={{ height: 'min(20vh, 176px)' }}>
+                      {visible.map((item, idx) => {
+                        const thumb = item.imageUrl ?? item.thumbnailUrl;
+                        const showOverlay = idx === visible.length - 1 && remaining > 0;
+                        return (
+                          <div key={`${item.itemType}-${item.itemId}`} className="relative flex-1 bg-[#F1F3F6] overflow-hidden">
+                            {thumb && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={kioskImageSrc(thumb, 400)} alt="" className="w-full h-full object-cover"/>
+                            )}
+                            {showOverlay && (
+                              <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
+                                <span className="text-white font-bold" style={{ fontSize: 'min(2vh,20px)' }}>+{remaining}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* 텍스트 */}
+                    <div className="p-[16px]">
+                      {(discountRate > 0 || period) && (
+                        <div className="flex items-center gap-[6px] mb-[8px] flex-wrap">
+                          {discountRate > 0 && (
+                            <span className="px-[8px] py-[2px] rounded-full bg-[#FEF2F2] text-[#EF4444] font-bold" style={{ fontSize: 'min(1.3vh,13px)' }}>{discountRate}% OFF</span>
+                          )}
+                          {period && (
+                            <span className="px-[8px] py-[2px] rounded-full bg-[#F3F4F6] text-[#4E5968] font-medium" style={{ fontSize: 'min(1.3vh,13px)' }}>{period}</span>
+                          )}
+                        </div>
+                      )}
+                      <div className="text-black font-bold truncate" style={{ fontSize: 'min(1.9vh,20px)' }}>{b.name}</div>
+                      {b.description && (
+                        <div className="mt-[2px] text-[#86898C] line-clamp-1" style={{ fontSize: 'min(1.4vh,14px)' }}>{b.description}</div>
+                      )}
+                      <div className="mt-[8px] flex items-baseline gap-[8px] flex-wrap">
+                        <span className="text-black font-bold" style={{ fontSize: 'min(2.1vh,22px)' }}>
+                          {new Intl.NumberFormat('ko-KR').format(b.price)}{t('won')}
+                        </span>
+                        {discountRate > 0 && (
+                          <span className="text-[#BFC2C5] line-through" style={{ fontSize: 'min(1.4vh,14px)' }}>
+                            {new Intl.NumberFormat('ko-KR').format(b.originalPrice)}{t('won')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {tab === 'lessons' && (
             <>
               {loadingLessons && (
@@ -243,12 +353,20 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                         : 'bg-[#F9F9FB] border border-transparent'
                     } ${isLoading ? 'opacity-60' : ''}`}
                   >
-                    {plan.isRecommended && (
-                      <span className="inline-flex items-center gap-[4px] mb-[6px] px-[10px] py-[3px] rounded-full bg-[#1E2124]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
-                        <span className="text-[#FFC83D]">★</span>
-                        <span className="text-white font-bold">{t('kiosk_recommended')}</span>
-                      </span>
-                    )}
+                    <div className="flex items-center gap-[6px] flex-wrap">
+                      {plan.isRecommended && (
+                        <span className="inline-flex items-center gap-[4px] mb-[6px] px-[10px] py-[3px] rounded-full bg-[#1E2124]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                          <span className="text-[#FFC83D]">★</span>
+                          <span className="text-white font-bold">{t('kiosk_recommended')}</span>
+                        </span>
+                      )}
+                      {/* admin 조회(withAll)에 포함되는 비공개 패스권 태그 */}
+                      {admin && plan.status === 'Private' && (
+                        <span className="inline-flex items-center mb-[6px] px-[10px] py-[3px] rounded-full bg-[#E8E8EA]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                          <span className="text-[#6D7882] font-bold">{t('kiosk_private')}</span>
+                        </span>
+                      )}
+                    </div>
                     <p className="text-black font-bold leading-snug" style={{ fontSize: 'min(1.8vh, 19px)' }}>{plan.name}</p>
                     {summary && (
                       <p className="text-[#86898C] mt-[4px] line-clamp-1" style={{ fontSize: 'min(1.4vh, 15px)' }}>{summary}</p>
