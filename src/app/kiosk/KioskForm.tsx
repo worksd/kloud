@@ -202,7 +202,8 @@ export const KioskForm = ({
   //  - goHome이 selectedUser 등 손님 세션 전체를 초기화 (다음 사용자가 새로 시작하도록)
   //  - 홈 화면 자체엔 타임아웃 미적용
   useEffect(() => {
-    if (currentScreen === 'home') return;
+    // admin(상담실)은 직원이 진행하므로 자동 홈 복귀(무입력 타임아웃) 미적용
+    if (currentScreen === 'home' || variant === 'admin') return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const IDLE_MS = 2 * 60 * 1000;
     const reset = () => {
@@ -216,7 +217,7 @@ export const KioskForm = ({
       if (timer) clearTimeout(timer);
       events.forEach((e) => window.removeEventListener(e, reset));
     };
-  }, [currentScreen, goHome]);
+  }, [currentScreen, goHome, variant]);
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
   useEffect(() => {
@@ -397,7 +398,7 @@ export const KioskForm = ({
     const finishUp = (qrText?: string, rankText?: string) => {
       if (cancelled) return;
       handlePrintReceipt(qrText, rankText);
-      homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+      if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
 
     if (paymentMethod === 'pass') {
@@ -448,7 +449,7 @@ export const KioskForm = ({
         const parsed = parsePaymentResult(res);
         if (!parsed.ok) {
           setToastMessage(parsed.message ?? '결제 기록 저장에 실패했어요');
-          homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+          if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
           return;
         }
         // Fix A — complete 성공으로 확정된 paymentId 기록 → 같은 paymentId로 2차 create/단말 호출 차단.
@@ -462,7 +463,7 @@ export const KioskForm = ({
         if (cancelled) return;
         // 네트워크/서버 예외 — 영수증 인쇄 차단, 토스트 + 5초 후 홈
         setToastMessage('결제 기록 저장에 실패했어요');
-        homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+        if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
       });
 
     return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
@@ -709,13 +710,14 @@ export const KioskForm = ({
   // card/qr/cash가 공유. 성공 시 ParsedPaymentResult 반환, 실패/에러 시 상태 정리 후 null.
   const runStartPayment = useCallback(async (
     type: 'card' | 'cash',
-    ctx: { targetUserId: number; kioskId: number; paymentId: string },
+    ctx: { targetUserId: number; kioskId: number; paymentId: string; amount?: number },
   ): Promise<ParsedPaymentResult | null> => {
     const res = await startKioskPaymentAction({
       targetUserId: ctx.targetUserId,
       kioskId: ctx.kioskId,
       paymentId: ctx.paymentId,
       type,
+      amount: ctx.amount,
       discounts: buildDiscounts(),
     });
     const parsed = parsePaymentResult(res);
@@ -808,16 +810,21 @@ export const KioskForm = ({
       return;
     }
 
-    activePaymentIdRef.current = paymentId;
-    discardContextRef.current = { paymentId, kioskId };
+    // 발급받은 paymentId로 Pending 생성 — 편집금액(customAmount)을 함께 전송.
+    // complete(POST /kiosks/payments/:id/complete)가 Pending을 전제로 함.
+    const parsed = await runStartPayment('card', { targetUserId: selectedUser.id, kioskId, paymentId, amount: Math.round(customAmount) });
+    if (!parsed) return; // 실패 처리(isPaying/토스트)는 runStartPayment가 완료
+
+    activePaymentIdRef.current = parsed.paymentId!;
+    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
 
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       inTranCode: 'D1',
       inTotAmt: `${Math.round(customAmount)}`,
       inInstallment: '00',
-      inCustomerUuid: paymentId,
+      inCustomerUuid: parsed.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId]);
+  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId, runStartPayment]);
 
   // admin 현장결제 — 카드단말 흐름 아님. 확인 다이얼로그(폼)에서 확인 시 호출되어
   // POST /paymentRecords/manual (methodType='admin', 편집 amount)로 즉시 기록 → '결제 완료' 성공 화면.
@@ -1162,7 +1169,7 @@ export const KioskForm = ({
       )}
 
       {isPaying && (
-        <KioskCardPaymentDialog method={cardPayingVariant} locale={locale} onCancel={() => setIsPaying(false)} />
+        <KioskCardPaymentDialog method={cardPayingVariant} locale={locale} variant={variant} onCancel={() => setIsPaying(false)} />
       )}
 
       {/* admin(상담실) 결제 완료 — 전용 화면 (무인 성공 오버레이와 별개) */}
@@ -1473,6 +1480,7 @@ export const KioskForm = ({
           onBack={goHome}
           onComplete={goHome}
           locale={locale}
+          variant={variant}
         />
       )}
 
@@ -1481,6 +1489,8 @@ export const KioskForm = ({
           studioId={studioId}
           onBack={goHome}
           locale={locale}
+          onChangeLocale={setLocale}
+          variant={variant}
         />
       )}
     </div>

@@ -1,6 +1,9 @@
 'use client';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
 import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
@@ -11,12 +14,15 @@ import {isGuinnessErrorCase} from '@/app/guinnessErrorCase';
 import {GetLessonResponse, LessonStatus} from '@/app/endpoint/lesson.endpoint';
 import {TicketResponse} from '@/app/endpoint/ticket.endpoint';
 import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
-import {KioskEmailKeyboard} from '@/app/kiosk/KioskEmailKeyboard';
+import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
+import QRScanner from '@/app/components/QRScanner';
 
 type KioskLessonAttendanceFormProps = {
   studioId: number;
   onBack: () => void;
   locale: Locale;
+  onChangeLocale: (locale: Locale) => void;
+  variant?: 'kiosk' | 'admin';
 };
 
 type Mode = 'qr' | 'manual';
@@ -71,6 +77,22 @@ const formatLessonTime = (lesson: GetLessonResponse): string | null => {
   return null;
 };
 
+const formatApiDate = (d: Date): string =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const formatLessonDay = (lesson: GetLessonResponse): string | null => {
+  const datePart = lesson.startDate?.split(' ')[0] ?? (lesson.date ? lesson.date.replace(/\./g, '-').split(' ')[0] : undefined);
+  if (datePart) {
+    const [y, m, d] = datePart.split('-').map(Number);
+    if (y && m && d) {
+      const wd = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+      return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${wd})`;
+    }
+  }
+  return lesson.date ?? null;
+};
+
 const normalizePhone = (s: string) => s.replace(/\D/g, '');
 
 // 입력값(전화 또는 이메일)으로 레슨 티켓 목록에서 동일 유저 찾기
@@ -94,8 +116,9 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 //  - QR 모드: 네이티브 HID 스캐너(startQrScan) → onQrScanResult → willUseTicketId/token 파싱 → 티켓 조회
 //  - 수동 모드: 수업 선택 → 전화/이메일 입력 → 해당 레슨 티켓에서 유저 매칭
 //  두 경로 모두 확인 화면(이 수업 맞나요?) 후 toUsed로 출석 처리.
-export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLessonAttendanceFormProps) => {
+export const KioskLessonAttendanceForm = ({studioId, onBack, locale, onChangeLocale, variant = 'kiosk'}: KioskLessonAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
+  const admin = variant === 'admin';
 
   const [mode, setMode] = useState<Mode>('qr');
   const [status, setStatus] = useState<Status>('idle');
@@ -105,22 +128,14 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
   // 수동 모드 상태
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [lessonsLoading, setLessonsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const [selectedLesson, setSelectedLesson] = useState<GetLessonResponse | null>(null);
-  const [userInput, setUserInput] = useState('');
   const [searching, setSearching] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
 
   const busyRef = useRef(false);
   const modeRef = useRef<Mode>('qr');
   useEffect(() => { modeRef.current = mode; }, [mode]);
-
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}.${m}.${day}`;
-  }, []);
 
   // ── QR 모드 ──
   const handleScan = useCallback(async (raw: string) => {
@@ -142,6 +157,17 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
         setStatus('error');
         return;
       }
+      // Cancelled/CancelPending은 없는 것과 마찬가지, Used는 이미 출석 완료
+      if (res.status === 'Cancelled' || res.status === 'CancelPending') {
+        setErrorMsg(t('coupon_qr_invalid'));
+        setStatus('error');
+        return;
+      }
+      if (res.status === 'Used') {
+        setErrorMsg(t('kiosk_lesson_attendance_already_done'));
+        setStatus('error');
+        return;
+      }
       setSelectedLesson(res.lesson ?? null);
       setTicket(res);
       setStatus('confirm');
@@ -160,10 +186,13 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
     setSelectedLesson(null);
     setErrorMsg(null);
     setStatus('idle');
-    (window as any).KloudEvent?.startQrScan?.('');
-  }, []);
+    // 무인은 네이티브 HID 스캐너, admin은 브라우저 카메라(QRScanner)가 재마운트되며 스캔
+    if (!admin) (window as any).KloudEvent?.startQrScan?.('');
+  }, [admin]);
 
+  // 무인 키오스크만 네이티브 startQrScan/onQrScanResult 사용. admin은 QRScanner(카메라)의 onSuccess로 처리.
   useEffect(() => {
+    if (admin) return;
     const prev = (window as any).onQrScanResult;
     (window as any).onQrScanResult = (result: unknown) => {
       const text = typeof result === 'string' ? result : JSON.stringify(result);
@@ -173,18 +202,23 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
     return () => {
       (window as any).onQrScanResult = prev;
     };
-  }, [handleScan]);
+  }, [handleScan, admin]);
+
+  // QRScanner(카메라) decode noise 무시, 실제 에러만 로깅
+  const handleQrError = useCallback((errorMessage: string) => {
+    if (
+      !errorMessage.includes('MultiFormat Readers were able to detect the code') &&
+      !errorMessage.includes('No barcode or QR code')
+    ) {
+      console.warn('QR scan error:', errorMessage);
+    }
+  }, []);
 
   // ── 수동 모드 ──
-  const enterManual = useCallback(async () => {
-    setMode('manual');
-    setTicket(null);
-    setSelectedLesson(null);
-    setErrorMsg(null);
-    setStatus('manual-lesson');
+  const fetchLessonsForDate = useCallback(async (date: Date) => {
     setLessonsLoading(true);
     try {
-      const res = await getLessonsByDate(studioId, todayStr);
+      const res = await getLessonsByDate(studioId, formatApiDate(date));
       const list = 'lessons' in res ? res.lessons.filter((l) => l.status !== LessonStatus.Cancelled) : [];
       setLessons(list);
     } catch {
@@ -192,29 +226,53 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
     } finally {
       setLessonsLoading(false);
     }
-  }, [studioId, todayStr]);
+  }, [studioId]);
+
+  const enterManual = useCallback(async () => {
+    setMode('manual');
+    setTicket(null);
+    setSelectedLesson(null);
+    setErrorMsg(null);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    setSelectedDate(today);
+    setStatus('manual-lesson');
+    await fetchLessonsForDate(today);
+  }, [fetchLessonsForDate]);
+
+  const handleSelectDate = useCallback((date: Date) => {
+    date.setHours(0, 0, 0, 0);
+    setSelectedDate(date);
+    fetchLessonsForDate(date);
+  }, [fetchLessonsForDate]);
 
   const selectLesson = useCallback((lesson: GetLessonResponse) => {
     setSelectedLesson(lesson);
-    setUserInput('');
     setInputError(null);
     setStatus('manual-input');
   }, []);
 
-  const handleSearchUser = useCallback(async () => {
+  // 결제 플로우와 동일한 KioskPhoneInputForm이 전화/이메일을 넘겨줌 → 해당 레슨 티켓에서 매칭
+  const searchInLesson = useCallback(async (query: string) => {
     if (!selectedLesson || searching) return;
-    const q = userInput.trim();
+    const q = query.trim();
     if (!q) return;
     setSearching(true);
     setInputError(null);
     try {
       const tickets = await getLessonTicketsAction(selectedLesson.id);
-      const matches = matchTickets(tickets, q);
+      // Cancelled/CancelPending은 없는 것과 마찬가지 → 매칭에서 제외
+      const matches = matchTickets(tickets, q).filter((tk) => tk.status !== 'Cancelled' && tk.status !== 'CancelPending');
       if (matches.length === 0) {
         setInputError(t('kiosk_lesson_attendance_no_match'));
         return;
       }
-      setTicket(matches[0]);
+      // 아직 출석 안 한(Used 아님) 티켓 우선. 전부 Used면 이미 출석 처리된 것.
+      const usable = matches.find((tk) => tk.status !== 'Used');
+      if (!usable) {
+        setInputError(t('kiosk_lesson_attendance_already_done'));
+        return;
+      }
+      setTicket(usable);
       setStatus('confirm');
     } catch {
       setInputError(t('kiosk_lesson_attendance_load_failed'));
@@ -222,7 +280,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
       setSearching(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLesson, userInput, searching, locale]);
+  }, [selectedLesson, searching, locale]);
 
   // ── 공통: 출석 처리 ──
   const handleConfirmAttendance = useCallback(async () => {
@@ -252,7 +310,6 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
     setTicket(null);
     setErrorMsg(null);
     if (mode === 'manual') {
-      setUserInput('');
       setInputError(null);
       setStatus(selectedLesson ? 'manual-input' : 'manual-lesson');
     } else {
@@ -274,6 +331,44 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
 
   const displayLesson = ticket?.lesson ?? selectedLesson;
 
+  // admin(태블릿)은 HID 스캐너가 없으므로 QR 대기 화면에서 카메라(QRScanner)를 연다.
+  if (admin && status === 'idle') {
+    return (
+      <div className="relative w-full h-screen bg-black overflow-hidden">
+        <QRScanner
+          onSuccess={handleScan}
+          onError={handleQrError}
+          onBack={onBack}
+          resultMessage={t('scan_qr_code')}
+        />
+        <button
+          onClick={enterManual}
+          className="fixed left-1/2 -translate-x-1/2 bottom-[40px] z-[10001] h-[60px] px-[36px] rounded-[16px] bg-white/90 flex items-center justify-center active:scale-[0.97] transition-transform"
+        >
+          <span className="text-[#1E2124] text-[20px] font-bold">{t('kiosk_lesson_attendance_manual_entry')}</span>
+        </button>
+      </div>
+    );
+  }
+
+  // 전화/이메일 입력은 결제 플로우와 동일한 KioskPhoneInputForm 재사용 (전체화면)
+  if (status === 'manual-input') {
+    return (
+      <KioskPhoneInputForm
+        locale={locale}
+        variant={variant}
+        onBack={() => setStatus('manual-lesson')}
+        onHome={onBack}
+        onChangeLocale={onChangeLocale}
+        onNext={(phone) => searchInLesson(phone)}
+        onSearchByEmail={(email) => searchInLesson(email)}
+        loading={searching}
+        errorMessage={inputError}
+        onDismissError={() => setInputError(null)}
+      />
+    );
+  }
+
   return (
     <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
       {/* 헤더 */}
@@ -291,83 +386,68 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
         </p>
       </div>
 
-      {/* 수동 모드 - 수업 선택: 상하 스크롤 레이아웃이라 별도 처리 */}
+      {/* 수동 모드 - 수업 선택: 좌 캘린더 / 우 선택 날짜의 수업 */}
       {status === 'manual-lesson' ? (
-        <div className="flex-1 min-h-0 flex flex-col px-[48px] pt-[24px] pb-[40px]">
-          <p className="text-black text-[32px] font-bold tracking-[-1px] mb-[24px] text-center shrink-0">
-            {t('kiosk_lesson_attendance_select_lesson')}
-          </p>
-          {lessonsLoading ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-[48px] h-[48px] border-4 border-gray-200 border-t-black rounded-full animate-spin"/>
+        <div className="flex-1 min-h-0 flex gap-[40px] px-[48px] pt-[16px] pb-[40px]">
+          {/* 좌 — 캘린더 */}
+          <div className="shrink-0 flex flex-col" style={{width: 420}}>
+            <p className="text-black text-[24px] font-bold mb-[16px]">{t('kiosk_lesson_attendance_select_lesson')}</p>
+            <div className={`${calendarStyles.calendarWrapper} bg-white rounded-[20px] border border-[#E6E8EA] p-[16px]`}>
+              <Calendar
+                onChange={(value) => { const d = Array.isArray(value) ? value[0] : value; if (d instanceof Date) handleSelectDate(d); }}
+                value={selectedDate}
+                formatDay={(_locale, d) => String(d.getDate())}
+                locale="ko-KR"
+                calendarType="gregory"
+              />
             </div>
-          ) : lessons.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-gray-400 text-[22px]">{t('kiosk_lesson_attendance_no_lessons')}</p>
-            </div>
-          ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-[12px] max-w-[720px] w-full mx-auto">
-              {lessons.map((lesson) => (
-                <button
-                  key={lesson.id}
-                  onClick={() => selectLesson(lesson)}
-                  className="w-full bg-gray-50 rounded-[20px] p-[20px] flex items-center gap-[16px] active:bg-gray-100 transition-colors text-left"
-                >
-                  <div className="w-[72px] h-[72px] rounded-[14px] overflow-hidden bg-gray-200 shrink-0">
-                    {lesson.thumbnailUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={kioskImageSrc(lesson.thumbnailUrl, 256)} alt="" className="w-full h-full object-cover"/>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-[28px]">🕺</div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
-                    <p className="text-black text-[24px] font-bold leading-tight truncate">{lesson.title ?? '-'}</p>
-                    {formatLessonTime(lesson) && (
-                      <p className="text-gray-600 text-[17px]">{formatLessonTime(lesson)}</p>
-                    )}
-                    {(lesson.artists?.[0]?.nickName || lesson.room?.name) && (
-                      <p className="text-gray-400 text-[15px] truncate">
-                        {[lesson.artists?.[0]?.nickName, lesson.room?.name].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : status === 'manual-input' ? (
-        /* 수동 모드 - 전화/이메일 입력 */
-        <div className="flex-1 min-h-0 flex flex-col items-center px-[48px] pt-[24px] pb-[32px]">
-          <p className="text-black text-[30px] font-bold tracking-[-1px] mb-[8px] text-center shrink-0">
-            {t('kiosk_lesson_attendance_input_title')}
-          </p>
-          {selectedLesson && (
-            <p className="text-gray-400 text-[18px] mb-[24px] text-center truncate max-w-[640px] shrink-0">
-              {selectedLesson.title}
-            </p>
-          )}
-
-          <div className="w-full max-w-[640px] h-[68px] rounded-[16px] border-2 border-gray-200 flex items-center px-[24px] mb-[12px] shrink-0">
-            <p className="text-[26px] font-medium text-black truncate">
-              {userInput || <span className="text-gray-300">{t('kiosk_lesson_attendance_input_placeholder')}</span>}
-            </p>
           </div>
 
-          {inputError && <p className="text-red-500 text-[16px] text-center mb-[8px] shrink-0">{inputError}</p>}
-
-          <div className="w-full max-w-[720px] shrink-0">
-            <KioskEmailKeyboard value={userInput} onChange={(v) => { setUserInput(v); setInputError(null); }}/>
+          {/* 우 — 선택 날짜의 수업 목록 */}
+          <div className="flex-1 min-w-0 flex flex-col min-h-0">
+            <p className="text-gray-500 text-[18px] mb-[12px] shrink-0">
+              {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 · {lessons.length}개 수업
+            </p>
+            {lessonsLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="w-[48px] h-[48px] border-4 border-gray-200 border-t-black rounded-full animate-spin"/>
+              </div>
+            ) : lessons.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-gray-400 text-[22px]">{t('kiosk_lesson_attendance_no_lessons')}</p>
+              </div>
+            ) : (
+              <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-[12px]">
+                {lessons.map((lesson) => (
+                  <button
+                    key={lesson.id}
+                    onClick={() => selectLesson(lesson)}
+                    className="w-full bg-gray-50 rounded-[20px] p-[20px] flex items-center gap-[16px] active:bg-gray-100 transition-colors text-left"
+                  >
+                    <div className="w-[72px] h-[72px] rounded-[14px] overflow-hidden bg-gray-200 shrink-0">
+                      {lesson.thumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={kioskImageSrc(lesson.thumbnailUrl, 256)} alt="" className="w-full h-full object-cover"/>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-[28px]">🕺</div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
+                      <p className="text-black text-[24px] font-bold leading-tight truncate">{lesson.title ?? '-'}</p>
+                      {formatLessonTime(lesson) && (
+                        <p className="text-gray-600 text-[17px]">{formatLessonTime(lesson)}</p>
+                      )}
+                      {(lesson.artists?.[0]?.nickName || lesson.room?.name) && (
+                        <p className="text-gray-400 text-[15px] truncate">
+                          {[lesson.artists?.[0]?.nickName, lesson.room?.name].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-
-          <button
-            onClick={handleSearchUser}
-            disabled={searching || userInput.trim().length === 0}
-            className="w-full max-w-[720px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-bold disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px] shrink-0"
-          >
-            {searching ? t('kiosk_lesson_attendance_processing') : t('kiosk_lesson_attendance_search')}
-          </button>
         </div>
       ) : (
         /* 그 외 상태 — 중앙 정렬 */
@@ -422,8 +502,10 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale}: KioskLesso
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col gap-[8px]">
                   <p className="text-black text-[26px] font-bold leading-tight truncate">{displayLesson.title ?? '-'}</p>
-                  {formatLessonTime(displayLesson) && (
-                    <p className="text-gray-600 text-[18px]">{formatLessonTime(displayLesson)}</p>
+                  {(formatLessonDay(displayLesson) || formatLessonTime(displayLesson)) && (
+                    <p className="text-gray-600 text-[18px]">
+                      {[formatLessonDay(displayLesson), formatLessonTime(displayLesson)].filter(Boolean).join(' · ')}
+                    </p>
                   )}
                   {(displayLesson.artists?.[0]?.nickName || displayLesson.room?.name) && (
                     <p className="text-gray-400 text-[16px] truncate">
