@@ -32,24 +32,35 @@ type KioskLessonListFormProps = {
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
   onBack: () => void;
   onChangeLocale: (locale: Locale) => void;
+  /** 'admin'(태블릿 상담실)이면 수업 그리드를 6열로 넓게 노출. 기본 'kiosk'는 3열. */
+  variant?: 'kiosk' | 'admin';
 };
 
 type KioskTab = 'lessons' | 'pass-plans';
 
-export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onBack, onChangeLocale, variant = 'kiosk' }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+  const admin = variant === 'admin';
   const [tab, setTab] = useState<KioskTab>('lessons');
-  // 오늘부터 7일치 날짜 옵션 — 사용자가 pill로 선택. 자정 기준 normalize.
+  // 날짜 옵션 — 자정 기준 normalize.
+  //  - kiosk(무인): 오늘부터 7일(오늘 ~ +6). 과거 결제 없음.
+  //  - admin(상담실): 지난 한 달 조회 가능하도록 과거 30일 ~ +6일. 기본 선택은 항상 오늘.
+  const PAST_DAYS = admin ? 30 : 0;
   const dateOptions = React.useMemo(() => {
     const base = new Date();
     base.setHours(0, 0, 0, 0);
-    return Array.from({ length: 7 }, (_, i) => {
+    return Array.from({ length: PAST_DAYS + 7 }, (_, i) => {
       const d = new Date(base);
-      d.setDate(base.getDate() + i);
+      d.setDate(base.getDate() - PAST_DAYS + i);
       return d;
     });
-  }, []);
-  const [selectedDate, setSelectedDate] = useState<Date>(dateOptions[0]);
+  }, [PAST_DAYS]);
+  // 기본 선택은 항상 오늘 (admin은 과거 30일이 앞에 붙어 dateOptions[0]가 한 달 전이므로 today로 초기화)
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(false);
   const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>(initialPassPlans);
@@ -169,15 +180,16 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                 <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_lessons')}</div>
               )}
               {!loadingLessons && lessons.length > 0 && (
-                <div className="grid grid-cols-3 gap-[12px]">
+                <div className={`grid gap-[12px] ${variant === 'admin' ? 'grid-cols-6' : 'grid-cols-3'}`}>
                   {lessons.map((lesson) => {
-                    const payable = isLessonPayable(lesson);
+                    // admin(상담실)은 구매불가 게이팅 없음 — 지난/마감 수업도 직원이 선택해 진행 가능
+                    const payable = admin || isLessonPayable(lesson);
                     const statusText = lessonBlockLabel(lesson, locale);
                     return (
                       <div
                         key={lesson.id}
                         onClick={payable ? () => onSelectLesson(lesson) : undefined}
-                        className={`relative aspect-[3/5] rounded-[20px] overflow-hidden bg-[#E8E8EA] transition-transform ${
+                        className={`relative aspect-[3/5] overflow-hidden bg-[#E8E8EA] transition-transform ${admin ? 'rounded-[14px]' : 'rounded-[20px]'} ${
                           payable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-not-allowed'
                         }`}
                       >
@@ -187,13 +199,13 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
                         {!payable && statusText && (
-                          <div className="absolute top-[8px] right-[8px] px-[10px] py-[3px] rounded-full bg-black/70" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                          <div className={`absolute rounded-full bg-black/70 ${admin ? 'top-[6px] right-[6px] px-[7px] py-[2px]' : 'top-[8px] right-[8px] px-[10px] py-[3px]'}`} style={{ fontSize: admin ? 'min(1vh, 11px)' : 'min(1.2vh, 13px)' }}>
                             <span className="text-white font-bold">{statusText}</span>
                           </div>
                         )}
-                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
-                          <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
-                          <p className="text-[#D5D5D5] mt-[4px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
+                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: admin ? '6% 7% 7%' : '8% 8% 8%' }}>
+                          <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: admin ? 'min(1.25vh, 14px)' : 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
+                          <p className="text-[#D5D5D5] mt-[3px]" style={{ fontSize: admin ? 'min(1.05vh, 12px)' : 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
                         </div>
                       </div>
                     );

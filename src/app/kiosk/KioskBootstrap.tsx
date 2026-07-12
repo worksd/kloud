@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { KioskOperatorEmailLogin } from '@/app/kiosk/KioskOperatorEmailLogin';
 import { KioskSelector } from '@/app/kiosk/KioskSelector';
 import { KioskForm } from '@/app/kiosk/KioskForm';
+import { AdminKioskForm } from '@/app/kiosk/AdminKioskForm';
 import { KioskResponse } from '@/app/endpoint/kiosk.endpoint';
 import {
   clearKioskOperatorTokenAction,
@@ -22,9 +24,12 @@ type Props = {
   hasInitialToken: boolean;
   initialKioskId?: number;
   urlToken?: string;
+  /** 이 부트스트랩이 놓인 라우트. 선택한 키오스크 mode와 다르면 해당 경로로 리다이렉트. */
+  route?: 'kiosk' | 'admin';
 };
 
-export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Props) => {
+export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, route = 'kiosk' }: Props) => {
+  const router = useRouter();
   const [stage, setStage] = useState<Stage>(hasInitialToken || urlToken ? 'loading' : 'scan');
   const [kiosks, setKiosks] = useState<KioskResponse[]>([]);
   const [selected, setSelected] = useState<KioskResponse | null>(null);
@@ -132,6 +137,15 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
     setStage('ready');
   };
 
+  // 선택한 키오스크의 mode와 현재 라우트가 다르면 올바른 경로로 이동 (kiosk ↔ admin)
+  const desiredRoute: 'kiosk' | 'admin' = selected?.mode === 'admin' ? 'admin' : 'kiosk';
+  useEffect(() => {
+    if (stage !== 'ready' || !selected) return;
+    if (desiredRoute !== route) {
+      router.replace(desiredRoute === 'admin' ? '/kiosk/admin' : '/kiosk');
+    }
+  }, [stage, selected, desiredRoute, route]);
+
   if (stage === 'scan') {
     // QR 로그인 제거 — 운영자 이메일 로그인 UI를 직접 노출.
     // 'onCancel'은 호출되어도 닫을 화면이 없으므로 noop으로 둠.
@@ -176,9 +190,19 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
     );
   }
 
-  // ready — me.studio + 선택된 kiosk 정보로 KioskForm 렌더
+  // ready — 라우트와 mode가 다르면 위 useEffect가 리다이렉트 중. 깜빡임 방지로 로딩 표시.
+  if (desiredRoute !== route) {
+    return (
+      <div className="bg-white w-full h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-black/20 border-t-black rounded-full animate-spin"/>
+      </div>
+    );
+  }
+
+  // 라우트에 맞는 폼 렌더 — /kiosk → KioskForm(무인), /kiosk/admin → AdminKioskForm(상담실 태블릿)
+  const FormComponent = route === 'admin' ? AdminKioskForm : KioskForm;
   return (
-    <KioskForm
+    <FormComponent
       studioId={studio?.id ?? 0}
       studioName={studio?.name ?? ''}
       studioProfileImageUrl={studio?.profileImageUrl}

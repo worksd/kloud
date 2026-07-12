@@ -65,11 +65,13 @@ export const KioskPaymentMethodForm = ({
 }: KioskPaymentMethodFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
+  // 가운데 4자리(두 번째 그룹)를 *로 가림 — 표기 전용. 11자리 초과분도 잘리지 않게 표시.
   const fmtPhone = (digits: string) => {
     const d = digits.replace(/\D/g, '');
     if (d.length <= 3) return d;
-    if (d.length <= 7) return `${d.slice(0, 3)} ${d.slice(3)}`;
-    return `${d.slice(0, 3)} ${d.slice(3, 7)} ${d.slice(7, 11)}`;
+    const mid = (s: string) => '*'.repeat(s.length);
+    if (d.length <= 7) return `${d.slice(0, 3)} ${mid(d.slice(3))}`;
+    return `${d.slice(0, 3)} ${mid(d.slice(3, 7))} ${d.slice(7)}`;
   };
   const discountAmount = selectedDiscount?.amount ?? 0;
   const finalPrice = Math.max(0, price - discountAmount);
@@ -236,10 +238,10 @@ export const KioskPaymentMethodForm = ({
 
       {/* 결제 방법 섹션 — 패스권으로 풀 커버 시 섹션 자체가 사라지고 하단 신청하기 버튼으로 결제. */}
       {!fullyCovered && (() => {
-        // 보이는 버튼 수에 맞춰 grid-cols 결정. 카드 활성화 시 카드+Apple Pay+카카오페이+제로페이 4개
-        // (카드/Apple Pay는 KIS 단말, 카카오페이/제로페이는 네이티브 QR 스캔).
+        // 보이는 버튼 수에 맞춰 grid-cols 결정. 카드 활성화 시 카드+Apple Pay 2개
+        // (카드/Apple Pay는 KIS 단말. 카카오페이/제로페이는 아직 미개발이라 주석 처리됨.)
         const showCash = cashEnabled && itemType !== 'pass-plan';
-        const visibleCount = (cardEnabled ? 4 : 0) + (showCash ? 1 : 0);
+        const visibleCount = (cardEnabled ? 2 : 0) + (showCash ? 1 : 0);
         if (visibleCount === 0) return null;
         // 단일 버튼이면 grid 대신 가운데 정렬 flex로 두고 버튼을 1/3 폭으로 제한 → aspect-square가 viewport를 잡아먹어
         // 하단 '이전' 버튼이 잘리던 케이스 방지. 그 외엔 grid.
@@ -283,7 +285,7 @@ export const KioskPaymentMethodForm = ({
                     </span>
                   </button>
 
-                  {/* 카카오페이 — 네이티브 QR 스캔 */}
+                  {/* 카카오페이 / 제로페이 — 아직 미개발이라 임시 주석 처리 (개발 재개 시 복원)
                   <button
                     onClick={onSelectKakaoPay}
                     className="aspect-square bg-[#FEE500] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
@@ -294,7 +296,6 @@ export const KioskPaymentMethodForm = ({
                     </span>
                   </button>
 
-                  {/* 제로페이 — 네이티브 QR 스캔 */}
                   <button
                     onClick={onSelectZeroPay}
                     className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
@@ -304,6 +305,7 @@ export const KioskPaymentMethodForm = ({
                       {t('kiosk_zero_pay')}
                     </span>
                   </button>
+                  */}
                 </>
               )}
 
