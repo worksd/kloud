@@ -41,6 +41,8 @@ export type StartKioskPaymentRequest = {
   kioskId: number;
   paymentId: string;
   type: KioskPaymentType;
+  /** 직원이 편집한 실결제 금액 (admin). 미지정이면 서버가 상품가-할인으로 계산. */
+  amount?: number;
   discounts?: PaymentDiscount[];
 };
 
@@ -59,7 +61,7 @@ export type StartKioskPaymentResponse = {
 export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
   method: 'post',
   path: '/kiosks/payments',
-  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts'],
+  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'amount', 'discounts'],
 };
 
 // ② POST /kiosks/payments/:paymentId/complete — Pending → Completed (KIS 매입 성공 후)
