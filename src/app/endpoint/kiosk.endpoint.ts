@@ -16,6 +16,22 @@ export const GetKioskPayment: Endpoint<GetKioskPaymentRequest, GetPaymentRespons
   queryParams: ['kioskId', 'targetUserId', 'item', 'itemId'],
 };
 
+// GET /kiosks/admin/payment — 관리자 모드: 결제 상세 없이 paymentId만 발급받는 경량 엔드포인트
+export type GetKioskAdminPaymentRequest = {
+  item: string;   // 'lesson' | 'pass-plan'
+  itemId: number;
+};
+
+export type GetKioskAdminPaymentResponse = {
+  paymentId: string;
+};
+
+export const GetKioskAdminPayment: Endpoint<GetKioskAdminPaymentRequest, GetKioskAdminPaymentResponse> = {
+  method: 'get',
+  path: '/kiosks/admin/payment',
+  queryParams: ['item', 'itemId'],
+};
+
 export type KioskPaymentType = 'card' | 'cash';
 
 // ① POST /kiosks/payments — Pending 생성 (card) / 즉시 Completed (cash)
@@ -267,10 +283,15 @@ export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKiosk
   bodyParams: ['targetUserId', 'kioskId'],
 };
 
+// 키오스크 사용 형태 — 'kiosk'(무인 키오스크) | 'admin'(상담실 태블릿, 직원이 앞에 앉혀놓고 진행)
+export type KioskMode = 'kiosk' | 'admin';
+
 export type KioskResponse = {
   id: number;
   name: string;
   status: KioskStatus;
+  /** 'kiosk'면 무인 키오스크 UI, 'admin'이면 태블릿 상담실 UI로 진입점이 갈린다. 미지정이면 'kiosk' 취급. */
+  mode?: KioskMode;
   lastSeenAt: string | null;
   imageUrl: string | null;
   canCheckIn: boolean;

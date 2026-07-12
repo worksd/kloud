@@ -1,7 +1,6 @@
 'use server';
 import { cookies } from "next/headers";
 import { api } from "@/app/api.client";
-import { KioskPendingPaymentItemRequest } from "@/app/endpoint/payment.record.endpoint";
 import { AttendanceStatus } from "@/app/endpoint/studio.endpoint";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
@@ -40,12 +39,18 @@ export const registerKioskUserAction = async (phone: string, countryCode: string
   return updateResult;
 };
 
-export const createKioskPaymentAction = async (items: KioskPendingPaymentItemRequest[], targetUserId: number) => {
-  return await api.paymentRecord.createKiosk({ items, targetUserId });
-};
-
 export const createStudioAttendanceAction = async (targetUserId: number, status: AttendanceStatus) => {
   return await api.studio.createAttendance({ targetUserId, status });
+};
+
+// QR 스캔값의 willUseTicketId(:id)/token으로 티켓(+lesson) 조회 — 수업 출석 체크 확인 화면용
+export const getKioskTicketByTokenAction = async (ticketId: number, token: string) => {
+  return await api.ticket.getByToken({ id: ticketId, token });
+};
+
+// 티켓 사용 처리(출석 체크 확정) — POST /tickets/:id/use
+export const markKioskTicketUsedAction = async (ticketId: number, lessonId?: number) => {
+  return await api.ticket.toUsed({ id: ticketId, lessonId });
 };
 
 export const kioskPhoneLoginAction = async (phone: string, countryCode: string = '82') => {
@@ -119,6 +124,13 @@ export const saveSelectedKioskIdAction = async (kioskId: number) => {
   });
 };
 
+// 선택된 키오스크만 해제 (운영자 토큰은 유지) — 관리자 모드에서 '키오스크 변경' 시 사용.
+// 이후 페이지를 리로드하면 KioskBootstrap이 다시 셀렉터를 띄운다.
+export const clearSelectedKioskIdAction = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete(kioskSelectedIdKey);
+};
+
 // 키오스크 목록 조회 — 쿠키의 accessToken을 자동으로 사용
 export const getKiosksAction = async () => {
   return await api.kiosk.list({});
@@ -132,6 +144,21 @@ export const getKioskDetailAction = async (kioskId: number) => {
 // 키오스크에서 결제 화면 진입 시 호출 — price/discounts(적용 가능한 패스권 등)/methods 응답
 export const getKioskPaymentAction = async (params: { kioskId: number; targetUserId: number; item: string; itemId: number }) => {
   return await api.kiosk.getPayment(params);
+};
+
+// admin(상담실) 카드결제용 — 결제 상세 없이 paymentId만 경량 발급. GET /kiosks/admin/payment
+export const getKioskAdminPaymentAction = async (item: string, itemId: number) => {
+  return await api.kiosk.getAdminPayment({ item, itemId });
+};
+
+// admin(상담실) 현장결제(현금) — paymentId 없이 수동 결제기록 생성. methodType='admin'. POST /paymentRecords/manual
+export const createAdminManualPaymentAction = async (params: {
+  item: import("@/app/endpoint/payment.record.endpoint").ManualPaymentItem;
+  itemId: number;
+  targetUserId: number;
+  discounts?: import("@/app/endpoint/payment.endpoint").DiscountResponse[];
+}) => {
+  return await api.paymentRecord.createManual({ methodType: 'admin', ...params });
 };
 
 // 결제 시작 — 카드: Pending 생성 / 현금: 즉시 Completed. 응답의 amount가 KIS 단말 매입 금액

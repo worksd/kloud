@@ -59,6 +59,7 @@ export class ApiClient extends EndpointClient {
 
   readonly ticket = {
     get: this.endpointBuilder(API.Ticket.GetTicket),
+    getByToken: this.endpointBuilder(API.Ticket.GetTicketByToken),
     list: this.endpointBuilder(API.Ticket.ListTickets),
     create: this.endpointBuilder(API.Ticket.CreateTicket),
     getInviteTicket: this.endpointBuilder(API.Ticket.GetInviteTicket),
@@ -123,6 +124,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.Kiosk.GetKiosks),
     detail: this.endpointBuilder(API.Kiosk.GetKioskDetail),
     getPayment: this.endpointBuilder(API.Kiosk.GetKioskPayment),
+    getAdminPayment: this.endpointBuilder(API.Kiosk.GetKioskAdminPayment),
     startPayment: this.endpointBuilder(API.Kiosk.StartKioskPayment),
     completePayment: this.endpointBuilder(API.Kiosk.CompleteKioskPayment),
     discardPayment: this.endpointBuilder(API.Kiosk.DiscardKioskPayment),
