@@ -9,7 +9,7 @@ import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, buildReprintReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction } from "@/app/kiosk/kiosk.actions";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
 
 // yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
 const formatYmd = (d: Date): string => {
@@ -107,6 +107,12 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   }, [calendarOpen]);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // 키오스크 변경 — 선택된 키오스크 쿠키(kioskSelectedId)만 해제 후 리로드하면
+  // KioskBootstrap이 다시 키오스크 셀렉터 화면을 노출한다.
+  const handleChangeKiosk = useCallback(async () => {
+    await clearSelectedKioskIdAction();
+    window.location.reload();
+  }, []);
   // 취소 확인 다이얼로그 — 사용자가 '취소' 버튼을 눌렀을 때 즉시 KIS로 가지 않고 한 번 확인받음
   const [confirmTarget, setConfirmTarget] = useState<KioskPaymentRecord | null>(null);
   // 취소 결과 다이얼로그 — 단일 친화적 메시지로 표시
@@ -506,7 +512,23 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
         ) : (
           <>
             <div className="flex items-center justify-between flex-wrap" style={{ padding: 'min(3.4vw,36px) min(4vw,44px) min(1.4vw,16px)', gap: 'min(1vw,12px)' }}>
-              <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
+              <div className="flex items-center" style={{ gap: 'min(1.2vw,14px)' }}>
+                <p className="text-black font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>결제 내역</p>
+                {/* 키오스크 변경 — 누르면 kioskSelectedId 쿠키 해제 후 리로드 → 셀렉터로 */}
+                <button
+                  onClick={handleChangeKiosk}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center"
+                  style={{ padding: 'min(0.9vw,10px) min(1.4vw,16px)', gap: 'min(0.6vw,8px)' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: 'min(1.8vw,20px)', height: 'min(1.8vw,20px)' }}>
+                    <rect x="4" y="3" width="16" height="18" rx="2" stroke="#1E2124" strokeWidth="1.6"/>
+                    <path d="M9 17H15" stroke="#1E2124" strokeWidth="1.6" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>
+                    {kioskName ?? `#${kioskId}`} 변경
+                  </span>
+                </button>
+              </div>
               <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
                 {/* 날짜 필터 — react-calendar popover */}
                 <div className="relative" ref={calendarWrapRef}>
