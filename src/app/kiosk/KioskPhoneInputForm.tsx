@@ -328,7 +328,10 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
       {emailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
           <div className="absolute inset-0 bg-black/60" onClick={() => setEmailModalOpen(false)} />
-          <div className="relative w-[92%] max-w-[1100px] bg-white rounded-[42px] flex flex-col px-[min(4vw,44px)] py-[min(4vw,44px)] animate-[fadeIn_200ms_ease-out]">
+          <div
+            className={`relative w-[92%] bg-white rounded-[42px] flex flex-col px-[min(4vw,44px)] py-[min(4vw,44px)] animate-[fadeIn_200ms_ease-out] ${admin ? 'max-w-[720px]' : 'max-w-[1100px]'}`}
+            style={admin ? { zoom: 0.8 } : undefined}
+          >
             <p className="text-black font-bold text-center" style={{ fontSize: 'min(3vw, 32px)' }}>
               {t('kiosk_email_modal_title')}
             </p>
