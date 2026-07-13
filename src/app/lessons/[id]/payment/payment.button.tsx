@@ -3,7 +3,7 @@
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
 import {startTransition, useCallback, useEffect, useState} from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { PaymentRequest, requestPayment } from "@portone/browser-sdk/v2";
+import { PaymentRequest, requestPayment, Entity } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import {redirect, useRouter} from "next/navigation";
@@ -152,6 +152,7 @@ export default function PaymentButton({
       setIsSubmitting(false);
     }
   }, [router, appVersion, id, type]);
+
   const handlePayment = async () => {
     if (!user || !('id' in user)) {
       setIsSubmitting(false);
@@ -228,12 +229,18 @@ export default function PaymentButton({
       if (appVersion === '') {
         // 결제 성공 시 이동할 결제 상세 경로
         const paymentRecordUrl = KloudScreen.PaymentRecordDetail(paymentInfo.paymentId);
-        const mobileWebPaymentRequest: PaymentRequest = {
+        // 간편결제(카카오/네이버/토스)는 payMethod='EASY_PAY' + easyPayProvider로 보내야 동작. 그 외는 CARD.
+        const easyPayProvider =
+          method === 'kakao_pay' ? Entity.EasyPayProvider.KAKAOPAY
+          : method === 'naver_pay' ? Entity.EasyPayProvider.NAVERPAY
+          : method === 'toss_pay' ? Entity.EasyPayProvider.TOSSPAY
+          : undefined;
+        const mobileWebPaymentRequest = {
           storeId: paymentInfo.storeId,
           channelKey: paymentInfo.channelKey,
           paymentId: paymentInfo.paymentId,
           orderName: paymentInfo.orderName,
-          payMethod: paymentInfo.method as any,
+          payMethod: easyPayProvider ? 'EASY_PAY' : 'CARD',
           totalAmount: paymentInfo.price,
           currency: 'CURRENCY_KRW',
           customer: {
@@ -245,8 +252,17 @@ export default function PaymentButton({
           customData: {
             actualPayerUserId,
             discounts: selectedDiscounts,
-          }
-        };
+          },
+          // 네이버/토스는 카드 결제수단만 (네이티브와 동일)
+          ...(easyPayProvider ? {
+            easyPay: {
+              easyPayProvider,
+              ...(method === 'naver_pay' || method === 'toss_pay'
+                ? { availablePayMethods: ['CARD'] }
+                : {}),
+            },
+          } : {}),
+        } as PaymentRequest;
 
         // 모바일 웹은 redirectUrl로 이동해 아래 코드에 도달하지 않음.
         // PC 웹은 결제창(팝업) 종료 후 결과가 resolve됨 → 성공 시 결제 상세로 이동.
