@@ -226,6 +226,8 @@ export default function PaymentButton({
       };
 
       if (appVersion === '') {
+        // 결제 성공 시 이동할 결제 상세 경로
+        const paymentRecordUrl = KloudScreen.PaymentRecordDetail(paymentInfo.paymentId);
         const mobileWebPaymentRequest: PaymentRequest = {
           storeId: paymentInfo.storeId,
           channelKey: paymentInfo.channelKey,
@@ -238,14 +240,25 @@ export default function PaymentButton({
             customerId: `${user.id}`,
             fullName: paymentInfo.userName ?? user.nickName ?? paymentInfo.userId,
           } as any,
-          redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
+          // 모바일 웹: 결제 후 결제 상세로 리다이렉트
+          redirectUrl: `${window.location.origin}${paymentRecordUrl}`,
           customData: {
             actualPayerUserId,
             discounts: selectedDiscounts,
           }
         };
 
-        await requestPayment(mobileWebPaymentRequest);
+        // 모바일 웹은 redirectUrl로 이동해 아래 코드에 도달하지 않음.
+        // PC 웹은 결제창(팝업) 종료 후 결과가 resolve됨 → 성공 시 결제 상세로 이동.
+        const result = await requestPayment(mobileWebPaymentRequest);
+        if (result?.code != null) {
+          // 실패/취소 — PortOne이 code 반환
+          const dialog = await createDialog({ id: 'PaymentFail' });
+          if (dialog) setWebDialogInfo(dialog);
+          return;
+        }
+        // 결제 성공 → 결제 상세로 이동
+        router.replace(paymentRecordUrl);
         return;
       }
 
