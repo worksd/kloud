@@ -227,8 +227,6 @@ export default function PaymentButton({
       };
 
       if (appVersion === '') {
-        // 결제 성공 시 이동할 결제 상세 경로
-        const paymentRecordUrl = KloudScreen.PaymentRecordDetail(paymentInfo.paymentId);
         // 간편결제(카카오/네이버/토스)는 payMethod='EASY_PAY' + easyPayProvider로 보내야 동작. 그 외는 CARD.
         const easyPayProvider =
           method === 'kakao_pay' ? Entity.EasyPayProvider.KAKAOPAY
@@ -247,8 +245,9 @@ export default function PaymentButton({
             customerId: `${user.id}`,
             fullName: paymentInfo.userName ?? user.nickName ?? paymentInfo.userId,
           } as any,
-          // 모바일 웹: 결제 후 결제 상세로 리다이렉트
-          redirectUrl: `${window.location.origin}${paymentRecordUrl}`,
+          // 결제 결과 검증 핸들러(/payment-redirect)로 리다이렉트 — PortOne이 paymentId/message를 붙여줌.
+          // 실패/취소면 message 표시, 성공이면 결제기록 확인 후 결제상세로 이동 (webhook 반영 대기 포함).
+          redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
           customData: {
             actualPayerUserId,
             discounts: selectedDiscounts,
@@ -268,13 +267,13 @@ export default function PaymentButton({
         // PC 웹은 결제창(팝업) 종료 후 결과가 resolve됨 → 성공 시 결제 상세로 이동.
         const result = await requestPayment(mobileWebPaymentRequest);
         if (result?.code != null) {
-          // 실패/취소 — PortOne이 code 반환
+          // 실패/취소 — PortOne이 code 반환. 결제상세로 안 보냄.
           const dialog = await createDialog({ id: 'PaymentFail' });
           if (dialog) setWebDialogInfo(dialog);
           return;
         }
-        // 결제 성공 → 결제 상세로 이동
-        router.replace(paymentRecordUrl);
+        // 성공 → 결제 결과 검증 핸들러로 이동 (webhook 반영 대기 후 결제상세로 redirect)
+        router.push(`/payment-redirect?paymentId=${paymentInfo.paymentId}`);
         return;
       }
 
