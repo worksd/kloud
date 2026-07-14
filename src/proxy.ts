@@ -50,6 +50,17 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json(buildAasa(request.headers.get('host') ?? ''));
   }
 
+  // vanity URL: /@{slug} → by-slug API로 스튜디오 id를 찾아 /studios/{id}로 rewrite.
+  // redirect가 아니라 rewrite라서 브라우저 주소는 /@{slug} 그대로 유지된다.
+  // (Next.js는 '@' 시작 폴더를 parallel route 슬롯으로 해석하므로 파일 라우트로는 못 잡는다)
+  if (url.pathname.startsWith('/@')) {
+    const studioId = await resolveVanityStudioId(request);
+    // 못 찾으면 루트로 redirect (깨진 404 대신)
+    if (!studioId) return NextResponse.redirect(new URL('/', request.url));
+    // pathname만 바꾸고 아래 공통 로직(헤더 세팅 + rewrite)에 그대로 태운다 → URL 유지
+    url.pathname = `/studios/${studioId}`;
+  }
+
   const { os, ua, device } = userAgent(request)
   const cookie = await cookies()
 
@@ -126,6 +137,46 @@ export async function proxy(request: NextRequest) {
 
   return response
 }
+// /@{slug} vanity URL → by-slug API로 스튜디오 id 조회. 못 찾거나 오류면 null.
+async function resolveVanityStudioId(request: NextRequest): Promise<number | null> {
+  // '/@revive_seongsu' → 'revive_seongsu' (하위 경로가 있으면 첫 세그먼트만)
+  const slug = decodeURIComponent(request.nextUrl.pathname.slice(2)).split('/')[0];
+  if (!slug) return null;
+
+  try {
+    const cookie = await cookies();
+    const { os, ua, device } = userAgent(request);
+    const appVersion = extractKloudVersion(ua) ?? '';
+    const deviceId = extractKloudDeviceId(ua) ?? '';
+    const accessToken = cookie.get(accessTokenKey)?.value;
+
+    // endpoint.client의 authAsHeaders와 동일한 헤더 셋 (by-slug는 OptionalAuth)
+    const apiHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-guinness-client': appVersion !== '' ? (os.name ?? '') : 'Web',
+      'x-guinness-device-name': `${device.model}(${device.vendor}/${os.version})`,
+      'x-guinness-device-id': deviceId,
+      // 웹/앱 구분: 버전 없으면 1.0.0
+      'x-guinness-version': appVersion === '' ? '1.0.0' : appVersion,
+      'x-guinness-locale': cookie.get(localeKey)?.value ?? 'ko',
+      'x-guinness-entry': request.nextUrl.pathname,
+    };
+    if (accessToken) apiHeaders['Authorization'] = `Bearer ${accessToken}`;
+
+    const res = await fetch(
+      `${process.env.GUINNESS_API_SERVER}/studios/by-slug/${encodeURIComponent(slug)}`,
+      { headers: apiHeaders },
+    );
+    if (res.ok) {
+      const data = await res.json();
+      return data?.studio?.id ?? data?.id ?? null;
+    }
+  } catch {
+    // 무시
+  }
+  return null;
+}
+
 function extractKloudVersion(userAgent: string): string | null {
   try {
     // kloudNativeClient/ 다음에 오는 버전 번호를 찾습니다
