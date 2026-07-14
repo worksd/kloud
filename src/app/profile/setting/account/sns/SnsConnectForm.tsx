@@ -23,6 +23,7 @@ type Translations = {
   connectWithGoogle: string;
   connectWithKakao: string;
   connected: string;
+  appOnlyGuide: string;
   linkSuccess: string;
   transferWarnTitle: string;
   transferWarnMessage: string;
@@ -134,12 +135,23 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
     { key: 'Kakao', Logo: KakaoLogo, label: translations.connectWithKakao, start: startKakao, platformOk: isApp,
       btn: 'bg-[#FEE500] text-black', logoWrap: '' },
   ];
+  // 렌더될 행이 하나도 없으면(주로 웹: 연결된 것 없음 + 앱 아님) 안내 문구 노출
+  const anyVisible = providers.some(({ key, platformOk }) => connectedProviders.includes(key) || platformOk);
 
   return (
     <div className={'flex flex-col px-5 pt-4 gap-4'}>
       <p className={'text-[14px] text-[#86898C] font-medium'}>{translations.description}</p>
 
       <section className="flex flex-col items-center justify-center space-y-2 w-full">
+        {!anyVisible && (
+          <div className="flex flex-col items-center gap-3 py-14 text-center">
+            <svg viewBox="0 0 24 24" fill="none" className="w-10 h-10">
+              <rect x="6" y="2.5" width="12" height="19" rx="3" stroke="#C4C9CF" strokeWidth="1.6" />
+              <path d="M10.5 18.5h3" stroke="#C4C9CF" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <p className="text-[14px] font-medium text-[#86898C] leading-relaxed">{translations.appOnlyGuide}</p>
+          </div>
+        )}
         {providers.map(({ key, Logo, label, start, platformOk, btn }) => {
           const connected = connectedProviders.includes(key);
           // 연결된 건 항상 표시, 미연결은 플랫폼 해당 시에만 연결 버튼 노출
@@ -151,7 +163,8 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
                 key={key}
                 className="relative flex items-center w-full rounded-[16px] py-4 px-4 bg-[#F2F4F6] select-none"
               >
-                <span className="flex-shrink-0"><Logo/></span>
+                {/* 연결됨 행은 밝은 배경 → 애플 흰 로고가 안 보이므로 검정으로 (CSS fill이 SVG 속성보다 우선) */}
+                <span className={`flex-shrink-0 ${key === 'Apple' ? '[&_path]:fill-black' : ''}`}><Logo/></span>
                 <span className="ml-3 flex-1 text-[15px] font-semibold text-[#1E2124]">{key}</span>
                 <span className="flex items-center gap-1 text-[14px] font-bold text-[#3CC0AF]">
                   <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">

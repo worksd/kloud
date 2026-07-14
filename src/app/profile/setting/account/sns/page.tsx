@@ -37,6 +37,7 @@ export default async function SnsConnectPage({ searchParams }: {
           connectWithGoogle: await translate('connect_with_google'),
           connectWithKakao: await translate('connect_with_kakao'),
           connected: await translate('sns_connected'),
+          appOnlyGuide: await translate('sns_app_only_guide'),
           linkSuccess: await translate('sns_link_success'),
           transferWarnTitle: await translate('sns_transfer_warning_title'),
           transferWarnMessage: await translate('sns_transfer_warning_message'),
