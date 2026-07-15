@@ -108,15 +108,17 @@ export const SnsConnectForm = ({ os, appVersion, connectedProviders, translation
     window.onKakaoLoginSuccess = async (data: { code: string }) => handleLink(SnsProvider.Kakao, data.code);
   }, [handleLink]);
 
-  // "2025.01.28 02:13" → "02시 13분" (다국어 단위) 형태로 변환
+  // "2025.01.28 02:13" → "2025.01.28 02시 13분" (다국어 단위) 형태로 변환
   const formatJoinedTime = (createdAt: string) => {
-    const time = createdAt.split(' ').pop() ?? '';
+    const [date, time = ''] = createdAt.split(' ');
     const [hh, mm] = time.split(':');
     if (!hh || !mm) return createdAt;
     // 단위 문자가 있는 로케일(ko/jp/zh)은 "02시 13분", 없는 로케일(en)은 "02:13"
-    return translations.hourUnit && translations.minuteUnit
+    const timeStr = translations.hourUnit && translations.minuteUnit
       ? `${hh}${translations.hourUnit} ${mm}${translations.minuteUnit}`
       : `${hh}:${mm}`;
+    // 연·월·일(날짜) + 시각 함께 표시
+    return `${date} ${timeStr}`;
   };
 
   const startApple = () => window.KloudEvent?.sendAppleLogin();
