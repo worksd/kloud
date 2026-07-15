@@ -29,6 +29,7 @@ import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
 import {buildKioskReceipt} from "@/app/kiosk/kiosk.receipt";
 import {sendReceiptToPrinter} from "@/app/kiosk/kiosk.native";
+import {KioskRoomReservationForm, KioskRoomBooking} from "@/app/kiosk/KioskRoomReservationForm";
 
 type SearchedUser = {
   id: number;
@@ -40,9 +41,9 @@ type SearchedUser = {
   accessToken?: string;
 };
 
-type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searching' | 'member-confirm' | 'payment-method' | 'pass-select' | 'attendance';
+type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searching' | 'member-confirm' | 'payment-method' | 'pass-select' | 'attendance' | 'room-reservation';
 
-const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance'];
+const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance', 'room-reservation'];
 
 export const KioskForm = ({
   studioId,
@@ -100,6 +101,8 @@ export const KioskForm = ({
   }, [currentScreen, router]);
   const [selectedLesson, setSelectedLesson] = useState<GetLessonResponse | null>(null);
   const [selectedPassPlan, setSelectedPassPlan] = useState<GetPassPlanResponse | null>(null);
+  // 연습실 예약 (패스권 전용). 설정되면 결제 대상이 practice-room이 됨.
+  const [roomBooking, setRoomBooking] = useState<KioskRoomBooking | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | 'cash' | null>(null);
   const [phone, setPhone] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
@@ -137,6 +140,7 @@ export const KioskForm = ({
     setCurrentScreen('home');
     setSelectedLesson(null);
     setSelectedPassPlan(null);
+    setRoomBooking(null);
     setPhone('');
     setSearchedUsers([]);
     setSelectedUser(null);
@@ -179,7 +183,7 @@ export const KioskForm = ({
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
   useEffect(() => {
-    const hasItem = !!selectedLesson || !!selectedPassPlan;
+    const hasItem = !!selectedLesson || !!selectedPassPlan || !!roomBooking;
     const hasUser = !!selectedUser;
     if (currentScreen === 'lesson-detail' && !selectedLesson) {
       setCurrentScreen('lesson-list');
@@ -198,7 +202,7 @@ export const KioskForm = ({
       && (!hasItem || !hasUser)) {
       setCurrentScreen(hasItem ? 'phone' : 'lesson-list');
     }
-  }, [currentScreen, selectedLesson, selectedPassPlan, selectedUser]);
+  }, [currentScreen, selectedLesson, selectedPassPlan, roomBooking, selectedUser]);
 
   // payment-method 화면 진입 시:
   //  1) GET /kiosks/payment — price/discounts/methods/paymentId
@@ -215,9 +219,9 @@ export const KioskForm = ({
 
   useEffect(() => {
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
-    if (!selectedLesson && !selectedPassPlan) return;
-    const item = selectedLesson ? 'lesson' : 'pass-plan';
-    const itemId = selectedLesson?.id ?? selectedPassPlan?.id;
+    if (!selectedLesson && !selectedPassPlan && !roomBooking) return;
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'practice-room';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? roomBooking?.studioRoomId;
     if (!itemId) return;
 
     // 같은 selection으로 재진입(예: pass-select 갔다오기)일 땐 fetch/reset skip → 선택해둔 할인/패스권 보존.
@@ -259,7 +263,7 @@ export const KioskForm = ({
       .catch(() => {
         // kiosk 상세 실패는 영수증 footer 없이 진행 — 토스트도 띄우지 않음 (결제 본 흐름엔 영향 없음)
       });
-  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, kioskId, locale]);
+  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, roomBooking, kioskId, locale]);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
@@ -591,7 +595,15 @@ export const KioskForm = ({
             ),
           ].filter(Boolean),
         }
-      : null;
+      : roomBooking
+        ? {
+            title: roomBooking.roomName,
+            price: roomBooking.price,
+            subtitle: `${roomBooking.date} ${roomBooking.startTime}~${roomBooking.endTime}`,
+            thumbnailUrl: undefined as string | undefined,
+            benefits: [] as string[],
+          }
+        : null;
 
   // 결제수단 활성화 여부 — paymentInfo.methods의 isEnabled를 type별로 추출.
   // 키오스크 응답은 paymentMethod로 wrap되어 옴, 일반 결제 응답은 root에 type. 둘 다 지원.
@@ -634,7 +646,7 @@ export const KioskForm = ({
         nickName: selectedUser.nickName,
         phone: phone || selectedUser.phone,
       } : undefined,
-      itemType: selectedLesson ? 'lesson' : (selectedPassPlan ? 'pass-plan' : undefined),
+      itemType: selectedLesson ? 'lesson' : (selectedPassPlan ? 'pass-plan' : (roomBooking ? 'practice-room' : undefined)),
       // 수업 결제 시 강사 노출 — 닉네임 우선, 없으면 본명
       artists: selectedLesson
         ? (paymentInfo?.lesson?.artists ?? selectedLesson.artists ?? [])
@@ -655,7 +667,7 @@ export const KioskForm = ({
       qrText,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, paymentInfo, receiptPaymentIdOverride, paymentRank]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, roomBooking, paymentInfo, receiptPaymentIdOverride, paymentRank]);
 
   // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화.
   // 서버가 passRule 풀 객체를 함께 요구해서 그대로 전달.
@@ -760,18 +772,21 @@ export const KioskForm = ({
 
   // 패스권 사용 (B 흐름) — POST /kiosks/passes/:passId/use 직접 호출
   const handlePayWithPass = useCallback(async () => {
-    if (!paymentItem || !selectedUser || !selectedLesson) return;
+    if (!paymentItem || !selectedUser || (!selectedLesson && !roomBooking)) return;
     const passId = selectedPass?.pass.id;
     if (!passId) {
       setToastMessage('패스권 정보를 찾을 수 없습니다');
       return;
     }
     try {
+      // 연습실 예약이면 룸/시간 정보를, 수업이면 lessonId를 전달
       const res = await useKioskPassAction({
         passId,
         targetUserId: selectedUser.id,
         kioskId,
-        lessonId: selectedLesson.id,
+        ...(roomBooking
+          ? { studioRoomId: roomBooking.studioRoomId, startDate: roomBooking.startDate, endDate: roomBooking.endDate }
+          : { lessonId: selectedLesson!.id }),
       });
       // isGuinnessErrorCase는 등록된 enum 코드만 통과 — SAME_TIME_LESSON_ALREADY_EXISTS 같은 도메인 에러 못 잡음.
       // shape 기반 판별: paymentId 없고 code+message 있으면 에러로 간주 → 영수증 인쇄 차단.
@@ -794,7 +809,7 @@ export const KioskForm = ({
     } catch {
       setToastMessage('요청에 실패했습니다');
     }
-  }, [paymentItem, selectedPass, selectedUser, selectedLesson, kioskId]);
+  }, [paymentItem, selectedPass, selectedUser, selectedLesson, roomBooking, kioskId]);
 
   // 패스권 자동 사용 — "수업 신청하러 가기" 직후 lesson 선택해서 payment-method 진입했을 때 자동 트리거.
   // paymentInfo가 도착하고, autoUsePassPlanId와 매칭되는 usable한 pass가 있으면 즉시 useKioskPassAction 호출.
@@ -866,8 +881,24 @@ export const KioskForm = ({
           canPurchase={canPurchase}
           onSelectPayment={() => setCurrentScreen('lesson-list')}
           onSelectVisit={() => setCurrentScreen('attendance')}
+          onReserveRoom={() => { setSelectedLesson(null); setSelectedPassPlan(null); setRoomBooking(null); setCurrentScreen('room-reservation'); }}
           onChangeLocale={setLocale}
           onAdminMode={() => setAdminOpen(true)}
+        />
+      )}
+
+      {currentScreen === 'room-reservation' && (
+        <KioskRoomReservationForm
+          studioId={studioId}
+          locale={locale}
+          onBack={goHome}
+          onChangeLocale={setLocale}
+          onConfirm={(booking) => {
+            setRoomBooking(booking);
+            setSelectedLesson(null);
+            setSelectedPassPlan(null);
+            setCurrentScreen('phone');
+          }}
         />
       )}
 
@@ -898,7 +929,7 @@ export const KioskForm = ({
       {(currentScreen === 'phone' || currentScreen === 'searching' || currentScreen === 'member-confirm') && (
         <KioskPhoneInputForm
           locale={locale}
-          onBack={() => setCurrentScreen('lesson-list')}
+          onBack={() => setCurrentScreen(roomBooking ? 'room-reservation' : 'lesson-list')}
           onNext={handlePhoneNext}
           onSearchByEmail={handleEmailSearch}
           onHome={goHome}
@@ -950,7 +981,7 @@ export const KioskForm = ({
       {/* payment-method / pass-select 공유 — modal 떠도 폼 인스턴스 유지 */}
       {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && selectedUser && !paymentInfoError && (
         <KioskPaymentMethodForm
-          itemType={selectedLesson ? 'lesson' : 'pass-plan'}
+          itemType={selectedLesson ? 'lesson' : (roomBooking ? 'practice-room' : 'pass-plan')}
           lessonTitle={paymentItem.title}
           lessonSubtitle={paymentItem.subtitle}
           lessonThumbnailUrl={paymentItem.thumbnailUrl}
@@ -989,9 +1020,10 @@ export const KioskForm = ({
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
           onChangeLocale={setLocale}
-          cardEnabled={cardEnabled}
-          cashEnabled={cashEnabled}
-          passEnabled={passEnabled}
+          // 연습실 예약은 패스권 전용 — 카드/현금 비활성, 패스권 강제 활성
+          cardEnabled={roomBooking ? false : cardEnabled}
+          cashEnabled={roomBooking ? false : cashEnabled}
+          passEnabled={roomBooking ? true : passEnabled}
         />
       )}
 
@@ -1220,7 +1252,7 @@ export const KioskForm = ({
         </div>
       )}
 
-      {currentScreen === 'pass-select' && selectedLesson && selectedUser && (
+      {currentScreen === 'pass-select' && (selectedLesson || roomBooking) && selectedUser && (
         <KioskPassSelectModal
           // passEnabled=false면 보유 패스권은 modal에 노출 X → discounts만 보이도록 빈 배열 전달.
           // discounts는 passEnabled와 무관하게 항상 노출.

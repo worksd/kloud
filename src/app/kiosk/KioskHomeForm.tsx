@@ -19,11 +19,12 @@ type KioskHomeFormProps = {
   canPurchase: boolean;
   onSelectPayment: () => void;
   onSelectVisit: () => void;
+  onReserveRoom: () => void;
   onChangeLocale: (locale: Locale) => void;
   onAdminMode: () => void;
 };
 
-export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, canPurchase, onSelectPayment, onSelectVisit, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
+export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, canPurchase, onSelectPayment, onSelectVisit, onReserveRoom, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const [showLocalePicker, setShowLocalePicker] = useState(false);
   const currentLocale = KIOSK_LOCALES.find((l) => l.code === locale) ?? KIOSK_LOCALES[0];
@@ -54,13 +55,14 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
         )}
       </div>
 
-      {/* 카드 영역 — canCheckIn/canPurchase 플래그에 따라 노출. 둘 다 false면 row 자체를 숨김. */}
+      {/* 카드 영역 — canCheckIn/canPurchase 플래그에 따라 노출. 둘 다 false면 row 자체를 숨김.
+          연습실 예약은 결제와 동일하게 canPurchase로 게이팅. */}
       {(canCheckIn || canPurchase) && (
         <div className="flex-[200] shrink-0 flex gap-[2.9%] px-[5.6%] pt-[3.1%] pb-[2%]">
           {canCheckIn && (
             <div
               onClick={onSelectVisit}
-              className={`${canPurchase ? 'flex-[345]' : 'flex-1'} flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform`}
+              className="flex-1 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/ic_kiosk_attendance.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
@@ -72,8 +74,21 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
 
           {canPurchase && (
             <div
+              onClick={onReserveRoom}
+              className="flex-1 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/ic_kiosk_attendance.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
+              <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
+                {t('kiosk_reserve_room')}
+              </span>
+            </div>
+          )}
+
+          {canPurchase && (
+            <div
               onClick={onSelectPayment}
-              className={`${canCheckIn ? 'flex-[655]' : 'flex-1'} flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#1E2124] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform`}
+              className="flex-1 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#1E2124] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/ic_kiosk_card.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>

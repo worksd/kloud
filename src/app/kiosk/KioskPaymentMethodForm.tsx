@@ -8,7 +8,7 @@ import { DiscountResponse } from "@/app/endpoint/payment.endpoint";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type KioskPaymentMethodFormProps = {
-  itemType: 'lesson' | 'pass-plan';
+  itemType: 'lesson' | 'pass-plan' | 'practice-room';
   lessonTitle: string;
   lessonSubtitle?: string;
   lessonThumbnailUrl?: string;
@@ -88,7 +88,7 @@ export const KioskPaymentMethodForm = ({
       {/* 상품 정보 섹션 — 수업이냐 패스권이냐에 따라 라벨 분기 */}
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
-          {itemType === 'pass-plan' ? t('kiosk_passplan_info') : t('kiosk_lesson_info')}
+          {itemType === 'pass-plan' ? t('kiosk_passplan_info') : itemType === 'practice-room' ? t('kiosk_reservation_info') : t('kiosk_lesson_info')}
         </p>
         <div className="bg-[#F9F9FB] rounded-[20px] flex items-center px-[min(3vw,32px)] py-[min(2.4vw,26px)]" style={{ gap: 'min(1.8vw, 20px)' }}>
           <div
