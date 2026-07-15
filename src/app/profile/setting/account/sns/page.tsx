@@ -37,12 +37,16 @@ export default async function SnsConnectPage({ searchParams }: {
           connectWithGoogle: await translate('connect_with_google'),
           connectWithKakao: await translate('connect_with_kakao'),
           connected: await translate('sns_connected'),
+          appOnlyGuide: await translate('sns_app_only_guide'),
           linkSuccess: await translate('sns_link_success'),
           transferWarnTitle: await translate('sns_transfer_warning_title'),
           transferWarnMessage: await translate('sns_transfer_warning_message'),
           transferWarnBullet1: await translate('sns_transfer_warning_bullet1'),
           transferWarnBullet2: await translate('sns_transfer_warning_bullet2'),
           transferWarnConfirm: await translate('sns_transfer_warning_confirm'),
+          joinedSuffix: await translate('sns_transfer_joined_suffix'),
+          hourUnit: await translate('sns_transfer_hour_unit'),
+          minuteUnit: await translate('sns_transfer_minute_unit'),
           cancel: await translate('cancel'),
         }}
       />

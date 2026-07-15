@@ -498,10 +498,10 @@ export const StringResource = {
     zh: "共{count}节课"
   },
   bundle_included_title: {
-    ko: "이 수업이 포함된 묶음",
-    en: "Bundles including this lesson",
-    jp: "このレッスンを含むパッケージ",
-    zh: "包含此课程的套餐"
+    ko: "진행중인 프로모션",
+    en: "Ongoing promotions",
+    jp: "実施中のプロモーション",
+    zh: "正在进行的促销"
   },
   payment_method_voucher: {
     ko: "교환권",
@@ -1036,6 +1036,18 @@ export const StringResource = {
     en: "Promotion Price",
     jp: "プロモーション料金",
     zh: "促销金额"
+  },
+  original_price: {
+    ko: "기본 금액",
+    en: "Base Price",
+    jp: "基本料金",
+    zh: "基本金额"
+  },
+  promotion_discount: {
+    ko: "프로모션 할인",
+    en: "Promotion Discount",
+    jp: "プロモーション割引",
+    zh: "促销折扣"
   },
   total_amount: {
     ko: "총 결제 금액",
@@ -3342,6 +3354,12 @@ export const StringResource = {
     zh: '关联社交账户后，下次即可快捷登录。',
   },
   sns_connected: { ko: '연결됨', en: 'Connected', jp: '連携済み', zh: '已关联' },
+  sns_app_only_guide: {
+    ko: 'SNS 계정 연결은 앱에서 이용해 주세요.',
+    en: 'SNS account linking is available in the app.',
+    jp: 'SNSアカウント連携はアプリでご利用ください。',
+    zh: '社交账户关联请在应用中使用。',
+  },
   sns_link_success: { ko: 'SNS 계정이 연결되었습니다.', en: 'Your SNS account has been linked.', jp: 'SNSアカウントが連携されました。', zh: '社交账户已关联。' },
   sns_transfer_title: { ko: '다른 계정에 연결된 SNS예요', en: 'Linked to another account', jp: '他のアカウントに連携済み', zh: '已关联到其他账户' },
   sns_transfer_message: {
@@ -3351,34 +3369,37 @@ export const StringResource = {
     zh: '该社交账户已关联到其他账户。\n要转移到当前账户吗？',
   },
   sns_transfer_warning_title: {
-    ko: '기존 계정을 잃을 수 있어요',
-    en: 'You may lose the other account',
-    jp: '既存のアカウントを失う可能性があります',
-    zh: '您可能会失去原账户',
+    ko: '다른 계정에 연결된 SNS예요',
+    en: 'Linked to another account',
+    jp: '他のアカウントに連携済みのSNSです',
+    zh: '该社交账户已关联其他账户',
   },
   sns_transfer_warning_message: {
-    ko: '이 SNS는 이미 다른 계정에 연결되어 있어요.\n현재 계정으로 이전하면 기존 계정은 이 SNS로 더 이상 로그인할 수 없게 돼요.',
-    en: 'This SNS is already linked to another account.\nIf you transfer it here, that account can no longer sign in with this SNS.',
-    jp: 'このSNSはすでに他のアカウントに連携されています。\n現在のアカウントに移すと、既存のアカウントではこのSNSでログインできなくなります。',
+    ko: '이 SNS는 다른 계정에 연결되어 있어요.\n이 계정으로 연동하면 이전 계정에서는 이 SNS로 더 이상 로그인할 수 없어요.',
+    en: 'This SNS is linked to another account.\nIf you bring it here, that account can no longer sign in with this SNS.',
+    jp: 'このSNSは他のアカウントに連携されています。\nこのアカウントに移すと、以前のアカウントではこのSNSでログインできなくなります。',
     zh: '该社交账户已关联到其他账户。\n转移到当前账户后，原账户将无法再用此社交账户登录。',
   },
   sns_transfer_warning_bullet1: {
-    ko: '기존 계정에 더 이상 접근하지 못할 수 있어요',
-    en: 'You may lose access to the other account',
-    jp: '既存のアカウントにアクセスできなくなる場合があります',
-    zh: '可能无法再访问原账户',
+    ko: '이전 계정은 연동 이후 더 이상 로그인할 수 없게 돼요',
+    en: 'The other account can no longer sign in after linking',
+    jp: '以前のアカウントは連携後、ログインできなくなります',
+    zh: '关联后原账户将无法再登录',
   },
   sns_transfer_warning_bullet2: {
-    ko: '예약·패스권·결제 내역 등 데이터가 사라질 수 있어요',
-    en: 'Bookings, passes, and payment history may be lost',
-    jp: '予約・パス券・決済履歴などのデータが失われる場合があります',
-    zh: '预约、通行证、付款记录等数据可能丢失',
+    ko: '이전 계정의 결제·수강권 등 데이터는 이관되지 않습니다',
+    en: 'Payments, courses, and other data are not transferred',
+    jp: '以前のアカウントの決済・受講券などのデータは移管されません',
+    zh: '原账户的付款、课程券等数据不会迁移',
   },
+  sns_transfer_joined_suffix: { ko: '가입', en: 'joined', jp: '登録', zh: '注册' },
+  sns_transfer_hour_unit: { ko: '시', en: '', jp: '時', zh: '时' },
+  sns_transfer_minute_unit: { ko: '분', en: '', jp: '分', zh: '分' },
   sns_transfer_warning_confirm: {
-    ko: '이해했어요, 이전할게요',
-    en: 'I understand, transfer',
-    jp: '理解しました、移します',
-    zh: '我已了解，仍要转移',
+    ko: '연동하기',
+    en: 'Bring it to this account',
+    jp: 'このアカウントに移す',
+    zh: '转移到当前账户',
   },
   connect_with_apple: {
     ko: 'Apple로 연결하기',
@@ -3551,6 +3572,24 @@ export const StringResource = {
     en: 'Total Amount',
     jp: '総精算額',
     zh: '总金额',
+  },
+  lesson_settle_up_status_settled: {
+    ko: '정산완료',
+    en: 'Settled',
+    jp: '精算完了',
+    zh: '已结算',
+  },
+  lesson_settle_up_status_pending: {
+    ko: '정산예정',
+    en: 'Pending',
+    jp: '精算予定',
+    zh: '待结算',
+  },
+  lesson_settle_up_adjust_reason: {
+    ko: '조정 사유',
+    en: 'Adjustment reason',
+    jp: '調整理由',
+    zh: '调整原因',
   },
   ticket_status_used: {
     ko: '출석완료',

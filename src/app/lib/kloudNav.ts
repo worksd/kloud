@@ -120,6 +120,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.Onboard('')) ||
     route.startsWith(KloudScreen.Certification) ||
     route.startsWith('/qrs') ||
+    route.startsWith('/community/') ||
     route.startsWith(KloudScreen.Kiosk) ||
     route.startsWith('/studioRooms/') ||
     route.includes('/profile/myPass/') ||

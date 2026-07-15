@@ -267,6 +267,30 @@ export const UnifiedPaymentInfo = ({
   const totalDiscount = (activeDiscounts ?? []).reduce((sum, d) => sum + d.amount, 0);
   const totalPrice = Math.max(0, itemPrice - totalDiscount);
 
+  // 번들 프로모션 — 원래 금액(bundle.originalPrice)이 판매가(itemPrice)보다 크면
+  // 하단 결제정보에 "원래 금액"(찍찍 긋기) + "프로모션 할인" 항목으로 표시.
+  // 표시 전용이라 API로 넘어가는 activeDiscounts에는 포함하지 않는다(이중 차감 방지).
+  const bundlePromotion = (() => {
+    if (type !== 'bundle') return null;
+    const orig = payment.bundle?.originalPrice;
+    if (orig == null || orig <= itemPrice) return null;
+    return { originalPrice: orig, discount: orig - itemPrice };
+  })();
+
+  const displayOriginalPrice = bundlePromotion?.originalPrice ?? itemPrice;
+  const displayDiscounts: DiscountResponse[] | undefined = bundlePromotion
+    ? [
+        {
+          key: getLocaleString({ locale, key: 'promotion_discount' }),
+          value: String(bundlePromotion.discount),
+          amount: bundlePromotion.discount,
+          type: 'Promotion',
+          itemId: 0,
+        },
+        ...(activeDiscounts ?? []),
+      ]
+    : activeDiscounts;
+
   return (
     <div className={"flex flex-col"}>
       {/* 대리 결제 안내 배너 */}
@@ -360,12 +384,13 @@ export const UnifiedPaymentInfo = ({
       {payment.price != null && (
         <>
           <PurchaseInformation
-            originalPrice={itemPrice}
+            originalPrice={displayOriginalPrice}
             totalPrice={totalPrice}
             method={selectedMethod}
-            titleResource={getTitleResource(type)}
+            titleResource={bundlePromotion ? 'original_price' : getTitleResource(type)}
             locale={locale}
-            discounts={activeDiscounts}
+            discounts={displayDiscounts}
+            strikeOriginalPrice={!!bundlePromotion}
           />
 
           <div className="my-2 h-2 bg-[#F7F8F9]" />
