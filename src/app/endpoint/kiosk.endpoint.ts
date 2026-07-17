@@ -26,6 +26,9 @@ export type StartKioskPaymentRequest = {
   paymentId: string;
   type: KioskPaymentType;
   discounts?: PaymentDiscount[];
+  // 연습실 예약(practice-room)일 때 필수 — 선택 시간대(KST ISO). amount는 서버가 계산하므로 미전송.
+  startDate?: string;
+  endDate?: string;
 };
 
 export type StartKioskPaymentResponse = {
@@ -43,7 +46,7 @@ export type StartKioskPaymentResponse = {
 export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
   method: 'post',
   path: '/kiosks/payments',
-  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts'],
+  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts', 'startDate', 'endDate'],
 };
 
 // ② POST /kiosks/payments/:paymentId/complete — Pending → Completed (KIS 매입 성공 후)

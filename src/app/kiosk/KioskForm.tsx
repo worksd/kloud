@@ -712,6 +712,8 @@ export const KioskForm = ({
       paymentId: paymentInfo.paymentId,
       type: 'card',
       discounts: buildDiscounts(),
+      // 연습실 예약이면 선택 시간대(KST ISO) 전달 — 서버가 예약 생성. amount는 서버 계산.
+      ...(roomBooking ? { startDate: roomBooking.startDate, endDate: roomBooking.endDate } : {}),
     });
 
     // paymentId 없으면 에러로 간주 — KIS 단말 호출/영수증 인쇄로 진행하지 않음
@@ -738,7 +740,7 @@ export const KioskForm = ({
       inInstallment: '00',
       inCustomerUuid: created.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts]);
+  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts, roomBooking]);
 
   // 현금 결제: POST /kiosks/payments(type='cash') 한 방에 즉시 Completed + qrCodeUrl 수령
   const handleCashPayment = useCallback(async () => {
@@ -752,6 +754,8 @@ export const KioskForm = ({
       paymentId: paymentInfo.paymentId,
       type: 'cash',
       discounts: buildDiscounts(),
+      // 연습실 예약이면 선택 시간대(KST ISO) 전달 — 서버가 예약 생성. amount는 서버 계산.
+      ...(roomBooking ? { startDate: roomBooking.startDate, endDate: roomBooking.endDate } : {}),
     });
 
     setIsPaying(false);
@@ -768,7 +772,7 @@ export const KioskForm = ({
     // cash 즉시 발급 — BE가 함께 내려주는 입장번호 라벨을 영수증용 상태에 반영
     if (r.rank) setPaymentRank(r.rank);
     setPaymentResult({ status: 'success', data: {} });
-  }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, buildDiscounts]);
+  }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, buildDiscounts, roomBooking]);
 
   // 패스권 사용 (B 흐름) — POST /kiosks/passes/:passId/use 직접 호출
   const handlePayWithPass = useCallback(async () => {
@@ -1020,10 +1024,10 @@ export const KioskForm = ({
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
           onChangeLocale={setLocale}
-          // 연습실 예약은 패스권 전용 — 카드/현금 비활성, 패스권 강제 활성
-          cardEnabled={roomBooking ? false : cardEnabled}
-          cashEnabled={roomBooking ? false : cashEnabled}
-          passEnabled={roomBooking ? true : passEnabled}
+          // 결제수단은 서버 응답(paymentInfo.methods) 기준. 연습실도 카드/현금/패스권 모두 지원.
+          cardEnabled={cardEnabled}
+          cashEnabled={cashEnabled}
+          passEnabled={passEnabled}
         />
       )}
 

@@ -16,13 +16,11 @@ export type KioskRoomBooking = {
   date: string;         // 표시용 날짜 (avail.date, dot 포맷 YYYY.MM.DD)
   startTime: string;
   endTime: string;
-  startDate: string;    // "YYYY.MM.DD HH:mm"
-  endDate: string;      // "YYYY.MM.DD HH:mm" (자정 넘기면 +1일)
+  startDate: string;    // KST ISO "YYYY-MM-DDTHH:mm:ss+09:00"
+  endDate: string;      // KST ISO (자정 넘기면 +1일)
 };
 
 const formatPrice = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
-const formatDotDate = (d: Date) =>
-  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -228,22 +226,22 @@ const KioskVerticalTimeTable = ({
   );
 };
 
-// PracticeRoomPaymentWrapper.buildPracticeRoomInfo와 동일한 날짜 계산
+// 결제 API에 넘길 예약 시간대 — KST ISO(YYYY-MM-DDTHH:mm:ss+09:00). 자정 넘기면 종료일 +1.
 const buildBookingDates = (dateStr: string | undefined, sel: { startTime: string; endTime: string }) => {
-  const startDateStr = (dateStr ?? '').replace(/-/g, '.');
+  const startDay = (dateStr ?? '').replace(/\./g, '-'); // YYYY-MM-DD
   const isNextDay = sel.endTime <= sel.startTime; // 자정 넘김
-  let endDateStr = startDateStr;
+  let endDay = startDay;
   if (isNextDay) {
-    const [y, m, dd] = startDateStr.split('.').map(Number);
+    const [y, m, dd] = startDay.split('-').map(Number);
     if (y && m && dd) {
       const next = new Date(y, m - 1, dd);
       next.setDate(next.getDate() + 1);
-      endDateStr = formatDotDate(next);
+      endDay = toDateStr(next);
     }
   }
   return {
-    startDate: `${startDateStr} ${sel.startTime}`,
-    endDate: `${endDateStr} ${sel.endTime}`,
+    startDate: `${startDay}T${sel.startTime}:00+09:00`,
+    endDate: `${endDay}T${sel.endTime}:00+09:00`,
   };
 };
 
