@@ -149,7 +149,8 @@ export const UnifiedPaymentInfo = ({
     });
 
   // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
-  const availablePasses: GetPassResponse[] = payment.passes ?? payment.user.passes ?? [];
+  // 비회원(연습실 게스트)은 user가 없으므로 옵셔널 체이닝.
+  const availablePasses: GetPassResponse[] = payment.passes ?? payment.user?.passes ?? [];
 
   // BE가 단일 passRule로 내려줌 (신규). legacy passRules[] 첫 요소 fallback.
   // - Discount 룰 → 일반 결제수단 + selectedDiscount 적용 (결제수단/패스 동시 활성 OK, 잔액 일반 결제)
@@ -297,7 +298,7 @@ export const UnifiedPaymentInfo = ({
       {isProxyPayment && (
         <div className="mx-6 mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm font-medium text-blue-900">
-            📢 {payment.user.name}{getLocaleString({ locale, key: 'proxy_payment_notice' })}
+            📢 {payment.user?.name}{getLocaleString({ locale, key: 'proxy_payment_notice' })}
           </p>
         </div>
       )}
@@ -447,6 +448,12 @@ export const UnifiedPaymentInfo = ({
           disabled={
             priceNotAvailable ||
             (type === 'practice-room' && !practiceRoomInfo) ||
+            // 연습실은 서버가 총액을 나중에 계산해 totalPrice가 0일 수 있음 → 결제수단은 항상 필수
+            (type === 'practice-room' && (
+              !selectedMethod ||
+              (selectedMethod === 'pass' && !selectedPass) ||
+              (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
+            )) ||
             (totalPrice > 0 && (
               !selectedMethod ||
               (selectedMethod === 'pass' && !selectedPass) ||

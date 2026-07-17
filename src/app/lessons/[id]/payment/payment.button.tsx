@@ -21,6 +21,10 @@ import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
 import { depositorKey } from "@/shared/cookies.key";
+import { GuestInfoBottomSheet } from "@/app/payment/GuestInfoBottomSheet";
+
+// 연습실 예약 시간대는 KST ISO("YYYY-MM-DDTHH:mm:ss+09:00")로 저장 — 다이얼로그 표시엔 HH:mm만.
+const roomTimeLabel = (iso?: string) => iso?.split('T')[1]?.slice(0, 5) ?? iso ?? '';
 
 // depositor 쿠키를 server action 대신 client에서 직접 set.
 // server action으로 cookies().set 호출 시 Next.js가 현재 라우트 RSC를 자동 revalidate해서
@@ -116,6 +120,9 @@ export default function PaymentButton({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
+  // 비회원(연습실 게스트) 결제 — 예약자 phone/name
+  const [guestInfo, setGuestInfo] = useState<{ phone: string; name: string } | null>(null);
+  const [guestSheetOpen, setGuestSheetOpen] = useState(false);
   const router = useRouter();
 
   const onPaymentSuccess = useCallback(async ({ paymentId, delay }: { paymentId: string; delay: number }) => {
@@ -153,10 +160,20 @@ export default function PaymentButton({
     }
   }, [router, appVersion, id, type]);
 
-  const handlePayment = async () => {
-    if (!user || !('id' in user)) {
-      setIsSubmitting(false);
-      return;
+  const handlePayment = async (guestOverride?: { phone: string; name: string }) => {
+    const isGuest = !user || !('id' in user);
+    const guest = guestOverride ?? guestInfo;
+
+    // 비회원 결제는 연습실만 허용. 정보 없으면 예약자 정보 바텀시트부터 띄운다.
+    if (isGuest) {
+      if (type.value !== 'practiceRoom') {
+        setIsSubmitting(false);
+        return;
+      }
+      if (!guest) {
+        setGuestSheetOpen(true);
+        return;
+      }
     }
 
     if (type.value === 'practiceRoom' && !practiceRoomInfo) {
@@ -165,6 +182,32 @@ export default function PaymentButton({
       return;
     }
 
+    // 결제 payload 공통값 (회원/비회원 분기)
+    const payerName = isGuest ? guest!.name : (user!.name ?? user!.nickName ?? undefined);
+    const payerPhone = isGuest ? guest!.phone : (user!.phone ?? undefined);
+    const customerId = isGuest ? guest!.phone : `${user!.id}`;
+    // customData: 연습실이면 예약 시간대(start/end), 비회원이면 phone/countryCode/name 동봉.
+    // (studioRoomId는 paymentId(PR{roomId}-)에서 서버가 파싱하므로 넣지 않음)
+    const buildCustomData = () => {
+      const d: Record<string, unknown> = { actualPayerUserId, discounts: selectedDiscounts };
+      if (type.value === 'practiceRoom' && practiceRoomInfo) {
+        d.startDate = practiceRoomInfo.startDate;
+        d.endDate = practiceRoomInfo.endDate;
+      }
+      if (isGuest && guest) {
+        d.phone = guest.phone;
+        d.countryCode = '82';
+        d.name = guest.name;
+      }
+      return d;
+    };
+    const roomManualFields = (type.value === 'practiceRoom' && practiceRoomInfo)
+      ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
+      : {};
+    const guestManualFields = (isGuest && guest)
+      ? { phone: guest.phone, countryCode: '82', name: guest.name }
+      : {};
+
     if (price == 0) {
       setIsSubmitting(true);
       try {
@@ -172,8 +215,10 @@ export default function PaymentButton({
           methodType: 'free',
           item: type.apiValue,
           itemId: id,
-          targetUserId: user.id,
+          targetUserId: isGuest ? undefined : user!.id,
           discounts: selectedDiscounts,
+          ...roomManualFields,
+          ...guestManualFields,
         })
         if ('paymentId' in res) {
           if (type.value === 'lesson') purgeLessonCache(id);
@@ -214,15 +259,12 @@ export default function PaymentButton({
         paymentId,
         orderName: title,
         price: price ?? 0,
-        userId: `${user.id}`,
+        userId: customerId,
         method: method && easyPayMethodMap[method] ? easyPayMethodMap[method]! : 'CARD',
-        customData: JSON.stringify({
-          actualPayerUserId,
-          discounts: selectedDiscounts,
-        }),
-        userName: user.name ?? user.nickName ?? undefined,
-        userPhone: user.phone ?? undefined,
-        userBirth: user.birth ?? undefined,
+        customData: JSON.stringify(buildCustomData()),
+        userName: payerName,
+        userPhone: payerPhone,
+        userBirth: isGuest ? undefined : (user!.birth ?? undefined),
         locale: method === 'foreign_card' ? 'EN_US' : locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
       };
 
@@ -242,16 +284,13 @@ export default function PaymentButton({
           totalAmount: paymentInfo.price,
           currency: 'CURRENCY_KRW',
           customer: {
-            customerId: `${user.id}`,
-            fullName: paymentInfo.userName ?? user.nickName ?? paymentInfo.userId,
+            customerId,
+            fullName: paymentInfo.userName ?? customerId,
           } as any,
           // 결제 결과 검증 핸들러(/payment-redirect)로 리다이렉트 — PortOne이 paymentId/message를 붙여줌.
           // 실패/취소면 message 표시, 성공이면 결제기록 확인 후 결제상세로 이동 (webhook 반영 대기 포함).
           redirectUrl: `${process.env.NEXT_PUBLIC_PORTONE_REDIRECT_URL ?? ''}?type=${type.value}&id=${id}`,
-          customData: {
-            actualPayerUserId,
-            discounts: selectedDiscounts,
-          },
+          customData: buildCustomData(),
           // 네이버/토스는 카드 결제수단만 (네이티브와 동일)
           ...(easyPayProvider ? {
             easyPay: {
@@ -310,7 +349,7 @@ export default function PaymentButton({
         message: isPracticeRoom
           ? [
               `${getLocaleString({locale, key: 'practice_room'})}: ${title}`,
-              `${getLocaleString({locale, key: 'time'})}: ${practiceRoomInfo?.startDate ?? ''} ~ ${practiceRoomInfo?.endDate ?? ''}`,
+              `${getLocaleString({locale, key: 'time'})}: ${roomTimeLabel(practiceRoomInfo?.startDate)} ~ ${roomTimeLabel(practiceRoomInfo?.endDate)}`,
               `${getLocaleString({locale, key: 'use_pass_confirm_pass'})}: ${selectedPass?.passPlan?.name ?? ''}`,
             ].join('\n')
           : [
@@ -374,14 +413,21 @@ export default function PaymentButton({
   const onConfirmDialog = async (data: DialogInfo) => {
     try {
       setIsSubmitting(true);
-      if (data.id == 'AccountTransfer' && user?.id) {
+      if (data.id == 'AccountTransfer') {
+        const isGuest = !user || !('id' in user);
         const res = await createManualPaymentRecordAction({
           methodType: 'account_transfer',
           item: type.apiValue,
           itemId: id,
-          targetUserId: user.id,
+          targetUserId: isGuest ? undefined : user!.id,
           depositor: depositor,
           discounts: selectedDiscounts,
+          ...(type.value === 'practiceRoom' && practiceRoomInfo
+            ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
+            : {}),
+          ...(isGuest && guestInfo
+            ? { phone: guestInfo.phone, countryCode: '82', name: guestInfo.name }
+            : {}),
         });
         if ('paymentId' in res) {
           setDepositorCookie(depositor)
@@ -467,12 +513,12 @@ export default function PaymentButton({
     window.onDialogConfirm = async (data: DialogInfo) => {
       await onConfirmDialog(data)
     }
-  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo])
+  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo, guestInfo])
 
 
   return (
     <div>
-      <CommonSubmitButton originProps={{onClick: handlePayment}} disabled={disabled || isSubmitting}>
+      <CommonSubmitButton originProps={{onClick: () => handlePayment()}} disabled={disabled || isSubmitting}>
         <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
           {price == null
             ? method === 'pass'
@@ -501,6 +547,17 @@ export default function PaymentButton({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"/>
         </div>
+      )}
+      {guestSheetOpen && (
+        <GuestInfoBottomSheet
+          locale={locale}
+          onClose={() => setGuestSheetOpen(false)}
+          onConfirm={(info) => {
+            setGuestInfo(info);
+            setGuestSheetOpen(false);
+            void handlePayment(info);
+          }}
+        />
       )}
     </div>
   );

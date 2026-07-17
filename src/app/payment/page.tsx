@@ -48,13 +48,20 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     appVersion?: string
     targetUserId?: string
     date?: string
+    start?: string
+    end?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, item, id, os, appVersion = '', targetUserId, date } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, date, start, end } = params;
   const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
+
+  // 연습실 결제는 장소·날짜·시간대가 이미 선택된 상태로만 진입 가능. start/end 없으면 차단.
+  if (paymentItem === 'practice-room' && (!start || !end)) {
+    notFound();
+  }
 
   const res = await getPaymentAction({
     item: paymentItem,
@@ -71,26 +78,29 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const cookieValue = (await cookies()).get(userIdKey)?.value;
   const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;
 
-  if (!('user' in res)) {
-    // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
-    // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
-    if (isGuinnessErrorCase(res)) {
-      // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
-      const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
-      return (
-        <PaymentErrorView
-          title={await translate('payment_error_title')}
-          message={res.message || await translate('unknown_error_message')}
-          backLabel={await translate('back')}
-          lessons={errorLessons}
-        />
-      );
-    }
+  // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
+  // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
+  if (isGuinnessErrorCase(res)) {
+    // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
+    const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
+    return (
+      <PaymentErrorView
+        title={await translate('payment_error_title')}
+        message={res.message || await translate('unknown_error_message')}
+        backLabel={await translate('back')}
+        lessons={errorLessons}
+      />
+    );
+  }
+
+  // 비회원 연습실 결제는 로그인 없이도 진행(@OptionalAuth — studioRoom+paymentId만 있으면 됨).
+  // 그 외 아이템은 user가 있어야 하므로 없으면 notFound.
+  if (!('user' in res) && paymentItem !== 'practice-room') {
     return notFound();
   }
 
-  // 대리 결제 여부 확인
-  const isProxyPayment = !!(actualPayerUserId && res.user.id !== actualPayerUserId);
+  // 대리 결제 여부 확인 (비회원은 user 없음 → false)
+  const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
 
   // 타입별로 데이터가 없는 경우 체크
   if (paymentItem === 'lesson' && !res.lesson) {
@@ -313,6 +323,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             locale={await getLocale()}
             actualPayerUserId={actualPayerUserId}
             isProxyPayment={isProxyPayment}
+            preStartTime={start}
+            preEndTime={end}
           />
         ) : (
           <>
