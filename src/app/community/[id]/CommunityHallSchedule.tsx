@@ -1,40 +1,45 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import calendarStyles from "@/app/kiosk/CalendarStyles.module.css";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { CommunityHall, HEEL_DANCE_LABEL } from "@/app/community/community.mock";
-import { useCommunityAction } from "@/app/community/[id]/CommunityActionBar";
+import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
+import { getCommunityRoomsAction } from "@/app/community/community.actions";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i); // 00:00 ~ 23:00
-const TICKS = [0, 6, 12, 18, 24];
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const LOCALE_TAG: Record<Locale, string> = { ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN' };
+const fmtMonthDayWeekday = (d: Date, locale: Locale) =>
+  new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'long', day: 'numeric', weekday: 'short' }).format(d);
 const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-// mock: 홀·날짜별로 다른 위치에 예약 "블록"을 배치 (결정적). 긴 연속 빈 시간이 남도록.
-const isBooked = (hallId: number, day: number, hour: number) => {
-  const seed = (hallId * 31 + day * 17) % 24;
-  const b1 = seed % 20;            // 2시간 블록
-  const b2 = (seed + 9) % 19;      // 3시간 블록
-  return (hour >= b1 && hour < b1 + 2) || (hour >= b2 && hour < b2 + 3);
-};
+const roomCap = (r: StudioRoomResponse) => r.practiceMaxNumber ?? r.maxNumber;
 
-// 홀별 카드(섹션) + 홀 선택 시 그 날짜 일일 시간표. 날짜는 버튼 → 캘린더 바텀시트로 선택.
-export function CommunityHallSchedule({ halls }: { halls: CommunityHall[] }) {
-  const [date, setDate] = useState<Date>(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  });
-  const day = date.getDate();
+// 예약은 1시간 간격 — 정시(:00) 슬롯만 노출/선택
+const hourlyOnly = (slots: TimeSlotResponse[]) => slots.filter((s) => s.time.endsWith(':00'));
 
-  const [expandedId, setExpandedId] = useState<number | null>(halls[0]?.id ?? null);
+// 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
+export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }: { rooms: StudioRoomResponse[]; studioId: number; locale: Locale }) {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+  const [date, setDate] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
+  const [rooms, setRooms] = useState<StudioRoomResponse[]>(initialRooms);
 
-  // 날짜 선택 바텀시트
+  // 날짜 변경 시 그 날짜의 슬롯으로 목록 갱신
+  const [firstLoad, setFirstLoad] = useState(true);
+  useEffect(() => {
+    if (firstLoad) { setFirstLoad(false); return; }
+    let alive = true;
+    getCommunityRoomsAction({ studioId, date: toDateStr(date) })
+      .then((res) => { if (alive && 'studioRooms' in res) setRooms(res.studioRooms); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
+
+  // 날짜 선택 캘린더 시트
   const [dateOpen, setDateOpen] = useState(false);
   const [dateClosing, setDateClosing] = useState(false);
   const closeDateSheet = (after?: () => void) => {
@@ -43,47 +48,89 @@ export function CommunityHallSchedule({ halls }: { halls: CommunityHall[] }) {
     setTimeout(() => { setDateOpen(false); setDateClosing(false); after?.(); }, 200);
   };
 
-  // 시간 선택 (연속 슬롯). start~end 시 (inclusive). 인접 슬롯만 확장.
-  const [sel, setSel] = useState<{ hallId: number; start: number; end: number } | null>(null);
-  const onSlot = (hallId: number, h: number, booked: boolean) => {
-    if (booked) return;
-    setSel((prev) => {
-      if (!prev || prev.hallId !== hallId) return { hallId, start: h, end: h };
-      const { start, end } = prev;
-      if (h >= start && h <= end) {
-        // 이미 선택된 구간 안: 끝단이면 줄이고, 내부면 단일 선택으로 리셋
-        if (h === start && h === end) return null;
-        if (h === end) return { hallId, start, end: end - 1 };
-        if (h === start) return { hallId, start: start + 1, end };
-        return { hallId, start: h, end: h };
-      }
-      // 구간 밖: 인접이면 확장, 아니면 새로 선택
-      if (h === start - 1) return { hallId, start: h, end };
-      if (h === end + 1) return { hallId, start, end: h };
-      return { hallId, start: h, end: h };
-    });
+  // 시간표 바텀시트 (홀 탭 시) — 드래그로 내려서 닫기 지원
+  const [sheetRoomId, setSheetRoomId] = useState<number | null>(null);
+  const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
+  const [dragY, setDragY] = useState(0);        // 드래그 중 아래로 이동한 거리(px)
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<number | null>(null);
+  const closingRef = useRef(false);
+  const sheetRoom = sheetRoomId != null ? rooms.find((r) => r.id === sheetRoomId) : undefined;
+
+  // entered=false → 화면 아래(offscreen), true → 제자리. transform+transition으로 open/close 애니메이션.
+  const [entered, setEntered] = useState(false);
+  const openSheet = (roomId: number) => { setSel(null); setDragY(0); closingRef.current = false; setSheetRoomId(roomId); };
+  const closeSheet = (after?: () => void) => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setDragging(false);
+    dragStart.current = null;
+    setEntered(false); // → 아래로 슬라이드 다운
+    setTimeout(() => { setSheetRoomId(null); setSel(null); setDragY(0); closingRef.current = false; after?.(); }, 300);
   };
 
-  // 선택한 순간 하단 액션 바에 "예약하기" 노출 → 바로 결제 페이지로 이동
-  const { setAction, clearAction, activeSource } = useCommunityAction();
+  // 시트 마운트 후 다음 프레임에 entered=true → 아래에서 위로 슬라이드 업
   useEffect(() => {
-    if (activeSource && activeSource !== 'reservation') setSel(null);
-  }, [activeSource]);
+    if (sheetRoomId == null) return;
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
+  }, [sheetRoomId]);
+
+  // 드래그 핸들러 (핸들/헤더 영역)
+  const onSheetDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; setDragging(true); };
+  const onSheetDragMove = (e: React.TouchEvent) => {
+    if (dragStart.current == null) return;
+    const dy = e.touches[0].clientY - dragStart.current;
+    setDragY(dy > 0 ? dy : 0);
+  };
+  const onSheetDragEnd = () => {
+    if (dragStart.current == null) return;
+    dragStart.current = null;
+    setDragging(false);
+    if (dragY > 120) closeSheet();  // 충분히 내리면 닫기
+    else setDragY(0);               // 아니면 원위치로 스냅백
+  };
+
+  // 날짜 바뀌면 선택 초기화 (슬롯 인덱스가 달라짐)
+  useEffect(() => { setSel(null); }, [date]);
+
+  // 바텀시트(시간표/캘린더) 열려 있으면 배경 스크롤 잠금 — dim 영역 스크롤 방지
   useEffect(() => {
-    if (sel) {
-      const hall = halls.find((h) => h.id === sel.hallId);
-      if (!hall) return;
-      const hours = sel.end - sel.start + 1;
-      setAction({
-        source: 'reservation',
-        label: `${hours}시간 · ${fmt(hall.pricePerHour * hours)}원 예약하기`,
-        onConfirm: () => kloudNav.push(`/payment?item=practice-room&id=${sel.hallId}&date=${toDateStr(date)}&start=${sel.start}&hours=${hours}`),
-      });
-    } else {
-      clearAction('reservation');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel, date]);
+    if (sheetRoomId == null && !dateOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [sheetRoomId, dateOpen]);
+
+  // 정시 슬롯 시작시각 → 종료시각(1시간 뒤, 24시는 00:00으로 → 결제 페이지가 자정 넘김 처리)
+  const calcEndTime = (time: string) => {
+    const [h] = time.split(':').map(Number);
+    return `${String((h + 1) % 24).padStart(2, '0')}:00`;
+  };
+
+  // 커뮤니티에서 룸·날짜·시간을 이미 골랐으므로 결제 페이지에 start/end까지 실어 보냄(재선택 없음)
+  const goPay = (roomId: number, startTime: string, endTime: string) =>
+    kloudNav.push(`/payment?item=practice-room&id=${roomId}&date=${toDateStr(date)}&start=${startTime}&end=${endTime}`);
+
+  const isOpen = (s: TimeSlotResponse) => s.status === 'available';
+
+  // 연속 슬롯 선택(인접만 확장)
+  const onSlot = (idx: number, slots: TimeSlotResponse[]) => {
+    if (!isOpen(slots[idx])) return;
+    setSel((prev) => {
+      if (!prev) return { start: idx, end: idx };
+      const { start, end } = prev;
+      if (idx >= start && idx <= end) {
+        if (idx === start && idx === end) return null;
+        if (idx === end) return { start, end: end - 1 };
+        if (idx === start) return { start: start + 1, end };
+        return { start: idx, end: idx };
+      }
+      if (idx === start - 1) return { start: idx, end };
+      if (idx === end + 1) return { start, end: idx };
+      return { start: idx, end: idx };
+    });
+  };
 
   return (
     <div>
@@ -92,104 +139,190 @@ export function CommunityHallSchedule({ halls }: { halls: CommunityHall[] }) {
         onClick={() => setDateOpen(true)}
         className="inline-flex items-center gap-1 h-9 pl-4 pr-3 rounded-full bg-[#F1F3F6] active:bg-[#E7EAEE] transition-colors"
       >
-        <span className="text-[14px] font-bold text-[#171717]">
-          {date.getMonth() + 1}월 {date.getDate()}일 ({WEEKDAYS[date.getDay()]})
-        </span>
+        <span className="text-[14px] font-bold text-[#171717]">{fmtMonthDayWeekday(date, locale)}</span>
         <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
           <path d="M6 9l6 6 6-6" stroke="#4E5968" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
-      {/* 홀별 카드 */}
+      {/* 홀별 카드 — 탭하면 시간표 바텀시트 */}
       <div className="mt-4 flex flex-col gap-4">
-        {halls.map((hall) => {
-          const expanded = hall.id === expandedId;
-          const fullyBooked = HOURS.every((h) => isBooked(hall.id, day, h));
+        {rooms.map((room) => {
+          const slots = hourlyOnly(room.slots ?? []);
+          const fullyBooked = slots.length > 0 && slots.every((s) => !isOpen(s));
+          const tickTimes = slots.length > 0
+            ? [...new Set([0, Math.floor(slots.length * 0.25), Math.floor(slots.length * 0.5), Math.floor(slots.length * 0.75), slots.length - 1])]
+                .map((i) => t('community_hour').replace('{h}', String(parseInt(slots[i].time, 10))))
+            : [];
           return (
-            <div key={hall.id} className="rounded-2xl border border-[#EEF0F2] overflow-hidden">
-              {/* 헤더 (탭하면 시간표 펼침) */}
-              <button
-                onClick={() => { setExpandedId(expanded ? null : hall.id); setSel(null); }}
-                className="w-full text-left p-4 active:bg-[#FAFBFC] transition-colors"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[17px] font-bold text-[#171717]">{hall.name}</p>
-                    <p className="mt-1 text-[13px] text-[#86898C]">
-                      {hall.dimensions.width}×{hall.dimensions.depth}m · 최대 {hall.maxNumber}명 · {HEEL_DANCE_LABEL[hall.heelDance]}
-                    </p>
-                    <p className={`mt-1 text-[13px] font-bold ${fullyBooked ? 'text-[#C4C9CF]' : 'text-[#171717]'}`}>
-                      {fullyBooked ? '예약 마감' : `시간당 ${fmt(hall.pricePerHour)}원`}
-                    </p>
-                  </div>
-                  {hall.imageUrl && (
-                    <div className="w-[92px] h-[92px] rounded-2xl overflow-hidden bg-[#F1F3F6] shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={hall.imageUrl} alt={hall.name} className="w-full h-full object-cover" />
-                    </div>
-                  )}
+            <button
+              key={room.id}
+              onClick={() => openSheet(room.id)}
+              className="w-full text-left rounded-2xl border border-[#EEF0F2] p-4 active:bg-[#FAFBFC] transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[17px] font-bold text-[#171717]">{room.name}</p>
+                  <p className="mt-1 text-[13px] text-[#86898C]">
+                    {t('community_max_people').replace('{count}', String(roomCap(room)))}
+                    {room.minBookingDuration ? ` · ${t('community_min_unit').replace('{min}', String(room.minBookingDuration))}` : ''}
+                  </p>
+                  <p className={`mt-1 text-[13px] font-bold ${fullyBooked ? 'text-[#C4C9CF]' : 'text-[#171717]'}`}>
+                    {fullyBooked ? t('community_reservation_closed') : room.unitPrice != null ? t('community_price_from').replace('{price}', fmt(room.unitPrice)) : t('community_available')}
+                  </p>
                 </div>
+                {room.imageUrls?.[0] && (
+                  <div className="w-[92px] h-[92px] rounded-2xl overflow-hidden bg-[#F1F3F6] shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={room.imageUrls[0]} alt={room.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
 
-                {/* 얇은 시간 바 (요약) */}
+              {/* 얇은 시간 바 (요약) + 시간대 눈금 */}
+              {slots.length > 0 && (
                 <div className="mt-3 flex gap-[2px] items-center">
-                  {HOURS.map((h) => (
-                    <span
-                      key={h}
-                      className={`flex-1 h-[3px] rounded-full ${isBooked(hall.id, day, h) ? 'bg-[#E4E8EC]' : 'bg-[#3CC0AF]'}`}
-                    />
+                  {slots.map((s) => (
+                    <span key={s.time} className={`flex-1 h-[3px] rounded-full ${isOpen(s) ? 'bg-[#3CC0AF]' : 'bg-[#E4E8EC]'}`} />
                   ))}
                 </div>
-                <div className="mt-1.5 flex items-center justify-between">
-                  <div className="flex-1 flex justify-between text-[11px] text-[#A0A5AB] pr-3">
-                    {TICKS.map((t) => <span key={t}>{t}시</span>)}
-                  </div>
-                  <svg viewBox="0 0 24 24" fill="none" className={`w-4 h-4 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}>
-                    <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+              )}
+              {tickTimes.length > 0 && (
+                <div className="mt-1.5 flex justify-between text-[10px] text-[#A0A5AB]">
+                  {tickTimes.map((tt, i) => <span key={i}>{tt}</span>)}
                 </div>
-              </button>
+              )}
+            </button>
+          );
+        })}
+        {rooms.length === 0 && (
+          <p className="py-10 text-center text-[14px] text-[#A0A5AB]">{t('community_no_rooms')}</p>
+        )}
+      </div>
 
-              {/* 펼침: 일일 시간표 */}
-              {expanded && (
-                <div className="border-t border-[#F1F3F6] px-4 pt-3 pb-2">
-                  <p className="text-[13px] font-bold text-[#171717] mb-1">
-                    {date.getMonth() + 1}월 {date.getDate()}일 시간표
-                  </p>
-                  <div className="flex flex-col divide-y divide-[#F5F6F7]">
-                    {HOURS.map((h) => {
-                      const booked = isBooked(hall.id, day, h);
-                      const selected = sel?.hallId === hall.id && h >= sel.start && h <= sel.end;
-                      return (
-                        <button
-                          key={h}
-                          disabled={booked}
-                          onClick={() => onSlot(hall.id, h, booked)}
-                          className={`flex items-center justify-between py-3 px-3 -mx-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : 'active:bg-[#FAFBFC]'}`}
-                        >
-                          <span className={`text-[15px] font-medium ${booked ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#171717]'}`}>
-                            {String(h).padStart(2, '0')}:00 ~ {String(h + 1).padStart(2, '0')}:00
-                          </span>
-                          <span className={`text-[13px] font-bold ${booked ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
-                            {booked ? '예약 마감' : selected ? '선택됨' : '예약 가능'}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+      {/* 시간표 바텀시트 — 핸들/헤더를 아래로 끌면 닫힘 */}
+      {sheetRoom && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div
+            className="absolute inset-0 bg-black/50 touch-none"
+            style={{ opacity: entered ? 1 : 0, transition: 'opacity 300ms ease' }}
+            onClick={() => closeSheet()}
+          />
+          <div
+            className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[85vh]"
+            style={{
+              transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
+              transition: dragging ? 'none' : 'transform 300ms cubic-bezier(0.32,0.72,0,1)',
+            }}
+          >
+            {/* 드래그 핸들 + 헤더 (이 영역을 아래로 끌면 닫힘) */}
+            <div className="shrink-0 touch-none" onTouchStart={onSheetDragStart} onTouchMove={onSheetDragMove} onTouchEnd={onSheetDragEnd}>
+              <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mt-3 mb-2" />
+
+              {/* 헤더: 홀 이름 + 닫기(X) + 날짜 칩 */}
+              <div className="px-5 pt-1 pb-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  {sheetRoom.imageUrls?.[0] && (
+                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-[#F1F3F6] shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={sheetRoom.imageUrls[0]} alt={sheetRoom.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <p className="text-[18px] font-bold text-[#171717] truncate">{sheetRoom.name}</p>
+                </div>
+                <button
+                  onClick={() => closeSheet()}
+                  aria-label="close"
+                  className="-mr-1 flex h-8 w-8 items-center justify-center rounded-full active:bg-[#F1F3F6] transition-colors shrink-0"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                    <path d="M6 6l12 12M18 6L6 18" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+              <button
+                onClick={() => setDateOpen(true)}
+                className="mt-2 inline-flex items-center gap-1 h-8 pl-3 pr-2 rounded-full bg-[#F1F3F6] active:bg-[#E7EAEE] transition-colors"
+              >
+                <span className="text-[13px] font-bold text-[#171717]">{fmtMonthDayWeekday(date, locale)}</span>
+                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+                  <path d="M6 9l6 6 6-6" stroke="#4E5968" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              </div>
+            </div>
+
+            {/* 슬롯 리스트 (1시간 간격) */}
+            <div className="px-5 flex-1 overflow-y-auto overscroll-contain">
+              {hourlyOnly(sheetRoom.slots ?? []).length === 0 ? (
+                <p className="py-10 text-center text-[13px] text-[#A0A5AB]">{t('community_no_slots')}</p>
+              ) : (
+                <div className="flex flex-col divide-y divide-[#F5F6F7]">
+                  {hourlyOnly(sheetRoom.slots ?? []).map((s, idx, arr) => {
+                    const open = isOpen(s);
+                    const selected = sel != null && idx >= sel.start && idx <= sel.end;
+                    return (
+                      <button
+                        key={s.time}
+                        disabled={!open}
+                        onClick={() => onSlot(idx, arr)}
+                        className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : open ? 'active:bg-[#FAFBFC]' : ''}`}
+                      >
+                        <span className={`text-[15px] font-medium ${!open ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#171717]'}`}>
+                          {s.time}
+                          {s.price != null ? <span className="ml-2 text-[13px] text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
+                        </span>
+                        <span className={`text-[13px] font-bold ${!open ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
+                          {!open ? t('closed') : selected ? t('community_selected') : t('community_available')}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
 
-      {/* 날짜 선택 바텀시트 (캘린더) */}
+            {/* 하단 예약하기 — 누르면 시트 닫으며 결제 이동 */}
+            <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+16px)] shrink-0 border-t border-[#F1F3F6]">
+              <button
+                disabled={!sel}
+                onClick={() => {
+                  if (!sel) return;
+                  const arr = hourlyOnly(sheetRoom.slots ?? []);
+                  const startTime = arr[sel.start].time;
+                  const endTime = calcEndTime(arr[sel.end].time);
+                  closeSheet(() => goPay(sheetRoom.id, startTime, endTime));
+                }}
+                className={`w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${sel ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E4E8EC]'}`}
+              >
+                <span className={`text-[16px] font-bold ${sel ? 'text-white' : 'text-[#A0A5AB]'}`}>
+                  {sel ? t('community_reserve_hours').replace('{count}', String(sel.end - sel.start + 1)) : t('reserve')}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 날짜 선택 캘린더 시트 (시간표 시트 위에 뜨도록 z 상위) */}
       {dateOpen && (
-        <div className={`fixed inset-0 z-50 flex items-end ${dateClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_180ms_ease-out]'}`}>
-          <div className="absolute inset-0 bg-black/50" onClick={() => closeDateSheet()} />
+        <div className={`fixed inset-0 z-[60] flex items-end ${dateClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_180ms_ease-out]'}`}>
+          <div className="absolute inset-0 bg-black/50 touch-none" onClick={() => closeDateSheet()} />
           <div className={`relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] ${dateClosing ? 'animate-[slideDown_220ms_ease-in_forwards]' : 'animate-[slideUp_220ms_ease-out]'}`}>
             <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mb-3" />
-            <p className="text-[17px] font-bold text-[#171717] mb-3">날짜 선택</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[17px] font-bold text-[#171717]">{t('community_select_date')}</p>
+              <button
+                onClick={() => closeDateSheet()}
+                aria-label="close"
+                className="-mr-1 flex h-8 w-8 items-center justify-center rounded-full active:bg-[#F1F3F6] transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                  <path d="M6 6l12 12M18 6L6 18" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
             <div className={calendarStyles.calendarWrapper}>
               <Calendar
                 onChange={(v) => {
@@ -202,14 +335,13 @@ export function CommunityHallSchedule({ halls }: { halls: CommunityHall[] }) {
                 }}
                 value={date}
                 formatDay={(_locale, d) => String(d.getDate())}
-                locale="ko-KR"
+                locale={LOCALE_TAG[locale]}
                 calendarType="gregory"
               />
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

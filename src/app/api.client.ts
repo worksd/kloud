@@ -181,6 +181,10 @@ export class ApiClient extends EndpointClient {
     get: this.endpointBuilder(API.RoomBooking.GetRoomBooking),
     delete: this.endpointBuilder(API.RoomBooking.DeleteRoomBooking),
   }
+
+  readonly community = {
+    get: this.endpointBuilder(API.Community.GetCommunity),
+  }
 }
 
 export interface ClientOptions {

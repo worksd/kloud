@@ -2,14 +2,16 @@
 
 import React from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { CommunityStudio } from "@/app/community/community.mock";
+import { CommunityStudioResponse } from "@/app/endpoint/community.endpoint";
+import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 // 커뮤니티 탭 — 연습실 전용 스튜디오 목록(2열 격자). 이름·주소 강조.
-export const CommunityPracticeRoomGrid = ({ studios }: { studios: CommunityStudio[] }) => {
+export const CommunityPracticeRoomGrid = ({ studios, locale }: { studios: CommunityStudioResponse[]; locale: Locale }) => {
   if (studios.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <span className="text-[#85898C] text-[15px] font-medium">연습실 스튜디오가 없습니다</span>
+        <span className="text-[#85898C] text-[15px] font-medium">{getLocaleString({ locale, key: 'community_no_studios' })}</span>
       </div>
     );
   }

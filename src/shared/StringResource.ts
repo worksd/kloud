@@ -2835,6 +2835,42 @@ export const StringResource = {
     jp: '予約済み',
     zh: '我的预约'
   },
+  guest_info_title: {
+    ko: '예약자 정보',
+    en: 'Booker Info',
+    jp: '予約者情報',
+    zh: '预约人信息'
+  },
+  guest_info_desc: {
+    ko: '비회원 예약을 위해 예약자 정보를 입력해주세요.',
+    en: 'Enter booker info to reserve as a guest.',
+    jp: '非会員予約のため予約者情報を入力してください。',
+    zh: '请输入预约人信息以进行非会员预约。'
+  },
+  guest_name_label: {
+    ko: '이름',
+    en: 'Name',
+    jp: 'お名前',
+    zh: '姓名'
+  },
+  guest_name_placeholder: {
+    ko: '이름을 입력해주세요',
+    en: 'Enter your name',
+    jp: 'お名前を入力してください',
+    zh: '请输入姓名'
+  },
+  guest_phone_label: {
+    ko: '휴대폰 번호',
+    en: 'Phone Number',
+    jp: '携帯電話番号',
+    zh: '手机号码'
+  },
+  guest_phone_placeholder: {
+    ko: '숫자만 입력해주세요',
+    en: 'Numbers only',
+    jp: '数字のみ入力',
+    zh: '仅输入数字'
+  },
   notice: {
     ko: '유의사항',
     en: 'Notice',
@@ -3749,6 +3785,34 @@ export const StringResource = {
     jp: '進行中',
     zh: '进行中',
   },
+
+  // 커뮤니티 (연습실)
+  community: { ko: '커뮤니티', en: 'Community', jp: 'コミュニティ', zh: '社区' },
+  community_no_studios: { ko: '연습실 스튜디오가 없습니다', en: 'No practice room studios yet', jp: '練習室スタジオがありません', zh: '暂无练习室工作室' },
+  community_intro: { ko: '소개', en: 'About', jp: '紹介', zh: '介绍' },
+  community_notice: { ko: '공지사항', en: 'Notices', jp: 'お知らせ', zh: '公告' },
+  community_amenities: { ko: '편의시설', en: 'Amenities', jp: '設備', zh: '便利设施' },
+  community_hall_status: { ko: '홀별 예약 현황', en: 'Hall Availability', jp: 'ホール別予約状況', zh: '各厅预约情况' },
+  community_pass: { ko: '이용권', en: 'Passes', jp: '利用券', zh: '通票' },
+  community_pass_view_all: { ko: '이용권 전체보기', en: 'View all passes', jp: '利用券をすべて見る', zh: '查看全部通票' },
+  community_price_from: { ko: '{price}원부터', en: 'From {price} KRW', jp: '{price}ウォン〜', zh: '{price}韩元起' },
+  community_max_people: { ko: '최대 {count}명', en: 'Up to {count}', jp: '最大{count}名', zh: '最多{count}人' },
+  community_min_unit: { ko: '{min}분 단위', en: '{min}-min slots', jp: '{min}分単位', zh: '{min}分钟单位' },
+  community_reservation_closed: { ko: '예약 마감', en: 'Fully booked', jp: '予約締切', zh: '已约满' },
+  community_available: { ko: '예약 가능', en: 'Available', jp: '予約可能', zh: '可预约' },
+  community_selected: { ko: '선택됨', en: 'Selected', jp: '選択済み', zh: '已选' },
+  community_no_slots: { ko: '예약 가능한 시간이 없습니다', en: 'No available times', jp: '予約可能な時間がありません', zh: '暂无可预约时间' },
+  community_no_rooms: { ko: '등록된 연습실이 없습니다', en: 'No practice rooms', jp: '登録された練習室がありません', zh: '暂无练习室' },
+  community_select_date: { ko: '날짜 선택', en: 'Select Date', jp: '日付を選択', zh: '选择日期' },
+  community_timetable: { ko: '시간표', en: 'Schedule', jp: '時間表', zh: '时间表' },
+  community_valid_period: { ko: '유효기간 {period}', en: 'Valid: {period}', jp: '有効期限 {period}', zh: '有效期 {period}' },
+  community_buy_pass: { ko: '{name} 구매하기', en: 'Buy {name}', jp: '{name}を購入', zh: '购买{name}' },
+  community_notice_more: { ko: '공지 {count}개 더보기', en: '{count} more notices', jp: 'お知らせを{count}件表示', zh: '查看更多{count}条公告' },
+  community_notice_view_all: { ko: '공지사항 전체보기', en: 'View all notices', jp: 'お知らせをすべて見る', zh: '查看全部公告' },
+  community_collapse: { ko: '접기', en: 'Collapse', jp: '折りたたむ', zh: '收起' },
+  community_hour: { ko: '{h}시', en: '{h}:00', jp: '{h}時', zh: '{h}时' },
+  community_reserve_hours: { ko: '{count}시간 예약하기', en: 'Reserve {count}h', jp: '{count}時間 予約する', zh: '预约{count}小时' },
+  popular: { ko: '인기', en: 'Popular', jp: '人気', zh: '热门' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

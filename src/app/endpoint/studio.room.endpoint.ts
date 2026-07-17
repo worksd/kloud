@@ -12,6 +12,8 @@ export type TimeSlotResponse = {
   status: 'available' | 'full' | 'closed';
   currentCount: number;
   maxCount: number;
+  /** 시간대별 가격 (StudioRoomPrice 규칙 적용가). 없으면 unitPrice 폴백. 결제 응답 slot에 내려옴. */
+  price?: number;
 }
 
 export type AvailableDayTime = {

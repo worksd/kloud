@@ -2,7 +2,7 @@ import { Endpoint } from "@/app/endpoint/index";
 import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { AnnouncementResponse } from "@/app/endpoint/announcement.endpoint";
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassResponse, GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 
@@ -53,6 +53,12 @@ export type GetStudioResponse = {
     banners?: StudioBannerResponse[];
     lessonGroups?: LessonGroupSummary[];
     day: string;
+    // 커뮤니티(연습실 전용 스튜디오) 상세용 필드 — BE가 GET /studios/:id 응답에 함께 내려줌
+    description?: string | null;
+    images?: string[] | null;
+    notes?: string[] | null;
+    amenities?: string[];
+    passPlans?: GetPassPlanResponse[];
 };
 
 export type YoutubeContentResponse = {
