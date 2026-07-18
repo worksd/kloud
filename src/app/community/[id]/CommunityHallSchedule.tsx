@@ -102,15 +102,23 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
     return () => { document.body.style.overflow = prev; };
   }, [sheetRoomId, dateOpen]);
 
-  // 정시 슬롯 시작시각 → 종료시각(1시간 뒤, 24시는 00:00으로 → 결제 페이지가 자정 넘김 처리)
+  // 정시 슬롯 시작시각 → 종료시각(1시간 뒤, 24시는 00:00으로 → 자정 넘김)
   const calcEndTime = (time: string) => {
     const [h] = time.split(':').map(Number);
     return `${String((h + 1) % 24).padStart(2, '0')}:00`;
   };
 
-  // 커뮤니티에서 룸·날짜·시간을 이미 골랐으므로 결제 페이지에 start/end까지 실어 보냄(재선택 없음)
-  const goPay = (roomId: number, startTime: string, endTime: string) =>
-    kloudNav.push(`/payment?item=practice-room&id=${roomId}&date=${toDateStr(date)}&start=${startTime}&end=${endTime}`);
+  // 결제 페이지에 startTime/endTime을 'YYYY-MM-DDTHH:mm'(KST, 자정 넘기면 +1일)로 전달.
+  // 서버가 이 구간으로 최종금액 계산 (GET /payment는 startTime/endTime 쿼리 필수)
+  const goPay = (roomId: number, startHHmm: string, endHHmm: string) => {
+    const startDateStr = toDateStr(date);
+    const crossesMidnight = endHHmm <= startHHmm; // 예: 23:00~00:00
+    const endD = new Date(date);
+    if (crossesMidnight) endD.setDate(endD.getDate() + 1);
+    const startTime = `${startDateStr}T${startHHmm}`;
+    const endTime = `${toDateStr(endD)}T${endHHmm}`;
+    kloudNav.push(`/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`);
+  };
 
   const isOpen = (s: TimeSlotResponse) => s.status === 'available';
 
@@ -168,7 +176,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
                     {room.minBookingDuration ? ` · ${t('community_min_unit').replace('{min}', String(room.minBookingDuration))}` : ''}
                   </p>
                   <p className={`mt-1 text-[13px] font-bold ${fullyBooked ? 'text-[#C4C9CF]' : 'text-[#171717]'}`}>
-                    {fullyBooked ? t('community_reservation_closed') : room.unitPrice != null ? t('community_price_from').replace('{price}', fmt(room.unitPrice)) : t('community_available')}
+                    {fullyBooked ? t('community_reservation_closed') : t('community_available')}
                   </p>
                 </div>
                 {room.imageUrls?.[0] && (

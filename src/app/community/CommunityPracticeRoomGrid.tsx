@@ -46,11 +46,7 @@ export const CommunityPracticeRoomGrid = ({ studios, locale }: { studios: Commun
 
             {/* 주소 — 핀 아이콘 + 강조 */}
             <span className="mt-1 flex items-start gap-1 text-[13px] font-medium text-[#4E5968] leading-snug">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="mt-[2px] shrink-0">
-                <path d="M12 21S5 14 5 9.5C5 5.91 8.13 3 12 3C15.87 3 19 5.91 19 9.5C19 14 12 21 12 21Z" stroke="#8A949E" strokeWidth="1.8" strokeLinejoin="round" />
-                <circle cx="12" cy="9.5" r="2.2" stroke="#8A949E" strokeWidth="1.8" />
-              </svg>
-              <span className="line-clamp-2">{room.address}</span>
+              <span className="line-clamp-2">{room.address?.split(',')[0] ?? room.address}</span>
             </span>
           </button>
         );

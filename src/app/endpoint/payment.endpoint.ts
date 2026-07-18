@@ -11,6 +11,10 @@ export type GetPaymentRequest = {
   item: string
   targetUserId?: number
   date?: string
+  /** 연습실 필수 — 예약 시작 'YYYY-MM-DDTHH:mm' (KST). 서버가 이 구간으로 최종금액 계산 */
+  startTime?: string
+  /** 연습실 필수 — 예약 종료 'YYYY-MM-DDTHH:mm' (KST, 자정 넘기면 다음날) */
+  endTime?: string
 }
 
 export type DiscountPassRule = {
@@ -123,7 +127,7 @@ export type GetPaymentResponse = {
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   method: "get",
   path: `/payment`,
-  queryParams: ['itemId', 'item', 'targetUserId', 'date']
+  queryParams: ['itemId', 'item', 'targetUserId', 'date', 'startTime', 'endTime']
 };
 
 

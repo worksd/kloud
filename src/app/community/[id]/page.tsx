@@ -36,10 +36,6 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
   const passPlansRes = await getPassPlanListAction({ studioId: id });
   const rawPassPlans = ('passPlans' in passPlansRes) ? passPlansRes.passPlans : [];
 
-  const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
-  const unitPrices = rooms.map((r) => r.unitPrice).filter((p): p is number => p != null && p > 0);
-  const minPrice = unitPrices.length > 0 ? Math.min(...unitPrices) : undefined;
-
   // 대표 이미지: images 우선, 없으면 cover/profile
   const images = (studio.images && studio.images.length > 0)
     ? studio.images
@@ -80,9 +76,6 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
               </svg>
               <span>{address}</span>
             </p>
-          )}
-          {minPrice != null && (
-            <p className="mt-3 text-[18px] font-bold text-[#171717]">{(await translate('community_price_from')).replace('{price}', fmt(minPrice))}</p>
           )}
         </div>
 

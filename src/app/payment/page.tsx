@@ -48,18 +48,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     appVersion?: string
     targetUserId?: string
     date?: string
-    start?: string
-    end?: string
+    startTime?: string
+    endTime?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, item, id, os, appVersion = '', targetUserId, date, start, end } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, date, startTime, endTime } = params;
   const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
 
-  // 연습실 결제는 장소·날짜·시간대가 이미 선택된 상태로만 진입 가능. start/end 없으면 차단.
-  if (paymentItem === 'practice-room' && (!start || !end)) {
+  // 연습실 결제는 장소·시간대(startTime/endTime)가 이미 선택된 상태로만 진입 가능.
+  if (paymentItem === 'practice-room' && (!startTime || !endTime)) {
     notFound();
   }
 
@@ -67,7 +67,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     item: paymentItem,
     id: itemId,
     targetUserId: parsedTargetUserId,
-    date: paymentItem === 'practice-room' ? date : undefined,
+    // 연습실: startTime/endTime 구간으로 서버가 최종금액 계산 (date 대신)
+    startTime: paymentItem === 'practice-room' ? startTime : undefined,
+    endTime: paymentItem === 'practice-room' ? endTime : undefined,
   });
 
   // BE가 redirectUrl을 내려주면 결제 폼 진입 없이 그 route로 push 후 결제 페이지를 back.
@@ -323,8 +325,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             locale={await getLocale()}
             actualPayerUserId={actualPayerUserId}
             isProxyPayment={isProxyPayment}
-            preStartTime={start}
-            preEndTime={end}
+            preStartTime={startTime}
+            preEndTime={endTime}
           />
         ) : (
           <>

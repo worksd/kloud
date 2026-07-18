@@ -6,36 +6,16 @@ import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-const formatIsoDate = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// startFull/endFull = 'YYYY-MM-DDTHH:mm' (KST, 자정 넘김은 endFull 날짜에 이미 반영됨)
+// → customData용 KST ISO8601("...:00+09:00")로 변환.
+const buildPracticeRoomInfo = (studioRoomId: number, startFull: string, endFull: string) => ({
+  studioRoomId,
+  startDate: `${startFull}:00+09:00`,
+  endDate: `${endFull}:00+09:00`,
+});
 
-// 예약 시간대를 KST(+09:00) ISO8601로. 슬롯 time은 로컬(KST) 벽시계 표기라 그대로 붙인다.
-// 예) 2026-04-10 + 14:00 → "2026-04-10T14:00:00+09:00"
-const buildPracticeRoomInfo = (
-  studioRoomId: number,
-  date: string | undefined,
-  selectedTime: { startTime: string; endTime: string },
-) => {
-  // date는 'YYYY-MM-DD' 또는 'YYYY.MM.DD' → 대시로 정규화
-  const startDateStr = (date ?? '').replace(/\./g, '-');
-  // endTime이 startTime보다 작거나 같으면 자정을 넘긴 것 → endDate는 +1일
-  const isNextDay = selectedTime.endTime <= selectedTime.startTime;
-  let endDateStr = startDateStr;
-  if (isNextDay) {
-    const [y, m, dd] = startDateStr.split('-').map(Number);
-    if (y && m && dd) {
-      const next = new Date(y, m - 1, dd);
-      next.setDate(next.getDate() + 1);
-      endDateStr = formatIsoDate(next);
-    }
-  }
-  const toKstIso = (day: string, time: string) => `${day}T${time}:00+09:00`;
-  return {
-    studioRoomId,
-    startDate: toKstIso(startDateStr, selectedTime.startTime),
-    endDate: toKstIso(endDateStr, selectedTime.endTime),
-  };
-};
+// 'YYYY-MM-DDTHH:mm' → 'HH:mm' (표시용)
+const hhmm = (s: string) => s.split('T')[1] ?? s;
 
 export const PracticeRoomPaymentWrapper = ({
   payment,
@@ -134,7 +114,7 @@ export const PracticeRoomPaymentWrapper = ({
       {selectedTime && (
         <div className="mx-5 mb-2 flex items-center justify-between bg-black rounded-xl px-4 py-3">
           <span className="text-[13px] text-white/60">{getLocaleString({ locale, key: 'time' })}</span>
-          <span className="text-[14px] font-bold text-white">{selectedTime.startTime} ~ {selectedTime.endTime}</span>
+          <span className="text-[14px] font-bold text-white">{hhmm(selectedTime.startTime)} ~ {hhmm(selectedTime.endTime)}</span>
         </div>
       )}
 
@@ -152,7 +132,7 @@ export const PracticeRoomPaymentWrapper = ({
         locale={locale}
         actualPayerUserId={actualPayerUserId}
         isProxyPayment={isProxyPayment}
-        practiceRoomInfo={selectedTime ? buildPracticeRoomInfo(studioRoomId, date, selectedTime) : undefined}
+        practiceRoomInfo={selectedTime ? buildPracticeRoomInfo(studioRoomId, selectedTime.startTime, selectedTime.endTime) : undefined}
       />
     </>
   );
