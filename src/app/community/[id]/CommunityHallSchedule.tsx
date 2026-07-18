@@ -120,7 +120,8 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
     kloudNav.push(`/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`);
   };
 
-  const isOpen = (s: TimeSlotResponse) => s.status === 'available';
+  // 예약 가능: 상태 available + 가격 존재(price가 null이면 예약 불가 슬롯)
+  const isOpen = (s: TimeSlotResponse) => s.status === 'available' && s.price != null;
 
   // 연속 슬롯 선택(인접만 확장)
   const onSlot = (idx: number, slots: TimeSlotResponse[]) => {
@@ -279,7 +280,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
                       >
                         <span className={`text-[15px] font-medium ${!open ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#171717]'}`}>
                           {s.time}
-                          {s.price != null ? <span className="ml-2 text-[13px] text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
+                          {open && s.price != null ? <span className="ml-2 text-[12px] font-normal text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
                         </span>
                         <span className={`text-[13px] font-bold ${!open ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
                           {!open ? t('closed') : selected ? t('community_selected') : t('community_available')}
