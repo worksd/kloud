@@ -29,21 +29,23 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
 
   return (
     <ScrollContainer className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar studio-detail-container">
-      {/* 헤더 */}
-      <NavigateClickWrapper method={'back'}>
-        <button
-          type="button"
-          aria-label="뒤로가기"
-          className={[
-            'absolute left-3 z-10',
-            // 큰 터치 타깃 + 반투명 배경
-            'inline-flex h-10 w-10 items-center justify-center rounded-full',
-            'backdrop-blur text-white shadow mt-10',
-          ].join(' ')}
-        >
-          <LeftArrow className="h-5 w-5"/>
-        </button>
-      </NavigateClickWrapper>
+      {/* 헤더 백버튼 — 앱에서만 노출 (웹은 MobileWebViewTopBar가 처리) */}
+      {appVersion !== '' && (
+        <NavigateClickWrapper method={'back'}>
+          <button
+            type="button"
+            aria-label="뒤로가기"
+            className={[
+              'absolute left-3 z-10',
+              // 큰 터치 타깃 + 반투명 배경
+              'inline-flex h-10 w-10 items-center justify-center rounded-full',
+              'backdrop-blur text-white shadow mt-10',
+            ].join(' ')}
+          >
+            <LeftArrow className="h-5 w-5"/>
+          </button>
+        </NavigateClickWrapper>
+      )}
       {/* 수업 썸네일 */}
       <div
         style={{backgroundImage: `url(${studio.coverImageUrl ?? studio.profileImageUrl})`}}
