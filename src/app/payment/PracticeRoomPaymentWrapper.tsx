@@ -16,6 +16,14 @@ const buildPracticeRoomInfo = (studioRoomId: number, startFull: string, endFull:
 
 // 'YYYY-MM-DDTHH:mm' → 'HH:mm' (표시용)
 const hhmm = (s: string) => s.split('T')[1] ?? s;
+// 'YYYY-MM-DDTHH:mm' → 'YYYY.MM.DD'
+const dotDate = (s: string) => (s.split('T')[0] ?? '').replace(/-/g, '.');
+// 선택 구간을 '날짜 시작~종료'로. 종료가 다음날이면 종료 날짜도 표기.
+const formatSelected = (start: string, end: string) => {
+  const sd = dotDate(start);
+  const ed = dotDate(end);
+  return sd === ed ? `${sd} ${hhmm(start)} ~ ${hhmm(end)}` : `${sd} ${hhmm(start)} ~ ${ed} ${hhmm(end)}`;
+};
 
 export const PracticeRoomPaymentWrapper = ({
   payment,
@@ -114,7 +122,7 @@ export const PracticeRoomPaymentWrapper = ({
       {selectedTime && (
         <div className="mx-5 mb-2 flex items-center justify-between bg-black rounded-xl px-4 py-3">
           <span className="text-[13px] text-white/60">{getLocaleString({ locale, key: 'time' })}</span>
-          <span className="text-[14px] font-bold text-white">{hhmm(selectedTime.startTime)} ~ {hhmm(selectedTime.endTime)}</span>
+          <span className="text-[14px] font-bold text-white">{formatSelected(selectedTime.startTime, selectedTime.endTime)}</span>
         </div>
       )}
 

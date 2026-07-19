@@ -22,6 +22,24 @@ const roomCap = (r: StudioRoomResponse) => r.practiceMaxNumber ?? r.maxNumber;
 // 예약은 1시간 간격 — 정시(:00) 슬롯만 노출/선택
 const hourlyOnly = (slots: TimeSlotResponse[]) => slots.filter((s) => s.time.endsWith(':00'));
 
+const nextHour = (time: string) => {
+  const [h] = time.split(':').map(Number);
+  return `${String((h + 1) % 24).padStart(2, '0')}:00`;
+};
+
+// 시간당 가격을 연속된 동일 가격 구간으로 묶어 '가격 정책' 요약 생성 (가격 미정 슬롯은 제외)
+type PriceBand = { start: string; end: string; price: number };
+const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
+  const bands: PriceBand[] = [];
+  for (const s of hourlyOnly(slots)) {
+    if (s.price == null) continue;
+    const last = bands[bands.length - 1];
+    if (last && last.price === s.price && last.end === s.time) last.end = nextHour(s.time);
+    else bands.push({ start: s.time, end: nextHour(s.time), price: s.price });
+  }
+  return bands;
+};
+
 // 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
 export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }: { rooms: StudioRoomResponse[]; studioId: number; locale: Locale }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
@@ -51,6 +69,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
   // 시간표 바텀시트 (홀 탭 시) — 드래그로 내려서 닫기 지원
   const [sheetRoomId, setSheetRoomId] = useState<number | null>(null);
   const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
+  const [priceOpen, setPriceOpen] = useState(false);   // 시간당 가격 안내 접힘/펼침
   const [dragY, setDragY] = useState(0);        // 드래그 중 아래로 이동한 거리(px)
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef<number | null>(null);
@@ -270,6 +289,55 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
               </button>
               </div>
             </div>
+
+            {/* 시간당 가격 안내 — 시간대별 가격 정책 요약 (접힘/펼침) */}
+            {(() => {
+              const bands = priceBands(sheetRoom.slots ?? []);
+              if (bands.length === 0) return null;
+              const prices = bands.map((b) => b.price);
+              const min = Math.min(...prices);
+              const max = Math.max(...prices);
+              const hint = min === max ? `${fmt(min)}${t('won')}` : `${fmt(min)}~${fmt(max)}${t('won')}`;
+              return (
+                <div className="px-5 pb-3 shrink-0">
+                  <div className="rounded-xl bg-[#F7F8F9] px-4 py-3">
+                    <button onClick={() => setPriceOpen((v) => !v)} className="w-full flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+                          <path d="M3 8.5V6a1 1 0 011-1h5.2a1 1 0 01.7.3l9 9a1 1 0 010 1.4l-4.5 4.5a1 1 0 01-1.4 0l-9-9a1 1 0 01-.3-.7V8.5z" stroke="#3CC0AF" strokeWidth="1.6" strokeLinejoin="round" />
+                          <circle cx="7" cy="9" r="1.2" fill="#3CC0AF" />
+                        </svg>
+                        <span className="text-[13px] font-bold text-[#171717]">{t('community_price_guide')}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        {!priceOpen && <span className="text-[13px] font-bold text-[#4E5968]">{hint}</span>}
+                        <svg viewBox="0 0 24 24" fill="none" className={`w-4 h-4 transition-transform ${priceOpen ? 'rotate-180' : ''}`}>
+                          <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </button>
+                    {priceOpen && (
+                      <div className="mt-2.5">
+                        {bands.length === 1 ? (
+                          <p className="text-[13px] text-[#4E5968]">
+                            {t('community_price_per_hour').replace('{price}', `${fmt(bands[0].price)}${t('won')}`)}
+                          </p>
+                        ) : (
+                          <div className="flex flex-col gap-1.5">
+                            {bands.map((b) => (
+                              <div key={b.start} className="flex items-center justify-between">
+                                <span className="text-[13px] text-[#4E5968]">{b.start} ~ {b.end}</span>
+                                <span className="text-[13px] font-bold text-[#171717]">{fmt(b.price)}{t('won')}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 슬롯 리스트 (1시간 간격) */}
             <div className="px-5 flex-1 overflow-y-auto overscroll-contain">

@@ -36,6 +36,7 @@ const ruleBenefitToType = (benefitType?: string): PassBenefitType => {
     case 'Unlimited': return 'unlimited';
     case 'FreeCount': return 'free_count';
     case 'Discount': return 'discount';
+    case 'TimeMinutes': return 'room';
     default: return 'unlimited';
   }
 };

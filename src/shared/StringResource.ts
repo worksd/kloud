@@ -3829,6 +3829,8 @@ export const StringResource = {
   community_available: { ko: '예약 가능', en: 'Available', jp: '予約可能', zh: '可预约' },
   community_selected: { ko: '선택됨', en: 'Selected', jp: '選択済み', zh: '已选' },
   community_no_slots: { ko: '예약 가능한 시간이 없습니다', en: 'No available times', jp: '予約可能な時間がありません', zh: '暂无可预约时间' },
+  community_price_guide: { ko: '시간당 가격 안내', en: 'Hourly pricing', jp: '1時間あたりの料金案内', zh: '每小时价格说明' },
+  community_price_per_hour: { ko: '시간당 {price}', en: '{price}/hour', jp: '1時間あたり{price}', zh: '每小时{price}' },
   community_no_rooms: { ko: '등록된 연습실이 없습니다', en: 'No practice rooms', jp: '登録された練習室がありません', zh: '暂无练习室' },
   community_select_date: { ko: '날짜 선택', en: 'Select Date', jp: '日付を選択', zh: '选择日期' },
   community_timetable: { ko: '시간표', en: 'Schedule', jp: '時間表', zh: '时间表' },
