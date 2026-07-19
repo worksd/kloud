@@ -180,6 +180,7 @@ export class ApiClient extends EndpointClient {
 
   readonly roomBooking = {
     get: this.endpointBuilder(API.RoomBooking.GetRoomBooking),
+    list: this.endpointBuilder(API.RoomBooking.ListRoomBookings),
     delete: this.endpointBuilder(API.RoomBooking.DeleteRoomBooking),
   }
 

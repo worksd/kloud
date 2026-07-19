@@ -168,6 +168,10 @@ const applyTitle = async (route: string) => {
     return await translate('edit_profile')
   } else if (route == KloudScreen.StudioSetting) {
     return await translate('studio_setting')
+  } else if (route === KloudScreen.RoomBookings) {
+    return await translate('room_bookings')
+  } else if (route.startsWith('/roomBookings/')) {
+    return await translate('room_booking_detail_title')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
   } else if (route.startsWith('/lesson-group-tickets')) {

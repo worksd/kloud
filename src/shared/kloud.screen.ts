@@ -62,6 +62,9 @@ export const KloudScreen = {
 
   /** 연습실 */
   StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,
+  /** 대관 예약 내역/상세 */
+  RoomBookings: '/roomBookings',
+  RoomBookingDetail: (id: number) => `/roomBookings/${id}`,
 
   /** 스튜디오 */
   Studios: '/studios',

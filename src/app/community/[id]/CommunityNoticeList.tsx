@@ -41,9 +41,15 @@ export function CommunityNoticeList({ notices, studioId, locale }: { notices: Co
                 </svg>
               </div>
             </button>
-            {open && n.content && (
+            {open && (n.content || n.imageUrl) && (
               <div className="px-4 pb-4 -mt-1">
-                <p className="text-[13px] text-[#4E5968] leading-relaxed whitespace-pre-line">{n.content}</p>
+                {n.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={n.imageUrl} alt="" className="w-full rounded-xl mb-2 object-cover" />
+                )}
+                {n.content && (
+                  <p className="text-[13px] text-[#4E5968] leading-relaxed whitespace-pre-line">{n.content}</p>
+                )}
               </div>
             )}
           </div>

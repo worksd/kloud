@@ -120,10 +120,13 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
     kloudNav.push(`/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`);
   };
 
-  // 예약 가능: 상태 available + 가격 존재(price가 null이면 예약 불가 슬롯)
-  const isOpen = (s: TimeSlotResponse) => s.status === 'available' && s.price != null;
+  // 예약 가능: 서버 status만 신뢰 (price는 표시용, null이어도 예약 가능 여부와 무관)
+  const isOpen = (s: TimeSlotResponse) => s.status === 'available';
 
   // 연속 슬롯 선택(인접만 확장)
+  // 최대 예약 시간(분) → 연속 선택 칸수 상한 (1칸=1시간). 미설정이면 무제한
+  const maxSlots = sheetRoom?.maxBookingDuration ? Math.floor(sheetRoom.maxBookingDuration / 60) : Infinity;
+
   const onSlot = (idx: number, slots: TimeSlotResponse[]) => {
     if (!isOpen(slots[idx])) return;
     setSel((prev) => {
@@ -135,8 +138,9 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
         if (idx === start) return { start: start + 1, end };
         return { start: idx, end: idx };
       }
-      if (idx === start - 1) return { start: idx, end };
-      if (idx === end + 1) return { start, end: idx };
+      const curLen = end - start + 1;
+      if (idx === start - 1) return curLen + 1 > maxSlots ? prev : { start: idx, end };  // 앞으로 연장(최대 캡)
+      if (idx === end + 1) return curLen + 1 > maxSlots ? prev : { start, end: idx };    // 뒤로 연장(최대 캡)
       return { start: idx, end: idx };
     });
   };
@@ -238,7 +242,12 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
                       <img src={sheetRoom.imageUrls[0]} alt={sheetRoom.name} className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <p className="text-[18px] font-bold text-[#171717] truncate">{sheetRoom.name}</p>
+                  <div className="min-w-0">
+                    <p className="text-[18px] font-bold text-[#171717] truncate">{sheetRoom.name}</p>
+                    {sheetRoom.maxBookingDuration ? (
+                      <p className="text-[12px] text-[#86898C]">{t('kiosk_max_hours').replace('{count}', String(Math.floor(sheetRoom.maxBookingDuration / 60)))}</p>
+                    ) : null}
+                  </div>
                 </div>
                 <button
                   onClick={() => closeSheet()}

@@ -79,6 +79,8 @@ export const KioskRoomReservationForm = ({
   const [rows, setRows] = useState<RoomAvailabilityRowResponse[]>([]);
   // 홀별 가격 원본 — slot.price가 null일 때 이걸로 계산 (LIST 응답의 schedules)
   const [schedulesByRoom, setSchedulesByRoom] = useState<Record<number, RoomScheduleResponse[]>>({});
+  // 홀별 최대 예약 시간(분, 60/120/180…). 설정 시 그만큼만 연속 선택 허용
+  const [maxDurByRoom, setMaxDurByRoom] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   // 선택 구간 — 한 홀 안에서만 연속. start/end = 시(0~23) inclusive.
   const [sel, setSel] = useState<{ roomId: number; start: number; end: number } | null>(null);
@@ -90,8 +92,13 @@ export const KioskRoomReservationForm = ({
         if (res && 'studioRooms' in res) {
           setRoomIds(res.studioRooms.map((r) => r.id).join(','));
           const map: Record<number, RoomScheduleResponse[]> = {};
-          res.studioRooms.forEach((r) => { if (r.schedules) map[r.id] = r.schedules; });
+          const maxMap: Record<number, number> = {};
+          res.studioRooms.forEach((r) => {
+            if (r.schedules) map[r.id] = r.schedules;
+            if (r.maxBookingDuration) maxMap[r.id] = r.maxBookingDuration;
+          });
           setSchedulesByRoom(map);
+          setMaxDurByRoom(maxMap);
         }
       });
   }, [studioId]);
@@ -112,9 +119,8 @@ export const KioskRoomReservationForm = ({
     return d;
   });
 
-  const now = new Date();
-  const isToday = isSameDay(selectedDate, now);
-  const isPastHour = (h: number) => isToday && h < now.getHours();
+  // 예약 가능 여부는 서버 slot.status만 신뢰 (과거 시각 등 별도 프론트 판정 없음)
+  const isPastHour = (_h: number) => false;
 
   const hourSlot = (row: RoomAvailabilityRowResponse, h: number) =>
     (row.slots ?? []).find((s) => s.time === `${pad(h)}:00`);
@@ -135,14 +141,22 @@ export const KioskRoomReservationForm = ({
     return !!s && s.status === 'available' && !isPastHour(h);
   };
 
-  // pickBlock — 한 홀 안 연속 구간 (가이드 3-1)
+  // 홀별 최대 선택 칸수(1칸=1시간). 미설정이면 무제한
+  const maxSlotsFor = (roomId: number) => {
+    const d = maxDurByRoom[roomId];
+    return d ? Math.floor(d / 60) : Infinity;
+  };
+
+  // pickBlock — 한 홀 안 연속 구간 (가이드 3-1). maxBookingDuration만큼만 연장 허용
   const onCell = (roomId: number, h: number, row: RoomAvailabilityRowResponse) => {
     if (!isSelectable(row, h)) return;
+    const maxSlots = maxSlotsFor(roomId);
     setSel((prev) => {
       if (!prev || prev.roomId !== roomId) return { roomId, start: h, end: h };
       const { start, end } = prev;
-      if (h === end + 1) return { roomId, start, end: h };      // 바로 뒤 → 연장
-      if (h === start - 1) return { roomId, start: h, end };    // 바로 앞 → 연장
+      const curLen = end - start + 1;
+      if (h === end + 1) return curLen + 1 > maxSlots ? prev : { roomId, start, end: h };   // 바로 뒤 → 연장(최대 캡)
+      if (h === start - 1) return curLen + 1 > maxSlots ? prev : { roomId, start: h, end };  // 바로 앞 → 연장(최대 캡)
       if (h === start && start === end) return null;            // 단일 재클릭 → 해제
       if (h === start) return { roomId, start: start + 1, end };// 첫 칸 → 앞 축소
       if (h > start && h <= end) return { roomId, start, end: h - 1 }; // 중간/마지막 → 뒤 해제
@@ -320,8 +334,13 @@ export const KioskRoomReservationForm = ({
             {/* 홀 행 */}
             {rows.map((row) => (
               <div key={row.studioRoomId} className="flex border-b border-[#F5F6F7]">
-                <div className="sticky left-0 z-10 bg-white shrink-0 flex items-center border-r border-[#EEF0F2]" style={{ width: nameW, paddingLeft: 'min(1.6vh, 16px)', paddingRight: '8px' }}>
+                <div className="sticky left-0 z-10 bg-white shrink-0 flex flex-col justify-center border-r border-[#EEF0F2]" style={{ width: nameW, paddingLeft: 'min(1.6vh, 16px)', paddingRight: '8px' }}>
                   <span className="font-bold text-black truncate" style={{ fontSize: 'min(1.6vh, 17px)' }}>{row.name}</span>
+                  {maxDurByRoom[row.studioRoomId] ? (
+                    <span className="text-[#86898C] truncate" style={{ fontSize: 'min(1.2vh, 12px)', marginTop: 2 }}>
+                      {t('kiosk_max_hours').replace('{count}', String(Math.floor(maxDurByRoom[row.studioRoomId] / 60)))}
+                    </span>
+                  ) : null}
                 </div>
                 {renderRow(row)}
               </div>

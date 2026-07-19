@@ -55,6 +55,7 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
   const notices: CommunityNotice[] = (studio.announcements ?? []).map((a) => ({
     title: a.title,
     content: a.body,
+    imageUrl: a.imageUrl,
   }));
 
   return (

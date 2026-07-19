@@ -17,6 +17,7 @@ export type CommunityNotice = {
   date?: string; // YYYY-MM-DD (announcement 실데이터엔 날짜 없음 → 옵셔널)
   title: string;
   content?: string;
+  imageUrl?: string | null;
 };
 
 // 편의시설 — 실 API 필드 없음. 정적 기본 목록.
