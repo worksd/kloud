@@ -22,6 +22,15 @@ export type AvailableDayTime = {
   endTime: string;
 }
 
+// 홀 운영시간·가격 그리드 원본 (요일/시간대별). slot.price가 null일 때 이걸로 가격 계산.
+export type RoomScheduleResponse = {
+  dayType: 'Weekly' | 'Holiday';
+  day: number | null;      // Weekly: 0~6 (getDay 기준 0=일). Holiday: null
+  startTime: string;       // 'HH:00'
+  status: string;          // 'Active' 등
+  price: number;
+}
+
 export type StudioRoomResponse = {
   id: number;
   name: string;
@@ -39,6 +48,7 @@ export type StudioRoomResponse = {
   advanceBookingOpenTime?: string;
   bookingWhileInUse?: boolean;
   availableDayTimes?: AvailableDayTime[];
+  schedules?: RoomScheduleResponse[];
   slots?: TimeSlotResponse[];
 }
 
@@ -94,4 +104,28 @@ export const GetRoomAvailability: Endpoint<GetRoomAvailabilityParameter, RoomAva
   path: (e) => `/studioRooms/${e.id}`,
   pathParams: ['id'],
   queryParams: ['date'],
+}
+
+// 여러 홀의 특정 날짜 슬롯을 한 번에 조회 (키오스크 대관 그리드용)
+export type GetRoomsAvailabilityParameter = {
+  studioRoomIds: string;   // 콤마 구분 "83,84,85"
+  date: string;            // 'YYYY-MM-DD'
+}
+
+export type RoomAvailabilityRowResponse = {
+  studioRoomId: number;
+  name: string;
+  slots: TimeSlotResponse[];
+  schedules?: RoomScheduleResponse[];
+}
+
+export type RoomsAvailabilityResponse = {
+  date: string;
+  rooms: RoomAvailabilityRowResponse[];
+}
+
+export const GetRoomsAvailability: Endpoint<GetRoomsAvailabilityParameter, RoomsAvailabilityResponse> = {
+  method: 'get',
+  path: '/studioRooms/availability',
+  queryParams: ['studioRoomIds', 'date'],
 }

@@ -3039,6 +3039,8 @@ export const StringResource = {
     jp: '予約済み',
     zh: '已约满'
   },
+  slot_closed: { ko: '예약 불가', en: 'Unavailable', jp: '予約不可', zh: '不可预约' },
+  slot_past: { ko: '지남', en: 'Past', jp: '終了', zh: '已过' },
   slot_booking_closed: {
     ko: '예약 마감',
     en: 'Booking closed',
@@ -3299,6 +3301,10 @@ export const StringResource = {
   kiosk_reserve_room: { ko: '연습실 예약', en: 'Reserve Room', jp: '練習室予約', zh: '练习室预约' },
   kiosk_select_room: { ko: '연습실 선택', en: 'Select a Room', jp: '練習室を選択', zh: '选择练习室' },
   kiosk_no_rooms: { ko: '연습실이 없습니다', en: 'No rooms available', jp: '練習室がありません', zh: '没有练习室' },
+  kiosk_rental_title: { ko: '대관 예약', en: 'Hall Booking', jp: 'レンタル予約', zh: '场地预约' },
+  kiosk_rental_select_hint: { ko: '홀과 시간을 선택하세요', en: 'Select a hall and time', jp: 'ホールと時間を選択', zh: '选择场地和时间' },
+  kiosk_rental_reserve: { ko: '{count}시간 · {amount}원 예약하기', en: 'Reserve {count}h · ₩{amount}', jp: '{count}時間 · {amount}円 予約', zh: '预约{count}小时 · {amount}元' },
+  kiosk_price_unset: { ko: '가격 미설정', en: 'Price not set', jp: '料金未設定', zh: '未设置价格' },
   kiosk_reservation_info: { ko: '예약 정보', en: 'Reservation', jp: '予約情報', zh: '预约信息' },
   payment_notice: { ko: '결제 유의사항', en: 'Payment Notice', jp: '決済に関するご注意', zh: '支付注意事项' },
   apple_pay_domestic_only: { ko: 'Apple Pay는 Master/Visa 등 해외카드 결제가 불가합니다.', en: 'Apple Pay does not support international cards such as Master/Visa.', jp: 'Apple PayはMaster/Visaなどの海外カードはご利用いただけません。', zh: 'Apple Pay不支持Master/Visa等海外银行卡。' },
