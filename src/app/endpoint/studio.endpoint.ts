@@ -5,6 +5,7 @@ import { AnnouncementResponse } from "@/app/endpoint/announcement.endpoint";
 import { GetPassResponse, GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
+import { AmenityResponse, RoomDimensions } from "@/app/endpoint/studio.room.endpoint";
 
 export type IdParameter = {
   id: number;
@@ -21,6 +22,20 @@ export type StudioBannerResponse = {
   endDate: string;
   description?: string;
   route: string;
+}
+
+// GET /studios/:id 의 practiceRooms[] — 커뮤니티 홀 요약 (홀정보 라우트의 축약본)
+export type CommunityPracticeRoomResponse = {
+  id: number;
+  name: string;
+  description?: string;
+  maxNumber?: number;
+  areaSize?: number;
+  dimensions?: RoomDimensions;
+  floorType?: string;
+  amenities?: AmenityResponse[];
+  pricePerHour?: number;
+  imageUrl?: string;
 }
 
 export type GetStudioResponse = {
@@ -57,8 +72,11 @@ export type GetStudioResponse = {
     description?: string | null;
     images?: string[] | null;
     notes?: string[] | null;
-    amenities?: string[];
+    // 건물 시설 토글 목록 [{amenity, label, enabled}] — enabled=false도 포함되니 소비 측에서 필터.
+    amenities?: AmenityResponse[];
     passPlans?: GetPassPlanResponse[];
+    // 연습실 전용 스튜디오의 방 요약 (홀 스펙/시설). 슬롯은 availability에서.
+    practiceRooms?: CommunityPracticeRoomResponse[];
 };
 
 export type YoutubeContentResponse = {

@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
-import { RoomAvailabilityResponse, RoomLessonResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
+import { getRoomInfoAction, getRoomAvailabilityAction } from "@/app/schedule/get.practice.rooms.action";
+import { StudioRoomResponse, RoomAvailabilityRowResponse, RoomLessonResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { RoomBookingDialog, RoomBookingInfo } from "@/app/components/RoomBookingDialog";
@@ -58,20 +58,31 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
     }
     return today;
   });
-  const [room, setRoom] = useState<RoomAvailabilityResponse | null>(null);
+  // 홀정보(날짜 무관)와 예약현황(날짜별 슬롯)은 라우트가 분리됨 → 따로 받아 병합
+  const [info, setInfo] = useState<StudioRoomResponse | null>(null);
+  const [avail, setAvail] = useState<RoomAvailabilityRowResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState(0);
   const imageScrollRef = useRef<HTMLDivElement>(null);
   const [selectedBooking, setSelectedBooking] = useState<RoomBookingInfo | null>(null);
   const won = getLocaleString({ locale, key: 'won' });
 
-  // 날짜 변경 시 API 재호출
+  // 홀정보 — roomId 단위로 1회 조회
+  useEffect(() => {
+    let alive = true;
+    getRoomInfoAction(roomId).then((res) => {
+      if (alive && 'id' in res) setInfo(res);
+    });
+    return () => { alive = false; };
+  }, [roomId]);
+
+  // 예약현황(슬롯·내 예약·수업) — 날짜 변경 시 재호출
   const fetchRoom = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getRoomAvailabilityAction(roomId, toDateStr(selectedDate));
-      if ('studioRoomId' in res) {
-        setRoom(res);
+      if ('rooms' in res) {
+        setAvail(res.rooms.find((r) => r.studioRoomId === roomId) ?? res.rooms[0] ?? null);
       }
     } finally {
       setLoading(false);
@@ -81,6 +92,24 @@ export const StudioRoomDetailClient = ({ roomId, locale, initialDate }: {
   useEffect(() => {
     fetchRoom();
   }, [fetchRoom]);
+
+  // 다운스트림 참조 최소 변경을 위해 홀정보+예약현황을 기존 형태로 병합
+  const room = info ? {
+    name: info.name,
+    description: info.description,
+    imageUrls: info.imageUrls,
+    maxCount: info.practiceMaxNumber ?? info.maxNumber,
+    minBookingDuration: info.minBookingDuration,
+    unitPrice: info.unitPrice,
+    maxBookingDuration: info.maxBookingDuration,
+    dailyBookingLimit: info.dailyBookingLimit,
+    advanceBookingDays: info.advanceBookingDays,
+    advanceBookingOpenTime: info.advanceBookingOpenTime,
+    slots: avail?.slots ?? [],
+    myBookings: avail?.myBookings ?? [],
+    lessons: avail?.lessons ?? [],
+    buttons: avail?.buttons ?? [],
+  } : null;
 
   // 날짜 스트립 (오늘 ~ +13일)
   const dateStrip = Array.from({ length: 14 }, (_, i) => {

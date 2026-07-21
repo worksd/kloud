@@ -2,7 +2,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { CommunityPass, CommunityNotice } from "@/app/community/community.mock";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
-import { getCommunityRoomsAction } from "@/app/community/community.actions";
+import { getCommunityRoomsAction, getCommunityRoomsAvailabilityAction } from "@/app/community/community.actions";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { CommunityBackButton } from "@/app/community/[id]/CommunityBackButton";
 import { CommunityHallSchedule } from "@/app/community/[id]/CommunityHallSchedule";
@@ -29,8 +29,15 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
   const popularLabel = await translate('popular');
 
   const today = toDateStr(new Date());
-  const roomsRes = await getCommunityRoomsAction({ studioId: id, date: today });
-  const rooms = ('studioRooms' in roomsRes) ? roomsRes.studioRooms : [];
+  // 홀 스펙(홀정보)과 예약 현황(슬롯)은 이제 라우트가 분리됨 → 병렬 조회 후 studioRoomId↔id로 병합
+  const [roomsRes, availRes] = await Promise.all([
+    getCommunityRoomsAction({ studioId: id }),
+    getCommunityRoomsAvailabilityAction({ studioId: id, date: today }),
+  ]);
+  const roomSpecs = ('studioRooms' in roomsRes) ? roomsRes.studioRooms : [];
+  const availRows = ('rooms' in availRes) ? availRes.rooms : [];
+  const slotsByRoom = new Map(availRows.map((r) => [r.studioRoomId, r.slots]));
+  const rooms = roomSpecs.map((r) => ({ ...r, slots: slotsByRoom.get(r.id) ?? [] }));
 
   // 이용권 — 일반 스튜디오와 동일한 전용 소스(GET /studios/:id/passPlans) 사용
   const passPlansRes = await getPassPlanListAction({ studioId: id });
@@ -42,7 +49,8 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
     : [studio.coverImageUrl, studio.profileImageUrl].filter((u): u is string => !!u);
   const address = studio.address ?? studio.roadAddress ?? '';
   const description = studio.description ?? undefined;
-  const amenities = studio.amenities ?? [];
+  // 건물 시설 — [{amenity, label, enabled}] 중 enabled만 노출
+  const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
   // 이용권 — 전용 passPlans 소스 → CommunityPassList 형태로 매핑
   const passes: CommunityPass[] = rawPassPlans.map((p) => ({
     id: p.id,
@@ -102,9 +110,9 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
             <h2 className="text-[16px] font-bold text-[#171717] mb-2.5">{await translate('community_amenities')}</h2>
             <div className="flex flex-wrap gap-2">
               {amenities.map((a) => (
-                <span key={a} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F8F9] border border-[#EEF0F2] text-[13px] font-medium text-[#333]">
-                  <CommunityAmenityIcon name={a} className="w-4 h-4 shrink-0" />
-                  {a}
+                <span key={a.amenity} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F8F9] border border-[#EEF0F2] text-[13px] font-medium text-[#333]">
+                  <CommunityAmenityIcon name={a.label} className="w-4 h-4 shrink-0" />
+                  {a.label}
                 </span>
               ))}
             </div>

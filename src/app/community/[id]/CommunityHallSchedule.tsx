@@ -6,7 +6,7 @@ import "react-calendar/dist/Calendar.css";
 import calendarStyles from "@/app/kiosk/CalendarStyles.module.css";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
-import { getCommunityRoomsAction } from "@/app/community/community.actions";
+import { getCommunityRoomsAvailabilityAction } from "@/app/community/community.actions";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -46,13 +46,17 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
   const [date, setDate] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const [rooms, setRooms] = useState<StudioRoomResponse[]>(initialRooms);
 
-  // 날짜 변경 시 그 날짜의 슬롯으로 목록 갱신
+  // 날짜 변경 시 그 날짜의 예약 현황(슬롯)만 availability로 재조회해 홀 스펙에 병합
   const [firstLoad, setFirstLoad] = useState(true);
   useEffect(() => {
     if (firstLoad) { setFirstLoad(false); return; }
     let alive = true;
-    getCommunityRoomsAction({ studioId, date: toDateStr(date) })
-      .then((res) => { if (alive && 'studioRooms' in res) setRooms(res.studioRooms); });
+    getCommunityRoomsAvailabilityAction({ studioId, date: toDateStr(date) })
+      .then((res) => {
+        if (!alive || !('rooms' in res)) return;
+        const slotsByRoom = new Map(res.rooms.map((r) => [r.studioRoomId, r.slots]));
+        setRooms((prev) => prev.map((r) => ({ ...r, slots: slotsByRoom.get(r.id) ?? [] })));
+      });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);

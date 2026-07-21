@@ -87,7 +87,7 @@ export const KioskRoomReservationForm = ({
 
   // 1) 홀 목록 → id + schedules(가격 원본) 확보
   useEffect(() => {
-    getKioskStudioRoomsAction({ studioId, date: toDateStr(new Date()) })
+    getKioskStudioRoomsAction({ studioId })
       .then((res) => {
         if (res && 'studioRooms' in res) {
           setRoomIds(res.studioRooms.map((r) => r.id).join(','));
@@ -180,7 +180,7 @@ export const KioskRoomReservationForm = ({
     const { startDate, endDate } = buildBookingDates(toDateStr(selectedDate), { startTime, endTime });
     onConfirm({
       studioRoomId: selRow.studioRoomId,
-      roomName: selRow.name,
+      roomName: selRow.name ?? '',
       price: totalPrice,
       date: toDotDate(selectedDate),
       startTime,

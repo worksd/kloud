@@ -4,7 +4,6 @@ import { GetLessonButtonResponse } from "@/app/endpoint/lesson.endpoint";
 export type GetStudioRoomListParameter = {
   studioId: number;
   practiceOnly?: boolean;
-  date?: string;
 }
 
 export type TimeSlotResponse = {
@@ -31,10 +30,26 @@ export type RoomScheduleResponse = {
   price: number;
 }
 
+// 방/건물 시설 토글 (있음/없음). label = 한글 표시명. enabled=false도 목록에 포함되니 소비 측에서 필터.
+export type AmenityResponse = {
+  amenity: string;
+  label: string;
+  enabled: boolean;
+}
+
+export type RoomDimensions = {
+  width?: number;
+  depth?: number;
+  height?: number;
+}
+
+// GET /studioRooms/:id, GET /studioRooms 목록의 홀정보(방 설명서). 예약 현황(slots)은 미포함 —
+// slots는 GET /studioRooms/availability에서 받아 클라에서 studioRoomId로 조인.
 export type StudioRoomResponse = {
   id: number;
   name: string;
   description?: string;
+  mode?: string;
   maxNumber: number;
   practiceMaxNumber?: number;
   isPracticeRoom?: boolean;
@@ -47,8 +62,15 @@ export type StudioRoomResponse = {
   advanceBookingDays?: number | null;
   advanceBookingOpenTime?: string;
   bookingWhileInUse?: boolean;
+  requiredPassPlanIds?: number[];
+  areaSize?: number;
+  dimensions?: RoomDimensions;
+  floorType?: string;
+  amenities?: AmenityResponse[];
   availableDayTimes?: AvailableDayTime[];
   schedules?: RoomScheduleResponse[];
+  createdAt?: string;
+  /** 슬롯은 응답에 없음. availability 조인 후 클라에서 채우는 용도의 옵셔널 필드. */
   slots?: TimeSlotResponse[];
 }
 
@@ -56,15 +78,22 @@ export type StudioRoomListResponse = {
   studioRooms: StudioRoomResponse[];
 }
 
+// GET /studioRooms — 홀 목록(홀정보만, 슬롯/date 없음)
 export const ListStudioRooms: Endpoint<GetStudioRoomListParameter, StudioRoomListResponse> = {
   method: 'get',
   path: '/studioRooms',
-  queryParams: ['studioId', 'practiceOnly', 'date'],
+  queryParams: ['studioId', 'practiceOnly'],
 }
 
-export type GetRoomAvailabilityParameter = {
+// GET /studioRooms/:id — 홀 상세(홀정보만). 예약 현황은 availability에서.
+export type GetStudioRoomParameter = {
   id: number;
-  date: string;
+}
+
+export const GetStudioRoom: Endpoint<GetStudioRoomParameter, StudioRoomResponse> = {
+  method: 'get',
+  path: (e) => `/studioRooms/${e.id}`,
+  pathParams: ['id'],
 }
 
 export type RoomLessonResponse = {
@@ -79,44 +108,22 @@ export type RoomLessonResponse = {
   artistNickName?: string;
 }
 
-export type RoomAvailabilityResponse = {
-  studioRoomId: number;
-  name: string;
-  description?: string;
-  date: string;
-  maxCount: number;
-  minBookingDuration: number;
-  maxBookingDuration?: number | null;
-  dailyBookingLimit?: number | null;
-  imageUrls?: string[];
-  unitPrice?: number;
-  dailyPrice?: number;
-  advanceBookingDays?: number | null;
-  advanceBookingOpenTime?: string;
-  slots: TimeSlotResponse[];
-  buttons?: GetLessonButtonResponse[];
-  myBookings?: { id: number; startDate: string; endDate: string }[];
-  lessons?: RoomLessonResponse[];
-}
-
-export const GetRoomAvailability: Endpoint<GetRoomAvailabilityParameter, RoomAvailabilityResponse> = {
-  method: 'get',
-  path: (e) => `/studioRooms/${e.id}`,
-  pathParams: ['id'],
-  queryParams: ['date'],
-}
-
-// 여러 홀의 특정 날짜 슬롯을 한 번에 조회 (키오스크 대관 그리드용)
+// GET /studioRooms/availability — 특정 날짜의 예약 현황(슬롯).
+// studioId(학원 전 홀) 또는 studioRoomIds(콤마 구분 지정 홀). 로그인 시 방마다 buttons·myBookings 포함.
 export type GetRoomsAvailabilityParameter = {
-  studioRoomIds: string;   // 콤마 구분 "83,84,85"
-  date: string;            // 'YYYY-MM-DD'
+  studioRoomIds?: string;   // 콤마 구분 "83,84,85"
+  studioId?: number;        // 학원 전 홀 한 번에
+  date: string;             // 'YYYY-MM-DD'
 }
 
 export type RoomAvailabilityRowResponse = {
   studioRoomId: number;
-  name: string;
+  name?: string;
   slots: TimeSlotResponse[];
   schedules?: RoomScheduleResponse[];
+  buttons?: GetLessonButtonResponse[];
+  myBookings?: { id: number; startDate: string; endDate: string }[];
+  lessons?: RoomLessonResponse[];
 }
 
 export type RoomsAvailabilityResponse = {
@@ -127,5 +134,5 @@ export type RoomsAvailabilityResponse = {
 export const GetRoomsAvailability: Endpoint<GetRoomsAvailabilityParameter, RoomsAvailabilityResponse> = {
   method: 'get',
   path: '/studioRooms/availability',
-  queryParams: ['studioRoomIds', 'date'],
+  queryParams: ['studioRoomIds', 'studioId', 'date'],
 }

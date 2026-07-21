@@ -7,16 +7,15 @@ export const getCommunityAction = async () => {
   return await api.community.get({});
 };
 
-// 커뮤니티 상세 — 스튜디오의 연습실(룸) 목록. studioId 명시(쿠키 미사용).
-export const getCommunityRoomsAction = async (params: { studioId: number; date?: string }) => {
+// 커뮤니티 상세 — 스튜디오의 연습실(룸) 목록(홀정보만, 슬롯 없음). studioId 명시(쿠키 미사용).
+export const getCommunityRoomsAction = async (params: { studioId: number }) => {
   return await api.studioRoom.list({
     studioId: params.studioId,
     practiceOnly: true,
-    date: params.date,
   });
 };
 
-// 커뮤니티 상세 — 특정 룸의 날짜별 실제 가용 슬롯.
-export const getCommunityRoomAvailabilityAction = async (params: { roomId: number; date: string }) => {
-  return await api.studioRoom.getAvailability({ id: params.roomId, date: params.date });
+// 커뮤니티 상세 — 학원 전 홀의 특정 날짜 예약 현황(슬롯). 로그인 시 방마다 buttons·myBookings 포함.
+export const getCommunityRoomsAvailabilityAction = async (params: { studioId: number; date: string }) => {
+  return await api.studioRoom.availability({ studioId: params.studioId, date: params.date });
 };
