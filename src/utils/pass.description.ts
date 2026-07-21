@@ -55,7 +55,7 @@ const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passNam
 };
 
 // 분(minutes) → 로케일별 '3시간' / '1시간 30분' / '45분' 표기
-const formatMinutes = (minutes: number, locale: Locale): string => {
+export const formatMinutes = (minutes: number, locale: Locale): string => {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   const unit = { ko: { h: '시간', m: '분' }, en: { h: 'h', m: 'm' }, jp: { h: '時間', m: '分' }, zh: { h: '小时', m: '分钟' } }[locale];

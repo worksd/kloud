@@ -3,7 +3,7 @@ import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComp
 import { getLocale, translate } from "@/utils/translate";
 import { Locale, StringResource } from "@/shared/StringResource";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
-import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
+import { formatRuleDescription, formatFeatureDescription, formatMinutes } from "@/utils/pass.description";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
 import { CircleImage } from "@/app/components/CircleImage";
 import Image from "next/image";
@@ -32,6 +32,7 @@ const ruleBenefitIcon = (benefitType: string) => {
     case 'Unlimited': return <UnlimitedIcon />;
     case 'FreeCount': return <FreeUnlimitedIcon />;
     case 'Discount': return <DiscountIcon />;
+    case 'TimeMinutes': return <PassRoomIcon />;
     default: return <UnlimitedIcon />;
   }
 };
@@ -183,7 +184,9 @@ export default async function MyPassDetailPage({params}: {
                         <div className="flex items-center gap-2">
                           {rule.remainingCount != null && rule.benefitValue != null && (
                             <span className="text-[11px] font-bold text-[#5B5FF6]">
-                              {rule.usageCount}/{rule.benefitValue}{t(locale, 'times')}
+                              {rule.benefitType === 'TimeMinutes'
+                                ? t(locale, 'remaining_time').replace('{time}', formatMinutes(rule.remainingCount, locale))
+                                : `${rule.usageCount}/${rule.benefitValue}${t(locale, 'times')}`}
                             </span>
                           )}
                           {isExpired && (

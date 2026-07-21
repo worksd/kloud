@@ -23,8 +23,8 @@ import { Locale } from "@/shared/StringResource";
 import { depositorKey } from "@/shared/cookies.key";
 import { GuestInfoBottomSheet } from "@/app/payment/GuestInfoBottomSheet";
 
-// 연습실 예약 시간대는 KST ISO("YYYY-MM-DDTHH:mm:ss+09:00")로 저장 — 다이얼로그 표시엔 HH:mm만.
-const roomTimeLabel = (iso?: string) => iso?.split('T')[1]?.slice(0, 5) ?? iso ?? '';
+// 연습실 예약 시간대는 KST 벽시계("yyyy.MM.dd HH:mm")로 저장 — 다이얼로그 표시엔 HH:mm만.
+const roomTimeLabel = (s?: string) => s?.split(' ')[1]?.slice(0, 5) ?? s ?? '';
 
 // depositor 쿠키를 server action 대신 client에서 직접 set.
 // server action으로 cookies().set 호출 시 Next.js가 현재 라우트 RSC를 자동 revalidate해서
@@ -454,11 +454,14 @@ export default function PaymentButton({
             await kloudNav.navigateMain({route: pushRoute});
           }
         } else if (type.value === 'practiceRoom' && 'success' in res && res.success) {
-          const passRoute = KloudScreen.MyPassDetail(selectedPass.id);
+          // 연습실 예약 완료 → 패스권 상세가 아니라 예약(대관) 내역으로 이동.
+          // (응답에 bookingId가 있으면 RoomBookingDetail로 딥링크, 없으면 목록)
+          const bookingId = 'roomBookingId' in res ? (res as { roomBookingId?: number }).roomBookingId : undefined;
+          const route = bookingId != null ? KloudScreen.RoomBookingDetail(bookingId) : KloudScreen.RoomBookings;
           if (appVersion == '') {
-            router.replace(passRoute)
+            router.replace(route)
           } else {
-            await kloudNav.navigateMain({route: passRoute});
+            await kloudNav.navigateMain({route});
           }
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})

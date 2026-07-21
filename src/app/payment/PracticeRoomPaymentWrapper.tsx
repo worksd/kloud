@@ -6,12 +6,17 @@ import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-// startFull/endFull = 'YYYY-MM-DDTHH:mm' (KST, 자정 넘김은 endFull 날짜에 이미 반영됨)
-// → customData용 KST ISO8601("...:00+09:00")로 변환.
+// startFull/endFull = 'YYYY-MM-DDTHH:mm' (KST 벽시계, 자정 넘김은 endFull 날짜에 이미 반영됨)
+// 연습실 예약 계열 API(POST /passes/:id/use, /roomBookings, customData)는 'yyyy.MM.dd HH:mm'
+// (KST 벽시계, 오프셋 없음)만 받는다. ISO/오프셋을 붙이면 서버 파싱이 실패(500)한다.
+const toWallClock = (full: string) => {
+  const [d, t] = full.split('T');
+  return `${d.replace(/-/g, '.')} ${t}`;   // 2026-07-20T04:00 → 2026.07.20 04:00
+};
 const buildPracticeRoomInfo = (studioRoomId: number, startFull: string, endFull: string) => ({
   studioRoomId,
-  startDate: `${startFull}:00+09:00`,
-  endDate: `${endFull}:00+09:00`,
+  startDate: toWallClock(startFull),
+  endDate: toWallClock(endFull),
 });
 
 // 'YYYY-MM-DDTHH:mm' → 'HH:mm' (표시용)

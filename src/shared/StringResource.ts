@@ -1967,6 +1967,12 @@ export const StringResource = {
     jp: '返金口座情報が正常に更新されました。',
     zh: '退款账户信息已成功更新。',
   },
+  remaining_time: {
+    ko: '{time} 남음',
+    en: '{time} left',
+    jp: '{time}残り',
+    zh: '剩余{time}',
+  },
   remaining_count: {
     ko: '회 남음',
     en: 'times left',
