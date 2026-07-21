@@ -37,7 +37,21 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
   const roomSpecs = ('studioRooms' in roomsRes) ? roomsRes.studioRooms : [];
   const availRows = ('rooms' in availRes) ? availRes.rooms : [];
   const slotsByRoom = new Map(availRows.map((r) => [r.studioRoomId, r.slots]));
-  const rooms = roomSpecs.map((r) => ({ ...r, slots: slotsByRoom.get(r.id) ?? [] }));
+  // GET /studios/:id 의 practiceRooms 스펙(설명·면적·치수·바닥·시설)을 홀에 병합 (홀 정보 시트용)
+  const specById = new Map((studio.practiceRooms ?? []).map((p) => [p.id, p]));
+  const rooms = roomSpecs.map((r) => {
+    const p = specById.get(r.id);
+    return {
+      ...r,
+      slots: slotsByRoom.get(r.id) ?? [],
+      description: r.description ?? p?.description,
+      areaSize: r.areaSize ?? p?.areaSize,
+      dimensions: r.dimensions ?? p?.dimensions,
+      floorType: r.floorType ?? p?.floorType,
+      amenities: (r.amenities && r.amenities.length > 0) ? r.amenities : p?.amenities,
+      maxNumber: r.maxNumber ?? p?.maxNumber ?? 0,
+    };
+  });
 
   // 이용권 — 일반 스튜디오와 동일한 전용 소스(GET /studios/:id/passPlans) 사용
   const passPlansRes = await getPassPlanListAction({ studioId: id });

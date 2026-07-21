@@ -9,6 +9,15 @@ import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room
 import { getCommunityRoomsAvailabilityAction } from "@/app/community/community.actions";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { CommunityAmenityIcon } from "@/app/community/[id]/CommunityAmenityIcon";
+
+// 바닥재 코드 → 표시명
+const FLOOR_LABEL: Record<string, Record<Locale, string>> = {
+  Wood: { ko: '원목', en: 'Wood', jp: '木材', zh: '木地板' },
+  Marley: { ko: '마루(마레)', en: 'Marley', jp: 'マーレー', zh: '玛丽地板' },
+  Vinyl: { ko: '장판', en: 'Vinyl', jp: 'ビニール', zh: 'PVC地板' },
+  Tile: { ko: '타일', en: 'Tile', jp: 'タイル', zh: '瓷砖' },
+};
 
 const LOCALE_TAG: Record<Locale, string> = { ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN' };
 const fmtMonthDayWeekday = (d: Date, locale: Locale) =>
@@ -74,6 +83,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
   const [sheetRoomId, setSheetRoomId] = useState<number | null>(null);
   const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
   const [priceOpen, setPriceOpen] = useState(false);   // 시간당 가격 안내 접힘/펼침
+  const [infoOpen, setInfoOpen] = useState(false);     // 홀 정보 접힘/펼침
   const [dragY, setDragY] = useState(0);        // 드래그 중 아래로 이동한 거리(px)
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef<number | null>(null);
@@ -293,6 +303,74 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
               </button>
               </div>
             </div>
+
+            {/* 홀 정보 — 설명·면적·치수·바닥·시설 (접힘/펼침) */}
+            {(() => {
+              const enabledAmenities = (sheetRoom.amenities ?? []).filter((a) => a.enabled);
+              const dim = sheetRoom.dimensions;
+              const dimStr = dim && (dim.width || dim.depth || dim.height)
+                ? `${dim.width ?? '-'} x ${dim.depth ?? '-'} x ${dim.height ?? '-'} m` : null;
+              const floorStr = sheetRoom.floorType
+                ? (FLOOR_LABEL[sheetRoom.floorType]?.[locale] ?? sheetRoom.floorType) : null;
+              const specs: { label: string; value: string }[] = [];
+              if (sheetRoom.maxNumber > 0) specs.push({ label: t('max_capacity'), value: t('community_max_people').replace('{count}', String(sheetRoom.maxNumber)) });
+              if (sheetRoom.areaSize) specs.push({ label: t('community_area'), value: `${sheetRoom.areaSize}㎡` });
+              if (dimStr) specs.push({ label: t('community_dimensions'), value: dimStr });
+              if (floorStr) specs.push({ label: t('community_floor'), value: floorStr });
+              const hasDesc = !!sheetRoom.description && sheetRoom.description.replace(/<[^>]*>/g, '').trim() !== '';
+              if (!hasDesc && specs.length === 0 && enabledAmenities.length === 0) return null;
+              return (
+                <div className="px-5 pb-3 shrink-0">
+                  <div className="rounded-xl bg-[#F7F8F9] px-4 py-3">
+                    <button onClick={() => setInfoOpen((v) => !v)} className="w-full flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+                          <circle cx="12" cy="12" r="9" stroke="#3CC0AF" strokeWidth="1.6" />
+                          <path d="M12 11v5M12 8h.01" stroke="#3CC0AF" strokeWidth="1.8" strokeLinecap="round" />
+                        </svg>
+                        <span className="text-[13px] font-bold text-[#171717]">{t('community_room_info')}</span>
+                      </span>
+                      <svg viewBox="0 0 24 24" fill="none" className={`w-4 h-4 transition-transform ${infoOpen ? 'rotate-180' : ''}`}>
+                        <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                    {infoOpen && (
+                      <div className="mt-3 max-h-[42vh] overflow-y-auto overscroll-contain flex flex-col gap-3">
+                        {hasDesc && (
+                          <div
+                            className="text-[13px] text-[#4E5968] leading-relaxed whitespace-pre-line break-words [&_h1]:text-[15px] [&_h1]:font-bold [&_h1]:text-[#171717] [&_h1]:my-1 [&_h2]:text-[14px] [&_h2]:font-bold [&_h2]:text-[#171717] [&_h2]:my-1 [&_p]:my-0.5"
+                            dangerouslySetInnerHTML={{ __html: sheetRoom.description! }}
+                          />
+                        )}
+                        {specs.length > 0 && (
+                          <div className="flex flex-col gap-1.5">
+                            {specs.map((s) => (
+                              <div key={s.label} className="flex items-center justify-between">
+                                <span className="text-[12px] text-[#86898C]">{s.label}</span>
+                                <span className="text-[13px] font-medium text-[#171717]">{s.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {enabledAmenities.length > 0 && (
+                          <div>
+                            <p className="text-[12px] text-[#86898C] mb-1.5">{t('community_room_facility')}</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {enabledAmenities.map((a) => (
+                                <span key={a.amenity} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#EEF0F2] text-[12px] font-medium text-[#333]">
+                                  <CommunityAmenityIcon name={a.label} className="w-3.5 h-3.5 shrink-0" />
+                                  {a.label}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 시간당 가격 안내 — 시간대별 가격 정책 요약 (접힘/펼침) */}
             {(() => {
