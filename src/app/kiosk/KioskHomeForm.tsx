@@ -20,11 +20,12 @@ type KioskHomeFormProps = {
   onSelectPayment: () => void;
   onSelectVisit: () => void;
   onReserveRoom: () => void;
+  onSelectLessonAttendance: () => void;
   onChangeLocale: (locale: Locale) => void;
   onAdminMode: () => void;
 };
 
-export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, canPurchase, onSelectPayment, onSelectVisit, onReserveRoom, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
+export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, canPurchase, onSelectPayment, onSelectVisit, onReserveRoom, onSelectLessonAttendance, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const [showLocalePicker, setShowLocalePicker] = useState(false);
   const currentLocale = KIOSK_LOCALES.find((l) => l.code === locale) ?? KIOSK_LOCALES[0];
@@ -55,11 +56,20 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
         )}
       </div>
 
-      {/* 카드 영역 — canCheckIn/canPurchase 플래그에 따라 노출. 둘 다 false면 row 자체를 숨김.
-          연습실 예약은 결제와 동일하게 canPurchase로 게이팅. */}
-      {(canCheckIn || canPurchase) && (
-        <div className="flex-[200] shrink-0 flex gap-[2.9%] px-[5.6%] pt-[3.1%] pb-[2%]">
-          {canCheckIn && (
+      {/* 카드 영역 — 수업 출석 체크(QR)는 항상 노출, 방문/연습실예약/결제는 canCheckIn/canPurchase 플래그에 따라 노출. */}
+      <div className="flex-[200] shrink-0 flex gap-[2.9%] px-[5.6%] pt-[3.1%] pb-[2%]">
+        {/* 수업 출석 체크 — 누르면 QR 스캐너를 띄운다 */}
+        <div
+          onClick={onSelectLessonAttendance}
+          className="flex-1 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/ic_kiosk_attendance.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
+          <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
+            {t('kiosk_lesson_attendance_title')}
+          </span>
+        </div>
+        {canCheckIn && (
             <div
               onClick={onSelectVisit}
               className="flex-1 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
@@ -97,8 +107,7 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
               </span>
             </div>
           )}
-        </div>
-      )}
+      </div>
 
       {/* 푸터 — rawgraphy 로고 + 언어 피커 */}
       <div className="flex-[80] shrink-0 flex items-center justify-between px-[5.6%] relative">

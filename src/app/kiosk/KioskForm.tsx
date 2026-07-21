@@ -4,9 +4,12 @@ import React, {useState, useEffect, useCallback, useRef} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import {KioskCardPaymentDialog} from "@/app/kiosk/KioskCardPaymentDialog";
 import {KioskHomeForm} from "@/app/kiosk/KioskHomeForm";
+import {AdminKioskHomeForm} from "@/app/kiosk/AdminKioskHomeForm";
+import {AdminKioskPaymentForm} from "@/app/kiosk/AdminKioskPaymentForm";
+import {AdminKioskPaymentSuccess} from "@/app/kiosk/AdminKioskPaymentSuccess";
 import {KioskPrinterDebugOverlay} from "@/app/kiosk/KioskPrinterDebugOverlay";
 import {KioskLessonListForm} from "@/app/kiosk/KioskLessonListForm";
-import {GetLessonResponse} from "@/app/endpoint/lesson.endpoint";
+import {GetLessonResponse, BundleSummaryResponse} from "@/app/endpoint/lesson.endpoint";
 import {formatLessonDate, formatLessonStart} from "@/app/kiosk/kiosk.lesson";
 import {KioskLessonDetailModal} from "@/app/kiosk/KioskLessonDetailModal";
 import {KioskPhoneInputForm} from "@/app/kiosk/KioskPhoneInputForm";
@@ -14,13 +17,14 @@ import {KioskMemberConfirmModal} from "@/app/kiosk/KioskMemberConfirmModal";
 import {KioskPaymentMethodForm} from "@/app/kiosk/KioskPaymentMethodForm";
 import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
+import {KioskLessonAttendanceForm} from "@/app/kiosk/KioskLessonAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
-import {StartKioskPaymentResponse, CompleteKioskPaymentResponse} from "@/app/endpoint/kiosk.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
+import {AdminKioskNewUserDialog} from "@/app/kiosk/AdminKioskNewUserDialog";
 import {KioskAdminModal} from "@/app/kiosk/KioskAdminModal";
 import {KioskCashConfirmDialog} from "@/app/kiosk/KioskCashConfirmDialog";
 import {generateRandomNickname} from "@/app/kiosk/random.nickname";
@@ -30,6 +34,7 @@ import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.desc
 import {buildKioskReceipt} from "@/app/kiosk/kiosk.receipt";
 import {sendReceiptToPrinter} from "@/app/kiosk/kiosk.native";
 import {KioskRoomReservationForm, KioskRoomBooking} from "@/app/kiosk/KioskRoomReservationForm";
+import {Toast} from "@/app/components/Toast";
 
 type SearchedUser = {
   id: number;
@@ -41,9 +46,56 @@ type SearchedUser = {
   accessToken?: string;
 };
 
-type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searching' | 'member-confirm' | 'payment-method' | 'pass-select' | 'attendance' | 'room-reservation';
+type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searching' | 'member-confirm' | 'payment-method' | 'pass-select' | 'attendance' | 'lesson-attendance' | 'admin-payment' | 'room-reservation';
 
-const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance', 'room-reservation'];
+const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance', 'lesson-attendance', 'admin-payment', 'room-reservation'];
+
+// 결제/패스사용 응답 표준화 — start/complete/use 응답의 제각각 shape 판별을 한 곳으로 통일.
+// paymentId가 있고 도메인 에러(isGuinnessErrorCase)가 아니면 성공. 실패면 code/message로 안내.
+type ParsedPaymentResult = {
+  ok: boolean;
+  paymentId?: string;
+  amount?: number;
+  qrCodeUrl?: string | null;
+  rank?: string | null;
+  code?: string;
+  message?: string;
+};
+
+const parsePaymentResult = (res: unknown): ParsedPaymentResult => {
+  const r = res as { code?: string; message?: string; paymentId?: string; amount?: number; qrCodeUrl?: string | null; rank?: string | null };
+  const ok = !!r.paymentId && !isGuinnessErrorCase(res);
+  return {
+    ok,
+    paymentId: r.paymentId,
+    amount: r.amount,
+    qrCodeUrl: r.qrCodeUrl ?? null,
+    rank: r.rank ?? null,
+    code: r.code,
+    message: r.message,
+  };
+};
+
+export type KioskFormProps = {
+  studioId: number;
+  studioName: string;
+  studioProfileImageUrl?: string;
+  studioReceiptFooter?: string;
+  studioAddress?: string;
+  studioBusinessNumber?: string;
+  studioRepresentative?: string;
+  studioPhone?: string;
+  kioskId: number;
+  kioskName?: string;
+  kioskImageUrl?: string;
+  /** 관리자 모드 진입 비밀번호 — BE에서 키오스크 단위로 내려주는 값 */
+  kioskPassword?: string;
+  canCheckIn: boolean;
+  canPurchase: boolean;
+  passPlans: GetPassPlanResponse[];
+  /** 'admin'이면 홈을 태블릿 상담실 UI(AdminKioskHomeForm)로 교체. 결제/출첵 등 하위 플로우는 공유. 기본 'kiosk'. */
+  variant?: 'kiosk' | 'admin';
+};
 
 export const KioskForm = ({
   studioId,
@@ -61,24 +113,8 @@ export const KioskForm = ({
   canCheckIn,
   canPurchase,
   passPlans,
-}: {
-  studioId: number;
-  studioName: string;
-  studioProfileImageUrl?: string;
-  studioReceiptFooter?: string;
-  studioAddress?: string;
-  studioBusinessNumber?: string;
-  studioRepresentative?: string;
-  studioPhone?: string;
-  kioskId: number;
-  kioskName?: string;
-  kioskImageUrl?: string;
-  /** 관리자 모드 진입 비밀번호 — BE에서 키오스크 단위로 내려주는 값 */
-  kioskPassword?: string;
-  canCheckIn: boolean;
-  canPurchase: boolean;
-  passPlans: GetPassPlanResponse[];
-}) => {
+  variant = 'kiosk',
+}: KioskFormProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialStep = (() => {
@@ -103,7 +139,12 @@ export const KioskForm = ({
   const [selectedPassPlan, setSelectedPassPlan] = useState<GetPassPlanResponse | null>(null);
   // 연습실 예약 (패스권 전용). 설정되면 결제 대상이 practice-room이 됨.
   const [roomBooking, setRoomBooking] = useState<KioskRoomBooking | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | 'cash' | null>(null);
+  const [selectedBundle, setSelectedBundle] = useState<BundleSummaryResponse | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pass' | 'cash' | 'onsite' | null>(null);
+  // admin 현장결제 중복 제출 방지
+  const adminOnsiteBusyRef = useRef(false);
+  // admin 결제(카드/현장)에서 직원이 편집한 실결제 금액 — 성공 화면 금액 표시에 사용
+  const [adminPaidAmount, setAdminPaidAmount] = useState<number | null>(null);
   const [phone, setPhone] = useState('');
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<SearchedUser | null>(null);
@@ -132,7 +173,7 @@ export const KioskForm = ({
   // 패스권 구매 직후 "수업 신청하러 가기" 흐름에서 자동으로 사용할 passPlan id
   // 설정돼 있으면 lesson 선택 후 phone/member-confirm/payment-method 단계 모두 스킵하고 패스권을 즉시 사용
   const [autoUsePassPlanId, setAutoUsePassPlanId] = useState<number | null>(null);
-  const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay'>('card');
+  const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay' | 'kakaopay' | 'zeropay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
@@ -141,6 +182,7 @@ export const KioskForm = ({
     setSelectedLesson(null);
     setSelectedPassPlan(null);
     setRoomBooking(null);
+    setSelectedBundle(null);
     setPhone('');
     setSearchedUsers([]);
     setSelectedUser(null);
@@ -154,6 +196,7 @@ export const KioskForm = ({
     setPaymentRank(null);
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
+    setAdminPaidAmount(null);
     lastFetchedKeyRef.current = null;
     completedPaymentIdsRef.current.clear();
     activePaymentIdRef.current = null;
@@ -165,7 +208,8 @@ export const KioskForm = ({
   //  - goHome이 selectedUser 등 손님 세션 전체를 초기화 (다음 사용자가 새로 시작하도록)
   //  - 홈 화면 자체엔 타임아웃 미적용
   useEffect(() => {
-    if (currentScreen === 'home') return;
+    // admin(상담실)은 직원이 진행하므로 자동 홈 복귀(무입력 타임아웃) 미적용
+    if (currentScreen === 'home' || variant === 'admin') return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const IDLE_MS = 2 * 60 * 1000;
     const reset = () => {
@@ -179,11 +223,11 @@ export const KioskForm = ({
       if (timer) clearTimeout(timer);
       events.forEach((e) => window.removeEventListener(e, reset));
     };
-  }, [currentScreen, goHome]);
+  }, [currentScreen, goHome, variant]);
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
   useEffect(() => {
-    const hasItem = !!selectedLesson || !!selectedPassPlan || !!roomBooking;
+    const hasItem = !!selectedLesson || !!selectedPassPlan || !!roomBooking || !!selectedBundle;
     const hasUser = !!selectedUser;
     if (currentScreen === 'lesson-detail' && !selectedLesson) {
       setCurrentScreen('lesson-list');
@@ -198,7 +242,7 @@ export const KioskForm = ({
       setCurrentScreen('phone');
       return;
     }
-    if ((currentScreen === 'payment-method' || currentScreen === 'pass-select')
+    if ((currentScreen === 'payment-method' || currentScreen === 'pass-select' || currentScreen === 'admin-payment')
       && (!hasItem || !hasUser)) {
       setCurrentScreen(hasItem ? 'phone' : 'lesson-list');
     }
@@ -218,10 +262,11 @@ export const KioskForm = ({
   const discardContextRef = useRef<{ paymentId: string; kioskId: number } | null>(null);
 
   useEffect(() => {
+    // admin-payment는 경량 GET /kiosks/admin/payment로 결제 시점에 paymentId를 따로 받으므로 여기서 heavy fetch 안 함
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
-    if (!selectedLesson && !selectedPassPlan && !roomBooking) return;
-    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'practice-room';
-    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? roomBooking?.studioRoomId;
+    if (!selectedLesson && !selectedPassPlan && !roomBooking && !selectedBundle) return;
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : roomBooking ? 'practice-room' : 'bundle';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? roomBooking?.studioRoomId ?? selectedBundle?.id;
     if (!itemId) return;
 
     // 같은 selection으로 재진입(예: pass-select 갔다오기)일 땐 fetch/reset skip → 선택해둔 할인/패스권 보존.
@@ -345,12 +390,6 @@ export const KioskForm = ({
     };
   }, []);
 
-  // 토스트 자동 dismiss
-  useEffect(() => {
-    if (!toastMessage) return;
-    const timer = setTimeout(() => setToastMessage(null), 2500);
-    return () => clearTimeout(timer);
-  }, [toastMessage]);
 
   // 결제 성공 처리:
   //  - pass: 백엔드 record 미생성 — 바로 인쇄
@@ -365,7 +404,7 @@ export const KioskForm = ({
     const finishUp = (qrText?: string, rankText?: string) => {
       if (cancelled) return;
       handlePrintReceipt(qrText, rankText);
-      homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+      if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
 
     if (paymentMethod === 'pass') {
@@ -413,30 +452,24 @@ export const KioskForm = ({
       .then((res) => {
         if (cancelled) return;
         // paymentId 없으면 서버 기록 실패 — 영수증 인쇄 차단 + 5초 후 홈 (KIS는 이미 매입했으므로 admin '결제 확인하기'로 후처리 가능)
-        const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string };
-        if (!r.paymentId) {
-          setToastMessage(r.message ?? '결제 기록 저장에 실패했어요');
-          homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+        const parsed = parsePaymentResult(res);
+        if (!parsed.ok) {
+          setToastMessage(parsed.message ?? '결제 기록 저장에 실패했어요');
+          if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
           return;
         }
         // Fix A — complete 성공으로 확정된 paymentId 기록 → 같은 paymentId로 2차 create/단말 호출 차단.
         completedPaymentIdsRef.current.add(completePaymentId);
         if (paymentInfo?.paymentId) completedPaymentIdsRef.current.add(paymentInfo.paymentId);
-        const ok = res as CompleteKioskPaymentResponse;
-        let qrText: string | undefined;
-        if (ok.qrCodeUrl) {
-          setPaymentQrCodeUrl(ok.qrCodeUrl);
-          qrText = ok.qrCodeUrl;
-        }
-        if (ok.rank) setPaymentRank(ok.rank);
-        // setPaymentRank는 비동기라 같은 tick의 handlePrintReceipt 클로저엔 반영 안 됨 → rank를 인자로 직접 전달
-        finishUp(qrText, ok.rank ?? undefined);
+        applyReceiptFields(parsed);
+        // setPaymentQrCodeUrl/setPaymentRank는 비동기라 같은 tick의 handlePrintReceipt 클로저엔 반영 안 됨 → 값을 인자로 직접 전달
+        finishUp(parsed.qrCodeUrl ?? undefined, parsed.rank ?? undefined);
       })
       .catch(() => {
         if (cancelled) return;
         // 네트워크/서버 예외 — 영수증 인쇄 차단, 토스트 + 5초 후 홈
         setToastMessage('결제 기록 저장에 실패했어요');
-        homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+        if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
       });
 
     return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
@@ -539,13 +572,15 @@ export const KioskForm = ({
 
   // 신규 가입 확인 → 등록 후 결제 수단 선택으로 바로 진입
   // (사용자가 이미 다이얼로그에서 가입을 명시 확인했으므로 member-confirm 단계는 생략)
-  const handleConfirmNewUser = async () => {
+  const handleConfirmNewUser = async (nameOverride?: string) => {
     if (!newUserDialog) return;
     const { phone: p, countryCode: cc, suggestedName } = newUserDialog;
+    // admin은 직원이 입력한 이름을 name으로 저장 (미입력이면 suggestedName)
+    const name = nameOverride?.trim() || undefined;
     setNewUserDialog(null);
     setCurrentScreen('searching');
     try {
-      const reg = await registerKioskUserAction(p, cc, suggestedName);
+      const reg = await registerKioskUserAction(p, cc, suggestedName, name);
       if (isGuinnessErrorCase(reg)) {
         setErrorMessage('가입에 실패했습니다.\n다시 시도해주세요.');
         setCurrentScreen('phone');
@@ -553,10 +588,10 @@ export const KioskForm = ({
       }
       setSelectedUser({
         id: (reg as { id: number }).id,
-        name: (reg as { name?: string }).name ?? suggestedName,
+        name: (reg as { name?: string }).name ?? name ?? suggestedName,
         nickName: (reg as { nickName?: string }).nickName,
       });
-      setCurrentScreen('payment-method');
+      setCurrentScreen(variant === 'admin' ? 'admin-payment' : 'payment-method');
     } catch {
       setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
       setCurrentScreen('phone');
@@ -566,7 +601,8 @@ export const KioskForm = ({
   // 유저 확인 → 결제 수단 선택으로 이동 (운영자 토큰 유지, 손님 정보는 selectedUser 상태로만 들고 감)
   const handleConfirmUser = async () => {
     if (!selectedUser) return;
-    setCurrentScreen('payment-method');
+    // admin(상담실)은 결제수단 선택 대신 상품+금액 편집 결제 폼으로 진입
+    setCurrentScreen(variant === 'admin' ? 'admin-payment' : 'payment-method');
   };
 
   // 결제 대상(수업/패스권 공통) — 둘 중 선택된 것을 통일된 형태로 반환
@@ -603,6 +639,14 @@ export const KioskForm = ({
             thumbnailUrl: undefined as string | undefined,
             benefits: [] as string[],
           }
+      : selectedBundle
+        ? {
+            title: selectedBundle.name,
+            price: selectedBundle.price ?? 0,
+            subtitle: selectedBundle.description ?? '',
+            thumbnailUrl: selectedBundle.items?.[0]?.imageUrl ?? selectedBundle.items?.[0]?.thumbnailUrl,
+            benefits: (selectedBundle.items ?? []).map((it) => it.title).filter(Boolean),
+          }
         : null;
 
   // 결제수단 활성화 여부 — paymentInfo.methods의 isEnabled를 type별로 추출.
@@ -630,7 +674,8 @@ export const KioskForm = ({
       ? ((lessonForReceipt as { date?: string }).date ?? lessonForReceipt.startDate)
       : undefined;
     const lines = buildKioskReceipt({
-      paymentMethod,
+      // onsite(현장결제)는 영수증 인쇄 경로를 타지 않음 — 타입 충족용으로 cash에 매핑
+      paymentMethod: paymentMethod === 'onsite' ? 'cash' : paymentMethod,
       studio: {
         name: itemStudio?.name ?? studioName,
         address: itemStudio?.address ?? studioAddress,
@@ -646,7 +691,7 @@ export const KioskForm = ({
         nickName: selectedUser.nickName,
         phone: phone || selectedUser.phone,
       } : undefined,
-      itemType: selectedLesson ? 'lesson' : (selectedPassPlan ? 'pass-plan' : (roomBooking ? 'practice-room' : undefined)),
+      itemType: selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : roomBooking ? 'practice-room' : selectedBundle ? 'bundle' : undefined,
       // 수업 결제 시 강사 노출 — 닉네임 우선, 없으면 본명
       artists: selectedLesson
         ? (paymentInfo?.lesson?.artists ?? selectedLesson.artists ?? [])
@@ -683,6 +728,39 @@ export const KioskForm = ({
     }];
   }, [selectedDiscount]);
 
+  // 공통 결제 시작 — POST /kiosks/payments(Pending/즉시완료) 호출 + 응답 표준화 + 실패 처리(토스트).
+  // card/qr/cash가 공유. 성공 시 ParsedPaymentResult 반환, 실패/에러 시 상태 정리 후 null.
+  const runStartPayment = useCallback(async (
+    type: 'card' | 'cash',
+    ctx: { targetUserId: number; kioskId: number; paymentId: string; amount?: number; startDate?: string; endDate?: string },
+  ): Promise<ParsedPaymentResult | null> => {
+    const res = await startKioskPaymentAction({
+      targetUserId: ctx.targetUserId,
+      kioskId: ctx.kioskId,
+      paymentId: ctx.paymentId,
+      type,
+      amount: ctx.amount,
+      discounts: buildDiscounts(),
+      // 연습실 예약이면 선택 시간대(KST) 전달 — 서버가 예약 생성.
+      ...(ctx.startDate && ctx.endDate ? { startDate: ctx.startDate, endDate: ctx.endDate } : {}),
+    });
+    const parsed = parsePaymentResult(res);
+    if (!parsed.ok) {
+      setIsPaying(false);
+      setPaymentMethod(null);
+      setToastMessage(parsed.message ?? '결제를 시작하지 못했어요');
+      return null;
+    }
+    return parsed;
+  }, [buildDiscounts]);
+
+  // 결제/패스 성공 응답의 영수증용 필드(QR·입장번호·결제번호)를 상태에 반영. cash/pass/complete 공용.
+  const applyReceiptFields = useCallback((parsed: ParsedPaymentResult, opts?: { receiptOverride?: boolean }) => {
+    if (parsed.qrCodeUrl) setPaymentQrCodeUrl(parsed.qrCodeUrl);
+    if (opts?.receiptOverride && parsed.paymentId) setReceiptPaymentIdOverride(parsed.paymentId);
+    if (parsed.rank) setPaymentRank(parsed.rank);
+  }, []);
+
   // 카드 결제 (Apple Pay 포함):
   //  ⓪ requestKisPayment 인터페이스 존재 확인 (네이티브 미설치 환경에선 진행 자체 차단 — Pending도 안 만듦)
   //  ① POST /kiosks/payments — Pending 생성 → 응답의 amount를 단말 매입 금액으로 사용
@@ -706,41 +784,144 @@ export const KioskForm = ({
     setPaymentResult(null);
     setPaymentMethod('card');
 
-    const res = await startKioskPaymentAction({
+    const parsed = await runStartPayment('card', {
       targetUserId: selectedUser.id,
       kioskId,
       paymentId: paymentInfo.paymentId,
-      type: 'card',
-      discounts: buildDiscounts(),
-      // 연습실 예약이면 선택 시간대(KST ISO) 전달 — 서버가 예약 생성. amount는 서버 계산.
+      // 연습실 예약이면 선택 시간대(KST) 전달 — 서버가 예약 생성. amount는 서버 계산.
       ...(roomBooking ? { startDate: roomBooking.startDate, endDate: roomBooking.endDate } : {}),
     });
-
-    // paymentId 없으면 에러로 간주 — KIS 단말 호출/영수증 인쇄로 진행하지 않음
-    const r = res as { code?: string; message?: string; paymentId?: string; amount?: number };
-    if (!r.paymentId) {
-      setIsPaying(false);
-      setPaymentMethod(null);
-      setToastMessage(r.message ?? '결제를 시작하지 못했어요');
-      return;
-    }
-
-    const created = res as StartKioskPaymentResponse;
+    if (!parsed) return; // 실패 처리(토스트/상태정리)는 runStartPayment가 완료
 
     // Fix B — 단말 호출 직전 활성 시도 + 폐기 컨텍스트 등록. 이 이후 도착하는 D1 결과만 유효 처리되고,
     //         완료/폐기 뒤 유령 응답은 discardContext로 폐기 DELETE만 쏘고 UI는 유지된다.
-    activePaymentIdRef.current = created.paymentId;
-    discardContextRef.current = { paymentId: created.paymentId, kioskId };
+    activePaymentIdRef.current = parsed.paymentId!;
+    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
 
     // KIS 단말 호출 — 1초 대기 제거. Pending 응답 직후 곧장 송출.
     // inCustomerUuid에 우리 paymentId를 박아두면 KIS 단말에 조회 키로 저장돼서 추후 ST(상태 조회)를 같은 paymentId로 할 수 있음.
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       inTranCode: 'D1',
-      inTotAmt: `${created.amount}`,
+      inTotAmt: `${parsed.amount}`,
       inInstallment: '00',
-      inCustomerUuid: created.paymentId,
+      inCustomerUuid: parsed.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, buildDiscounts, roomBooking]);
+  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, runStartPayment, roomBooking]);
+
+  // admin(상담실) 카드결제 — 직원이 편집한 금액(customAmount)을 단말 매입 금액으로 사용.
+  //  ① POST /kiosks/payments — Pending 생성(paymentId 확보)  ② requestKisPayment(D1)에 편집 금액 송출
+  //  KIS가 그 금액으로 매입 → outTotAmt → complete.totalAmount 까지 편집 금액이 그대로 반영됨.
+  // admin 카드결제 — GET /kiosks/admin/payment로 paymentId 발급받아 requestKisPayment(편집금액) 송출.
+  const handleAdminCardPayment = useCallback(async (customAmount: number) => {
+    // 인터페이스 존재 확인을 맨 앞에서 — 없으면 어떤 상태든 누르는 즉시 토스트 (샤라락)
+    if (typeof window.KloudEvent?.requestKisPayment !== 'function') {
+      setToastMessage('카드결제를 진행할 수 없습니다');
+      return;
+    }
+    if (!Number.isFinite(customAmount) || customAmount <= 0) { setToastMessage('금액을 확인해주세요'); return; }
+    if (!paymentItem || isPaying || !selectedUser || !kioskId) return;
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'bundle';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? selectedBundle?.id;
+    if (!itemId) return;
+
+    setCardPayingVariant('card');
+    setIsPaying(true);
+    setPaymentResult(null);
+    setPaymentMethod('card');
+    setAdminPaidAmount(Math.round(customAmount));
+
+    // 결제하기 시점에 서버에서 paymentId 발급
+    const res = await getKioskAdminPaymentAction(item, itemId);
+    const paymentId = (res as { paymentId?: string })?.paymentId;
+    if (!paymentId) {
+      setIsPaying(false);
+      setPaymentMethod(null);
+      setToastMessage((res as { message?: string })?.message ?? '결제를 시작하지 못했어요');
+      return;
+    }
+
+    // 발급받은 paymentId로 Pending 생성 — 편집금액(customAmount)을 함께 전송.
+    // complete(POST /kiosks/payments/:id/complete)가 Pending을 전제로 함.
+    const parsed = await runStartPayment('card', { targetUserId: selectedUser.id, kioskId, paymentId, amount: Math.round(customAmount) });
+    if (!parsed) return; // 실패 처리(isPaying/토스트)는 runStartPayment가 완료
+
+    activePaymentIdRef.current = parsed.paymentId!;
+    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
+
+    window.KloudEvent?.requestKisPayment?.(JSON.stringify({
+      inTranCode: 'D1',
+      inTotAmt: `${Math.round(customAmount)}`,
+      inInstallment: '00',
+      inCustomerUuid: parsed.paymentId,
+    }));
+  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId, runStartPayment]);
+
+  // admin 현장결제 — 카드단말 흐름 아님. 확인 다이얼로그(폼)에서 확인 시 호출되어
+  // POST /paymentRecords/manual (methodType='admin', 편집 amount)로 즉시 기록 → '결제 완료' 성공 화면.
+  const handleAdminOnsitePayment = useCallback(async (customAmount: number) => {
+    if (adminOnsiteBusyRef.current) return;
+    if (!paymentItem || !selectedUser) return;
+    if (!Number.isFinite(customAmount) || customAmount <= 0) { setToastMessage('금액을 확인해주세요'); return; }
+    const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : 'bundle';
+    const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? selectedBundle?.id;
+    if (!itemId) return;
+
+    adminOnsiteBusyRef.current = true;
+    setAdminPaidAmount(Math.round(customAmount));
+    setPaymentMethod('onsite'); // 'cash' 아님 — 성공 화면에서 '결제 완료' 멘트로 분기
+    try {
+      const res = await createAdminManualPaymentAction({ item, itemId, targetUserId: selectedUser.id, amount: Math.round(customAmount) });
+      const parsed = parsePaymentResult(res);
+      if (!parsed.ok) {
+        setPaymentMethod(null);
+        setToastMessage(parsed.message ?? '결제에 실패했어요');
+        return;
+      }
+      applyReceiptFields(parsed);
+      setPaymentResult({ status: 'success', data: {} });
+    } catch {
+      setPaymentMethod(null);
+      setToastMessage('요청에 실패했습니다');
+    } finally {
+      adminOnsiteBusyRef.current = false;
+    }
+  }, [paymentItem, selectedUser, selectedLesson, selectedPassPlan, applyReceiptFields]);
+
+  // QR 간편결제 (카카오페이/제로페이) — KIS 간편결제 흐름:
+  //  ⓪ requestKisEasyPay 네이티브 인터페이스 존재 확인
+  //  ① POST /kiosks/payments — Pending 생성 (카드와 동일, 할인 반영된 amount)
+  //  ② requestKisEasyPay 호출 — 웹은 금액만 넘기고, 스캔(1회)+KIS(D1) 전송은 네이티브가 처리
+  //  결과는 카드와 동일하게 window.onKisPaymentResult로 옴 → paymentResult → complete/영수증 재사용
+  //  (provider는 대기 다이얼로그 라벨용. KIS 페이로드엔 미포함 — 스캐너가 카카오/제로 바코드를 모두 읽음)
+  const handleQrPayment = useCallback(async (provider: 'kakaopay' | 'zeropay') => {
+    if (!paymentItem || isPaying || !selectedUser || !paymentInfo?.paymentId || !kioskId) return;
+
+    if (typeof window.KloudEvent?.requestKisEasyPay !== 'function') {
+      setToastMessage('간편결제를 진행할 수 없습니다');
+      return;
+    }
+
+    setCardPayingVariant(provider);
+    setIsPaying(true);
+    setPaymentResult(null);
+    setPaymentMethod('card');
+
+    const parsed = await runStartPayment('card', { targetUserId: selectedUser.id, kioskId, paymentId: paymentInfo.paymentId });
+    if (!parsed) return; // 실패 처리는 runStartPayment가 완료
+
+    // Fix B — QR도 onKisPaymentResult(카드 D1과 동일 채널)로 결과가 오므로 활성 시도/폐기 컨텍스트 등록.
+    activePaymentIdRef.current = parsed.paymentId!;
+    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
+
+    // 네이티브 KIS 간편결제 — 웹은 금액/식별자만. 스캔·KIS 전송은 네이티브가 처리.
+    // 결과는 onKisPaymentResult로 수신 (카드 D1과 동일 채널).
+    // TODO: inTestMode는 규격 확정 후 실거래 시 false로 전환.
+    window.KloudEvent?.requestKisEasyPay?.(JSON.stringify({
+      inTotAmt: `${parsed.amount}`,
+      inCustomerUuid: parsed.paymentId,
+      inTestMode: true,
+    }));
+  }, [paymentItem, isPaying, selectedUser, paymentInfo, kioskId, runStartPayment]);
 
   // 현금 결제: POST /kiosks/payments(type='cash') 한 방에 즉시 Completed + qrCodeUrl 수령
   const handleCashPayment = useCallback(async () => {
@@ -748,31 +929,19 @@ export const KioskForm = ({
     setPaymentMethod('cash');
     setIsPaying(true);
 
-    const res = await startKioskPaymentAction({
+    const parsed = await runStartPayment('cash', {
       targetUserId: selectedUser.id,
       kioskId,
       paymentId: paymentInfo.paymentId,
-      type: 'cash',
-      discounts: buildDiscounts(),
-      // 연습실 예약이면 선택 시간대(KST ISO) 전달 — 서버가 예약 생성. amount는 서버 계산.
+      // 연습실 예약이면 선택 시간대(KST) 전달 — 서버가 예약 생성. amount는 서버 계산.
       ...(roomBooking ? { startDate: roomBooking.startDate, endDate: roomBooking.endDate } : {}),
     });
-
+    if (!parsed) return; // 실패 처리는 runStartPayment가 완료
     setIsPaying(false);
 
-    // paymentId 없으면 에러로 간주 — 영수증 인쇄/성공 화면 진입 차단
-    const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null; rank?: string | null };
-    if (!r.paymentId) {
-      setPaymentMethod(null);
-      setToastMessage(r.message ?? '결제를 시작하지 못했어요');
-      return;
-    }
-
-    if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
-    // cash 즉시 발급 — BE가 함께 내려주는 입장번호 라벨을 영수증용 상태에 반영
-    if (r.rank) setPaymentRank(r.rank);
+    applyReceiptFields(parsed); // cash 즉시 발급 — QR/입장번호 라벨 반영
     setPaymentResult({ status: 'success', data: {} });
-  }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, buildDiscounts, roomBooking]);
+  }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, runStartPayment, applyReceiptFields, roomBooking]);
 
   // 패스권 사용 (B 흐름) — POST /kiosks/passes/:passId/use 직접 호출
   const handlePayWithPass = useCallback(async () => {
@@ -792,28 +961,20 @@ export const KioskForm = ({
           ? { studioRoomId: roomBooking.studioRoomId, startDate: roomBooking.startDate, endDate: roomBooking.endDate }
           : { lessonId: selectedLesson!.id }),
       });
-      // isGuinnessErrorCase는 등록된 enum 코드만 통과 — SAME_TIME_LESSON_ALREADY_EXISTS 같은 도메인 에러 못 잡음.
-      // shape 기반 판별: paymentId 없고 code+message 있으면 에러로 간주 → 영수증 인쇄 차단.
-      const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null; rank?: string | null };
-      if (!r.paymentId && typeof r.code === 'string' && typeof r.message === 'string') {
-        setToastMessage(r.message);
+      // paymentId 없거나 도메인 에러면 실패 — 영수증 인쇄 차단 (SAME_TIME_LESSON_ALREADY_EXISTS 등 미등록 코드 포함).
+      const parsed = parsePaymentResult(res);
+      if (!parsed.ok) {
+        setToastMessage(parsed.message ?? '패스권 사용에 실패했습니다');
         return;
       }
-      if (isGuinnessErrorCase(res)) {
-        setToastMessage(res.message ?? '패스권 사용에 실패했습니다');
-        return;
-      }
-      // 응답의 qrCodeUrl/paymentId를 영수증에 사용
-      if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
-      if (r.paymentId) setReceiptPaymentIdOverride(r.paymentId);
-      // 패스권으로 레슨 입장 시 BE가 입장번호 라벨을 함께 내려줌 — 영수증용 상태에 반영
-      if (r.rank) setPaymentRank(r.rank);
+      // 응답의 qrCodeUrl/paymentId/입장번호를 영수증에 사용
+      applyReceiptFields(parsed, { receiptOverride: true });
       setPaymentMethod('pass');
       setPaymentResult({ status: 'success', data: {} });
     } catch {
       setToastMessage('요청에 실패했습니다');
     }
-  }, [paymentItem, selectedPass, selectedUser, selectedLesson, roomBooking, kioskId]);
+  }, [paymentItem, selectedPass, selectedUser, selectedLesson, roomBooking, kioskId, applyReceiptFields]);
 
   // 패스권 자동 사용 — "수업 신청하러 가기" 직후 lesson 선택해서 payment-method 진입했을 때 자동 트리거.
   // paymentInfo가 도착하고, autoUsePassPlanId와 매칭되는 usable한 pass가 있으면 즉시 useKioskPassAction 호출.
@@ -826,9 +987,11 @@ export const KioskForm = ({
 
     // 응답 형상: 최신은 paymentInfo.passes, 과거에는 paymentInfo.user.passes — legacy 폴백 유지
     const passes = paymentInfo.passes ?? paymentInfo.user?.passes ?? [];
-    // pass.usable은 신규 응답에서 누락되는 케이스가 있어 passRule.usable / 첫 passRules[].usable로 fallback
+    // usable은 선택한 레슨 기준으로 BE가 내려주는 권위 있는 판정이라 명시적 값(true/false)이면 그대로 신뢰한다.
+    // (false를 무시하고 룰 단위 플래그로 폴백하면, 이 레슨에 못 쓰는 패스를 auto-use해 PASS_NOT_FOR_LESSON 발생)
+    // 신규 응답에서 usable이 누락(undefined)된 경우에만 passRule.usable / passRules[].usable로 폴백.
     const isPassUsable = (p: GetPassResponse): boolean => {
-      if (p.usable === true) return true;
+      if (typeof p.usable === 'boolean') return p.usable;
       if (p.passRule?.usable === true) return true;
       return (p.passRules ?? []).some((r) => r.usable === true);
     };
@@ -849,20 +1012,13 @@ export const KioskForm = ({
       lessonId: selectedLesson.id,
     })
       .then((res) => {
-        const r = res as { code?: string; message?: string; paymentId?: string; qrCodeUrl?: string | null; rank?: string | null };
-        if (!r.paymentId && typeof r.code === 'string' && typeof r.message === 'string') {
-          setToastMessage(r.message);
+        const parsed = parsePaymentResult(res);
+        if (!parsed.ok) {
+          setToastMessage(parsed.message ?? '패스권 사용에 실패했습니다');
           setIsPaying(false);
           return;
         }
-        if (isGuinnessErrorCase(res)) {
-          setToastMessage(res.message ?? '패스권 사용에 실패했습니다');
-          setIsPaying(false);
-          return;
-        }
-        if (r.qrCodeUrl) setPaymentQrCodeUrl(r.qrCodeUrl);
-        if (r.paymentId) setReceiptPaymentIdOverride(r.paymentId);
-        if (r.rank) setPaymentRank(r.rank);
+        applyReceiptFields(parsed, { receiptOverride: true });
         setPaymentMethod('pass');
         setPaymentResult({ status: 'success', data: {} });
         setIsPaying(false);
@@ -871,24 +1027,40 @@ export const KioskForm = ({
         setToastMessage('요청에 실패했습니다');
         setIsPaying(false);
       });
-  }, [autoUsePassPlanId, currentScreen, paymentInfo, selectedLesson, selectedUser, kioskId, isPaying, paymentResult]);
+  }, [autoUsePassPlanId, currentScreen, paymentInfo, selectedLesson, selectedUser, kioskId, isPaying, paymentResult, applyReceiptFields]);
 
 
   return (
     <div className="w-full h-screen overflow-hidden">
       {currentScreen === 'home' && (
-        <KioskHomeForm
-          studioName={studioName}
-          kioskImageUrl={kioskImageUrl}
-          locale={locale}
-          canCheckIn={canCheckIn}
-          canPurchase={canPurchase}
-          onSelectPayment={() => setCurrentScreen('lesson-list')}
-          onSelectVisit={() => setCurrentScreen('attendance')}
-          onReserveRoom={() => { setSelectedLesson(null); setSelectedPassPlan(null); setRoomBooking(null); setCurrentScreen('room-reservation'); }}
-          onChangeLocale={setLocale}
-          onAdminMode={() => setAdminOpen(true)}
-        />
+        variant === 'admin' ? (
+          <AdminKioskHomeForm
+            studioName={studioName}
+            kioskName={kioskName}
+            locale={locale}
+            canCheckIn={canCheckIn}
+            canPurchase={canPurchase}
+            onSelectPayment={() => setCurrentScreen('lesson-list')}
+            onSelectVisit={() => setCurrentScreen('attendance')}
+            onSelectLessonAttendance={() => setCurrentScreen('lesson-attendance')}
+            onChangeLocale={setLocale}
+            onAdminMode={() => setAdminOpen(true)}
+          />
+        ) : (
+          <KioskHomeForm
+            studioName={studioName}
+            kioskImageUrl={kioskImageUrl}
+            locale={locale}
+            canCheckIn={canCheckIn}
+            canPurchase={canPurchase}
+            onSelectPayment={() => setCurrentScreen('lesson-list')}
+            onSelectVisit={() => setCurrentScreen('attendance')}
+            onReserveRoom={() => { setSelectedLesson(null); setSelectedPassPlan(null); setRoomBooking(null); setCurrentScreen('room-reservation'); }}
+            onSelectLessonAttendance={() => setCurrentScreen('lesson-attendance')}
+            onChangeLocale={setLocale}
+            onAdminMode={() => setAdminOpen(true)}
+          />
+        )
       )}
 
       {currentScreen === 'room-reservation' && (
@@ -912,8 +1084,10 @@ export const KioskForm = ({
           studioId={studioId}
           passPlans={passPlans}
           locale={locale}
-          onSelectLesson={(lesson) => { setSelectedLesson(lesson); setSelectedPassPlan(null); setCurrentScreen('lesson-detail'); }}
-          onSelectPassPlan={(plan) => { setSelectedPassPlan(plan); setSelectedLesson(null); setCurrentScreen('phone'); }}
+          variant={variant}
+          onSelectLesson={(lesson) => { setSelectedLesson(lesson); setSelectedPassPlan(null); setSelectedBundle(null); setCurrentScreen('lesson-detail'); }}
+          onSelectPassPlan={(plan) => { setSelectedPassPlan(plan); setSelectedLesson(null); setSelectedBundle(null); setCurrentScreen('phone'); }}
+          onSelectBundle={(bundle) => { setSelectedBundle(bundle); setSelectedLesson(null); setSelectedPassPlan(null); setCurrentScreen('phone'); }}
           onBack={goHome}
           onChangeLocale={setLocale}
         />
@@ -923,6 +1097,7 @@ export const KioskForm = ({
         <KioskLessonDetailModal
           lesson={selectedLesson}
           locale={locale}
+          variant={variant}
           onClose={() => setCurrentScreen('lesson-list')}
           // 패스권 자동 사용 모드 + selectedUser 이미 있음 → phone 스킵하고 payment-method로 직행 (auto-use effect가 처리)
           onPayment={() => setCurrentScreen(autoUsePassPlanId && selectedUser ? 'payment-method' : 'phone')}
@@ -933,6 +1108,7 @@ export const KioskForm = ({
       {(currentScreen === 'phone' || currentScreen === 'searching' || currentScreen === 'member-confirm') && (
         <KioskPhoneInputForm
           locale={locale}
+          variant={variant}
           onBack={() => setCurrentScreen(roomBooking ? 'room-reservation' : 'lesson-list')}
           onNext={handlePhoneNext}
           onSearchByEmail={handleEmailSearch}
@@ -954,6 +1130,22 @@ export const KioskForm = ({
           locale={locale}
           onBack={() => setCurrentScreen('phone')}
           onConfirm={handleConfirmUser}
+        />
+      )}
+
+      {/* admin(상담실) 결제 폼 — 상품 + 편집 가능한 금액 → requestKisPayment */}
+      {currentScreen === 'admin-payment' && paymentItem && selectedUser && (
+        <AdminKioskPaymentForm
+          item={{
+            title: paymentItem.title,
+            subtitle: paymentItem.subtitle,
+            thumbnailUrl: paymentItem.thumbnailUrl,
+            price: paymentItem.price,
+          }}
+          locale={locale}
+          loading={isPaying}
+          onBack={() => setCurrentScreen('member-confirm')}
+          onPay={(amount, method) => { if (method === 'card') handleAdminCardPayment(amount); else handleAdminOnsitePayment(amount); }}
         />
       )}
 
@@ -985,7 +1177,7 @@ export const KioskForm = ({
       {/* payment-method / pass-select 공유 — modal 떠도 폼 인스턴스 유지 */}
       {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && selectedUser && !paymentInfoError && (
         <KioskPaymentMethodForm
-          itemType={selectedLesson ? 'lesson' : (roomBooking ? 'practice-room' : 'pass-plan')}
+          itemType={selectedLesson ? 'lesson' : roomBooking ? 'practice-room' : selectedPassPlan ? 'pass-plan' : 'bundle'}
           lessonTitle={paymentItem.title}
           lessonSubtitle={paymentItem.subtitle}
           lessonThumbnailUrl={paymentItem.thumbnailUrl}
@@ -1020,6 +1212,8 @@ export const KioskForm = ({
           onClearDiscount={() => { setSelectedDiscount(null); setSelectedPass(null); }}
           onSelectCard={() => handleCardPayment('card')}
           onSelectApplePay={() => handleCardPayment('applepay')}
+          onSelectKakaoPay={() => handleQrPayment('kakaopay')}
+          onSelectZeroPay={() => handleQrPayment('zeropay')}
           onSelectCash={() => setCashConfirmOpen(true)}
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
@@ -1032,10 +1226,21 @@ export const KioskForm = ({
       )}
 
       {isPaying && (
-        <KioskCardPaymentDialog method={cardPayingVariant} locale={locale} onCancel={() => setIsPaying(false)} />
+        <KioskCardPaymentDialog method={cardPayingVariant} locale={locale} variant={variant} onCancel={() => setIsPaying(false)} />
       )}
 
-      {paymentResult?.status === 'success' && (
+      {/* admin(상담실) 결제 완료 — 전용 화면 (무인 성공 오버레이와 별개) */}
+      {paymentResult?.status === 'success' && variant === 'admin' && (
+        <AdminKioskPaymentSuccess
+          title={paymentItem?.title ?? ''}
+          thumbnailUrl={paymentItem?.thumbnailUrl}
+          amount={adminPaidAmount ?? 0}
+          locale={locale}
+          onHome={() => { setPaymentResult(null); goHome(); }}
+        />
+      )}
+
+      {paymentResult?.status === 'success' && variant !== 'admin' && (
         <div className="fixed inset-0 z-30 bg-white flex flex-col">
           {/* 상단 바 placeholder (back/lang/home은 굳이 X) */}
           <div className="flex-1 flex flex-col items-center justify-start px-[5.6%] pt-[min(20vw,200px)]">
@@ -1158,9 +1363,14 @@ export const KioskForm = ({
       )}
 
       {toastMessage && (
-        <div className="fixed left-1/2 -translate-x-1/2 z-40 px-[min(3.7vw,40px)] py-[min(2.2vw,24px)] rounded-[16px] bg-black/85" style={{ bottom: 'min(7.4vw, 80px)' }}>
-          <span className="text-white font-medium" style={{ fontSize: 'min(2.6vw, 28px)' }}>{toastMessage}</span>
-        </div>
+        <Toast
+          key={toastMessage}
+          message={<span className="text-white font-medium" style={{ fontSize: 'min(2.6vw, 28px)' }}>{toastMessage}</span>}
+          onDone={() => setToastMessage(null)}
+          className="px-[min(3.7vw,40px)] py-[min(2.2vw,24px)] rounded-[16px] bg-black/85"
+          wrapperClassName="fixed left-1/2 -translate-x-1/2 z-40"
+          wrapperStyle={{ bottom: 'min(7.4vw, 80px)' }}
+        />
       )}
 
       {/* 사용 가능한 패스권/할인이 없을 때 안내 다이얼로그 */}
@@ -1213,7 +1423,16 @@ export const KioskForm = ({
         />
       )}
 
-      {newUserDialog && (
+      {newUserDialog && variant === 'admin' && (
+        <AdminKioskNewUserDialog
+          phone={newUserDialog.phone}
+          locale={locale}
+          onConfirm={(name) => handleConfirmNewUser(name)}
+          onCancel={() => setNewUserDialog(null)}
+        />
+      )}
+
+      {newUserDialog && variant !== 'admin' && (
         <KioskNewUserDialog
           name={newUserDialog.suggestedName}
           phone={newUserDialog.phone}
@@ -1318,6 +1537,17 @@ export const KioskForm = ({
           onBack={goHome}
           onComplete={goHome}
           locale={locale}
+          variant={variant}
+        />
+      )}
+
+      {currentScreen === 'lesson-attendance' && (
+        <KioskLessonAttendanceForm
+          studioId={studioId}
+          onBack={goHome}
+          locale={locale}
+          onChangeLocale={setLocale}
+          variant={variant}
         />
       )}
     </div>

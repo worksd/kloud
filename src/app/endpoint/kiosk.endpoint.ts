@@ -16,6 +16,22 @@ export const GetKioskPayment: Endpoint<GetKioskPaymentRequest, GetPaymentRespons
   queryParams: ['kioskId', 'targetUserId', 'item', 'itemId'],
 };
 
+// GET /kiosks/admin/payment — 관리자 모드: 결제 상세 없이 paymentId만 발급받는 경량 엔드포인트
+export type GetKioskAdminPaymentRequest = {
+  item: string;   // 'lesson' | 'pass-plan'
+  itemId: number;
+};
+
+export type GetKioskAdminPaymentResponse = {
+  paymentId: string;
+};
+
+export const GetKioskAdminPayment: Endpoint<GetKioskAdminPaymentRequest, GetKioskAdminPaymentResponse> = {
+  method: 'get',
+  path: '/kiosks/admin/payment',
+  queryParams: ['item', 'itemId'],
+};
+
 export type KioskPaymentType = 'card' | 'cash';
 
 // ① POST /kiosks/payments — Pending 생성 (card) / 즉시 Completed (cash)
@@ -25,6 +41,8 @@ export type StartKioskPaymentRequest = {
   kioskId: number;
   paymentId: string;
   type: KioskPaymentType;
+  /** 직원이 편집한 실결제 금액 (admin). 미지정이면 서버가 상품가-할인으로 계산. */
+  amount?: number;
   discounts?: PaymentDiscount[];
   // 연습실 예약(practice-room)일 때 필수 — 선택 시간대(KST ISO). amount는 서버가 계산하므로 미전송.
   startDate?: string;
@@ -46,7 +64,7 @@ export type StartKioskPaymentResponse = {
 export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
   method: 'post',
   path: '/kiosks/payments',
-  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'discounts', 'startDate', 'endDate'],
+  bodyParams: ['targetUserId', 'kioskId', 'paymentId', 'type', 'amount', 'discounts', 'startDate', 'endDate'],
 };
 
 // ② POST /kiosks/payments/:paymentId/complete — Pending → Completed (KIS 매입 성공 후)
@@ -270,10 +288,15 @@ export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKiosk
   bodyParams: ['targetUserId', 'kioskId'],
 };
 
+// 키오스크 사용 형태 — 'kiosk'(무인 키오스크) | 'admin'(상담실 태블릿, 직원이 앞에 앉혀놓고 진행)
+export type KioskMode = 'kiosk' | 'admin';
+
 export type KioskResponse = {
   id: number;
   name: string;
   status: KioskStatus;
+  /** 'kiosk'면 무인 키오스크 UI, 'admin'이면 태블릿 상담실 UI로 진입점이 갈린다. 미지정이면 'kiosk' 취급. */
+  mode?: KioskMode;
   lastSeenAt: string | null;
   imageUrl: string | null;
   canCheckIn: boolean;

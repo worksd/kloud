@@ -18,21 +18,40 @@ type KioskPhoneInputFormProps = {
   loading?: boolean;
   errorMessage?: string | null;
   onDismissError?: () => void;
+  /** 'admin'(상담실 태블릿)이면 좌우 2단 레이아웃으로 렌더. 기본 'kiosk'는 세로 전체화면 키패드. */
+  variant?: 'kiosk' | 'admin';
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const formatPhone = (digits: string) => {
+// mask=true면 가운데 4자리(두 번째 그룹)를 *로 가린다 — 화면 표기 전용. 서버로는 원본 숫자를 그대로 보낸다.
+const formatPhone = (digits: string, mask = false) => {
   if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
-  return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7, 11)}`;
+  const mid = (s: string) => (mask ? '*'.repeat(s.length) : s);
+  if (digits.length <= 7) return `${digits.slice(0, 3)} ${mid(digits.slice(3))}`;
+  // 3-4-나머지: 한국(010-XXXX-XXXX)은 3-4-4로 보이고, 11자리 초과(외국 번호)도 마지막 그룹에 모두 표시(잘림 방지)
+  return `${digits.slice(0, 3)} ${mid(digits.slice(3, 7))} ${digits.slice(7)}`;
 };
+
+// 국가별 placeholder — 예상 자릿수만큼 0을 만들어 formatPhone과 동일 그룹핑으로 표시 (isPhoneValid 기준)
+const PLACEHOLDER_DIGITS: Record<string, string> = {
+  '82': '01000000000', // KR: 010 0000 0000
+  '1': '0000000000',   // US/CA: 10
+  '81': '00000000000', // JP: 11
+  '86': '00000000000', // CN: 11
+  '886': '000000000',  // TW: 9
+  '852': '00000000',   // HK: 8
+  '65': '00000000',    // SG: 8
+};
+const phonePlaceholder = (dial: string) => formatPhone(PLACEHOLDER_DIGITS[dial] ?? '0000000000');
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', '←'];
 
-export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, onChangeLocale, loading, errorMessage, onDismissError }: KioskPhoneInputFormProps) => {
+export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, onChangeLocale, loading, errorMessage, onDismissError, variant = 'kiosk' }: KioskPhoneInputFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
-  const [digits, setDigits] = useState('');
+  const admin = variant === 'admin';
+  // 기본 국가가 한국이라 진입 시 010을 미리 채워둠
+  const [digits, setDigits] = useState('010');
   const [countryKey, setCountryKey] = useState<string>('KR');
   const [countryOpen, setCountryOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -90,6 +109,9 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
       {/* 상단 바 */}
       <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} />
 
+      {/* ── 무인 키오스크 레이아웃 (세로 전체화면 키패드) ── */}
+      {!admin && (
+      <>
       {/* 큰 안내 문구 — 가운데 정렬 */}
       <div className="shrink-0 flex flex-col items-center justify-center px-[5.6%]" style={{ paddingTop: 'min(4vw, 44px)', paddingBottom: 'min(1.6vw, 18px)' }}>
         <p className="text-black font-bold text-center leading-tight" style={{ fontSize: 'min(3.7vw, 40px)' }}>
@@ -135,7 +157,7 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
             {/* 번호 — 좁은 카드에서 잘리지 않도록 min-w-0 + truncate */}
             <div className="flex-1 min-w-0 flex items-center px-[min(1.6vw,18px)]">
               <span className={`font-bold truncate ${digits ? 'text-black' : 'text-[#CDD1D5]'}`} style={{ fontSize: 'min(2.4vw, 26px)' }}>
-                {digits ? formatPhone(digits) : '010 0000 0000'}
+                {digits ? formatPhone(digits, true) : phonePlaceholder(country.dial)}
               </span>
             </div>
             {/* 지우기 — 아이콘 전용 (좁은 카드에서 폭 절약) */}
@@ -196,13 +218,108 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
           </button>
         </div>
       </div>
+      </>
+      )}
+
+      {/* ── admin(상담실 태블릿) 레이아웃 — 좌: 안내/입력/버튼, 우: 키패드 ── */}
+      {admin && (
+        <div className="flex-1 min-h-0 flex items-stretch gap-[48px] px-[56px] pt-[16px] pb-[40px]">
+          {/* 좌측 */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ maxWidth: 560 }}>
+            <p className="text-black font-bold leading-tight text-[34px]">{t('kiosk_phone_desc')}</p>
+            <button
+              type="button"
+              onClick={() => { setEmailValue(''); setEmailModalOpen(true); }}
+              className="mt-[12px] self-start text-[#6D7882] font-medium underline underline-offset-[6px] text-[17px] active:opacity-60 transition-opacity"
+            >
+              {t('kiosk_search_by_email')}
+            </button>
+
+            {/* 전화번호 입력 */}
+            <div className="mt-[28px] flex items-center bg-[#F4F6F8] rounded-[18px] px-[20px]" style={{ height: 84 }}>
+              <button
+                type="button"
+                onClick={() => setCountryOpen(true)}
+                className="shrink-0 flex items-center gap-[8px] pr-[16px] active:opacity-70 transition-opacity"
+              >
+                <span className="text-[24px]">{country.flag}</span>
+                <span className="text-[#1E2124] font-medium text-[22px]">{country.dial}+</span>
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path d="M1 1L6 6L11 1" stroke="#6D7882" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <div className="flex-1 min-w-0 flex items-center px-[16px]">
+                <span className={`font-bold truncate text-[28px] ${digits ? 'text-black' : 'text-[#CDD1D5]'}`}>
+                  {digits ? formatPhone(digits, false) : phonePlaceholder(country.dial)}
+                </span>
+              </div>
+              {digits && (
+                <button
+                  type="button"
+                  onClick={() => setDigits('')}
+                  aria-label={t('kiosk_clear_input')}
+                  className="shrink-0 rounded-full bg-[#86898C] flex items-center justify-center active:scale-[0.92] transition-transform"
+                  style={{ width: 34, height: 34 }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '55%', height: '55%' }}>
+                    <path d="M6 6L18 18M6 18L18 6" stroke="white" strokeWidth="2.6" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* 버튼 */}
+            <div className="mt-[28px] flex gap-[14px]">
+              <button
+                onClick={onBack}
+                className="flex-[280] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{ height: 72 }}
+              >
+                <span className="text-[#1E2124] text-[22px] font-bold">{t('kiosk_back')}</span>
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!canSubmit}
+                className={`flex-[684] rounded-[16px] flex items-center justify-center active:scale-[0.97] transition-all ${canSubmit ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'}`}
+                style={{ height: 72 }}
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="text-white text-[22px] font-bold">{t('kiosk_next')}</span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 우측 — 숫자 키패드 */}
+          <div className="flex-1 min-w-0 flex items-center justify-center">
+            <div className="w-full grid grid-cols-3 gap-[14px]" style={{ maxWidth: 520 }}>
+              {NUMPAD_KEYS.map((key) => (
+                <button
+                  key={key}
+                  onClick={() => handleKey(key)}
+                  className="rounded-[18px] aspect-[5/3] flex items-center justify-center bg-[#F4F6F8] active:bg-[#E6E9EC] transition-colors"
+                >
+                  <span className="text-[#1E2124] font-bold text-[32px]">{key}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 국가 선택 모달 */}
       {countryOpen && (
         <KioskCountrySelectModal
           selectedKey={countryKey}
           locale={locale}
-          onConfirm={(key) => { setCountryKey(key); setCountryOpen(false); }}
+          onConfirm={(key) => {
+            setCountryKey(key);
+            // 한국은 010을 미리 세팅, 다른 국가로 바꾸면 입력 초기화(이전 국가 번호 잔존 방지)
+            setDigits(key === 'KR' ? '010' : '');
+            setCountryOpen(false);
+          }}
           onCancel={() => setCountryOpen(false)}
         />
       )}
@@ -211,7 +328,10 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
       {emailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
           <div className="absolute inset-0 bg-black/60" onClick={() => setEmailModalOpen(false)} />
-          <div className="relative w-[92%] max-w-[1100px] bg-white rounded-[42px] flex flex-col px-[min(4vw,44px)] py-[min(4vw,44px)] animate-[fadeIn_200ms_ease-out]">
+          <div
+            className={`relative w-[92%] bg-white rounded-[42px] flex flex-col px-[min(4vw,44px)] py-[min(4vw,44px)] animate-[fadeIn_200ms_ease-out] ${admin ? 'max-w-[720px]' : 'max-w-[1100px]'}`}
+            style={admin ? { zoom: 0.8 } : undefined}
+          >
             <p className="text-black font-bold text-center" style={{ fontSize: 'min(3vw, 32px)' }}>
               {t('kiosk_email_modal_title')}
             </p>

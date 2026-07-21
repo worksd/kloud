@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { COUNTRIES } from '@/app/certification/COUNTRIES';
+import { COUNTRIES, getCountryName } from '@/app/certification/COUNTRIES';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -60,7 +60,7 @@ export const KioskCountrySelectModal = ({ selectedKey, locale, onConfirm, onCanc
                     className={`flex-1 text-left ${selected ? 'font-bold text-[#1E2124]' : 'text-[#1E2124]'}`}
                     style={{ fontSize: 'min(1.7vh, 18px)' }}
                   >
-                    {c.nameKo}
+                    {getCountryName(c, locale)}
                   </span>
                   {selected && (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

@@ -63,7 +63,7 @@ export type ReceiptUser = {
 };
 
 /** 영수증의 상품 종류 — 컬럼 라벨 분기에 사용 */
-export type KioskItemType = 'lesson' | 'pass-plan' | 'practice-room';
+export type KioskItemType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 export type CardPaymentInfo = {
   cardNo?: string;
@@ -172,6 +172,7 @@ const itemColumnLabel = (itemType?: KioskItemType): string => {
   if (itemType === 'lesson') return '수업명';
   if (itemType === 'pass-plan') return '패스권명';
   if (itemType === 'practice-room') return '연습실';
+  if (itemType === 'bundle') return '프로모션명';
   return '상품명';
 };
 
