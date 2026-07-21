@@ -119,8 +119,16 @@ export const KioskRoomReservationForm = ({
     return d;
   });
 
-  // 예약 가능 여부는 서버 slot.status만 신뢰 (과거 시각 등 별도 프론트 판정 없음)
-  const isPastHour = (_h: number) => false;
+  // 선택 날짜가 오늘이면 현재 시각 이전(시작 시각이 지금보다 과거)인 시간은 예약 불가.
+  // 과거 날짜면 전부 지남, 미래 날짜면 전부 유효.
+  const isPastHour = (h: number) => {
+    const now = new Date();
+    const sel = new Date(selectedDate); sel.setHours(0, 0, 0, 0);
+    const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
+    if (sel.getTime() !== today0.getTime()) return sel.getTime() < today0.getTime();
+    const start = new Date(sel); start.setHours(h, 0, 0, 0);
+    return start.getTime() < now.getTime();
+  };
 
   const hourSlot = (row: RoomAvailabilityRowResponse, h: number) =>
     (row.slots ?? []).find((s) => s.time === `${pad(h)}:00`);
