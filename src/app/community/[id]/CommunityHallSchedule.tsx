@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import calendarStyles from "@/app/kiosk/CalendarStyles.module.css";
@@ -52,8 +53,23 @@ const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
 // 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
 export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }: { rooms: StudioRoomResponse[]; studioId: number; locale: Locale }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+  const router = useRouter();
+  const pathname = usePathname();
   const [date, setDate] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const [rooms, setRooms] = useState<StudioRoomResponse[]>(initialRooms);
+
+  // 시트 열림 상태를 URL ?studioRoomId= 로 동기화 (외부 딥링크로도 특정 홀 시트 접근 가능)
+  const syncRoomIdToUrl = (roomId: number | null) => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (roomId == null) params.delete('studioRoomId');
+    else params.set('studioRoomId', String(roomId));
+    const qs = params.toString();
+    const nextUrl = qs ? `${pathname}?${qs}` : pathname;
+    if (window.location.pathname + window.location.search !== nextUrl) {
+      router.replace(nextUrl, { scroll: false });
+    }
+  };
 
   // 날짜 변경 시 그 날짜의 예약 현황(슬롯)만 availability로 재조회해 홀 스펙에 병합
   const [firstLoad, setFirstLoad] = useState(true);
@@ -92,15 +108,28 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
 
   // entered=false → 화면 아래(offscreen), true → 제자리. transform+transition으로 open/close 애니메이션.
   const [entered, setEntered] = useState(false);
-  const openSheet = (roomId: number) => { setSel(null); setDragY(0); closingRef.current = false; setSheetRoomId(roomId); };
+  const openSheet = (roomId: number) => { setSel(null); setDragY(0); closingRef.current = false; setSheetRoomId(roomId); syncRoomIdToUrl(roomId); };
   const closeSheet = (after?: () => void) => {
     if (closingRef.current) return;
     closingRef.current = true;
     setDragging(false);
     dragStart.current = null;
     setEntered(false); // → 아래로 슬라이드 다운
+    syncRoomIdToUrl(null);
     setTimeout(() => { setSheetRoomId(null); setSel(null); setDragY(0); closingRef.current = false; after?.(); }, 300);
   };
+
+  // 최초 진입 시 URL에 ?studioRoomId= 가 있으면 해당 홀 시트를 자동으로 연다 (딥링크)
+  const didDeepLink = useRef(false);
+  useEffect(() => {
+    if (didDeepLink.current || typeof window === 'undefined') return;
+    didDeepLink.current = true;
+    const q = new URLSearchParams(window.location.search).get('studioRoomId');
+    if (!q) return;
+    const rid = Number(q);
+    if (!Number.isNaN(rid) && rooms.some((r) => r.id === rid)) openSheet(rid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rooms]);
 
   // 시트 마운트 후 다음 프레임에 entered=true → 아래에서 위로 슬라이드 업
   useEffect(() => {
