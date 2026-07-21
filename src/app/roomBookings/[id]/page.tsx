@@ -20,6 +20,30 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
 
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
   const won = await translate('won');
+  const locale = await getLocale();
+
+  // 'yyyy.MM.dd HH:mm' → 년월일 시:분. 종료가 같은 날이면 시:분만.
+  const parseDT = (s?: string) => {
+    if (!s) return null;
+    const [datePart, timePart] = s.split(' ');
+    const [y, m, d] = (datePart ?? '').split(/[.\-]/);
+    if (!y || !m || !d) return null;
+    return { y, m: Number(m), d: Number(d), time: timePart ?? '' };
+  };
+  const fmtDate = (p: { y: string; m: number; d: number }) =>
+    locale === 'ko'
+      ? `${p.y}년 ${p.m}월 ${p.d}일`
+      : `${p.y}.${String(p.m).padStart(2, '0')}.${String(p.d).padStart(2, '0')}`;
+  const fmtPeriod = (start?: string, end?: string) => {
+    const s = parseDT(start);
+    if (!s) return `${start ?? ''}${end ? ` ~ ${end}` : ''}`;   // 예상 포맷과 다르면 원본
+    const startStr = `${fmtDate(s)} ${s.time}`.trim();
+    const e = parseDT(end);
+    if (!e) return startStr;
+    const sameDay = s.y === e.y && s.m === e.m && s.d === e.d;
+    const endStr = sameDay ? e.time : `${fmtDate(e)} ${e.time}`.trim();
+    return `${startStr} ~ ${endStr}`;
+  };
 
   const statusMap: Record<RoomBookingDetailResponse['status'], { key: Parameters<typeof translate>[0]; cls: string }> = {
     Active: { key: 'room_booking_status_active', cls: 'bg-[#EAF7F4] text-[#2AA894]' },
@@ -74,7 +98,7 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
       <div className="px-5 py-5">
         <p className="text-[16px] font-bold text-black mb-4">{await translate('room_booking_detail_title')}</p>
         <div className="flex flex-col gap-4">
-          <Row label={await translate('room_booking_period')} value={`${booking.startDate} ~ ${booking.endDate}`} />
+          <Row label={await translate('room_booking_period')} value={fmtPeriod(booking.startDate, booking.endDate)} />
           <Row label={await translate('payment_amount')} value={`${fmt(booking.price)}${won}`} />
           {reserverName && (
             <Row label={await translate('room_booking_reserver')} value={reserverPhone ? `${reserverName} · ${reserverPhone}` : reserverName} />
