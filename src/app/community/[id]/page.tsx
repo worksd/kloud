@@ -63,8 +63,11 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
     : [studio.coverImageUrl, studio.profileImageUrl].filter((u): u is string => !!u);
   const address = studio.address ?? studio.roadAddress ?? '';
   const description = studio.description ?? undefined;
-  // 건물 시설 — [{amenity, label, enabled}] 중 enabled만 노출
-  const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
+  // 편의시설 — 건물 시설 + 방(홀) 시설을 합쳐 enabled만, amenity 코드로 중복 제거
+  const amenityMap = new Map<string, { amenity: string; label: string }>();
+  for (const a of (studio.amenities ?? [])) if (a.enabled) amenityMap.set(a.amenity, a);
+  for (const r of rooms) for (const a of (r.amenities ?? [])) if (a.enabled) amenityMap.set(a.amenity, a);
+  const amenities = [...amenityMap.values()];
   // 이용권 — 전용 passPlans 소스 → CommunityPassList 형태로 매핑
   const passes: CommunityPass[] = rawPassPlans.map((p) => ({
     id: p.id,

@@ -156,12 +156,27 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
   // 예약 가능: 서버 status만 신뢰 (price는 표시용, null이어도 예약 가능 여부와 무관)
   const isOpen = (s: TimeSlotResponse) => s.status === 'available';
 
+  // 선택 날짜가 오늘이면 현재 시각 이전(시작 시각이 지금보다 과거)인 슬롯은 예약 불가.
+  // 과거 날짜면 전부 지남, 미래 날짜면 전부 유효.
+  const isPastSlot = (time: string) => {
+    const now = new Date();
+    const sel = new Date(date); sel.setHours(0, 0, 0, 0);
+    const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
+    if (sel.getTime() !== today0.getTime()) return sel.getTime() < today0.getTime();
+    const [h, m] = time.split(':').map(Number);
+    const start = new Date(sel); start.setHours(h, m ?? 0, 0, 0);
+    return start.getTime() < now.getTime();
+  };
+
+  // 실제 예약 가능(선택 가능): status available + 지나지 않은 시각
+  const isBookable = (s: TimeSlotResponse) => isOpen(s) && !isPastSlot(s.time);
+
   // 연속 슬롯 선택(인접만 확장)
   // 최대 예약 시간(분) → 연속 선택 칸수 상한 (1칸=1시간). 미설정이면 무제한
   const maxSlots = sheetRoom?.maxBookingDuration ? Math.floor(sheetRoom.maxBookingDuration / 60) : Infinity;
 
   const onSlot = (idx: number, slots: TimeSlotResponse[]) => {
-    if (!isOpen(slots[idx])) return;
+    if (!isBookable(slots[idx])) return;
     setSel((prev) => {
       if (!prev) return { start: idx, end: idx };
       const { start, end } = prev;
@@ -195,7 +210,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
       <div className="mt-4 flex flex-col gap-4">
         {rooms.map((room) => {
           const slots = hourlyOnly(room.slots ?? []);
-          const fullyBooked = slots.length > 0 && slots.every((s) => !isOpen(s));
+          const fullyBooked = slots.length > 0 && slots.every((s) => !isBookable(s));
           const tickTimes = slots.length > 0
             ? [...new Set([0, Math.floor(slots.length * 0.25), Math.floor(slots.length * 0.5), Math.floor(slots.length * 0.75), slots.length - 1])]
                 .map((i) => t('community_hour').replace('{h}', String(parseInt(slots[i].time, 10))))
@@ -229,7 +244,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
               {slots.length > 0 && (
                 <div className="mt-3 flex gap-[2px] items-center">
                   {slots.map((s) => (
-                    <span key={s.time} className={`flex-1 h-[3px] rounded-full ${isOpen(s) ? 'bg-[#3CC0AF]' : 'bg-[#E4E8EC]'}`} />
+                    <span key={s.time} className={`flex-1 h-[3px] rounded-full ${isBookable(s) ? 'bg-[#3CC0AF]' : 'bg-[#E4E8EC]'}`} />
                   ))}
                 </div>
               )}
@@ -304,6 +319,9 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
               </div>
             </div>
 
+            {/* 시트 본문 전체 스크롤 (홀 정보 + 가격 안내 + 슬롯 목록이 함께 스크롤) */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+
             {/* 홀 정보 — 설명·면적·치수·바닥·시설 (접힘/펼침) */}
             {(() => {
               const enabledAmenities = (sheetRoom.amenities ?? []).filter((a) => a.enabled);
@@ -335,7 +353,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
                       </svg>
                     </button>
                     {infoOpen && (
-                      <div className="mt-3 max-h-[42vh] overflow-y-auto overscroll-contain flex flex-col gap-3">
+                      <div className="mt-3 flex flex-col gap-3">
                         {hasDesc && (
                           <div
                             className="text-[13px] text-[#4E5968] leading-relaxed whitespace-pre-line break-words [&_h1]:text-[15px] [&_h1]:font-bold [&_h1]:text-[#171717] [&_h1]:my-1 [&_h2]:text-[14px] [&_h2]:font-bold [&_h2]:text-[#171717] [&_h2]:my-1 [&_p]:my-0.5"
@@ -422,27 +440,28 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
             })()}
 
             {/* 슬롯 리스트 (1시간 간격) */}
-            <div className="px-5 flex-1 overflow-y-auto overscroll-contain">
+            <div className="px-5 pb-3">
               {hourlyOnly(sheetRoom.slots ?? []).length === 0 ? (
                 <p className="py-10 text-center text-[13px] text-[#A0A5AB]">{t('community_no_slots')}</p>
               ) : (
                 <div className="flex flex-col divide-y divide-[#F5F6F7]">
                   {hourlyOnly(sheetRoom.slots ?? []).map((s, idx, arr) => {
-                    const open = isOpen(s);
+                    const past = isPastSlot(s.time);
+                    const bookable = isOpen(s) && !past;
                     const selected = sel != null && idx >= sel.start && idx <= sel.end;
                     return (
                       <button
                         key={s.time}
-                        disabled={!open}
+                        disabled={!bookable}
                         onClick={() => onSlot(idx, arr)}
-                        className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : open ? 'active:bg-[#FAFBFC]' : ''}`}
+                        className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : bookable ? 'active:bg-[#FAFBFC]' : ''}`}
                       >
-                        <span className={`text-[15px] font-medium ${!open ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#171717]'}`}>
+                        <span className={`text-[15px] font-medium ${!bookable ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#171717]'}`}>
                           {s.time}
-                          {open && s.price != null ? <span className="ml-2 text-[12px] font-normal text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
+                          {bookable && s.price != null ? <span className="ml-2 text-[12px] font-normal text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
                         </span>
-                        <span className={`text-[13px] font-bold ${!open ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
-                          {!open ? t('closed') : selected ? t('community_selected') : t('community_available')}
+                        <span className={`text-[13px] font-bold ${!bookable ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
+                          {past ? t('slot_past') : !isOpen(s) ? t('closed') : selected ? t('community_selected') : t('community_available')}
                         </span>
                       </button>
                     );
@@ -450,6 +469,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
                 </div>
               )}
             </div>
+            </div>{/* /본문 스크롤 컨테이너 */}
 
             {/* 하단 예약하기 — 누르면 시트 닫으며 결제 이동 */}
             <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+16px)] shrink-0 border-t border-[#F1F3F6]">
