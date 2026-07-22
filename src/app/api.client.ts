@@ -182,6 +182,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.StudioRoom.ListStudioRooms),
     get: this.endpointBuilder(API.StudioRoom.GetStudioRoom),
     availability: this.endpointBuilder(API.StudioRoom.GetRoomsAvailability),
+    availabilityPartner: this.endpointBuilder(API.StudioRoom.GetPartnersRoomsAvailability),
   }
 
   readonly roomBooking = {

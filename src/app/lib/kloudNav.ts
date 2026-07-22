@@ -192,6 +192,8 @@ const applyTitle = async (route: string) => {
     return '';
   } else if (route.startsWith('/tickets/')) {
     return '';
+  } else if (route === '/studioRooms' || route.startsWith('/studioRooms?')) {
+    return await translate('room_schedule_title')
   } else if (route.startsWith('/studioRooms/')) {
     return ''
   } else if (

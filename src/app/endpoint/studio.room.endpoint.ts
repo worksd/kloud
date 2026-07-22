@@ -136,3 +136,61 @@ export const GetRoomsAvailability: Endpoint<GetRoomsAvailabilityParameter, Rooms
   path: '/studioRooms/availability',
   queryParams: ['studioRoomIds', 'studioId', 'date'],
 }
+
+// === 파트너(관리자) 예약 일정표 ===
+// 동일 URL(GET /studioRooms/availability)이지만 X-Guinness-Client: PARTNER + 파트너 토큰일 때
+// 앱/키오스크(slots)와 다른 멀티룸 응답(rooms[].bookings 예약자 목록)을 내려준다.
+
+// 운영시간·가격 그리드 셀 하나 (그날 기준 해소된 셀). status Active=운영, Disabled=휴무.
+export type RoomScheduleCellResponse = {
+  startTime: string;        // 'HH:mm'
+  status: string;           // 'Active' | 'Disabled' 등
+  price?: number | null;
+}
+
+// 그날 홀의 예약 1건 (예약자 정보 포함).
+export type PartnerRoomBookingResponse = {
+  id: number;
+  type: 'individual' | 'full';
+  startDate: string;        // 'yyyy.MM.dd HH:mm' KST
+  endDate: string;
+  name?: string | null;     // 개인=예약자명 / 전체대관=단체명
+  user?: {
+    id: number;
+    name: string;
+    nickName?: string | null;
+    profileImageUrl?: string | null;
+  } | null;
+}
+
+export type PartnerRoomAvailabilityResponse = {
+  studioRoomId: number;
+  name?: string;
+  maxCount?: number;
+  mode?: string;
+  description?: string;
+  imageUrls?: string[];
+  minBookingDuration?: number;
+  maxBookingDuration?: number | null;
+  dailyBookingLimit?: number | null;
+  advanceBookingDays?: number | null;
+  advanceBookingOpenTime?: string;
+  bookingWhileInUse?: boolean;
+  practiceMaxNumber?: number;
+  requiredPassPlanIds?: number[];
+  schedules?: RoomScheduleCellResponse[];
+  bookings?: PartnerRoomBookingResponse[];
+  lessons?: RoomLessonResponse[];
+  amenities?: AmenityResponse[];
+}
+
+export type PartnersMultiRoomAvailabilityResponse = {
+  date: string;
+  rooms: PartnerRoomAvailabilityResponse[];
+}
+
+export const GetPartnersRoomsAvailability: Endpoint<GetRoomsAvailabilityParameter, PartnersMultiRoomAvailabilityResponse> = {
+  method: 'get',
+  path: '/studioRooms/availability',
+  queryParams: ['studioRoomIds', 'studioId', 'date'],
+}
