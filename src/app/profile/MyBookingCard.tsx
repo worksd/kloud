@@ -47,13 +47,9 @@ function formatBookingRange(startRaw: string, endRaw: string): string {
 export const MyBookingCard = ({ booking }: {
   booking: MyBookingResponse;
 }) => {
-  // startDate: "2026.04.10 10:00" → "2026-04-10"
-  const datePart = (booking.startDate.split(' ')[0] ?? '').replace(/\./g, '-');
-  const roomId = booking.studioRoom?.id ?? booking.studioRoomId;
-
   return (
     <div
-      onClick={() => kloudNav.push(KloudScreen.StudioRoomDetail(roomId, datePart))}
+      onClick={() => kloudNav.push(KloudScreen.RoomBookingDetail(booking.id))}
       className="rounded-2xl overflow-hidden bg-[#F7F8F9] active:scale-[0.98] transition-all duration-150 cursor-pointer"
     >
       <div className="w-full h-[100px] bg-[#E8E8EA]">
