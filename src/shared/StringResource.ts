@@ -3349,6 +3349,8 @@ export const StringResource = {
   room_booking_detail_title: { ko: '예약 상세', en: 'Booking Details', jp: '予約詳細', zh: '预约详情' },
   room_bookings: { ko: '대관 내역', en: 'Rentals', jp: 'レンタル履歴', zh: '租赁记录' },
   room_bookings_empty: { ko: '대관 예약 내역이 없어요', en: 'No rental bookings', jp: 'レンタル予約がありません', zh: '暂无租赁预约' },
+  room_bookings_upcoming: { ko: '예정된 내역', en: 'Upcoming', jp: '予定', zh: '即将到来' },
+  room_bookings_past: { ko: '지난 내역', en: 'Past', jp: '過去の履歴', zh: '过往记录' },
   room_booking_period: { ko: '이용 시간', en: 'Time', jp: '利用時間', zh: '使用时间' },
   room_booking_reserver: { ko: '예약자', en: 'Booked by', jp: '予約者', zh: '预约人' },
   room_booking_used_pass: { ko: '사용 패스권', en: 'Pass used', jp: '利用パス', zh: '使用通票' },

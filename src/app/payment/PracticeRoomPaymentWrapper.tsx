@@ -42,6 +42,7 @@ export const PracticeRoomPaymentWrapper = ({
   locale,
   preStartTime,
   preEndTime,
+  description,
 }: {
   payment: GetPaymentResponse;
   studioRoomId: number;
@@ -55,6 +56,8 @@ export const PracticeRoomPaymentWrapper = ({
   /** 커뮤니티 등에서 시간대까지 이미 골라 들어온 경우 — 시간 선택기 숨기고 이 값으로 바로 결제 */
   preStartTime?: string;
   preEndTime?: string;
+  /** 룸 설명서(이용안내/유의사항) HTML. 결제 응답엔 없어 GET /studioRooms/:id에서 조회해 전달. */
+  description?: string;
 }) => {
   // 연습실 결제는 시간대까지 이미 골라 들어온다(커뮤니티 등). 결제 페이지에선 시간 선택 없음.
   const selectedTime = preStartTime && preEndTime ? { startTime: preStartTime, endTime: preEndTime } : null;
@@ -128,6 +131,30 @@ export const PracticeRoomPaymentWrapper = ({
         <div className="mx-5 mb-2 flex items-center justify-between bg-black rounded-xl px-4 py-3">
           <span className="text-[13px] text-white/60">{getLocaleString({ locale, key: 'time' })}</span>
           <span className="text-[14px] font-bold text-white">{formatSelected(selectedTime.startTime, selectedTime.endTime)}</span>
+        </div>
+      )}
+
+      {/* 이용안내(유의사항) — 상세 페이지 room.description과 동일 렌더링 */}
+      {description && description.replace(/<[^>]*>/g, '').trim() !== '' && (
+        <div className="mx-5 mt-2 mb-4 rounded-2xl bg-[#1E2124] px-5 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="7" stroke="white" strokeWidth="1.2"/>
+              <path d="M8 5V8.5" stroke="white" strokeWidth="1.2" strokeLinecap="round"/>
+              <circle cx="8" cy="11" r="0.7" fill="white"/>
+            </svg>
+            <span className="text-[14px] font-bold text-white">{getLocaleString({ locale, key: 'usage_guide' })}</span>
+          </div>
+          <div className="text-[13px] text-white/70 leading-[1.8]
+            [&_h1]:text-[15px] [&_h1]:font-bold [&_h1]:text-white [&_h1]:mt-2
+            [&_h2]:text-[14px] [&_h2]:font-bold [&_h2]:text-white/90 [&_h2]:mt-1.5
+            [&_h3]:text-[13px] [&_h3]:font-semibold [&_h3]:text-white/80 [&_h3]:mt-1
+            [&_p]:mt-0.5 [&_p:empty]:hidden
+            [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mt-1
+            [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mt-1
+            [&_li]:mt-0.5"
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
         </div>
       )}
 

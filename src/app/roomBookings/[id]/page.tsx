@@ -18,8 +18,6 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
   if (!('id' in res)) notFound();
   const booking = res as RoomBookingDetailResponse;
 
-  const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
-  const won = await translate('won');
   const locale = await getLocale();
 
   // 'yyyy.MM.dd HH:mm' → 년월일 시:분. 종료가 같은 날이면 시:분만.
@@ -99,7 +97,6 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
         <p className="text-[16px] font-bold text-black mb-4">{await translate('room_booking_detail_title')}</p>
         <div className="flex flex-col gap-4">
           <Row label={await translate('room_booking_period')} value={fmtPeriod(booking.startDate, booking.endDate)} />
-          <Row label={await translate('payment_amount')} value={`${fmt(booking.price)}${won}`} />
           {reserverName && (
             <Row label={await translate('room_booking_reserver')} value={reserverPhone ? `${reserverName} · ${reserverPhone}` : reserverName} />
           )}
