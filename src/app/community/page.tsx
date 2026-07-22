@@ -13,13 +13,9 @@ export default async function CommunityPage() {
     <div className="min-h-screen bg-white">
       {/* 헤더 — 상단 고정 */}
       <div className="sticky top-0 z-20 bg-white px-4 pt-4 pb-3 border-b border-[#F1F3F6]">
-        <h1 className="text-[20px] font-bold text-[#171717]">{await translate('community')}</h1>
+        <h1 className="text-[20px] font-bold text-[#171717]">{await translate('practice_room')}</h1>
       </div>
 
-      {/* 연습실 밴드 */}
-      <div className="px-4 pt-4 pb-1">
-        <h2 className="text-[17px] font-bold text-[#171717]">{await translate('practice_room')}</h2>
-      </div>
       <CommunityPracticeRoomGrid studios={studios} locale={locale} />
     </div>
   );
