@@ -16,7 +16,7 @@ const MAX_VISIBLE = 3;
 
 // 스튜디오 공지사항. 각 항목 탭 시 내용 펼침 (아코디언).
 // 최대 3개만 노출, "전체보기"는 스튜디오 공지 전체 페이지로 이동(일반 스튜디오와 동일 route).
-export function CommunityNoticeList({ notices, studioId, locale }: { notices: CommunityNotice[]; studioId: number; locale: Locale }) {
+export function PracticeNoticeList({ notices, studioId, locale }: { notices: CommunityNotice[]; studioId: number; locale: Locale }) {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   if (!notices.length) return null;
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import LeftArrow from "../../../../public/assets/left-arrow.svg";
+import LeftArrow from "../../../../../public/assets/left-arrow.svg";
 
 // 스튜디오 상세와 동일한 백버튼 (위치·UI·기능).
-export function CommunityBackButton() {
+export function PracticeBackButton() {
   return (
     <NavigateClickWrapper method={'back'}>
       <button

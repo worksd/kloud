@@ -10,7 +10,7 @@ import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room
 import { getCommunityRoomsAvailabilityAction } from "@/app/community/community.actions";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { CommunityAmenityIcon } from "@/app/community/[id]/CommunityAmenityIcon";
+import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 
 // 바닥재 코드 → 표시명
 const FLOOR_LABEL: Record<string, Record<Locale, string>> = {
@@ -51,7 +51,7 @@ const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
 };
 
 // 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
-export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }: { rooms: StudioRoomResponse[]; studioId: number; locale: Locale }) {
+export function PracticeHallSchedule({ rooms: initialRooms, studioId, locale }: { rooms: StudioRoomResponse[]; studioId: number; locale: Locale }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const router = useRouter();
   const pathname = usePathname();
@@ -405,7 +405,7 @@ export function CommunityHallSchedule({ rooms: initialRooms, studioId, locale }:
                             <div className="flex flex-wrap gap-1.5">
                               {enabledAmenities.map((a) => (
                                 <span key={a.amenity} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#EEF0F2] text-[12px] font-medium text-[#333]">
-                                  <CommunityAmenityIcon name={a.label} className="w-3.5 h-3.5 shrink-0" />
+                                  <PracticeAmenityIcon name={a.label} className="w-3.5 h-3.5 shrink-0" />
                                   {a.label}
                                 </span>
                               ))}

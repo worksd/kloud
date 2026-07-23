@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 
 // 상단 대표 이미지 캐러셀 (가로 스와이프). 오른쪽 아래 현재/전체 인디케이터.
-export function CommunityImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+export function PracticeImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
 

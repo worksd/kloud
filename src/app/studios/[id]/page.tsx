@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { accessTokenKey } from "@/shared/cookies.key";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { notFound } from "next/navigation";
+import { PracticeRoomStudioDetail } from "@/app/studios/[id]/practice/PracticeRoomStudioDetail";
 
 export type Props = {
   params: Promise<{ id: string }>;
@@ -19,6 +20,12 @@ export default async function StudioDetail({params, searchParams}: Props) {
 
   if (isNaN(id) || !id) {
     notFound();
+  }
+
+  // 연습실 전용 스튜디오(type=PracticeRoom)는 연습실 상세 화면으로. 그 외는 일반 스튜디오 상세.
+  const studio = await getStudioDetail(id);
+  if (!isGuinnessErrorCase(studio) && studio.type === 'PracticeRoom') {
+    return <PracticeRoomStudioDetail id={id} />;
   }
 
   return (

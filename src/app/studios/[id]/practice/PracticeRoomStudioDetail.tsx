@@ -4,24 +4,22 @@ import { CommunityPass, CommunityNotice } from "@/app/community/community.mock";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { getCommunityRoomsAction, getCommunityRoomsAvailabilityAction } from "@/app/community/community.actions";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
-import { CommunityBackButton } from "@/app/community/[id]/CommunityBackButton";
-import { CommunityHallSchedule } from "@/app/community/[id]/CommunityHallSchedule";
-import { CommunityPassList } from "@/app/community/[id]/CommunityPassList";
-import { CommunityAmenityIcon } from "@/app/community/[id]/CommunityAmenityIcon";
-import { CommunityActionProvider } from "@/app/community/[id]/CommunityActionBar";
-import { CommunityNoticeList } from "@/app/community/[id]/CommunityNoticeList";
-import { CommunityImageCarousel } from "@/app/community/[id]/CommunityImageCarousel";
+import { PracticeBackButton } from "@/app/studios/[id]/practice/PracticeBackButton";
+import { PracticeHallSchedule } from "@/app/studios/[id]/practice/PracticeHallSchedule";
+import { PracticePassList } from "@/app/studios/[id]/practice/PracticePassList";
+import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
+import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
+import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
+import { PracticeImageCarousel } from "@/app/studios/[id]/practice/PracticeImageCarousel";
 import { getLocale, translate } from "@/utils/translate";
 
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-// 연습실 전용 스튜디오 상세. 기본정보/소개/편의시설/이용권/공지/홀·슬롯 전부 실 API.
+// 연습실 전용 스튜디오(type=PracticeRoom) 상세. 기본정보/소개/편의시설/이용권/공지/홀·슬롯 전부 실 API.
 // (GET /studios/:id — description/amenities/passPlans/announcements 포함 + /studioRooms 슬롯)
-export default async function CommunityStudioDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const id = Number((await params).id);
-  if (!id || Number.isNaN(id)) notFound();
-
+// studios/[id] 라우트에서 type이 PracticeRoom일 때 렌더.
+export async function PracticeRoomStudioDetail({ id }: { id: number }) {
   const studio = await getStudioDetail(id);
   if (!('name' in studio)) notFound();
 
@@ -68,7 +66,7 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
   for (const a of (studio.amenities ?? [])) if (a.enabled) amenityMap.set(a.amenity, a);
   for (const r of rooms) for (const a of (r.amenities ?? [])) if (a.enabled) amenityMap.set(a.amenity, a);
   const amenities = [...amenityMap.values()];
-  // 이용권 — 전용 passPlans 소스 → CommunityPassList 형태로 매핑
+  // 이용권 — 전용 passPlans 소스 → PracticePassList 형태로 매핑
   const passes: CommunityPass[] = rawPassPlans.map((p) => ({
     id: p.id,
     name: p.name,
@@ -85,11 +83,11 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
 
   return (
     <div className="relative min-h-screen bg-white pb-[100px]">
-      <CommunityActionProvider>
-        <CommunityBackButton />
+      <PracticeActionProvider>
+        <PracticeBackButton />
 
         {/* 대표 이미지 (캐러셀) */}
-        <CommunityImageCarousel images={images} alt={studio.name} />
+        <PracticeImageCarousel images={images} alt={studio.name} />
 
         {/* 이름 · 주소 · 최저가 */}
         <div className="px-4 pt-4">
@@ -117,7 +115,7 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
         {notices.length > 0 && (
           <div className="px-4 mt-7">
             <h2 className="text-[16px] font-bold text-[#171717] mb-2.5">{await translate('community_notice')}</h2>
-            <CommunityNoticeList notices={notices} studioId={id} locale={locale} />
+            <PracticeNoticeList notices={notices} studioId={id} locale={locale} />
           </div>
         )}
 
@@ -128,7 +126,7 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
             <div className="flex flex-wrap gap-2">
               {amenities.map((a) => (
                 <span key={a.amenity} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F8F9] border border-[#EEF0F2] text-[13px] font-medium text-[#333]">
-                  <CommunityAmenityIcon name={a.label} className="w-4 h-4 shrink-0" />
+                  <PracticeAmenityIcon name={a.label} className="w-4 h-4 shrink-0" />
                   {a.label}
                 </span>
               ))}
@@ -139,17 +137,17 @@ export default async function CommunityStudioDetailPage({ params }: { params: Pr
         {/* 홀별 예약 현황 — 실제 슬롯 */}
         <div className="px-4 mt-8">
           <h2 className="text-[16px] font-bold text-[#171717] mb-3">{await translate('community_hall_status')}</h2>
-          <CommunityHallSchedule rooms={rooms} studioId={id} locale={locale} />
+          <PracticeHallSchedule rooms={rooms} studioId={id} locale={locale} />
         </div>
 
         {/* 이용권 (패스권) */}
         {passes.length > 0 && (
           <div className="px-4 mt-8">
             <h2 className="text-[16px] font-bold text-[#171717] mb-3">{await translate('community_pass')}</h2>
-            <CommunityPassList passes={passes} studioId={id} locale={locale} />
+            <PracticePassList passes={passes} studioId={id} locale={locale} />
           </div>
         )}
-      </CommunityActionProvider>
+      </PracticeActionProvider>
     </div>
   );
 }

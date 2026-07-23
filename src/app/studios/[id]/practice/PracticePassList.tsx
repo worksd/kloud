@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { CommunityPass } from "@/app/community/community.mock";
-import { useCommunityAction } from "@/app/community/[id]/CommunityActionBar";
+import { usePracticeAction } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -13,9 +13,9 @@ const MAX_VISIBLE = 5;
 
 // 스튜디오에서 구매 가능한 이용권 목록. 선택한 순간 하단 액션 바에 "구매하기" 노출.
 // 최대 5개만 노출, "더보기"는 스튜디오 패스권 전체 페이지로 이동(일반 스튜디오와 동일 route).
-export function CommunityPassList({ passes, studioId, locale }: { passes: CommunityPass[]; studioId: number; locale: Locale }) {
+export function PracticePassList({ passes, studioId, locale }: { passes: CommunityPass[]; studioId: number; locale: Locale }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const { setAction, clearAction, activeSource } = useCommunityAction();
+  const { setAction, clearAction, activeSource } = usePracticeAction();
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   useEffect(() => {

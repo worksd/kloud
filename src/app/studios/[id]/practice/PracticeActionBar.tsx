@@ -3,24 +3,24 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // 홀 시간 선택 / 이용권 선택 → 하단 고정 액션 바를 공유. 선택한 순간 버튼이 나타남.
-export type CommunityAction = { source: string; label: string; onConfirm: () => void };
+export type PracticeAction = { source: string; label: string; onConfirm: () => void };
 
 const Ctx = createContext<{
-  setAction: (a: CommunityAction) => void;
+  setAction: (a: PracticeAction) => void;
   clearAction: (source: string) => void;
   activeSource: string | null;
 } | null>(null);
 
-export function useCommunityAction() {
+export function usePracticeAction() {
   const c = useContext(Ctx);
-  if (!c) throw new Error('useCommunityAction must be used within CommunityActionProvider');
+  if (!c) throw new Error('usePracticeAction must be used within PracticeActionProvider');
   return c;
 }
 
-export function CommunityActionProvider({ children }: { children: ReactNode }) {
-  const [action, setActionState] = useState<CommunityAction | null>(null);
+export function PracticeActionProvider({ children }: { children: ReactNode }) {
+  const [action, setActionState] = useState<PracticeAction | null>(null);
 
-  const setAction = (a: CommunityAction) => setActionState(a);
+  const setAction = (a: PracticeAction) => setActionState(a);
   const clearAction = (source: string) =>
     setActionState((prev) => (prev && prev.source === source ? null : prev));
 

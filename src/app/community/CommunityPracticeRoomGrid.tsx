@@ -2,6 +2,7 @@
 
 import React from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 import { CommunityStudioResponse } from "@/app/endpoint/community.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
@@ -22,7 +23,7 @@ export const CommunityPracticeRoomGrid = ({ studios, locale }: { studios: Commun
         return (
           <button
             key={room.id}
-            onClick={() => kloudNav.push(`/community/${room.id}`)}
+            onClick={() => kloudNav.push(KloudScreen.StudioDetail(room.id))}
             className="flex flex-col text-left active:scale-[0.98] transition-transform"
           >
             <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#F1F3F6]">
