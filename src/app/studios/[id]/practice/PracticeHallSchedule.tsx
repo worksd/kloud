@@ -93,22 +93,22 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
   const closingRef = useRef(false);
   const sheetRoom = sheetRoomId != null ? rooms.find((r) => r.id === sheetRoomId) : undefined;
 
-  // 실제 예약현황(슬롯)은 시트를 열었을 때만 조회. 모든 홀을 studioRoomIds에 한 번에 넣어 조회.
-  // 이미 조회한 날짜면 재요청 안 함. (카드 UI는 available만으로 표시 — API 호출은 시트 오픈부터)
-  const [loadedDate, setLoadedDate] = useState<string | null>(null);
+  // 실제 예약현황(슬롯)은 시트를 열었을 때만, 선택된 홀 하나만 studioRoomIds에 넣어 조회.
+  // (카드 UI는 available만으로 표시 — API 호출은 시트 오픈부터). 홀+날짜 조합은 한 번만 조회.
+  const loadedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (sheetRoomId == null) return;                 // 시트가 열렸을 때만
     const ds = toDateStr(date);
-    if (loadedDate === ds) return;                   // 그 날짜 이미 로드됨
+    const key = `${sheetRoomId}-${ds}`;
+    if (loadedRef.current.has(key)) return;          // 이 홀+날짜 이미 로드됨
     let alive = true;
-    const studioRoomIds = initialRooms.map((r) => r.id).join(',');
-    if (!studioRoomIds) return;
-    getRoomsAvailabilityByIdsAction({ studioRoomIds, date: ds })
+    getRoomsAvailabilityByIdsAction({ studioRoomIds: String(sheetRoomId), date: ds })
       .then((res) => {
         if (!alive || !('rooms' in res)) return;
-        const slotsByRoom = new Map(res.rooms.map((r) => [r.studioRoomId, r.slots]));
-        setRooms((prev) => prev.map((r) => (slotsByRoom.has(r.id) ? { ...r, slots: slotsByRoom.get(r.id)! } : r)));
-        setLoadedDate(ds);
+        const row = res.rooms.find((r) => r.studioRoomId === sheetRoomId);
+        if (!row) return;
+        setRooms((prev) => prev.map((r) => (r.id === sheetRoomId ? { ...r, slots: row.slots } : r)));
+        loadedRef.current.add(key);
       });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
