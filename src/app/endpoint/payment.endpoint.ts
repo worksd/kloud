@@ -162,6 +162,9 @@ export type CreateBillingKeyPaymentRequest = {
   paymentId: string;
   targetUserId?: number;
   discounts?: PaymentDiscount[];
+  /** 연습실 예약 시간대 ('yyyy.MM.dd HH:mm' KST) — practice-room 결제 필수. */
+  startDate?: string;
+  endDate?: string;
 }
 
 export type CreateBillingKeyPaymentResponse = {
@@ -171,5 +174,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'startDate', 'endDate']
 }

@@ -474,6 +474,9 @@ export default function PaymentButton({
               itemId: d.itemId,
               passRuleId: d.passRule?.id,
             })),
+            ...(type.value === 'practiceRoom' && practiceRoomInfo
+              ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
+              : {}),
           })
           if ('success' in res && res.success) {
             if (type.value === 'lesson') purgeLessonCache(id);
@@ -525,8 +528,10 @@ export default function PaymentButton({
       {webDialogInfo != null && <SimpleDialog
         dialogInfo={webDialogInfo}
         onClickConfirmAction={async (dialogInfo) => {
-          await onConfirmDialog(dialogInfo);
+          // 확인 다이얼로그 먼저 닫고 실행 — onConfirmDialog가 실패 시 새 에러 다이얼로그를 띄우면 유지되도록.
+          // (닫기를 await 뒤에 두면 방금 띄운 에러 다이얼로그까지 null로 덮여 사라짐)
           setWebDialogInfo(null);
+          await onConfirmDialog(dialogInfo);
         }}
         onClickCancelAction={() => setWebDialogInfo(null)}/>
       }
