@@ -1,16 +1,15 @@
 import React from "react";
-import { getRoomsAvailabilityByIdsAction } from "@/app/community/community.actions";
 import { CommunityPracticeRoomResponse } from "@/app/endpoint/studio.endpoint";
 import { StudioRoomResponse } from "@/app/endpoint/studio.room.endpoint";
 import { PracticeHallSchedule } from "@/app/studios/[id]/practice/PracticeHallSchedule";
 import { Locale } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
 
-const toDateStr = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// TODO(mock): BE가 practiceRooms[].available을 아직 안 내려줌. 내려오기 전까지 임시 목업.
+const MOCK_AVAILABLE_HOURS = [10, 11, 12, 14, 15, 16, 17, 18, 19, 20];
 
-// 스튜디오 상세의 홀(연습실) 예약현황 섹션. 홀 스펙은 studio.practiceRooms(별도 GET /studioRooms 호출 안 함),
-// 예약현황(슬롯)만 GET /studioRooms/availability?studioRoomIds=... 로 조회해 병합.
+// 스튜디오 상세의 홀(연습실) 예약현황 섹션. 홀 스펙·예약가능시간 모두 studio.practiceRooms만 사용
+// (별도 availability API 호출 없음). available: 예약 가능한 정수 시각 → 1시간 단위 슬롯으로 변환.
 export async function PracticeHallSection({
   practiceRooms,
   locale,
@@ -21,13 +20,7 @@ export async function PracticeHallSection({
   const specs = practiceRooms ?? [];
   if (specs.length === 0) return null;
 
-  const studioRoomIds = specs.map((p) => p.id).join(',');
-  const today = toDateStr(new Date());
-  const availRes = await getRoomsAvailabilityByIdsAction({ studioRoomIds, date: today });
-  const availRows = ('rooms' in availRes) ? availRes.rooms : [];
-  const slotsByRoom = new Map(availRows.map((r) => [r.studioRoomId, r.slots]));
-
-  // studio.practiceRooms 스펙 → 시간표 컴포넌트가 쓰는 홀 형태로 매핑 + 슬롯 병합
+  // studio.practiceRooms 스펙 → 시간표 컴포넌트가 쓰는 홀 형태로 매핑. available → 슬롯.
   const rooms: StudioRoomResponse[] = specs.map((p) => ({
     id: p.id,
     name: p.name,
@@ -38,16 +31,22 @@ export async function PracticeHallSection({
     dimensions: p.dimensions,
     floorType: p.floorType,
     amenities: p.amenities,
-    slots: slotsByRoom.get(p.id) ?? [],
+    unitPrice: p.pricePerHour,
+    slots: [...(p.available ?? MOCK_AVAILABLE_HOURS)]
+      .sort((a, b) => a - b)
+      .map((h) => ({
+        time: `${String(h).padStart(2, '0')}:00`,
+        status: 'available' as const,
+        currentCount: 0,
+        maxCount: p.maxNumber ?? 0,
+        price: p.pricePerHour ?? null,
+      })),
   }));
 
   return (
-    <>
-      <div className="w-full h-3 bg-[#f7f8f9]" />
-      <div className="px-4 mt-6">
-        <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_hall_status')}</h2>
-        <PracticeHallSchedule rooms={rooms} locale={locale} />
-      </div>
-    </>
+    <div className="px-4">
+      <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_hall_status')}</h2>
+      <PracticeHallSchedule rooms={rooms} locale={locale} />
+    </div>
   );
 }

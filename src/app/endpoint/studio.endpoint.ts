@@ -36,6 +36,8 @@ export type CommunityPracticeRoomResponse = {
   amenities?: AmenityResponse[];
   pricePerHour?: number;
   imageUrl?: string;
+  /** 예약 가능한 시간대(정수 시각). 예: [2,3,4,6,8,9,10,13,16] → 02·03·04…시 예약 가능. */
+  available?: number[];
 }
 
 export type GetStudioResponse = {

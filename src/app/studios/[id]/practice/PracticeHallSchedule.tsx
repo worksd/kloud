@@ -56,6 +56,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
   const router = useRouter();
   const pathname = usePathname();
   const [date, setDate] = useState<Date>(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
+  // 카드 표시는 initialRooms(available 기반) 그대로. 시트 오픈 시 API 슬롯으로 갱신됨.
   const [rooms, setRooms] = useState<StudioRoomResponse[]>(initialRooms);
 
   // 시트 열림 상태를 URL ?studioRoomId= 로 동기화 (외부 딥링크로도 특정 홀 시트 접근 가능)
@@ -70,24 +71,6 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
       router.replace(nextUrl, { scroll: false });
     }
   };
-
-  // 날짜 변경 시 그 날짜의 예약 현황(슬롯)만 availability로 재조회해 홀 스펙에 병합.
-  // studioId 대신 현재 홀 id들을 studioRoomIds로 명시해 조회.
-  const [firstLoad, setFirstLoad] = useState(true);
-  useEffect(() => {
-    if (firstLoad) { setFirstLoad(false); return; }
-    let alive = true;
-    const studioRoomIds = initialRooms.map((r) => r.id).join(',');
-    if (!studioRoomIds) return;
-    getRoomsAvailabilityByIdsAction({ studioRoomIds, date: toDateStr(date) })
-      .then((res) => {
-        if (!alive || !('rooms' in res)) return;
-        const slotsByRoom = new Map(res.rooms.map((r) => [r.studioRoomId, r.slots]));
-        setRooms((prev) => prev.map((r) => ({ ...r, slots: slotsByRoom.get(r.id) ?? [] })));
-      });
-    return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date]);
 
   // 날짜 선택 캘린더 시트
   const [dateOpen, setDateOpen] = useState(false);
@@ -108,6 +91,27 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
   const dragStart = useRef<number | null>(null);
   const closingRef = useRef(false);
   const sheetRoom = sheetRoomId != null ? rooms.find((r) => r.id === sheetRoomId) : undefined;
+
+  // 실제 예약현황(슬롯)은 시트를 열었을 때만 조회. 모든 홀을 studioRoomIds에 한 번에 넣어 조회.
+  // 이미 조회한 날짜면 재요청 안 함. (카드 UI는 available만으로 표시 — API 호출은 시트 오픈부터)
+  const [loadedDate, setLoadedDate] = useState<string | null>(null);
+  useEffect(() => {
+    if (sheetRoomId == null) return;                 // 시트가 열렸을 때만
+    const ds = toDateStr(date);
+    if (loadedDate === ds) return;                   // 그 날짜 이미 로드됨
+    let alive = true;
+    const studioRoomIds = initialRooms.map((r) => r.id).join(',');
+    if (!studioRoomIds) return;
+    getRoomsAvailabilityByIdsAction({ studioRoomIds, date: ds })
+      .then((res) => {
+        if (!alive || !('rooms' in res)) return;
+        const slotsByRoom = new Map(res.rooms.map((r) => [r.studioRoomId, r.slots]));
+        setRooms((prev) => prev.map((r) => (slotsByRoom.has(r.id) ? { ...r, slots: slotsByRoom.get(r.id)! } : r)));
+        setLoadedDate(ds);
+      });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetRoomId, date]);
 
   // entered=false → 화면 아래(offscreen), true → 제자리. transform+transition으로 open/close 애니메이션.
   const [entered, setEntered] = useState(false);
@@ -141,7 +145,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
     return () => cancelAnimationFrame(id);
   }, [sheetRoomId]);
 
-  // 드래그 핸들러 (핸들/헤더 영역)
+  // 드래그 핸들러 (핸들/헤더 영역) — 항상 시트 드래그
   const onSheetDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; setDragging(true); };
   const onSheetDragMove = (e: React.TouchEvent) => {
     if (dragStart.current == null) return;
@@ -154,6 +158,21 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
     setDragging(false);
     if (dragY > 120) closeSheet();  // 충분히 내리면 닫기
     else setDragY(0);               // 아니면 원위치로 스냅백
+  };
+
+  // 본문(스크롤 영역) 드래그 — 리스트가 맨 위(scrollTop<=0)일 때만 아래로 끌면 시트 드래그로 소비, 그 외엔 스크롤.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onBodyDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; };
+  const onBodyDragMove = (e: React.TouchEvent) => {
+    if (dragStart.current == null) return;
+    const dy = e.touches[0].clientY - dragStart.current;
+    const atTop = (scrollRef.current?.scrollTop ?? 0) <= 0;
+    if (dy > 0 && atTop) {
+      if (!dragging) setDragging(true);
+      setDragY(dy);
+    } else if (dragY !== 0) {
+      setDragY(0);
+    }
   };
 
   // 날짜 바뀌면 선택 초기화 (슬롯 인덱스가 달라짐)
@@ -351,8 +370,15 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
               </div>
             </div>
 
-            {/* 시트 본문 전체 스크롤 (홀 정보 + 가격 안내 + 슬롯 목록이 함께 스크롤) */}
-            <div className="flex-1 overflow-y-auto overscroll-contain">
+            {/* 시트 본문 전체 스크롤 (홀 정보 + 가격 안내 + 슬롯 목록이 함께 스크롤).
+                맨 위에서 아래로 끌면 스크롤 대신 시트를 내려 닫는다. */}
+            <div
+              ref={scrollRef}
+              className="flex-1 overflow-y-auto overscroll-contain"
+              onTouchStart={onBodyDragStart}
+              onTouchMove={onBodyDragMove}
+              onTouchEnd={onSheetDragEnd}
+            >
 
             {/* 홀 정보 — 설명·면적·치수·바닥·시설 (접힘/펼침) */}
             {(() => {
