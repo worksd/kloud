@@ -90,8 +90,9 @@ export const KloudScreen = {
 } as const;
 
 
-export const isAuthScreen = (endpoint: string) => {
-  return endpoint.includes('/payment') && !endpoint.startsWith('/login');
+// 결제 페이지도 비로그인 진입 허용(비회원 연습실 결제 등). 현재 강제 로그인 대상 화면 없음.
+export const isAuthScreen = (_endpoint: string) => {
+  return false;
 }
 
 export const NO_DATA_ID = -1

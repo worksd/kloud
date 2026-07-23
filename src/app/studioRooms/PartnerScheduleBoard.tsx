@@ -59,19 +59,23 @@ export const PartnerScheduleBoard = ({
 }) => {
   const router = useRouter();
   const viewedYmd = Number(date.replace(/-/g, ''));
+  const [y, m, d] = date.split('-').map(Number);
+  const weekday = new Date(y, m - 1, d).getDay();  // 0=일~6=토
   // 조회일 자정 기준 분 오프셋 (전날 -1440, 익일 +1440)
   const rel = (s?: string) => {
     const w = wall(s);
     return w.min + (w.ymd - viewedYmd) * 1440;
   };
+  // 스케줄 셀이 조회일에 적용되는가 — Weekly는 요일 일치, Holiday(day=null)는 항상.
+  const cellApplies = (c: { day?: number | null }) => c.day == null || c.day === weekday;
 
   // 표시 시간 범위 계산 — 운영셀·예약·수업을 모두 담도록
   const allMins: number[] = [];
   rooms.forEach((r) => {
     (r.schedules ?? []).forEach((c) => {
-      if (isActive(c.status)) {
-        const m = hhmm(c.startTime);
-        allMins.push(m, m + 60);
+      if (cellApplies(c) && isActive(c.status)) {
+        const cm = hhmm(c.startTime);
+        allMins.push(cm, cm + 60);
       }
     });
     (r.bookings ?? []).forEach((b) => allMins.push(rel(b.startDate), rel(b.endDate)));
@@ -88,8 +92,7 @@ export const PartnerScheduleBoard = ({
   const totalPx = hours.length * HOUR_PX;
 
   // 날짜 라벨
-  const [y, m, d] = date.split('-').map(Number);
-  const dayName = DAY_NAMES[new Date(y, m - 1, d).getDay()];
+  const dayName = DAY_NAMES[weekday];
   const dateLabel = locale === 'ko'
     ? `${m}월 ${d}일 (${dayName})`
     : `${y}.${pad2(m)}.${pad2(d)}`;
@@ -160,9 +163,11 @@ export const PartnerScheduleBoard = ({
 
             {/* 홀 컬럼들 */}
             {rooms.map((r) => {
-              const hasSchedule = (r.schedules?.length ?? 0) > 0;
+              // 조회일 요일에 해당하는 셀만
+              const dayCells = (r.schedules ?? []).filter(cellApplies);
+              const hasSchedule = dayCells.length > 0;
               const activeHours = new Set<number>();
-              (r.schedules ?? []).forEach((c) => {
+              dayCells.forEach((c) => {
                 if (isActive(c.status)) activeHours.add(Math.floor(hhmm(c.startTime) / 60));
               });
               const operating = (h: number) => (hasSchedule ? activeHours.has(h % 24) : true);

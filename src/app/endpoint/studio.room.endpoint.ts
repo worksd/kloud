@@ -141,8 +141,11 @@ export const GetRoomsAvailability: Endpoint<GetRoomsAvailabilityParameter, Rooms
 // 동일 URL(GET /studioRooms/availability)이지만 X-Guinness-Client: PARTNER + 파트너 토큰일 때
 // 앱/키오스크(slots)와 다른 멀티룸 응답(rooms[].bookings 예약자 목록)을 내려준다.
 
-// 운영시간·가격 그리드 셀 하나 (그날 기준 해소된 셀). status Active=운영, Disabled=휴무.
+// 운영시간·가격 그리드 셀 하나. 요일별 주간 그리드 — day(0=일~6=토)로 조회일 요일과 매칭.
+// Holiday(dayType='Holiday', day=null)는 공휴일 규칙. status Active=운영, Disabled=휴무.
 export type RoomScheduleCellResponse = {
+  dayType?: 'Weekly' | 'Holiday';
+  day?: number | null;      // Weekly: 0~6(getDay). Holiday: null
   startTime: string;        // 'HH:mm'
   status: string;           // 'Active' | 'Disabled' 등
   price?: number | null;
