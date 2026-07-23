@@ -347,7 +347,8 @@ export default function PaymentButton({
           const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
           if ('message' in capacityCheckResponse) {
             const dialog = await createDialog({id: 'Simple', message: capacityCheckResponse.message});
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+            if (appVersion == '' && dialog) setWebDialogInfo(dialog);
+            else window.KloudEvent?.showDialog(JSON.stringify(dialog));
             return;
           }
         }
@@ -363,10 +364,12 @@ export default function PaymentButton({
           customData: selectedBilling.billingKey,
         });
 
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        if (appVersion == '' && dialog) setWebDialogInfo(dialog);
+        else window.KloudEvent?.showDialog(JSON.stringify(dialog));
       } else {
         const dialog = await createDialog({id: 'BillingKeyNotFound'})
-        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        if (appVersion == '' && dialog) setWebDialogInfo(dialog);
+        else window.KloudEvent?.showDialog(JSON.stringify(dialog));
       }
     }
 
@@ -441,16 +444,21 @@ export default function PaymentButton({
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
+        const showFail = async (message?: string) => {
+          const dialog = await createDialog({id: 'PaymentFail', message})
+          if (appVersion == '' && dialog) setWebDialogInfo(dialog);
+          else window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        };
         // 구독을 직접 만들어야하니깐 유지
         if (type.value === 'lessonGroup') {
           const res = await createSubscriptionAction({item: type.apiValue, itemId: id, billingKey: data.customData ?? ''})
           if ('subscription' in res) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId)
-            await kloudNav.navigateMain({route});
+            if (appVersion == '') router.replace(route);
+            else await kloudNav.navigateMain({route});
           } else if (isGuinnessErrorCase(res)) {
-            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+            await showFail(res.message);
           }
         } else {
           const res = await billingKeyPaymentAction({
@@ -469,12 +477,15 @@ export default function PaymentButton({
           })
           if ('success' in res && res.success) {
             if (type.value === 'lesson') purgeLessonCache(id);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const route = KloudScreen.PaymentRecordDetail(paymentId)
-            await kloudNav.navigateMain({route});
+            // 웹은 결제 결과 검증 핸들러(/payment-redirect)로, 네이티브는 결제상세로.
+            if (appVersion == '') {
+              router.push(`/payment-redirect?paymentId=${paymentId}`);
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              await kloudNav.navigateMain({ route: KloudScreen.PaymentRecordDetail(paymentId) });
+            }
           } else if (isGuinnessErrorCase(res)) {
-            const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-            window.KloudEvent?.showDialog(JSON.stringify(dialog));
+            await showFail(res.message);
           }
         }
       }
