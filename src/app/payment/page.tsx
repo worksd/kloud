@@ -15,20 +15,8 @@ import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
-import { api } from "@/app/api.client";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
-
-// 연습실 이용안내(유의사항)는 결제 응답에 없어 홀 상세(GET /studioRooms/:id)의 description으로 채운다.
-// 실패해도 결제는 계속돼야 하므로 조회 실패 시 undefined.
-const getStudioRoomDescription = async (studioRoomId: number): Promise<string | undefined> => {
-  try {
-    const room = await api.studioRoom.get({ id: studioRoomId });
-    return isGuinnessErrorCase(room) ? undefined : room?.description;
-  } catch {
-    return undefined;
-  }
-};
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -335,7 +323,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           <PracticeRoomPaymentWrapper
             payment={res}
             studioRoomId={itemId}
-            description={await getStudioRoomDescription(itemId)}
+            description={res.studioRoom?.description}
             url={process.env.GUINNESS_API_SERVER ?? ''}
             appVersion={appVersion}
             os={os}

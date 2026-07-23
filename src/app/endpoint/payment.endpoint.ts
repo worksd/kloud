@@ -112,6 +112,8 @@ export type GetPaymentResponse = {
   studioRoom?: {
     id: number;
     name: string;
+    /** 홀 이용안내(유의사항) HTML. 결제 페이지 렌더용. */
+    description?: string;
     unitPrice?: number;
     minBookingDuration: number;
     maxBookingDuration?: number | null;
