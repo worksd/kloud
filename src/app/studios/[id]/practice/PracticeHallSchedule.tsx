@@ -127,8 +127,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
   // 시간표 바텀시트 (홀 탭 시) — 드래그로 내려서 닫기 지원
   const [sheetRoomId, setSheetRoomId] = useState<number | null>(null);
   const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
-  const [priceOpen, setPriceOpen] = useState(false);   // 시간당 가격 안내 접힘/펼침
-  const [infoOpen, setInfoOpen] = useState(false);     // 홀 정보 접힘/펼침
+  const [priceOpen, setPriceOpen] = useState(false);   // 시간당 가격 안내 — 기본 접힘
+  const [infoOpen, setInfoOpen] = useState(true);      // 홀 정보 — 기본 펼침
   const [dragY, setDragY] = useState(0);        // 드래그 중 아래로 이동한 거리(px)
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef<number | null>(null);
