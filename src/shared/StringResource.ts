@@ -2848,17 +2848,39 @@ export const StringResource = {
     zh: '我的预约'
   },
   guest_info_title: {
-    ko: '예약자 정보',
-    en: 'Booker Info',
-    jp: '予約者情報',
-    zh: '预约人信息'
+    ko: '예약 신청',
+    en: 'Booking Request',
+    jp: '予約申込',
+    zh: '预约申请'
   },
   guest_info_desc: {
-    ko: '비회원 예약을 위해 예약자 정보를 입력해주세요.',
-    en: 'Enter booker info to reserve as a guest.',
-    jp: '非会員予約のため予約者情報を入力してください。',
-    zh: '请输入预约人信息以进行非会员预约。'
+    ko: '예약 신청을 위해 이름과 연락처를 입력해주세요.',
+    en: 'Enter your name and phone to request the booking.',
+    jp: '予約申込のためお名前と連絡先を入力してください。',
+    zh: '请输入姓名和联系方式以申请预约。'
   },
+  guest_title_lesson: { ko: '수업 신청', en: 'Lesson Request', jp: 'レッスン申込', zh: '课程申请' },
+  guest_desc_lesson: { ko: '수업 신청을 위해 이름과 연락처를 입력해주세요.', en: 'Enter your name and phone to request the lesson.', jp: 'レッスン申込のためお名前と連絡先を入力してください。', zh: '请输入姓名和联系方式以申请课程。' },
+  guest_title_pass: { ko: '패스권 구매', en: 'Buy Pass', jp: 'パス購入', zh: '购买通票' },
+  guest_desc_pass: { ko: '패스권 구매를 위해 이름과 연락처를 입력해주세요.', en: 'Enter your name and phone to buy the pass.', jp: 'パス購入のためお名前と連絡先を入力してください。', zh: '请输入姓名和联系方式以购买通票。' },
+  guest_title_room: { ko: '연습실 예약', en: 'Room Booking', jp: '練習室予約', zh: '练习室预约' },
+  guest_desc_room: { ko: '연습실 예약을 위해 이름과 연락처를 입력해주세요.', en: 'Enter your name and phone to book the room.', jp: '練習室予約のためお名前と連絡先を入力してください。', zh: '请输入姓名和联系方式以预约练习室。' },
+  guest_login_hint: {
+    ko: '이미 회원이신가요?',
+    en: 'Already a member?',
+    jp: 'すでに会員ですか？',
+    zh: '已经是会员？'
+  },
+  login_do: {
+    ko: '로그인하기',
+    en: 'Log in',
+    jp: 'ログイン',
+    zh: '去登录'
+  },
+  app_install_title: { ko: '앱에서 더 편하게 이용하세요', en: 'Enjoy more in the app', jp: 'アプリでもっと便利に', zh: '在应用中体验更佳' },
+  app_install_desc: { ko: '앱을 설치하면 예약·결제를 더 빠르고 편리하게 이용할 수 있어요.', en: 'Install the app for faster, easier booking and payment.', jp: 'アプリなら予約・決済がもっと簡単・スピーディー。', zh: '安装应用，预约与支付更快更便捷。' },
+  app_install_cta: { ko: '앱 설치하기', en: 'Install the app', jp: 'アプリをインストール', zh: '安装应用' },
+  app_install_dismiss: { ko: '웹으로 계속 보기', en: 'Continue on web', jp: 'ウェブで続ける', zh: '继续使用网页' },
   guest_name_label: {
     ko: '이름',
     en: 'Name',

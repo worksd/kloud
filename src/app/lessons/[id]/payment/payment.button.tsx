@@ -121,7 +121,7 @@ export default function PaymentButton({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   // 비회원(연습실 게스트) 결제 — 예약자 phone/name
-  const [guestInfo, setGuestInfo] = useState<{ phone: string; name: string } | null>(null);
+  const [guestInfo, setGuestInfo] = useState<{ phone: string; name: string; countryCode: string } | null>(null);
   const [guestSheetOpen, setGuestSheetOpen] = useState(false);
   const router = useRouter();
 
@@ -160,7 +160,7 @@ export default function PaymentButton({
     }
   }, [router, appVersion, id, type]);
 
-  const handlePayment = async (guestOverride?: { phone: string; name: string }) => {
+  const handlePayment = async (guestOverride?: { phone: string; name: string; countryCode: string }) => {
     const isGuest = !user || !('id' in user);
     const guest = guestOverride ?? guestInfo;
 
@@ -196,7 +196,7 @@ export default function PaymentButton({
       }
       if (isGuest && guest) {
         d.phone = guest.phone;
-        d.countryCode = '82';
+        d.countryCode = guest.countryCode;
         d.name = guest.name;
       }
       return d;
@@ -205,7 +205,7 @@ export default function PaymentButton({
       ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
       : {};
     const guestManualFields = (isGuest && guest)
-      ? { phone: guest.phone, countryCode: '82', name: guest.name }
+      ? { phone: guest.phone, countryCode: guest.countryCode, name: guest.name }
       : {};
 
     if (price == 0) {
@@ -426,7 +426,7 @@ export default function PaymentButton({
             ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
             : {}),
           ...(isGuest && guestInfo
-            ? { phone: guestInfo.phone, countryCode: '82', name: guestInfo.name }
+            ? { phone: guestInfo.phone, countryCode: guestInfo.countryCode, name: guestInfo.name }
             : {}),
         });
         if ('paymentId' in res) {
@@ -554,11 +554,20 @@ export default function PaymentButton({
       {guestSheetOpen && (
         <GuestInfoBottomSheet
           locale={locale}
+          itemType={type.apiValue}
           onClose={() => setGuestSheetOpen(false)}
           onConfirm={(info) => {
             setGuestInfo(info);
             setGuestSheetOpen(false);
             void handlePayment(info);
+          }}
+          onLogin={() => {
+            setGuestSheetOpen(false);
+            // 로그인 후 현재 결제 페이지로 복귀
+            const returnUrl = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+            const route = KloudScreen.LoginIntro(`?returnUrl=${encodeURIComponent(returnUrl)}`);
+            if (appVersion === '') router.push(route);
+            else kloudNav.push(route);
           }}
         />
       )}

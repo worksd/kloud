@@ -8,9 +8,9 @@ import { UnifiedPaymentInfo } from "@/app/payment/UnifiedPaymentInfo";
 import { CircleImage } from "@/app/components/CircleImage";
 import { getLocale, translate } from "@/utils/translate";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
-import { BackButton } from "@/app/payment/BackButton";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
+import { PaymentProfileButton } from "@/app/payment/PaymentProfileButton";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
@@ -177,8 +177,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
       <div className="flex flex-col">
-        {appVersion === '' && (
-          <BackButton />
+        {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
+        {appVersion === '' && 'user' in res && res.user && (
+          <PaymentProfileButton
+            name={res.user.name ?? res.user.nickName ?? undefined}
+            profileImageUrl={res.user.profileImageUrl ?? undefined}
+            locale={await getLocale()}
+          />
         )}
         {/* lesson / lesson-group */}
         {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
