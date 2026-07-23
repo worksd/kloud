@@ -50,7 +50,8 @@ type PaymentInfo = {
   paymentId: string
   orderName: string
   price: number
-  userId: string
+  /** PortOne customer.id. 비회원은 미지정(null) — phone은 customData로만 전달. */
+  userId?: string
   method: string
   customData: string
   userName?: string
@@ -185,7 +186,8 @@ export default function PaymentButton({
     // 결제 payload 공통값 (회원/비회원 분기)
     const payerName = isGuest ? guest!.name : (user!.name ?? user!.nickName ?? undefined);
     const payerPhone = isGuest ? guest!.phone : (user!.phone ?? undefined);
-    const customerId = isGuest ? guest!.phone : `${user!.id}`;
+    // 비회원은 PortOne customer.id를 null로(=undefined). phone은 customData로만 전달(하단 buildCustomData).
+    const customerId = isGuest ? undefined : `${user!.id}`;
     // customData: 연습실이면 예약 시간대(start/end), 비회원이면 phone/countryCode/name 동봉.
     // (studioRoomId는 paymentId(PR{roomId}-)에서 서버가 파싱하므로 넣지 않음)
     const buildCustomData = () => {

@@ -33,7 +33,7 @@ export function AppInstallDialog({ locale }: { locale: Locale }) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-6 animate-[fadeIn_180ms_ease-out]">
       <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
       <div className="relative w-full max-w-[360px] rounded-3xl bg-white px-6 pt-7 pb-5 text-center animate-[slideUp_220ms_ease-out]">
-        <Logo className="mx-auto mb-5 h-7 w-auto" />
+        <Logo className="mx-auto mb-5 h-5 w-auto" />
         <h2 className="text-[18px] font-bold text-[#171717]">{t('app_install_title')}</h2>
         <p className="mt-2 text-[13px] text-[#86898C] leading-relaxed">{t('app_install_desc')}</p>
 
