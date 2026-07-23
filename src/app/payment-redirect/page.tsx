@@ -28,7 +28,7 @@ export default async function PaymentRedirectPage({searchParams}:
   if (!paymentId) {
     return <Message text="결제 정보를 확인할 수 없습니다." />
   }
-  await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
+  await new Promise(resolve => setTimeout(resolve, 4000)); // 이 코드 없으면 갱신안됨 (서버 반영 대기)
   const res = await getPaymentRecordDetail({paymentId: paymentId});
   const route = 'paymentId' in res ? KloudScreen.PaymentRecordDetail(paymentId) : null
   if (route) redirect(route)
