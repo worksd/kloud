@@ -19,6 +19,7 @@ import { PracticeHallSection } from "@/app/studios/[id]/practice/PracticeHallSec
 import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
 import { PracticePassList } from "@/app/studios/[id]/practice/PracticePassList";
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
+import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
@@ -48,6 +49,8 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
     tag: p.tag ?? (p.isRecommended ? popularLabel : undefined),
   }));
   const hasPasses = passes.length > 0;
+  // 건물 편의시설 — enabled만 (홀 자체 시설은 홀 정보 시트에서 별도 표시)
+  const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
 
   return (
     <ScrollContainer className="w-full h-screen bg-white flex flex-col pb-32 box-border overflow-y-auto no-scrollbar studio-detail-container">
@@ -108,8 +111,8 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
         </div>
       </div>
 
-      {/* 상세 영역 */}
-      <div className="flex flex-col gap-2 mt-6">
+      {/* 상세 영역 — 헤더(주소/SNS) 아래, 모든 섹션은 회색 구분선 + 동일 상단여백(pt-6)으로 통일 */}
+      <div className="flex flex-col mt-6">
         <div className="flex flex-row items-center px-6 gap-2">
           <LocationIcon className="flex-shrink-0"/>
           <div className="text-[#505356] text-[14px] font-medium">{studio.address}</div>
@@ -120,77 +123,72 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           {studio.youtubeUrl && <StudioIcon type={'youtube'} url={studio.youtubeUrl} appVersion={appVersion}/>}
         </div>
 
-        <section>
-          {studio.banners && studio.banners.length > 0 && (
-              <div className="flex flex-col">
-                {studio.banners && studio.banners.length > 0 && (
-                    <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-                      {studio.banners.map((banner) => {
-                        const isExpired = new Date(banner.endDate) < new Date();
-                        if (isExpired) return null;
-
-                        return (
-                            <NavigateClickWrapper
-                                key={banner.id}
-                                method="push"
-                                route={banner.route}
-                            >
-                              <div className="min-w-[calc(100vw-32px)] snap-start pl-4">
-                                <div className="w-full aspect-[32/9] relative rounded-2xl mb-2 overflow-hidden">
-                                  <Image
-                                      src={banner.imageUrl}
-                                      alt={banner.description || '배너'}
-                                      fill
-                                      className="object-cover"
-                                  />
-                                </div>
-                              </div>
-                            </NavigateClickWrapper>
-                        );
-                      })}
+        {/* 배너 */}
+        {studio.banners && studio.banners.length > 0 && (
+          <section className="mt-2">
+            <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
+              {studio.banners.map((banner) => {
+                const isExpired = new Date(banner.endDate) < new Date();
+                if (isExpired) return null;
+                return (
+                  <NavigateClickWrapper key={banner.id} method="push" route={banner.route}>
+                    <div className="min-w-[calc(100vw-32px)] snap-start pl-4">
+                      <div className="w-full aspect-[32/9] relative rounded-2xl overflow-hidden">
+                        <Image src={banner.imageUrl} alt={banner.description || '배너'} fill className="object-cover"/>
+                      </div>
                     </div>
-                )}
-              </div>
-          )}
-        </section>
-
-
-        {/* 공지사항 — 새 아코디언 UI. 배너 아래·시간표 위 */}
-        {notices.length > 0 && (
-          <section className="px-4 mt-2">
-            <div className="text-[20px] text-black font-bold mb-2.5">
-              {await translate('studio_announcement')}
+                  </NavigateClickWrapper>
+                );
+              })}
             </div>
-            <PracticeNoticeList notices={notices} studioId={studio.id} locale={locale} />
           </section>
         )}
 
-        {/* 시간표는 진행중인 수업이 있을 때만 조회·렌더 */}
-        {hasLessons && <TimeTableServerComponent studioId={studio.id} useSheet/>}
+        {/* 공지사항 */}
+        {notices.length > 0 && (
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-2"/>
+            <section className="px-4 pt-6">
+              <div className="text-[20px] text-black font-bold mb-2.5">{await translate('studio_announcement')}</div>
+              <PracticeNoticeList notices={notices} studioId={studio.id} locale={locale} />
+            </section>
+          </>
+        )}
 
+        {/* 시간표 — 진행중인 수업이 있을 때만 */}
+        {hasLessons && (
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <TimeTableServerComponent studioId={studio.id} useSheet noMargin/>
+          </>
+        )}
+
+        {/* YouTube */}
         {youtubeContents.length > 0 && (
-          <section>
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
             <YoutubeContentSection
               contents={youtubeContents}
               title="최근 YouTube 영상"
               channelUrl={studio.youtubeUrl}
               locale={locale}
             />
-          </section>
+          </>
         )}
 
+        {/* 정기수업 */}
         {studio.lessonGroups && studio.lessonGroups.length > 0 && (
           <>
-            <div className="w-full h-3 bg-[#f7f8f9]"/>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
             <LessonGroupBand lessonGroups={studio.lessonGroups} locale={locale} />
           </>
         )}
 
-        {/* 진행중인 수업 — 수업이 있을 때만. 탭 시 바텀시트로 정보 + 바로 결제 진입 */}
+        {/* 진행중인 수업 — 탭 시 바텀시트로 정보 + 바로 결제 */}
         {hasLessons && (
-          <div>
-            <div className="w-full h-3 bg-[#f7f8f9]"/>
-            <div className="mt-4">
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <div className="pt-6">
               <LessonBookingList
                 studioId={studio.id}
                 title={await translate('ongoing_lessons')}
@@ -199,25 +197,48 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
                 appVersion={appVersion}
               />
             </div>
-          </div>
+          </>
         )}
 
-        {/* 이용권 — 홀별 예약현황 위. 선택 시 하단 액션바로 구매 진입 */}
+        {/* 이용권 */}
         {hasPasses && (
           <>
-            <div className="w-full h-3 bg-[#f7f8f9]"/>
-            <div className="px-4 mt-6">
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <section className="px-4 pt-6">
               <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_pass')}</h2>
               <PracticeActionProvider>
                 <PracticePassList passes={passes} studioId={studio.id} locale={locale} />
               </PracticeActionProvider>
-            </div>
+            </section>
           </>
         )}
 
-        {/* 홀(연습실) 예약현황 — practiceRooms가 있을 때만 */}
+        {/* 편의시설 — 건물 시설(enabled만) */}
+        {amenities.length > 0 && (
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <section className="px-4 pt-6">
+              <div className="text-[20px] text-black font-bold mb-2.5">{await translate('community_amenities')}</div>
+              <div className="flex flex-wrap gap-2">
+                {amenities.map((a) => (
+                  <span key={a.amenity} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F8F9] border border-[#EEF0F2] text-[13px] font-medium text-[#333]">
+                    <PracticeAmenityIcon name={a.label} className="w-4 h-4 shrink-0" />
+                    {a.label}
+                  </span>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* 홀(연습실) 예약현황 */}
         {hasHalls && (
-          <PracticeHallSection practiceRooms={studio.practiceRooms} locale={locale} />
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <section className="pt-6">
+              <PracticeHallSection practiceRooms={studio.practiceRooms} locale={locale} />
+            </section>
+          </>
         )}
       </div>
 
