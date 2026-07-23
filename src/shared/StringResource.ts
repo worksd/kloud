@@ -2871,6 +2871,8 @@ export const StringResource = {
     jp: 'すでに会員ですか？',
     zh: '已经是会员？'
   },
+  guest_verify_continue: { ko: '결제하기', en: 'Verify & continue', jp: '認証して続ける', zh: '验证并继续' },
+  guest_code_sent: { ko: '인증번호를 보냈어요.', en: 'Verification code sent.', jp: '認証番号を送信しました。', zh: '已发送验证码。' },
   login_do: {
     ko: '로그인하기',
     en: 'Log in',

@@ -61,6 +61,9 @@ type PaymentInfo = {
   pgProvider?: string
 }
 
+// 결제 대상 사용자 — 회원(user) 또는 폰 인증으로 방금 로그인한 사용자를 하나로 정규화.
+type Payer = { id: number; name?: string; phone?: string; birth?: string };
+
 const easyPayMethodMap: Partial<Record<PaymentMethodType, string>> = {
   naver_pay: 'naverpay',
   kakao_pay: 'kakaopay',
@@ -122,7 +125,7 @@ export default function PaymentButton({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [webDialogInfo, setWebDialogInfo] = useState<DialogInfo | null>(null);
   // 비회원(연습실 게스트) 결제 — 예약자 phone/name
-  const [guestInfo, setGuestInfo] = useState<{ phone: string; name: string; countryCode: string } | null>(null);
+  // 폰 인증 시트(비회원 결제 폐지 → 인증 로그인으로 대체) 열림 상태
   const [guestSheetOpen, setGuestSheetOpen] = useState(false);
   const router = useRouter();
 
@@ -161,53 +164,20 @@ export default function PaymentButton({
     }
   }, [router, appVersion, id, type]);
 
-  const handlePayment = async (guestOverride?: { phone: string; name: string; countryCode: string }) => {
-    const isGuest = !user || !('id' in user);
-    const guest = guestOverride ?? guestInfo;
+  // authedPayer: 폰 인증 성공 시 handlePayment로 전달받는 사용자. 없으면 로그인된 user 사용.
+  const handlePayment = async (authedPayer?: { userId: number; name: string; phone: string }) => {
+    let payer: Payer | null = null;
+    if (authedPayer) payer = { id: authedPayer.userId, name: authedPayer.name, phone: authedPayer.phone };
+    else if (user && 'id' in user) payer = { id: user.id, name: user.name ?? user.nickName ?? undefined, phone: user.phone ?? undefined, birth: user.birth ?? undefined };
 
-    // 비회원 결제는 연습실만 허용. 정보 없으면 예약자 정보 바텀시트부터 띄운다.
-    if (isGuest) {
-      if (type.value !== 'practiceRoom') {
-        setIsSubmitting(false);
-        return;
-      }
-      if (!guest) {
-        setGuestSheetOpen(true);
-        return;
-      }
-    }
-
-    if (type.value === 'practiceRoom' && !practiceRoomInfo) {
-      const dialog = await createDialog({ id: 'Simple', message: getLocaleString({ locale, key: 'select_time' }) });
-      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    // 저장된 토큰(로그인) 없으면 폰 인증 시트부터. 인증 성공 시 토큰이 저장되므로 handlePayment 재호출.
+    if (!payer) {
+      setGuestSheetOpen(true);
       return;
     }
 
-    // 결제 payload 공통값 (회원/비회원 분기)
-    const payerName = isGuest ? guest!.name : (user!.name ?? user!.nickName ?? undefined);
-    const payerPhone = isGuest ? guest!.phone : (user!.phone ?? undefined);
-    // 비회원은 PortOne customer.id를 null로(=undefined). phone은 customData로만 전달(하단 buildCustomData).
-    const customerId = isGuest ? undefined : `${user!.id}`;
-    // customData: 연습실이면 예약 시간대(start/end), 비회원이면 phone/countryCode/name 동봉.
-    // (studioRoomId는 paymentId(PR{roomId}-)에서 서버가 파싱하므로 넣지 않음)
-    const buildCustomData = () => {
-      const d: Record<string, unknown> = { actualPayerUserId, discounts: selectedDiscounts };
-      if (type.value === 'practiceRoom' && practiceRoomInfo) {
-        d.startDate = practiceRoomInfo.startDate;
-        d.endDate = practiceRoomInfo.endDate;
-      }
-      if (isGuest && guest) {
-        d.phone = guest.phone;
-        d.countryCode = guest.countryCode;
-        d.name = guest.name;
-      }
-      return d;
-    };
     const roomManualFields = (type.value === 'practiceRoom' && practiceRoomInfo)
       ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
-      : {};
-    const guestManualFields = (isGuest && guest)
-      ? { phone: guest.phone, countryCode: guest.countryCode, name: guest.name }
       : {};
 
     if (price == 0) {
@@ -217,10 +187,9 @@ export default function PaymentButton({
           methodType: 'free',
           item: type.apiValue,
           itemId: id,
-          targetUserId: isGuest ? undefined : user!.id,
+          targetUserId: payer.id,
           discounts: selectedDiscounts,
           ...roomManualFields,
-          ...guestManualFields,
         })
         if ('paymentId' in res) {
           if (type.value === 'lesson') purgeLessonCache(id);
@@ -241,6 +210,14 @@ export default function PaymentButton({
     }
 
     if (method === 'credit' || method === 'foreign_card' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay') {
+      const buildCustomData = () => {
+        const customData: Record<string, unknown> = { actualPayerUserId, discounts: selectedDiscounts };
+        if (type.value === 'practiceRoom' && practiceRoomInfo) {
+          customData.startDate = practiceRoomInfo.startDate;
+          customData.endDate = practiceRoomInfo.endDate;
+        }
+        return customData;
+      };
       if (type.value == 'lesson') {
         const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
 
@@ -261,12 +238,12 @@ export default function PaymentButton({
         paymentId,
         orderName: title,
         price: price ?? 0,
-        userId: customerId,
+        userId: `${payer.id}`,
         method: method && easyPayMethodMap[method] ? easyPayMethodMap[method]! : 'CARD',
         customData: JSON.stringify(buildCustomData()),
-        userName: payerName,
-        userPhone: payerPhone,
-        userBirth: isGuest ? undefined : (user!.birth ?? undefined),
+        userName: payer.name,
+        userPhone: payer.phone,
+        userBirth: payer.birth,
         locale: method === 'foreign_card' ? 'EN_US' : locale === 'en' ? 'EN_US' : locale === 'zh' ? 'ZH_CN' : 'KO_KR',
       };
 
@@ -286,8 +263,8 @@ export default function PaymentButton({
           totalAmount: paymentInfo.price,
           currency: 'CURRENCY_KRW',
           customer: {
-            customerId,
-            fullName: paymentInfo.userName ?? customerId,
+            customerId: `${payer.id}`,
+            fullName: paymentInfo.userName ?? `${payer.id}`,
           } as any,
           // 결제 결과 검증 핸들러(/payment-redirect)로 리다이렉트 — PortOne이 paymentId/message를 붙여줌.
           // 실패/취소면 message 표시, 성공이면 결제기록 확인 후 결제상세로 이동 (webhook 반영 대기 포함).
@@ -303,9 +280,6 @@ export default function PaymentButton({
             },
           } : {}),
         } as PaymentRequest;
-
-        // 모바일 웹은 redirectUrl로 이동해 아래 코드에 도달하지 않음.
-        // PC 웹은 결제창(팝업) 종료 후 결과가 resolve됨 → 성공 시 결제 상세로 이동.
         const result = await requestPayment(mobileWebPaymentRequest);
         if (result?.code != null) {
           // 실패/취소 — PortOne이 code 반환. 결제상세로 안 보냄.
@@ -313,7 +287,6 @@ export default function PaymentButton({
           if (dialog) setWebDialogInfo(dialog);
           return;
         }
-        // 성공 → 결제 결과 검증 핸들러로 이동 (webhook 반영 대기 후 결제상세로 redirect)
         router.push(`/payment-redirect?paymentId=${paymentInfo.paymentId}`);
         return;
       }
@@ -416,19 +389,17 @@ export default function PaymentButton({
     try {
       setIsSubmitting(true);
       if (data.id == 'AccountTransfer') {
-        const isGuest = !user || !('id' in user);
+        // 폰 인증 직후엔 user prop이 아직 갱신 전일 수 있으나, 토큰이 쿠키에 있어 서버가 사용자 식별.
+        const payerUserId = (user && 'id' in user) ? user.id : undefined;
         const res = await createManualPaymentRecordAction({
           methodType: 'account_transfer',
           item: type.apiValue,
           itemId: id,
-          targetUserId: isGuest ? undefined : user!.id,
+          targetUserId: payerUserId,
           depositor: depositor,
           discounts: selectedDiscounts,
           ...(type.value === 'practiceRoom' && practiceRoomInfo
             ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
-            : {}),
-          ...(isGuest && guestInfo
-            ? { phone: guestInfo.phone, countryCode: guestInfo.countryCode, name: guestInfo.name }
             : {}),
         });
         if ('paymentId' in res) {
@@ -518,7 +489,7 @@ export default function PaymentButton({
     window.onDialogConfirm = async (data: DialogInfo) => {
       await onConfirmDialog(data)
     }
-  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo, guestInfo])
+  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo])
 
 
   return (
@@ -558,14 +529,14 @@ export default function PaymentButton({
           locale={locale}
           itemType={type.apiValue}
           onClose={() => setGuestSheetOpen(false)}
-          onConfirm={(info) => {
-            setGuestInfo(info);
+          onAuthenticated={(info) => {
+            // 폰 인증 로그인 성공(토큰 쿠키 저장 완료) → 그 payer로 바로 결제 재개
             setGuestSheetOpen(false);
-            void handlePayment(info);
+            void handlePayment({ userId: info.userId, name: info.name, phone: info.phone });
           }}
           onLogin={() => {
+            // 다른 방식(소셜/이메일) 로그인 화면으로. 로그인 후 현재 결제 페이지로 복귀.
             setGuestSheetOpen(false);
-            // 로그인 후 현재 결제 페이지로 복귀
             const returnUrl = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
             const route = KloudScreen.LoginIntro(`?returnUrl=${encodeURIComponent(returnUrl)}`);
             if (appVersion === '') router.push(route);

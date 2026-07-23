@@ -3,9 +3,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { sendPaymentPhoneCodeAction, verifyPaymentPhoneLoginAction } from "@/app/payment/phone.auth.action";
 
-// 비회원(게스트) 연습실 결제 — 결제하기 시 예약자 phone/name 입력 바텀시트.
-// 확인 시 { phone, name } 을 반환하면 상위에서 customData에 실어 결제 진행.
+// 비회원 결제 폐지 → 결제 전 폰 인증 로그인 시트. 정보 입력 → 인증번호 확인(=폰 로그인, 토큰 쿠키 저장)
+// → onAuthenticated로 상위에서 회원 결제 진행.
 // 국가번호(dial code, + 제외). 기본 한국(82).
 const COUNTRY_CODES = [
   { code: '82', label: '🇰🇷 +82' },
@@ -44,24 +45,32 @@ const DESC_KEY: Record<string, Parameters<typeof getLocaleString>[0]['key']> = {
 export const GuestInfoBottomSheet = ({
   locale,
   itemType,
-  onConfirm,
+  onAuthenticated,
   onClose,
   onLogin,
 }: {
   locale: Locale;
   /** 결제 아이템 종류(lesson/pass-plan/practice-room 등) — 제목·설명 문구 분기 */
   itemType?: string;
-  onConfirm: (info: { phone: string; name: string; countryCode: string }) => void;
+  /** 폰 인증 로그인 성공 시 — 상위에서 회원으로 결제 진행 */
+  onAuthenticated: (info: { userId: number; name: string; phone: string; countryCode: string }) => void;
   onClose: () => void;
-  /** '로그인하기' 탭 시 — 상위에서 로그인 화면으로 이동(returnUrl 포함) */
+  /** '로그인하기' 탭 시 — 소셜/이메일 등 다른 방식 로그인 화면으로 이동 */
   onLogin?: () => void;
 }) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const titleKey = (itemType && TITLE_KEY[itemType]) || 'guest_info_title';
   const descKey = (itemType && DESC_KEY[itemType]) || 'guest_info_desc';
+
+  const [step, setStep] = useState<'input' | 'code'>('input');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('82');
+  const [code, setCode] = useState('');
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [entered, setEntered] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -102,7 +111,41 @@ export const GuestInfoBottomSheet = ({
   };
 
   const digits = phone.replace(/\D/g, '');
-  const valid = name.trim().length > 0 && digits.length >= 9;
+  const canSend = name.trim().length > 0 && digits.length >= 9;
+  const canVerify = code.trim().length >= 4;
+
+  const handleSend = async () => {
+    if (!canSend || sending) return;
+    setError(null);
+    setSending(true);
+    try {
+      const res = await sendPaymentPhoneCodeAction({ phone: digits, countryCode });
+      if ('ttl' in res) {
+        setStep('code');
+        setCode('');
+      } else {
+        setError(res.message);
+      }
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!canVerify || verifying) return;
+    setError(null);
+    setVerifying(true);
+    try {
+      const res = await verifyPaymentPhoneLoginAction({ code: code.trim(), phone: digits, countryCode, name: name.trim() });
+      if ('accessToken' in res && res.accessToken) {
+        close(() => onAuthenticated({ userId: res.user.id, name: name.trim(), phone: digits, countryCode }));
+      } else {
+        setError('message' in res ? res.message : t('unknown_error_message'));
+      }
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end">
@@ -122,53 +165,99 @@ export const GuestInfoBottomSheet = ({
         <p className="text-[18px] font-bold text-[#171717]">{t(titleKey)}</p>
         <p className="mt-1 text-[13px] text-[#86898C] leading-snug">{t(descKey)}</p>
 
-        <div className="mt-5 flex flex-col gap-3">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13px] font-medium text-[#4E5968]">{t('guest_name_label')}</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('guest_name_placeholder')}
-              className="h-12 rounded-xl bg-[#F1F3F6] px-4 text-[15px] text-[#171717] placeholder:text-[#A0A5AB] outline-none focus:ring-2 focus:ring-[#171717]/10"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13px] font-medium text-[#4E5968]">{t('guest_phone_label')}</span>
-            <div className="flex gap-2">
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                aria-label="country code"
-                className="h-12 shrink-0 rounded-xl bg-[#F1F3F6] px-3 text-[15px] text-[#171717] outline-none focus:ring-2 focus:ring-[#171717]/10"
-              >
-                {COUNTRY_CODES.map((c) => (
-                  <option key={c.code} value={c.code}>{c.label}</option>
-                ))}
-              </select>
+        {step === 'input' ? (
+          <>
+            <div className="mt-5 flex flex-col gap-3">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[13px] font-medium text-[#4E5968]">{t('guest_name_label')}</span>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t('guest_name_placeholder')}
+                  className="h-12 rounded-xl bg-[#F1F3F6] px-4 text-[15px] text-[#171717] placeholder:text-[#A0A5AB] outline-none focus:ring-2 focus:ring-[#171717]/10"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[13px] font-medium text-[#4E5968]">{t('guest_phone_label')}</span>
+                <div className="flex gap-2">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    aria-label="country code"
+                    className="h-12 shrink-0 rounded-xl bg-[#F1F3F6] px-3 text-[15px] text-[#171717] outline-none focus:ring-2 focus:ring-[#171717]/10"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code}>{c.label}</option>
+                    ))}
+                  </select>
+                  <input
+                    value={formatPhoneDisplay(phone, countryCode)}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ''))}
+                    inputMode="numeric"
+                    type="tel"
+                    placeholder={t('guest_phone_placeholder')}
+                    className="h-12 flex-1 min-w-0 rounded-xl bg-[#F1F3F6] px-4 text-[15px] text-[#171717] placeholder:text-[#A0A5AB] outline-none focus:ring-2 focus:ring-[#171717]/10"
+                  />
+                </div>
+              </label>
+            </div>
+
+            {error && <p className="mt-3 text-[12px] text-[#E5484D]">{error}</p>}
+
+            <button
+              type="button"
+              disabled={!canSend || sending}
+              onClick={handleSend}
+              className={`mt-5 w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${canSend && !sending ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E0E0E0] cursor-not-allowed'}`}
+            >
+              <span className={`text-[16px] font-bold ${canSend && !sending ? 'text-white' : 'text-[#999]'}`}>{t('submit_code')}</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="mt-4 text-[13px] text-[#4E5968]">
+              {t('guest_code_sent')} <span className="font-bold">{`+${countryCode} ${formatPhoneDisplay(phone, countryCode)}`}</span>
+            </p>
+            <label className="mt-4 flex flex-col gap-1.5">
+              <span className="text-[13px] font-medium text-[#4E5968]">{t('certification_code')}</span>
               <input
-                value={formatPhoneDisplay(phone, countryCode)}
-                onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ''))}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^\d]/g, '').slice(0, 6))}
                 inputMode="numeric"
                 type="tel"
-                placeholder={t('guest_phone_placeholder')}
-                className="h-12 flex-1 min-w-0 rounded-xl bg-[#F1F3F6] px-4 text-[15px] text-[#171717] placeholder:text-[#A0A5AB] outline-none focus:ring-2 focus:ring-[#171717]/10"
+                autoFocus
+                placeholder={t('placeholder_six_code')}
+                className="h-12 rounded-xl bg-[#F1F3F6] px-4 text-[15px] tracking-widest text-[#171717] placeholder:text-[#A0A5AB] placeholder:tracking-normal outline-none focus:ring-2 focus:ring-[#171717]/10"
               />
-            </div>
-          </label>
-        </div>
+            </label>
 
-        <button
-          disabled={!valid}
-          onClick={() => close(() => onConfirm({ phone: digits, name: name.trim(), countryCode }))}
-          className={`mt-5 w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${valid ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E0E0E0] cursor-not-allowed'}`}
-        >
-          <span className={`text-[16px] font-bold ${valid ? 'text-white' : 'text-[#999]'}`}>{t('confirm')}</span>
-        </button>
+            <div className="mt-2 flex items-center justify-between">
+              <button type="button" onClick={() => { setStep('input'); setError(null); }} className="text-[12px] text-[#A0A5AB] active:opacity-60">
+                {t('guest_phone_label')}
+              </button>
+              <button type="button" disabled={sending} onClick={handleSend} className="text-[12px] font-bold text-[#4E5968] underline underline-offset-2 active:opacity-60 disabled:opacity-50">
+                {t('certification_code_retry')}
+              </button>
+            </div>
+
+            {error && <p className="mt-3 text-[12px] text-[#E5484D]">{error}</p>}
+
+            <button
+              type="button"
+              disabled={!canVerify || verifying}
+              onClick={handleVerify}
+              className={`mt-5 w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${canVerify && !verifying ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E0E0E0] cursor-not-allowed'}`}
+            >
+              <span className={`text-[16px] font-bold ${canVerify && !verifying ? 'text-white' : 'text-[#999]'}`}>{t('guest_verify_continue')}</span>
+            </button>
+          </>
+        )}
 
         {onLogin && (
           <div className="mt-3 flex items-center justify-center gap-1.5">
             <span className="text-[12px] text-[#A0A5AB]">{t('guest_login_hint')}</span>
             <button
+              type="button"
               onClick={() => close(() => onLogin())}
               className="text-[12px] font-bold text-[#4E5968] underline underline-offset-2 active:opacity-60"
             >
