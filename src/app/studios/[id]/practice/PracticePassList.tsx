@@ -28,7 +28,7 @@ export function PracticePassList({ passes, studioId, locale }: { passes: Communi
       setAction({
         source: 'pass',
         label: t('community_buy_pass').replace('{name}', pass.name),
-        onConfirm: () => kloudNav.push(`/payment?item=pass-plan&id=${pass.id}`),
+        onConfirm: () => kloudNav.push(KloudScreen.PassPlanPayment(pass.id)),
       });
     } else {
       clearAction('pass');

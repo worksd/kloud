@@ -6,6 +6,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import calendarStyles from "@/app/kiosk/CalendarStyles.module.css";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getRoomsAvailabilityByIdsAction } from "@/app/community/community.actions";
 import { Locale } from "@/shared/StringResource";
@@ -201,7 +202,10 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
     if (crossesMidnight) endD.setDate(endD.getDate() + 1);
     const startTime = `${startDateStr}T${startHHmm}`;
     const endTime = `${toDateStr(endD)}T${endHHmm}`;
-    kloudNav.push(`/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`);
+    const route = KloudScreen.PracticeRoomPayment(roomId, startTime, endTime);
+    // 네이티브는 KloudEvent push, 웹은 Next 라우터로 이동(window.location 경합 방지).
+    if (typeof window !== 'undefined' && (window as { KloudEvent?: unknown }).KloudEvent) kloudNav.push(route);
+    else router.push(route);
   };
 
   // 예약 가능: 서버 status만 신뢰 (price는 표시용, null이어도 예약 가능 여부와 무관)
@@ -532,13 +536,15 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
             {/* 하단 예약하기 — 누르면 시트 닫으며 결제 이동 */}
             <div className="px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+16px)] shrink-0 border-t border-[#F1F3F6]">
               <button
+                type="button"
                 disabled={!sel}
                 onClick={() => {
                   if (!sel) return;
                   const arr = hourlyOnly(sheetRoom.slots ?? []);
                   const startTime = arr[sel.start].time;
                   const endTime = calcEndTime(arr[sel.end].time);
-                  closeSheet(() => goPay(sheetRoom.id, startTime, endTime));
+                  // 결제 페이지로 바로 이동. closeSheet의 URL 동기화(router.replace)와 경합 방지 위해 애니메이션 닫기 없이 이동.
+                  goPay(sheetRoom.id, startTime, endTime);
                 }}
                 className={`w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${sel ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E4E8EC]'}`}
               >
