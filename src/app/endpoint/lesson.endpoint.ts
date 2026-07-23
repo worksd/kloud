@@ -22,6 +22,7 @@ export type GetLessonResponse = {
     type?: LessonType;
     price?: number;
     level?: string;
+    dday?: string;          // 예: 'D-5' (수업 시작까지)
     artists?: GetArtistResponse[];
     studio?: GetStudioResponse;
     currentStudentCount?: number;

@@ -92,10 +92,12 @@ const getWeekDescription = (baseDate: Date): string => {
   return `${monday.getFullYear()} ${formatDate(monday)} ~ ${formatDate(sunday)}`;
 };
 
-export const TimeTable = ({timeTable, studioId, locale}: {
+export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
   timeTable: GetTimeTableResponse,
   studioId: number,
-  locale: Locale
+  locale: Locale,
+  /** true면 수업 셀 탭 시 상세 이동 대신 스튜디오 바텀시트 오픈 이벤트를 발생시킨다. */
+  useSheet?: boolean,
 }) => {
   const [baseDate, setBaseDate] = useState<Date>(new Date(timeTable.baseDate));
   const [cells, setCells] = useState<GetTimeTableCellResponse[]>(timeTable.cells);
@@ -260,9 +262,16 @@ export const TimeTable = ({timeTable, studioId, locale}: {
               return (
                 <div
                   key={`${item.row}-${item.column}`}
-                  onClick={() =>
-                    isLesson && kloudNav.push(KloudScreen.LessonDetail(item.lesson!.id))
-                  }
+                  onClick={() => {
+                    if (!isLesson) return;
+                    const lessonId = item.lesson!.id;
+                    // 스튜디오 상세: 바텀시트 오픈 이벤트. 홈 등: 수업 상세로 이동.
+                    if (useSheet) {
+                      window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
+                    } else {
+                      kloudNav.push(KloudScreen.LessonDetail(lessonId));
+                    }
+                  }}
                   className={`overflow-hidden transition-all duration-150
                     ${isLesson ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
                     ${isTime ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}

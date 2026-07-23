@@ -3898,6 +3898,7 @@ export const StringResource = {
   community_hour: { ko: '{h}시', en: '{h}:00', jp: '{h}時', zh: '{h}时' },
   community_reserve_hours: { ko: '{count}시간 예약하기', en: 'Reserve {count}h', jp: '{count}時間 予約する', zh: '预约{count}小时' },
   popular: { ko: '인기', en: 'Popular', jp: '人気', zh: '热门' },
+  lesson_payment_unavailable: { ko: '현재 결제할 수 없는 수업이에요', en: 'Payment unavailable', jp: '現在決済できないレッスンです', zh: '当前无法支付该课程' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;
