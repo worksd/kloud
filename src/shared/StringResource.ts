@@ -2877,7 +2877,7 @@ export const StringResource = {
     jp: 'ログイン',
     zh: '去登录'
   },
-  app_install_title: { ko: '앱에서 더 편하게 이용하세요', en: 'Enjoy more in the app', jp: 'アプリでもっと便利に', zh: '在应用中体验更佳' },
+  app_install_title: { ko: 'Rawgraphy 앱에서 더 편하게 이용하세요', en: 'Enjoy more in the Rawgraphy app', jp: 'Rawgraphyアプリでもっと便利に', zh: '在 Rawgraphy 应用中体验更佳' },
   app_install_desc: { ko: '앱을 설치하면 예약·결제를 더 빠르고 편리하게 이용할 수 있어요.', en: 'Install the app for faster, easier booking and payment.', jp: 'アプリなら予約・決済がもっと簡単・スピーディー。', zh: '安装应用，预约与支付更快更便捷。' },
   app_install_cta: { ko: '앱 설치하기', en: 'Install the app', jp: 'アプリをインストール', zh: '安装应用' },
   app_install_dismiss: { ko: '웹으로 계속 보기', en: 'Continue on web', jp: 'ウェブで続ける', zh: '继续使用网页' },

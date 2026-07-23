@@ -4,22 +4,30 @@ import React, { useEffect, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
-import Logo from "../../../public/assets/logo_black.svg";
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6740252635';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.rawgraphy.blanc';
 
 // 웹(브라우저) 진입 시 dim + 앱 설치 유도 다이얼로그. 로그인/스토어 상단바 대체. 매 진입 노출.
-export function AppInstallDialog({ locale }: { locale: Locale }) {
+export function AppInstallDialog({ locale, profileImageUrl }: { locale: Locale; profileImageUrl?: string }) {
   const [open, setOpen] = useState(false);
   const [storeUrl, setStoreUrl] = useState<string | null>(null);
 
-  // 모바일 웹에서만 노출. 데스크톱은 열지 않음. (웹 브라우저는 os 쿼리가 비어있을 수 있어 UA로 감지)
+  // 모바일 웹에서만, 세션당 1회 노출. 데스크톱은 열지 않음. (os 쿼리가 비어있을 수 있어 UA로 감지)
   useEffect(() => {
+    const SEEN_KEY = 'app_install_dialog_seen';
+    if (sessionStorage.getItem(SEEN_KEY)) return;   // 이번 세션에 이미 노출됨
     const ua = navigator.userAgent;
-    if (/iPhone|iPad|iPod/i.test(ua)) { setStoreUrl(getStoreLink({ os: 'iOS' })?.url ?? APP_STORE_URL); setOpen(true); }
-    else if (/Android/i.test(ua)) { setStoreUrl(getStoreLink({ os: 'Android' })?.url ?? PLAY_STORE_URL); setOpen(true); }
+    let url: string | null = null;
+    let show = false;
+    if (/iPhone|iPad|iPod/i.test(ua)) { url = getStoreLink({ os: 'iOS' })?.url ?? APP_STORE_URL; show = true; }
+    else if (/Android/i.test(ua)) { url = getStoreLink({ os: 'Android' })?.url ?? PLAY_STORE_URL; show = true; }
     // 데스크톱: 노출 안 함
+    if (show) {
+      setStoreUrl(url);
+      setOpen(true);
+      sessionStorage.setItem(SEEN_KEY, '1');
+    }
   }, []);
 
   if (!open) return null;
@@ -33,7 +41,12 @@ export function AppInstallDialog({ locale }: { locale: Locale }) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-6 animate-[fadeIn_180ms_ease-out]">
       <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
       <div className="relative w-full max-w-[360px] rounded-3xl bg-white px-6 pt-7 pb-5 text-center animate-[slideUp_220ms_ease-out]">
-        <Logo className="mx-auto mb-5 h-5 w-auto" />
+        {profileImageUrl && (
+          <div className="mx-auto mb-4 h-16 w-16 rounded-2xl overflow-hidden bg-[#F1F3F6]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={profileImageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
         <h2 className="text-[18px] font-bold text-[#171717]">{t('app_install_title')}</h2>
         <p className="mt-2 text-[13px] text-[#86898C] leading-relaxed">{t('app_install_desc')}</p>
 

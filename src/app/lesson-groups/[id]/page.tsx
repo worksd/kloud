@@ -1,7 +1,6 @@
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { notFound } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
-import { AppInstallDialog } from "@/app/components/AppInstallDialog";
 import { getLessonGroupDetailAction } from "./getLessonGroupDetailAction";
 import { getLessonGroupLessonsAction } from "./getLessonGroupLessonsAction";
 import LessonGroupDetailForm from "./LessonGroupDetailForm";
@@ -46,8 +45,6 @@ export default async function LessonGroupDetailPage({params, searchParams}: {
 
   return (
     <div>
-      {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
-      {appVersion === '' && <AppInstallDialog locale={locale}/>}
       <LessonGroupDetailForm
         lessonGroup={lessonGroupRes}
         initialLessons={initialLessons}
