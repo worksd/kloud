@@ -1,10 +1,7 @@
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { notFound } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
-import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
-import { cookies } from "next/headers";
-import { accessTokenKey } from "@/shared/cookies.key";
-import { KloudScreen } from "@/shared/kloud.screen";
+import { AppInstallDialog } from "@/app/components/AppInstallDialog";
 import { getLessonGroupDetailAction } from "./getLessonGroupDetailAction";
 import { getLessonGroupLessonsAction } from "./getLessonGroupLessonsAction";
 import LessonGroupDetailForm from "./LessonGroupDetailForm";
@@ -18,7 +15,7 @@ export default async function LessonGroupDetailPage({params, searchParams}: {
   params: Promise<{ id: string }>,
   searchParams: Promise<{ os: string, appVersion: string }>
 }) {
-  const { os, appVersion } = await searchParams;
+  const { appVersion } = await searchParams;
   const id = Number((await params).id);
 
   if (isNaN(id)) {
@@ -49,11 +46,8 @@ export default async function LessonGroupDetailPage({params, searchParams}: {
 
   return (
     <div>
-      {appVersion === '' && <MobileWebViewTopBar
-        os={os}
-        isLogin={(await cookies()).get(accessTokenKey)?.value !== undefined}
-        returnUrl={KloudScreen.LessonGroupDetail(id)}
-      />}
+      {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
+      {appVersion === '' && <AppInstallDialog locale={locale}/>}
       <LessonGroupDetailForm
         lessonGroup={lessonGroupRes}
         initialLessons={initialLessons}

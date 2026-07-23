@@ -2,10 +2,8 @@ import { StudioDetailForm } from "@/app/studios/[id]/studio.detail";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { Metadata, ResolvingMetadata } from "next";
-import { MobileWebViewTopBar } from "@/app/components/MobileWebViewTopBar";
-import { cookies } from "next/headers";
-import { accessTokenKey } from "@/shared/cookies.key";
-import { KloudScreen } from "@/shared/kloud.screen";
+import { AppInstallDialog } from "@/app/components/AppInstallDialog";
+import { getLocale } from "@/utils/translate";
 import { notFound } from "next/navigation";
 
 export type Props = {
@@ -15,7 +13,7 @@ export type Props = {
 
 export default async function StudioDetail({params, searchParams}: Props) {
   const id = Number((await params).id);
-  const {appVersion, os} = await searchParams
+  const {appVersion} = await searchParams
 
   if (isNaN(id) || !id) {
     notFound();
@@ -23,11 +21,8 @@ export default async function StudioDetail({params, searchParams}: Props) {
 
   return (
     <div className={'flex flex-col'}>
-      {appVersion == '' && <MobileWebViewTopBar
-        os={os}
-        isLogin={(await cookies()).get(accessTokenKey)?.value != undefined}
-        returnUrl={KloudScreen.StudioDetail(id)}
-      />}
+      {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
+      {appVersion == '' && <AppInstallDialog locale={await getLocale()}/>}
       <StudioDetailForm id={id} appVersion={appVersion}/>
     </div>
 
