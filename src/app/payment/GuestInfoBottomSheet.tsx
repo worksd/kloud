@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -17,6 +17,15 @@ const COUNTRY_CODES = [
   { code: '886', label: '🇹🇼 +886' },
   { code: '852', label: '🇭🇰 +852' },
 ];
+
+// 전화번호 표시 포맷(하이픈). 한국(82)은 3-4-4(최대 11자리), 그 외는 숫자 그대로.
+const formatPhoneDisplay = (digits: string, countryCode: string) => {
+  if (countryCode !== '82') return digits;
+  const n = digits.slice(0, 11);
+  if (n.length < 4) return n;
+  if (n.length < 8) return `${n.slice(0, 3)}-${n.slice(3)}`;
+  return `${n.slice(0, 3)}-${n.slice(3, 7)}-${n.slice(7)}`;
+};
 
 // 결제 아이템별 제목/설명 문구 키
 const TITLE_KEY: Record<string, Parameters<typeof getLocaleString>[0]['key']> = {
@@ -53,37 +62,65 @@ export const GuestInfoBottomSheet = ({
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('82');
-  const [closing, setClosing] = useState(false);
+  const [entered, setEntered] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<number | null>(null);
+  const closingRef = useRef(false);
+
+  // 마운트 시 슬라이드업 + 열려있는 동안 배경 스크롤 잠금
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setEntered(true));
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { cancelAnimationFrame(raf); document.body.style.overflow = prev; };
+  }, []);
 
   const close = (after?: () => void) => {
-    if (closing) return;
-    setClosing(true);
-    setTimeout(() => { after?.(); onClose(); }, 200);
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setDragging(false);
+    dragStart.current = null;
+    setEntered(false); // 슬라이드 다운
+    setTimeout(() => { after?.(); onClose(); }, 250);
+  };
+
+  // 시트 드래그로 내려 닫기
+  const onDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; };
+  const onDragMove = (e: React.TouchEvent) => {
+    if (dragStart.current == null) return;
+    const dy = e.touches[0].clientY - dragStart.current;
+    if (dy > 0) { setDragging(true); setDragY(dy); }
+    else if (dragY !== 0) setDragY(0);
+  };
+  const onDragEnd = () => {
+    if (dragStart.current == null) return;
+    dragStart.current = null;
+    setDragging(false);
+    if (dragY > 100) close();   // 충분히 내리면 닫기
+    else setDragY(0);           // 아니면 스냅백
   };
 
   const digits = phone.replace(/\D/g, '');
   const valid = name.trim().length > 0 && digits.length >= 9;
 
   return (
-    <div className={`fixed inset-0 z-[60] flex items-end ${closing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_180ms_ease-out]'}`}>
-      <div className="absolute inset-0 bg-black/50" onClick={() => close()} />
-      <div className={`relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] ${closing ? 'animate-[slideDown_220ms_ease-in_forwards]' : 'animate-[slideUp_220ms_ease-out]'}`}>
+    <div className="fixed inset-0 z-[60] flex items-end">
+      <div className="absolute inset-0 bg-black/50" style={{ opacity: entered ? 1 : 0, transition: 'opacity 250ms ease' }} onClick={() => close()} />
+      <div
+        className="relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] will-change-transform"
+        style={{
+          transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
+          transition: dragging ? 'none' : 'transform 250ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+        onTouchStart={onDragStart}
+        onTouchMove={onDragMove}
+        onTouchEnd={onDragEnd}
+      >
         <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mb-4" />
 
         <p className="text-[18px] font-bold text-[#171717]">{t(titleKey)}</p>
         <p className="mt-1 text-[13px] text-[#86898C] leading-snug">{t(descKey)}</p>
-
-        {onLogin && (
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="text-[12px] text-[#A0A5AB]">{t('guest_login_hint')}</span>
-            <button
-              onClick={() => close(() => onLogin())}
-              className="text-[12px] font-bold text-[#4E5968] underline underline-offset-2 active:opacity-60"
-            >
-              {t('login_do')}
-            </button>
-          </div>
-        )}
 
         <div className="mt-5 flex flex-col gap-3">
           <label className="flex flex-col gap-1.5">
@@ -109,7 +146,7 @@ export const GuestInfoBottomSheet = ({
                 ))}
               </select>
               <input
-                value={phone}
+                value={formatPhoneDisplay(phone, countryCode)}
                 onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ''))}
                 inputMode="numeric"
                 type="tel"
@@ -127,6 +164,18 @@ export const GuestInfoBottomSheet = ({
         >
           <span className={`text-[16px] font-bold ${valid ? 'text-white' : 'text-[#999]'}`}>{t('confirm')}</span>
         </button>
+
+        {onLogin && (
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            <span className="text-[12px] text-[#A0A5AB]">{t('guest_login_hint')}</span>
+            <button
+              onClick={() => close(() => onLogin())}
+              className="text-[12px] font-bold text-[#4E5968] underline underline-offset-2 active:opacity-60"
+            >
+              {t('login_do')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
