@@ -38,6 +38,48 @@ const nextHour = (time: string) => {
   return `${String((h + 1) % 24).padStart(2, '0')}:00`;
 };
 
+// availability 응답 → 슬롯. slots가 오면 그대로, 없으면 schedules(요일별 운영시간·가격) + bookings로 파생.
+type AvailabilityRow = {
+  slots?: TimeSlotResponse[];
+  schedules?: { day?: number | null; startTime: string; status: string; price?: number | null }[];
+  bookings?: { startDate: string; endDate: string }[];
+  maxCount?: number | null;
+};
+const deriveSlots = (row: AvailabilityRow, date: Date): TimeSlotResponse[] => {
+  if (row.slots && row.slots.length > 0) return row.slots;
+
+  const weekday = date.getDay(); // 0=일~6=토. schedules의 day와 매칭(Holiday=day null은 항상 적용)
+  const cells = (row.schedules ?? []).filter((c) => c.day == null || c.day === weekday);
+
+  // 그 날짜의 예약 시각(시 단위) → full 처리
+  const ymd = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  const bookedHours = new Set<number>();
+  for (const b of (row.bookings ?? [])) {
+    const [sd, st] = (b.startDate ?? '').split(' ');
+    const [, et] = (b.endDate ?? '').split(' ');
+    if (sd !== ymd) continue;
+    const sh = Number((st ?? '').split(':')[0]);
+    const eh = Number((et ?? '').split(':')[0]);
+    for (let h = sh; h < eh; h++) bookedHours.add(h);
+  }
+
+  return cells
+    .slice()
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+    .map((c) => {
+      const hour = Number(c.startTime.split(':')[0]);
+      const active = /active/i.test(c.status);
+      const booked = bookedHours.has(hour);
+      return {
+        time: c.startTime,
+        status: !active ? 'closed' : booked ? 'full' : 'available',
+        currentCount: booked ? 1 : 0,
+        maxCount: row.maxCount ?? 1,
+        price: c.price ?? null,
+      } as TimeSlotResponse;
+    });
+};
+
 // 시간당 가격을 연속된 동일 가격 구간으로 묶어 '가격 정책' 요약 생성 (가격 미정 슬롯은 제외)
 type PriceBand = { start: string; end: string; price: number };
 const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
@@ -107,7 +149,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
         if (!alive || !('rooms' in res)) return;
         const row = res.rooms.find((r) => r.studioRoomId === sheetRoomId);
         if (!row) return;
-        setRooms((prev) => prev.map((r) => (r.id === sheetRoomId ? { ...r, slots: row.slots } : r)));
+        const slots = deriveSlots(row as AvailabilityRow, date);
+        setRooms((prev) => prev.map((r) => (r.id === sheetRoomId ? { ...r, slots } : r)));
         loadedRef.current.add(key);
       });
     return () => { alive = false; };
@@ -250,19 +293,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
 
   return (
     <div>
-      {/* 날짜 칩 버튼 */}
-      <button
-        onClick={() => setDateOpen(true)}
-        className="inline-flex items-center gap-1 h-9 pl-4 pr-3 rounded-full bg-[#F1F3F6] active:bg-[#E7EAEE] transition-colors"
-      >
-        <span className="text-[14px] font-bold text-[#171717]">{fmtMonthDayWeekday(date, locale)}</span>
-        <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
-          <path d="M6 9l6 6 6-6" stroke="#4E5968" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {/* 홀별 카드 — 탭하면 시간표 바텀시트 */}
-      <div className="mt-4 flex flex-col gap-4">
+      {/* 홀별 카드 — 탭하면 시간표 바텀시트(날짜 선택은 시트 안에서) */}
+      <div className="flex flex-col gap-4">
         {rooms.map((room) => {
           const slots = hourlyOnly(room.slots ?? []);
           const fullyBooked = slots.length > 0 && slots.every((s) => !isBookable(s));
