@@ -19,3 +19,8 @@ export const getCommunityRoomsAction = async (params: { studioId: number }) => {
 export const getCommunityRoomsAvailabilityAction = async (params: { studioId: number; date: string }) => {
   return await api.studioRoom.availability({ studioId: params.studioId, date: params.date });
 };
+
+// 지정 홀들의 특정 날짜 예약 현황(슬롯). studioId 대신 studioRoomIds(콤마 구분)를 반드시 명시.
+export const getRoomsAvailabilityByIdsAction = async (params: { studioRoomIds: string; date: string }) => {
+  return await api.studioRoom.availability({ studioRoomIds: params.studioRoomIds, date: params.date });
+};

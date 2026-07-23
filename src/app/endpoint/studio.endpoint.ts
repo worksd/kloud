@@ -38,13 +38,9 @@ export type CommunityPracticeRoomResponse = {
   imageUrl?: string;
 }
 
-// 스튜디오 운영 형태. Lesson=수업 운영(연습실 병행 포함), PracticeRoom=연습실만. 미전송이면 Lesson.
-export type StudioType = 'Lesson' | 'PracticeRoom';
-
 export type GetStudioResponse = {
     id: number;
     name: string;
-    type?: StudioType;
     address?: string;
     roadAddress?: string;
     profileImageUrl: string;

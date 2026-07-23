@@ -7,7 +7,7 @@ import "react-calendar/dist/Calendar.css";
 import calendarStyles from "@/app/kiosk/CalendarStyles.module.css";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
-import { getCommunityRoomsAvailabilityAction } from "@/app/community/community.actions";
+import { getRoomsAvailabilityByIdsAction } from "@/app/community/community.actions";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
@@ -51,7 +51,7 @@ const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
 };
 
 // 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
-export function PracticeHallSchedule({ rooms: initialRooms, studioId, locale }: { rooms: StudioRoomResponse[]; studioId: number; locale: Locale }) {
+export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: StudioRoomResponse[]; locale: Locale }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const router = useRouter();
   const pathname = usePathname();
@@ -71,12 +71,15 @@ export function PracticeHallSchedule({ rooms: initialRooms, studioId, locale }: 
     }
   };
 
-  // 날짜 변경 시 그 날짜의 예약 현황(슬롯)만 availability로 재조회해 홀 스펙에 병합
+  // 날짜 변경 시 그 날짜의 예약 현황(슬롯)만 availability로 재조회해 홀 스펙에 병합.
+  // studioId 대신 현재 홀 id들을 studioRoomIds로 명시해 조회.
   const [firstLoad, setFirstLoad] = useState(true);
   useEffect(() => {
     if (firstLoad) { setFirstLoad(false); return; }
     let alive = true;
-    getCommunityRoomsAvailabilityAction({ studioId, date: toDateStr(date) })
+    const studioRoomIds = initialRooms.map((r) => r.id).join(',');
+    if (!studioRoomIds) return;
+    getRoomsAvailabilityByIdsAction({ studioRoomIds, date: toDateStr(date) })
       .then((res) => {
         if (!alive || !('rooms' in res)) return;
         const slotsByRoom = new Map(res.rooms.map((r) => [r.studioRoomId, r.slots]));
@@ -201,8 +204,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, studioId, locale }: 
   const isBookable = (s: TimeSlotResponse) => isOpen(s) && !isPastSlot(s.time);
 
   // 연속 슬롯 선택(인접만 확장)
-  // 최대 예약 시간(분) → 연속 선택 칸수 상한 (1칸=1시간). 미설정이면 무제한
-  const maxSlots = sheetRoom?.maxBookingDuration ? Math.floor(sheetRoom.maxBookingDuration / 60) : Infinity;
+  // 최대 예약 시간(시간 단위) → 연속 선택 칸수 상한 (1칸=1시간). 미설정이면 무제한
+  const maxSlots = sheetRoom?.maxBookingDuration ? sheetRoom.maxBookingDuration : Infinity;
 
   const onSlot = (idx: number, slots: TimeSlotResponse[]) => {
     if (!isBookable(slots[idx])) return;
@@ -322,7 +325,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, studioId, locale }: 
                   <div className="min-w-0">
                     <p className="text-[18px] font-bold text-[#171717] truncate">{sheetRoom.name}</p>
                     {sheetRoom.maxBookingDuration ? (
-                      <p className="text-[12px] text-[#86898C]">{t('kiosk_max_hours').replace('{count}', String(Math.floor(sheetRoom.maxBookingDuration / 60)))}</p>
+                      <p className="text-[12px] text-[#86898C]">{t('kiosk_max_hours').replace('{count}', String(sheetRoom.maxBookingDuration))}</p>
                     ) : null}
                   </div>
                 </div>

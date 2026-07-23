@@ -1,13 +1,11 @@
 import { HeaderInDetail } from "@/app/components/headers";
 import Image from "next/image";
 import LocationIcon from "../../../../public/assets/location.svg";
-import { LessonGridSection } from "@/app/components/lesson.grid.section";
 import React from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
-import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { getLocale, translate } from "@/utils/translate";
-import { PassPlanPurchaseSubmitButton } from "@/app/lessons/[id]/PassPlanPurchaseSubmitButton";
+import { LessonBookingList } from "@/app/studios/[id]/lessons/LessonBookingList";
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
@@ -17,6 +15,11 @@ import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
 import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
 import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.action";
 import { LessonGroupBand } from "@/app/home/LessonGroupBand";
+import { PracticeHallSection } from "@/app/studios/[id]/practice/PracticeHallSection";
+import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
+import { PracticePassList } from "@/app/studios/[id]/practice/PracticePassList";
+import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
+import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -26,9 +29,28 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
 
   // BE가 resolve해둔 channelKey로 YouTube API 직접 호출. 키 없거나 실패 시 빈 배열 → 영역 숨김.
   const youtubeContents = await getYoutubeContents(studio.youtubeChannelKey);
+  const hasLessons = (studio.lessons?.length ?? 0) > 0;
+  const hasHalls = (studio.practiceRooms?.length ?? 0) > 0;
+  const locale = await getLocale();
+  const popularLabel = await translate('popular');
+  // 공지 — 새 아코디언 UI(PracticeNoticeList) 형태로 매핑
+  const notices: CommunityNotice[] = (studio.announcements ?? []).map((a) => ({
+    title: a.title,
+    content: a.body,
+    imageUrl: a.imageUrl ?? undefined,
+  }));
+  // 이용권 — studio.passPlans를 community/[id]와 동일한 PracticePassList 형태로 매핑
+  const passes: CommunityPass[] = (studio.passPlans ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price ?? 0,
+    period: p.expireDateStamp,
+    tag: p.tag ?? (p.isRecommended ? popularLabel : undefined),
+  }));
+  const hasPasses = passes.length > 0;
 
   return (
-    <ScrollContainer className="w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto no-scrollbar studio-detail-container">
+    <ScrollContainer className="w-full h-screen bg-white flex flex-col pb-32 box-border overflow-y-auto no-scrollbar studio-detail-container">
       {/* 헤더 백버튼 — 앱에서만 노출 (웹은 MobileWebViewTopBar가 처리) */}
       {appVersion !== '' && (
         <NavigateClickWrapper method={'back'}>
@@ -133,49 +155,18 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
         </section>
 
 
-        <TimeTableServerComponent studioId={studio.id}/>
+        {/* 공지사항 — 새 아코디언 UI. 배너 아래·시간표 위 */}
+        {notices.length > 0 && (
+          <section className="px-4 mt-2">
+            <div className="text-[20px] text-black font-bold mb-2.5">
+              {await translate('studio_announcement')}
+            </div>
+            <PracticeNoticeList notices={notices} studioId={studio.id} locale={locale} />
+          </section>
+        )}
 
-        <section>
-          {studio.announcements && studio.announcements.length > 0 && (
-              <div className="flex flex-col">
-                <div className="p-4">
-                  <div className="text-[20px] text-black font-bold">
-                    {await translate('studio_announcement')}
-                  </div>
-                </div>
-                {studio.announcements && studio.announcements.length > 0 && (
-                    <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-                      {studio.announcements.map((item: GetAnnouncementResponse) => (
-                          <div
-                              key={item.id}
-                              className="min-w-[calc(100vw-32px)] snap-start pl-4"
-                          >
-                            <div className="bg-[#F7F8F9] p-4 rounded-2xl flex flex-col">
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-[24px] h-[24px] rounded-full overflow-hidden flex-shrink-0">
-                                    <img
-                                        src={studio.profileImageUrl}
-                                        alt="스튜디오"
-                                        className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <span className="font-bold text-black text-[14px]">
-                              {studio.name}
-                            </span>
-                                </div>
-                              </div>
-                              <p className="text-[#667085] mt-2 text-[14px]">
-                                {item.body}
-                              </p>
-                            </div>
-                          </div>
-                      ))}
-                    </div>
-                )}
-              </div>
-          )}
-        </section>
+        {/* 시간표는 진행중인 수업이 있을 때만 조회·렌더 */}
+        {hasLessons && <TimeTableServerComponent studioId={studio.id} useSheet/>}
 
         {youtubeContents.length > 0 && (
           <section>
@@ -183,7 +174,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
               contents={youtubeContents}
               title="최근 YouTube 영상"
               channelUrl={studio.youtubeUrl}
-              locale={await getLocale()}
+              locale={locale}
             />
           </section>
         )}
@@ -191,22 +182,43 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
         {studio.lessonGroups && studio.lessonGroups.length > 0 && (
           <>
             <div className="w-full h-3 bg-[#f7f8f9]"/>
-            <LessonGroupBand lessonGroups={studio.lessonGroups} locale={await getLocale()} />
+            <LessonGroupBand lessonGroups={studio.lessonGroups} locale={locale} />
           </>
         )}
 
-        <div>
-          <div className="w-full h-3 bg-[#f7f8f9]"/>
-          <div className="mt-4">
-            <LessonGridSection studioId={studio.id} title={await translate('ongoing_lessons')}
-                               lessons={studio?.lessons ?? []}
-            />
+        {/* 진행중인 수업 — 수업이 있을 때만. 탭 시 바텀시트로 정보 + 바로 결제 진입 */}
+        {hasLessons && (
+          <div>
+            <div className="w-full h-3 bg-[#f7f8f9]"/>
+            <div className="mt-4">
+              <LessonBookingList
+                studioId={studio.id}
+                title={await translate('ongoing_lessons')}
+                lessons={studio.lessons ?? []}
+                locale={locale}
+                appVersion={appVersion}
+              />
+            </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      <div className="left-0 w-full h-fit fixed bottom-0 px-6 py-6 bg-white z-50">
-        <PassPlanPurchaseSubmitButton studioId={studio.id}/>
+        {/* 이용권 — 홀별 예약현황 위. 선택 시 하단 액션바로 구매 진입 */}
+        {hasPasses && (
+          <>
+            <div className="w-full h-3 bg-[#f7f8f9]"/>
+            <div className="px-4 mt-6">
+              <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_pass')}</h2>
+              <PracticeActionProvider>
+                <PracticePassList passes={passes} studioId={studio.id} locale={locale} />
+              </PracticeActionProvider>
+            </div>
+          </>
+        )}
+
+        {/* 홀(연습실) 예약현황 — practiceRooms가 있을 때만 */}
+        {hasHalls && (
+          <PracticeHallSection practiceRooms={studio.practiceRooms} locale={locale} />
+        )}
       </div>
 
     </ScrollContainer>
