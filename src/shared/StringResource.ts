@@ -2883,6 +2883,8 @@ export const StringResource = {
   app_install_desc: { ko: '앱을 설치하면 예약·결제를 더 빠르고 편리하게 이용할 수 있어요.', en: 'Install the app for faster, easier booking and payment.', jp: 'アプリなら予約・決済がもっと簡単・スピーディー。', zh: '安装应用，预约与支付更快更便捷。' },
   app_install_cta: { ko: '앱 설치하기', en: 'Install the app', jp: 'アプリをインストール', zh: '安装应用' },
   app_install_dismiss: { ko: '웹으로 계속 보기', en: 'Continue on web', jp: 'ウェブで続ける', zh: '继续使用网页' },
+  payment_processing_title: { ko: '결제를 안전하게 처리하고 있어요', en: 'Securely processing your payment', jp: '決済を安全に処理しています', zh: '正在安全处理您的支付' },
+  payment_processing_desc: { ko: '잠시만 기다려 주세요. 창을 닫지 말아 주세요.', en: 'Please wait and do not close this window.', jp: 'しばらくお待ちください。画面を閉じないでください。', zh: '请稍候，请勿关闭页面。' },
   guest_name_label: {
     ko: '이름',
     en: 'Name',
