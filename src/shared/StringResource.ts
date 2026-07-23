@@ -2883,6 +2883,8 @@ export const StringResource = {
   app_install_desc: { ko: '앱을 설치하면 예약·결제를 더 빠르고 편리하게 이용할 수 있어요.', en: 'Install the app for faster, easier booking and payment.', jp: 'アプリなら予約・決済がもっと簡単・スピーディー。', zh: '安装应用，预约与支付更快更便捷。' },
   app_install_cta: { ko: '앱 설치하기', en: 'Install the app', jp: 'アプリをインストール', zh: '安装应用' },
   app_install_dismiss: { ko: '웹으로 계속 보기', en: 'Continue on web', jp: 'ウェブで続ける', zh: '继续使用网页' },
+  open_in_app: { ko: '앱에서 열기', en: 'Open in app', jp: 'アプリで開く', zh: '在应用中打开' },
+  open_in_app_desc: { ko: '이 페이지는 앱에서 이용할 수 있어요.', en: 'This page is available in the app.', jp: 'このページはアプリでご利用いただけます。', zh: '此页面可在应用中使用。' },
   payment_processing_title: { ko: '결제를 안전하게 처리하고 있어요', en: 'Securely processing your payment', jp: '決済を安全に処理しています', zh: '正在安全处理您的支付' },
   payment_processing_desc: { ko: '잠시만 기다려 주세요. 창을 닫지 말아 주세요.', en: 'Please wait and do not close this window.', jp: 'しばらくお待ちください。画面を閉じないでください。', zh: '请稍候，请勿关闭页面。' },
   guest_name_label: {
@@ -3377,6 +3379,7 @@ export const StringResource = {
   room_bookings_empty: { ko: '대관 예약 내역이 없어요', en: 'No rental bookings', jp: 'レンタル予約がありません', zh: '暂无租赁预约' },
   room_schedule_title: { ko: '예약 일정표', en: 'Booking Schedule', jp: '予約スケジュール', zh: '预约日程' },
   room_schedule_empty: { ko: '조회할 홀이 없어요', en: 'No halls to show', jp: '表示するホールがありません', zh: '暂无可显示的场馆' },
+  room_schedule_no_studio: { ko: '스튜디오 정보가 없어요', en: 'No studio information', jp: 'スタジオ情報がありません', zh: '暂无门店信息' },
   room_schedule_closed: { ko: '휴무', en: 'Closed', jp: '休業', zh: '休息' },
   room_schedule_lesson: { ko: '수업', en: 'Lesson', jp: 'レッスン', zh: '课程' },
   room_schedule_no_booking: { ko: '예약 없음', en: 'No bookings', jp: '予約なし', zh: '无预约' },

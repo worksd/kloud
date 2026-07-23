@@ -1,76 +1,62 @@
 import React from "react";
-import { api } from "@/app/api.client";
 import { getLocale, translate } from "@/utils/translate";
 import { BackButton } from "@/app/payment/BackButton";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
-import { PartnerScheduleBoard } from "@/app/studioRooms/PartnerScheduleBoard";
-import { PartnerRoomAvailabilityResponse } from "@/app/endpoint/studio.room.endpoint";
+import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
+import { PartnerRoomBookingsBoard } from "@/app/studioRooms/PartnerRoomBookingsBoard";
+import { OpenInApp } from "@/app/components/OpenInApp";
 
-// 오늘(KST) 'YYYY-MM-DD'. 서버 타임존과 무관하게 서울 기준.
-const todayKST = () =>
-  new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }); // 'YYYY-MM-DD'
-
-// 파트너(관리자) 홀 예약 일정표 — GET /studioRooms/availability (X-Guinness-Client: PARTNER)
+// 파트너(관리자) 예약일정표 — GET /studios/:id의 practiceRooms로 홀 셀렉터,
+// 선택 홀의 GET /roomBookings?studioRoomId= 목록 표시. (studio.my 미사용, 파트너 토큰으로 스코프)
+// 웹(브라우저)에선 볼 수 없고 앱으로 바운스. 앱(webview, appVersion 세팅)에서만 렌더.
 export default async function StudioRoomsSchedulePage({ searchParams }: {
-  searchParams: Promise<{ date?: string; appVersion?: string }>;
+  searchParams: Promise<{ studioId?: string; appVersion?: string }>;
 }) {
-  const { date: dateParam, appVersion = '' } = await searchParams;
-  const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayKST();
+  const { studioId: studioIdParam, appVersion = '' } = await searchParams;
   const locale = await getLocale();
+
+  // 웹 진입 → 앱 열기(딥링크). 이 페이지는 앱 전용.
+  if (appVersion === '') {
+    return <OpenInApp path="/studioRooms" locale={locale} />;
+  }
+
+  const studioId = Number(studioIdParam);
   const title = await translate('room_schedule_title');
 
-  // 파트너 토큰의 스튜디오(들) → 각 스튜디오 홀 목록 → 홀 ID 수집
-  const my = await api.studio.my({});
-  const studios = isGuinnessErrorCase(my) ? [] : my.studios;
-  const roomLists = await Promise.all(
-    studios.map((s) => api.studioRoom.list({ studioId: s.id }))
-  );
-  const roomIds = roomLists.flatMap((r) =>
-    isGuinnessErrorCase(r) ? [] : r.studioRooms.map((room) => room.id)
+  const Header = () => (
+    appVersion === '' ? (
+      <div className="sticky top-0 z-30 bg-white border-b border-[#F1F3F6]">
+        <div className="relative h-14 flex items-center justify-center">
+          <div className="absolute left-0 top-0 h-14 flex items-center"><BackButton /></div>
+          <h1 className="text-[17px] font-bold text-[#191f28]">{title}</h1>
+        </div>
+      </div>
+    ) : null
   );
 
-  // availability는 studioRoomIds 필수(파트너). 홀이 없으면 빈 상태.
-  let rooms: PartnerRoomAvailabilityResponse[] = [];
-  if (roomIds.length > 0) {
-    const res = await api.studioRoom.availabilityPartner({
-      studioRoomIds: roomIds.join(','),
-      date,
-    });
-    if (!isGuinnessErrorCase(res)) rooms = res.rooms ?? [];
+  // studioId(query) 없으면 안내 UI
+  if (!studioId) {
+    return (
+      <div className="bg-white min-h-screen flex flex-col">
+        <Header />
+        <p className="py-24 text-center text-[14px] text-[#A0A5AB]">{await translate('room_schedule_no_studio')}</p>
+      </div>
+    );
   }
+
+  const studio = await getStudioDetail(studioId);
+  if (isGuinnessErrorCase(studio)) {
+    throw new Error(`studioRooms: failed to load studio ${studioId} — ${studio.code}: ${studio.message}`);
+  }
+  const practiceRooms = studio.practiceRooms ?? [];
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      {/* 웹은 자체 헤더, 네이티브는 앱 타이틀바가 처리 */}
-      {appVersion === '' && (
-        <div className="sticky top-0 z-30 bg-white border-b border-[#F1F3F6]">
-          <div className="relative h-14 flex items-center justify-center">
-            <div className="absolute left-0 top-0 h-14 flex items-center">
-              <BackButton />
-            </div>
-            <h1 className="text-[17px] font-bold text-[#191f28]">{title}</h1>
-          </div>
-        </div>
-      )}
-
-      {rooms.length === 0 ? (
-        <p className="py-24 text-center text-[14px] text-[#A0A5AB]">
-          {await translate('room_schedule_empty')}
-        </p>
+      <Header />
+      {practiceRooms.length === 0 ? (
+        <p className="py-24 text-center text-[14px] text-[#A0A5AB]">{await translate('room_schedule_empty')}</p>
       ) : (
-        <PartnerScheduleBoard
-          date={date}
-          rooms={rooms}
-          locale={locale}
-          appVersion={appVersion}
-          labels={{
-            closed: await translate('room_schedule_closed'),
-            lesson: await translate('room_schedule_lesson'),
-            noBooking: await translate('room_schedule_no_booking'),
-            individual: await translate('room_booking_type_individual'),
-            full: await translate('room_booking_type_full'),
-          }}
-        />
+        <PartnerRoomBookingsBoard practiceRooms={practiceRooms} locale={locale} />
       )}
     </div>
   );
