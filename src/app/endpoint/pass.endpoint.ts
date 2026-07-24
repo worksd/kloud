@@ -51,6 +51,15 @@ export type PassRuleTicket = {
   };
 }
 
+// 패스 룰로 예약한 연습실(홀) 예약 1건 — 연습실 관련 룰(TimeHours 등)에 실려 옴.
+export type PassRuleRoomBooking = {
+  id: number;
+  status: string;
+  studioRoom?: { id: number; name: string; imageUrls?: string[] };
+  startDate: string;   // 'yyyy.MM.dd HH:mm' KST
+  endDate: string;
+}
+
 export type PassRuleResponse = {
   id: number;
   status: string;
@@ -63,11 +72,16 @@ export type PassRuleResponse = {
   targetLabel?: string | null;
   benefitType: string;
   benefitValue?: number | null;
+  /** UnlimitedWindow 룰의 이용 가능 시간대 ('HH:mm'). */
+  startTime?: string | null;
+  endTime?: string | null;
   duration?: number | string | null;
   excludes?: { type: string; value?: string | null; label?: string | null }[];
   usable?: boolean;
   reason?: string;
   tickets: PassRuleTicket[];
+  /** 이 룰로 예약한 연습실 예약 목록(연습실 관련 룰에만). */
+  roomBookings?: PassRuleRoomBooking[];
 }
 
 export type PassRoomBookingResponse = {
