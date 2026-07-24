@@ -72,6 +72,8 @@ export type StudioRoomResponse = {
   createdAt?: string;
   /** 슬롯은 응답에 없음. availability 조인 후 클라에서 채우는 용도의 옵셔널 필드. */
   slots?: TimeSlotResponse[];
+  /** 현재 사용자의 그날 예약(availability 응답의 myBookings) — 조인 후 채움. */
+  myBookings?: { id: number; startDate: string; endDate: string }[];
 }
 
 export type StudioRoomListResponse = {

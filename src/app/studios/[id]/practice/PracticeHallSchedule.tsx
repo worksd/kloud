@@ -39,10 +39,12 @@ const nextHour = (time: string) => {
 };
 
 // availability 응답 → 슬롯. slots가 오면 그대로, 없으면 schedules(요일별 운영시간·가격) + bookings로 파생.
+type AvailabilityBooking = { id?: number; startDate: string; endDate: string };
 type AvailabilityRow = {
   slots?: TimeSlotResponse[];
   schedules?: { day?: number | null; startTime: string; status: string; price?: number | null }[];
-  bookings?: { startDate: string; endDate: string }[];
+  bookings?: AvailabilityBooking[];
+  myBookings?: AvailabilityBooking[];   // 현재 사용자의 그날 예약
   maxCount?: number | null;
 };
 const deriveSlots = (row: AvailabilityRow, date: Date): TimeSlotResponse[] => {
@@ -51,10 +53,10 @@ const deriveSlots = (row: AvailabilityRow, date: Date): TimeSlotResponse[] => {
   const weekday = date.getDay(); // 0=일~6=토. schedules의 day와 매칭(Holiday=day null은 항상 적용)
   const cells = (row.schedules ?? []).filter((c) => c.day == null || c.day === weekday);
 
-  // 그 날짜의 예약 시각(시 단위) → full 처리
+  // 그 날짜의 예약 시각(시 단위) → full 처리. 다른 예약(bookings) + 내 예약(myBookings) 모두.
   const ymd = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
   const bookedHours = new Set<number>();
-  for (const b of (row.bookings ?? [])) {
+  for (const b of [...(row.bookings ?? []), ...(row.myBookings ?? [])]) {
     const [sd, st] = (b.startDate ?? '').split(' ');
     const [, et] = (b.endDate ?? '').split(' ');
     if (sd !== ymd) continue;
@@ -102,7 +104,9 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
   // 카드 표시는 initialRooms(available 기반) 그대로. 시트 오픈 시 API 슬롯으로 갱신됨.
   const [rooms, setRooms] = useState<StudioRoomResponse[]>(initialRooms);
 
-  // 시트 열림 상태를 URL ?studioRoomId= 로 동기화 (외부 딥링크로도 특정 홀 시트 접근 가능)
+  // 시트 열림 상태를 URL ?studioRoomId= 로 동기화 (외부 딥링크로도 특정 홀 시트 접근 가능).
+  // router.replace는 App Router에서 RSC 재요청(스튜디오 상세 재fetch)을 유발하므로,
+  // URL만 바꾸는 history.replaceState 사용 — 시트 열/닫을 때마다 서버 재조회되지 않도록.
   const syncRoomIdToUrl = (roomId: number | null) => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -111,7 +115,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
     const qs = params.toString();
     const nextUrl = qs ? `${pathname}?${qs}` : pathname;
     if (window.location.pathname + window.location.search !== nextUrl) {
-      router.replace(nextUrl, { scroll: false });
+      window.history.replaceState(null, '', nextUrl);
     }
   };
 
@@ -150,7 +154,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
         const row = res.rooms.find((r) => r.studioRoomId === sheetRoomId);
         if (!row) return;
         const slots = deriveSlots(row as AvailabilityRow, date);
-        setRooms((prev) => prev.map((r) => (r.id === sheetRoomId ? { ...r, slots } : r)));
+        const myBookings = ((row as AvailabilityRow).myBookings ?? []).map((b) => ({ id: b.id ?? 0, startDate: b.startDate, endDate: b.endDate }));
+        setRooms((prev) => prev.map((r) => (r.id === sheetRoomId ? { ...r, slots, myBookings } : r)));
         loadedRef.current.add(key);
       });
     return () => { alive = false; };
@@ -189,8 +194,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
     return () => cancelAnimationFrame(id);
   }, [sheetRoomId]);
 
-  // 드래그 핸들러 (핸들/헤더 영역) — 항상 시트 드래그
-  const onSheetDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; setDragging(true); };
+  // 드래그 핸들러 (핸들/헤더 영역) — 항상 시트 드래그. 터치 시 진행 중 애니메이션 멈추고 현재 위치에서 잡음.
+  const onSheetDragStart = (e: React.TouchEvent) => { grabAtCurrent(e.touches[0].clientY); };
   const onSheetDragMove = (e: React.TouchEvent) => {
     if (dragStart.current == null) return;
     const dy = e.touches[0].clientY - dragStart.current;
@@ -204,15 +209,31 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
     else setDragY(0);               // 아니면 원위치로 스냅백
   };
 
+  // 시트의 현재 화면상 translateY(px) — 진행 중인 transition 중간값도 읽는다.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const currentTranslateY = () => {
+    const el = sheetRef.current;
+    if (!el) return 0;
+    const tr = getComputedStyle(el).transform;
+    if (!tr || tr === 'none') return 0;
+    try { return new DOMMatrixReadOnly(tr).m42; } catch { return 0; }
+  };
+  // 터치 시작 시 진행 중인 애니메이션을 즉시 멈추고 현재 위치에서 잡는다. (재터치 시 스냅백/스크롤이 안 멈추던 문제)
+  const grabAtCurrent = (clientY: number) => {
+    const y = Math.max(0, currentTranslateY());
+    setDragging(true);   // transition off → 현재 위치에 고정
+    setDragY(y);
+    dragStart.current = clientY - y;   // 이후 dy = clientY - dragStart = 절대 translateY
+  };
+
   // 본문(스크롤 영역) 드래그 — 리스트가 맨 위(scrollTop<=0)일 때만 아래로 끌면 시트 드래그로 소비, 그 외엔 스크롤.
   const scrollRef = useRef<HTMLDivElement>(null);
-  const onBodyDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; };
+  const onBodyDragStart = (e: React.TouchEvent) => { grabAtCurrent(e.touches[0].clientY); };
   const onBodyDragMove = (e: React.TouchEvent) => {
     if (dragStart.current == null) return;
     const dy = e.touches[0].clientY - dragStart.current;
     const atTop = (scrollRef.current?.scrollTop ?? 0) <= 0;
     if (dy > 0 && atTop) {
-      if (!dragging) setDragging(true);
       setDragY(dy);
     } else if (dragY !== 0) {
       setDragY(0);
@@ -357,6 +378,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
             onClick={() => closeSheet()}
           />
           <div
+            ref={sheetRef}
             className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[85vh]"
             style={{
               transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
@@ -415,6 +437,20 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
               onTouchMove={onBodyDragMove}
               onTouchEnd={onSheetDragEnd}
             >
+
+            {/* 내 예약 — 그날 내가 이미 예약한 시간대 (myBookings) */}
+            {(sheetRoom.myBookings?.length ?? 0) > 0 && (
+              <div className="px-5 pb-3 shrink-0">
+                <p className="text-[12px] font-bold text-[#4E5968] mb-1.5">{t('my_bookings')}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {sheetRoom.myBookings!.map((b) => (
+                    <span key={b.id} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#EAF7F4] text-[#1E9E8A] text-[12px] font-bold">
+                      {(b.startDate.split(' ')[1] ?? b.startDate)} ~ {(b.endDate.split(' ')[1] ?? b.endDate)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 홀 정보 — 설명·면적·치수·바닥·시설 (접힘/펼침) */}
             {(() => {
