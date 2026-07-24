@@ -8,7 +8,6 @@ import { usePracticeAction } from "@/app/studios/[id]/practice/PracticeActionBar
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 const MAX_VISIBLE = 3;
 
 // 스튜디오에서 구매 가능한 이용권 목록. 선택한 순간 하단 액션 바에 "구매하기" 노출.
@@ -71,12 +70,6 @@ export function StudioPassList({ passes, studioId, locale }: { passes: Community
               {p.description && (
                 <p className="mt-0.5 text-[12px] text-[#86898C] leading-snug line-clamp-1">{p.description}</p>
               )}
-            </div>
-
-            {/* 가격 + 유효기간(작게, 오른쪽 아래) */}
-            <div className="shrink-0 flex flex-col items-end">
-              <span className="text-[16px] font-bold text-[#171717]">{fmt(p.price)}{t('won')}</span>
-              {p.period && <span className="mt-0.5 text-[11px] text-[#B0B5BB]">{p.period}</span>}
             </div>
           </button>
         );
