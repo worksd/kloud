@@ -3901,6 +3901,7 @@ export const StringResource = {
   community_amenities: { ko: '편의시설', en: 'Amenities', jp: '設備', zh: '便利设施' },
   community_hall_status: { ko: '홀별 예약 현황', en: 'Hall Availability', jp: 'ホール別予約状況', zh: '各厅预约情况' },
   home_today_room_status: { ko: '연습실 예약', en: "Today's Practice Rooms", jp: '本日の練習室予約', zh: '今日练习室预约' },
+  home_upcoming_bookings: { ko: '다가오는 예약', en: 'Upcoming Bookings', jp: '今後の予約', zh: '即将到来的预约' },
   community_pass: { ko: '패스권', en: 'Passes', jp: '利用券', zh: '通票' },
   community_pass_view_all: { ko: '패스권 전체보기', en: 'View all passes', jp: '利用券をすべて見る', zh: '查看全部通票' },
   community_price_from: { ko: '{price}원부터', en: 'From {price} KRW', jp: '{price}ウォン〜', zh: '{price}韩元起' },

@@ -20,6 +20,8 @@ export type GetHomeResponse = {
   bundles?: BundleSummaryResponse[];
   /** 선택된 스튜디오의 오늘(KST) 공개(유료) 연습실별 예약 가능 시각 요약. 없으면(스튜디오 없음/공개 홀 없음) undefined. rooms[].id로 studio.practiceRooms 메타 조인. 날짜 이동은 GET /studios/:id/roomSlots. */
   roomSlots?: RoomSlotsSummaryResponse;
+  /** 오늘(KST) 내 연습실 예약(방 무관 flat, 시작시각 오름차순, 취소 제외). roomSlots와 세트로 포함/생략. 홈에서만 내려옴(roomSlots API엔 없음). */
+  myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[];
 }
 
 export type GetStagResponse = {

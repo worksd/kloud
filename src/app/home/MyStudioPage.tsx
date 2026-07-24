@@ -14,7 +14,7 @@ import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function MyStudioPage({res, bundles, roomSlots}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], roomSlots?: RoomSlotsSummaryResponse}) {
+export default async function MyStudioPage({res, bundles, roomSlots, myBookings}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], roomSlots?: RoomSlotsSummaryResponse, myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[]}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
@@ -92,7 +92,7 @@ export default async function MyStudioPage({res, bundles, roomSlots}: { res: Get
       })}
 
       {/* 오늘 연습실 예약 — 홈 roomSlots(오늘 공개 홀 슬롯) + studio.practiceRooms 메타 조인 */}
-      <HomeRoomSlotsSection studioId={res.studio.id} roomSlots={roomSlots} practiceRooms={res.studio.practiceRooms} locale={locale} />
+      <HomeRoomSlotsSection studioId={res.studio.id} roomSlots={roomSlots} myBookings={myBookings} practiceRooms={res.studio.practiceRooms} locale={locale} />
     </div>
   )
 }
