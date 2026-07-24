@@ -9,10 +9,12 @@ import { TodayTimetable } from "@/app/home/TodayTimetable";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { AnnouncementCard } from "@/app/home/AnnouncementCard";
 import { HomeBundlesSection } from "@/app/home/HomeBundlesSection";
+import { HomeRoomSlotsSection } from "@/app/home/HomeRoomSlotsSection";
 import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
+import { RoomsAvailabilityResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function MyStudioPage({res, bundles}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[]}) {
+export default async function MyStudioPage({res, bundles, roomSlots}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], roomSlots?: RoomsAvailabilityResponse}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
@@ -88,6 +90,9 @@ export default async function MyStudioPage({res, bundles}: { res: GetMyStudioRes
           />
         );
       })}
+
+      {/* 오늘 연습실 예약 — 홈 roomSlots(오늘 공개 홀 슬롯) + studio.practiceRooms 메타 조인 */}
+      <HomeRoomSlotsSection studioId={res.studio.id} roomSlots={roomSlots} practiceRooms={res.studio.practiceRooms} locale={locale} />
     </div>
   )
 }

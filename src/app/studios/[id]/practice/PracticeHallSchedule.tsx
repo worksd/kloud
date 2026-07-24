@@ -96,7 +96,9 @@ const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
 };
 
 // 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
-export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: StudioRoomResponse[]; locale: Locale }) {
+// navigateStudioId가 주어지면(홈 섹션 등) 카드 탭 시 시트 대신 스튜디오 상세(?studioRoomId=)로 이동 —
+// 상세 페이지에서 딥링크로 해당 홀 시트가 자동으로 열린다.
+export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStudioId }: { rooms: StudioRoomResponse[]; locale: Locale; navigateStudioId?: number }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const router = useRouter();
   const pathname = usePathname();
@@ -165,6 +167,14 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
   // entered=false → 화면 아래(offscreen), true → 제자리. transform+transition으로 open/close 애니메이션.
   const [entered, setEntered] = useState(false);
   const openSheet = (roomId: number) => { setSel(null); setDragY(0); closingRef.current = false; setSheetRoomId(roomId); syncRoomIdToUrl(roomId); };
+
+  // 카드 탭 동작. 홈 섹션(navigateStudioId)에서는 시트 대신 스튜디오 상세로 이동, 상세에서 시트 자동 오픈.
+  const onRoomCardClick = (roomId: number) => {
+    if (navigateStudioId == null) { openSheet(roomId); return; }
+    const route = `${KloudScreen.StudioDetail(navigateStudioId)}?studioRoomId=${roomId}`;
+    if (typeof window !== 'undefined' && (window as { KloudEvent?: unknown }).KloudEvent) kloudNav.push(route);
+    else router.push(route);
+  };
   const closeSheet = (after?: () => void) => {
     if (closingRef.current) return;
     closingRef.current = true;
@@ -326,7 +336,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale }: { rooms: S
           return (
             <button
               key={room.id}
-              onClick={() => openSheet(room.id)}
+              onClick={() => onRoomCardClick(room.id)}
               className="w-full text-left rounded-2xl border border-[#EEF0F2] p-4 active:bg-[#FAFBFC] transition-colors"
             >
               <div className="flex items-start gap-3">
