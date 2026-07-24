@@ -11,6 +11,8 @@ export type RoomBookingDetailResponse = {
   startDate: string;                    // 'yyyy.MM.dd HH:mm' KST
   endDate: string;
   price: number;
+  /** 결제 ID — 있으면 결제내역(PaymentRecordDetail)으로 이동 가능. */
+  paymentId?: string | null;
   notice?: string | null;
   user?: {
     id: number;

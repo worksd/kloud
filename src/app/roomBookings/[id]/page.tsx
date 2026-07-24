@@ -6,6 +6,8 @@ import { BackButton } from "@/app/payment/BackButton";
 import { RoomBookingDetailResponse } from "@/app/endpoint/room.booking.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { formatMinutes } from "@/utils/pass.description";
+import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 // 홀 예약 상세 (GET /roomBookings/:id). PR 결제 record → productRoute로 진입.
 export default async function RoomBookingDetailPage({ params, searchParams }: {
@@ -98,6 +100,19 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
               <rect x="3" y="5" width="22" height="18" rx="3" stroke="#CDD1D5" strokeWidth="1.5" />
               <path d="M3 17L9 12L14 16L19 11L25 17" stroke="#CDD1D5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+          </div>
+        )}
+
+        {/* 결제내역 — paymentId 있을 때만. 티켓 상세와 동일한 UI(어두운 pill). 탭 시 결제 상세로. */}
+        {booking.paymentId && (
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center z-10">
+            <NavigateClickWrapper method="push" route={KloudScreen.PaymentRecordDetail(booking.paymentId)}>
+              <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2">
+                <button className="text-[14px] font-medium text-white active:opacity-70 transition-opacity">
+                  {await translate('payment_records')}
+                </button>
+              </div>
+            </NavigateClickWrapper>
           </div>
         )}
       </div>
