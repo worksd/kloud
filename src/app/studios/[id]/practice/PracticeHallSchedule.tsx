@@ -28,8 +28,6 @@ const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-const roomCap = (r: StudioRoomResponse) => r.practiceMaxNumber ?? r.maxNumber;
-
 // 예약은 1시간 간격 — 정시(:00) 슬롯만 노출/선택
 const hourlyOnly = (slots: TimeSlotResponse[]) => slots.filter((s) => s.time.endsWith(':00'));
 
@@ -414,10 +412,11 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-[17px] font-bold text-[#171717]">{room.name}</p>
-                  <p className="mt-1 text-[13px] text-[#86898C]">
-                    {t('community_max_people').replace('{count}', String(roomCap(room)))}
-                    {room.minBookingDuration ? ` · ${t('community_min_unit').replace('{min}', String(room.minBookingDuration))}` : ''}
-                  </p>
+                  {room.minBookingDuration ? (
+                    <p className="mt-1 text-[13px] text-[#86898C]">
+                      {t('community_min_unit').replace('{min}', String(room.minBookingDuration))}
+                    </p>
+                  ) : null}
                   <p className={`mt-1 text-[13px] font-bold ${fullyBooked ? 'text-[#C4C9CF]' : 'text-[#171717]'}`}>
                     {fullyBooked ? t('community_reservation_closed') : t('community_available')}
                   </p>
