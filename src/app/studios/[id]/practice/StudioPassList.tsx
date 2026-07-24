@@ -9,11 +9,11 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
 const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
-const MAX_VISIBLE = 5;
+const MAX_VISIBLE = 3;
 
 // 스튜디오에서 구매 가능한 이용권 목록. 선택한 순간 하단 액션 바에 "구매하기" 노출.
-// 최대 5개만 노출, "더보기"는 스튜디오 패스권 전체 페이지로 이동(일반 스튜디오와 동일 route).
-export function PracticePassList({ passes, studioId, locale }: { passes: CommunityPass[]; studioId: number; locale: Locale }) {
+// 최대 3개만 노출, "더보기"는 스튜디오 패스권 전체 페이지로 이동(일반 스튜디오와 동일 route).
+export function StudioPassList({ passes, studioId, locale }: { passes: CommunityPass[]; studioId: number; locale: Locale }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const { setAction, clearAction, activeSource } = usePracticeAction();
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
@@ -49,30 +49,34 @@ export function PracticePassList({ passes, studioId, locale }: { passes: Communi
           <button
             key={p.id}
             onClick={() => setSelectedId((prev) => (prev === p.id ? null : p.id))}
-            className={`text-left rounded-2xl border p-4 transition-colors ${selected ? 'border-[#3CC0AF] bg-[#EAF7F4]' : 'border-[#EEF0F2] active:bg-[#FAFBFC]'}`}
+            className={`w-full text-left rounded-2xl border p-4 transition-colors flex items-center gap-3 ${selected ? 'border-[#3CC0AF] bg-[#EAF7F4]' : 'border-[#EEF0F2] active:bg-[#FAFBFC]'}`}
           >
-            <div className="flex items-center gap-2">
-              {p.tag && (
-                <span className="px-2 py-0.5 rounded-full bg-[#EAF7F4] text-[#2AA894] text-[11px] font-bold">{p.tag}</span>
-              )}
-              <span className="text-[16px] font-bold text-[#171717]">{p.name}</span>
+            {/* 아이콘 (티켓) */}
+            <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${selected ? 'bg-white' : 'bg-[#F1F3F6]'}`}>
+              <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+                <path d="M4 8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2 2 0 0 0 0 5v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-5v-1Z"
+                  stroke={selected ? '#2AA894' : '#8A949E'} strokeWidth="1.6" strokeLinejoin="round" />
+                <path d="M14 7v10" stroke={selected ? '#2AA894' : '#8A949E'} strokeWidth="1.6" strokeDasharray="2 2" />
+              </svg>
             </div>
-            {p.description && (
-              <p className="mt-1 text-[13px] text-[#86898C] leading-snug">{p.description}</p>
-            )}
-            <div className="mt-3 flex items-end justify-between gap-2">
-              <div className="flex flex-col">
-                {p.period && <span className="text-[12px] text-[#A0A5AB]">{t('community_valid_period').replace('{period}', p.period)}</span>}
-                <span className="text-[18px] font-bold text-[#171717]">{fmt(p.price)}{t('won')}</span>
+
+            {/* 이름 + 혜택 요약 */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                {p.tag && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#EAF7F4] text-[#2AA894] text-[11px] font-bold shrink-0">{p.tag}</span>
+                )}
+                <span className="text-[15px] font-bold text-[#171717] truncate">{p.name}</span>
               </div>
-              {selected && (
-                <span className="inline-flex items-center gap-1 text-[13px] font-bold text-[#1E9E8A]">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
-                    <path d="M5 12.5 10 17l9-10" stroke="#1E9E8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {t('community_selected')}
-                </span>
+              {p.description && (
+                <p className="mt-0.5 text-[12px] text-[#86898C] leading-snug line-clamp-1">{p.description}</p>
               )}
+            </div>
+
+            {/* 가격 + 유효기간(작게, 오른쪽 아래) */}
+            <div className="shrink-0 flex flex-col items-end">
+              <span className="text-[16px] font-bold text-[#171717]">{fmt(p.price)}{t('won')}</span>
+              {p.period && <span className="mt-0.5 text-[11px] text-[#B0B5BB]">{p.period}</span>}
             </div>
           </button>
         );

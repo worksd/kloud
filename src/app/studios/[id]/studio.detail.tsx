@@ -17,10 +17,11 @@ import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.acti
 import { LessonGroupBand } from "@/app/home/LessonGroupBand";
 import { PracticeHallSection } from "@/app/studios/[id]/practice/PracticeHallSection";
 import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
-import { PracticePassList } from "@/app/studios/[id]/practice/PracticePassList";
+import { StudioPassList } from "@/app/studios/[id]/practice/StudioPassList";
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
+import { formatRuleDescription } from "@/utils/pass.description";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -40,14 +41,26 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
     content: a.body,
     imageUrl: a.imageUrl ?? undefined,
   }));
-  // 이용권 — studio.passPlans를 community/[id]와 동일한 PracticePassList 형태로 매핑
-  const passes: CommunityPass[] = (studio.passPlans ?? []).map((p) => ({
-    id: p.id,
-    name: p.name,
-    price: p.price ?? 0,
-    period: p.expireDateStamp,
-    tag: p.tag ?? (p.isRecommended ? popularLabel : undefined),
-  }));
+  // 이용권 — studio.passPlans를 community/[id]와 동일한 StudioPassList 형태로 매핑
+  const passes: CommunityPass[] = (studio.passPlans ?? []).map((p) => {
+    // 제목 밑 혜택 요약 — 기존 유틸(formatRuleDescription)로 첫 rule을 문구화. (PassPlanItem과 동일)
+    const firstRule = p.rules?.[0];
+    const description = firstRule?.target && firstRule?.benefit
+      ? formatRuleDescription(
+          { target: firstRule.target, benefit: firstRule.benefit, duration: firstRule.duration, excludes: firstRule.excludes },
+          locale,
+          p.name,
+        )
+      : undefined;
+    return {
+      id: p.id,
+      name: p.name,
+      price: p.price ?? 0,
+      period: p.expireDateStamp,
+      tag: p.tag ?? (p.isRecommended ? popularLabel : undefined),
+      description,
+    };
+  });
   const hasPasses = passes.length > 0;
   // 건물 편의시설 — enabled만 (홀 자체 시설은 홀 정보 시트에서 별도 표시)
   const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
@@ -112,20 +125,20 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
       </div>
 
       {/* 상세 영역 — 헤더(주소/SNS) 아래, 모든 섹션은 회색 구분선 + 동일 상단여백(pt-6)으로 통일 */}
-      <div className="flex flex-col mt-6">
+      <div className="flex flex-col mt-3">
         <div className="flex flex-row items-center px-6 gap-2">
           <LocationIcon className="flex-shrink-0"/>
           <div className="text-[#505356] text-[14px] font-medium">{studio.address}</div>
         </div>
 
-        <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex py-3">
+        <div className="self-stretch px-6 justify-start items-center gap-2 inline-flex pt-3 pb-0">
           {studio.instagramAddress && <StudioIcon type={'instagram'} url={studio.instagramAddress} appVersion={appVersion}/>}
           {studio.youtubeUrl && <StudioIcon type={'youtube'} url={studio.youtubeUrl} appVersion={appVersion}/>}
         </div>
 
         {/* 배너 */}
         {studio.banners && studio.banners.length > 0 && (
-          <section className="mt-2">
+          <section className="py-3">
             <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
               {studio.banners.map((banner) => {
                 const isExpired = new Date(banner.endDate) < new Date();
@@ -207,7 +220,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
             <section className="px-4 pt-6">
               <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_pass')}</h2>
               <PracticeActionProvider>
-                <PracticePassList passes={passes} studioId={studio.id} locale={locale} />
+                <StudioPassList passes={passes} studioId={studio.id} locale={locale} />
               </PracticeActionProvider>
             </section>
           </>
