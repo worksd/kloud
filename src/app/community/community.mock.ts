@@ -31,10 +31,3 @@ export const defaultCommunityNotices = (): CommunityNotice[] => [
   { date: '2026-07-01', title: '전 홀 에어컨 필터 교체 완료', content: '쾌적한 연습 환경을 위해 모든 홀의 에어컨 필터를 새로 교체했습니다.' },
   { date: '2026-06-20', title: '주말 이용 시간 연장', content: '토·일요일 이용 종료 시간이 24시까지로 연장되었습니다.' },
 ];
-
-// 스튜디오별 이용권이 없으면 쓰는 기본 이용권 목록 (Mock)
-export const defaultCommunityPasses = (studioId: number): CommunityPass[] => [
-  { id: studioId * 100 + 1, name: '한 달 자유 이용권', description: '30일 동안 예약 없이 자유롭게 이용', price: 300000, period: '30일', tag: '인기' },
-  { id: studioId * 100 + 2, name: '월 100시간 이용권', description: '한 달간 총 100시간 이용', price: 200000, period: '30일' },
-  { id: studioId * 100 + 3, name: '10회 이용권', description: '원하는 날 10회 이용 (1회 2시간)', price: 150000, period: '60일' },
-];
