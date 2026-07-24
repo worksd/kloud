@@ -140,6 +140,24 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
   const closingRef = useRef(false);
   const sheetRoom = sheetRoomId != null ? rooms.find((r) => r.id === sheetRoomId) : undefined;
 
+  // 시트에 열린 홀에서 그날 '내 예약'이 차지하는 시각(시 단위) — 슬롯 목록에도 '내 예약'으로 표시.
+  const myBookedHours = (() => {
+    const set = new Set<number>();
+    if (!sheetRoom) return set;
+    const dsDot = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+    for (const b of sheetRoom.myBookings ?? []) {
+      const [sd, st] = (b.startDate ?? '').split(' ');
+      const [ed, et] = (b.endDate ?? '').split(' ');
+      if (sd !== dsDot) continue;
+      const sh = Number((st ?? '').split(':')[0]);
+      let eh = Number((et ?? '').split(':')[0]);
+      if (ed !== sd) eh = 24; // 자정 넘긴 예약 — 그날 끝까지
+      if (Number.isNaN(sh) || Number.isNaN(eh)) continue;
+      for (let h = sh; h < eh; h++) set.add(h);
+    }
+    return set;
+  })();
+
   // 실제 예약현황(슬롯)은 시트를 열었을 때만, 선택된 홀 하나만 studioRoomIds에 넣어 조회.
   // (카드 UI는 available만으로 표시 — API 호출은 시트 오픈부터). 홀+날짜 조합은 한 번만 조회.
   const loadedRef = useRef<Set<string>>(new Set());
@@ -660,19 +678,20 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
                     const past = isPastSlot(s.time);
                     const bookable = isOpen(s) && !past;
                     const selected = sel != null && idx >= sel.start && idx <= sel.end;
+                    const mine = myBookedHours.has(parseInt(s.time, 10)); // 그날 내 예약 시각
                     return (
                       <button
                         key={s.time}
-                        disabled={!bookable}
+                        disabled={!bookable || mine}
                         onClick={() => onSlot(idx, arr)}
-                        className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : bookable ? 'active:bg-[#FAFBFC]' : ''}`}
+                        className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : mine ? 'bg-[#F3FBF9]' : bookable ? 'active:bg-[#FAFBFC]' : ''}`}
                       >
-                        <span className={`text-[15px] font-medium ${!bookable ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#171717]'}`}>
+                        <span className={`text-[15px] font-medium ${selected || mine ? 'text-[#1E9E8A]' : !bookable ? 'text-[#C4C9CF]' : 'text-[#171717]'}`}>
                           {s.time}
                           {bookable && s.price != null ? <span className="ml-2 text-[12px] font-normal text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
                         </span>
-                        <span className={`text-[13px] font-bold ${!bookable ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
-                          {past ? t('slot_past') : !isOpen(s) ? t('closed') : selected ? t('community_selected') : t('community_available')}
+                        <span className={`text-[13px] font-bold ${mine ? 'text-[#1E9E8A]' : !bookable ? 'text-[#C4C9CF]' : selected ? 'text-[#1E9E8A]' : 'text-[#3CC0AF]'}`}>
+                          {mine ? t('my_bookings') : past ? t('slot_past') : !isOpen(s) ? t('closed') : selected ? t('community_selected') : t('community_available')}
                         </span>
                       </button>
                     );
