@@ -17,22 +17,17 @@ interface RuleDescriptionInput {
 
 // 'HH:mm' → 유저 친화적 시각 표현 (예: '03:00' → ko '새벽 3시', en '3 AM').
 const to12h = (h: number) => (h % 12 === 0 ? 12 : h % 12);
+// 오전(0~11) / 오후(12~17) / 저녁(18~23)
+const koPeriod = (h: number) => (h < 12 ? '오전' : h < 18 ? '오후' : '저녁');
+const zhPeriod = (h: number) => (h < 12 ? '上午' : h < 18 ? '下午' : '晚上');
 const friendlyTime: Record<Locale, (h: number, m: number) => string> = {
-  ko: (h, m) => {
-    if (h === 0 && m === 0) return '자정';
-    if (h === 12 && m === 0) return '정오';
-    const period = h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : '저녁';
-    return `${period} ${to12h(h)}시${m ? ` ${m}분` : ''}`;
-  },
+  ko: (h, m) => `${koPeriod(h)} ${to12h(h)}시${m ? ` ${m}분` : ''}`,
   en: (h, m) => {
     const ampm = h < 12 ? 'AM' : 'PM';
     return m ? `${to12h(h)}:${String(m).padStart(2, '0')} ${ampm}` : `${to12h(h)} ${ampm}`;
   },
   jp: (h, m) => `${h < 12 ? '午前' : '午後'}${to12h(h)}時${m ? `${m}分` : ''}`,
-  zh: (h, m) => {
-    const period = h < 6 ? '凌晨' : h < 12 ? '上午' : h < 18 ? '下午' : '晚上';
-    return `${period}${to12h(h)}点${m ? `${m}分` : ''}`;
-  },
+  zh: (h, m) => `${zhPeriod(h)}${to12h(h)}点${m ? `${m}分` : ''}`,
 };
 // 시작~종료 시각을 로케일별 자연스러운 구간 문구로 (예: '새벽 3시부터 오전 7시까지').
 const timeRangeJoin: Record<Locale, (a: string, b: string) => string> = {
@@ -40,6 +35,15 @@ const timeRangeJoin: Record<Locale, (a: string, b: string) => string> = {
   en: (a, b) => `from ${a} to ${b}`,
   jp: (a, b) => `${a}から${b}まで`,
   zh: (a, b) => `${a}到${b}`,
+};
+
+// 'HH:mm' → 유저 친화적 단일 시각(예: ko '오후 2시', en '2 PM'). 파싱 실패 시 원문.
+export const formatFriendlyTime = (hhmm?: string | null, locale: Locale = 'ko'): string => {
+  const [hs, ms] = (hhmm ?? '').split(':');
+  const h = Number(hs);
+  const m = Number(ms ?? '0');
+  if (Number.isNaN(h)) return hhmm ?? '';
+  return friendlyTime[locale](h, Number.isNaN(m) ? 0 : m);
 };
 
 // 시간대(HH:mm~HH:mm) → 유저 친화적 구간 문구. 둘 중 하나라도 없으면 빈 문자열.

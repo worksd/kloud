@@ -6,6 +6,7 @@ import { Locale } from "@/shared/StringResource";
 import { translate } from "@/utils/translate";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { formatFriendlyTime } from "@/utils/pass.description";
 
 // 앱 홈의 "오늘 연습실 예약" 섹션. 홈 응답 roomSlots(오늘 KST 방별 예약 가능 정시 목록)를 쓰고,
 // 홀 이미지/가격/스펙 등 메타는 studio.practiceRooms에서 id로 조인한다.
@@ -41,10 +42,12 @@ export async function HomeRoomSlotsSection({
   const fmtBooking = (startDate: string, endDate: string) => {
     const s = parseDT(startDate);
     const e = parseDT(endDate);
+    const st = formatFriendlyTime(s.time, locale);
+    const et = formatFriendlyTime(e.time, locale);
     const sameDay = s.date === e.date;
     return sameDay
-      ? `${dateLabel(s.date)} ${s.time} ~ ${e.time}`
-      : `${dateLabel(s.date)} ${s.time} ~ ${dateLabel(e.date)} ${e.time}`;
+      ? `${dateLabel(s.date)} ${st} ~ ${et}`
+      : `${dateLabel(s.date)} ${st} ~ ${dateLabel(e.date)} ${et}`;
   };
 
   const metaById = new Map<number, CommunityPracticeRoomResponse>(
