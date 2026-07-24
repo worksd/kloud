@@ -4,6 +4,8 @@ import { getRoomBookingAction } from "@/app/roomBookings/[id]/get.room.booking.a
 import { getLocale, translate } from "@/utils/translate";
 import { BackButton } from "@/app/payment/BackButton";
 import { RoomBookingDetailResponse } from "@/app/endpoint/room.booking.endpoint";
+import { Locale } from "@/shared/StringResource";
+import { formatMinutes } from "@/utils/pass.description";
 
 // 홀 예약 상세 (GET /roomBookings/:id). PR 결제 record → productRoute로 진입.
 export default async function RoomBookingDetailPage({ params, searchParams }: {
@@ -20,18 +22,35 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
 
   const locale = await getLocale();
 
-  // 'yyyy.MM.dd HH:mm' → 년월일 시:분. 종료가 같은 날이면 시:분만.
+  const WEEKDAYS: Record<Locale, string[]> = {
+    ko: ['일', '월', '화', '수', '목', '금', '토'],
+    en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    jp: ['日', '月', '火', '水', '木', '金', '土'],
+    zh: ['日', '一', '二', '三', '四', '五', '六'],
+  };
+  // 'yyyy.MM.dd HH:mm' 파싱 — 요일/소요시간 계산용 Date 포함.
   const parseDT = (s?: string) => {
     if (!s) return null;
     const [datePart, timePart] = s.split(' ');
     const [y, m, d] = (datePart ?? '').split(/[.\-]/);
     if (!y || !m || !d) return null;
-    return { y, m: Number(m), d: Number(d), time: timePart ?? '' };
+    const [hh, mm] = (timePart ?? '').split(':').map(Number);
+    const date = new Date(Number(y), Number(m) - 1, Number(d), hh || 0, mm || 0);
+    return { y, m: Number(m), d: Number(d), time: timePart ?? '', wd: date.getDay(), date };
   };
-  const fmtDate = (p: { y: string; m: number; d: number }) =>
-    locale === 'ko'
-      ? `${p.y}년 ${p.m}월 ${p.d}일`
-      : `${p.y}.${String(p.m).padStart(2, '0')}.${String(p.d).padStart(2, '0')}`;
+  // 날짜 + 요일. ko '2026년 7월 27일 (일)', 그 외 '2026.07.27 (Sun)'.
+  const fmtDate = (p: { y: string; m: number; d: number; wd: number }) => {
+    const w = WEEKDAYS[locale][p.wd];
+    return locale === 'ko'
+      ? `${p.y}년 ${p.m}월 ${p.d}일 (${w})`
+      : `${p.y}.${String(p.m).padStart(2, '0')}.${String(p.d).padStart(2, '0')} (${w})`;
+  };
+  // 예약 일시(생성) — 날짜(요일) + 시각. 파싱 실패 시 원본.
+  const fmtDateTime = (s?: string) => {
+    const p = parseDT(s);
+    return p ? `${fmtDate(p)} ${p.time}`.trim() : (s ?? '');
+  };
+  // 이용 시간 — 날짜(요일) + 시간 구간 + 소요시간. 종료가 같은 날이면 종료는 시각만.
   const fmtPeriod = (start?: string, end?: string) => {
     const s = parseDT(start);
     if (!s) return `${start ?? ''}${end ? ` ~ ${end}` : ''}`;   // 예상 포맷과 다르면 원본
@@ -40,7 +59,9 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
     if (!e) return startStr;
     const sameDay = s.y === e.y && s.m === e.m && s.d === e.d;
     const endStr = sameDay ? e.time : `${fmtDate(e)} ${e.time}`.trim();
-    return `${startStr} ~ ${endStr}`;
+    const durMin = Math.round((e.date.getTime() - s.date.getTime()) / 60000);
+    const durStr = durMin > 0 ? ` · ${formatMinutes(durMin, locale)}` : '';
+    return `${startStr} ~ ${endStr}${durStr}`;
   };
 
   const statusMap: Record<RoomBookingDetailResponse['status'], { key: Parameters<typeof translate>[0]; cls: string }> = {
@@ -81,8 +102,17 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
         )}
       </div>
 
-      {/* 홀 이름 + 상태 */}
+      {/* 스튜디오(로고+이름) + 홀 이름 + 상태 */}
       <div className="px-5 pt-5">
+        {booking.studio && (
+          <div className="flex items-center gap-2 mb-2.5">
+            {booking.studio.profileImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={booking.studio.profileImageUrl} alt={booking.studio.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
+            )}
+            <span className="text-[14px] font-bold text-[#4E5968]">{booking.studio.name}</span>
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-1.5">
           <span className={`px-2.5 py-1 rounded-full text-[12px] font-bold ${statusInfo.cls}`}>{statusLabel}</span>
           <span className="px-2.5 py-1 rounded-full text-[12px] font-bold bg-[#F1F3F6] text-[#4E5968]">{typeLabel}</span>
@@ -106,7 +136,7 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
           {booking.notice && (
             <Row label={await translate('room_booking_memo')} value={booking.notice} />
           )}
-          <Row label={await translate('room_booking_created')} value={booking.createdAt} />
+          <Row label={await translate('room_booking_created')} value={fmtDateTime(booking.createdAt)} />
         </div>
       </div>
     </div>

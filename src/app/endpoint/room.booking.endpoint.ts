@@ -24,6 +24,11 @@ export type RoomBookingDetailResponse = {
     name: string;
     imageUrls?: string[];
   } | null;
+  studio?: {
+    id: number;
+    name: string;
+    profileImageUrl?: string | null;
+  } | null;
   pass?: {
     id: number;
     passPlanName?: string;
