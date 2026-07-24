@@ -68,7 +68,7 @@ export function StudioPassList({ passes, studioId, locale }: { passes: Community
                 <span className="text-[15px] font-bold text-[#171717] truncate">{p.name}</span>
               </div>
               {p.description && (
-                <p className="mt-0.5 text-[12px] text-[#86898C] leading-snug line-clamp-1">{p.description}</p>
+                <p className="mt-0.5 text-[12px] text-[#86898C] leading-snug line-clamp-2">{p.description}</p>
               )}
             </div>
           </button>
