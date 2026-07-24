@@ -32,7 +32,7 @@ const ruleBenefitIcon = (benefitType: string) => {
     case 'Unlimited': return <UnlimitedIcon />;
     case 'FreeCount': return <FreeUnlimitedIcon />;
     case 'Discount': return <DiscountIcon />;
-    case 'TimeMinutes': return <PassRoomIcon />;
+    case 'TimeHours': return <PassRoomIcon />;
     default: return <UnlimitedIcon />;
   }
 };
@@ -184,8 +184,8 @@ export default async function MyPassDetailPage({params}: {
                         <div className="flex items-center gap-2">
                           {rule.remainingCount != null && rule.benefitValue != null && (
                             <span className="text-[11px] font-bold text-[#5B5FF6]">
-                              {rule.benefitType === 'TimeMinutes'
-                                ? t(locale, 'remaining_time').replace('{time}', formatMinutes(rule.remainingCount, locale))
+                              {rule.benefitType === 'TimeHours'
+                                ? t(locale, 'remaining_time').replace('{time}', formatMinutes(rule.remainingCount * 60, locale))
                                 : `${rule.usageCount}/${rule.benefitValue}${t(locale, 'times')}`}
                             </span>
                           )}

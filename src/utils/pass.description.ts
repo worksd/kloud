@@ -15,9 +15,48 @@ interface RuleDescriptionInput {
   excludes?: { type: string; label?: string | null }[];
 }
 
-// 시간대(HH:mm~HH:mm) 문구 조각. 둘 중 하나라도 없으면 빈 문자열.
-const timeWindow = (startTime?: string | null, endTime?: string | null): string =>
-  startTime && endTime ? `${startTime}~${endTime}` : '';
+// 'HH:mm' → 유저 친화적 시각 표현 (예: '03:00' → ko '새벽 3시', en '3 AM').
+const to12h = (h: number) => (h % 12 === 0 ? 12 : h % 12);
+const friendlyTime: Record<Locale, (h: number, m: number) => string> = {
+  ko: (h, m) => {
+    if (h === 0 && m === 0) return '자정';
+    if (h === 12 && m === 0) return '정오';
+    const period = h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : '저녁';
+    return `${period} ${to12h(h)}시${m ? ` ${m}분` : ''}`;
+  },
+  en: (h, m) => {
+    const ampm = h < 12 ? 'AM' : 'PM';
+    return m ? `${to12h(h)}:${String(m).padStart(2, '0')} ${ampm}` : `${to12h(h)} ${ampm}`;
+  },
+  jp: (h, m) => `${h < 12 ? '午前' : '午後'}${to12h(h)}時${m ? `${m}分` : ''}`,
+  zh: (h, m) => {
+    const period = h < 6 ? '凌晨' : h < 12 ? '上午' : h < 18 ? '下午' : '晚上';
+    return `${period}${to12h(h)}点${m ? `${m}分` : ''}`;
+  },
+};
+// 시작~종료 시각을 로케일별 자연스러운 구간 문구로 (예: '새벽 3시부터 오전 7시까지').
+const timeRangeJoin: Record<Locale, (a: string, b: string) => string> = {
+  ko: (a, b) => `${a}부터 ${b}까지`,
+  en: (a, b) => `from ${a} to ${b}`,
+  jp: (a, b) => `${a}から${b}まで`,
+  zh: (a, b) => `${a}到${b}`,
+};
+
+// 시간대(HH:mm~HH:mm) → 유저 친화적 구간 문구. 둘 중 하나라도 없으면 빈 문자열.
+const timeWindow = (startTime?: string | null, endTime?: string | null, locale: Locale = 'ko'): string => {
+  const parse = (t?: string | null) => {
+    if (!t) return null;
+    const [hs, ms] = t.split(':');
+    const h = Number(hs);
+    const m = Number(ms ?? '0');
+    if (Number.isNaN(h)) return null;
+    return { h, m: Number.isNaN(m) ? 0 : m };
+  };
+  const s = parse(startTime);
+  const e = parse(endTime);
+  if (!s || !e) return '';
+  return timeRangeJoin[locale](friendlyTime[locale](s.h, s.m), friendlyTime[locale](e.h, e.m));
+};
 
 const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passName?: string) => string>> = {
   All: {
@@ -76,11 +115,12 @@ const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, durati
     zh: () => '可以无限使用',
   },
   // 특정 시간대(startTime~endTime) 무제한 이용권. 시간대 없으면 일반 무제한과 동일.
+  // win은 이미 로케일별 친화 구간 문구(예: '새벽 3시부터 오전 7시까지').
   UnlimitedWindow: {
-    ko: (_v, _d, win) => win ? `${win}에 무제한으로 이용할 수 있어요` : '무제한으로 이용할 수 있어요',
-    en: (_v, _d, win) => win ? `can be used unlimited from ${win}` : 'can be used unlimited',
-    jp: (_v, _d, win) => win ? `${win}に無制限で利用できます` : '無制限で利用できます',
-    zh: (_v, _d, win) => win ? `在${win}时段内可以无限使用` : '可以无限使用',
+    ko: (_v, _d, win) => win ? `${win} 무제한으로 이용할 수 있어요` : '무제한으로 이용할 수 있어요',
+    en: (_v, _d, win) => win ? `can be used unlimited ${win}` : 'can be used unlimited',
+    jp: (_v, _d, win) => win ? `${win}無制限で利用できます` : '無制限で利用できます',
+    zh: (_v, _d, win) => win ? `${win}可以无限使用` : '可以无限使用',
   },
   FreeCount: {
     ko: (v) => `${v ?? 0}회 수강할 수 있어요`,
@@ -100,12 +140,12 @@ const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, durati
     jp: (v) => `${(v ?? 0).toLocaleString()}ウォン割引を受けられます`,
     zh: (v) => `可以获得${(v ?? 0).toLocaleString()}韩元折扣`,
   },
-  // 연습실 시간권 — value는 분(minutes). '3시간 이용할 수 있어요'
-  TimeMinutes: {
-    ko: (v) => `${formatMinutes(v ?? 0, 'ko')} 이용할 수 있어요`,
-    en: (v) => `can be used for ${formatMinutes(v ?? 0, 'en')}`,
-    jp: (v) => `${formatMinutes(v ?? 0, 'jp')}利用できます`,
-    zh: (v) => `可以使用${formatMinutes(v ?? 0, 'zh')}`,
+  // 연습실 시간권 — value는 시간(hours). '3시간 이용할 수 있어요' (formatMinutes는 분 단위라 *60)
+  TimeHours: {
+    ko: (v) => `${formatMinutes((v ?? 0) * 60, 'ko')} 이용할 수 있어요`,
+    en: (v) => `can be used for ${formatMinutes((v ?? 0) * 60, 'en')}`,
+    jp: (v) => `${formatMinutes((v ?? 0) * 60, 'jp')}利用できます`,
+    zh: (v) => `可以使用${formatMinutes((v ?? 0) * 60, 'zh')}`,
   },
 };
 
@@ -160,7 +200,7 @@ export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale
     : targetFn[locale](rule.target.label, passName);
 
   const benefitFn = RULE_BENEFIT[rule.benefit.type] ?? RULE_BENEFIT['FreeCount'];
-  const benefitText = benefitFn[locale](rule.benefit.value, rule.duration, timeWindow(rule.benefit.startTime, rule.benefit.endTime));
+  const benefitText = benefitFn[locale](rule.benefit.value, rule.duration, timeWindow(rule.benefit.startTime, rule.benefit.endTime, locale));
 
   // UnlimitedDay 문구는 자체에 "원하는 수업을"이 포함된 완결 문장이라 target prefix를 붙이지 않는다.
   let sentence = rule.benefit.type === 'UnlimitedDay'
