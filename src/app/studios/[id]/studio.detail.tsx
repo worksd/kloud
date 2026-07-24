@@ -213,6 +213,16 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           </>
         )}
 
+        {/* 홀(연습실) 예약현황 */}
+        {hasHalls && (
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <section className="pt-6">
+              <PracticeHallSection studioId={studio.id} practiceRooms={studio.practiceRooms} locale={locale} />
+            </section>
+          </>
+        )}
+
         {/* 이용권 */}
         {hasPasses && (
           <>
@@ -244,15 +254,6 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           </>
         )}
 
-        {/* 홀(연습실) 예약현황 */}
-        {hasHalls && (
-          <>
-            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
-            <section className="pt-6">
-              <PracticeHallSection studioId={studio.id} practiceRooms={studio.practiceRooms} locale={locale} />
-            </section>
-          </>
-        )}
       </div>
 
     </ScrollContainer>
