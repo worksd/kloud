@@ -10,10 +10,14 @@ import { Locale } from "@/shared/StringResource";
 
 interface RuleDescriptionInput {
   target: { type: string; label?: string | null };
-  benefit: { type: string; value?: number | null };
+  benefit: { type: string; value?: number | null; startTime?: string | null; endTime?: string | null };
   duration?: number | string | null;
   excludes?: { type: string; label?: string | null }[];
 }
+
+// 시간대(HH:mm~HH:mm) 문구 조각. 둘 중 하나라도 없으면 빈 문자열.
+const timeWindow = (startTime?: string | null, endTime?: string | null): string =>
+  startTime && endTime ? `${startTime}~${endTime}` : '';
 
 const RULE_TARGET: Record<string, Record<Locale, (label?: string | null, passName?: string) => string>> = {
   All: {
@@ -64,12 +68,19 @@ export const formatMinutes = (minutes: number, locale: Locale): string => {
   return `${m}${unit.m}`;
 };
 
-const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, duration?: number | string | null) => string>> = {
+const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, duration?: number | string | null, win?: string) => string>> = {
   Unlimited: {
     ko: () => '무제한으로 이용할 수 있어요',
     en: () => 'can be used unlimited',
     jp: () => '無制限で利用できます',
     zh: () => '可以无限使用',
+  },
+  // 특정 시간대(startTime~endTime) 무제한 이용권. 시간대 없으면 일반 무제한과 동일.
+  UnlimitedWindow: {
+    ko: (_v, _d, win) => win ? `${win}에 무제한으로 이용할 수 있어요` : '무제한으로 이용할 수 있어요',
+    en: (_v, _d, win) => win ? `can be used unlimited from ${win}` : 'can be used unlimited',
+    jp: (_v, _d, win) => win ? `${win}に無制限で利用できます` : '無制限で利用できます',
+    zh: (_v, _d, win) => win ? `在${win}时段内可以无限使用` : '可以无限使用',
   },
   FreeCount: {
     ko: (v) => `${v ?? 0}회 수강할 수 있어요`,
@@ -149,7 +160,7 @@ export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale
     : targetFn[locale](rule.target.label, passName);
 
   const benefitFn = RULE_BENEFIT[rule.benefit.type] ?? RULE_BENEFIT['FreeCount'];
-  const benefitText = benefitFn[locale](rule.benefit.value, rule.duration);
+  const benefitText = benefitFn[locale](rule.benefit.value, rule.duration, timeWindow(rule.benefit.startTime, rule.benefit.endTime));
 
   // UnlimitedDay 문구는 자체에 "원하는 수업을"이 포함된 완결 문장이라 target prefix를 붙이지 않는다.
   let sentence = rule.benefit.type === 'UnlimitedDay'

@@ -139,6 +139,34 @@ export const GetRoomsAvailability: Endpoint<GetRoomsAvailabilityParameter, Rooms
   queryParams: ['studioRoomIds', 'studioId', 'date'],
 }
 
+// === 방별 예약 가능 시각 요약 (홈 roomSlots / GET /studios/:id/roomSlots 공통 형식) ===
+// 방별로 그 날짜(KST) 예약 가능한 정시 hour 목록만 가볍게 내려준다.
+// availableHours 산출: 운영시간에서 수업·전체대관·정원소진·(오늘)지난시각·최소예약시간 미만 구간 제외.
+export type RoomSlotSummaryResponse = {
+  id: number;              // 연습실(홀) ID
+  name: string;            // 연습실(홀) 이름
+  availableHours: number[]; // 예약 가능한 정시 hour 목록. 예: [10,11,12]. 없으면 []
+}
+
+export type RoomSlotsSummaryResponse = {
+  date: string;            // 기준 날짜 'yyyy-MM-dd' (KST)
+  rooms: RoomSlotSummaryResponse[];
+}
+
+// GET /studios/:id/roomSlots?date= — 특정 날짜(미지정=오늘) 방별 예약 가능 시각. @OptionalAuth.
+// Public(유료) 방이 하나도 없으면 응답 본문 null.
+export type GetStudioRoomSlotsParameter = {
+  id: number;
+  date?: string;           // 'YYYY-MM-DD' (KST). 미입력/형식오류 → 오늘
+}
+
+export const GetStudioRoomSlots: Endpoint<GetStudioRoomSlotsParameter, RoomSlotsSummaryResponse> = {
+  method: 'get',
+  path: (e) => `/studios/${e.id}/roomSlots`,
+  pathParams: ['id'],
+  queryParams: ['date'],
+}
+
 // === 파트너(관리자) 예약 일정표 ===
 // 동일 URL(GET /studioRooms/availability)이지만 X-Guinness-Client: PARTNER + 파트너 토큰일 때
 // 앱/키오스크(slots)와 다른 멀티룸 응답(rooms[].bookings 예약자 목록)을 내려준다.

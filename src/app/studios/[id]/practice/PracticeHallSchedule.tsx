@@ -8,7 +8,7 @@ import calendarStyles from "@/app/kiosk/CalendarStyles.module.css";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
-import { getRoomsAvailabilityByIdsAction } from "@/app/community/community.actions";
+import { getRoomsAvailabilityByIdsAction, getStudioRoomSlotsAction } from "@/app/community/community.actions";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
@@ -98,7 +98,8 @@ const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
 // 홀 카드 탭 → 시간표 바텀시트(슬롯 선택 + 예약하기). 예약하기 누르면 시트 닫으며 결제 페이지 이동.
 // navigateStudioId가 주어지면(홈 섹션 등) 카드 탭 시 시트 대신 스튜디오 상세(?studioRoomId=)로 이동 —
 // 상세 페이지에서 딥링크로 해당 홀 시트가 자동으로 열린다.
-export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStudioId }: { rooms: StudioRoomResponse[]; locale: Locale; navigateStudioId?: number }) {
+// studioId가 주어지면(스튜디오 상세) 날짜 변경 시 GET /studios/:id/roomSlots로 예약 가능 시각을 갱신한다.
+export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStudioId, studioId }: { rooms: StudioRoomResponse[]; locale: Locale; navigateStudioId?: number; studioId?: number }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const router = useRouter();
   const pathname = usePathname();
@@ -144,25 +145,79 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
   // 실제 예약현황(슬롯)은 시트를 열었을 때만, 선택된 홀 하나만 studioRoomIds에 넣어 조회.
   // (카드 UI는 available만으로 표시 — API 호출은 시트 오픈부터). 홀+날짜 조합은 한 번만 조회.
   const loadedRef = useRef<Set<string>>(new Set());
+  // 초기 진입 날짜(오늘). 이 날짜는 studios/:id 데이터(initialRooms)를 그대로 쓰고, 그 외엔 roomSlots로 교체.
+  const initialDsRef = useRef<string>(toDateStr(date));
   useEffect(() => {
     if (sheetRoomId == null) return;                 // 시트가 열렸을 때만
     const ds = toDateStr(date);
     const key = `${sheetRoomId}-${ds}`;
     if (loadedRef.current.has(key)) return;          // 이 홀+날짜 이미 로드됨
     let alive = true;
-    getRoomsAvailabilityByIdsAction({ studioRoomIds: String(sheetRoomId), date: ds })
-      .then((res) => {
+    // 병행 조회: availability(시간대별 가격 + 내 예약) + roomSlots(그 날짜 예약 가능 정시).
+    // roomSlots(availableHours)를 예약 가능 여부의 기준으로 삼되, 가격/내 예약은 availability에서 유지.
+    const availabilityP = getRoomsAvailabilityByIdsAction({ studioRoomIds: String(sheetRoomId), date: ds });
+    const slotsP = studioId != null ? getStudioRoomSlotsAction({ studioId, date: ds }) : Promise.resolve(null);
+    Promise.all([availabilityP, slotsP])
+      .then(([res, roomSlotsRes]) => {
         if (!alive || !('rooms' in res)) return;
         const row = res.rooms.find((r) => r.studioRoomId === sheetRoomId);
         if (!row) return;
-        const slots = deriveSlots(row as AvailabilityRow, date);
+        let slots = deriveSlots(row as AvailabilityRow, date);
+        // roomSlots가 있으면 그 날짜 예약 가능 정시로 status를 덮어쓴다 (full=예약됨 표시는 유지).
+        const hours = roomSlotsRes && typeof roomSlotsRes === 'object' && 'rooms' in roomSlotsRes
+          ? roomSlotsRes.rooms.find((r) => r.id === sheetRoomId)?.availableHours
+          : undefined;
+        if (hours) {
+          const hourSet = new Set(hours);
+          slots = slots.map((s) => {
+            const hour = Number(s.time.split(':')[0]);
+            if (hourSet.has(hour)) return { ...s, status: 'available' as const };
+            return { ...s, status: s.status === 'full' ? ('full' as const) : ('closed' as const) };
+          });
+        }
         const myBookings = ((row as AvailabilityRow).myBookings ?? []).map((b) => ({ id: b.id ?? 0, startDate: b.startDate, endDate: b.endDate }));
         setRooms((prev) => prev.map((r) => (r.id === sheetRoomId ? { ...r, slots, myBookings } : r)));
         loadedRef.current.add(key);
       });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sheetRoomId, date]);
+  }, [sheetRoomId, date, studioId]);
+
+  // 섹션 달력으로 날짜를 바꾸면 카드(미오픈 홀)의 예약가능 시각을 GET /studios/:id/roomSlots로 교체.
+  // 초기 날짜(오늘)는 studios/:id에서 받은 initialRooms 슬롯을 그대로 사용(재조회 없음).
+  // 열린 시트의 홀은 위 availability 효과가 상세 슬롯(가격/내 예약)으로 채우므로 여기서 건드리지 않는다.
+  useEffect(() => {
+    if (studioId == null) return; // 상세에서만 동작(홈은 카드 탭 시 상세로 이동)
+    const ds = toDateStr(date);
+    if (ds === initialDsRef.current) {
+      // 오늘: studios/:id 데이터로 복원
+      setRooms((prev) => prev.map((r) => {
+        if (r.id === sheetRoomId) return r;
+        const init = initialRooms.find((x) => x.id === r.id);
+        return init ? { ...r, slots: init.slots } : r;
+      }));
+      return;
+    }
+    let alive = true;
+    getStudioRoomSlotsAction({ studioId, date: ds }).then((res) => {
+      if (!alive || !res || typeof res !== 'object' || !('rooms' in res)) return;
+      const hoursById = new Map(res.rooms.map((r) => [r.id, new Set(r.availableHours ?? [])]));
+      setRooms((prev) => prev.map((r) => {
+        if (r.id === sheetRoomId) return r; // 열린 시트는 availability 효과가 처리
+        const hourSet = hoursById.get(r.id) ?? new Set<number>();
+        const slots = Array.from({ length: 24 }, (_, h): TimeSlotResponse => ({
+          time: `${String(h).padStart(2, '0')}:00`,
+          status: hourSet.has(h) ? 'available' : 'closed',
+          currentCount: 0,
+          maxCount: r.maxNumber ?? 0,
+          price: r.unitPrice ?? null,
+        }));
+        return { ...r, slots };
+      }));
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, studioId]);
 
   // entered=false → 화면 아래(offscreen), true → 제자리. transform+transition으로 open/close 애니메이션.
   const [entered, setEntered] = useState(false);
@@ -324,7 +379,24 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
 
   return (
     <div>
-      {/* 홀별 카드 — 탭하면 시간표 바텀시트(날짜 선택은 시트 안에서) */}
+      {/* 섹션 날짜 선택 — 상세에서만. 날짜를 바꾸면 카드 예약가능 시각을 roomSlots로 교체 */}
+      {studioId != null && (
+        <button
+          onClick={() => setDateOpen(true)}
+          className="mb-3 inline-flex items-center gap-1.5 h-9 pl-3 pr-2.5 rounded-full bg-[#F1F3F6] active:bg-[#E7EAEE] transition-colors"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+            <rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="#4E5968" strokeWidth="1.6" />
+            <path d="M3.5 9h17M8 3.5v3M16 3.5v3" stroke="#4E5968" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+          <span className="text-[14px] font-bold text-[#171717]">{fmtMonthDayWeekday(date, locale)}</span>
+          <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+            <path d="M6 9l6 6 6-6" stroke="#4E5968" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+
+      {/* 홀별 카드 — 탭하면 시간표 바텀시트(시트 안에서도 날짜 변경 가능) */}
       <div className="flex flex-col gap-4">
         {rooms.map((room) => {
           const slots = hourlyOnly(room.slots ?? []);
@@ -659,6 +731,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
                   const d = Array.isArray(v) ? v[0] : v;
                   if (d instanceof Date) {
                     d.setHours(0, 0, 0, 0);
+                    loadedRef.current.clear(); // 날짜 바뀌면 시트 상세 슬롯 캐시 무효화 → 재조회
                     setDate(d);
                     closeDateSheet();
                   }

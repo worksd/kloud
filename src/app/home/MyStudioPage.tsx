@@ -11,10 +11,10 @@ import { AnnouncementCard } from "@/app/home/AnnouncementCard";
 import { HomeBundlesSection } from "@/app/home/HomeBundlesSection";
 import { HomeRoomSlotsSection } from "@/app/home/HomeRoomSlotsSection";
 import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
-import { RoomsAvailabilityResponse } from "@/app/endpoint/studio.room.endpoint";
+import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function MyStudioPage({res, bundles, roomSlots}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], roomSlots?: RoomsAvailabilityResponse}) {
+export default async function MyStudioPage({res, bundles, roomSlots}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], roomSlots?: RoomSlotsSummaryResponse}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }

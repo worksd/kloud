@@ -8,9 +8,11 @@ import { translate } from "@/utils/translate";
 // 스튜디오 상세의 홀(연습실) 예약현황 섹션. 홀 스펙·예약가능시간 모두 studio.practiceRooms만 사용
 // (별도 availability API 호출 없음). availableHours(오늘 예약가능 정시) → 1시간 단위 슬롯으로 변환.
 export async function PracticeHallSection({
+  studioId,
   practiceRooms,
   locale,
 }: {
+  studioId: number;
   practiceRooms?: CommunityPracticeRoomResponse[];
   locale: Locale;
 }) {
@@ -45,7 +47,7 @@ export async function PracticeHallSection({
   return (
     <div className="px-4">
       <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_hall_status')}</h2>
-      <PracticeHallSchedule rooms={rooms} locale={locale} />
+      <PracticeHallSchedule rooms={rooms} locale={locale} studioId={studioId} />
     </div>
   );
 }

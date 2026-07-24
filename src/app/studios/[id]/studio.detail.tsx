@@ -249,7 +249,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           <>
             <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
             <section className="pt-6">
-              <PracticeHallSection practiceRooms={studio.practiceRooms} locale={locale} />
+              <PracticeHallSection studioId={studio.id} practiceRooms={studio.practiceRooms} locale={locale} />
             </section>
           </>
         )}

@@ -24,3 +24,9 @@ export const getCommunityRoomsAvailabilityAction = async (params: { studioId: nu
 export const getRoomsAvailabilityByIdsAction = async (params: { studioRoomIds: string; date: string }) => {
   return await api.studioRoom.availability({ studioRoomIds: params.studioRoomIds, date: params.date });
 };
+
+// 스튜디오의 특정 날짜 방별 예약 가능 시각 요약(availableHours). 홈 roomSlots와 동일 형식.
+// 상세에서 날짜를 바꿀 때 '예약 가능 시각' 판단용으로 호출(가격/내 예약은 availability로 별도 조회).
+export const getStudioRoomSlotsAction = async (params: { studioId: number; date: string }) => {
+  return await api.studioRoom.slots({ id: params.studioId, date: params.date });
+};
