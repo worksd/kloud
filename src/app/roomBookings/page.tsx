@@ -47,6 +47,15 @@ const BookingCard = ({
           )}
         </div>
         <div className="flex-1 min-w-0">
+          {b.studio && (
+            <div className="flex items-center gap-1.5 mb-1">
+              {b.studio.profileImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={b.studio.profileImageUrl} alt={b.studio.name} className="w-4 h-4 rounded-full object-cover shrink-0" />
+              )}
+              <span className="text-[12px] font-medium text-[#8B95A1] truncate">{b.studio.name}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-bold text-[#191f28] truncate">{b.studioRoom?.name ?? practiceRoomLabel}</span>
             <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0 ${s.cls}`}>{statusText[b.status] ?? statusText.Active}</span>

@@ -59,6 +59,15 @@ export const MyBookingCard = ({ booking }: {
         )}
       </div>
       <div className="flex flex-col px-4 py-3 min-w-0">
+        {booking.studio && (
+          <div className="flex items-center gap-1.5 mb-1">
+            {booking.studio.profileImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={booking.studio.profileImageUrl} alt={booking.studio.name} className="w-4 h-4 rounded-full object-cover shrink-0" />
+            )}
+            <span className="text-[11px] font-medium text-[#8B95A1] truncate">{booking.studio.name}</span>
+          </div>
+        )}
         <span className="text-[14px] font-bold text-black truncate">{booking.studioRoom?.name ?? '연습실'}</span>
         <span className="text-[11px] text-[#86898C] mt-0.5">{formatBookingRange(booking.startDate, booking.endDate)}</span>
       </div>

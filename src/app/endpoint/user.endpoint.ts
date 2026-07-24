@@ -65,6 +65,11 @@ export type MyBookingResponse = {
     name: string;
     imageUrls?: string[];
   };
+  studio?: {
+    id: number;
+    name: string;
+    profileImageUrl?: string | null;
+  };
 }
 
 export type MyPassResponse = {
