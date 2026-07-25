@@ -1574,6 +1574,8 @@ export const KioskForm = ({
 
       {currentScreen === 'attendance' && (
         <KioskAttendanceForm
+          studioName={studioName}
+          studioImageUrl={studioProfileImageUrl}
           onBack={goHome}
           onHome={goHome}
           onComplete={goHome}

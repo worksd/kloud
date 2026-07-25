@@ -148,6 +148,9 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
   const handleScan = useCallback(async (raw: string) => {
     if (busyRef.current || modeRef.current !== 'qr') return;
 
+    // 빈 스캔값(startQrScan 초기 트리거·네이티브 빈 결과 등)은 에러 없이 무시 — 대기 유지
+    if (!raw || !raw.trim()) return;
+
     const parsed = parseQr(raw);
     if (!parsed) {
       setErrorMsg(t('coupon_qr_invalid'));

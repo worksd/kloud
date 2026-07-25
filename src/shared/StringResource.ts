@@ -3356,6 +3356,12 @@ export const StringResource = {
   kiosk_attendance_not_out: { ko: '미퇴실', en: 'Not out', jp: '未退室', zh: '未离店' },
   kiosk_check_in: { ko: '스튜디오 출석', en: 'Studio Check-in', jp: 'スタジオ出席', zh: '门店签到' },
   kiosk_check_out: { ko: '스튜디오 체크아웃', en: 'Studio Check-out', jp: 'スタジオチェックアウト', zh: '门店签退' },
+  // 방문 기록 달력 칸에 붙는 짧은 태그 라벨 (시간과 함께 pill로 노출)
+  kiosk_tag_check_in: { ko: '체크인', en: 'In', jp: 'イン', zh: '签到' },
+  kiosk_tag_check_out: { ko: '체크아웃', en: 'Out', jp: 'アウト', zh: '签退' },
+  // 오늘 체크인·체크아웃을 모두 마친 상태 — 더 할 동작이 없어 홈 복귀만 안내
+  kiosk_go_home: { ko: '홈으로 돌아가기', en: 'Back to Home', jp: 'ホームに戻る', zh: '返回首页' },
+  kiosk_attendance_all_done: { ko: '오늘 방문 기록이 모두 완료됐어요', en: "Today's visit is complete", jp: '本日の訪問記録は完了しています', zh: '今日访问记录已完成' },
   kiosk_attendance: { ko: '방문 기록', en: 'Visit Record', jp: '訪問記録', zh: '访问记录' },
   kiosk_greeting: { ko: '반가워요! {0}입니다.', en: 'Welcome to {0}!', jp: 'ようこそ！{0}です。', zh: '欢迎来到{0}！' },
   kiosk_confirm: { ko: '확인', en: 'Confirm', jp: '確認', zh: '确认' },

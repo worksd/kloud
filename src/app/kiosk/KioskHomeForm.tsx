@@ -74,7 +74,7 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
               className="min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
             >
               <KioskLessonAttendanceIcon size={46} />
-              <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
+              <span className="text-[#1E2124] text-[min(1.9vh,24px)] font-bold leading-tight">
                 {t('kiosk_attendance_menu')}
               </span>
             </div>
@@ -86,7 +86,7 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
               className="min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
             >
               <KioskRoomBookingIcon size={46} />
-              <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
+              <span className="text-[#1E2124] text-[min(1.9vh,24px)] font-bold leading-tight">
                 {t('kiosk_reserve_room')}
               </span>
             </div>
@@ -98,7 +98,7 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
               className={`min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#1E2124] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform ${cardCount === 3 ? 'col-span-2' : ''}`}
             >
               <KioskPaymentIcon width={34} height={44} />
-              <span className="text-white text-[min(2.4vh,32px)] font-bold leading-tight">
+              <span className="text-white text-[min(1.9vh,24px)] font-bold leading-tight">
                 {t('kiosk_payment_title')}
               </span>
             </div>

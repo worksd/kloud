@@ -54,7 +54,8 @@ export const lessonBlockLabel = (lesson: Pick<GetLessonResponse, 'status' | 'pri
 };
 
 // "HH:mm" 문자열을 로케일 자연 포맷의 시간으로 (예: 오후 7:00 / 7:00 PM / 午後7:00 / 下午7:00)
-const toAmPm = (hhmm: string, locale: Locale): string => {
+// 키오스크 전역 시간 표기 규칙 — 수업/방문기록 등 시:분을 노출하는 곳은 모두 이걸 쓴다.
+export const toAmPm = (hhmm: string, locale: Locale): string => {
   const [h, m] = hhmm.split(':').map(Number);
   if (Number.isNaN(h) || Number.isNaN(m)) return '';
   const d = new Date();
