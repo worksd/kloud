@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { KioskOperatorEmailLogin } from '@/app/kiosk/KioskOperatorEmailLogin';
+import { KioskEndpointModal } from '@/app/kiosk/KioskEndpointModal';
 import { KioskSelector } from '@/app/kiosk/KioskSelector';
 import { KioskForm } from '@/app/kiosk/KioskForm';
 import { KioskResponse } from '@/app/endpoint/kiosk.endpoint';
@@ -40,6 +41,9 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
     phone?: string;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // 서버(엔드포인트) 변경 모달 — 로그인 화면 제목 5연속 탭으로 진입.
+  // 엔드포인트가 틀리면 로그인 자체가 불가하므로 로그인 전에도 열 수 있어야 한다.
+  const [endpointOpen, setEndpointOpen] = useState(false);
 
   // /me + /kiosks 병렬 호출 → me.studio로 스튜디오 정보, kiosks로 선택
   const loadKiosks = async (preselectedId?: number) => {
@@ -137,13 +141,19 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken }: Pr
     // 'onCancel'은 호출되어도 닫을 화면이 없으므로 noop으로 둠.
     return (
       <>
-        <KioskOperatorEmailLogin onLoggedIn={handleEmailLoggedIn} onCancel={() => {}} />
+        <KioskOperatorEmailLogin
+          onLoggedIn={handleEmailLoggedIn}
+          onCancel={() => {}}
+          onAdminMode={() => setEndpointOpen(true)}
+        />
 
         {errorMessage && (
           <div className="fixed bottom-[20px] left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl bg-black/80 text-white text-[14px]">
             {errorMessage}
           </div>
         )}
+
+        {endpointOpen && <KioskEndpointModal onClose={() => setEndpointOpen(false)} />}
       </>
     );
   }
