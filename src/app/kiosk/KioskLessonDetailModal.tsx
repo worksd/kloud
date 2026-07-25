@@ -12,6 +12,7 @@ import {
   lessonBlockLabel,
 } from "@/app/kiosk/kiosk.lesson";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
+import { LessonLabel, LessonTypeLabel, LessonLevelLabel } from "@/app/components/LessonLabel";
 
 type KioskLessonDetailModalProps = {
   lesson: GetLessonResponse;
@@ -40,7 +41,12 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
   const timeLabel = timeRange && durationLabel ? `${timeRange} · ${durationLabel}` : (timeRange || durationLabel);
   const roomLabel = lesson.room?.name ?? '';
   const artist = lesson.artists?.[0];
-  const tags = [lesson.level, lesson.genre].filter((v): v is string => Boolean(v));
+  // 'Default'는 미지정 값이라 노출하지 않음 (LessonLabel/LessonLevelLabel은 자체 필터가 없어 호출부에서 거른다).
+  const showVal = (v?: string | null): v is string => Boolean(v) && v !== 'Default';
+  const showGenre = showVal(lesson.genre);
+  const showLevel = showVal(lesson.level);
+  const showType = lesson.type != null && lesson.type !== ('Default' as typeof lesson.type);
+  const hasTags = showGenre || showType || showLevel;
   // admin(상담실)은 구매불가 게이팅 없음 — 지난/마감 수업도 결제 진행 가능
   const payable = variant === 'admin' || isLessonPayable(lesson);
   const blockText = lessonBlockLabel(lesson, locale);
@@ -84,20 +90,11 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
               {lesson.title ?? ''}
             </p>
 
-            {tags.length > 0 && (
-              <div className="flex flex-wrap" style={{ gap: 'min(0.8vw, 10px)' }}>
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-[#F2F4F6] text-[#1E2124] font-medium rounded-full"
-                    style={{
-                      padding: 'min(0.6vw, 8px) min(1.4vw, 16px)',
-                      fontSize: 'min(1.6vw, 18px)',
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
+            {hasTags && (
+              <div className="flex flex-wrap items-center" style={{ gap: 'min(0.8vw, 10px)' }}>
+                {showGenre && <LessonLabel label={lesson.genre!} locale={locale} />}
+                {showType && <LessonTypeLabel type={lesson.type!} locale={locale} />}
+                {showLevel && <LessonLevelLabel label={lesson.level!} locale={locale} />}
               </div>
             )}
 
@@ -142,7 +139,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
           className="border-t border-[#F2F4F6] flex items-center justify-between"
           style={{ padding: 'min(2vw, 22px) min(5.6vw, 60px)' }}
         >
-          <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}>{t('payment_amount')}</span>
+          <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}></span>
           {/* admin(상담실)은 '구매불가' 표기 없이 항상 금액 노출 (price 없으면 0원) */}
           {lesson.price == null && !admin ? (
             <span className="text-[#86898C] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
@@ -180,7 +177,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
             style={{ height: 'min(10vw, 110px)' }}
           >
             <span className={`font-bold ${payable ? 'text-white' : 'text-[#86898C]'}`} style={{ fontSize: 'min(3.2vw, 34px)' }}>
-              {payable ? t('kiosk_payment_title') : blockText}
+              {payable ? t('kiosk_lesson_apply') : blockText}
             </span>
           </button>
         </div>
