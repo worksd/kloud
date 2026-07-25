@@ -80,11 +80,19 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = options.find((o) => o.id === selectedId) ?? null;
 
+  // 다른 다이얼로그와 동일하게 fade/scale out 후 액션 실행
+  const [closing, setClosing] = useState(false);
+  const close = (after?: () => void) => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => after?.(), 200);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center animate-[fadeIn_200ms_ease-out]">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center ${closing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}>
       <div className="absolute inset-0 bg-black/60" />
       <div
-        className="relative w-[92.6%] max-w-[1000px] bg-white rounded-[28px] flex flex-col overflow-hidden animate-[fadeIn_200ms_ease-out]"
+        className={`relative w-[92.6%] max-w-[1000px] bg-white rounded-[28px] flex flex-col overflow-hidden ${closing ? 'animate-[scaleOut_200ms_ease-in_forwards]' : 'animate-[scaleIn_200ms_ease-out]'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* 타이틀 */}
@@ -158,14 +166,14 @@ export const KioskPassSelectModal = ({ passes, discounts, locale, onBack, onSele
         {/* 하단 버튼 */}
         <div className="flex" style={{ gap: 'min(2vw,22px)', padding: 'min(2vw,22px) min(3.7vw,40px) min(3.4vw,38px)' }}>
           <button
-            onClick={onBack}
+            onClick={() => close(onBack)}
             className="flex-[280] rounded-[24px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
             style={{ height: 'min(9.5vw,104px)' }}
           >
             <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.6vw, 28px)' }}>{t('kiosk_back')}</span>
           </button>
           <button
-            onClick={() => selected && onSelect(selected.selection)}
+            onClick={() => selected && close(() => onSelect(selected.selection))}
             disabled={!selected}
             className={`flex-[604] rounded-[24px] flex items-center justify-center active:scale-[0.97] transition-all ${
               selected ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'
