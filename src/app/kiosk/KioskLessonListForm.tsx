@@ -61,6 +61,9 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   const [tab, setTab] = useState<KioskTab>('lessons');
   // 프로모션(번들) — 무인은 onSale=true, admin은 전부. 비어있으면 탭 자체를 숨긴다.
   const [bundles, setBundles] = useState<BundleSummaryResponse[]>([]);
+  // 번들 조회가 끝나기 전엔 사이드바 탭을 그리지 않는다 — 프로모션 탭이 뒤늦게 맨 위에 끼어들면서
+  // 수업/패스권 탭이 아래로 밀리는 위치 변경을 막기 위함.
+  const [bundlesLoaded, setBundlesLoaded] = useState(false);
   useEffect(() => {
     if (!studioId) return;
     getBundlesAction(admin ? undefined : true)
@@ -74,7 +77,8 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
         if (process.env.NODE_ENV !== 'production') console.log('[kiosk bundles]', admin ? '(all)' : '(onSale)', res);
         setBundles(Array.isArray(list) ? (list as BundleSummaryResponse[]) : []);
       })
-      .catch((e) => { console.warn('[kiosk bundles] failed', e); });
+      .catch((e) => { console.warn('[kiosk bundles] failed', e); })
+      .finally(() => setBundlesLoaded(true));
   }, [studioId, admin]);
   // 날짜 옵션 — 자정 기준 normalize.
   //  - kiosk(무인): 오늘부터 7일(오늘 ~ +6). 과거 결제 없음.
@@ -179,15 +183,19 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
         return (
           <div className="shrink-0 flex flex-col items-center" style={{ gap: 'min(1vw, 10px)', padding: 'min(1.4vw, 16px) 24px' }}>
             <span className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vh, 28px)' }}>{heading}</span>
-            {tab === 'lessons' && (
-              <div className="flex items-center justify-center" style={{ gap: 'min(2vw, 22px)' }}>
-                <ArrowButton hidden={!canPrev} direction="left" onClick={() => setSelectedDate(dateOptions[currentIdx - 1])} />
-                <span className="text-[#4E5968] font-bold text-center" style={{ fontSize: 'min(1.8vh, 22px)', minWidth: 'min(18vh, 180px)' }}>
-                  {formatPillLabel(selectedDate)}
-                </span>
-                <ArrowButton hidden={!canNext} direction="right" onClick={() => setSelectedDate(dateOptions[currentIdx + 1])} />
-              </div>
-            )}
+            {/* 날짜 선택은 수업 탭에서만 쓰지만, 탭을 바꿔도 헤더 높이가 변하지 않게 항상 렌더하고
+                다른 탭에선 visibility로만 숨긴다 (아래 좌측 사이드바가 위아래로 흔들리는 것 방지). */}
+            <div
+              className="flex items-center justify-center"
+              style={{ gap: 'min(2vw, 22px)', visibility: tab === 'lessons' ? 'visible' : 'hidden' }}
+              aria-hidden={tab !== 'lessons'}
+            >
+              <ArrowButton hidden={!canPrev} direction="left" onClick={() => setSelectedDate(dateOptions[currentIdx - 1])} />
+              <span className="text-[#4E5968] font-bold text-center" style={{ fontSize: 'min(1.8vh, 22px)', minWidth: 'min(18vh, 180px)' }}>
+                {formatPillLabel(selectedDate)}
+              </span>
+              <ArrowButton hidden={!canNext} direction="right" onClick={() => setSelectedDate(dateOptions[currentIdx + 1])} />
+            </div>
           </div>
         );
       })()}
@@ -196,27 +204,31 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       <div className="flex-1 flex overflow-hidden">
         {/* 좌측 사이드바 */}
         <div className="shrink-0 flex flex-col gap-[8px] py-[16px] px-[12px] border-r border-[#F2F4F6]" style={{ width: 'min(18vw, 180px)' }}>
-          {/* 프로모션(번들) — 번들이 있을 때만 맨 위에 노출 */}
-          {bundles.length > 0 && (
-            <KioskSideTab
-              label={t('kiosk_tab_promotion')}
-              active={tab === 'promotion'}
-              onClick={() => setTab('promotion')}
-              iconSrc="/assets/ic_kiosk_pass_plan.svg"
-            />
+          {bundlesLoaded && (
+            <>
+              {/* 프로모션(번들) — 번들이 있을 때만 맨 위에 노출 */}
+              {bundles.length > 0 && (
+                <KioskSideTab
+                  label={t('kiosk_tab_promotion')}
+                  active={tab === 'promotion'}
+                  onClick={() => setTab('promotion')}
+                  iconSrc="/assets/ic_kiosk_pass_plan.svg"
+                />
+              )}
+              <KioskSideTab
+                label={t('kiosk_tab_lessons')}
+                active={tab === 'lessons'}
+                onClick={() => setTab('lessons')}
+                iconSrc="/assets/ic_kiosk_lesson.svg"
+              />
+              <KioskSideTab
+                label={t('kiosk_pass')}
+                active={tab === 'pass-plans'}
+                onClick={() => setTab('pass-plans')}
+                iconSrc="/assets/ic_kiosk_pass_plan.svg"
+              />
+            </>
           )}
-          <KioskSideTab
-            label={t('kiosk_tab_lessons')}
-            active={tab === 'lessons'}
-            onClick={() => setTab('lessons')}
-            iconSrc="/assets/ic_kiosk_lesson.svg"
-          />
-          <KioskSideTab
-            label={t('kiosk_pass')}
-            active={tab === 'pass-plans'}
-            onClick={() => setTab('pass-plans')}
-            iconSrc="/assets/ic_kiosk_pass_plan.svg"
-          />
         </div>
 
         {/* 우측 컨텐츠 */}
