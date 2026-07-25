@@ -1,20 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import emailLoginAction from '@/app/login/action/email.login.action';
 
 type Props = {
   onLoggedIn: () => void;
   onCancel: () => void;
+  /** '이메일로 로그인' 제목 5연속 탭 시 호출 — 서버(엔드포인트) 변경 진입. 홈 로고 5탭과 같은 규칙. */
+  onAdminMode?: () => void;
 };
 
-export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel }: Props) => {
+export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel, onAdminMode }: Props) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canSubmit = email.trim().length > 0 && password.length > 0 && !loading;
+
+  // 제목 5번 연속 탭(1.5초 안에) → 서버 변경. 홈 화면 로고 5탭과 동일한 히든 제스처.
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleTitleTap = () => {
+    if (!onAdminMode) return;
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      onAdminMode();
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 1500);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +58,11 @@ export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel }: Props) => {
         onSubmit={handleSubmit}
         className="bg-white rounded-[24px] w-full max-w-[480px] p-[28px] flex flex-col"
       >
-        <p className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.4vh, 26px)' }}>
+        <p
+          onClick={handleTitleTap}
+          className="text-[#1E2124] font-bold cursor-pointer select-none"
+          style={{ fontSize: 'min(2.4vh, 26px)' }}
+        >
           이메일로 로그인
         </p>
         <p className="text-[#86898C] mt-[6px]" style={{ fontSize: 'min(1.4vh, 14px)' }}>

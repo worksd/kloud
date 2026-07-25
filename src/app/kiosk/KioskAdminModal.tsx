@@ -9,6 +9,7 @@ import { KioskPaymentRecord } from "@/app/endpoint/kiosk.endpoint";
 import { buildCancellationReceipt, buildReprintReceipt, ReceiptStudio } from "@/app/kiosk/kiosk.receipt";
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
+import { KioskEndpointModal } from "@/app/kiosk/KioskEndpointModal";
 import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
 
 // yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
@@ -85,6 +86,8 @@ const printCancellationReceipt = (record: KioskPaymentRecord, studio: ReceiptStu
 
 export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose }: KioskAdminModalProps) => {
   const [stage, setStage] = useState<Stage>('pin');
+  // 서버(엔드포인트) 변경 모달
+  const [endpointOpen, setEndpointOpen] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState<string | null>(null);
   const [payments, setPayments] = useState<KioskPaymentRecord[]>([]);
@@ -527,6 +530,19 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                   <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>
                     {kioskName ?? `#${kioskId}`} 변경
                   </span>
+                </button>
+                {/* 서버(엔드포인트) 변경 — 로그인 후에도 접근 가능하도록. 실제 변경은 네이티브 changeWebEndpoint */}
+                <button
+                  onClick={() => setEndpointOpen(true)}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center"
+                  style={{ padding: 'min(0.9vw,10px) min(1.4vw,16px)', gap: 'min(0.6vw,8px)' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: 'min(1.8vw,20px)', height: 'min(1.8vw,20px)' }}>
+                    <rect x="3" y="4" width="18" height="7" rx="2" stroke="#1E2124" strokeWidth="1.6"/>
+                    <rect x="3" y="13" width="18" height="7" rx="2" stroke="#1E2124" strokeWidth="1.6"/>
+                    <path d="M7 7.5h.01M7 16.5h.01" stroke="#1E2124" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>서버 변경</span>
                 </button>
               </div>
               <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
@@ -1051,6 +1067,8 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
           </div>
         </div>
       )}
+
+      {endpointOpen && <KioskEndpointModal onClose={() => setEndpointOpen(false)} />}
     </div>
   );
 };
