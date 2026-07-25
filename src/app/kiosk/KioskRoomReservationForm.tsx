@@ -20,7 +20,16 @@ export type KioskRoomBooking = {
   endDate: string;      // KST ISO (자정 넘기면 +1일)
 };
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i); // 0~23
+// 자정을 넘겨 다음날 새벽까지 연속 대관할 수 있게 그리드를 확장한다.
+// 0~23 = 선택 날짜, 24~(24+NEXT_DAY_LAST_HOUR) = 다음날 00시~11시.
+const NEXT_DAY_LAST_HOUR = 11;
+const HOURS = Array.from({ length: 24 + NEXT_DAY_LAST_HOUR + 1 }, (_, i) => i); // 0~35
+const isNextDayHour = (h: number) => h >= 24;
+const addDays = (d: Date, days: number) => {
+  const next = new Date(d);
+  next.setDate(next.getDate() + days);
+  return next;
+};
 const pad = (n: number) => String(n).padStart(2, '0');
 const formatPrice = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 const toDateStr = (d: Date) =>
@@ -74,6 +83,8 @@ export const KioskRoomReservationForm = ({
   const today = useRef(new Date()).current;
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [rows, setRows] = useState<RoomAvailabilityRowResponse[]>([]);
+  // 다음날(선택 날짜 +1일) 새벽 구간 행 — 그리드 24~35시 칸이 여기서 슬롯을 읽는다.
+  const [nextRows, setNextRows] = useState<RoomAvailabilityRowResponse[]>([]);
   // 홀별 최대/최소 예약 시간(시간). roomSlots 응답의 max/minBookingHour. 미설정=제한없음.
   const [maxHourByRoom, setMaxHourByRoom] = useState<Record<number, number>>({});
   const [minHourByRoom, setMinHourByRoom] = useState<Record<number, number>>({});
@@ -87,25 +98,40 @@ export const KioskRoomReservationForm = ({
   useEffect(() => {
     setLoading(true);
     setSel(null);
-    getKioskRoomSlotsAction({ studioId, date: toDateStr(selectedDate) })
-      .then((res) => {
-        if (!res || typeof res !== 'object' || !('rooms' in res)) { setRows([]); setMaxHourByRoom({}); setMinHourByRoom({}); return; }
+    // 자정 넘김 예약을 위해 선택 날짜 + 다음날을 함께 조회한다.
+    Promise.all([
+      getKioskRoomSlotsAction({ studioId, date: toDateStr(selectedDate) }),
+      getKioskRoomSlotsAction({ studioId, date: toDateStr(addDays(selectedDate, 1)) }),
+    ])
+      .then(([res, nextRes]) => {
+        // 하루 24칸(0~23)만 담는 row로 매핑 — 다음날 행도 같은 형태로 만들고 그리드가 24~35칸에서 참조한다.
+        const toRows = (r: unknown): RoomAvailabilityRowResponse[] => {
+          if (!r || typeof r !== 'object' || !('rooms' in r)) return [];
+          return (r as { rooms: { id: number; name: string; availableHours?: number[] }[] }).rooms.map((room) => {
+            const hourSet = new Set(room.availableHours ?? []);
+            const slots: TimeSlotResponse[] = Array.from({ length: 24 }, (_, h) => ({
+              time: `${pad(h)}:00`,
+              status: hourSet.has(h) ? 'available' : 'closed',
+              currentCount: 0,
+              maxCount: 1,
+              price: null,
+            }));
+            return { studioRoomId: room.id, name: room.name, slots };
+          });
+        };
+
+        if (!res || typeof res !== 'object' || !('rooms' in res)) {
+          setRows([]); setNextRows([]); setMaxHourByRoom({}); setMinHourByRoom({});
+          return;
+        }
         const maxMap: Record<number, number> = {};
         const minMap: Record<number, number> = {};
-        const mapped: RoomAvailabilityRowResponse[] = res.rooms.map((r) => {
-          const hourSet = new Set(r.availableHours ?? []);
+        for (const r of res.rooms) {
           if (r.maxBookingHour != null) maxMap[r.id] = r.maxBookingHour;
           if (r.minBookingHour != null) minMap[r.id] = r.minBookingHour;
-          const slots: TimeSlotResponse[] = HOURS.map((h) => ({
-            time: `${pad(h)}:00`,
-            status: hourSet.has(h) ? 'available' : 'closed',
-            currentCount: 0,
-            maxCount: 1,
-            price: null,
-          }));
-          return { studioRoomId: r.id, name: r.name, slots };
-        });
-        setRows(mapped);
+        }
+        setRows(toRows(res));
+        setNextRows(toRows(nextRes));
         setMaxHourByRoom(maxMap);
         setMinHourByRoom(minMap);
       })
@@ -120,17 +146,22 @@ export const KioskRoomReservationForm = ({
 
   // 선택 날짜가 오늘이면 현재 시각 이전(시작 시각이 지금보다 과거)인 시간은 예약 불가.
   // 과거 날짜면 전부 지남, 미래 날짜면 전부 유효.
+  // h >= 24는 다음날 (h-24)시로 판단한다.
   const isPastHour = (h: number) => {
     const now = new Date();
-    const sel = new Date(selectedDate); sel.setHours(0, 0, 0, 0);
+    const sel = addDays(selectedDate, isNextDayHour(h) ? 1 : 0); sel.setHours(0, 0, 0, 0);
     const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
     if (sel.getTime() !== today0.getTime()) return sel.getTime() < today0.getTime();
-    const start = new Date(sel); start.setHours(h, 0, 0, 0);
+    const start = new Date(sel); start.setHours(h % 24, 0, 0, 0);
     return start.getTime() < now.getTime();
   };
 
-  const hourSlot = (row: RoomAvailabilityRowResponse, h: number) =>
-    (row.slots ?? []).find((s) => s.time === `${pad(h)}:00`);
+  const hourSlot = (row: RoomAvailabilityRowResponse, h: number) => {
+    const source = isNextDayHour(h)
+      ? nextRows.find((r) => r.studioRoomId === row.studioRoomId)
+      : row;
+    return (source?.slots ?? []).find((s) => s.time === `${pad(h % 24)}:00`);
+  };
 
   // 슬롯 가격 — roomSlots 응답엔 가격이 없어 항상 null(최종금액은 결제 시 서버 계산).
   const slotPrice = (row: RoomAvailabilityRowResponse, h: number): number | null => hourSlot(row, h)?.price ?? null;
@@ -176,9 +207,11 @@ export const KioskRoomReservationForm = ({
   const confirm = () => {
     // 가격(price)이 응답에 없어도 진행 — 최종금액은 결제 시 서버가 계산
     if (!sel || !selRow || !meetsMin) return;
-    const startTime = `${pad(sel.start)}:00`;
+    const startTime = `${pad(sel.start % 24)}:00`;
     const endTime = `${pad((sel.end + 1) % 24)}:00`; // 종료 배타적, 24시는 00:00
-    const { startDate, endDate } = buildBookingDates(toDateStr(selectedDate), { startTime, endTime });
+    // 시작 칸이 다음날 새벽 구간(24~)이면 시작 날짜부터 +1일
+    const startDateStr = toDateStr(addDays(selectedDate, isNextDayHour(sel.start) ? 1 : 0));
+    const { startDate, endDate } = buildBookingDates(startDateStr, { startTime, endTime });
     onConfirm({
       studioRoomId: selRow.studioRoomId,
       roomName: selRow.name ?? '',
@@ -259,18 +292,19 @@ export const KioskRoomReservationForm = ({
     );
   };
 
-  // 한 홀의 24시간을 렌더: available은 개별(선택), 나머지는 연속 병합
+  // 한 홀의 시간대를 렌더: available은 개별(선택), 나머지는 연속 병합.
+  // 다음날 새벽 구간(24~)까지 포함하되, 자정 경계에서 병합을 끊어 구분이 보이게 한다.
   const renderRow = (row: RoomAvailabilityRowResponse) => {
     const out: React.ReactNode[] = [];
     let h = 0;
-    while (h < 24) {
+    while (h < HOURS.length) {
       const kind = cellKind(row, h);
       if (kind === 'available') {
         out.push(renderCell(row, h));
         h++;
       } else {
         let end = h;
-        while (end + 1 < 24 && cellKind(row, end + 1) === kind) end++;
+        while (end + 1 < HOURS.length && cellKind(row, end + 1) === kind && !(end + 1 === 24)) end++;
         out.push(renderMergedBlock(kind, h, end - h + 1));
         h = end + 1;
       }
@@ -313,7 +347,7 @@ export const KioskRoomReservationForm = ({
 
       <div className="w-full h-2 bg-[#F7F8F9] shrink-0" />
 
-      {/* 홀 × 24시간 그리드 */}
+      {/* 홀 × 시간 그리드 (선택 날짜 0~23시 + 익일 0~11시) */}
       <div className="flex-1 overflow-auto">
         {loading ? (
           <div className="flex items-center justify-center py-16">
@@ -327,8 +361,19 @@ export const KioskRoomReservationForm = ({
             <div className="flex sticky top-0 z-20 bg-white border-b border-[#EEF0F2]">
               <div className="sticky left-0 z-10 bg-white shrink-0" style={{ width: nameW }} />
               {HOURS.map((h) => (
-                <div key={h} className="flex-shrink-0 flex items-center justify-center text-[#86898C]" style={{ width: cellW, height: 'min(3.4vh, 32px)', fontSize: 'min(1.2vh, 12px)', fontWeight: 600 }}>
-                  {pad(h)}
+                <div
+                  key={h}
+                  className={`flex-shrink-0 flex items-center justify-center ${isNextDayHour(h) ? 'text-[#7A5CFF]' : 'text-[#86898C]'}`}
+                  style={{
+                    width: cellW,
+                    height: 'min(3.4vh, 32px)',
+                    fontSize: 'min(1.2vh, 12px)',
+                    fontWeight: 600,
+                    // 자정 경계에 세로선 — 여기서부터 다음날(익일) 구간
+                    borderLeft: h === 24 ? '2px solid #7A5CFF' : undefined,
+                  }}
+                >
+                  {isNextDayHour(h) && h === 24 ? `${t('next_day')} ${pad(0)}` : pad(h % 24)}
                 </div>
               ))}
             </div>
@@ -355,7 +400,7 @@ export const KioskRoomReservationForm = ({
         <div className="shrink-0 flex items-center justify-between bg-black" style={{ margin: '10px 24px 0', borderRadius: '12px', padding: 'min(1.2vh, 14px) min(1.6vh, 18px)' }}>
           <span className="font-bold text-white truncate" style={{ fontSize: 'min(1.6vh, 17px)' }}>{selRow.name}</span>
           <span className="text-white/90" style={{ fontSize: 'min(1.5vh, 16px)', fontWeight: 600 }}>
-            {pad(sel.start)}:00 ~ {pad((sel.end + 1) % 24)}:00
+            {isNextDayHour(sel.start) ? `${t('next_day')} ` : ''}{pad(sel.start % 24)}:00 ~ {isNextDayHour(sel.end + 1) && !isNextDayHour(sel.start) ? `${t('next_day')} ` : ''}{pad((sel.end + 1) % 24)}:00
             {!meetsMin
               ? <span className="text-[#FFD34E]" style={{ marginLeft: 8, fontSize: 'min(1.3vh, 13px)' }}>{t('kiosk_min_hours').replace('{count}', String(selMinHours))}</span>
               : !priceOk && <span className="text-white/50" style={{ marginLeft: 8, fontSize: 'min(1.3vh, 13px)' }}>{t('kiosk_price_unset')}</span>}

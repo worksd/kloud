@@ -31,6 +31,15 @@ const toDateStr = (d: Date) =>
 // 예약은 1시간 간격 — 정시(:00) 슬롯만 노출/선택
 const hourlyOnly = (slots: TimeSlotResponse[]) => slots.filter((s) => s.time.endsWith(':00'));
 
+// 자정을 넘겨 다음날 새벽까지 연속 대관할 수 있게, 선택 날짜 슬롯 뒤에 다음날 슬롯을 이어 붙인다.
+// 다음날은 이 시각(포함)까지만 — 11:00 슬롯(11~12시)까지 열어둠.
+const NEXT_DAY_LAST_HOUR = 11;
+const addDays = (d: Date, days: number) => {
+  const next = new Date(d);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
 const nextHour = (time: string) => {
   const [h] = time.split(':').map(Number);
   return `${String((h + 1) % 24).padStart(2, '0')}:00`;
@@ -132,6 +141,9 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
   // 시간표 바텀시트 (홀 탭 시) — 드래그로 내려서 닫기 지원
   const [sheetRoomId, setSheetRoomId] = useState<number | null>(null);
   const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
+  // 다음날 새벽 슬롯(00:00~NEXT_DAY_LAST_HOUR) — 시트에 열린 홀 기준으로 별도 조회해 뒤에 이어 붙인다.
+  const [nextDaySlots, setNextDaySlots] = useState<TimeSlotResponse[]>([]);
+  const [nextDayMyBookedHours, setNextDayMyBookedHours] = useState<Set<number>>(new Set());
   const [priceOpen, setPriceOpen] = useState(false);   // 시간당 가격 안내 — 기본 접힘
   const [infoOpen, setInfoOpen] = useState(true);      // 홀 정보 — 기본 펼침
   const [dragY, setDragY] = useState(0);        // 드래그 중 아래로 이동한 거리(px)
@@ -324,6 +336,56 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
   // 날짜 바뀌면 선택 초기화 (슬롯 인덱스가 달라짐)
   useEffect(() => { setSel(null); }, [date]);
 
+  // 다음날 새벽 슬롯 조회 — 시트가 열린 홀 + (선택 날짜 + 1일).
+  // 오늘 23:00에서 이어서 새벽까지 고를 수 있도록 슬롯 목록 뒤에 붙인다.
+  useEffect(() => {
+    if (sheetRoomId == null) { setNextDaySlots([]); setNextDayMyBookedHours(new Set()); return; }
+    const nextDate = addDays(date, 1);
+    const ds = toDateStr(nextDate);
+    let alive = true;
+    setNextDaySlots([]);
+    setNextDayMyBookedHours(new Set());
+    Promise.all([
+      getRoomsAvailabilityByIdsAction({ studioRoomIds: String(sheetRoomId), date: ds }),
+      studioId != null ? getStudioRoomSlotsAction({ studioId, date: ds }) : Promise.resolve(null),
+    ]).then(([res, roomSlotsRes]) => {
+      if (!alive || !('rooms' in res)) return;
+      const row = res.rooms.find((r) => r.studioRoomId === sheetRoomId);
+      if (!row) return;
+      let slots = deriveSlots(row as AvailabilityRow, nextDate);
+      const hours = roomSlotsRes && typeof roomSlotsRes === 'object' && 'rooms' in roomSlotsRes
+        ? roomSlotsRes.rooms.find((r) => r.id === sheetRoomId)?.availableHours
+        : undefined;
+      if (hours) {
+        const hourSet = new Set(hours);
+        slots = slots.map((s) => {
+          const hour = Number(s.time.split(':')[0]);
+          if (hourSet.has(hour)) return { ...s, status: 'available' as const };
+          return { ...s, status: s.status === 'full' ? ('full' as const) : ('closed' as const) };
+        });
+      }
+      // 새벽 구간만 (00:00 ~ NEXT_DAY_LAST_HOUR:00)
+      setNextDaySlots(hourlyOnly(slots).filter((s) => Number(s.time.split(':')[0]) <= NEXT_DAY_LAST_HOUR));
+
+      // 다음날 '내 예약' 시각 — 슬롯에 내 예약 표시용
+      const dsDot = `${nextDate.getFullYear()}.${String(nextDate.getMonth() + 1).padStart(2, '0')}.${String(nextDate.getDate()).padStart(2, '0')}`;
+      const mine = new Set<number>();
+      for (const b of ((row as AvailabilityRow).myBookings ?? [])) {
+        const [sd, st] = (b.startDate ?? '').split(' ');
+        const [ed, et] = (b.endDate ?? '').split(' ');
+        if (sd !== dsDot) continue;
+        const sh = Number((st ?? '').split(':')[0]);
+        let eh = Number((et ?? '').split(':')[0]);
+        if (ed !== sd) eh = 24;
+        if (Number.isNaN(sh) || Number.isNaN(eh)) continue;
+        for (let h = sh; h < eh; h++) mine.add(h);
+      }
+      setNextDayMyBookedHours(mine);
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetRoomId, date, studioId]);
+
   // 바텀시트(시간표/캘린더) 열려 있으면 배경 스크롤 잠금 — dim 영역 스크롤 방지
   useEffect(() => {
     if (sheetRoomId == null && !dateOpen) return;
@@ -340,12 +402,12 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
 
   // 결제 페이지에 startTime/endTime을 'YYYY-MM-DDTHH:mm'(KST, 자정 넘기면 +1일)로 전달.
   // 서버가 이 구간으로 최종금액 계산 (GET /payment는 startTime/endTime 쿼리 필수)
-  const goPay = (roomId: number, startHHmm: string, endHHmm: string) => {
-    const startDateStr = toDateStr(date);
+  // startDayOffset: 시작 슬롯이 다음날(새벽) 구간이면 1 — 선택 날짜에 그만큼 더한다.
+  const goPay = (roomId: number, startHHmm: string, endHHmm: string, startDayOffset = 0) => {
+    const startD = addDays(date, startDayOffset);
     const crossesMidnight = endHHmm <= startHHmm; // 예: 23:00~00:00
-    const endD = new Date(date);
-    if (crossesMidnight) endD.setDate(endD.getDate() + 1);
-    const startTime = `${startDateStr}T${startHHmm}`;
+    const endD = addDays(startD, crossesMidnight ? 1 : 0);
+    const startTime = `${toDateStr(startD)}T${startHHmm}`;
     const endTime = `${toDateStr(endD)}T${endHHmm}`;
     const route = KloudScreen.PracticeRoomPayment(roomId, startTime, endTime);
     // 네이티브는 KloudEvent push, 웹은 Next 라우터로 이동(window.location 경합 방지).
@@ -358,9 +420,10 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
 
   // 선택 날짜가 오늘이면 현재 시각 이전(시작 시각이 지금보다 과거)인 슬롯은 예약 불가.
   // 과거 날짜면 전부 지남, 미래 날짜면 전부 유효.
-  const isPastSlot = (time: string) => {
+  // dayOffset: 다음날 새벽 슬롯이면 1 (선택 날짜 + 1일 기준으로 판단)
+  const isPastSlot = (time: string, dayOffset = 0) => {
     const now = new Date();
-    const sel = new Date(date); sel.setHours(0, 0, 0, 0);
+    const sel = addDays(date, dayOffset); sel.setHours(0, 0, 0, 0);
     const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
     if (sel.getTime() !== today0.getTime()) return sel.getTime() < today0.getTime();
     const [h, m] = time.split(':').map(Number);
@@ -371,12 +434,20 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
   // 실제 예약 가능(선택 가능): status available + 지나지 않은 시각
   const isBookable = (s: TimeSlotResponse) => isOpen(s) && !isPastSlot(s.time);
 
+  // 시트 슬롯 목록 = 선택 날짜 정시 슬롯 + 다음날 새벽 슬롯.
+  // 인덱스가 이어지므로 자정을 넘는 연속 선택이 그대로 동작한다.
+  const sheetTodaySlots = hourlyOnly(sheetRoom?.slots ?? []);
+  const sheetSlots = [...sheetTodaySlots, ...nextDaySlots];
+  const nextDayStartIdx = sheetTodaySlots.length;
+  const dayOffsetOf = (idx: number) => (idx >= nextDayStartIdx ? 1 : 0);
+
   // 연속 슬롯 선택(인접만 확장)
   // 최대 예약 시간(시간 단위) → 연속 선택 칸수 상한 (1칸=1시간). 미설정이면 무제한
   const maxSlots = sheetRoom?.maxBookingDuration ? sheetRoom.maxBookingDuration : Infinity;
 
   const onSlot = (idx: number, slots: TimeSlotResponse[]) => {
-    if (!isBookable(slots[idx])) return;
+    // 다음날 새벽 슬롯은 '선택 날짜 + 1일' 기준으로 과거 여부를 판단해야 한다
+    if (!isOpen(slots[idx]) || isPastSlot(slots[idx].time, dayOffsetOf(idx))) return;
     setSel((prev) => {
       if (!prev) return { start: idx, end: idx };
       const { start, end } = prev;
@@ -668,25 +739,37 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
               );
             })()}
 
-            {/* 슬롯 리스트 (1시간 간격) */}
+            {/* 슬롯 리스트 (1시간 간격) — 선택 날짜 + 다음날 새벽까지 이어짐 */}
             <div className="px-5 pb-3">
-              {hourlyOnly(sheetRoom.slots ?? []).length === 0 ? (
+              {sheetSlots.length === 0 ? (
                 <p className="py-10 text-center text-[13px] text-[#A0A5AB]">{t('community_no_slots')}</p>
               ) : (
                 <div className="flex flex-col divide-y divide-[#F5F6F7]">
-                  {hourlyOnly(sheetRoom.slots ?? []).map((s, idx, arr) => {
-                    const past = isPastSlot(s.time);
+                  {sheetSlots.map((s, idx, arr) => {
+                    const dayOffset = dayOffsetOf(idx);
+                    const isNextDay = dayOffset === 1;
+                    const past = isPastSlot(s.time, dayOffset);
                     const bookable = isOpen(s) && !past;
                     const selected = sel != null && idx >= sel.start && idx <= sel.end;
-                    const mine = myBookedHours.has(parseInt(s.time, 10)); // 그날 내 예약 시각
+                    const mine = (isNextDay ? nextDayMyBookedHours : myBookedHours).has(parseInt(s.time, 10));
                     return (
+                      <React.Fragment key={`${dayOffset}-${s.time}`}>
+                        {/* 자정 경계 — 다음날 시작 지점 표시 */}
+                        {idx === nextDayStartIdx && (
+                          <div className="flex items-center gap-2 pt-3 pb-1">
+                            <span className="text-[12px] font-bold text-[#8A949E]">
+                              {t('next_day')} {fmtMonthDayWeekday(addDays(date, 1), locale)}
+                            </span>
+                            <span className="flex-1 h-px bg-[#F1F3F6]" />
+                          </div>
+                        )}
                       <button
-                        key={s.time}
                         disabled={!bookable || mine}
                         onClick={() => onSlot(idx, arr)}
-                        className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : mine ? 'bg-[#F3FBF9]' : bookable ? 'active:bg-[#FAFBFC]' : ''}`}
+                        className={`w-full flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : mine ? 'bg-[#F3FBF9]' : bookable ? 'active:bg-[#FAFBFC]' : ''}`}
                       >
                         <span className={`text-[15px] font-medium ${selected || mine ? 'text-[#1E9E8A]' : !bookable ? 'text-[#C4C9CF]' : 'text-[#171717]'}`}>
+                          {isNextDay && <span className="mr-1.5 text-[12px] font-bold text-[#8A949E]">{t('next_day')}</span>}
                           {s.time}
                           {bookable && s.price != null ? <span className="ml-2 text-[12px] font-normal text-[#86898C]">{fmt(s.price)}{t('won')}</span> : null}
                         </span>
@@ -694,6 +777,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
                           {mine ? t('my_bookings') : past ? t('slot_past') : !isOpen(s) ? t('closed') : selected ? t('community_selected') : t('community_available')}
                         </span>
                       </button>
+                      </React.Fragment>
                     );
                   })}
                 </div>
@@ -708,13 +792,13 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
                 disabled={!sel}
                 onClick={() => {
                   if (!sel) return;
-                  const arr = hourlyOnly(sheetRoom.slots ?? []);
-                  const startTime = arr[sel.start].time;
-                  const endTime = calcEndTime(arr[sel.end].time);
+                  const startTime = sheetSlots[sel.start].time;
+                  const endTime = calcEndTime(sheetSlots[sel.end].time);
+                  const startDayOffset = dayOffsetOf(sel.start);
                   const roomId = sheetRoom.id;
                   // 시트를 애니메이션으로 내린 뒤(300ms) 결제 이동 — 네이티브 push 시 시트가 뒤에 남지 않도록.
                   // (URL 동기화는 history.replaceState라 라우팅 경합 없음)
-                  closeSheet(() => goPay(roomId, startTime, endTime));
+                  closeSheet(() => goPay(roomId, startTime, endTime, startDayOffset));
                 }}
                 className={`w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${sel ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E4E8EC]'}`}
               >

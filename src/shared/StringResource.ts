@@ -1031,6 +1031,13 @@ export const StringResource = {
     jp: "受講券金額",
     zh: "课程价格"
   },
+  // 대관 시간표 — 자정을 넘겨 다음날 새벽까지 연속 예약할 수 있음을 알리는 라벨
+  next_day: {
+    ko: "익일",
+    en: "Next day",
+    jp: "翌日",
+    zh: "次日"
+  },
   // 연습실(대관) 결제 — '수강권 금액'이 아니라 대관 문구를 써야 한다
   practice_room_price: {
     ko: "대관 금액",
