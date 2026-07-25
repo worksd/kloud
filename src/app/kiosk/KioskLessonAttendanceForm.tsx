@@ -653,18 +653,12 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
                   )}
                 </div>
               )}
-              <button
-                onClick={handleRetry}
-                className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-colors mt-[16px]"
-              >
-                {mode === 'manual' ? t('kiosk_lesson_attendance_search') : t('kiosk_lesson_attendance_rescan')}
-              </button>
-              {/* 연속 스캔이 아닌 경우를 위한 홈 복귀 */}
+              {/* 완료 화면은 '확인' 하나만 — 누르면 홈으로 */}
               <button
                 onClick={onHome}
-                className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-[#F2F4F6] text-[#1E2124] text-[22px] font-bold transition-transform active:scale-[0.98] mt-[12px]"
+                className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-transform active:scale-[0.98] mt-[16px]"
               >
-                {t('kiosk_go_home')}
+                {t('kiosk_confirm')}
               </button>
             </>
           )}
