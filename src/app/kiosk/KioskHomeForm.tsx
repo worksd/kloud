@@ -3,6 +3,7 @@
 import React, {useRef, useState} from 'react';
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
+import {KioskLessonAttendanceIcon, KioskRoomBookingIcon, KioskPaymentIcon} from "@/app/kiosk/kiosk.home.icons";
 
 const KIOSK_LOCALES: { code: Locale; flag: string; label: string }[] = [
   {code: 'ko', flag: '🇰🇷', label: '한국어'},
@@ -17,18 +18,23 @@ type KioskHomeFormProps = {
   locale: Locale;
   canCheckIn: boolean;
   canPurchase: boolean;
+  canBookRoom?: boolean;
+  canLessonAttendance?: boolean;
   onSelectPayment: () => void;
-  onSelectVisit: () => void;
   onReserveRoom: () => void;
-  onSelectLessonAttendance: () => void;
+  onSelectAttendance: () => void;
   onChangeLocale: (locale: Locale) => void;
   onAdminMode: () => void;
 };
 
-export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, canPurchase, onSelectPayment, onSelectVisit, onReserveRoom, onSelectLessonAttendance, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
+export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, canPurchase, canBookRoom = false, canLessonAttendance = false, onSelectPayment, onReserveRoom, onSelectAttendance, onChangeLocale, onAdminMode}: KioskHomeFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const [showLocalePicker, setShowLocalePicker] = useState(false);
   const currentLocale = KIOSK_LOCALES.find((l) => l.code === locale) ?? KIOSK_LOCALES[0];
+  // 출석(스튜디오/수업)은 하나라도 가능하면 '출석 체크' 카드 1개로 합침.
+  const showAttendance = canCheckIn || canLessonAttendance;
+  // 노출 카드 수 — 1개면 전체폭(1열), 그 외엔 2열(2개 반반 / 3개 위2·아래1 / 4개 2×2)
+  const cardCount = [canPurchase, showAttendance, canBookRoom].filter(Boolean).length;
 
   // 로우그래피 로고 5번 연속 탭 → 관리자 모드 진입 (1.5초 안에 5번)
   const tapCountRef = useRef(0);
@@ -45,9 +51,9 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
   };
 
   return (
-    <div className="bg-white w-full h-screen flex flex-col overflow-hidden relative">
-      {/* 키오스크 이미지 영역 */}
-      <div className="flex-[450] min-h-0">
+    <div className="bg-white w-full h-screen flex flex-col overflow-hidden relative animate-[fadeIn_260ms_ease-out]">
+      {/* 키오스크 이미지 영역 — 카드/푸터를 뺀 나머지 높이를 전부 차지 */}
+      <div className="flex-1 min-h-0">
         {kioskImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={kioskImageUrl} alt="" className="w-full h-full object-cover"/>
@@ -56,62 +62,51 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
         )}
       </div>
 
-      {/* 카드 영역 — 2열 grid(2x2). 수업 결제가 좌상단 첫 칸. 수업 출석 체크(QR)는 항상 노출, 방문/연습실예약/결제는 canCheckIn/canPurchase 플래그에 따라 노출. */}
-      <div className="flex-[400] shrink-0 min-h-0 grid grid-cols-2 gap-x-[2.9%] gap-y-[min(2.4vh,24px)] px-[5.6%] pt-[3.1%] pb-[2%]">
-          {canPurchase && (
+      {/* 카드 영역 — 위에 출석/연습실(반반), 결제는 맨 아래. 3개일 때 결제는 전체폭(col-span-2). */}
+      <div
+        className={`shrink-0 grid ${cardCount === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-x-[2.9%] gap-y-[min(2.4vh,24px)] px-[5.6%] pt-[3.1%] pb-[2%]`}
+        style={{ gridAutoRows: 'min(20vh, 200px)' }}
+      >
+          {/* 출석 체크 — 스튜디오/수업 출석 중 하나라도 가능하면 노출. 진입 후 둘 다 가능하면 선택. */}
+          {showAttendance && (
             <div
-              onClick={onSelectPayment}
-              className="min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#1E2124] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/ic_kiosk_card.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
-              <span className="text-white text-[min(2.4vh,32px)] font-bold leading-tight">
-                {t('kiosk_payment_title')}
-              </span>
-            </div>
-          )}
-
-        {/* 수업 출석 체크 — 누르면 QR 스캐너를 띄운다 */}
-        <div
-          onClick={onSelectLessonAttendance}
-          className="min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/ic_kiosk_attendance.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
-          <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
-            {t('kiosk_lesson_attendance_title')}
-          </span>
-        </div>
-
-        {canCheckIn && (
-            <div
-              onClick={onSelectVisit}
+              onClick={onSelectAttendance}
               className="min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/ic_kiosk_attendance.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
+              <KioskLessonAttendanceIcon size={46} />
               <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
-                {t('kiosk_visit_title')}
+                {t('kiosk_attendance_menu')}
               </span>
             </div>
           )}
 
-          {canPurchase && (
+          {canBookRoom && (
             <div
               onClick={onReserveRoom}
               className="min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#F2F4F6] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/ic_kiosk_attendance.svg" alt="" width={48} height={48} className="flex-shrink-0 block"/>
+              <KioskRoomBookingIcon size={46} />
               <span className="text-[#1E2124] text-[min(2.4vh,32px)] font-bold leading-tight">
                 {t('kiosk_reserve_room')}
+              </span>
+            </div>
+          )}
+
+          {canPurchase && (
+            <div
+              onClick={onSelectPayment}
+              className={`min-h-0 flex flex-col items-center justify-center gap-[min(2.6vh,28px)] bg-[#1E2124] rounded-[32px] p-[24px] cursor-pointer active:scale-[0.98] transition-transform ${cardCount === 3 ? 'col-span-2' : ''}`}
+            >
+              <KioskPaymentIcon width={34} height={44} />
+              <span className="text-white text-[min(2.4vh,32px)] font-bold leading-tight">
+                {t('kiosk_payment_title')}
               </span>
             </div>
           )}
       </div>
 
       {/* 푸터 — rawgraphy 로고 + 언어 피커 */}
-      <div className="flex-[80] shrink-0 flex items-center justify-between px-[5.6%] relative">
+      <div className="shrink-0 flex items-center justify-between px-[5.6%] py-[min(1.6vh,18px)] relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/logo_black.svg"
@@ -128,9 +123,6 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
           >
             <span className="text-[min(2vh,22px)]">{currentLocale.flag}</span>
             <span className="text-[min(1.6vh,18px)] font-medium text-[#1E2124]">{currentLocale.label}</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="w-[min(1.8vh,20px)] h-[min(1.8vh,20px)]">
-              <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
           </button>
           {showLocalePicker && (
             <div className="absolute bottom-full mb-2 right-0 bg-white border border-[#E8E8EA] rounded-[16px] shadow-lg z-20 overflow-hidden min-w-[160px]">
