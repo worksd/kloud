@@ -44,6 +44,11 @@ export const createStudioAttendanceAction = async (targetUserId: number, status:
   return await api.studio.createAttendance({ targetUserId, status });
 };
 
+// 특정 수강생의 출결 기간 조회 (GET /studio-attendances). 달력/기록 표시용.
+export const listStudioAttendancesAction = async (params: { targetUserId: number; startDate?: string; endDate?: string }) => {
+  return await api.studio.listAttendances(params);
+};
+
 // QR 스캔값의 willUseTicketId(:id)/token으로 티켓(+lesson) 조회 — 수업 출석 체크 확인 화면용
 export const getKioskTicketByTokenAction = async (ticketId: number, token: string) => {
   return await api.ticket.getByToken({ id: ticketId, token });
