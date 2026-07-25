@@ -6,7 +6,7 @@ import 'react-calendar/dist/Calendar.css';
 import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
-import {getKioskTicketByTokenAction, markKioskTicketUsedAction} from '@/app/kiosk/kiosk.actions';
+import {getKioskTicketAction, getKioskTicketByTokenAction, markKioskTicketUsedAction} from '@/app/kiosk/kiosk.actions';
 import {getLessonTicketsAction} from '@/app/qrs/get.lesson.tickets.action';
 import {getLessonsByDate} from '@/app/kiosk/get.lessons.by.date.action';
 import {isGuinnessErrorCase} from '@/app/guinnessErrorCase';
@@ -39,21 +39,47 @@ type Status =
 // QR 스캔값에서 willUseTicketId(=티켓 id)와 token 쿼리 추출.
 // QR 값은 전체 URL(https://...?a=b), 스킴 딥링크(rawgraphy://...?a=b), 또는 쿼리문자열만
 // (willUseTicketId=1&token=x) 어떤 형태든 올 수 있으므로 모두 허용한다.
-const parseQr = (raw: string): { ticketId: number; token: string } | null => {
+// token은 옵션 — 앱 티켓 QR은 willUseTicketId+expiredAt만 담고 token이 없는 경우가 있다.
+const parseQr = (raw: string): { ticketId: number; token?: string } | null => {
   const readParams = (search: string) => {
     const params = new URLSearchParams(search);
-    const id = params.get('willUseTicketId');
+    const id = params.get('willUseTicketId') ?? params.get('ticketId');
     const token = params.get('token');
-    if (!id || !/^\d+$/.test(id) || !token) return null;
-    return { ticketId: Number(id), token };
+    if (!id || !/^\d+$/.test(id)) return null;
+    return { ticketId: Number(id), token: token ?? undefined };
   };
   try {
-    return readParams(new URL(raw).search);
+    const parsed = readParams(new URL(raw).search);
+    if (parsed) return parsed;
   } catch {
-    // 전체 URL 파싱 실패 → '?' 뒤(있으면) 또는 raw 전체를 쿼리로 취급
-    const q = raw.includes('?') ? raw.slice(raw.indexOf('?') + 1) : raw;
-    return readParams(q);
+    // 전체 URL 파싱 실패 → 아래 쿼리문자열 취급으로 폴백
   }
+  const q = raw.includes('?') ? raw.slice(raw.indexOf('?') + 1) : raw;
+  return readParams(q);
+};
+
+// 네이티브 onQrScanResult 페이로드에서 QR 문자열만 뽑는다.
+// 브릿지 구현에 따라 문자열로 오기도, { code|data|result|... } 객체로 오기도 하고,
+// 스캔 시작 시점에 빈 페이로드가 한 번 들어오기도 한다. 쓸 값이 없으면 null → 조용히 무시.
+const QR_TEXT_KEYS = ['code', 'data', 'result', 'value', 'text', 'qr', 'qrCode', 'qrcode', 'content', 'raw', 'scanResult', 'payload', 'url'];
+const extractQrText = (result: unknown): string | null => {
+  if (typeof result === 'string') return result.trim() || null;
+  if (!result || typeof result !== 'object') return null;
+  const obj = result as Record<string, unknown>;
+  for (const key of QR_TEXT_KEYS) {
+    const v = obj[key];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+    // { data: { code: '...' } } 처럼 한 겹 더 감싼 형태도 허용
+    if (v && typeof v === 'object') {
+      const nested = extractQrText(v);
+      if (nested) return nested;
+    }
+  }
+  // 키 이름이 예상과 다르면 값들 중 QR처럼 생긴 문자열을 찾는다
+  for (const v of Object.values(obj)) {
+    if (typeof v === 'string' && (v.includes('willUseTicketId') || v.includes('://'))) return v.trim();
+  }
+  return null;
 };
 
 const toAmPm = (time: string): string => {
@@ -131,6 +157,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
   const [status, setStatus] = useState<Status>('idle');
   const [ticket, setTicket] = useState<TicketResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // 파싱 실패한 스캔 원본값 — 에러 화면에 작게 노출(스캐너가 뭘 보냈는지 현장에서 확인용)
+  const [lastRaw, setLastRaw] = useState<string | null>(null);
 
   // 수동 모드 상태
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
@@ -153,6 +181,9 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
 
     const parsed = parseQr(raw);
     if (!parsed) {
+      // 진단용 — 어떤 값이 들어왔는지 화면/콘솔에 남긴다 (스캐너 페이로드 형태 확인)
+      console.warn('[kiosk qr] parse failed:', raw);
+      setLastRaw(raw);
       setErrorMsg(t('coupon_qr_invalid'));
       setStatus('error');
       return;
@@ -161,7 +192,10 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     busyRef.current = true;
     setStatus('loading');
     try {
-      const res = await getKioskTicketByTokenAction(parsed.ticketId, parsed.token);
+      // token이 있으면 토큰 조회, 없으면 운영자 권한으로 티켓 직접 조회
+      const res = parsed.token
+        ? await getKioskTicketByTokenAction(parsed.ticketId, parsed.token)
+        : await getKioskTicketAction(parsed.ticketId);
       if (isGuinnessErrorCase(res)) {
         setErrorMsg(t('kiosk_lesson_attendance_load_failed'));
         setStatus('error');
@@ -195,6 +229,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     setTicket(null);
     setSelectedLesson(null);
     setErrorMsg(null);
+    setLastRaw(null);
     setStatus('idle');
     // 무인은 네이티브 HID 스캐너, admin은 브라우저 카메라(QRScanner)가 재마운트되며 스캔
     if (!admin) (window as any).KloudEvent?.startQrScan?.('');
@@ -205,7 +240,13 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     if (admin) return;
     const prev = (window as any).onQrScanResult;
     (window as any).onQrScanResult = (result: unknown) => {
-      const text = typeof result === 'string' ? result : JSON.stringify(result);
+      // 페이로드가 객체로 와도 QR 문자열만 뽑아 넘긴다.
+      // 뽑을 값이 없으면(스캔 시작 시 빈 콜백 등) 에러 대신 조용히 무시 — 대기 상태 유지.
+      const text = extractQrText(result);
+      if (!text) {
+        console.log('[kiosk qr] ignored payload:', result);
+        return;
+      }
       handleScan(text);
     };
     (window as any).KloudEvent?.startQrScan?.('');
@@ -583,9 +624,16 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
                   <circle cx="12" cy="12" r="9" stroke="#EF4444" strokeWidth="2"/>
                 </svg>
               </div>
-              <p className="text-black text-[28px] font-bold tracking-[-0.84px] mb-[36px] text-center">
+              <p className="text-black text-[28px] font-bold tracking-[-0.84px] text-center">
                 {errorMsg ?? t('kiosk_lesson_attendance_load_failed')}
               </p>
+              {/* 스캔 원본값 — 어떤 값이 들어와 실패했는지 현장에서 바로 확인 */}
+              {lastRaw && (
+                <p className="mt-[12px] max-w-[560px] text-[#B1B8BE] text-[13px] text-center break-all line-clamp-3">
+                  {lastRaw}
+                </p>
+              )}
+              <div className="h-[36px]" />
               <button
                 onClick={handleRetry}
                 className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-colors"

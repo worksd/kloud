@@ -3385,7 +3385,7 @@ export const StringResource = {
   kiosk_lesson_selection: { ko: '수업 선택', en: 'Select Lessons', jp: 'レッスン選択', zh: '选择课程' },
   kiosk_no_lessons: { ko: '수업이 없습니다', en: 'No lessons available', jp: 'レッスンがありません', zh: '没有课程' },
   kiosk_lessons_count: { ko: '{0}개 수업', en: '{0} lessons', jp: '{0}件のレッスン', zh: '{0}节课' },
-  kiosk_reserve_room: { ko: '연습실 예약', en: 'Reserve Room', jp: '練習室予約', zh: '练习室预约' },
+  kiosk_reserve_room: { ko: '연습실 대관', en: 'Room Rental', jp: '練習室レンタル', zh: '练习室租赁' },
   kiosk_select_room: { ko: '연습실 선택', en: 'Select a Room', jp: '練習室を選択', zh: '选择练习室' },
   kiosk_no_rooms: { ko: '연습실이 없습니다', en: 'No rooms available', jp: '練習室がありません', zh: '没有练习室' },
   kiosk_rental_title: { ko: '대관 예약', en: 'Hall Booking', jp: 'レンタル予約', zh: '场地预约' },

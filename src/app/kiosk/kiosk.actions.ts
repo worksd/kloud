@@ -54,6 +54,11 @@ export const getKioskTicketByTokenAction = async (ticketId: number, token: strin
   return await api.ticket.getByToken({ id: ticketId, token });
 };
 
+// token 없는 QR(willUseTicketId+expiredAt만 들어있는 티켓 QR)용 — 운영자 토큰으로 티켓 조회. GET /tickets/:id
+export const getKioskTicketAction = async (ticketId: number) => {
+  return await api.ticket.get({ id: ticketId, isParent: false });
+};
+
 // 티켓 사용 처리(출석 체크 확정) — POST /tickets/:id/use
 export const markKioskTicketUsedAction = async (ticketId: number, lessonId?: number) => {
   return await api.ticket.toUsed({ id: ticketId, lessonId });
