@@ -12,9 +12,15 @@ import { getBundlesAction } from "@/app/kiosk/get.bundles.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
-import { formatLessonStart, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
+import { formatLessonDuration, formatLessonStart, formatLessonTimeRange, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
+import { LessonTypeLabel } from "@/app/components/LessonLabel";
+import { LessonType } from "@/entities/lesson/lesson";
+
+// 워크샵/팝업만 썸네일에 타입 태그를 노출한다 (정규/오디션은 표시 안 함).
+const showLessonTypeTag = (type?: LessonType): boolean =>
+  type === LessonType.Workshop || type === LessonType.PopUp;
 
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
@@ -48,14 +54,13 @@ type KioskLessonListFormProps = {
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
   onSelectBundle?: (bundle: BundleSummaryResponse) => void;
   onBack: () => void;
-  onChangeLocale: (locale: Locale) => void;
-  /** 'admin'(태블릿 상담실)이면 수업 그리드를 6열로 넓게 노출. 기본 'kiosk'는 3열. */
+  /** 'admin'(태블릿 상담실)이면 포스터+정보 카드 4열, 기본 'kiosk'는 포스터 3열. */
   variant?: 'kiosk' | 'admin';
 };
 
 type KioskTab = 'promotion' | 'lessons' | 'pass-plans';
 
-export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onSelectBundle, onBack, onChangeLocale, variant = 'kiosk' }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onSelectBundle, onBack, variant = 'kiosk' }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
   const [tab, setTab] = useState<KioskTab>('lessons');
@@ -101,6 +106,9 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   });
   const [lessons, setLessons] = useState<GetLessonResponse[]>([]);
   const [loadingLessons, setLoadingLessons] = useState(false);
+  // lessons가 담고 있는 날짜(yyyy.MM.dd). 날짜를 바꿔도 새 응답이 오기 전까진 이전 목록을 그대로 두고,
+  // 응답이 도착해 이 값이 바뀌는 순간 목록을 remount해서 fade로 갈아 끼운다 (로딩 문구로 깜빡이지 않게).
+  const [lessonsKey, setLessonsKey] = useState<string | null>(null);
   const [passPlans, setPassPlans] = useState<GetPassPlanResponse[]>(initialPassPlans);
   const [loadingPassPlans, setLoadingPassPlans] = useState(false);
   const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
@@ -110,16 +118,24 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
     const weekday = d.toLocaleDateString(INTL_LOCALE[locale], { weekday: 'short' });
     return `${d.getMonth() + 1}.${d.getDate()} (${weekday})`;
   };
+  const todayKey = React.useMemo(() => formatApiDate(new Date()), []);
+  const selectedKey = formatApiDate(selectedDate);
+  const currentDateIdx = dateOptions.findIndex((d) => formatApiDate(d) === selectedKey);
 
-  // 수업 탭: 선택된 날짜의 수업 목록 조회
+  // 수업 탭: 선택된 날짜의 수업 목록 조회.
+  // 요청 중에도 이전 날짜 목록을 화면에 남겨두고(setLessons를 미리 비우지 않음) 응답 도착 시 한 번에 교체 → 교차 fade.
   useEffect(() => {
     if (tab !== 'lessons' || !studioId) return;
+    const dateKey = formatApiDate(selectedDate);
     setLoadingLessons(true);
-    getLessonsByDate(studioId, formatApiDate(selectedDate))
+    getLessonsByDate(studioId, dateKey)
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
         // 취소된 수업은 키오스크에 노출 안 함 — 운영자/손님이 어차피 결제 못 하는 항목이라 리스트에서 제외
-        if ('lessons' in res) setLessons(res.lessons.filter((l) => l.status !== LessonStatus.Cancelled));
+        if ('lessons' in res) {
+          setLessons(res.lessons.filter((l) => l.status !== LessonStatus.Cancelled));
+          setLessonsKey(dateKey);
+        }
       })
       .finally(() => setLoadingLessons(false));
   }, [tab, studioId, selectedDate]);
@@ -150,91 +166,61 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   };
 
   return (
-    <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
-      {/* 상단 바 — 백 + 언어/홈 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} hideLocale={admin} />
+    <div className="bg-white w-full h-screen flex flex-col overflow-hidden animate-[fadeIn_260ms_ease-out]">
+      {/* 타이틀은 두지 않는다 — 아래 상단 탭이 현재 위치를 대신 알려준다 */}
+      <KioskTopBar onBack={onBack} onHome={onBack} />
 
-      {/* 상단 안내 — 탭별 제목. 수업 탭은 그 아래 날짜 선택(오늘부터 7일)도 노출. */}
-      {(() => {
-        const currentIdx = dateOptions.findIndex((d) => formatApiDate(d) === formatApiDate(selectedDate));
-        const canPrev = currentIdx > 0;
-        const canNext = currentIdx >= 0 && currentIdx < dateOptions.length - 1;
-        const heading = tab === 'promotion' ? t('kiosk_select_promotion') : tab === 'pass-plans' ? t('kiosk_select_pass_plan') : t('kiosk_select_lesson');
-        // 비활성 시엔 invisible로 숨겨서 레이아웃은 유지하되 시각적으로 안 보이게 (가운데 날짜 위치 흔들림 방지)
-        const ArrowButton = ({ hidden, onClick, direction }: { hidden: boolean; onClick: () => void; direction: 'left' | 'right' }) => (
-          <button
-            type="button"
-            onClick={hidden ? undefined : onClick}
-            aria-label={direction === 'left' ? 'previous day' : 'next day'}
-            className="rounded-full flex items-center justify-center bg-[#F2F4F6] active:scale-[0.94] transition-transform"
-            style={{ width: 'min(4.4vh, 48px)', height: 'min(4.4vh, 48px)', visibility: hidden ? 'hidden' : 'visible' }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" style={{ width: '40%', height: '40%' }}>
-              <path
-                d={direction === 'left' ? 'M15 6L9 12L15 18' : 'M9 6L15 12L9 18'}
-                stroke="#1E2124"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        );
-        return (
-          <div className="shrink-0 flex flex-col items-center" style={{ gap: 'min(1vw, 10px)', padding: 'min(1.4vw, 16px) 24px' }}>
-            <span className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vh, 28px)' }}>{heading}</span>
-            {/* 날짜 선택은 수업 탭에서만 쓰지만, 탭을 바꿔도 헤더 높이가 변하지 않게 항상 렌더하고
-                다른 탭에선 visibility로만 숨긴다 (아래 좌측 사이드바가 위아래로 흔들리는 것 방지). */}
-            <div
-              className="flex items-center justify-center"
-              style={{ gap: 'min(2vw, 22px)', visibility: tab === 'lessons' ? 'visible' : 'hidden' }}
-              aria-hidden={tab !== 'lessons'}
-            >
-              <ArrowButton hidden={!canPrev} direction="left" onClick={() => setSelectedDate(dateOptions[currentIdx - 1])} />
-              <span className="text-[#4E5968] font-bold text-center" style={{ fontSize: 'min(1.8vh, 22px)', minWidth: 'min(18vh, 180px)' }}>
-                {formatPillLabel(selectedDate)}
-              </span>
-              <ArrowButton hidden={!canNext} direction="right" onClick={() => setSelectedDate(dateOptions[currentIdx + 1])} />
-            </div>
-          </div>
-        );
-      })()}
+      {/* ① 상단 탭 — 수업 / 패스권 / 프로모션. 번들 조회가 끝난 뒤 한 번에 그려서
+          프로모션 탭이 뒤늦게 끼어들며 앞 탭을 밀지 않게 한다. */}
+      <div
+        className="shrink-0 flex items-end border-b border-[#F2F4F6]"
+        style={{ height: 'min(7.5vh, 68px)', gap: 'min(1.4vw, 18px)', padding: '0 min(2.4vw, 32px)' }}
+      >
+        {bundlesLoaded && (
+          <>
+            <KioskTopTab label={t('kiosk_tab_lessons')} iconSrc="/assets/ic_kiosk_lesson.svg" active={tab === 'lessons'} onClick={() => setTab('lessons')} />
+            <KioskTopTab label={t('kiosk_pass')} iconSrc="/assets/ic_kiosk_pass_plan.svg" active={tab === 'pass-plans'} onClick={() => setTab('pass-plans')} />
+            {bundles.length > 0 && (
+              <KioskTopTab label={t('kiosk_tab_promotion')} iconSrc="/assets/ic_kiosk_pass_plan.svg" active={tab === 'promotion'} onClick={() => setTab('promotion')} />
+            )}
+          </>
+        )}
+      </div>
 
-      {/* 본문: 좌측 사이드바 + 우측 컨텐츠 */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* 좌측 사이드바 */}
-        <div className="shrink-0 flex flex-col gap-[8px] py-[16px] px-[12px] border-r border-[#F2F4F6]" style={{ width: 'min(18vw, 180px)' }}>
-          {bundlesLoaded && (
-            <>
-              {/* 프로모션(번들) — 번들이 있을 때만 맨 위에 노출 */}
-              {bundles.length > 0 && (
-                <KioskSideTab
-                  label={t('kiosk_tab_promotion')}
-                  active={tab === 'promotion'}
-                  onClick={() => setTab('promotion')}
-                  iconSrc="/assets/ic_kiosk_pass_plan.svg"
-                />
-              )}
-              <KioskSideTab
-                label={t('kiosk_tab_lessons')}
-                active={tab === 'lessons'}
-                onClick={() => setTab('lessons')}
-                iconSrc="/assets/ic_kiosk_lesson.svg"
-              />
-              <KioskSideTab
-                label={t('kiosk_pass')}
-                active={tab === 'pass-plans'}
-                onClick={() => setTab('pass-plans')}
-                iconSrc="/assets/ic_kiosk_pass_plan.svg"
-              />
-            </>
-          )}
+      {/* ② 날짜 필터 — 화살표 내비게이션. 수업 탭 전용이라 패스권/프로모션 탭에서는 아예 렌더하지 않는다.
+          (탭은 이 줄 위에 있어서 사라져도 탭 위치는 그대로다) */}
+      {tab === 'lessons' && (
+        <div
+          className="shrink-0 flex items-center justify-center border-b border-[#F2F4F6]"
+          style={{ height: 'min(8vh, 74px)', gap: 'min(2vw, 24px)' }}
+        >
+          <DateArrowButton
+            hidden={currentDateIdx <= 0}
+            direction="left"
+            onClick={() => setSelectedDate(dateOptions[currentDateIdx - 1])}
+          />
+          <span className="text-[#4E5968] font-bold text-center" style={{ fontSize: 'min(1.5vh, 16px)', minWidth: 'min(16vh, 160px)' }}>
+            {selectedKey === todayKey ? `${t('kiosk_today')} · ${formatPillLabel(selectedDate)}` : formatPillLabel(selectedDate)}
+          </span>
+          <DateArrowButton
+            hidden={currentDateIdx < 0 || currentDateIdx >= dateOptions.length - 1}
+            direction="right"
+            onClick={() => setSelectedDate(dateOptions[currentDateIdx + 1])}
+          />
         </div>
+      )}
 
-        {/* 우측 컨텐츠 */}
-        <div className="flex-1 overflow-y-auto" style={{ padding: '16px 24px' }}>
+      {/* 본문 — 탭이 상단으로 올라가서 컨텐츠가 화면 전체 폭을 쓴다.
+          탭이 바뀌면 remount(key)해서 fade. 날짜 전환 fade는 수업 목록 블록이 자체적으로 처리한다. */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div
+          key={tab}
+          className="flex-1 overflow-y-auto animate-[fadeIn_220ms_ease-out]"
+          style={{ padding: 'min(2.2vh, 24px) min(2.4vw, 32px)' }}
+        >
+          {/* 프로모션(번들) — 한 줄에 하나씩 */}
           {tab === 'promotion' && (
-            <div className={`grid gap-[16px] ${admin ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className="grid grid-cols-2" style={{ gap: 'min(1.8vh, 20px)' }}>
               {bundles.map((b) => {
                 const discountRate = b.originalPrice > b.price && b.originalPrice > 0
                   ? Math.round((1 - b.price / b.originalPrice) * 100) : 0;
@@ -301,24 +287,45 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           )}
 
           {tab === 'lessons' && (
-            <>
-              {loadingLessons && (
+            /* 날짜 전환은 교차 fade — 목록 블록을 lessonsKey(=응답이 담고 있는 날짜)로 remount한다.
+               로딩 중에는 이전 날짜 목록을 흐리게 남겨둬서 로딩 문구로 깜빡이지 않는다.
+               (첫 진입만 예외적으로 로딩 문구 노출) */
+            <div
+              key={lessonsKey ?? 'initial'}
+              className={`animate-[fadeIn_240ms_ease-out] transition-opacity duration-200 ${
+                loadingLessons && lessonsKey !== selectedKey ? 'opacity-30' : 'opacity-100'
+              }`}
+            >
+              {loadingLessons && lessonsKey === null && (
                 <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
               )}
-              {!loadingLessons && lessons.length === 0 && (
+              {lessonsKey !== null && lessons.length === 0 && (
                 <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_lessons')}</div>
               )}
-              {!loadingLessons && lessons.length > 0 && (
-                <div className={`grid gap-[12px] ${variant === 'admin' ? 'grid-cols-6' : 'grid-cols-3'}`}>
+              {/* admin(상담실)은 포스터를 크게 보여주고 그 아래 정보 블록에 시간/소요시간·제목·강사·가격·정원을 얹는다.
+                  사이드바를 없애 폭이 남으므로 4열. 무인 키오스크는 손님용 포스터 그리드(3열) 유지. */}
+              {lessons.length > 0 && admin && (
+                <div className="grid grid-cols-4" style={{ gap: 'min(1.8vh, 20px)' }}>
+                  {lessons.map((lesson) => (
+                    <AdminLessonCard
+                      key={lesson.id}
+                      lesson={lesson}
+                      locale={locale}
+                      onClick={() => onSelectLesson(lesson)}
+                    />
+                  ))}
+                </div>
+              )}
+              {lessons.length > 0 && !admin && (
+                <div className="grid grid-cols-3" style={{ gap: 'min(2vh, 22px)' }}>
                   {lessons.map((lesson) => {
-                    // admin(상담실)은 구매불가 게이팅 없음 — 지난/마감 수업도 직원이 선택해 진행 가능
-                    const payable = admin || isLessonPayable(lesson);
+                    const payable = isLessonPayable(lesson);
                     const statusText = lessonBlockLabel(lesson, locale);
                     return (
                       <div
                         key={lesson.id}
                         onClick={payable ? () => onSelectLesson(lesson) : undefined}
-                        className={`relative aspect-[3/5] overflow-hidden bg-[#E8E8EA] transition-transform ${admin ? 'rounded-[14px]' : 'rounded-[20px]'} ${
+                        className={`relative aspect-[3/5] overflow-hidden bg-[#E8E8EA] transition-transform rounded-[20px] ${
                           payable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-not-allowed'
                         }`}
                       >
@@ -327,28 +334,34 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                           <img src={kioskImageSrc(lesson.thumbnailUrl, 400)} alt="" className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
+                        {showLessonTypeTag(lesson.type) && (
+                          <div className="absolute top-[8px] left-[8px]">
+                            <LessonTypeLabel type={lesson.type!} locale={locale} />
+                          </div>
+                        )}
                         {!payable && statusText && (
-                          <div className={`absolute rounded-full bg-black/70 ${admin ? 'top-[6px] right-[6px] px-[7px] py-[2px]' : 'top-[8px] right-[8px] px-[10px] py-[3px]'}`} style={{ fontSize: admin ? 'min(1vh, 11px)' : 'min(1.2vh, 13px)' }}>
+                          <div className="absolute rounded-full bg-black/70 top-[8px] right-[8px] px-[10px] py-[3px]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
                             <span className="text-white font-bold">{statusText}</span>
                           </div>
                         )}
-                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: admin ? '6% 7% 7%' : '8% 8% 8%' }}>
-                          <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: admin ? 'min(1.25vh, 14px)' : 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
-                          <p className="text-[#D5D5D5] mt-[3px]" style={{ fontSize: admin ? 'min(1.05vh, 12px)' : 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
+                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
+                          <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
+                          <p className="text-[#D5D5D5] mt-[3px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {tab === 'pass-plans' && loadingPassPlans && (
             <div className="flex items-center justify-center h-full text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_loading')}</div>
           )}
+          {/* 패스권 — 한 줄에 하나씩 */}
           {tab === 'pass-plans' && !loadingPassPlans && (
-            <div className="flex flex-col gap-[10px]">
+            <div className="grid grid-cols-1" style={{ gap: 'min(1.4vh, 14px)' }}>
               {passPlans.length === 0 && (
                 <div className="text-[#86898C]" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_no_passplans')}</div>
               )}
@@ -414,17 +427,112 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   );
 };
 
-const KioskSideTab = ({ label, active, onClick, iconSrc }: { label: string; active: boolean; onClick: () => void; iconSrc?: string }) => (
+// admin(상담실) 수업 카드 — 썸네일 좌 + 라벨 우. 직원이 손님에게 읽어줄 정보를 한 카드에 모은다.
+// 시간·소요시간 / 제목 / 강사 / 가격 / 정원 + 판매 불가 상태 배지.
+// admin은 지난·마감 수업도 선택 가능(게이팅 없음) — 상태는 배지로만 알려준다.
+const AdminLessonCard = ({ lesson, locale, onClick }: { lesson: GetLessonResponse; locale: Locale; onClick: () => void }) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+  const timeRange = formatLessonTimeRange(lesson, locale) || formatLessonStart(lesson, locale);
+  const duration = formatLessonDuration(lesson, locale);
+  const artistNames = (lesson.artists ?? []).map((a) => a.nickName || a.name).filter(Boolean).join(', ');
+  const priceText = lesson.price != null ? `${new Intl.NumberFormat('ko-KR').format(lesson.price)}${t('kiosk_won')}` : null;
+  const capacityText = lesson.limit != null
+    ? t('kiosk_capacity').replace('{current}', String(lesson.currentStudentCount ?? 0)).replace('{limit}', String(lesson.limit))
+    : null;
+  const isFull = lesson.limit != null && (lesson.currentStudentCount ?? 0) >= lesson.limit;
+  const statusText = lessonBlockLabel(lesson, locale);
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left rounded-[18px] border border-[#F1F3F6] bg-white overflow-hidden flex flex-col cursor-pointer active:bg-[#F7F8F9] transition-colors"
+    >
+      {/* 썸네일 — 포스터 비율로 크게. 좌상단 타입 태그(워크샵/팝업) + 우상단 상태 배지를 이미지 위에 얹는다 */}
+      <div className="relative w-full aspect-[3/4] bg-[#F1F3F6] overflow-hidden">
+        {lesson.thumbnailUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={kioskImageSrc(lesson.thumbnailUrl, 600)} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        {showLessonTypeTag(lesson.type) && (
+          <div className="absolute top-[10px] left-[10px]">
+            <LessonTypeLabel type={lesson.type!} locale={locale} />
+          </div>
+        )}
+        {statusText && (
+          <span
+            className="absolute top-[10px] right-[10px] rounded-full bg-black/70 text-white font-bold"
+            style={{ fontSize: 'min(1.25vh, 13px)', padding: '3px 10px' }}
+          >
+            {statusText}
+          </span>
+        )}
+      </div>
+
+      {/* 정보 블록 — 시간·소요시간 / 제목 / 강사 / 가격 · 정원 */}
+      <div className="flex flex-col" style={{ padding: 'min(1.3vh, 14px)', gap: 'min(0.45vh, 5px)' }}>
+        <span className="text-[#4E5968] font-bold truncate" style={{ fontSize: 'min(1.5vh, 16px)' }}>
+          {timeRange}
+          {duration && <span className="text-[#8A949E] font-medium">{` · ${duration}`}</span>}
+        </span>
+
+        <p className="text-black font-bold leading-snug line-clamp-1" style={{ fontSize: 'min(1.85vh, 20px)' }}>{lesson.title ?? ''}</p>
+
+        {artistNames && (
+          <p className="text-[#6D7882] truncate" style={{ fontSize: 'min(1.4vh, 15px)' }}>{artistNames}</p>
+        )}
+
+        <div className="flex items-baseline justify-between" style={{ gap: '8px', marginTop: 'min(0.4vh, 4px)' }}>
+          {priceText && (
+            <span className="text-black font-bold" style={{ fontSize: 'min(1.7vh, 18px)' }}>{priceText}</span>
+          )}
+          {capacityText && (
+            <span className={`shrink-0 font-bold ${isFull ? 'text-[#EF4444]' : 'text-[#8A949E]'}`} style={{ fontSize: 'min(1.35vh, 14px)' }}>
+              {capacityText}
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+};
+
+// 상단 탭 — 선택된 탭 아래에 밑줄 인디케이터. (좌측 사이드바를 대체)
+const KioskTopTab = ({ label, iconSrc, active, onClick }: { label: string; iconSrc?: string; active: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
-    className={`w-full text-left px-[16px] py-[14px] rounded-[12px] font-bold transition-colors active:scale-[0.97] flex items-center gap-[10px] ${active ? 'bg-[#F2F4F6] text-[#1E2124]' : 'bg-transparent text-[#6D7882] hover:bg-[#F9F9FB]'}`}
-    style={{ fontSize: 'min(1.8vh, 20px)' }}
+    className={`shrink-0 relative font-bold transition-colors flex items-center ${active ? 'text-[#1E2124]' : 'text-[#B1B8BE]'}`}
+    style={{ height: '100%', padding: '0 min(0.6vw, 8px)', gap: 'min(0.5vw, 7px)', fontSize: 'min(1.7vh, 19px)' }}
   >
     {iconSrc && (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={iconSrc} alt="" width={20} height={20} className="shrink-0 block"/>
+      <img src={iconSrc} alt="" style={{ width: 'min(2.2vh, 22px)', height: 'min(2.2vh, 22px)', opacity: active ? 1 : 0.4 }} />
     )}
-    <span>{label}</span>
+    {label}
+    <span
+      className="absolute left-0 right-0 bottom-0 rounded-t-full bg-[#1E2124] transition-opacity"
+      style={{ height: 3, opacity: active ? 1 : 0 }}
+    />
+  </button>
+);
+
+// 날짜 이동 화살표 — 끝(첫날/마지막날)에서는 visibility로만 숨겨서 가운데 날짜 위치가 흔들리지 않게 한다.
+const DateArrowButton = ({ hidden, onClick, direction }: { hidden: boolean; onClick: () => void; direction: 'left' | 'right' }) => (
+  <button
+    type="button"
+    onClick={hidden ? undefined : onClick}
+    aria-label={direction === 'left' ? 'previous day' : 'next day'}
+    className="rounded-full flex items-center justify-center bg-[#F2F4F6] active:scale-[0.94] transition-transform"
+    style={{ width: 'min(5vh, 52px)', height: 'min(5vh, 52px)', visibility: hidden ? 'hidden' : 'visible' }}
+  >
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: '40%', height: '40%' }}>
+      <path
+        d={direction === 'left' ? 'M15 6L9 12L15 18' : 'M9 6L15 12L9 18'}
+        stroke="#1E2124"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   </button>
 );
 
