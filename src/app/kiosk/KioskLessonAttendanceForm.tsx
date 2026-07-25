@@ -429,13 +429,19 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
         onHome={onHome}
       />
 
-      {/* 수동 모드 - 수업 선택: 좌 캘린더 / 우 선택 날짜의 수업 */}
+      {/* 수동 모드 - 수업 선택.
+          admin(태블릿 가로) = 좌 캘린더 / 우 수업 그리드,
+          kiosk(세로 화면)  = 위 캘린더 / 아래 수업 그리드.
+          수업은 lesson-list와 같은 방식(포스터 크게 + 하단 정보)으로 뿌린다. */}
       {status === 'manual-lesson' ? (
-        <div className="flex-1 min-h-0 flex gap-[40px] px-[48px] pt-[16px] pb-[40px]">
-          {/* 좌 — 캘린더 */}
-          <div className="shrink-0 flex flex-col" style={{width: 420}}>
-            <p className="text-black text-[24px] font-bold mb-[16px]">{t('kiosk_lesson_attendance_select_lesson')}</p>
-            <div className={`${calendarStyles.calendarWrapper} bg-white rounded-[20px] border border-[#E6E8EA] p-[16px]`}>
+        <div className={`flex-1 min-h-0 px-[48px] pt-[8px] pb-[32px] flex ${admin ? 'flex-row gap-[40px]' : 'flex-col'}`}>
+          {/* 캘린더 */}
+          <div className={`shrink-0 flex flex-col ${admin ? '' : 'items-center'}`} style={admin ? {width: 440} : undefined}>
+            <p className="text-black text-[24px] font-bold mb-[12px]">{t('kiosk_lesson_attendance_select_lesson')}</p>
+            <div
+              className={`${calendarStyles.calendarWrapper} bg-white rounded-[20px] border border-[#E6E8EA] p-[14px] w-full`}
+              style={admin ? undefined : {maxWidth: 620}}
+            >
               <Calendar
                 onChange={(value) => { const d = Array.isArray(value) ? value[0] : value; if (d instanceof Date) handleSelectDate(d); }}
                 value={selectedDate}
@@ -446,9 +452,9 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
             </div>
           </div>
 
-          {/* 우 — 선택 날짜의 수업 목록 */}
-          <div className="flex-1 min-w-0 flex flex-col min-h-0">
-            <p className="text-gray-500 text-[18px] mb-[12px] shrink-0">
+          {/* 수업 그리드 — 날짜가 바뀌면 remount(key)해서 fade로 교체 */}
+          <div className={`flex-1 min-w-0 min-h-0 flex flex-col ${admin ? '' : 'mt-[20px]'}`}>
+            <p className="shrink-0 text-gray-500 text-[18px] mb-[12px]">
               {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 · {lessons.length}개 수업
             </p>
             {lessonsLoading ? (
@@ -460,28 +466,33 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
                 <p className="text-gray-400 text-[22px]">{t('kiosk_lesson_attendance_no_lessons')}</p>
               </div>
             ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-[12px]">
+              <div
+                key={formatApiDate(selectedDate)}
+                className="flex-1 min-h-0 overflow-y-auto grid grid-cols-3 gap-[16px] animate-[fadeIn_220ms_ease-out]"
+                style={{gridAutoRows: 'min-content'}}
+              >
                 {lessons.map((lesson) => (
                   <button
                     key={lesson.id}
                     onClick={() => selectLesson(lesson)}
-                    className="w-full bg-gray-50 rounded-[20px] p-[20px] flex items-center gap-[16px] active:bg-gray-100 transition-colors text-left"
+                    className="w-full rounded-[18px] border border-[#F1F3F6] bg-white overflow-hidden flex flex-col text-left active:bg-[#F7F8F9] transition-colors"
                   >
-                    <div className="w-[72px] h-[72px] rounded-[14px] overflow-hidden bg-gray-200 shrink-0">
+                    {/* 포스터 — 카드 전체 폭 */}
+                    <div className="relative w-full aspect-[3/4] bg-[#F1F3F6] overflow-hidden">
                       {lesson.thumbnailUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={kioskImageSrc(lesson.thumbnailUrl, 256)} alt="" className="w-full h-full object-cover"/>
+                        <img src={kioskImageSrc(lesson.thumbnailUrl, 600)} alt="" className="absolute inset-0 w-full h-full object-cover"/>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-[28px]">🕺</div>
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-[40px]">🕺</div>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
-                      <p className="text-black text-[24px] font-bold leading-tight truncate">{lesson.title ?? '-'}</p>
+                    <div className="flex flex-col gap-[4px] p-[14px]">
                       {formatLessonTime(lesson) && (
-                        <p className="text-gray-600 text-[17px]">{formatLessonTime(lesson)}</p>
+                        <p className="text-[#4E5968] text-[15px] font-bold truncate">{formatLessonTime(lesson)}</p>
                       )}
+                      <p className="text-black text-[19px] font-bold leading-snug line-clamp-1">{lesson.title ?? '-'}</p>
                       {(lesson.artists?.[0]?.nickName || lesson.room?.name) && (
-                        <p className="text-gray-400 text-[15px] truncate">
+                        <p className="text-[#8B95A1] text-[14px] truncate">
                           {[lesson.artists?.[0]?.nickName, lesson.room?.name].filter(Boolean).join(' · ')}
                         </p>
                       )}
