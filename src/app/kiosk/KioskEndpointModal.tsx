@@ -38,8 +38,17 @@ const isValidUrl = (url: string): boolean => {
 };
 
 export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
-  const [selected, setSelected] = useState<ServerOption>(SERVER_OPTIONS[0]);
-  const [custom, setCustom] = useState('');
+  // 지금 접속 중인 엔드포인트 = 이 웹을 서빙한 origin. 체크 표시를 여기에 맞춰야
+  // '변경이 실제로 적용됐는지'를 화면에서 확인할 수 있다.
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const [selected, setSelected] = useState<ServerOption>(() => {
+    const matched = SERVER_OPTIONS.find((o) => o.url && o.url === currentOrigin);
+    return matched ?? SERVER_OPTIONS[2]; // 매칭 없으면 '직접 입력'
+  });
+  const [custom, setCustom] = useState(() => {
+    const matched = SERVER_OPTIONS.find((o) => o.url && o.url === currentOrigin);
+    return matched ? '' : currentOrigin;
+  });
   const [error, setError] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
   // 전환이 안 될 때(네이티브가 재진입을 처리하지 못하는 빌드) 사용자가 '적용 중...'에 갇히지 않도록 안내
@@ -64,12 +73,22 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
     setApplying(true);
     setStuck(false);
 
-    // ① 네이티브에 새 엔드포인트 저장
+    // ① 네이티브에 새 엔드포인트 저장. 브릿지 구현에 따라 문자열/JSON 둘 다 받을 수 있어 순차 호출.
+    //    (앱 설정 개발자 화면은 URL 문자열만 넘긴다)
     window.KloudEvent.changeWebEndpoint(target);
+    try {
+      window.KloudEvent.changeWebEndpoint(JSON.stringify({ endpoint: target, url: target }));
+    } catch {
+      // 문자열만 받는 구현이면 두 번째 호출은 무시됨
+    }
 
-    // ② 저장만 하고 화면 전환은 웹이 트리거해야 하는 구현(앱 설정의 개발자 화면과 동일).
-    //    키오스크는 splash가 아니라 키오스크 화면으로 다시 진입해야 하므로 clearAndPush(/kiosk).
+    // ② 엔드포인트만 저장하고 화면 전환은 웹이 트리거해야 하는 구현 대응.
+    //    refresh(endpoint)가 있으면 그걸로, 없으면 키오스크 화면으로 clearAndPush.
     setTimeout(() => {
+      if (typeof window.KloudEvent?.refresh === 'function') {
+        window.KloudEvent.refresh(target);
+        return;
+      }
       kloudNav.clearAndPush(KloudScreen.Kiosk);
     }, 400);
 
@@ -87,8 +106,9 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
         className="bg-white rounded-[24px] w-full max-w-[520px] p-[28px] flex flex-col animate-[scaleIn_180ms_ease-out]"
       >
         <p className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.4vh, 26px)' }}>서버 변경</p>
-        <p className="text-[#86898C] mt-[6px]" style={{ fontSize: 'min(1.4vh, 14px)' }}>
-          변경하면 앱이 새 서버로 다시 시작됩니다
+        {/* 현재 접속 중인 주소 — 재실행 후 이 값이 바뀌어야 변경이 적용된 것 */}
+        <p className="text-[#86898C] mt-[6px] break-all" style={{ fontSize: 'min(1.4vh, 14px)' }}>
+          현재 접속: <span className="text-[#1E2124] font-bold">{currentOrigin || '-'}</span>
         </p>
 
         <div className="mt-[20px] flex flex-col gap-[10px]">
@@ -136,7 +156,9 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
         )}
         {stuck && (
           <p className="mt-[10px] text-[#B58026]" style={{ fontSize: 'min(1.4vh, 14px)' }}>
-            서버는 저장됐어요. 화면이 그대로면 앱을 완전히 종료하고 다시 실행해주세요.
+            화면이 그대로면 네이티브가 엔드포인트 변경을 처리하지 못한 상태입니다.
+            앱을 완전히 종료하고 다시 실행해도 &apos;현재 접속&apos; 주소가 그대로면 앱 수정이 필요합니다.
+            {` (bridge: changeWebEndpoint=${typeof window.KloudEvent?.changeWebEndpoint}, refresh=${typeof window.KloudEvent?.refresh})`}
           </p>
         )}
 
