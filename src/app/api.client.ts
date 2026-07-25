@@ -54,6 +54,7 @@ export class ApiClient extends EndpointClient {
     my: this.endpointBuilder(API.Studio.My),
     timeTable: this.endpointBuilder(API.Studio.TimeTable),
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
+    listAttendances: this.endpointBuilder(API.Studio.ListStudioAttendances),
   }
 
   readonly announcement = {
