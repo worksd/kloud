@@ -614,14 +614,57 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
               <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[8px] text-center">
                 {t('kiosk_lesson_attendance_complete')}
               </p>
-              {userDisplayName(ticket) && (
-                <p className="text-gray-400 text-[20px] mb-[36px] text-center">{userDisplayName(ticket)}</p>
+              {/* 누가·어떤 수업에 출석 처리됐는지 — 이름만이 아니라 프로필/닉네임/연락처/수업까지 */}
+              {(ticket?.user || displayLesson) && (
+                <div className="w-full max-w-[560px] mt-[20px] mb-[16px] rounded-[18px] bg-[#F7F8F9] px-[22px] py-[20px] flex flex-col gap-[14px]">
+                  {ticket?.user && (
+                    <div className="flex items-center gap-[14px] min-w-0">
+                      <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+                        {ticket.user.profileImageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={kioskImageSrc(ticket.user.profileImageUrl, 160)} alt="" className="w-full h-full object-cover"/>
+                        )}
+                      </div>
+                      <div className="min-w-0 text-left">
+                        <p className="text-black text-[22px] font-bold truncate">
+                          {ticket.user.name || ticket.user.nickName || '-'}
+                          {ticket.user.name && ticket.user.nickName && (
+                            <span className="text-[#8B95A1] text-[17px] font-medium">{` (${ticket.user.nickName})`}</span>
+                          )}
+                        </p>
+                        <p className="text-[#8B95A1] text-[16px] truncate">
+                          {[ticket.user.phone, ticket.user.email].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {displayLesson && (
+                    <>
+                      <div className="h-px bg-[#E8EAED]"/>
+                      <div className="text-left min-w-0">
+                        <p className="text-black text-[19px] font-bold truncate">{displayLesson.title ?? '-'}</p>
+                        <p className="text-[#8B95A1] text-[16px] truncate">
+                          {[formatLessonDay(displayLesson), formatLessonTime(displayLesson), ticket?.ticketTypeLabel]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
               <button
                 onClick={handleRetry}
                 className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-colors mt-[16px]"
               >
                 {mode === 'manual' ? t('kiosk_lesson_attendance_search') : t('kiosk_lesson_attendance_rescan')}
+              </button>
+              {/* 연속 스캔이 아닌 경우를 위한 홈 복귀 */}
+              <button
+                onClick={onHome}
+                className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-[#F2F4F6] text-[#1E2124] text-[22px] font-bold transition-transform active:scale-[0.98] mt-[12px]"
+              >
+                {t('kiosk_go_home')}
               </button>
             </>
           )}

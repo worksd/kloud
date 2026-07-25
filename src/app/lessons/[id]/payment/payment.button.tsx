@@ -22,6 +22,7 @@ import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
 import { depositorKey } from "@/shared/cookies.key";
 import { GuestInfoBottomSheet } from "@/app/payment/GuestInfoBottomSheet";
+import { getRoomBookingsAction } from "@/app/roomBookings/get.room.bookings.action";
 
 // 연습실 예약 시간대는 KST 벽시계("yyyy.MM.dd HH:mm")로 저장 — 다이얼로그 표시엔 HH:mm만.
 const roomTimeLabel = (s?: string) => s?.split(' ')[1]?.slice(0, 5) ?? s ?? '';
@@ -430,14 +431,28 @@ export default function PaymentButton({
             await kloudNav.navigateMain({route: pushRoute});
           }
         } else if (type.value === 'practiceRoom' && 'success' in res && res.success) {
-          // 연습실 예약 완료 → 패스권 상세가 아니라 예약(대관) 내역으로 이동.
-          // (응답에 bookingId가 있으면 RoomBookingDetail로 딥링크, 없으면 목록)
+          // 패스권으로 연습실 대관 완료 → 예약 상세(roomBookings/:id)로 이동.
+          // 응답에 roomBookingId가 있으면 그대로 딥링크, 없으면 목록 API로 방금 만든 예약(최신)을 찾아 상세로.
+          // 목록 조회가 실패하면 그냥 메인으로 보낸다.
           const bookingId = 'roomBookingId' in res ? (res as { roomBookingId?: number }).roomBookingId : undefined;
-          const route = bookingId != null ? KloudScreen.RoomBookingDetail(bookingId) : KloudScreen.RoomBookings;
-          if (appVersion == '') {
-            router.replace(route)
+          let route: string | undefined = bookingId != null ? KloudScreen.RoomBookingDetail(bookingId) : undefined;
+          if (route == null) {
+            try {
+              const list = await getRoomBookingsAction();
+              if ('roomBookings' in list && list.roomBookings.length > 0) {
+                // createdAt(yyyy.MM.dd HH:mm) 최신 예약 = 방금 생성한 예약
+                const key = (s?: string) => Number((s ?? '').replace(/\D/g, '').slice(0, 12)) || 0;
+                const latest = list.roomBookings.reduce((a, b) => (key(b.createdAt) >= key(a.createdAt) ? b : a));
+                route = KloudScreen.RoomBookingDetail(latest.id);
+              }
+            } catch { /* 목록 조회 실패 → 아래에서 메인으로 */ }
+          }
+          if (route) {
+            if (appVersion == '') router.replace(route);
+            else await kloudNav.navigateMain({ route });
           } else {
-            await kloudNav.navigateMain({route});
+            if (appVersion == '') router.replace('/');
+            else await kloudNav.navigateMain({});
           }
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})

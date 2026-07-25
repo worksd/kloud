@@ -711,8 +711,10 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
                   const arr = hourlyOnly(sheetRoom.slots ?? []);
                   const startTime = arr[sel.start].time;
                   const endTime = calcEndTime(arr[sel.end].time);
-                  // 결제 페이지로 바로 이동. closeSheet의 URL 동기화(router.replace)와 경합 방지 위해 애니메이션 닫기 없이 이동.
-                  goPay(sheetRoom.id, startTime, endTime);
+                  const roomId = sheetRoom.id;
+                  // 시트를 애니메이션으로 내린 뒤(300ms) 결제 이동 — 네이티브 push 시 시트가 뒤에 남지 않도록.
+                  // (URL 동기화는 history.replaceState라 라우팅 경합 없음)
+                  closeSheet(() => goPay(roomId, startTime, endTime));
                 }}
                 className={`w-full h-14 rounded-2xl flex items-center justify-center transition-transform ${sel ? 'bg-[#171717] active:scale-[0.98]' : 'bg-[#E4E8EC]'}`}
               >
