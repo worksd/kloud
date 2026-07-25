@@ -34,6 +34,7 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
   if (type === 'pass-plan') return 'pass_plan_price';
   if (type === 'bundle') return 'promotion_price';
+  if (type === 'practice-room') return 'practice_room_price';
   return 'lesson_price';
 }
 

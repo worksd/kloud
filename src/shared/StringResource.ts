@@ -1031,6 +1031,13 @@ export const StringResource = {
     jp: "受講券金額",
     zh: "课程价格"
   },
+  // 연습실(대관) 결제 — '수강권 금액'이 아니라 대관 문구를 써야 한다
+  practice_room_price: {
+    ko: "대관 금액",
+    en: "Room Rental Price",
+    jp: "レンタル料金",
+    zh: "场地租赁费用"
+  },
   promotion_price: {
     ko: "프로모션 금액",
     en: "Promotion Price",
