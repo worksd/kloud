@@ -73,7 +73,9 @@ export const CommonBottomSheet = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className="absolute inset-x-0 bottom-0 z-[101] rounded-t-3xl bg-white shadow-xl pointer-events-auto"
+            // PC(lg+)에서는 화면 전체 폭 시트가 어색해서 가운데 정렬 + 폭 제한 + 모든 코너 라운드
+            className="absolute inset-x-0 bottom-0 z-[101] rounded-t-3xl bg-white shadow-xl pointer-events-auto
+              lg:mx-auto lg:max-w-[520px] lg:bottom-8 lg:rounded-3xl"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

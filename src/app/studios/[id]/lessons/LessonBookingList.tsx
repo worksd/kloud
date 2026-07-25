@@ -184,7 +184,8 @@ export function LessonBookingList({
             onClick={() => closeSheet()}
           />
           <div
-            className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[88vh] will-change-transform"
+            className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[88vh] will-change-transform
+              lg:mx-auto lg:mb-8 lg:max-w-[620px] lg:rounded-3xl"
             style={{
               transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
               transition: dragging ? 'none' : 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',

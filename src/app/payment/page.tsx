@@ -1,43 +1,19 @@
+// 결제 페이지 진입점 — 데이터 조회/에러 처리까지만 하고, 화면은 PC/모바일 폼으로 분기한다.
+//  - 앱 웹뷰(appVersion 있음): PaymentMobileForm
+//  - 웹: PC + 모바일 둘 다 렌더 후 CSS lg:로 토글 (PaymentPcForm / PaymentMobileForm)
+// 결제 실행 로직(UnifiedPaymentInfo → payment.button)은 두 폼이 그대로 공유.
 import { notFound } from "next/navigation";
-import { Thumbnail } from "@/app/components/Thumbnail";
 import { getPaymentAction } from "@/app/payment/get.payment.action";
 import { cookies } from "next/headers";
 import { depositorKey, userIdKey } from "@/shared/cookies.key";
 import React from "react";
-import { UnifiedPaymentInfo } from "@/app/payment/UnifiedPaymentInfo";
-import { CircleImage } from "@/app/components/CircleImage";
 import { getLocale, translate } from "@/utils/translate";
-import TicketIcon from "../../../public/assets/ic_ticket.svg";
-import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
-import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
-import { PaymentProfileButton } from "@/app/payment/PaymentProfileButton";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
-import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
-
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
-
-// 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
-// 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
-// (구) closeDate는 종료일 폴백.
-const bundleSalesPeriod = (start?: string, end?: string, close?: string): string | null => {
-  const parse = (raw?: string) => {
-    const m = raw?.match(/^(\d{4}\.\d{1,2}\.\d{1,2})(?:\s+(\d{1,2}:\d{2}))?/);
-    return m ? { day: m[1], time: m[2] ?? null } : null;
-  };
-  const s = parse(start);
-  const e = parse(end) ?? parse(close);
-  if (s && e) {
-    if (s.day === e.day) {
-      return s.time && e.time ? `${s.day} ${s.time} ~ ${e.time}` : s.day;
-    }
-    return `${s.day} ~ ${e.day}`;
-  }
-  if (e) return `~ ${e.day}`;
-  if (s) return `${s.day} ~`;
-  return null;
-};
+import PaymentMobileForm from "@/app/payment/PaymentMobileForm";
+import PaymentPcForm from "@/app/payment/PaymentPcForm";
+import { PaymentFormProps, PaymentPageType } from "@/app/payment/payment.form.props";
 
 export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
@@ -160,200 +136,42 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   };
 
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
-  const timeText = await translate('time');
+
+  // PC/모바일 공용 props — 데이터 준비는 여기서 끝내고 두 폼에 같은 값을 넘긴다.
+  const formProps: PaymentFormProps = {
+    payment: res,
+    paymentItem,
+    itemId,
+    thumbnailUrl,
+    title,
+    studioName,
+    studioImageUrl,
+    os,
+    appVersion,
+    beforeDepositor: (await cookies()).get(depositorKey)?.value ?? '',
+    actualPayerUserId,
+    isProxyPayment,
+    locale: await getLocale(),
+    apiUrl: process.env.GUINNESS_API_SERVER ?? '',
+    preStartTime: startTime,
+    preEndTime: endTime,
+  };
+
+  // 앱 웹뷰(appVersion 있음)는 모바일 폼만.
+  // 웹은 PC/모바일 둘 다 렌더하고 CSS lg:로 토글 — 서버에서 UA를 판별하지 않아 캐시 안전.
+  const isWeb = appVersion === '';
+  if (!isWeb) {
+    return <PaymentMobileForm {...formProps} />;
+  }
 
   return (
-    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
-      <div className="flex flex-col">
-        {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
-        {appVersion === '' && 'user' in res && res.user && (
-          <PaymentProfileButton
-            name={res.user.name ?? res.user.nickName ?? undefined}
-            profileImageUrl={res.user.profileImageUrl ?? undefined}
-            locale={await getLocale()}
-          />
-        )}
-        {/* lesson / lesson-group */}
-        {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
-          <div className="px-5 pt-4 pb-3">
-            <div className="flex gap-4">
-              {/* 썸네일 9:16 */}
-              <div className="relative w-[120px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#F1F3F6] flex-shrink-0">
-                {thumbnailUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={thumbnailUrl}
-                    alt={title ?? ''}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-
-              {/* 메타 정보 */}
-              <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
-                <p className="text-[18px] font-bold text-black leading-snug break-words line-clamp-2">{title}</p>
-                {paymentItem === 'lesson' && res.lesson?.tags && (
-                  <LessonTags tags={res.lesson.tags} />
-                )}
-                <div className="flex items-center gap-2">
-                  {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
-                  <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
-                </div>
-                {paymentItem === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
-                  <div className="flex flex-col gap-1 mt-1">
-                    <div className="flex items-center gap-1.5">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <rect x="1.5" y="2.5" width="11" height="9.5" rx="1.5" stroke="#999" strokeWidth="1.1"/>
-                        <path d="M1.5 5.5H12.5" stroke="#999" strokeWidth="1.1"/>
-                        <path d="M4.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
-                        <path d="M9.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
-                      </svg>
-                      <span className="text-[13px] font-medium text-[#666]">
-                        {res.lesson?.formattedDate
-                          ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
-                          : res.lesson?.date}
-                      </span>
-                    </div>
-                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration) && (
-                      <div className="flex items-center gap-1.5">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                          <circle cx="7" cy="7" r="5.5" stroke="#999" strokeWidth="1.1"/>
-                          <path d="M7 4V7L9 9" stroke="#999" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <span className="text-[13px] font-medium text-[#666]">
-                          {res.lesson?.formattedDate
-                            ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
-                            : `${res.lesson?.duration}${await translate('minutes')}`}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
-                  <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* bundle — 묶음 결제. 번들명 + 원가 strike + 판매 마감 + 구성 수업 리스트. */}
-        {paymentItem === 'bundle' && res.bundle && (
-          <div className="px-5 pt-4 pb-3">
-            <p className="text-[20px] font-bold text-black mb-1">{res.bundle.name}</p>
-            {res.bundle.description && (
-              <p className="text-[13px] text-[#86898C] font-medium mb-2">{res.bundle.description}</p>
-            )}
-            {/* 판매기간 배지 */}
-            {bundleSalesPeriod(res.bundle.startDate, res.bundle.endDate, res.bundle.closeDate) && (
-              <div className="mb-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF2F2] px-2.5 py-1.5">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 shrink-0">
-                    <circle cx="12" cy="12" r="8.5" stroke="#EF4444" strokeWidth="1.6"/>
-                    <path d="M12 8v4.2l2.6 2" stroke="#EF4444" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="text-[11px] font-semibold text-[#EF4444]">
-                    {await translate('sales_period')}
-                  </span>
-                  <span className="text-[11px] font-medium text-[#F87171]">
-                    {bundleSalesPeriod(res.bundle.startDate, res.bundle.endDate, res.bundle.closeDate)}
-                  </span>
-                </span>
-              </div>
-            )}
-            {/* 구성 수업 리스트 */}
-            {res.bundle.items.length > 0 && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <TicketIcon className="w-[14px] h-[14px]"/>
-                  <span className="text-[13px] font-bold text-black">
-                    {(await translate('bundle_total_lessons')).replace('{count}', String(res.bundle.items.length))}
-                  </span>
-                </div>
-                {res.bundle.items.map((item) => {
-                  const thumb = item.imageUrl ?? item.thumbnailUrl;
-                  return (
-                  <div key={`${item.itemType}-${item.itemId}`} className="flex items-center gap-3 p-3 bg-[#F7F8F9] rounded-xl">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F1F3F6] shrink-0">
-                      {thumb && (
-                        <Thumbnail url={thumb} className="w-full h-full" aspectRatio={1}/>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                      <span className="text-[14px] font-medium text-black truncate">{item.title}</span>
-                      {item.startDate && (
-                        <span className="text-[12px] text-[#86898C]">{item.startDate}</span>
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* pass-plan */}
-        {paymentItem === 'pass-plan' && res.passPlan && (
-          <div className="px-5 pt-4 pb-3">
-            {/* 이미지 */}
-            {res.passPlan.imageUrl && (
-              <div className="w-full aspect-[1/1] rounded-2xl overflow-hidden bg-[#F1F3F6] mb-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={res.passPlan.imageUrl} alt={title ?? ''} className="w-full h-full object-cover" />
-              </div>
-            )}
-
-            {/* 헤더 */}
-            <div className="flex items-center gap-2.5 mb-3">
-              {studioImageUrl && <CircleImage size={24} imageUrl={studioImageUrl} />}
-              <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
-            </div>
-            <p className="text-[20px] font-bold text-black mb-1">{title}</p>
-            {res.passPlan.expireDateStamp && (
-              <p className="text-[13px] text-[#86898C] font-medium mb-4">{res.passPlan.expireDateStamp}</p>
-            )}
-
-            {/* 이용 혜택 */}
-            <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />
-          </div>
-        )}
-
-        {paymentItem === 'practice-room' ? (
-          <PracticeRoomPaymentWrapper
-            payment={res}
-            studioRoomId={itemId}
-            description={res.studioRoom?.description}
-            url={process.env.GUINNESS_API_SERVER ?? ''}
-            appVersion={appVersion}
-            os={os}
-            beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-            locale={await getLocale()}
-            actualPayerUserId={actualPayerUserId}
-            isProxyPayment={isProxyPayment}
-            preStartTime={startTime}
-            preEndTime={endTime}
-          />
-        ) : (
-          <>
-            <div className="py-1">
-              <div className="w-full h-2 bg-[#F7F8F9]" />
-            </div>
-
-            <UnifiedPaymentInfo
-              type={paymentItem}
-              url={process.env.GUINNESS_API_SERVER ?? ''}
-              appVersion={appVersion}
-              os={os}
-              payment={res}
-              beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-              locale={await getLocale()}
-              actualPayerUserId={actualPayerUserId}
-              isProxyPayment={isProxyPayment}
-            />
-          </>
-        )}
+    <>
+      <div className="hidden lg:block">
+        <PaymentPcForm {...formProps} />
       </div>
-    </div>
+      <div className="lg:hidden">
+        <PaymentMobileForm {...formProps} />
+      </div>
+    </>
   );
 }

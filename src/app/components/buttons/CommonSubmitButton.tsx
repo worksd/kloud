@@ -23,8 +23,10 @@ const CommonSubmitButton = ({ children, disabled, isLoading, originProps }: IPro
         aria-disabled={isBlocked}
         className={[
             'relative flex justify-center items-center w-full p-4 rounded-[16px]',
-            'font-bold select-none transition-transform duration-150',
-            isBlocked ? 'bg-[#bcbfc2] cursor-not-allowed' : 'bg-black active:scale-[0.95]',
+            'font-bold select-none transition-all duration-150',
+            // PC(마우스/키보드) 대응 — hover 톤 변화 + 포커스 링. 터치에는 영향 없음.
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/30 focus-visible:ring-offset-2',
+            isBlocked ? 'bg-[#bcbfc2] cursor-not-allowed' : 'bg-black active:scale-[0.95] cursor-pointer hover:bg-[#2B2E31]',
             originProps?.className || ''
         ].join(' ')}
       >

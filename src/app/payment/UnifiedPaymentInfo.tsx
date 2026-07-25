@@ -118,6 +118,8 @@ export const UnifiedPaymentInfo = ({
   actualPayerUserId,
   isProxyPayment,
   practiceRoomInfo,
+  layout = 'mobile',
+  detailsSlot,
 }: {
   payment: GetPaymentResponse,
   type: UnifiedPaymentType,
@@ -127,6 +129,10 @@ export const UnifiedPaymentInfo = ({
   beforeDepositor: string,
   actualPayerUserId?: number,
   isProxyPayment?: boolean,
+  /** 'pc'면 2열로 — 좌: 상품 상세(detailsSlot) + 결제수단/패스권/할인, 우(sticky): 결제 정보 + 결제 버튼 */
+  layout?: 'mobile' | 'pc',
+  /** PC 레이아웃에서 좌측 최상단에 놓을 상품 상세 영역 (서버 컴포넌트에서 렌더해 전달) */
+  detailsSlot?: React.ReactNode,
   locale: Locale,
   practiceRoomInfo?: { studioRoomId: number; startDate: string; endDate: string },
 }) => {
@@ -292,8 +298,9 @@ export const UnifiedPaymentInfo = ({
       ]
     : activeDiscounts;
 
-  return (
-    <div className={"flex flex-col"}>
+  // 섹션 조각 — 모바일은 한 줄로, PC는 '결제 정보 + 결제 버튼'만 우측 sticky 카드로 분리한다.
+  const sectionsAbove = (
+    <>
       {/* 대리 결제 안내 배너 */}
       {isProxyPayment && (
         <div className="mx-6 mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -380,7 +387,10 @@ export const UnifiedPaymentInfo = ({
           <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
         </>
       )}
-
+    </>
+  );
+  const purchaseInfoBlock = (
+    <>
       {/* 결제 정보 */}
       {payment.price != null && (
         <>
@@ -394,10 +404,13 @@ export const UnifiedPaymentInfo = ({
             strikeOriginalPrice={!!bundlePromotion}
           />
 
-          <div className="my-2 h-2 bg-[#F7F8F9]" />
+          {layout !== 'pc' && <div className="my-2 h-2 bg-[#F7F8F9]" />}
         </>
       )}
-
+    </>
+  );
+  const sectionsBelow = (
+    <>
       {priceNotAvailable && (
         <div className="px-6 py-8 text-center">
           <span className="text-[15px] text-[#85898C] font-medium">
@@ -430,8 +443,15 @@ export const UnifiedPaymentInfo = ({
           <RefundInformation locale={locale}/>
         </div>
       )}
-
-      <div className="fixed bottom-2 left-0 w-full px-6">
+    </>
+  );
+  const ctaBlock = (
+    <>
+      {/* 결제 버튼 — 모바일은 화면 하단 고정, PC는 결제 정보 아래 인라인 */}
+      <div className={layout === 'pc'
+        ? 'px-6 pt-4 pb-2'
+        // 좁은 웹/앱 웹뷰는 하단 고정. 태블릿급 폭에서는 버튼이 과하게 늘어나지 않게 가운데 정렬 + 폭 제한.
+        : 'fixed bottom-2 left-0 w-full px-6 md:left-1/2 md:-translate-x-1/2 md:max-w-[560px]'}>
         <PaymentButton
           locale={locale}
           method={selectedMethod}
@@ -468,6 +488,47 @@ export const UnifiedPaymentInfo = ({
           practiceRoomInfo={practiceRoomInfo}
         />
       </div>
+    </>
+  );
+
+  // PC — 좌: 상품 상세 + 결제수단/패스권/할인/유의사항(카드), 우(sticky): 결제 정보 + 결제 버튼
+  if (layout === 'pc') {
+    return (
+      <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-x-10 items-start">
+        <div className="col-start-1 row-start-1 flex flex-col min-w-0">
+          {detailsSlot}
+          {/* 결제수단·패스권·할인·유의사항 — 한 장의 카드로 묶어 문서처럼 보이지 않게 */}
+          <div className="rounded-3xl border border-[#F0F1F3] bg-white py-5">
+            {sectionsAbove}
+            {sectionsBelow}
+          </div>
+        </div>
+        <aside className="col-start-2 row-start-1 sticky top-8 self-start">
+          <div className="rounded-3xl border border-[#F0F1F3] bg-white shadow-[0_8px_24px_rgba(20,23,28,0.06)] flex flex-col py-4">
+            {purchaseInfoBlock}
+            {ctaBlock}
+            {/* 버튼이 비활성인 이유를 바로 알려준다 — PC는 하단 고정 CTA가 없어 원인을 놓치기 쉬움 */}
+            {!priceNotAvailable && totalPrice > 0 && !selectedMethod && (
+              <p className="px-6 pt-1 text-[12px] font-medium text-[#E08A1E]">
+                {getLocaleString({ locale, key: 'payment_select_method_hint' })}
+              </p>
+            )}
+            {/* PC는 하단 고정 버튼이 없어 결제 직전 안내를 버튼 아래에 둔다 */}
+            <p className="px-6 pt-1.5 text-[11px] leading-relaxed text-[#B0B3B8]">
+              {getLocaleString({ locale, key: 'apple_pay_domestic_only' })}
+            </p>
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
+  return (
+    <div className={"flex flex-col"}>
+      {sectionsAbove}
+      {purchaseInfoBlock}
+      {sectionsBelow}
+      {ctaBlock}
     </div>
   )
 }

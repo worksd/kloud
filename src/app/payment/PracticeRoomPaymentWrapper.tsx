@@ -43,6 +43,8 @@ export const PracticeRoomPaymentWrapper = ({
   preStartTime,
   preEndTime,
   description,
+  layout = 'mobile',
+  detailsSlot,
 }: {
   payment: GetPaymentResponse;
   studioRoomId: number;
@@ -58,6 +60,10 @@ export const PracticeRoomPaymentWrapper = ({
   preEndTime?: string;
   /** 룸 설명서(이용안내/유의사항) HTML. 결제 응답엔 없어 GET /studioRooms/:id에서 조회해 전달. */
   description?: string;
+  /** 'pc'면 2열 레이아웃 — 룸 정보/유의사항은 좌측, 결제 정보+버튼은 우측 (UnifiedPaymentInfo가 처리) */
+  layout?: 'mobile' | 'pc';
+  /** PC 레이아웃에서 좌측 최상단에 함께 올릴 상품 상세 */
+  detailsSlot?: React.ReactNode;
 }) => {
   // 연습실 결제는 시간대까지 이미 골라 들어온다(커뮤니티 등). 결제 페이지에선 시간 선택 없음.
   const selectedTime = preStartTime && preEndTime ? { startTime: preStartTime, endTime: preEndTime } : null;
@@ -65,7 +71,7 @@ export const PracticeRoomPaymentWrapper = ({
   const myBookings = room?.myBookings ?? [];
   const date = room?.date;
 
-  return (
+  const roomBlocks = (
     <>
       {/* 룸 대표 이미지 (히어로) — 웹 백버튼이 이 위에 얹힘 */}
       <div className="relative w-full aspect-[16/9] bg-[#F1F3F6]">
@@ -161,7 +167,16 @@ export const PracticeRoomPaymentWrapper = ({
       <div className="py-1">
         <div className="w-full h-2 bg-[#F7F8F9]" />
       </div>
+    </>
+  );
 
+  const practiceRoomInfo = selectedTime
+    ? buildPracticeRoomInfo(studioRoomId, selectedTime.startTime, selectedTime.endTime)
+    : undefined;
+
+  // PC: 룸 정보/유의사항을 좌측 컬럼(detailsSlot)으로 넘기고, 우측엔 결제 정보 + 버튼만
+  if (layout === 'pc') {
+    return (
       <UnifiedPaymentInfo
         type="practice-room"
         url={url}
@@ -172,7 +187,27 @@ export const PracticeRoomPaymentWrapper = ({
         locale={locale}
         actualPayerUserId={actualPayerUserId}
         isProxyPayment={isProxyPayment}
-        practiceRoomInfo={selectedTime ? buildPracticeRoomInfo(studioRoomId, selectedTime.startTime, selectedTime.endTime) : undefined}
+        practiceRoomInfo={practiceRoomInfo}
+        layout="pc"
+        detailsSlot={<>{detailsSlot}{roomBlocks}</>}
+      />
+    );
+  }
+
+  return (
+    <>
+      {roomBlocks}
+      <UnifiedPaymentInfo
+        type="practice-room"
+        url={url}
+        appVersion={appVersion}
+        os={os}
+        payment={payment}
+        beforeDepositor={beforeDepositor}
+        locale={locale}
+        actualPayerUserId={actualPayerUserId}
+        isProxyPayment={isProxyPayment}
+        practiceRoomInfo={practiceRoomInfo}
       />
     </>
   );

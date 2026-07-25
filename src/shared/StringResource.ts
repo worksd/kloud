@@ -3361,6 +3361,13 @@ export const StringResource = {
   kiosk_tag_check_out: { ko: '체크아웃', en: 'Out', jp: 'アウト', zh: '签退' },
   // 오늘 체크인·체크아웃을 모두 마친 상태 — 더 할 동작이 없어 홈 복귀만 안내
   kiosk_go_home: { ko: '홈으로 돌아가기', en: 'Back to Home', jp: 'ホームに戻る', zh: '返回首页' },
+  // PC 결제 — 결제수단 미선택으로 버튼이 비활성일 때 이유를 알려주는 힌트
+  payment_select_method_hint: {
+    ko: '결제수단을 선택하면 결제할 수 있어요',
+    en: 'Select a payment method to continue',
+    jp: 'お支払い方法を選択すると決済できます',
+    zh: '选择支付方式后即可付款',
+  },
   kiosk_attendance_all_done: { ko: '오늘 방문 기록이 모두 완료됐어요', en: "Today's visit is complete", jp: '本日の訪問記録は完了しています', zh: '今日访问记录已完成' },
   kiosk_attendance: { ko: '방문 기록', en: 'Visit Record', jp: '訪問記録', zh: '访问记录' },
   kiosk_greeting: { ko: '반가워요! {0}입니다.', en: 'Welcome to {0}!', jp: 'ようこそ！{0}です。', zh: '欢迎来到{0}！' },

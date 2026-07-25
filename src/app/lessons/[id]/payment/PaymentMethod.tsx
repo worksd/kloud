@@ -489,7 +489,8 @@ export const PaymentMethodComponent = ({
             <div className="text-[12px] font-bold text-[#999] mb-2.5">
               {getLocaleString({locale, key: 'easy_payment'})}
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            {/* 간편결제 타일 — PC(넓은 폭)에서는 타일이 과하게 커지지 않게 4열 */}
+            <div className="grid grid-cols-3 lg:grid-cols-4 gap-2">
               {easyPayOptions.map((option) => {
                 const isSelected = selectedMethod === option.type;
                 return (

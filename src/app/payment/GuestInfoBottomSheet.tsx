@@ -151,7 +151,8 @@ export const GuestInfoBottomSheet = ({
     <div className="fixed inset-0 z-[60] flex items-end">
       <div className="absolute inset-0 bg-black/50" style={{ opacity: entered ? 1 : 0, transition: 'opacity 250ms ease' }} onClick={() => close()} />
       <div
-        className="relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] will-change-transform"
+        className="relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] will-change-transform
+          lg:mx-auto lg:mb-8 lg:max-w-[520px] lg:rounded-3xl"
         style={{
           transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
           transition: dragging ? 'none' : 'transform 250ms cubic-bezier(0.22, 1, 0.36, 1)',

@@ -478,7 +478,8 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
           />
           <div
             ref={sheetRef}
-            className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[85vh]"
+            className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[85vh]
+              lg:mx-auto lg:mb-8 lg:max-w-[720px] lg:rounded-3xl"
             style={{
               transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
               transition: dragging ? 'none' : 'transform 300ms cubic-bezier(0.32,0.72,0,1)',
@@ -731,7 +732,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
       {dateOpen && (
         <div className={`fixed inset-0 z-[60] flex items-end ${dateClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_180ms_ease-out]'}`}>
           <div className="absolute inset-0 bg-black/50 touch-none" onClick={() => closeDateSheet()} />
-          <div className={`relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] ${dateClosing ? 'animate-[slideDown_220ms_ease-in_forwards]' : 'animate-[slideUp_220ms_ease-out]'}`}>
+          <div className={`relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] lg:mx-auto lg:mb-8 lg:max-w-[520px] lg:rounded-3xl ${dateClosing ? 'animate-[slideDown_220ms_ease-in_forwards]' : 'animate-[slideUp_220ms_ease-out]'}`}>
             <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mb-3" />
             <div className="flex items-center justify-between mb-3">
               <p className="text-[17px] font-bold text-[#171717]">{t('community_select_date')}</p>

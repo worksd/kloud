@@ -86,7 +86,7 @@ export const DiscountSection = ({
                         className={`rounded-xl px-4 py-3.5 transition-all duration-200 select-none cursor-pointer active:scale-[0.98]
                           ${isSelected
                             ? 'border-[1.5px] border-black bg-black text-white shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                            : 'border border-[#E8E8E8] bg-white text-black'}`}
+                            : 'border border-[#E8E8E8] bg-white text-black hover:border-[#CDD1D5] hover:bg-[#FBFBFC]'}`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex flex-col gap-0.5">
