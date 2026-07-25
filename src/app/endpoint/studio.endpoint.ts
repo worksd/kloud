@@ -211,3 +211,32 @@ export const CreateStudioAttendance: Endpoint<CreateStudioAttendanceRequest, Stu
   path: '/studio-attendances',
   bodyParams: ['targetUserId', 'status']
 }
+
+// GET /studio-attendances — 특정 수강생의 출결을 기간(startDate~endDate, 양끝 포함)으로 조회.
+export type StudioAttendanceItem = {
+  id: number;
+  studentId: number;
+  studentName: string;
+  profileImageUrl?: string | null;
+  date: string;                 // 체크인 일자 yyyy-MM-dd (KST)
+  checkInTime: string;          // HH:mm (KST)
+  checkOutTime?: string | null; // HH:mm | null(미퇴실)
+  stayMinutes?: number | null;  // 체류 분 | null
+}
+
+export type StudioAttendanceListResponse = {
+  attendances: StudioAttendanceItem[];
+  summary: { checkInCount: number };
+}
+
+export type ListStudioAttendancesParameter = {
+  targetUserId: number;
+  startDate?: string;  // yyyy-MM-dd (KST, 포함). 미지정 시 오늘
+  endDate?: string;    // yyyy-MM-dd (KST, 포함). 미지정 시 startDate와 동일
+}
+
+export const ListStudioAttendances: Endpoint<ListStudioAttendancesParameter, StudioAttendanceListResponse> = {
+  method: 'get',
+  path: '/studio-attendances',
+  queryParams: ['targetUserId', 'startDate', 'endDate'],
+}
