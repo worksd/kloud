@@ -31,13 +31,11 @@ type KioskPaymentMethodFormProps = {
   onSelectCash: () => void;
   onPayWithPass: () => void;
   onHome: () => void;
-  onChangeLocale: (locale: Locale) => void;
   // 서버 paymentInfo.methods의 isEnabled 반영 — false면 해당 결제 수단 버튼/섹션을 숨김.
   // 미지정(undefined) 시 기본 활성으로 간주.
   cardEnabled?: boolean;
   cashEnabled?: boolean;
   passEnabled?: boolean;
-  hideLocale?: boolean;
 };
 
 export const KioskPaymentMethodForm = ({
@@ -59,11 +57,9 @@ export const KioskPaymentMethodForm = ({
   onSelectCash,
   onPayWithPass,
   onHome,
-  onChangeLocale,
   cardEnabled = true,
   cashEnabled = true,
   passEnabled = true,
-  hideLocale = false,
 }: KioskPaymentMethodFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
@@ -82,9 +78,9 @@ export const KioskPaymentMethodForm = ({
   const userSecondaryName = user.nickName && user.name ? user.name : '';
 
   return (
-    <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
+    <div className="bg-white w-full h-screen flex flex-col overflow-hidden animate-[fadeIn_260ms_ease-out]">
       {/* 상단 바 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} hideLocale={hideLocale} />
+      <KioskTopBar onBack={onBack} onHome={onHome} />
 
       {/* 큰 안내 문구 */}
       <div className="shrink-0 flex items-center justify-center px-[5.6%]" style={{ paddingTop: 'min(4vw, 44px)', paddingBottom: 'min(2.4vw, 26px)' }}>
