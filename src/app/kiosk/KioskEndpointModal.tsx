@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 
 // 키오스크 엔드포인트(서버) 변경 모달.
@@ -56,21 +55,21 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
       setError('유효한 http(s) 주소가 아닙니다. 예) 192.168.0.11 또는 http://192.168.0.11:3000');
       return;
     }
-    if (typeof window.KloudEvent?.changeWebEndpoint !== 'function') {
-      setError('이 기기에서는 엔드포인트를 변경할 수 없습니다.');
-      return;
-    }
     setError(null);
     setApplying(true);
     setStuck(false);
 
-    // ① 네이티브에 새 엔드포인트 저장
-    window.KloudEvent.changeWebEndpoint(target);
+    // ① 네이티브가 지원하면 엔드포인트를 저장시켜 다음 실행에도 유지되게 한다.
+    //    (키오스크 빌드가 이 값을 읽지 않으면 다음 실행 때 원래 주소로 돌아온다 — 네이티브 수정 필요)
+    if (typeof window.KloudEvent?.changeWebEndpoint === 'function') {
+      window.KloudEvent.changeWebEndpoint(target);
+    }
 
-    // ② 저장만 하고 화면 전환은 웹이 트리거해야 하는 구현(앱 설정의 개발자 화면과 동일).
-    //    키오스크는 splash가 아니라 키오스크 화면으로 다시 진입해야 하므로 clearAndPush(/kiosk).
+    // ② 네이티브 지원과 무관하게 지금 당장 서버를 바꾸는 경로 —
+    //    웹뷰를 새 origin의 키오스크 화면으로 직접 이동시킨다.
+    //    쿠키(운영자 토큰)는 origin별로 분리되므로 새 서버에서는 다시 로그인해야 한다.
     setTimeout(() => {
-      kloudNav.clearAndPush(KloudScreen.Kiosk);
+      window.location.href = `${target}${KloudScreen.Kiosk}`;
     }, 400);
 
     // ③ 그래도 전환이 없으면(구버전 네이티브 등) 안내 — 앱 재실행 필요
@@ -136,7 +135,8 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
         )}
         {stuck && (
           <p className="mt-[10px] text-[#B58026]" style={{ fontSize: 'min(1.4vh, 14px)' }}>
-            서버는 저장됐어요. 화면이 그대로면 앱을 완전히 종료하고 다시 실행해주세요.
+            이동이 안 되면 이 기기의 웹뷰가 외부 주소 이동을 막고 있는 상태입니다.
+            {` (현재 접속: ${typeof window !== 'undefined' ? window.location.origin : '-'} / bridge: ${typeof window.KloudEvent?.changeWebEndpoint})`}
           </p>
         )}
 

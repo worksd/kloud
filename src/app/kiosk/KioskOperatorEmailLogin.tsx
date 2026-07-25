@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import emailLoginAction from '@/app/login/action/email.login.action';
 
 type Props = {
@@ -17,6 +17,11 @@ export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel, onAdminMode }: P
   const [error, setError] = useState<string | null>(null);
 
   const canSubmit = email.trim().length > 0 && password.length > 0 && !loading;
+
+  // 현재 웹 엔드포인트 — 이 웹을 서빙한 origin. 어느 서버에 붙어 있는지 로그인 전에 확인할 수 있게 노출.
+  // (SSR/CSR 불일치를 피하려고 마운트 후에 채운다)
+  const [endpoint, setEndpoint] = useState('');
+  useEffect(() => { setEndpoint(window.location.origin); }, []);
 
   // 제목 5번 연속 탭(1.5초 안에) → 서버 변경. 홈 화면 로고 5탭과 동일한 히든 제스처.
   const tapCountRef = useRef(0);
@@ -68,6 +73,18 @@ export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel, onAdminMode }: P
         <p className="text-[#86898C] mt-[6px]" style={{ fontSize: 'min(1.4vh, 14px)' }}>
           파트너 계정 이메일과 비밀번호로 로그인하세요
         </p>
+
+        {/* 현재 접속 중인 웹 엔드포인트 — 어느 서버에 붙어 있는지 확인용 */}
+        {endpoint && (
+          <div
+            className="mt-[12px] px-[12px] py-[8px] rounded-[10px] bg-[#F7F8F9] border border-[#EEF0F2] flex items-center"
+            style={{ gap: 'min(0.8vh, 8px)' }}
+          >
+            <span className="w-[6px] h-[6px] rounded-full bg-[#3CC0AF] shrink-0" />
+            <span className="text-[#8A949E] shrink-0" style={{ fontSize: 'min(1.3vh, 13px)' }}>서버</span>
+            <span className="text-[#1E2124] font-bold break-all" style={{ fontSize: 'min(1.3vh, 13px)' }}>{endpoint}</span>
+          </div>
+        )}
 
         <label className="mt-[20px] flex flex-col">
           <span className="text-[#86898C] font-medium mb-[6px]" style={{ fontSize: 'min(1.3vh, 13px)' }}>이메일</span>
