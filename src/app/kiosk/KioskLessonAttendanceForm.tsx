@@ -22,7 +22,6 @@ type KioskLessonAttendanceFormProps = {
   onBack: () => void;
   onHome: () => void;
   locale: Locale;
-  onChangeLocale: (locale: Locale) => void;
   variant?: 'kiosk' | 'admin';
 };
 
@@ -37,16 +36,23 @@ type Status =
   | 'complete'      // 완료
   | 'error';
 
-// QR 스캔값에서 willUseTicketId(=티켓 id)와 token 쿼리 추출
+// QR 스캔값에서 willUseTicketId(=티켓 id)와 token 쿼리 추출.
+// QR 값은 전체 URL(https://...?a=b), 스킴 딥링크(rawgraphy://...?a=b), 또는 쿼리문자열만
+// (willUseTicketId=1&token=x) 어떤 형태든 올 수 있으므로 모두 허용한다.
 const parseQr = (raw: string): { ticketId: number; token: string } | null => {
-  try {
-    const url = new URL(raw);
-    const id = url.searchParams.get('willUseTicketId');
-    const token = url.searchParams.get('token');
+  const readParams = (search: string) => {
+    const params = new URLSearchParams(search);
+    const id = params.get('willUseTicketId');
+    const token = params.get('token');
     if (!id || !/^\d+$/.test(id) || !token) return null;
-    return {ticketId: Number(id), token};
+    return { ticketId: Number(id), token };
+  };
+  try {
+    return readParams(new URL(raw).search);
   } catch {
-    return null;
+    // 전체 URL 파싱 실패 → '?' 뒤(있으면) 또는 raw 전체를 쿼리로 취급
+    const q = raw.includes('?') ? raw.slice(raw.indexOf('?') + 1) : raw;
+    return readParams(q);
   }
 };
 
@@ -117,7 +123,7 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 //  - QR 모드: 네이티브 HID 스캐너(startQrScan) → onQrScanResult → willUseTicketId/token 파싱 → 티켓 조회
 //  - 수동 모드: 수업 선택 → 전화/이메일 입력 → 해당 레슨 티켓에서 유저 매칭
 //  두 경로 모두 확인 화면(이 수업 맞나요?) 후 toUsed로 출석 처리.
-export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, onChangeLocale, variant = 'kiosk'}: KioskLessonAttendanceFormProps) => {
+export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, variant = 'kiosk'}: KioskLessonAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
 
@@ -326,7 +332,9 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, onC
       setStatus('manual-input'); // confirm/complete/error
       return;
     }
-    if (status === 'confirm' || status === 'complete' || status === 'error') { startScan(); return; }
+    // QR 모드: 에러 화면은 뒤로가기로 밖으로 나가고, confirm/complete는 다시 스캔.
+    if (status === 'error') { onBack(); return; }
+    if (status === 'confirm' || status === 'complete') { startScan(); return; }
     onBack();
   }, [mode, status, onBack, startScan]);
 
@@ -360,7 +368,6 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, onC
         variant={variant}
         onBack={() => setStatus('manual-lesson')}
         onHome={onBack}
-        onChangeLocale={onChangeLocale}
         onNext={(phone) => searchInLesson(phone)}
         onSearchByEmail={(email) => searchInLesson(email)}
         loading={searching}
@@ -371,14 +378,11 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, onC
   }
 
   return (
-    <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
+    <div className="bg-white w-full h-screen overflow-hidden flex flex-col animate-[fadeIn_260ms_ease-out]">
       <KioskTopBar
         title={t('kiosk_lesson_attendance_title')}
-        locale={locale}
-        onChangeLocale={onChangeLocale}
         onBack={status !== 'submitting' ? handleHeaderBack : undefined}
         onHome={onHome}
-        hideLocale={admin}
       />
 
       {/* 수동 모드 - 수업 선택: 좌 캘린더 / 우 선택 날짜의 수업 */}
@@ -445,8 +449,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, onC
           </div>
         </div>
       ) : (
-        /* 그 외 상태 — 중앙 정렬 */
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] pb-[70px]">
+        /* 그 외 상태 — 중앙 정렬. status가 바뀌면 remount(key)해서 상태 전환도 fade로 */
+        <div key={status} className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] pb-[70px] animate-[fadeIn_220ms_ease-out]">
           {/* 대기 — QR 스캔 안내 */}
           {status === 'idle' && (
             <>
