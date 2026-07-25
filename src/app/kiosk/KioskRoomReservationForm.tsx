@@ -63,15 +63,11 @@ export const KioskRoomReservationForm = ({
   locale,
   onBack,
   onConfirm,
-  onChangeLocale,
-  hideLocale = false,
 }: {
   studioId: number;
   locale: Locale;
   onBack: () => void;
   onConfirm: (booking: KioskRoomBooking) => void;
-  onChangeLocale: (locale: Locale) => void;
-  hideLocale?: boolean;
 }) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
@@ -283,8 +279,8 @@ export const KioskRoomReservationForm = ({
   };
 
   return (
-    <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} hideLocale={hideLocale} />
+    <div className="bg-white w-full h-screen flex flex-col overflow-hidden animate-[fadeIn_260ms_ease-out]">
+      <KioskTopBar onBack={onBack} onHome={onBack} />
 
       <div className="shrink-0" style={{ padding: '4px 24px 8px' }}>
         <h1 className="font-bold text-black" style={{ fontSize: 'min(2.4vh, 28px)' }}>{t('kiosk_rental_title')}</h1>
