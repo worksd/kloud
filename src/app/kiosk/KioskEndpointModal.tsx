@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { kloudNav } from '@/app/lib/kloudNav';
+import { KloudScreen } from '@/shared/kloud.screen';
 
 // 키오스크 엔드포인트(서버) 변경 모달.
 // 앱 설정의 개발자 화면(DeveloperForm)과 같은 규칙으로 native의 changeWebEndpoint를 호출한다.
@@ -40,6 +42,8 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
   const [custom, setCustom] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  // 전환이 안 될 때(네이티브가 재진입을 처리하지 못하는 빌드) 사용자가 '적용 중...'에 갇히지 않도록 안내
+  const [stuck, setStuck] = useState(false);
 
   const target = resolveUrl(selected, custom);
 
@@ -58,8 +62,19 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
     }
     setError(null);
     setApplying(true);
-    // 호출 후 네이티브가 새 엔드포인트로 웹뷰를 다시 띄운다 (웹에서 별도 이동 없음)
+    setStuck(false);
+
+    // ① 네이티브에 새 엔드포인트 저장
     window.KloudEvent.changeWebEndpoint(target);
+
+    // ② 저장만 하고 화면 전환은 웹이 트리거해야 하는 구현(앱 설정의 개발자 화면과 동일).
+    //    키오스크는 splash가 아니라 키오스크 화면으로 다시 진입해야 하므로 clearAndPush(/kiosk).
+    setTimeout(() => {
+      kloudNav.clearAndPush(KloudScreen.Kiosk);
+    }, 400);
+
+    // ③ 그래도 전환이 없으면(구버전 네이티브 등) 안내 — 앱 재실행 필요
+    setTimeout(() => setStuck(true), 3000);
   };
 
   return (
@@ -119,12 +134,17 @@ export const KioskEndpointModal = ({ onClose }: { onClose: () => void }) => {
         {error && (
           <p className="mt-[10px] text-[#E53935]" style={{ fontSize: 'min(1.4vh, 14px)' }}>{error}</p>
         )}
+        {stuck && (
+          <p className="mt-[10px] text-[#B58026]" style={{ fontSize: 'min(1.4vh, 14px)' }}>
+            서버는 저장됐어요. 화면이 그대로면 앱을 완전히 종료하고 다시 실행해주세요.
+          </p>
+        )}
 
         <div className="mt-[24px] flex gap-[10px]">
           <button
             type="button"
             onClick={onClose}
-            disabled={applying}
+            disabled={applying && !stuck}
             className="flex-1 h-[52px] rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform disabled:opacity-50"
           >
             <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.7vh, 17px)' }}>취소</span>
