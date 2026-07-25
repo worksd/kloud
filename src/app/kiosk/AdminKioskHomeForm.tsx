@@ -3,6 +3,7 @@
 import React, {useRef} from 'react';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
+import {KioskLessonAttendanceIcon, KioskRoomBookingIcon, KioskPaymentIcon} from '@/app/kiosk/kiosk.home.icons';
 import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 
 type AdminKioskHomeFormProps = {
@@ -14,9 +15,8 @@ type AdminKioskHomeFormProps = {
   canBookRoom?: boolean;
   canLessonAttendance?: boolean;
   onSelectPayment: () => void;
-  onSelectVisit: () => void;
+  onSelectAttendance: () => void;
   onSelectBookRoom: () => void;
-  onSelectLessonAttendance: () => void;
   onAdminMode: () => void;
 };
 
@@ -31,9 +31,8 @@ export const AdminKioskHomeForm = ({
   canBookRoom = false,
   canLessonAttendance = false,
   onSelectPayment,
-  onSelectVisit,
+  onSelectAttendance,
   onSelectBookRoom,
-  onSelectLessonAttendance,
   onAdminMode,
 }: AdminKioskHomeFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
@@ -59,46 +58,17 @@ export const AdminKioskHomeForm = ({
       onClick: onSelectPayment,
       title: t('kiosk_payment_title'),
       desc: t('kiosk_admin_card_payment_desc'),
-      // 결제 페이지(카드 결제 버튼)와 동일한 카드 아이콘. 다크 카드라 흰 카드 + 어두운 점으로 렌더.
-      icon: (
-        <svg width="40" height="52" viewBox="0 0 54 70" fill="none">
-          <rect x="2" y="2" width="50" height="66" rx="8" fill="white"/>
-          <circle cx="42" cy="14" r="3.5" fill="#1E2124"/>
-        </svg>
-      ),
+      // 결제 — 카드 아이콘(다크 카드라 흰 카드 + 어두운 점). 무인 홈과 공통 컴포넌트.
+      icon: <KioskPaymentIcon />,
       dark: true,
     },
     {
-      key: 'lesson',
-      show: canLessonAttendance,
-      onClick: onSelectLessonAttendance,
-      title: t('kiosk_lesson_attendance_title'),
+      key: 'attendance',
+      show: canCheckIn || canLessonAttendance,
+      onClick: onSelectAttendance,
+      title: t('kiosk_attendance_menu'),
       desc: t('kiosk_admin_card_lesson_desc'),
-      // 수업 출석 — QR 스캔(출석 체크)
-      icon: (
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <rect x="6" y="6" width="12" height="12" rx="2.5" stroke="#4E5968" strokeWidth="2.4"/>
-          <rect x="22" y="6" width="12" height="12" rx="2.5" stroke="#4E5968" strokeWidth="2.4"/>
-          <rect x="6" y="22" width="12" height="12" rx="2.5" stroke="#4E5968" strokeWidth="2.4"/>
-          <rect x="24" y="24" width="4.5" height="4.5" rx="1" fill="#4E5968"/>
-          <rect x="30.5" y="30.5" width="3.5" height="3.5" rx="1" fill="#4E5968"/>
-        </svg>
-      ),
-      dark: false,
-    },
-    {
-      key: 'studio',
-      show: canCheckIn,
-      onClick: onSelectVisit,
-      title: t('kiosk_admin_studio_attendance'),
-      desc: t('kiosk_admin_card_studio_desc'),
-      // 스튜디오 출석 — 수강생 방문(사람)
-      icon: (
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <circle cx="20" cy="14" r="6.5" stroke="#4E5968" strokeWidth="2.4"/>
-          <path d="M8 33c1-6.5 6-11 12-11s11 4.5 12 11" stroke="#4E5968" strokeWidth="2.4" strokeLinecap="round"/>
-        </svg>
-      ),
+      icon: <KioskLessonAttendanceIcon />,
       dark: false,
     },
     {
@@ -107,14 +77,7 @@ export const AdminKioskHomeForm = ({
       onClick: onSelectBookRoom,
       title: t('kiosk_reserve_room'),
       desc: t('kiosk_admin_card_room_desc'),
-      // 연습실 예약 — 달력 + 체크(예약 확정)
-      icon: (
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <rect x="7" y="9" width="26" height="24" rx="3.5" stroke="#4E5968" strokeWidth="2.4"/>
-          <path d="M7 16h26M14 6.5v5M26 6.5v5" stroke="#4E5968" strokeWidth="2.4" strokeLinecap="round"/>
-          <path d="M15.5 24.5l3 3 6-6" stroke="#4E5968" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      ),
+      icon: <KioskRoomBookingIcon />,
       dark: false,
     },
   ].filter((c) => c.show);
