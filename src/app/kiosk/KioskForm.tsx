@@ -17,6 +17,7 @@ import {KioskMemberConfirmModal} from "@/app/kiosk/KioskMemberConfirmModal";
 import {KioskPaymentMethodForm} from "@/app/kiosk/KioskPaymentMethodForm";
 import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
 import {KioskAttendanceForm} from "@/app/kiosk/KioskAttendanceForm";
+import {KioskAttendanceSelectForm} from "@/app/kiosk/KioskAttendanceSelectForm";
 import {KioskLessonAttendanceForm} from "@/app/kiosk/KioskLessonAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
@@ -46,9 +47,9 @@ type SearchedUser = {
   accessToken?: string;
 };
 
-type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searching' | 'member-confirm' | 'payment-method' | 'pass-select' | 'attendance' | 'lesson-attendance' | 'admin-payment' | 'room-reservation';
+type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searching' | 'member-confirm' | 'payment-method' | 'pass-select' | 'attendance-select' | 'attendance' | 'lesson-attendance' | 'admin-payment' | 'room-reservation';
 
-const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance', 'lesson-attendance', 'admin-payment', 'room-reservation'];
+const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance-select', 'attendance', 'lesson-attendance', 'admin-payment', 'room-reservation'];
 
 // 결제/패스사용 응답 표준화 — start/complete/use 응답의 제각각 shape 판별을 한 곳으로 통일.
 // paymentId가 있고 도메인 에러(isGuinnessErrorCase)가 아니면 성공. 실패면 code/message로 안내.
@@ -174,11 +175,24 @@ export const KioskForm = ({
   const [adminOpen, setAdminOpen] = useState(false);
   const [cashConfirmOpen, setCashConfirmOpen] = useState(false);
   const [noPassDialogOpen, setNoPassDialogOpen] = useState(false);
+  const [noPassDialogClosing, setNoPassDialogClosing] = useState(false);
+  // 다른 다이얼로그와 동일하게 fade/scale out 후 언마운트
+  const closeNoPassDialog = useCallback(() => {
+    setNoPassDialogClosing(true);
+    setTimeout(() => { setNoPassDialogOpen(false); setNoPassDialogClosing(false); }, 200);
+  }, []);
   // 패스권 구매 직후 "수업 신청하러 가기" 흐름에서 자동으로 사용할 passPlan id
   // 설정돼 있으면 lesson 선택 후 phone/member-confirm/payment-method 단계 모두 스킵하고 패스권을 즉시 사용
   const [autoUsePassPlanId, setAutoUsePassPlanId] = useState<number | null>(null);
   const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay' | 'kakaopay' | 'zeropay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+
+  // 출석 체크 진입 — 둘 다 가능하면 선택 화면, 하나만 가능하면 해당 출석으로 바로 이동.
+  const enterAttendance = () => {
+    if (canCheckIn && canLessonAttendance) setCurrentScreen('attendance-select');
+    else if (canCheckIn) setCurrentScreen('attendance');
+    else setCurrentScreen('lesson-attendance');
+  };
 
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
@@ -1055,9 +1069,8 @@ export const KioskForm = ({
             canBookRoom={canBookRoom}
             canLessonAttendance={canLessonAttendance}
             onSelectPayment={() => setCurrentScreen('lesson-list')}
-            onSelectVisit={() => setCurrentScreen('attendance')}
+            onSelectAttendance={enterAttendance}
             onSelectBookRoom={() => { setSelectedLesson(null); setSelectedPassPlan(null); setRoomBooking(null); setCurrentScreen('room-reservation'); }}
-            onSelectLessonAttendance={() => setCurrentScreen('lesson-attendance')}
             onAdminMode={() => setAdminOpen(true)}
           />
         ) : (
@@ -1067,10 +1080,11 @@ export const KioskForm = ({
             locale={locale}
             canCheckIn={canCheckIn}
             canPurchase={canPurchase}
+            canBookRoom={canBookRoom}
+            canLessonAttendance={canLessonAttendance}
             onSelectPayment={() => setCurrentScreen('lesson-list')}
-            onSelectVisit={() => setCurrentScreen('attendance')}
+            onSelectAttendance={enterAttendance}
             onReserveRoom={() => { setSelectedLesson(null); setSelectedPassPlan(null); setRoomBooking(null); setCurrentScreen('room-reservation'); }}
-            onSelectLessonAttendance={() => setCurrentScreen('lesson-attendance')}
             onChangeLocale={setLocale}
             onAdminMode={() => setAdminOpen(true)}
           />
@@ -1082,8 +1096,6 @@ export const KioskForm = ({
           studioId={studioId}
           locale={locale}
           onBack={goHome}
-          onChangeLocale={setLocale}
-          hideLocale={variant === 'admin'}
           onConfirm={(booking) => {
             setRoomBooking(booking);
             setSelectedLesson(null);
@@ -1104,7 +1116,6 @@ export const KioskForm = ({
           onSelectPassPlan={(plan) => { setSelectedPassPlan(plan); setSelectedLesson(null); setSelectedBundle(null); setCurrentScreen('phone'); }}
           onSelectBundle={(bundle) => { setSelectedBundle(bundle); setSelectedLesson(null); setSelectedPassPlan(null); setCurrentScreen('phone'); }}
           onBack={goHome}
-          onChangeLocale={setLocale}
         />
       )}
 
@@ -1128,7 +1139,6 @@ export const KioskForm = ({
           onNext={handlePhoneNext}
           onSearchByEmail={handleEmailSearch}
           onHome={goHome}
-          onChangeLocale={setLocale}
           loading={currentScreen === 'searching'}
           errorMessage={errorMessage}
           onDismissError={() => setErrorMessage(null)}
@@ -1160,7 +1170,6 @@ export const KioskForm = ({
           locale={locale}
           loading={isPaying}
           onBack={() => setCurrentScreen('member-confirm')}
-          onChangeLocale={setLocale}
           onHome={goHome}
           onPay={(amount, method) => { if (method === 'card') handleAdminCardPayment(amount); else handleAdminOnsitePayment(amount); }}
         />
@@ -1199,7 +1208,6 @@ export const KioskForm = ({
           lessonSubtitle={paymentItem.subtitle}
           lessonThumbnailUrl={paymentItem.thumbnailUrl}
           price={paymentItem.price}
-          hideLocale={variant === 'admin'}
           user={{
             name: selectedUser.name,
             nickName: selectedUser.nickName,
@@ -1235,7 +1243,6 @@ export const KioskForm = ({
           onSelectCash={() => setCashConfirmOpen(true)}
           onPayWithPass={handlePayWithPass}
           onHome={goHome}
-          onChangeLocale={setLocale}
           // 결제수단은 서버 응답(paymentInfo.methods) 기준. 연습실도 카드/현금/패스권 모두 지원.
           cardEnabled={cardEnabled}
           cashEnabled={cashEnabled}
@@ -1393,8 +1400,14 @@ export const KioskForm = ({
 
       {/* 사용 가능한 패스권/할인이 없을 때 안내 다이얼로그 */}
       {noPassDialogOpen && (
-        <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center px-[5%]" onClick={() => setNoPassDialogOpen(false)}>
-          <div className="bg-white rounded-[24px] w-full max-w-[640px] flex flex-col items-center px-[min(4vw,40px)] py-[min(4vw,40px)]" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`fixed inset-0 z-40 bg-black/40 flex items-center justify-center px-[5%] ${noPassDialogClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_200ms_ease-out]'}`}
+          onClick={closeNoPassDialog}
+        >
+          <div
+            className={`bg-white rounded-[24px] w-full max-w-[640px] flex flex-col items-center px-[min(4vw,40px)] py-[min(4vw,40px)] ${noPassDialogClosing ? 'animate-[scaleOut_200ms_ease-in_forwards]' : 'animate-[scaleIn_200ms_ease-out]'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="rounded-full bg-[#F2F4F6] flex items-center justify-center" style={{ width: 'min(7vw,72px)', height: 'min(7vw,72px)' }}>
               <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
                 <path d="M12 8V13" stroke="#6D7882" strokeWidth="2.4" strokeLinecap="round"/>
@@ -1406,7 +1419,7 @@ export const KioskForm = ({
               {t('kiosk_no_pass')}
             </p>
             <button
-              onClick={() => setNoPassDialogOpen(false)}
+              onClick={closeNoPassDialog}
               className="mt-[min(3vw,32px)] w-full h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
             >
               <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>{t('kiosk_confirm')}</span>
@@ -1549,13 +1562,22 @@ export const KioskForm = ({
         />
       )}
 
+      {currentScreen === 'attendance-select' && (
+        <KioskAttendanceSelectForm
+          locale={locale}
+          onSelectStudio={() => setCurrentScreen('attendance')}
+          onSelectLesson={() => setCurrentScreen('lesson-attendance')}
+          onBack={goHome}
+          onHome={goHome}
+        />
+      )}
+
       {currentScreen === 'attendance' && (
         <KioskAttendanceForm
           onBack={goHome}
           onHome={goHome}
           onComplete={goHome}
           locale={locale}
-          onChangeLocale={setLocale}
           variant={variant}
         />
       )}
@@ -1566,7 +1588,6 @@ export const KioskForm = ({
           onBack={goHome}
           onHome={goHome}
           locale={locale}
-          onChangeLocale={setLocale}
           variant={variant}
         />
       )}
