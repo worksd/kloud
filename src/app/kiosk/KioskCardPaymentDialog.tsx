@@ -20,9 +20,9 @@ export const KioskCardPaymentDialog = ({ method = 'card', locale, onCancel, vari
   const isQr = method === 'kakaopay' || method === 'zeropay';
   const titleKey = isQr ? 'kiosk_qr_payment_waiting' : method === 'applepay' ? 'kiosk_applepay_waiting' : 'kiosk_card_payment_waiting';
   return (
-    <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center px-[5%]">
+    <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center px-[5%] animate-[fadeIn_200ms_ease-out]">
       <div
-        className={`bg-white rounded-[28px] w-full px-[min(3.7vw,40px)] py-[min(6vw,64px)] flex flex-col ${admin ? 'max-w-[640px]' : 'max-w-[1080px]'}`}
+        className={`bg-white rounded-[28px] w-full px-[min(3.7vw,40px)] py-[min(6vw,64px)] flex flex-col animate-[scaleIn_200ms_ease-out] ${admin ? 'max-w-[640px]' : 'max-w-[1080px]'}`}
         style={admin ? { zoom: 0.8 } : undefined}
       >
         <p className="text-[#1E2124] font-bold leading-tight text-center" style={{ fontSize: 'min(4.4vw, 48px)' }}>
