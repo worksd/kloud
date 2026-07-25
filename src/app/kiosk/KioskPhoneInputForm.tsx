@@ -14,12 +14,13 @@ type KioskPhoneInputFormProps = {
   onNext: (phone: string, countryCode: string) => void;
   onSearchByEmail: (email: string) => void;
   onHome: () => void;
-  onChangeLocale: (locale: Locale) => void;
   loading?: boolean;
   errorMessage?: string | null;
   onDismissError?: () => void;
   /** 'admin'(상담실 태블릿)이면 좌우 2단 레이아웃으로 렌더. 기본 'kiosk'는 세로 전체화면 키패드. */
   variant?: 'kiosk' | 'admin';
+  /** 'lastFour'면 전체번호 대신 뒷번호 4자리만 입력(4칸 패드). 스튜디오 출석 체크용. */
+  mode?: 'phone' | 'lastFour';
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,11 +48,12 @@ const phonePlaceholder = (dial: string) => formatPhone(PLACEHOLDER_DIGITS[dial] 
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', '←'];
 
-export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, onChangeLocale, loading, errorMessage, onDismissError, variant = 'kiosk' }: KioskPhoneInputFormProps) => {
+export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, loading, errorMessage, onDismissError, variant = 'kiosk', mode = 'phone' }: KioskPhoneInputFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
-  // 기본 국가가 한국이라 진입 시 010을 미리 채워둠
-  const [digits, setDigits] = useState('010');
+  const lastFour = mode === 'lastFour';
+  // 전체 입력은 한국 기본이라 010 프리필, 뒷 4자리 모드는 빈 값에서 시작
+  const [digits, setDigits] = useState(() => (mode === 'lastFour' ? '' : '010'));
   const [countryKey, setCountryKey] = useState<string>('KR');
   const [countryOpen, setCountryOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -75,10 +77,11 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
     if (key === '←') {
       setDigits(prev => prev.slice(0, -1));
     } else if (key === '010') {
-      setDigits('010');
+      if (!lastFour) setDigits('010'); // 뒷 4자리 모드에선 무시
     } else {
-      // 외국 번호 대응 — E.164 최대 15자리까지 허용
-      setDigits(prev => (prev.length < 15 ? prev + key : prev));
+      // 뒷 4자리 모드는 4자리 상한, 그 외 외국 번호 대응 E.164 최대 15자리
+      const max = lastFour ? 4 : 15;
+      setDigits(prev => (prev.length < max ? prev + key : prev));
     }
   };
 
@@ -93,10 +96,15 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
     if (country.dial === '65') return digits.length === 8; // SG
     return digits.length >= 8;
   })();
-  const canSubmit = digits.length > 0 && !loading;
+  const canSubmit = (lastFour ? digits.length === 4 : digits.length > 0) && !loading;
 
   const handleNext = () => {
     if (loading) return;
+    if (lastFour) {
+      if (digits.length !== 4) { setValidationError(t('kiosk_last_four_error')); return; }
+      onNext(digits, '');
+      return;
+    }
     if (!isPhoneValid) {
       setValidationError(t('kiosk_phone_error'));
       return;
@@ -104,10 +112,27 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
     onNext(digits, country.dial);
   };
 
+  // 뒷 4자리 모드는 '010' 빠른입력 키를 빈 칸으로 대체
+  const numpadKeys = lastFour ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '←'] : NUMPAD_KEYS;
+
+  // 뒷 4자리 모드 — 4칸 패드(입력창 대신). 두 레이아웃 공통.
+  const fourDigitPad = (
+    <div className="flex shrink-0" style={{ gap: 'min(1.4vw, 14px)', height: 'min(8.5vw, 92px)' }}>
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className={`flex-1 rounded-[16px] flex items-center justify-center ${digits[i] ? 'bg-[#EAF7F4] border-2 border-[#3CC0AF]' : 'bg-[#F4F6F8] border border-[#EEF0F2]'}`}
+        >
+          <span className="text-black font-bold" style={{ fontSize: 'min(4vw, 42px)' }}>{digits[i] ?? ''}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} hideLocale={admin} />
+      <KioskTopBar onBack={onBack} onHome={onHome} />
 
       {/* ── 무인 키오스크 레이아웃 (세로 전체화면 키패드) ── */}
       {!admin && (
@@ -115,18 +140,27 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
       {/* 큰 안내 문구 — 가운데 정렬 */}
       <div className="shrink-0 flex flex-col items-center justify-center px-[5.6%]" style={{ paddingTop: 'min(4vw, 44px)', paddingBottom: 'min(1.6vw, 18px)' }}>
         <p className="text-black font-bold text-center leading-tight" style={{ fontSize: 'min(3.7vw, 40px)' }}>
-          {t('kiosk_phone_desc')}
+          {lastFour ? t('kiosk_last_four_desc') : t('kiosk_phone_desc')}
         </p>
-        {/* 이메일로 검색 — 휴대폰 번호 대신 이메일로 회원 검색하는 보조 진입점 */}
-        <button
-          type="button"
-          onClick={() => { setEmailValue(''); setEmailModalOpen(true); }}
-          className="mt-[min(1.2vw,14px)] text-[#6D7882] font-medium underline underline-offset-[6px] active:opacity-60 transition-opacity"
-          style={{ fontSize: 'min(1.6vw, 18px)' }}
-        >
-          {t('kiosk_search_by_email')}
-        </button>
+        {/* 이메일로 검색 — 뒷 4자리 모드에선 미노출 */}
+        {!lastFour && (
+          <button
+            type="button"
+            onClick={() => { setEmailValue(''); setEmailModalOpen(true); }}
+            className="mt-[min(1.2vw,14px)] text-[#6D7882] font-medium underline underline-offset-[6px] active:opacity-60 transition-opacity"
+            style={{ fontSize: 'min(1.6vw, 18px)' }}
+          >
+            {t('kiosk_search_by_email')}
+          </button>
+        )}
       </div>
+
+      {/* 뒷 4자리 패드 — 키패드 카드와 분리된 별도 섹션 */}
+      {lastFour && (
+        <div className="shrink-0 flex justify-center px-[5.6%] pt-[min(1vw,12px)]">
+          <div className="w-full" style={{ maxWidth: 'min(58vw, 600px)' }}>{fourDigitPad}</div>
+        </div>
+      )}
 
       {/* 입력 + 키패드 — 통합 라운드 카드 (키오스크 키패드 위젯 느낌) */}
       <div className="flex-1 flex items-center justify-center px-[5.6%] py-[min(0.8vw,10px)]">
@@ -140,7 +174,8 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
             border: '1px solid #EEF0F2',
           }}
         >
-          {/* 전화번호 입력 */}
+          {/* 전화번호 입력 (뒷 4자리 모드는 위 별도 섹션의 4칸 패드 사용) */}
+          {!lastFour && (
           <div className="flex items-center shrink-0 bg-[#F4F6F8] rounded-[16px] px-[min(2vw,22px)]" style={{ height: 'min(8.5vw, 92px)' }}>
             {/* 국가코드 — 클릭 시 국가 선택 모달 */}
             <button
@@ -175,10 +210,13 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
               </button>
             )}
           </div>
+          )}
 
           {/* 숫자 키패드 */}
           <div className="grid grid-cols-3 gap-[min(1vw,12px)]">
-            {NUMPAD_KEYS.map((key) => (
+            {numpadKeys.map((key, i) => key === '' ? (
+              <div key={`e${i}`} className="aspect-[5/3]" />
+            ) : (
               <button
                 key={key}
                 onClick={() => handleKey(key)}
@@ -191,32 +229,22 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
         </div>
       </div>
 
-      {/* 하단 버튼 — 카드 폭과 동일하게 가운데 정렬 */}
+      {/* 하단 다음 버튼 — 카드 폭과 동일(전체폭). 이전은 상단바 뒤로가기로 대체. */}
       <div className="shrink-0 flex justify-center px-[5.6%] pt-[min(1.4vw,16px)] pb-[min(1.8vw,20px)]">
-        <div
-          className="w-full flex gap-[min(1.4vw,16px)]"
+        <button
+          onClick={handleNext}
+          disabled={!canSubmit}
+          className={`w-full h-[min(7vw,76px)] rounded-[16px] flex items-center justify-center active:scale-[0.97] transition-all ${
+            canSubmit ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'
+          }`}
           style={{ maxWidth: 'min(58vw, 600px)' }}
         >
-          <button
-            onClick={onBack}
-            className="flex-[280] h-[min(7vw,76px)] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-          >
-            <span className="text-[#1E2124] text-[min(2.4vw,26px)] font-bold">{t('kiosk_back')}</span>
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={!canSubmit}
-            className={`flex-[684] h-[min(7vw,76px)] rounded-[16px] flex items-center justify-center active:scale-[0.97] transition-all ${
-              canSubmit ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'
-            }`}
-          >
-            {loading ? (
-              <div className="w-7 h-7 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <span className="text-white text-[min(2.4vw,26px)] font-bold">{t('kiosk_next')}</span>
-            )}
-          </button>
-        </div>
+          {loading ? (
+            <div className="w-7 h-7 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <span className="text-white text-[min(2.4vw,26px)] font-bold">{t('kiosk_next')}</span>
+          )}
+        </button>
       </div>
       </>
       )}
@@ -226,17 +254,21 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
         <div className="flex-1 min-h-0 flex items-stretch gap-[48px] px-[56px] pt-[16px] pb-[40px]">
           {/* 좌측 */}
           <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ maxWidth: 560 }}>
-            <p className="text-black font-bold leading-tight text-[34px]">{t('kiosk_phone_desc')}</p>
-            <button
-              type="button"
-              onClick={() => { setEmailValue(''); setEmailModalOpen(true); }}
-              className="mt-[12px] self-start text-[#6D7882] font-medium underline underline-offset-[6px] text-[17px] active:opacity-60 transition-opacity"
-            >
-              {t('kiosk_search_by_email')}
-            </button>
+            <p className="text-black font-bold leading-tight text-[34px]">{lastFour ? t('kiosk_last_four_desc') : t('kiosk_phone_desc')}</p>
+            {!lastFour && (
+              <button
+                type="button"
+                onClick={() => { setEmailValue(''); setEmailModalOpen(true); }}
+                className="mt-[12px] self-start text-[#6D7882] font-medium underline underline-offset-[6px] text-[17px] active:opacity-60 transition-opacity"
+              >
+                {t('kiosk_search_by_email')}
+              </button>
+            )}
 
-            {/* 전화번호 입력 */}
-            <div className="mt-[28px] flex items-center bg-[#F4F6F8] rounded-[18px] px-[20px]" style={{ height: 84 }}>
+            {/* 전화번호 입력 (뒷 4자리 모드는 4칸 패드) */}
+            <div className="mt-[28px]">
+            {lastFour ? fourDigitPad : (
+            <div className="flex items-center bg-[#F4F6F8] rounded-[18px] px-[20px]" style={{ height: 84 }}>
               <button
                 type="button"
                 onClick={() => setCountryOpen(true)}
@@ -267,35 +299,30 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
                 </button>
               )}
             </div>
-
-            {/* 버튼 */}
-            <div className="mt-[28px] flex gap-[14px]">
-              <button
-                onClick={onBack}
-                className="flex-[280] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-                style={{ height: 72 }}
-              >
-                <span className="text-[#1E2124] text-[22px] font-bold">{t('kiosk_back')}</span>
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={!canSubmit}
-                className={`flex-[684] rounded-[16px] flex items-center justify-center active:scale-[0.97] transition-all ${canSubmit ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'}`}
-                style={{ height: 72 }}
-              >
-                {loading ? (
-                  <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <span className="text-white text-[22px] font-bold">{t('kiosk_next')}</span>
-                )}
-              </button>
+            )}
             </div>
+
+            {/* 다음 — 번호 입력 바로 아래(전체폭). 이전 버튼은 상단바 뒤로가기로 대체. */}
+            <button
+              onClick={handleNext}
+              disabled={!canSubmit}
+              className={`mt-[28px] w-full rounded-[16px] flex items-center justify-center active:scale-[0.97] transition-all ${canSubmit ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'}`}
+              style={{ height: 72 }}
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span className="text-white text-[22px] font-bold">{t('kiosk_next')}</span>
+              )}
+            </button>
           </div>
 
           {/* 우측 — 숫자 키패드 */}
           <div className="flex-1 min-w-0 flex items-center justify-center">
             <div className="w-full grid grid-cols-3 gap-[14px]" style={{ maxWidth: 520 }}>
-              {NUMPAD_KEYS.map((key) => (
+              {numpadKeys.map((key, i) => key === '' ? (
+                <div key={`e${i}`} className="aspect-[5/3]" />
+              ) : (
                 <button
                   key={key}
                   onClick={() => handleKey(key)}
