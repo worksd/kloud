@@ -79,7 +79,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
     }
     setKiosks(kiosksRes.kiosks);
     if (kiosksRes.kiosks.length === 0) {
-      setErrorMessage('연결된 키오스크가 없습니다. 백오피스에서 키오스크를 등록해주세요.');
+      setErrorMessage('연결된 키오스크가 없습니다. 파트너스에서 키오스크를 등록해주세요.');
       setStage('error');
       return;
     }
@@ -217,6 +217,8 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
       kioskPassword={selected?.password}
       canCheckIn={selected?.canCheckIn ?? false}
       canPurchase={selected?.canPurchase ?? false}
+      canBookRoom={selected?.canBookRoom ?? false}
+      canLessonAttendance={selected?.canLessonAttendance ?? false}
       passPlans={[]}
     />
   );

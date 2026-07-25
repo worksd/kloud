@@ -92,6 +92,8 @@ export type KioskFormProps = {
   kioskPassword?: string;
   canCheckIn: boolean;
   canPurchase: boolean;
+  canBookRoom?: boolean;
+  canLessonAttendance?: boolean;
   passPlans: GetPassPlanResponse[];
   /** 'admin'이면 홈을 태블릿 상담실 UI(AdminKioskHomeForm)로 교체. 결제/출첵 등 하위 플로우는 공유. 기본 'kiosk'. */
   variant?: 'kiosk' | 'admin';
@@ -112,6 +114,8 @@ export const KioskForm = ({
   kioskPassword,
   canCheckIn,
   canPurchase,
+  canBookRoom = false,
+  canLessonAttendance = false,
   passPlans,
   variant = 'kiosk',
 }: KioskFormProps) => {
@@ -1030,20 +1034,30 @@ export const KioskForm = ({
   }, [autoUsePassPlanId, currentScreen, paymentInfo, selectedLesson, selectedUser, kioskId, isPaying, paymentResult, applyReceiptFields]);
 
 
+  // 화면 전환 fade — 하위 화면끼리 폼 인스턴스를 공유(재fetch 방지)하는 묶음은 한 그룹으로 취급해
+  // 그룹이 바뀔 때만 루트를 remount(key)해서 fade-in. 그룹 내 이동(리스트↔상세 등)은 유지.
+  const screenGroup =
+    currentScreen === 'lesson-list' || currentScreen === 'lesson-detail' ? 'lessons'
+      : currentScreen === 'phone' || currentScreen === 'searching' || currentScreen === 'member-confirm' ? 'member'
+        : currentScreen === 'payment-method' || currentScreen === 'pass-select' ? 'payment'
+          : currentScreen;
+
   return (
-    <div className="w-full h-screen overflow-hidden">
+    <div key={screenGroup} className="w-full h-screen overflow-hidden animate-[fadeIn_260ms_ease-out]">
       {currentScreen === 'home' && (
         variant === 'admin' ? (
           <AdminKioskHomeForm
             studioName={studioName}
-            kioskName={kioskName}
+            studioImageUrl={studioProfileImageUrl}
             locale={locale}
             canCheckIn={canCheckIn}
             canPurchase={canPurchase}
+            canBookRoom={canBookRoom}
+            canLessonAttendance={canLessonAttendance}
             onSelectPayment={() => setCurrentScreen('lesson-list')}
             onSelectVisit={() => setCurrentScreen('attendance')}
+            onSelectBookRoom={() => { setSelectedLesson(null); setSelectedPassPlan(null); setRoomBooking(null); setCurrentScreen('room-reservation'); }}
             onSelectLessonAttendance={() => setCurrentScreen('lesson-attendance')}
-            onChangeLocale={setLocale}
             onAdminMode={() => setAdminOpen(true)}
           />
         ) : (
@@ -1069,6 +1083,7 @@ export const KioskForm = ({
           locale={locale}
           onBack={goHome}
           onChangeLocale={setLocale}
+          hideLocale={variant === 'admin'}
           onConfirm={(booking) => {
             setRoomBooking(booking);
             setSelectedLesson(null);
@@ -1145,6 +1160,8 @@ export const KioskForm = ({
           locale={locale}
           loading={isPaying}
           onBack={() => setCurrentScreen('member-confirm')}
+          onChangeLocale={setLocale}
+          onHome={goHome}
           onPay={(amount, method) => { if (method === 'card') handleAdminCardPayment(amount); else handleAdminOnsitePayment(amount); }}
         />
       )}
@@ -1182,6 +1199,7 @@ export const KioskForm = ({
           lessonSubtitle={paymentItem.subtitle}
           lessonThumbnailUrl={paymentItem.thumbnailUrl}
           price={paymentItem.price}
+          hideLocale={variant === 'admin'}
           user={{
             name: selectedUser.name,
             nickName: selectedUser.nickName,
@@ -1533,10 +1551,11 @@ export const KioskForm = ({
 
       {currentScreen === 'attendance' && (
         <KioskAttendanceForm
-          studioName={studioName}
           onBack={goHome}
+          onHome={goHome}
           onComplete={goHome}
           locale={locale}
+          onChangeLocale={setLocale}
           variant={variant}
         />
       )}
@@ -1545,6 +1564,7 @@ export const KioskForm = ({
         <KioskLessonAttendanceForm
           studioId={studioId}
           onBack={goHome}
+          onHome={goHome}
           locale={locale}
           onChangeLocale={setLocale}
           variant={variant}

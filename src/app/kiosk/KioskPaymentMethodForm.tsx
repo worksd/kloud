@@ -3,7 +3,7 @@
 import React from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { KioskTopBar } from "@/app/kiosk/KioskLessonListForm";
+import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { DiscountResponse } from "@/app/endpoint/payment.endpoint";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
@@ -37,6 +37,7 @@ type KioskPaymentMethodFormProps = {
   cardEnabled?: boolean;
   cashEnabled?: boolean;
   passEnabled?: boolean;
+  hideLocale?: boolean;
 };
 
 export const KioskPaymentMethodForm = ({
@@ -62,6 +63,7 @@ export const KioskPaymentMethodForm = ({
   cardEnabled = true,
   cashEnabled = true,
   passEnabled = true,
+  hideLocale = false,
 }: KioskPaymentMethodFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
@@ -82,7 +84,7 @@ export const KioskPaymentMethodForm = ({
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} />
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} hideLocale={hideLocale} />
 
       {/* 큰 안내 문구 */}
       <div className="shrink-0 flex items-center justify-center px-[5.6%]" style={{ paddingTop: 'min(4vw, 44px)', paddingBottom: 'min(2.4vw, 26px)' }}>

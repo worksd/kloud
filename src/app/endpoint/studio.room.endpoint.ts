@@ -146,6 +146,8 @@ export type RoomSlotSummaryResponse = {
   id: number;              // 연습실(홀) ID
   name: string;            // 연습실(홀) 이름
   availableHours: number[]; // 예약 가능한 정시 hour 목록. 예: [10,11,12]. 없으면 []
+  minBookingHour?: number | null; // 최소 예약 시간(시간). null=제한없음
+  maxBookingHour?: number | null; // 최대 예약 시간(시간). null=제한없음
 }
 
 export type RoomSlotsSummaryResponse = {

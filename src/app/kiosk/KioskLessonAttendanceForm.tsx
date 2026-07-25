@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
-import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
 import {getKioskTicketByTokenAction, markKioskTicketUsedAction} from '@/app/kiosk/kiosk.actions';
@@ -16,10 +15,12 @@ import {TicketResponse} from '@/app/endpoint/ticket.endpoint';
 import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
 import QRScanner from '@/app/components/QRScanner';
+import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
 
 type KioskLessonAttendanceFormProps = {
   studioId: number;
   onBack: () => void;
+  onHome: () => void;
   locale: Locale;
   onChangeLocale: (locale: Locale) => void;
   variant?: 'kiosk' | 'admin';
@@ -116,7 +117,7 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 //  - QR 모드: 네이티브 HID 스캐너(startQrScan) → onQrScanResult → willUseTicketId/token 파싱 → 티켓 조회
 //  - 수동 모드: 수업 선택 → 전화/이메일 입력 → 해당 레슨 티켓에서 유저 매칭
 //  두 경로 모두 확인 화면(이 수업 맞나요?) 후 toUsed로 출석 처리.
-export const KioskLessonAttendanceForm = ({studioId, onBack, locale, onChangeLocale, variant = 'kiosk'}: KioskLessonAttendanceFormProps) => {
+export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, onChangeLocale, variant = 'kiosk'}: KioskLessonAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
 
@@ -371,20 +372,14 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, locale, onChangeLoc
 
   return (
     <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-      {/* 헤더 */}
-      <div className="h-[70px] px-[32px] flex items-center shrink-0 relative">
-        {status !== 'submitting' && (
-          <button
-            onClick={handleHeaderBack}
-            className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10"
-          >
-            <BackArrowIcon className="w-6 h-6"/>
-          </button>
-        )}
-        <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">
-          {t('kiosk_lesson_attendance_title')}
-        </p>
-      </div>
+      <KioskTopBar
+        title={t('kiosk_lesson_attendance_title')}
+        locale={locale}
+        onChangeLocale={onChangeLocale}
+        onBack={status !== 'submitting' ? handleHeaderBack : undefined}
+        onHome={onHome}
+        hideLocale={admin}
+      />
 
       {/* 수동 모드 - 수업 선택: 좌 캘린더 / 우 선택 날짜의 수업 */}
       {status === 'manual-lesson' ? (

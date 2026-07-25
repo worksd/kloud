@@ -301,6 +301,10 @@ export type KioskResponse = {
   imageUrl: string | null;
   canCheckIn: boolean;
   canPurchase: boolean;
+  /** 연습실 예약 카드 노출 여부. */
+  canBookRoom?: boolean;
+  /** 수업 출석 체크 카드 노출 여부. */
+  canLessonAttendance?: boolean;
   /** 키오스크별 관리자 모드 진입 비밀번호 (BE 설정값). 미설정이면 관리자 모드 진입 불가. */
   password?: string;
   createdAt: string;

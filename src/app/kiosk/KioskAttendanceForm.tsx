@@ -1,7 +1,8 @@
 'use client';
 
 import React, {useState, useEffect, useCallback} from 'react';
-import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
+import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
+import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
 import {
   searchUserAction,
   createStudioAttendanceAction
@@ -15,53 +16,22 @@ import {kioskImageSrc} from "@/app/kiosk/kiosk.image";
 
 type Step = 'select-status' | 'phone' | 'select' | 'confirm' | 'loading' | 'complete';
 
-const COUNTRY_CODES = [
-  {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
-  {code: '1', label: '🇺🇸 +1', placeholder: '000-000-0000'},
-  {code: '81', label: '🇯🇵 +81', placeholder: '090-0000-0000'},
-  {code: '86', label: '🇨🇳 +86', placeholder: '000-0000-0000'},
-  {code: '44', label: '🇬🇧 +44', placeholder: '0000-000-0000'},
-];
-
-const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
-
-const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
-    <div className="grid grid-cols-3 gap-[8px] w-full max-w-[400px]">
-      {KEYPAD_KEYS.map((key, i) => (
-          <button
-              key={i}
-              onPointerDown={() => onPress(key)}
-              className="h-[64px] rounded-[12px] bg-gray-100 text-[24px] font-medium text-black flex items-center justify-center active:bg-gray-200 transition-colors select-none"
-          >
-            {key === 'delete' ? (
-                <svg width="44" height="28" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 3H20a1 1 0 011 1v16a1 1 0 01-1 1H9l-7-9 7-9z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M16 9l-4 6M12 9l4 6" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-            ) : key}
-          </button>
-      ))}
-    </div>
-);
-
 type KioskAttendanceFormProps = {
-  studioName: string;
   onBack: () => void;
+  onHome: () => void;
   onComplete: () => void;
   locale: Locale;
+  onChangeLocale: (locale: Locale) => void;
   /** 'admin'(상담실)이면 자동 홈복귀/완료 카운트다운 미표시·미동작 */
   variant?: 'kiosk' | 'admin';
 };
 
-export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, variant = 'kiosk'}: KioskAttendanceFormProps) => {
+export const KioskAttendanceForm = ({onBack, onHome, onComplete, locale, onChangeLocale, variant = 'kiosk'}: KioskAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
 
   const [step, setStep] = useState<Step>('select-status');
   const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus | null>(null);
-  const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('82');
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userNickName, setUserNickName] = useState<string | null>(null);
@@ -118,19 +88,6 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
     return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7, 11)}`;
   };
 
-  const handleKeyPress = (key: string) => {
-    setError(null);
-    if (key === 'delete') {
-      setPhone((prev) => prev.slice(0, -1));
-    } else {
-      setPhone((prev) => {
-        const next = prev + key;
-        if (next.length > 11) return prev;
-        return next;
-      });
-    }
-  };
-
   const statusLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in') : t('kiosk_check_out');
   const statusDoLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_do') : t('kiosk_check_out_do');
   const statusCompleteLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_complete') : t('kiosk_check_out_complete');
@@ -162,15 +119,11 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
     setStep('confirm');
   };
 
-  const handleSearch = async () => {
-    if (phone.length < 10) {
-      setError(t('kiosk_phone_error'));
-      return;
-    }
+  const searchUser = async (value: string) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await searchUserAction(phone);
+      const result = await searchUserAction(value);
       if (isGuinnessErrorCase(result)) {
         setError(t('kiosk_not_registered'));
       } else if (result.users.length === 0) {
@@ -190,12 +143,10 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
 
   const handleBackStep = () => {
     if (step === 'phone') {
-      setPhone('');
       setError(null);
       setStep('select-status');
     } else if (step === 'select') {
       setSearchResults([]);
-      setPhone('');
       setError(null);
       setStep('phone');
     } else if (step === 'confirm') {
@@ -250,64 +201,6 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
             </>
         );
 
-      case 'phone':
-        return (
-            <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[400px] text-center">
-                {t('kiosk_phone_title')}
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[400px] text-center">
-                {t('kiosk_phone_desc')}
-              </p>
-
-              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
-                <button
-                    onClick={() => setShowCountryPicker((v) => !v)}
-                    className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[4px] text-[20px] font-medium text-black"
-                >
-                  {COUNTRY_CODES.find((c) => c.code === countryCode)?.label ?? `+${countryCode}`}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                {showCountryPicker && (
-                    <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[12px] shadow-lg z-10 overflow-hidden">
-                      {COUNTRY_CODES.map((c) => (
-                          <button
-                              key={c.code}
-                              onClick={() => {
-                                setCountryCode(c.code);
-                                setShowCountryPicker(false);
-                              }}
-                              className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left hover:bg-gray-50 active:bg-gray-100 ${c.code === countryCode ? 'font-bold bg-gray-50' : ''}`}
-                          >
-                            {c.label}
-                          </button>
-                      ))}
-                    </div>
-                )}
-              </div>
-
-              <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
-                <p className="text-[32px] font-medium tracking-[2px] text-black">
-                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">{COUNTRY_CODES.find(c => c.code === countryCode)?.placeholder ?? '010-0000-0000'}</span>}
-                </p>
-              </div>
-
-              {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
-
-              <Keypad onPress={handleKeyPress}/>
-
-              <button
-                  onClick={handleSearch}
-                  disabled={loading || phone.length < 10}
-                  className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
-              >
-                {loading ? t('kiosk_checking') : t('kiosk_confirm')}
-              </button>
-            </>
-        );
-
       case 'select':
         return (
             <>
@@ -345,7 +238,6 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
               <button
                   onClick={() => {
                     setSearchResults([]);
-                    setPhone('');
                     setError(null);
                     setStep('phone');
                   }}
@@ -424,7 +316,6 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
                       setUserEmail(null);
                       setUserPhone(null);
                       setUserProfileImageUrl(null);
-                      setPhone('');
                       setError(null);
                       setStep('phone');
                     }}
@@ -478,24 +369,34 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale, var
     }
   };
 
+  // 전화/이메일 입력은 결제·수업출석과 동일한 KioskPhoneInputForm 재사용 (전체화면)
+  if (step === 'phone') {
+    return (
+      <KioskPhoneInputForm
+        locale={locale}
+        variant={variant}
+        onBack={() => { setError(null); setStep('select-status'); }}
+        onHome={onHome}
+        onChangeLocale={onChangeLocale}
+        onNext={(value) => searchUser(value)}
+        onSearchByEmail={(value) => searchUser(value)}
+        loading={loading}
+        errorMessage={error}
+        onDismissError={() => setError(null)}
+      />
+    );
+  }
+
   return (
       <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
-          {step !== 'complete' && step !== 'loading' ? (
-              <button onClick={handleBackStep}
-                      className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10">
-                <BackArrowIcon className="w-6 h-6"/>
-              </button>
-          ) : (
-              <div className="w-[40px]"/>
-          )}
-          <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">{t('kiosk_attendance')}</p>
-          <div className="ml-auto z-10">
-            <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
-              {studioName}
-            </p>
-          </div>
-        </div>
+        <KioskTopBar
+          title={t('kiosk_attendance')}
+          locale={locale}
+          onChangeLocale={onChangeLocale}
+          onBack={(step !== 'complete' && step !== 'loading') ? handleBackStep : undefined}
+          onHome={onHome}
+          hideLocale={admin}
+        />
 
         <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
           {renderContent()}

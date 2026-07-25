@@ -1,10 +1,10 @@
 'use client';
 
 import React, {useState} from 'react';
-import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
 import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
+import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
 
 type AdminKioskPaymentItem = {
   title: string;
@@ -18,6 +18,8 @@ type AdminKioskPaymentFormProps = {
   locale: Locale;
   loading?: boolean;
   onBack: () => void;
+  onChangeLocale: (locale: Locale) => void;
+  onHome: () => void;
   onPay: (amount: number, method: 'card' | 'onsite') => void;
 };
 
@@ -25,7 +27,7 @@ const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '�
 
 // admin(상담실) 결제 폼 — 고른 상품 정보를 보여주고, 금액을 직원이 편집한 뒤
 // '결제하기'로 requestKisPayment(단말 매입)를 호출한다.
-export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onPay}: AdminKioskPaymentFormProps) => {
+export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onChangeLocale, onHome, onPay}: AdminKioskPaymentFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
 
   // 금액은 숫자 문자열(원 단위)로 관리 — 상품가로 초기화, 직원이 키패드로 수정
@@ -51,18 +53,7 @@ export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onPay}: Ad
 
   return (
     <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-      {/* 헤더 */}
-      <div className="h-[70px] px-[32px] flex items-center shrink-0 relative">
-        <button
-          onClick={onBack}
-          className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10"
-        >
-          <BackArrowIcon className="w-6 h-6"/>
-        </button>
-        <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">
-          {t('kiosk_admin_payment_title')}
-        </p>
-      </div>
+      <KioskTopBar title={t('kiosk_admin_payment_title')} locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} hideLocale />
 
       <div className="flex-1 min-h-0 flex items-stretch gap-[48px] px-[56px] pt-[8px] pb-[40px]">
         {/* 좌측 — 상품 정보 + 금액 + 결제 버튼 */}

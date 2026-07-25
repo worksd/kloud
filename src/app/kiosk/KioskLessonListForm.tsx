@@ -10,6 +10,7 @@ import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { getBundlesAction } from "@/app/kiosk/get.bundles.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
+import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 import { formatLessonStart, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
@@ -147,13 +148,14 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 — 백 + 언어/홈 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} />
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} hideLocale={admin} />
 
-      {/* 날짜 선택 — 오늘부터 7일치 범위에서 화살표로 하루씩 이동 */}
+      {/* 상단 안내 — 탭별 제목. 수업 탭은 그 아래 날짜 선택(오늘부터 7일)도 노출. */}
       {(() => {
         const currentIdx = dateOptions.findIndex((d) => formatApiDate(d) === formatApiDate(selectedDate));
         const canPrev = currentIdx > 0;
         const canNext = currentIdx >= 0 && currentIdx < dateOptions.length - 1;
+        const heading = tab === 'promotion' ? t('kiosk_select_promotion') : tab === 'pass-plans' ? t('kiosk_select_pass_plan') : t('kiosk_select_lesson');
         // 비활성 시엔 invisible로 숨겨서 레이아웃은 유지하되 시각적으로 안 보이게 (가운데 날짜 위치 흔들림 방지)
         const ArrowButton = ({ hidden, onClick, direction }: { hidden: boolean; onClick: () => void; direction: 'left' | 'right' }) => (
           <button
@@ -175,12 +177,17 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           </button>
         );
         return (
-          <div className="shrink-0 flex items-center justify-center" style={{ gap: 'min(2vw, 22px)', padding: 'min(1.2vw, 14px) 24px' }}>
-            <ArrowButton hidden={!canPrev} direction="left" onClick={() => setSelectedDate(dateOptions[currentIdx - 1])} />
-            <span className="text-black font-bold text-center" style={{ fontSize: 'min(2vh, 24px)', minWidth: 'min(18vh, 180px)' }}>
-              {formatPillLabel(selectedDate)}
-            </span>
-            <ArrowButton hidden={!canNext} direction="right" onClick={() => setSelectedDate(dateOptions[currentIdx + 1])} />
+          <div className="shrink-0 flex flex-col items-center" style={{ gap: 'min(1vw, 10px)', padding: 'min(1.4vw, 16px) 24px' }}>
+            <span className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vh, 28px)' }}>{heading}</span>
+            {tab === 'lessons' && (
+              <div className="flex items-center justify-center" style={{ gap: 'min(2vw, 22px)' }}>
+                <ArrowButton hidden={!canPrev} direction="left" onClick={() => setSelectedDate(dateOptions[currentIdx - 1])} />
+                <span className="text-[#4E5968] font-bold text-center" style={{ fontSize: 'min(1.8vh, 22px)', minWidth: 'min(18vh, 180px)' }}>
+                  {formatPillLabel(selectedDate)}
+                </span>
+                <ArrowButton hidden={!canNext} direction="right" onClick={() => setSelectedDate(dateOptions[currentIdx + 1])} />
+              </div>
+            )}
           </div>
         );
       })()}
@@ -409,74 +416,3 @@ const KioskSideTab = ({ label, active, onClick, iconSrc }: { label: string; acti
   </button>
 );
 
-/* ── 공통 상단 바 ── */
-const KIOSK_LOCALES: { code: Locale; flag: string; label: string }[] = [
-  { code: 'ko', flag: '🇰🇷', label: '한국어' },
-  { code: 'en', flag: '🇺🇸', label: 'English' },
-  { code: 'jp', flag: '🇯🇵', label: '日本語' },
-  { code: 'zh', flag: '🇨🇳', label: '中文' },
-];
-
-export const KioskTopBar = ({ locale, onChangeLocale, onBack, onHome }: {
-  locale: Locale;
-  onChangeLocale: (locale: Locale) => void;
-  onBack: () => void;
-  onHome: () => void;
-}) => {
-  const [showPicker, setShowPicker] = useState(false);
-  const current = KIOSK_LOCALES.find(l => l.code === locale) ?? KIOSK_LOCALES[0];
-
-  return (
-    <div className="shrink-0 flex items-center justify-between pr-[5.6%] h-[min(7vh,72px)]">
-      {/* 백 버튼 — 너무 좌측 끝에 붙으면 답답해 보여서 약간 좌측 마진 */}
-      <button
-        onClick={onBack}
-        className="ml-[min(1.6vw,18px)] w-[min(5.6vh,64px)] h-[min(5.6vh,64px)] flex items-center justify-center active:scale-[0.97] transition-transform"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/ic_back_arrow.svg" alt="" className="w-[min(4.4vh,48px)] h-[min(4.4vh,48px)]" />
-      </button>
-
-      <div className="flex items-center gap-[min(1.5vw,16px)]">
-        {/* 언어 선택 */}
-        <div className="relative">
-          <button
-            onClick={() => setShowPicker(v => !v)}
-            className="h-[min(4vh,44px)] px-[1.8vw] rounded-[12px] bg-white border border-[#E6E8EA] flex items-center gap-[0.7vw] shadow-sm active:scale-[0.97] transition-transform"
-          >
-            <span className="text-[min(2vh,22px)]">{current.flag}</span>
-            <span className="text-[min(1.6vh,18px)] font-medium text-[#1E2124]">{current.label}</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="w-[min(1.8vh,20px)] h-[min(1.8vh,20px)]">
-              <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          {showPicker && (
-            <div className="absolute top-full mt-2 right-0 bg-white border border-[#E6E8EA] rounded-[16px] shadow-lg z-30 overflow-hidden min-w-[180px]">
-              {KIOSK_LOCALES.map(l => (
-                <button
-                  key={l.code}
-                  onClick={() => { onChangeLocale(l.code); setShowPicker(false); }}
-                  className={`w-full px-4 py-3 flex items-center gap-3 text-left active:bg-gray-100 ${l.code === locale ? 'bg-gray-50 font-bold' : ''}`}
-                >
-                  <span className="text-[24px]">{l.flag}</span>
-                  <span className="text-[16px] text-[#1E2124]">{l.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 홈 버튼 */}
-        <button
-          onClick={onHome}
-          className="w-[min(4vh,44px)] h-[min(4vh,44px)] flex items-center justify-center active:scale-[0.97] transition-transform"
-        >
-          <svg viewBox="0 0 44 46" fill="none" className="w-[min(2.4vh,26px)] h-[min(2.4vh,26px)]">
-            <path d="M6 20L22 6L38 20V40C38 41.1 37.1 42 36 42H8C6.9 42 6 41.1 6 40V20Z" stroke="#B1B8BE" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M16 42V24H28V42" stroke="#B1B8BE" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-  );
-};

@@ -3,9 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { KioskTopBar } from "@/app/kiosk/KioskLessonListForm";
-import { getKioskStudioRoomsAction, getKioskRoomsAvailabilityAction } from "@/app/kiosk/kiosk.room.actions";
-import { RoomAvailabilityRowResponse, RoomScheduleResponse } from "@/app/endpoint/studio.room.endpoint";
+import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
+import { getKioskRoomSlotsAction } from "@/app/kiosk/kiosk.room.actions";
+import { RoomAvailabilityRowResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 
 // 키오스크 대관 예약 결과 — KioskForm이 이 값으로 결제(카드/현금/패스) 호출. 기존 계약 유지.
 export type KioskRoomBooking = {
@@ -64,54 +64,57 @@ export const KioskRoomReservationForm = ({
   onBack,
   onConfirm,
   onChangeLocale,
+  hideLocale = false,
 }: {
   studioId: number;
   locale: Locale;
   onBack: () => void;
   onConfirm: (booking: KioskRoomBooking) => void;
   onChangeLocale: (locale: Locale) => void;
+  hideLocale?: boolean;
 }) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   const today = useRef(new Date()).current;
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const [roomIds, setRoomIds] = useState<string>('');
   const [rows, setRows] = useState<RoomAvailabilityRowResponse[]>([]);
-  // 홀별 가격 원본 — slot.price가 null일 때 이걸로 계산 (LIST 응답의 schedules)
-  const [schedulesByRoom, setSchedulesByRoom] = useState<Record<number, RoomScheduleResponse[]>>({});
-  // 홀별 최대 예약 시간(분, 60/120/180…). 설정 시 그만큼만 연속 선택 허용
-  const [maxDurByRoom, setMaxDurByRoom] = useState<Record<number, number>>({});
+  // 홀별 최대/최소 예약 시간(시간). roomSlots 응답의 max/minBookingHour. 미설정=제한없음.
+  const [maxHourByRoom, setMaxHourByRoom] = useState<Record<number, number>>({});
+  const [minHourByRoom, setMinHourByRoom] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   // 선택 구간 — 한 홀 안에서만 연속. start/end = 시(0~23) inclusive.
   const [sel, setSel] = useState<{ roomId: number; start: number; end: number } | null>(null);
 
-  // 1) 홀 목록 → id + schedules(가격 원본) 확보
+  // 그 날짜의 방별 예약 가능 시각 (GET /studios/:id/roomSlots) — 이름·availableHours·min/maxBookingHour까지 여기서 다 옴.
+  // availableHours(예약 가능 정시)를 기존 그리드가 쓰는 row(slots) 형태로 매핑. 상태는 available/closed만
+  // (예약됨/정원소진 시각은 availableHours에서 이미 제외됨). 가격은 응답에 없어 결제 시 서버가 계산.
   useEffect(() => {
-    getKioskStudioRoomsAction({ studioId })
-      .then((res) => {
-        if (res && 'studioRooms' in res) {
-          setRoomIds(res.studioRooms.map((r) => r.id).join(','));
-          const map: Record<number, RoomScheduleResponse[]> = {};
-          const maxMap: Record<number, number> = {};
-          res.studioRooms.forEach((r) => {
-            if (r.schedules) map[r.id] = r.schedules;
-            if (r.maxBookingDuration) maxMap[r.id] = r.maxBookingDuration;
-          });
-          setSchedulesByRoom(map);
-          setMaxDurByRoom(maxMap);
-        }
-      });
-  }, [studioId]);
-
-  // 2) 그 날짜의 전체 홀 슬롯 (다중 조회)
-  useEffect(() => {
-    if (!roomIds) { setLoading(false); return; }
     setLoading(true);
     setSel(null);
-    getKioskRoomsAvailabilityAction({ studioRoomIds: roomIds, date: toDateStr(selectedDate) })
-      .then((res) => { if (res && 'rooms' in res) setRows(res.rooms); })
+    getKioskRoomSlotsAction({ studioId, date: toDateStr(selectedDate) })
+      .then((res) => {
+        if (!res || typeof res !== 'object' || !('rooms' in res)) { setRows([]); setMaxHourByRoom({}); setMinHourByRoom({}); return; }
+        const maxMap: Record<number, number> = {};
+        const minMap: Record<number, number> = {};
+        const mapped: RoomAvailabilityRowResponse[] = res.rooms.map((r) => {
+          const hourSet = new Set(r.availableHours ?? []);
+          if (r.maxBookingHour != null) maxMap[r.id] = r.maxBookingHour;
+          if (r.minBookingHour != null) minMap[r.id] = r.minBookingHour;
+          const slots: TimeSlotResponse[] = HOURS.map((h) => ({
+            time: `${pad(h)}:00`,
+            status: hourSet.has(h) ? 'available' : 'closed',
+            currentCount: 0,
+            maxCount: 1,
+            price: null,
+          }));
+          return { studioRoomId: r.id, name: r.name, slots };
+        });
+        setRows(mapped);
+        setMaxHourByRoom(maxMap);
+        setMinHourByRoom(minMap);
+      })
       .finally(() => setLoading(false));
-  }, [roomIds, selectedDate]);
+  }, [studioId, selectedDate]);
 
   const dateStrip = Array.from({ length: 14 }, (_, i) => {
     const d = new Date(today);
@@ -133,16 +136,8 @@ export const KioskRoomReservationForm = ({
   const hourSlot = (row: RoomAvailabilityRowResponse, h: number) =>
     (row.slots ?? []).find((s) => s.time === `${pad(h)}:00`);
 
-  // 슬롯 가격: slot.price가 있으면 그대로, 없으면(null) schedules에서 요일·시각으로 계산
-  const dow = selectedDate.getDay(); // 0=일 ~ 6=토
-  const scheduledPrice = (schedules: RoomScheduleResponse[] | undefined, time: string): number | null => {
-    const m = schedules?.find((s) => s.dayType === 'Weekly' && s.day === dow && s.startTime === time && s.status === 'Active');
-    return m?.price ?? null;
-  };
-  const slotPrice = (row: RoomAvailabilityRowResponse, h: number): number | null => {
-    const s = hourSlot(row, h);
-    return s?.price ?? scheduledPrice(row.schedules ?? schedulesByRoom[row.studioRoomId], `${pad(h)}:00`);
-  };
+  // 슬롯 가격 — roomSlots 응답엔 가격이 없어 항상 null(최종금액은 결제 시 서버 계산).
+  const slotPrice = (row: RoomAvailabilityRowResponse, h: number): number | null => hourSlot(row, h)?.price ?? null;
 
   const isSelectable = (row: RoomAvailabilityRowResponse, h: number) => {
     const s = hourSlot(row, h);
@@ -150,10 +145,9 @@ export const KioskRoomReservationForm = ({
   };
 
   // 홀별 최대 선택 칸수(1칸=1시간). 미설정이면 무제한
-  const maxSlotsFor = (roomId: number) => {
-    const d = maxDurByRoom[roomId];
-    return d ? Math.floor(d / 60) : Infinity;
-  };
+  const maxSlotsFor = (roomId: number) => maxHourByRoom[roomId] ?? Infinity;
+  // 홀별 최소 예약 시간(시간). 미설정이면 1시간.
+  const minHoursFor = (roomId: number) => minHourByRoom[roomId] ?? 1;
 
   // pickBlock — 한 홀 안 연속 구간 (가이드 3-1). maxBookingDuration만큼만 연장 허용
   const onCell = (roomId: number, h: number, row: RoomAvailabilityRowResponse) => {
@@ -179,10 +173,13 @@ export const KioskRoomReservationForm = ({
     : [];
   const priceOk = sel != null && selPrices.length > 0 && selPrices.every((p) => p != null);
   const totalPrice = priceOk ? selPrices.reduce((a, p) => a + (p as number), 0) : 0;
+  // 최소 예약 시간 충족 여부 — 미달이면 예약 불가.
+  const selMinHours = sel ? minHoursFor(sel.roomId) : 1;
+  const meetsMin = sel != null && selRow != null && selHours >= selMinHours;
 
   const confirm = () => {
     // 가격(price)이 응답에 없어도 진행 — 최종금액은 결제 시 서버가 계산
-    if (!sel || !selRow) return;
+    if (!sel || !selRow || !meetsMin) return;
     const startTime = `${pad(sel.start)}:00`;
     const endTime = `${pad((sel.end + 1) % 24)}:00`; // 종료 배타적, 24시는 00:00
     const { startDate, endDate } = buildBookingDates(toDateStr(selectedDate), { startTime, endTime });
@@ -287,7 +284,7 @@ export const KioskRoomReservationForm = ({
 
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} />
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onBack} hideLocale={hideLocale} />
 
       <div className="shrink-0" style={{ padding: '4px 24px 8px' }}>
         <h1 className="font-bold text-black" style={{ fontSize: 'min(2.4vh, 28px)' }}>{t('kiosk_rental_title')}</h1>
@@ -344,9 +341,9 @@ export const KioskRoomReservationForm = ({
               <div key={row.studioRoomId} className="flex border-b border-[#F5F6F7]">
                 <div className="sticky left-0 z-10 bg-white shrink-0 flex flex-col justify-center border-r border-[#EEF0F2]" style={{ width: nameW, paddingLeft: 'min(1.6vh, 16px)', paddingRight: '8px' }}>
                   <span className="font-bold text-black truncate" style={{ fontSize: 'min(1.6vh, 17px)' }}>{row.name}</span>
-                  {maxDurByRoom[row.studioRoomId] ? (
+                  {maxHourByRoom[row.studioRoomId] ? (
                     <span className="text-[#86898C] truncate" style={{ fontSize: 'min(1.2vh, 12px)', marginTop: 2 }}>
-                      {t('kiosk_max_hours').replace('{count}', String(Math.floor(maxDurByRoom[row.studioRoomId] / 60)))}
+                      {t('kiosk_max_hours').replace('{count}', String(maxHourByRoom[row.studioRoomId]))}
                     </span>
                   ) : null}
                 </div>
@@ -363,7 +360,9 @@ export const KioskRoomReservationForm = ({
           <span className="font-bold text-white truncate" style={{ fontSize: 'min(1.6vh, 17px)' }}>{selRow.name}</span>
           <span className="text-white/90" style={{ fontSize: 'min(1.5vh, 16px)', fontWeight: 600 }}>
             {pad(sel.start)}:00 ~ {pad((sel.end + 1) % 24)}:00
-            {!priceOk && <span className="text-white/50" style={{ marginLeft: 8, fontSize: 'min(1.3vh, 13px)' }}>{t('kiosk_price_unset')}</span>}
+            {!meetsMin
+              ? <span className="text-[#FFD34E]" style={{ marginLeft: 8, fontSize: 'min(1.3vh, 13px)' }}>{t('kiosk_min_hours').replace('{count}', String(selMinHours))}</span>
+              : !priceOk && <span className="text-white/50" style={{ marginLeft: 8, fontSize: 'min(1.3vh, 13px)' }}>{t('kiosk_price_unset')}</span>}
           </span>
         </div>
       )}
@@ -371,11 +370,11 @@ export const KioskRoomReservationForm = ({
       {/* 하단 CTA */}
       <div className="shrink-0 border-t border-[#F1F3F6]" style={{ padding: '12px 24px min(2vh, 24px)' }}>
         <button
-          disabled={!sel || !selRow}
+          disabled={!sel || !selRow || !meetsMin}
           onClick={confirm}
-          className={`w-full h-[min(7vh,72px)] rounded-[16px] flex items-center justify-center transition-transform ${sel && selRow ? 'bg-[#1E2124] active:scale-[0.97]' : 'bg-[#E0E0E0] cursor-not-allowed'}`}
+          className={`w-full h-[min(7vh,72px)] rounded-[16px] flex items-center justify-center transition-transform ${sel && selRow && meetsMin ? 'bg-[#1E2124] active:scale-[0.97]' : 'bg-[#E0E0E0] cursor-not-allowed'}`}
         >
-          <span className={`font-bold ${sel && selRow ? 'text-white' : 'text-[#999]'}`} style={{ fontSize: 'min(2vh, 24px)' }}>
+          <span className={`font-bold ${sel && selRow && meetsMin ? 'text-white' : 'text-[#999]'}`} style={{ fontSize: 'min(2vh, 24px)' }}>
             {priceOk
               ? t('kiosk_rental_reserve').replace('{count}', String(selHours)).replace('{amount}', formatPrice(totalPrice))
               : sel

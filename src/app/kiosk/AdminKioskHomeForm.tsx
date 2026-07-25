@@ -1,26 +1,22 @@
 'use client';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
-
-const KIOSK_LOCALES: { code: Locale; flag: string; label: string }[] = [
-  {code: 'ko', flag: '🇰🇷', label: '한국어'},
-  {code: 'en', flag: '🇺🇸', label: 'English'},
-  {code: 'jp', flag: '🇯🇵', label: '日本語'},
-  {code: 'zh', flag: '🇨🇳', label: '中文'},
-];
+import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 
 type AdminKioskHomeFormProps = {
   studioName: string;
-  kioskName?: string;
+  studioImageUrl?: string;
   locale: Locale;
   canCheckIn: boolean;
   canPurchase: boolean;
+  canBookRoom?: boolean;
+  canLessonAttendance?: boolean;
   onSelectPayment: () => void;
   onSelectVisit: () => void;
+  onSelectBookRoom: () => void;
   onSelectLessonAttendance: () => void;
-  onChangeLocale: (locale: Locale) => void;
   onAdminMode: () => void;
 };
 
@@ -28,19 +24,19 @@ type AdminKioskHomeFormProps = {
 // 무인 키오스크(KioskHomeForm)와 달리 큰 이미지 없이, 인사 문구 + 액션 카드 그리드로 구성.
 export const AdminKioskHomeForm = ({
   studioName,
-  kioskName,
+  studioImageUrl,
   locale,
   canCheckIn,
   canPurchase,
+  canBookRoom = false,
+  canLessonAttendance = false,
   onSelectPayment,
   onSelectVisit,
+  onSelectBookRoom,
   onSelectLessonAttendance,
-  onChangeLocale,
   onAdminMode,
 }: AdminKioskHomeFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
-  const [showLocalePicker, setShowLocalePicker] = useState(false);
-  const currentLocale = KIOSK_LOCALES.find((l) => l.code === locale) ?? KIOSK_LOCALES[0];
 
   // 스튜디오명 5번 연속 탭 → 관리자 모드 (무인 홈과 동일 제스처)
   const tapCountRef = useRef(0);
@@ -58,12 +54,36 @@ export const AdminKioskHomeForm = ({
 
   const cards = [
     {
+      key: 'payment',
+      show: canPurchase,
+      onClick: onSelectPayment,
+      title: t('kiosk_payment_title'),
+      desc: t('kiosk_admin_card_payment_desc'),
+      // 결제 페이지(카드 결제 버튼)와 동일한 카드 아이콘. 다크 카드라 흰 카드 + 어두운 점으로 렌더.
+      icon: (
+        <svg width="40" height="52" viewBox="0 0 54 70" fill="none">
+          <rect x="2" y="2" width="50" height="66" rx="8" fill="white"/>
+          <circle cx="42" cy="14" r="3.5" fill="#1E2124"/>
+        </svg>
+      ),
+      dark: true,
+    },
+    {
       key: 'lesson',
-      show: true,
+      show: canLessonAttendance,
       onClick: onSelectLessonAttendance,
       title: t('kiosk_lesson_attendance_title'),
       desc: t('kiosk_admin_card_lesson_desc'),
-      icon: '/assets/ic_kiosk_attendance.svg',
+      // 수업 출석 — QR 스캔(출석 체크)
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="6" width="12" height="12" rx="2.5" stroke="#4E5968" strokeWidth="2.4"/>
+          <rect x="22" y="6" width="12" height="12" rx="2.5" stroke="#4E5968" strokeWidth="2.4"/>
+          <rect x="6" y="22" width="12" height="12" rx="2.5" stroke="#4E5968" strokeWidth="2.4"/>
+          <rect x="24" y="24" width="4.5" height="4.5" rx="1" fill="#4E5968"/>
+          <rect x="30.5" y="30.5" width="3.5" height="3.5" rx="1" fill="#4E5968"/>
+        </svg>
+      ),
       dark: false,
     },
     {
@@ -72,59 +92,44 @@ export const AdminKioskHomeForm = ({
       onClick: onSelectVisit,
       title: t('kiosk_admin_studio_attendance'),
       desc: t('kiosk_admin_card_studio_desc'),
-      icon: '/assets/ic_kiosk_attendance.svg',
+      // 스튜디오 출석 — 수강생 방문(사람)
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="14" r="6.5" stroke="#4E5968" strokeWidth="2.4"/>
+          <path d="M8 33c1-6.5 6-11 12-11s11 4.5 12 11" stroke="#4E5968" strokeWidth="2.4" strokeLinecap="round"/>
+        </svg>
+      ),
       dark: false,
     },
     {
-      key: 'payment',
-      show: canPurchase,
-      onClick: onSelectPayment,
-      title: t('kiosk_payment_title'),
-      desc: t('kiosk_admin_card_payment_desc'),
-      icon: '/assets/ic_kiosk_card.svg',
-      dark: true,
+      key: 'room',
+      show: canBookRoom,
+      onClick: onSelectBookRoom,
+      title: t('kiosk_reserve_room'),
+      desc: t('kiosk_admin_card_room_desc'),
+      // 연습실 예약 — 달력 + 체크(예약 확정)
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="7" y="9" width="26" height="24" rx="3.5" stroke="#4E5968" strokeWidth="2.4"/>
+          <path d="M7 16h26M14 6.5v5M26 6.5v5" stroke="#4E5968" strokeWidth="2.4" strokeLinecap="round"/>
+          <path d="M15.5 24.5l3 3 6-6" stroke="#4E5968" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      dark: false,
     },
   ].filter((c) => c.show);
 
   return (
     <div className="bg-[#F7F8FA] w-full h-screen flex flex-col overflow-hidden">
-      {/* 상단 바 */}
-      <div className="h-[84px] shrink-0 px-[48px] flex items-center justify-between border-b border-[#EDEFF2] bg-white">
-        <button onClick={handleSecretTap} className="flex items-center gap-[12px] active:opacity-70 transition-opacity">
+      {/* 상단 바 — 스튜디오 로고 + 이름 (언어선택·키오스크명 미노출) */}
+      <div className="h-[84px] shrink-0 px-[48px] flex items-center border-b border-[#EDEFF2] bg-white">
+        <button onClick={handleSecretTap} className="flex items-center gap-[14px] active:opacity-70 transition-opacity">
+          {studioImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={kioskImageSrc(studioImageUrl, 96)} alt="" className="rounded-full object-cover shrink-0" style={{ width: 44, height: 44 }} />
+          )}
           <span className="text-[#1E2124] text-[22px] font-bold">{studioName}</span>
-          {kioskName && (
-            <span className="px-[12px] py-[5px] rounded-full bg-[#F2F4F6] text-[#6D7882] text-[15px] font-medium">
-              {kioskName}
-            </span>
-          )}
         </button>
-
-        <div className="relative">
-          <button
-            onClick={() => setShowLocalePicker((v) => !v)}
-            className="h-[44px] px-[16px] rounded-[12px] bg-white border border-[#E6E8EA] flex items-center gap-[8px] shadow-sm active:scale-[0.97] transition-transform"
-          >
-            <span className="text-[20px]">{currentLocale.flag}</span>
-            <span className="text-[16px] font-medium text-[#1E2124]">{currentLocale.label}</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9l6 6 6-6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          {showLocalePicker && (
-            <div className="absolute top-full mt-2 right-0 bg-white border border-[#E8E8EA] rounded-[16px] shadow-lg z-20 overflow-hidden min-w-[160px]">
-              {KIOSK_LOCALES.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => { onChangeLocale(l.code); setShowLocalePicker(false); }}
-                  className={`w-full px-[16px] py-[14px] flex items-center gap-[12px] text-left hover:bg-gray-50 active:bg-gray-100 ${l.code === locale ? 'bg-gray-50 font-bold' : ''}`}
-                >
-                  <span className="text-[24px]">{l.flag}</span>
-                  <span className="text-[16px] text-[#1E2124]">{l.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* 본문 — 인사 + 액션 카드 */}
@@ -138,7 +143,7 @@ export const AdminKioskHomeForm = ({
 
         <div
           className="w-full grid gap-[20px]"
-          style={{gridTemplateColumns: `repeat(${cards.length}, minmax(0, 1fr))`, maxWidth: cards.length === 1 ? 420 : cards.length === 2 ? 800 : 1120}}
+          style={{gridTemplateColumns: `repeat(${cards.length}, minmax(0, 1fr))`, maxWidth: cards.length === 1 ? 420 : cards.length === 2 ? 800 : cards.length === 3 ? 1120 : 1440}}
         >
           {cards.map((card) => (
             <button
@@ -150,8 +155,12 @@ export const AdminKioskHomeForm = ({
               style={{minHeight: 260}}
             >
               <div className={`w-[72px] h-[72px] rounded-[20px] flex items-center justify-center ${card.dark ? 'bg-white/10' : 'bg-[#F2F4F6]'}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={card.icon} alt="" width={40} height={40} className={`block ${card.dark ? 'brightness-0 invert' : ''}`}/>
+                {typeof card.icon === 'string' ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={card.icon} alt="" width={40} height={40} className={`block ${card.dark ? 'brightness-0 invert' : ''}`}/>
+                ) : (
+                  card.icon
+                )}
               </div>
               <div className="flex flex-col gap-[8px]">
                 <span className={`text-[28px] font-bold leading-tight ${card.dark ? 'text-white' : 'text-[#1E2124]'}`}>

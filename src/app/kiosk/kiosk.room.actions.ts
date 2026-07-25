@@ -15,3 +15,9 @@ export const getKioskStudioRoomsAction = async (params: { studioId: number; prac
 export const getKioskRoomsAvailabilityAction = async (params: { studioRoomIds: string; date: string }) => {
   return await api.studioRoom.availability({ studioRoomIds: params.studioRoomIds, date: params.date });
 };
+
+// 키오스크 대관 예약 — 스튜디오의 특정 날짜 방별 예약 가능 시각(availableHours) 요약.
+// GET /studios/:id/roomSlots. 예약 가능 여부 판단용(가격은 홀 목록 schedules로 계산).
+export const getKioskRoomSlotsAction = async (params: { studioId: number; date: string }) => {
+  return await api.studioRoom.slots({ id: params.studioId, date: params.date });
+};

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { KioskTopBar } from "@/app/kiosk/KioskLessonListForm";
+import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { COUNTRIES } from "@/app/certification/COUNTRIES";
 import { KioskCountrySelectModal } from "@/app/kiosk/KioskCountrySelectModal";
 import { KioskEmailKeyboard } from "@/app/kiosk/KioskEmailKeyboard";
@@ -107,7 +107,7 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden">
       {/* 상단 바 */}
-      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} />
+      <KioskTopBar locale={locale} onChangeLocale={onChangeLocale} onBack={onBack} onHome={onHome} hideLocale={admin} />
 
       {/* ── 무인 키오스크 레이아웃 (세로 전체화면 키패드) ── */}
       {!admin && (
