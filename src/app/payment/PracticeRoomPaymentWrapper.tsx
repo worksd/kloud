@@ -5,6 +5,7 @@ import { UnifiedPaymentInfo } from "@/app/payment/UnifiedPaymentInfo";
 import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { toAmPmTime } from "@/utils/time.format";
 
 // startFull/endFull = 'YYYY-MM-DDTHH:mm' (KST 벽시계, 자정 넘김은 endFull 날짜에 이미 반영됨)
 // 연습실 예약 계열 API(POST /passes/:id/use, /roomBookings, customData)는 'yyyy.MM.dd HH:mm'
@@ -19,15 +20,25 @@ const buildPracticeRoomInfo = (studioRoomId: number, startFull: string, endFull:
   endDate: toWallClock(endFull),
 });
 
-// 'YYYY-MM-DDTHH:mm' → 'HH:mm' (표시용)
+// 'YYYY-MM-DDTHH:mm' → 'HH:mm'
 const hhmm = (s: string) => s.split('T')[1] ?? s;
+// 'YYYY-MM-DDTHH:mm' → 로케일 12시간제 표기 (예: 오전 1:00 / 1:00 AM)
+const timeLabel = (s: string, locale: Locale) => toAmPmTime(hhmm(s), locale);
 // 'YYYY-MM-DDTHH:mm' → 'YYYY.MM.DD'
 const dotDate = (s: string) => (s.split('T')[0] ?? '').replace(/-/g, '.');
 // 선택 구간을 '날짜 시작~종료'로. 종료가 다음날이면 종료 날짜도 표기.
-const formatSelected = (start: string, end: string) => {
+const formatSelected = (start: string, end: string, locale: Locale) => {
   const sd = dotDate(start);
   const ed = dotDate(end);
-  return sd === ed ? `${sd} ${hhmm(start)} ~ ${hhmm(end)}` : `${sd} ${hhmm(start)} ~ ${ed} ${hhmm(end)}`;
+  return sd === ed
+    ? `${sd} ${timeLabel(start, locale)} ~ ${timeLabel(end, locale)}`
+    : `${sd} ${timeLabel(start, locale)} ~ ${ed} ${timeLabel(end, locale)}`;
+};
+
+// 예약 응답의 'YYYY.MM.DD HH:mm' → 시각만 12시간제로
+const bookingTimeLabel = (raw: string, locale: Locale) => {
+  const time = raw.split(' ')[1];
+  return time ? toAmPmTime(time, locale) : raw;
 };
 
 export const PracticeRoomPaymentWrapper = ({
@@ -118,7 +129,7 @@ export const PracticeRoomPaymentWrapper = ({
             {myBookings.map((booking) => (
               <div key={booking.id} className="px-3 py-1.5 bg-[#D5D5D5] rounded-lg">
                 <span className="text-[12px] font-medium text-[#666]">
-                  {booking.startDate.split(' ')[1] ?? booking.startDate} ~ {booking.endDate.split(' ')[1] ?? booking.endDate}
+                  {bookingTimeLabel(booking.startDate, locale)} ~ {bookingTimeLabel(booking.endDate, locale)}
                 </span>
               </div>
             ))}
@@ -130,7 +141,7 @@ export const PracticeRoomPaymentWrapper = ({
       {selectedTime && (
         <div className="mx-5 mb-2 flex items-center justify-between bg-black rounded-xl px-4 py-3">
           <span className="text-[13px] text-white/60">{getLocaleString({ locale, key: 'time' })}</span>
-          <span className="text-[14px] font-bold text-white">{formatSelected(selectedTime.startTime, selectedTime.endTime)}</span>
+          <span className="text-[14px] font-bold text-white">{formatSelected(selectedTime.startTime, selectedTime.endTime, locale)}</span>
         </div>
       )}
 
