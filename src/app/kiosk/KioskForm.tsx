@@ -961,12 +961,25 @@ export const KioskForm = ({
     setPaymentResult({ status: 'success', data: {} });
   }, [paymentItem, selectedUser, paymentInfo, kioskId, isPaying, runStartPayment, applyReceiptFields, roomBooking]);
 
-  // 패스권 사용 (B 흐름) — POST /kiosks/passes/:passId/use 직접 호출
+  // 결제수단 화면 하단 '신청하기'(최종금액 0원) 핸들러.
+  //  - 차감할 패스권(FreeCount/Unlimited)이 선택돼 있으면 패스 사용 (B 흐름) — POST /kiosks/passes/:passId/use
+  //  - 패스권 없이 0원인 경우(무료 수업·무료 대관, 또는 할인권으로 전액 커버)는 0원 결제로 즉시 완료.
+  //    (예전엔 여기서 '패스권 정보를 찾을 수 없습니다' 토스트만 뜨고 신청이 막혔다)
   const handlePayWithPass = useCallback(async () => {
-    if (!paymentItem || !selectedUser || (!selectedLesson && !roomBooking)) return;
+    if (!paymentItem || !selectedUser) return;
     const passId = selectedPass?.pass.id;
     if (!passId) {
+      const finalPrice = Math.max(0, (paymentInfo?.price ?? paymentItem.price ?? 0) - (selectedDiscount?.amount ?? 0));
+      if (finalPrice === 0) {
+        await handleCashPayment();   // 0원 → cash 흐름으로 즉시 Completed + QR 발급
+        return;
+      }
       setToastMessage('패스권 정보를 찾을 수 없습니다');
+      return;
+    }
+    // 패스권 차감은 수업/연습실만 대상
+    if (!selectedLesson && !roomBooking) {
+      setToastMessage('패스권으로 결제할 수 없는 상품입니다');
       return;
     }
     try {
@@ -992,7 +1005,7 @@ export const KioskForm = ({
     } catch {
       setToastMessage('요청에 실패했습니다');
     }
-  }, [paymentItem, selectedPass, selectedUser, selectedLesson, roomBooking, kioskId, applyReceiptFields]);
+  }, [paymentItem, selectedPass, selectedUser, selectedLesson, roomBooking, kioskId, applyReceiptFields, paymentInfo, selectedDiscount, handleCashPayment]);
 
   // 패스권 자동 사용 — "수업 신청하러 가기" 직후 lesson 선택해서 payment-method 진입했을 때 자동 트리거.
   // paymentInfo가 도착하고, autoUsePassPlanId와 매칭되는 usable한 pass가 있으면 즉시 useKioskPassAction 호출.

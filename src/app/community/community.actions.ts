@@ -1,10 +1,16 @@
 'use server';
 
+import { cookies } from "next/headers";
 import { api } from "@/app/api.client";
+import { studioKey } from "@/shared/cookies.key";
 
-// 커뮤니티 목록 — 앱 노출 연습실 보유 스튜디오 (GET /community, @OptionalAuth)
+// 커뮤니티 목록 — 앱 노출 연습실 보유 스튜디오 (GET /community, @OptionalAuth).
+// 쿠키에 저장된 studioId(= 최근 선택 스튜디오)를 함께 보낸다.
+// 쿠키 값이 'undefined' 같은 비정상 문자열일 수 있어 숫자만 통과시키고, 없으면 파라미터 자체를 생략한다.
 export const getCommunityAction = async () => {
-  return await api.community.get({});
+  const raw = (await cookies()).get(studioKey)?.value;
+  const studioId = raw && /^\d+$/.test(raw) ? Number(raw) : undefined;
+  return await api.community.get({ studioId });
 };
 
 // 커뮤니티 상세 — 스튜디오의 연습실(룸) 목록(홀정보만, 슬롯 없음). studioId 명시(쿠키 미사용).
