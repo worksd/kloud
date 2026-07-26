@@ -3935,6 +3935,13 @@ export const StringResource = {
   // 커뮤니티 (연습실)
   community: { ko: '커뮤니티', en: 'Community', jp: 'コミュニティ', zh: '社区' },
   community_no_studios: { ko: '연습실 스튜디오가 없습니다', en: 'No practice room studios yet', jp: '練習室スタジオがありません', zh: '暂无练习室工作室' },
+  // 기준 학원에서의 도보 시간 / 수강생 이용 건수 (GET /community?studioId=)
+  community_walk_minute: { ko: '걸어서 {count}분', en: '{count} min walk', jp: '徒歩{count}分', zh: '步行{count}分钟' },
+  community_student_bookings: { ko: '수강생 이용 {count}회', en: '{count} bookings by students', jp: '受講生利用{count}回', zh: '学员使用{count}次' },
+  community_student_bookings_none: { ko: '수강생 이용 없음', en: 'No student bookings', jp: '受講生利用なし', zh: '暂无学员使用' },
+  community_nearby_title: { ko: '우리 스튜디오 근처 연습실', en: 'Practice rooms near us', jp: '近くの練習室', zh: '附近的练习室' },
+  // §…§ 로 감싼 부분(이용 인원)을 강조 색으로 렌더한다.
+  community_student_used: { ko: '{studio} 수강생 중 §{count}명§이 이용했어요', en: '§{count}§ from {studio} used this', jp: '{studio}の受講生のうち§{count}名§が利用', zh: '{studio}的学员中§{count}名§已使用' },
   community_intro: { ko: '소개', en: 'About', jp: '紹介', zh: '介绍' },
   community_notice: { ko: '공지사항', en: 'Notices', jp: 'お知らせ', zh: '公告' },
   community_amenities: { ko: '편의시설', en: 'Amenities', jp: '設備', zh: '便利设施' },
