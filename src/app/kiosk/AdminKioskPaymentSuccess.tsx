@@ -33,6 +33,7 @@ export const AdminKioskPaymentSuccess = ({
   const [phoneInputOpen, setPhoneInputOpen] = useState(false);
   const [status, setStatus] = useState<ReceiptStatus>('idle');
   const [toast, setToast] = useState<string | null>(null);
+  const [sentDialogOpen, setSentDialogOpen] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -51,7 +52,7 @@ export const AdminKioskPaymentSuccess = ({
         return;
       }
       setStatus('sent');
-      showToast(t('kiosk_admin_receipt_sent'));
+      setSentDialogOpen(true);
     } catch {
       setStatus('error');
       showToast(t('kiosk_admin_receipt_fail'));
@@ -145,6 +146,32 @@ export const AdminKioskPaymentSuccess = ({
       {toast && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-[140px] px-[26px] py-[14px] rounded-[12px] bg-black/85">
           <span className="text-white text-[18px] font-medium">{toast}</span>
+        </div>
+      )}
+
+      {/* 전자영수증 발송 완료 다이얼로그 — 확인/바깥 탭으로 닫으면 성공 화면 유지 */}
+      {sentDialogOpen && (
+        <div
+          onClick={() => setSentDialogOpen(false)}
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-[28px] w-full max-w-[520px] px-[40px] pt-[36px] pb-[32px] flex flex-col items-center animate-[scaleIn_180ms_ease-out]"
+          >
+            <div className="w-[84px] h-[84px] rounded-full bg-[#EAF7F4] flex items-center justify-center mb-[24px]">
+              <svg viewBox="0 0 24 24" fill="none" className="w-[44%] h-[44%]">
+                <path d="M4 12.5L9.5 18L20 6.5" stroke="#1E9E8A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="text-black text-[28px] font-bold text-center leading-snug">{t('kiosk_admin_receipt_sent')}</p>
+            <button
+              onClick={() => setSentDialogOpen(false)}
+              className="mt-[28px] w-full h-[72px] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.98] transition-transform"
+            >
+              <span className="text-white text-[22px] font-bold">{t('kiosk_confirm')}</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

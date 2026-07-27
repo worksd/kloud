@@ -28,7 +28,9 @@ export async function sendErrorToDiscord(error: Error, context?: {
   const userAgent = context?.userAgent || '알 수 없음';
   const statusCode = context?.statusCode;
   const timestamp = context?.timestamp || new Date().toISOString();
-  const env = context?.env || process.env.NEXT_PUBLIC_ENV || 'unknown';
+  // 환경은 서버 런타임의 GUINNESS_API_SERVER로만 판정 — 클라가 넘기는 값/NEXT_PUBLIC_ENV(빌드 미주입 시 unknown)에 의존하지 않는다.
+  const apiServer = process.env.GUINNESS_API_SERVER ?? '';
+  const env = apiServer.includes('staging') ? 'staging' : apiServer.includes('prod') ? 'prod' : 'unknown';
 
   // 스택 트레이스가 너무 길면 자르기
   const truncatedStack = stack.length > 1000 ? `${stack.slice(0, 1000)}\n... (truncated)` : stack;
