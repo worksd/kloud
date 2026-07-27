@@ -9,7 +9,7 @@ import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from '@/app/components
 import { LessonTags } from '@/app/components/LessonTags';
 import { LessonDetailButton } from '@/app/lessons/[id]/LessonDetailButton';
 import { LessonBundlesSection } from '@/app/lessons/[id]/LessonBundlesSection';
-import Image from "next/image";
+import { DeferredImage } from "@/app/components/DeferredImage";
 import LeftArrow from "../../../../../public/assets/left-arrow.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { LessonAdminInfoSection } from "@/app/lessons/[id]/LessonAdminInfoSection";
@@ -38,12 +38,10 @@ export default async function LessonDetailForm({lesson, appVersion}: {
 
       <div className="relative w-full h-[50vh] shrink-0 overflow-hidden bg-[#F1F3F6]">
         {lesson.thumbnailUrl ? (
-          <Image
+          <DeferredImage
             src={lesson.thumbnailUrl}
             alt={lesson?.title ?? 'thumbnail'}
-            fill
-            className="object-cover"
-            quality={60}
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
