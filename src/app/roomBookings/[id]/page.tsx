@@ -6,8 +6,8 @@ import { BackButton } from "@/app/payment/BackButton";
 import { RoomBookingDetailResponse } from "@/app/endpoint/room.booking.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { formatMinutes } from "@/utils/pass.description";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { KloudScreen } from "@/shared/kloud.screen";
+import { RoomBookingRefundSection } from "@/app/roomBookings/[id]/RoomBookingRefundSection";
+import { RoomBookingHallInfo } from "@/app/roomBookings/[id]/RoomBookingHallInfo";
 
 // 홀 예약 상세 (GET /roomBookings/:id). PR 결제 record → productRoute로 진입.
 export default async function RoomBookingDetailPage({ params, searchParams }: {
@@ -102,19 +102,6 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
             </svg>
           </div>
         )}
-
-        {/* 결제내역 — paymentId 있을 때만. 티켓 상세와 동일한 UI(어두운 pill). 탭 시 결제 상세로. */}
-        {booking.paymentId && (
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center z-10">
-            <NavigateClickWrapper method="push" route={KloudScreen.PaymentRecordDetail(booking.paymentId)}>
-              <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2">
-                <button className="text-[14px] font-medium text-white active:opacity-70 transition-opacity">
-                  {await translate('payment_records')}
-                </button>
-              </div>
-            </NavigateClickWrapper>
-          </div>
-        )}
       </div>
 
       {/* 스튜디오(로고+이름) + 홀 이름 + 상태 */}
@@ -153,6 +140,25 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
           )}
           <Row label={await translate('room_booking_created')} value={fmtDateTime(booking.createdAt)} />
         </div>
+
+        {/* 홀 정보 — 설명(HTML)·면적·크기·바닥·시설 */}
+        {booking.studioRoom && (
+          <div className="mt-4">
+            <RoomBookingHallInfo room={booking.studioRoom} locale={locale} />
+          </div>
+        )}
+      </div>
+
+      <div className="h-3 bg-[#f9f9fb]" />
+
+      {/* 환불 안내사항 — 펼치면 안내 문구 + '취소하기'(DELETE /roomBookings/:id). 예약/대기 상태만 취소 가능. */}
+      <div className="px-5 py-5">
+        <RoomBookingRefundSection
+          bookingId={booking.id}
+          cancellable={!!booking.isRefundable}
+          paymentId={booking.paymentId}
+          locale={locale}
+        />
       </div>
     </div>
   );

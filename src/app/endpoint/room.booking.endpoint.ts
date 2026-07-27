@@ -1,4 +1,29 @@
 import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
+import { AmenityResponse } from "@/app/endpoint/studio.room.endpoint";
+
+// 대관 예약 상세의 홀 정보. GET /roomBookings/:id 의 studioRoom (설명서·스펙·시설).
+export type RoomBookingStudioRoom = {
+  id: number;
+  name: string;
+  imageUrls?: string[];
+  /** HTML 문자열일 수 있음(렌더 시 dangerouslySetInnerHTML). */
+  description?: string | null;
+  maxNumber?: number | null;
+  practiceMaxNumber?: number | null;
+  areaSize?: number | null;
+  widthMeter?: number | null;
+  depthMeter?: number | null;
+  heightMeter?: number | null;
+  floorType?: string | null;
+  isElasticFloor?: boolean | null;
+  advanceBookingDays?: number | null;
+  advanceBookingOpenTime?: string | null;
+  minBookingDuration?: number | null;
+  maxBookingDuration?: number | null;
+  bookingWhileInUse?: boolean | null;
+  dailyBookingLimit?: number | null;
+  amenities?: AmenityResponse[];
+};
 
 export type RoomBookingDetailResponse = {
   id: number;
@@ -13,6 +38,8 @@ export type RoomBookingDetailResponse = {
   price: number;
   /** 결제 ID — 있으면 결제내역(PaymentRecordDetail)으로 이동 가능. */
   paymentId?: string | null;
+  /** 취소(환불) 가능 여부 — 상태·시점 등 서버 판단. 취소하기 노출 조건. */
+  isRefundable?: boolean;
   notice?: string | null;
   user?: {
     id: number;
@@ -21,11 +48,7 @@ export type RoomBookingDetailResponse = {
     phone?: string | null;
     profileImageUrl?: string | null;
   } | null;
-  studioRoom?: {
-    id: number;
-    name: string;
-    imageUrls?: string[];
-  } | null;
+  studioRoom?: RoomBookingStudioRoom | null;
   studio?: {
     id: number;
     name: string;

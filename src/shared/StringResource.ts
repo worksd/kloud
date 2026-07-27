@@ -3962,6 +3962,7 @@ export const StringResource = {
   community_area: { ko: '면적', en: 'Area', jp: '面積', zh: '面积' },
   community_dimensions: { ko: '크기', en: 'Size', jp: 'サイズ', zh: '尺寸' },
   community_floor: { ko: '바닥', en: 'Floor', jp: '床', zh: '地板' },
+  community_floor_elastic: { ko: '탄성', en: 'Sprung', jp: '弾性', zh: '弹性' },
   community_room_facility: { ko: '시설', en: 'Facilities', jp: '設備', zh: '设施' },
   community_price_per_hour: { ko: '시간당 {price}', en: '{price}/hour', jp: '1時間あたり{price}', zh: '每小时{price}' },
   community_no_rooms: { ko: '등록된 연습실이 없습니다', en: 'No practice rooms', jp: '登録された練習室がありません', zh: '暂无练习室' },
