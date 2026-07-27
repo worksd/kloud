@@ -20,10 +20,11 @@ const renderHighlighted = (template: string, highlightColor: string) => {
 export const CommunityPracticeRoomGrid = ({ studios, locale }: { studios: CommunityStudioResponse[]; locale: Locale }) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
-  // 세 필드가 모두 undefined인 항목 = 기준 학원 자기 자신. 배지 문구의 학원명으로 쓰고, 카드 목록에선 제외.
+  // 세 필드가 모두 undefined인 항목 = 기준 학원 자기 자신. 배지 문구의 학원명/로고로만 쓰고, 카드 목록엔 전부 노출.
+  // (기준 학원 카드는 studentBookingCount/walkingMinute이 없어 배지·'걸어서 N분' 없이 이름/주소만 표시)
   const base = studios.find((s) => s.walkingMinute === undefined && s.distanceMeter === undefined && s.studentBookingCount === undefined);
   const baseName = base?.name;
-  const cards = base ? studios.filter((s) => s.id !== base.id) : studios;
+  const cards = studios;
 
   if (cards.length === 0) {
     return (
