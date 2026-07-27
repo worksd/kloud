@@ -161,6 +161,10 @@ export class ApiClient extends EndpointClient {
     record: this.endpointBuilder(API.TrackingEvent.RecordTrackingEvent),
   }
 
+  readonly alimtalk = {
+    sendPaymentReceipt: this.endpointBuilder(API.Alimtalk.SendPaymentReceipt),
+  }
+
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
   }

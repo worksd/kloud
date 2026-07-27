@@ -64,6 +64,17 @@ export const markKioskTicketUsedAction = async (ticketId: number, lessonId?: num
   return await api.ticket.toUsed({ id: ticketId, lessonId });
 };
 
+// 전자영수증(알림톡) 발송 — POST /alimtalks/ (template=PaymentReceipt). 운영자 토큰으로 호출.
+// 확정된(confirmed) 결제만 가능. 성공은 '발송 요청 접수' 기준.
+export const sendPaymentReceiptAction = async (params: { paymentId: string; phone: string; countryCode?: string }) => {
+  return await api.alimtalk.sendPaymentReceipt({
+    template: 'PaymentReceipt',
+    paymentId: params.paymentId,
+    phone: params.phone,
+    countryCode: params.countryCode ?? '82',
+  });
+};
+
 export const kioskPhoneLoginAction = async (phone: string, countryCode: string = '82') => {
   const res = await api.auth.checkPhoneVerification({
     phone,

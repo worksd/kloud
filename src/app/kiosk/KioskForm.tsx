@@ -151,6 +151,7 @@ export const KioskForm = ({
   // admin 결제(카드/현장)에서 직원이 편집한 실결제 금액 — 성공 화면 금액 표시에 사용
   const [adminPaidAmount, setAdminPaidAmount] = useState<number | null>(null);
   const [phone, setPhone] = useState('');
+  const [phoneCountryCode, setPhoneCountryCode] = useState('82');
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<SearchedUser | null>(null);
   const [locale, setLocale] = useState<Locale>('ko');
@@ -202,6 +203,7 @@ export const KioskForm = ({
     setRoomBooking(null);
     setSelectedBundle(null);
     setPhone('');
+    setPhoneCountryCode('82');
     setSearchedUsers([]);
     setSelectedUser(null);
     setPaymentMethod(null);
@@ -527,6 +529,7 @@ export const KioskForm = ({
   // 전화번호 입력 → /users/search?query=phone 으로 검색 (운영자 토큰 사용)
   const handlePhoneNext = async (phoneNumber: string, countryCode: string = '82') => {
     setPhone(phoneNumber);
+    setPhoneCountryCode(countryCode || '82');
     setCurrentScreen('searching');
     setErrorMessage(null);
 
@@ -1274,6 +1277,9 @@ export const KioskForm = ({
           thumbnailUrl={paymentItem?.thumbnailUrl}
           amount={adminPaidAmount ?? 0}
           locale={locale}
+          paymentId={receiptPaymentIdOverride ?? paymentInfo?.paymentId ?? null}
+          defaultPhone={phone || selectedUser?.phone || ''}
+          defaultCountryCode={phoneCountryCode}
           onHome={() => { setPaymentResult(null); goHome(); }}
         />
       )}
