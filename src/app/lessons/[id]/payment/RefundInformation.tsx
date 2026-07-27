@@ -7,12 +7,20 @@ import { getLocaleString } from "@/app/components/locale";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 
-export const RefundInformation = ({locale, paymentId, isRefundable}: { 
+export const RefundInformation = ({locale, paymentId, isRefundable, roomRefundDays}: {
   locale: Locale,
   paymentId?: string,
-  isRefundable?: boolean
+  isRefundable?: boolean,
+  /** 대관 이용료 환불 기준일. 내려오면 대관 전용 환불 안내로 대체({days}=N). 없으면 기본(수강료) 안내. */
+  roomRefundDays?: number | null,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  // 대관 결제면 이용료 환불 문구로 교체. 상단 2문단만 다르고 하단(약관 동의·중개·고객센터)은 공통 재사용.
+  const isRoom = roomRefundDays != null;
+  const topMessage1 = isRoom
+    ? getLocaleString({locale, key: 'room_refund_message_1'}).replace('{days}', String(roomRefundDays))
+    : getLocaleString({locale, key: 'lesson_refund_message_1'});
+  const topMessage2 = getLocaleString({locale, key: isRoom ? 'room_refund_message_2' : 'lesson_refund_message_2'});
   return (
     <div>
       <div className="flex flex-row items-center justify-between" onClick={() => setExpanded(!expanded)}>
@@ -23,9 +31,9 @@ export const RefundInformation = ({locale, paymentId, isRefundable}: {
         {expanded ? <ArrowUpIcon/> : <ArrowDownIcon/>}
       </div>
       {expanded && <div className={'flex flex-col space-y-4 mt-5'}>
-        <div className="text-[#6b6e71] text-[10px] font-medium leading-[14px]">
-          <p className="pb-4">{getLocaleString({locale, key: 'lesson_refund_message_1'})}</p>
-          <p>{getLocaleString({locale, key: 'lesson_refund_message_2'})}</p>
+        <div className={`text-[#6b6e71] text-[10px] font-medium leading-[14px] ${isRoom ? 'whitespace-pre-line' : ''}`}>
+          <p className="pb-4">{topMessage1}</p>
+          <p>{topMessage2}</p>
         </div>
 
         {isRefundable && paymentId && (

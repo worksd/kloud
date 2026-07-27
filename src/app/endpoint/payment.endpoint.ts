@@ -109,6 +109,8 @@ export type GetPaymentResponse = {
   refundDepositor?: string
   discounts?: DiscountResponse[];
   coupons?: CouponResponse[];
+  /** 대관 이용료 환불 기준일(N일). 내려오면 대관 전용 환불 안내를 노출, 없으면 기본 환불 안내. */
+  roomRefundDays?: number | null;
   studioRoom?: {
     id: number;
     name: string;

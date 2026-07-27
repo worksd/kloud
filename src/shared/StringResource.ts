@@ -1225,6 +1225,19 @@ export const StringResource = {
     jp: "カスタマーサポート：050-6774-3302（営業時間：月–土 13:00–22:00）",
     zh: "客服中心：050-6774-3302（服务时间：周一至周六 13:00–22:00）",
   },
+  // 대관 전용 환불 안내(roomRefundDays 내려올 때만). {days} = roomRefundDays. 이후 문단은 lesson_refund_message_3~5 재사용.
+  room_refund_message_1: {
+    ko: "이용료 환불은 다음 기준에 따라 진행됩니다. 이용일 기준 {days}일 전 취소 시 100% 환불되며, 결제 후 2시간 이내 취소도 이용 시작 전이라면 100% 환불됩니다. 이용 당일 취소는 이용 중인 스튜디오로 문의해 주세요.\n패스권은 만료 기간과 잔여 시간이 남아있는 경우에 한해 환불 가능하며, 구매 금액에서 기 이용 시간 총액을 차감한 뒤 10%를 제외하고 환불됩니다.",
+    en: "Room usage fees are refunded as follows. Cancellations made {days} day(s) before the use date are refunded 100%, and cancellations within 2 hours of payment are also refunded 100% if made before use begins. For same-day cancellations, please contact the studio you are using.\nPasses are refundable only when both the validity period and remaining time are left; the refund equals the purchase amount minus the total of already-used time, less 10%.",
+    jp: "利用料の返金は次の基準に従って行われます。利用日の{days}日前までのキャンセルは100%返金され、決済後2時間以内のキャンセルも利用開始前であれば100%返金されます。当日のキャンセルはご利用中のスタジオへお問い合わせください。\nパスは有効期限と残り時間が残っている場合に限り返金可能で、購入金額から既利用時間の総額を差し引いた後、10%を除いて返金されます。",
+    zh: "使用费退款按以下标准处理。在使用日{days}天前取消可全额退款，付款后2小时内取消且在使用开始前也可全额退款。当天取消请联系您正在使用的工作室。\n通票仅在有效期与剩余时间尚存时可退款，退款金额为购买金额扣除已使用时间总额后再扣除10%。",
+  },
+  room_refund_message_2: {
+    ko: "로우그래피는 위 기준에 따라 취소 및 환불이 가능하도록 관련 기능을 제공하고 있습니다.\n환불 접수 및 처리와 관련된 문의는 이용 중인 스튜디오로 연락하여 안내를 받아주시기 바랍니다.",
+    en: "Rawgraphy provides features that allow cancellations and refunds according to the above criteria. For inquiries regarding refund requests or processing, please contact the studio you are using.",
+    jp: "Rawgraphy は上記の基準に従ってキャンセルおよび返金が可能となるよう関連機能を提供しています。返金申請および処理に関するお問い合わせは、ご利用中のスタジオまでご連絡ください。",
+    zh: "Rawgraphy 提供可按上述标准进行取消和退款的功能。有关退款申请和处理的相关咨询，请联系您正在使用的工作室。",
+  },
   studio_announcement: {
     ko: "스튜디오 공지사항",
     en: "Studio Announcement",

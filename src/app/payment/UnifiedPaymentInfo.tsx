@@ -427,8 +427,8 @@ export const UnifiedPaymentInfo = ({
           </div>
           {/* 판매자 정보 - lesson-group은 표시 안 함 */}
           {studio && <SellerInformation studio={studio} locale={locale}/>}
-          {/* 환불 안내 */}
-          <RefundInformation locale={locale}/>
+          {/* 환불 안내 — 대관(roomRefundDays 내려옴)이면 이용료 환불 기준 안내로 대체 */}
+          <RefundInformation locale={locale} roomRefundDays={payment.roomRefundDays}/>
         </div>
       )}
 
