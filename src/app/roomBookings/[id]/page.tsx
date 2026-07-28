@@ -149,6 +149,24 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
         )}
       </div>
 
+      {/* 취소 정보 — 취소된 예약일 때 사유/일시 */}
+      {booking.status === 'Cancelled' && (booking.cancelledAt || booking.cancelReason) && (
+        <>
+          <div className="h-3 bg-[#f9f9fb]" />
+          <div className="px-5 py-5">
+            <p className="text-[16px] font-bold text-black mb-4">{await translate('cancellation_information')}</p>
+            <div className="flex flex-col gap-4">
+              {booking.cancelledAt && (
+                <Row label={await translate('cancellation_datetime')} value={fmtDateTime(booking.cancelledAt)} />
+              )}
+              {booking.cancelReason && (
+                <Row label={await translate('cancellation_reason')} value={booking.cancelReason} />
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="h-3 bg-[#f9f9fb]" />
 
       {/* 환불 안내사항 — 펼치면 안내 문구 + '취소하기'(DELETE /roomBookings/:id). 예약/대기 상태만 취소 가능. */}

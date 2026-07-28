@@ -59,6 +59,10 @@ export type RoomBookingDetailResponse = {
     passPlanName?: string;
   };
   createdAt: string;
+  /** 취소 사유 — status가 Cancelled일 때 내려옴 */
+  cancelReason?: string | null;
+  /** 취소 일시 'yyyy.MM.dd HH:mm' — status가 Cancelled일 때 내려옴 */
+  cancelledAt?: string | null;
 }
 
 export type GetRoomBookingParameter = {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse, LessonStatus, BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
@@ -140,11 +140,17 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       .finally(() => setLoadingLessons(false));
   }, [tab, studioId, selectedDate]);
 
-  // 패스권 탭 진입 시 목록 fetch (이미 받은 게 있으면 스킵)
+  // 패스권 탭 진입 시 목록 fetch.
+  // admin(상담실)은 비공개(Private) 포함 위해 withAll=true로 '한 번은' 재조회한다.
+  // (초기 passPlans는 공개만 담겨 올 수 있어, length>0로 스킵하면 비공개가 안 보이던 문제)
+  const didFetchPassPlansRef = useRef(false);
   useEffect(() => {
-    if (tab !== 'pass-plans' || passPlans.length > 0 || !studioId) return;
+    if (tab !== 'pass-plans' || !studioId) return;
+    if (didFetchPassPlansRef.current) return;
+    // 비admin은 이미 받은 공개 목록이 있으면 재조회 불필요. admin은 withAll 위해 항상 1회 조회.
+    if (!admin && passPlans.length > 0) return;
+    didFetchPassPlansRef.current = true;
     setLoadingPassPlans(true);
-    // admin(상담실)은 전부(withAll) 불러온다. 응답 형태는 기존 StudioPassPlanListResponse 유지.
     getPassPlanListAction({ studioId, withAll: admin ? true : undefined })
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
