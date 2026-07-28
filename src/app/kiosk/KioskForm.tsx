@@ -51,6 +51,28 @@ type KioskScreen = 'home' | 'lesson-list' | 'lesson-detail' | 'phone' | 'searchi
 
 const VALID_SCREENS: KioskScreen[] = ['home', 'lesson-list', 'lesson-detail', 'phone', 'searching', 'member-confirm', 'payment-method', 'pass-select', 'attendance-select', 'attendance', 'lesson-attendance', 'admin-payment', 'room-reservation'];
 
+// KIS는 매입됐는데 서버 /complete가 실패한 결제 — 클라가 가진 KIS 응답으로 나중에 자동 재시도하기 위한 로컬 큐.
+// (카드에서 돈은 빠졌으니 유실 없이 반드시 서버에 기록되도록)
+const PENDING_COMPLETE_KEY = 'kiosk_pending_completions';
+type CompleteArgs = Parameters<typeof completeKioskPaymentAction>[0];
+const loadPendingCompletions = (): CompleteArgs[] => {
+  try { return JSON.parse(localStorage.getItem(PENDING_COMPLETE_KEY) ?? '[]'); } catch { return []; }
+};
+const savePendingCompletion = (args: CompleteArgs) => {
+  try {
+    const list = loadPendingCompletions();
+    // 같은 paymentId 중복 저장 방지
+    if (!list.some((a) => a.paymentId === args.paymentId)) list.push(args);
+    localStorage.setItem(PENDING_COMPLETE_KEY, JSON.stringify(list));
+  } catch { /* localStorage 불가 환경 무시 */ }
+};
+const removePendingCompletion = (paymentId: string) => {
+  try {
+    const list = loadPendingCompletions().filter((a) => a.paymentId !== paymentId);
+    localStorage.setItem(PENDING_COMPLETE_KEY, JSON.stringify(list));
+  } catch { /* noop */ }
+};
+
 // 결제/패스사용 응답 표준화 — start/complete/use 응답의 제각각 shape 판별을 한 곳으로 통일.
 // paymentId가 있고 도메인 에러(isGuinnessErrorCase)가 아니면 성공. 실패면 code/message로 안내.
 type ParsedPaymentResult = {
@@ -457,7 +479,8 @@ export const KioskForm = ({
     const rawAuthDate = str('outAuthDate');
     const authDate = rawAuthDate ? rawAuthDate.slice(0, 8) : '';
 
-    completeKioskPaymentAction({
+    // KIS 승인액(outTotAmt)을 항상 우선 — 서버엔 실제 매입 금액으로 기록(폼 표시가 0이어도 승인액으로).
+    const completeArgs: CompleteArgs = {
       paymentId: completePaymentId,
       targetUserId: selectedUser.id,
       kioskId,
@@ -468,33 +491,60 @@ export const KioskForm = ({
       cardBrand: str('outIssuerName'),
       cardNumber: str('outCardNo'),
       vanResponse: data,
-    })
-      .then((res) => {
-        if (cancelled) return;
-        // paymentId 없으면 서버 기록 실패 — 영수증 인쇄 차단 + 5초 후 홈 (KIS는 이미 매입했으므로 admin '결제 확인하기'로 후처리 가능)
-        const parsed = parsePaymentResult(res);
-        if (!parsed.ok) {
-          setToastMessage(parsed.message ?? '결제 기록 저장에 실패했어요');
-          if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
-          return;
+    };
+
+    // KIS는 이미 매입 완료 — 서버 complete가 실패해도 클라가 가진 이 정보로 재시도해서 반드시 기록되게 한다.
+    const runCompleteWithRetry = async () => {
+      const MAX = 3;
+      for (let attempt = 1; attempt <= MAX; attempt++) {
+        try {
+          const res = await completeKioskPaymentAction(completeArgs);
+          if (cancelled) return;
+          const parsed = parsePaymentResult(res);
+          if (parsed.ok) {
+            // Fix A — complete 성공으로 확정된 paymentId 기록 → 같은 paymentId로 2차 create/단말 호출 차단.
+            completedPaymentIdsRef.current.add(completePaymentId);
+            if (paymentInfo?.paymentId) completedPaymentIdsRef.current.add(paymentInfo.paymentId);
+            removePendingCompletion(completePaymentId);
+            applyReceiptFields(parsed);
+            // setPaymentQrCodeUrl/setPaymentRank는 비동기라 같은 tick의 handlePrintReceipt 클로저엔 반영 안 됨 → 값을 인자로 직접 전달
+            finishUp(parsed.qrCodeUrl ?? undefined, parsed.rank ?? undefined);
+            return;
+          }
+          // 도메인 에러(res.ok=false) — 마지막 시도까지 재시도 후 로컬 큐로 보관
+        } catch {
+          if (cancelled) return;
         }
-        // Fix A — complete 성공으로 확정된 paymentId 기록 → 같은 paymentId로 2차 create/단말 호출 차단.
-        completedPaymentIdsRef.current.add(completePaymentId);
-        if (paymentInfo?.paymentId) completedPaymentIdsRef.current.add(paymentInfo.paymentId);
-        applyReceiptFields(parsed);
-        // setPaymentQrCodeUrl/setPaymentRank는 비동기라 같은 tick의 handlePrintReceipt 클로저엔 반영 안 됨 → 값을 인자로 직접 전달
-        finishUp(parsed.qrCodeUrl ?? undefined, parsed.rank ?? undefined);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        // 네트워크/서버 예외 — 영수증 인쇄 차단, 토스트 + 5초 후 홈
-        setToastMessage('결제 기록 저장에 실패했어요');
-        if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
-      });
+        if (attempt < MAX) await new Promise((r) => setTimeout(r, 800 * attempt));
+      }
+      if (cancelled) return;
+      // 재시도 모두 실패 — KIS 정보 로컬 보관(다음 진입/키오스크 로드 시 자동 재시도) + 안내
+      savePendingCompletion(completeArgs);
+      setToastMessage('결제 기록 저장에 실패했어요. 잠시 후 자동으로 다시 시도돼요');
+      if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
+    };
+    runCompleteWithRetry();
 
     return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentResult, paymentMethod]);
+
+  // 미완료(서버 저장 실패) 결제 자동 복구 — 저장해둔 KIS 정보로 마운트 시 재시도. 성공하면 큐에서 제거.
+  useEffect(() => {
+    const pending = loadPendingCompletions();
+    if (pending.length === 0) return;
+    (async () => {
+      for (const args of pending) {
+        try {
+          const res = await completeKioskPaymentAction(args);
+          const parsed = parsePaymentResult(res);
+          if (parsed.ok) removePendingCompletion(args.paymentId);
+          // 실패면 큐에 유지 — 다음 기회에 재시도
+        } catch { /* 유지 */ }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // KIS 실패/취소 → Pending 폐기. 'fail'은 실패 다이얼로그도 함께 노출, 'canceled'는 조용히 폼으로 복귀.
   // 폐기 대상 paymentId도 outCustomerUuid를 우선 사용 (state staleness로 다른 paymentId 폐기되는 사고 방지)
