@@ -15,10 +15,27 @@ const ChevronRight = () => (
     <path d="M9.5 6.5l5 5.5-5 5.5" stroke="#3C4149" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+// 빈 주 상태 — 달력 아이콘 + 친근한 문구
+const EmptyWeek = ({ title, sub }: { title: string; sub: string }) => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="w-14 h-14 rounded-full bg-[#EFF1F4] flex items-center justify-center mb-3">
+      <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7">
+        <rect x="3" y="4.5" width="18" height="16" rx="3" stroke="#AEB4BB" strokeWidth="1.6" />
+        <path d="M3 9h18" stroke="#AEB4BB" strokeWidth="1.6" />
+        <path d="M8 2.5v4M16 2.5v4" stroke="#AEB4BB" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M9.5 14.5l5 3M14.5 14.5l-5 3" stroke="#C7CDD3" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    </div>
+    <p className="text-[15px] font-bold text-[#4E5968]">{title}</p>
+    <p className="mt-1 text-[13px] text-[#A0A5AB]">{sub}</p>
+  </div>
+);
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
+import { getRelativeWeekPrefix } from "@/utils/lesson.relative.date";
 
 // 해당 날짜가 속한 주의 월요일 구하기
 const getMonday = (date: Date): Date => {
@@ -165,6 +182,13 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
 
   const maxRow = Math.max(...cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
+  // 그 주에 수업(레슨 셀)이 하나도 없는지 — 있으면 그리드, 없으면 빈 상태로 전체를 채운다.
+  const noLesson = cells.every((c) => !c.lesson);
+  // 빈 상태 문구 — 이번주/다음주/지난주에는 …
+  const emptyWeekPrefix = getRelativeWeekPrefix(baseDate, clientToday ? new Date(clientToday) : new Date(timeTable.baseDate), locale);
+  const emptyTitle = getLocaleString({ locale, key: 'no_week_lessons' }).replace('{week}', emptyWeekPrefix);
+  const emptySub = getLocaleString({ locale, key: 'no_this_week_lessons_sub' });
+
   const fetchTimeTable = async (targetDate: Date) => {
     setIsLoading(true);
     setIsError(false);
@@ -246,7 +270,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
       </div>
       {/* 본문 — A: 시간축 그리드 / B: 구멍 메운 그리드 / C: 요일별 리스트. 로딩/에러 오버레이 공유.
           옅은 회색 rounded 카드는 요일 헤더부터 감싼다(상단 주차 라벨/description 제외). */}
-      <div className={`relative py-3 rounded-[20px] bg-[#FAFBFC] ${timeTableType === 'C' ? 'mx-3 px-1' : 'px-[2px]'}`}>
+      <div className={`relative py-3 rounded-[20px] bg-[#FAFBFC] min-h-[360px] ${timeTableType === 'C' ? 'mx-3 px-1' : 'px-[2px]'}`}>
         {timeTableType === 'C' ? (
           /* ── C 타입 ── 왼쪽 시간 컬럼 없이, 요일별로 수업을 리스트로. 각 행: 시간(PM 1:00) + 썸네일 + 제목 */
           <div className="flex flex-col gap-5 px-4 pt-1">
@@ -265,11 +289,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                 .filter((s) => s.dayLessons.length > 0);
 
               if (sections.length === 0) {
-                return !isLoading && !isError ? (
-                  <div className="py-10 text-center text-[14px] text-[#7A7A7A]">
-                    {getLocaleString({ locale, key: 'no_this_week_lessons' })}
-                  </div>
-                ) : null;
+                return !isLoading && !isError ? <EmptyWeek title={emptyTitle} sub={emptySub} /> : null;
               }
 
               return sections.map(({ d, i, dayLessons }) => (
@@ -378,8 +398,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                 )))}
                 {/* 빈 주 */}
                 {maxPerDay === 0 && !isLoading && !isError && (
-                  <div className="col-span-full mt-4" style={{ gridRowStart: 2, gridColumnStart: 1 }}>
-                    <div>{getLocaleString({ locale, key: 'no_this_week_lessons' })}</div>
+                  <div className="col-span-full" style={{ gridRowStart: 2, gridColumnStart: 1 }}>
+                    <EmptyWeek title={emptyTitle} sub={emptySub} />
                   </div>
                 )}
               </div>
@@ -395,7 +415,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
           }}
         >
         {/* 수업 영역 배경 — 로딩 중에도 유지(셀 언마운트 방지) */}
-        {cells.length > 0 && (
+        {!noLesson && (
           <div
             className="bg-[#F7F8F9] rounded-[10px]"
             style={{
@@ -454,7 +474,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
           </div>
         ))}
         {/* timetable cell — 로딩/에러는 아래에서 오버레이로 처리하고, 셀은 계속 마운트 유지 */}
-        {cells.length > 0 ? (
+        {!noLesson ? (
           (() => {
             const timeCells = cells.filter(c => !!c.time);
             const firstTimeRow = timeCells.length > 0 ? Math.min(...timeCells.map(c => c.row)) : -1;
@@ -528,11 +548,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
             });
           })()
         ) : (!isLoading && !isError) ? (
-          <div
-            className="col-span-full mt-4"
-            style={{gridRowStart: 2, gridColumnStart: 1}}
-          >
-            <div>{getLocaleString({locale, key: 'no_this_week_lessons'})}</div>
+          <div className="col-span-full" style={{ gridRowStart: 2, gridColumnStart: 1 }}>
+            <EmptyWeek title={emptyTitle} sub={emptySub} />
           </div>
         ) : null}
         </div>
