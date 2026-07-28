@@ -972,9 +972,8 @@ export const KioskForm = ({
     if (!paymentItem || !selectedUser) return;
     const passId = selectedPass?.pass.id;
     if (!passId) {
-      // 폼이 표시하는 가격(paymentItem.price)과 동일 기준으로 판정 — paymentInfo.price를 우선하면
-      // 폼은 0원(신청하기)인데 여기선 non-zero로 잡혀 '패스권 정보를 찾을 수 없습니다'가 잘못 뜨던 문제 수정.
-      const finalPrice = Math.max(0, (paymentItem.price ?? 0) - (selectedDiscount?.amount ?? 0));
+      // 실가격은 서버 응답(paymentInfo.price) 기준 — 폼/할인과 동일 소스로 통일.
+      const finalPrice = Math.max(0, (paymentInfo?.price ?? paymentItem.price ?? 0) - (selectedDiscount?.amount ?? 0));
       if (finalPrice === 0) {
         await handleCashPayment();   // 0원 → cash 흐름으로 즉시 Completed + QR 발급
         return;
@@ -1225,7 +1224,7 @@ export const KioskForm = ({
           lessonTitle={paymentItem.title}
           lessonSubtitle={paymentItem.subtitle}
           lessonThumbnailUrl={paymentItem.thumbnailUrl}
-          price={paymentItem.price}
+          price={paymentInfo?.price ?? paymentItem.price}
           user={{
             name: selectedUser.name,
             nickName: selectedUser.nickName,
@@ -1235,8 +1234,8 @@ export const KioskForm = ({
           selectedDiscount={selectedDiscount ?? (selectedPass ? {
             // 패스 사용(B 흐름)은 UI상 풀 커버 할인으로 표시 — finalPrice = 0으로 떨어지면서 신청하기 버튼이 노출됨
             key: `pass-${selectedPass.pass.id}`,
-            value: String(paymentItem.price),
-            amount: paymentItem.price,
+            value: String(paymentInfo?.price ?? paymentItem.price),
+            amount: paymentInfo?.price ?? paymentItem.price,
             type: 'passRule',
             itemId: selectedPass.pass.id,
             description: selectedPass.pass.passPlan?.name ?? '패스권',
