@@ -1250,6 +1250,13 @@ export const StringResource = {
     jp: "住所をコピーしました",
     zh: "已复制地址",
   },
+  time_ago_just_now: { ko: "방금 전", en: "just now", jp: "たった今", zh: "刚刚" },
+  time_ago_minutes: { ko: "{count}분 전", en: "{count}m ago", jp: "{count}分前", zh: "{count}分钟前" },
+  time_ago_hours: { ko: "{count}시간 전", en: "{count}h ago", jp: "{count}時間前", zh: "{count}小时前" },
+  time_ago_days: { ko: "{count}일 전", en: "{count}d ago", jp: "{count}日前", zh: "{count}天前" },
+  time_ago_weeks: { ko: "{count}주 전", en: "{count}w ago", jp: "{count}週間前", zh: "{count}周前" },
+  time_ago_months: { ko: "{count}달 전", en: "{count}mo ago", jp: "{count}ヶ月前", zh: "{count}个月前" },
+  time_ago_years: { ko: "{count}년 전", en: "{count}y ago", jp: "{count}年前", zh: "{count}年前" },
   language_setting: {
     ko: "언어 설정",
     en: "Language Setting",
@@ -2073,10 +2080,23 @@ export const StringResource = {
     zh: '推荐的工作室',
   },
   no_this_week_lessons: {
-    ko: '해당 일정에는 진행되는 수업이 없습니다.',
-    en: 'There are no lessons scheduled for this week.',
-    jp: '今週は予定されているレッスンがありません。',
-    zh: '本周没有安排课程。'
+    ko: '이 주에는 열리는 수업이 없어요',
+    en: 'No classes this week',
+    jp: 'この週の授業はありません',
+    zh: '本周暂无课程'
+  },
+  // {week} = 이번주/다음주/지난주 등
+  no_week_lessons: {
+    ko: '{week}에는 열리는 수업이 없어요',
+    en: 'No classes {week}',
+    jp: '{week}は授業がありません',
+    zh: '{week}暂无课程'
+  },
+  no_this_week_lessons_sub: {
+    ko: '다른 주도 둘러보세요',
+    en: 'Try browsing other weeks',
+    jp: '他の週も見てみましょう',
+    zh: '看看其他周吧'
   },
   no_studio: {
     ko: '등록된 스튜디오가 없습니다',

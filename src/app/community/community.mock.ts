@@ -18,6 +18,7 @@ export type CommunityNotice = {
   title: string;
   content?: string;
   imageUrl?: string | null;
+  createdAt?: string | null; // 작성 시각(ISO 또는 'yyyy.MM.dd HH:mm') — 상대 표기용
 };
 
 // 편의시설 — 실 API 필드 없음. 정적 기본 목록.

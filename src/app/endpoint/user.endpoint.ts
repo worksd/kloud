@@ -116,6 +116,8 @@ export type GetAnnouncementResponse = {
   body: string
   imageUrl?: string | null
   studio: GetStudioResponse,
+  /** 작성 시각 — ISO 또는 'yyyy.MM.dd HH:mm'(KST). 공지에 '작성 N분 전' 상대 표기용. */
+  createdAt?: string | null
 }
 
 export type SignOutParameter = {

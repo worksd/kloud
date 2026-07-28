@@ -8,6 +8,7 @@ import { LessonBookingList } from "@/app/studios/[id]/lessons/LessonBookingList"
 import { TimeTable } from "@/app/studios/timetable/TimeTable";
 import { StudioInstaLink } from "@/app/studios/[id]/StudioInstaLink";
 import { StudioSlugCopy } from "@/app/studios/[id]/StudioSlugCopy";
+import { StudioAddressLink } from "@/app/studios/[id]/StudioAddressLink";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { StudioCollapsingTopBar } from "@/app/studios/[id]/StudioCollapsingTopBar";
@@ -40,6 +41,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
     title: a.title,
     content: a.body,
     imageUrl: a.imageUrl ?? undefined,
+    createdAt: a.createdAt ?? undefined,
   }));
   // 이용권 — studio.passPlans를 community/[id]와 동일한 StudioPassList 형태로 매핑
   const passes: CommunityPass[] = (studio.passPlans ?? []).map((p) => {
@@ -77,13 +79,14 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
       {/* 헤더 — 커버 이미지(풀블리드) + 하단 이름/slug 오버레이 (프로필 로고 없음) */}
       <div
         style={{ backgroundImage: `url(${studio.coverImageUrl ?? studio.profileImageUrl})` }}
-        className="studio-cover w-full relative aspect-[4/5] bg-cover bg-center bg-no-repeat
+        className="studio-cover w-full relative -mt-10 aspect-[2/3] bg-cover bg-[center_30%] bg-no-repeat
           before:content-[''] before:absolute before:inset-0 before:block
-          before:bg-gradient-to-b before:from-transparent before:from-[62%] before:to-white before:to-100% before:z-10"
+          before:bg-gradient-to-b before:from-transparent before:from-[70%] before:to-white before:to-100% before:z-10"
       >
         {/* 커버 하단 오버레이 — 이름 → slug(@핸들) → 인스타 아이콘 세로 정렬. 주소는 노출하지 않음 */}
         <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-0 -mb-1 flex flex-col items-start">
           <div className="text-[#131517] text-2xl font-bold leading-tight">{studio.name}</div>
+          {studio.address && <StudioAddressLink address={studio.address} appVersion={appVersion} />}
           {/* slug(앱 아이콘 + @핸들) — 탭하면 주소 복사 + 토스트. 아래 인스타 행과 동일 규격 */}
           {studio.slug && <StudioSlugCopy slug={studio.slug} baseUrl={webBaseUrl} locale={locale} />}
           {studio.instagramAddress && (

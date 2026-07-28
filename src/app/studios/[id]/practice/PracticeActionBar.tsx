@@ -28,7 +28,7 @@ export function PracticeActionProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={{ setAction, clearAction, activeSource: action?.source ?? null }}>
       {children}
       {action && (
-        <div className="fixed bottom-0 left-0 right-0 px-4 py-3 bg-white border-t border-[#F1F3F6] animate-[slideUp_220ms_ease-out]">
+        <div className="fixed bottom-0 left-0 right-0 z-40 px-4 py-3 bg-white border-t border-[#F1F3F6] animate-[slideUp_220ms_ease-out]">
           <button
             onClick={action.onConfirm}
             className="w-full h-14 rounded-2xl bg-[#171717] flex items-center justify-center active:scale-[0.98] transition-transform"

@@ -7,6 +7,7 @@ import { CommunityPass } from "@/app/community/community.mock";
 import { usePracticeAction } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { LessonTags } from "@/app/components/LessonTags";
 
 const MAX_VISIBLE = 3;
 
@@ -62,9 +63,7 @@ export function StudioPassList({ passes, studioId, locale }: { passes: Community
             {/* 이름 + 혜택 요약 */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                {p.tag && (
-                  <span className="px-2 py-0.5 rounded-full bg-[#EAF7F4] text-[#2AA894] text-[11px] font-bold shrink-0">{p.tag}</span>
-                )}
+                {p.tag && <LessonTags tags={p.tag} className="shrink-0" />}
                 <span className="text-[15px] font-bold text-[#171717] truncate">{p.name}</span>
               </div>
               {p.description && (
