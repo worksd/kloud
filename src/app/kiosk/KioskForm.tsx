@@ -972,7 +972,9 @@ export const KioskForm = ({
     if (!paymentItem || !selectedUser) return;
     const passId = selectedPass?.pass.id;
     if (!passId) {
-      const finalPrice = Math.max(0, (paymentInfo?.price ?? paymentItem.price ?? 0) - (selectedDiscount?.amount ?? 0));
+      // 폼이 표시하는 가격(paymentItem.price)과 동일 기준으로 판정 — paymentInfo.price를 우선하면
+      // 폼은 0원(신청하기)인데 여기선 non-zero로 잡혀 '패스권 정보를 찾을 수 없습니다'가 잘못 뜨던 문제 수정.
+      const finalPrice = Math.max(0, (paymentItem.price ?? 0) - (selectedDiscount?.amount ?? 0));
       if (finalPrice === 0) {
         await handleCashPayment();   // 0원 → cash 흐름으로 즉시 Completed + QR 발급
         return;

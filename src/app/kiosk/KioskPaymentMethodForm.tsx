@@ -74,6 +74,9 @@ export const KioskPaymentMethodForm = ({
   const discountAmount = selectedDiscount?.amount ?? 0;
   const finalPrice = Math.max(0, price - discountAmount);
   const fullyCovered = finalPrice === 0;
+  // 원가 자체가 0원(무료 대관/수업) — 패스권/할인이 필요 없으므로 관련 섹션을 숨긴다.
+  // (fullyCovered는 '패스·할인으로 0원이 된 것'까지 포함하므로 별도로 구분)
+  const isFree = price === 0;
   const userPrimaryName = user.nickName || user.name || '-';
   const userSecondaryName = user.nickName && user.name ? user.name : '';
 
@@ -180,7 +183,7 @@ export const KioskPaymentMethodForm = ({
           (패스권 구매 시엔 다른 패스권으로 할인을 적용할 수 없어 섹션 자체 숨김)
           단, modal 내부의 보유 패스권 목록은 KioskForm 쪽에서 passEnabled에 따라 마스킹됨 →
           passEnabled=false면 discounts만 노출. */}
-      {itemType !== 'pass-plan' && (
+      {itemType !== 'pass-plan' && !isFree && (
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
         <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
           {t('kiosk_discount_pass_section')}
