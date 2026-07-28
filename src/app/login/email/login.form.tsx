@@ -31,6 +31,8 @@ export const LoginForm = (props: LoginFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // 웹(appVersion === '')에서 로그인 실패 시 인라인 에러(네이티브 showDialog 대체)
+  const [loginError, setLoginError] = useState<string | null>(null);
   const router = useRouter();
 
   // 캐시된 이메일 불러오기
@@ -43,10 +45,12 @@ export const LoginForm = (props: LoginFormProps) => {
 
   const onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
+    if (loginError) setLoginError(null);
   }
 
   const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
+    if (loginError) setLoginError(null);
   }
 
   const onClickSignUp = async () => {
@@ -70,11 +74,8 @@ export const LoginForm = (props: LoginFormProps) => {
       saveRecentLoginMethod('email');
 
       if (props.appVersion == '') {
-        if (props.returnUrl) {
-          router.replace(props.returnUrl);
-        } else {
-          router.replace('/');
-        }
+        // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 서버 컴포넌트에 확실히 반영되게
+        window.location.replace(props.returnUrl || '/');
       } else {
         await LoginAuthNavigation({
           status: res.status,
@@ -82,8 +83,13 @@ export const LoginForm = (props: LoginFormProps) => {
         })
       }
     } else if (res.errorCode) {
-      const dialogInfo = await createDialog({id: 'LoginFail', message: res.errorMessage})
-      window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+      if (props.appVersion === '') {
+        // 웹: 네이티브 다이얼로그 대신 인라인 에러
+        setLoginError(res.errorMessage || '로그인에 실패했어요');
+      } else {
+        const dialogInfo = await createDialog({id: 'LoginFail', message: res.errorMessage})
+        window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
+      }
     }
   }
 
@@ -144,6 +150,11 @@ export const LoginForm = (props: LoginFormProps) => {
                 </button>
               </div>
             </div>
+
+            {/* 인라인 에러 (웹) */}
+            {loginError && (
+              <p className="w-full -mt-2 text-left text-[13px] font-medium text-[#E5484D]">{loginError}</p>
+            )}
 
             {/* 시작하기 버튼 (가운데) */}
             <button

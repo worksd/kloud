@@ -82,7 +82,9 @@ export const RoomBookingRefundSection = ({ bookingId, cancellable, paymentId, lo
           </div>
 
           {cancellable && (
-            paymentId ? (
+            // paymentId가 있고 LP(패스권 구매)가 아니면 결제내역 환불 플로우로,
+            // paymentId 없거나 LP(패스권)면 DELETE /roomBookings/:id 직접 취소.
+            (paymentId && !paymentId.startsWith('LP')) ? (
               // 결제건 — 기존 결제내역 환불 플로우로 이동.
               <NavigateClickWrapper method="push" route={KloudScreen.PaymentRecordRefund(paymentId)}>
                 <button className="w-full border border-[#e55b5b] rounded-[8px] h-9 px-[10px] flex items-center justify-center gap-1 active:scale-[0.95] transition-transform duration-150">
@@ -90,7 +92,7 @@ export const RoomBookingRefundSection = ({ bookingId, cancellable, paymentId, lo
                 </button>
               </NavigateClickWrapper>
             ) : (
-              // 무료(패스 등) — DELETE /roomBookings/:id 직접 취소.
+              // paymentId 없음(무료) 또는 LP(패스권) — DELETE /roomBookings/:id 직접 취소.
               <button
                 disabled={cancelling}
                 onClick={handleCancelClick}
