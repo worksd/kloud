@@ -227,6 +227,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         </span>
                       </div>
                     )}
+                    {/* 강사 — duration 아래, 전원 표기 */}
+                    {res.lesson?.artists && res.lesson.artists.length > 0 && (
+                      <div className="flex items-start gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-[1px] shrink-0">
+                          <circle cx="7" cy="4.5" r="2.5" stroke="#999" strokeWidth="1.1"/>
+                          <path d="M2.5 12c0-2.2 2-3.5 4.5-3.5s4.5 1.3 4.5 3.5" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
+                        </svg>
+                        <span className="text-[13px] font-medium text-[#666] break-words">
+                          {res.lesson.artists.map((a) => a.nickName || a.name).filter(Boolean).join(', ')}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
                 {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
