@@ -4,8 +4,17 @@ import Image from 'next/image';
 import { KloudScreen } from "@/shared/kloud.screen";
 import React, { useState, useMemo, useEffect } from "react";
 import { GetTimeTableResponse, GetTimeTableCellResponse } from "@/app/endpoint/studio.endpoint";
-import BackwardIcon from "../../../../public/assets/ic_simple_left_arrow.svg"
-import ForwardIcon from "../../../../public/assets/ic_simple_right_arrow.svg"
+// 주간 네비 chevron — 얇고 깔끔한 인라인 아이콘
+const ChevronLeft = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="w-[18px] h-[18px]">
+    <path d="M14.5 6.5l-5 5.5 5 5.5" stroke="#3C4149" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const ChevronRight = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="w-[18px] h-[18px]">
+    <path d="M9.5 6.5l5 5.5-5 5.5" stroke="#3C4149" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
@@ -49,8 +58,8 @@ const getWeekDays = (baseDate: Date, today: string): { day: string; date: string
   });
 };
 
-// 주차 타이틀 계산 (예: "1월 첫째 주")
-const getWeekTitle = (baseDate: Date, locale: Locale): string => {
+// 월 몇째 주 라벨 (예: "7월 넷째 주") — 상대 라벨(±1주) 범위 밖의 폴백.
+const getMonthWeekTitle = (baseDate: Date, locale: Locale): string => {
   const monday = getMonday(baseDate);
   const thursday = new Date(monday);
   thursday.setDate(monday.getDate() + 3);
@@ -70,26 +79,37 @@ const getWeekTitle = (baseDate: Date, locale: Locale): string => {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const weekNames = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
 
-  if (locale === 'ko') {
-    return `${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`;
-  } else {
-    return `Week ${weekIndex + 1} of ${monthNames[month]}`;
-  }
+  if (locale === 'ko') return `${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`;
+  if (locale === 'jp') return `${month + 1}月 第${weekIndex + 1}週`;
+  if (locale === 'zh') return `${month + 1}月 第${weekIndex + 1}周`;
+  return `Week ${weekIndex + 1} of ${monthNames[month]}`;
 };
 
-// 주차 설명 계산 (예: "2025 01.06 ~ 01.12")
-const getWeekDescription = (baseDate: Date): string => {
-  const monday = getMonday(baseDate);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+// 기준 주(baseDate)가 오늘 주(refDate) 대비 ±1주면 상대 라벨(이번/지난/다음 주),
+// 그 밖(2주 이상)은 '월 몇째 주'로 폴백.
+const getRelativeWeekTitle = (baseDate: Date, refDate: Date, locale: Locale): string => {
+  const diff = Math.round((getMonday(baseDate).getTime() - getMonday(refDate).getTime()) / (7 * 24 * 60 * 60 * 1000));
+  const rel = {
+    ko: { this: '이번 주 열리는 수업', next: '다음 주 열리는 수업', prev: '지난 주 열리는 수업' },
+    en: { this: 'Classes this week', next: 'Classes next week', prev: 'Classes last week' },
+    jp: { this: '今週開かれる授業', next: '来週開かれる授業', prev: '先週開かれた授業' },
+    zh: { this: '本周开设的课程', next: '下周开设的课程', prev: '上周开设的课程' },
+  }[locale];
+  if (diff === 0) return rel.this;
+  if (diff === 1) return rel.next;
+  if (diff === -1) return rel.prev;
+  return getMonthWeekTitle(baseDate, locale);
+};
 
-  const formatDate = (d: Date) => {
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${mm}.${dd}`;
-  };
 
-  return `${monday.getFullYear()} ${formatDate(monday)} ~ ${formatDate(sunday)}`;
+// 'HH:mm' → 'PM 1:00' (12시간제 + AM/PM). 파싱 실패 시 원본.
+const formatAmPm = (t?: string): string => {
+  if (!t) return '';
+  const [hh, mm] = t.split(':').map(Number);
+  if (Number.isNaN(hh)) return t;
+  const ampm = hh < 12 ? 'AM' : 'PM';
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return `${ampm} ${h12}:${String(Number.isNaN(mm) ? 0 : mm).padStart(2, '0')}`;
 };
 
 export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
@@ -112,8 +132,36 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
 
   // 클라이언트에서 계산되는 날짜 관련 데이터
   const days = useMemo(() => getWeekDays(baseDate, clientToday), [baseDate, clientToday]);
-  const title = useMemo(() => getWeekTitle(baseDate, locale), [baseDate, locale]);
-  const description = useMemo(() => getWeekDescription(baseDate), [baseDate]);
+  const title = useMemo(() => {
+    const ref = clientToday ? new Date(clientToday) : new Date(timeTable.baseDate);
+    return getRelativeWeekTitle(baseDate, ref, locale);
+  }, [baseDate, clientToday, locale, timeTable.baseDate]);
+  // 오늘 컬럼에 수업이 하나라도 있는지 — 오늘 컬럼 강조는 이 경우에만.
+  // (allDays = [TIME, ...days]라 오늘 컬럼 값 = days 인덱스 + 1)
+  const hasLessonToday = useMemo(() => {
+    const todayIdx = days.findIndex((d) => d.isToday);
+    if (todayIdx < 0) return false;
+    return cells.some((c) => c.column === todayIdx + 1 && !!c.lesson);
+  }, [days, cells]);
+  // 그 주에 수업이 열리는 요일 — 제목 아래 description용.
+  // (allDays = [TIME, ...days(월~일)]라 lesson 셀의 column 1~7 = 월~일)
+  const lessonDaysText = useMemo(() => {
+    const cols = new Set(cells.filter((c) => !!c.lesson).map((c) => c.column));
+    const names: Record<Locale, string[]> = {
+      ko: ['월', '화', '수', '목', '금', '토', '일'],
+      en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      jp: ['月', '火', '水', '木', '金', '土', '日'],
+      zh: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+    };
+    const pickedCols = [1, 2, 3, 4, 5, 6, 7].filter((col) => cols.has(col));
+    if (pickedCols.length === 0) return '';
+    // 7일 모두 수업이 있으면 '매일 …'로
+    if (pickedCols.length === 7) {
+      return { ko: '매일 수업이 열려요', en: 'Classes every day', jp: '毎日授業があります', zh: '每天开课' }[locale];
+    }
+    const joined = pickedCols.map((col) => names[locale][col - 1]).join('·');
+    return { ko: `${joined} 수업이 열려요`, en: `Open ${joined}`, jp: `${joined}開講`, zh: `${joined}开课` }[locale];
+  }, [cells, locale]);
 
   const maxRow = Math.max(...cells.map(cell => cell.row + (cell.length ?? 1) - 1), 0);
 
@@ -163,42 +211,189 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
   // TIME 컬럼 + 요일 컬럼
   const allDays = [{ day: 'TIME', date: '', isToday: false }, ...days];
 
+  // 시간표 렌더 타입 — 서버 응답(type) 기준. 안 내려오면 A.
+  //  A = 시간축 그리드(구멍 있음) / B = 구멍 메운 그리드(요일별 위로 쌓기) / C = 요일별 리스트(시간+썸네일)
+  const timeTableType = timeTable.type ?? 'A';
+
   return (
     <div className="flex flex-col px-1">
 
-      <div className="flex py-3 px-4 ">
-        <div className="text-[20px] font-bold text-black">{getLocaleString({locale, key: 'timetable_title'})}</div>
-      </div>
-
-      <div className="flex flex-row items-center justify-between gap-1 px-4 w-full pb-2">
-        <div className="flex flex-col items-start text-left">
-          <h2 className="text-[16px] text-black font-bold">{title}</h2>
-          <p className="text-[12px] text-[#7A7A7A]">{description}</p>
+      {/* 섹션 헤더 — 좌측 주차 라벨(섹션 제목) + 우측 주간 이동 화살표 */}
+      <div className="flex justify-between items-center gap-2 mt-6 mb-3 px-4 w-full">
+        <div className="min-w-0">
+          <h2 className="text-[20px] text-black font-bold leading-tight truncate">{title}</h2>
+          {lessonDaysText && <p className="text-[12px] text-[#8B95A1] mt-0.5 truncate">{lessonDaysText}</p>}
         </div>
 
-        <div className="flex flex-row items-center gap-1 shrink-0">
-          <div
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            type="button"
             onClick={onClickPrev}
-            className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
+            aria-label="이전 주"
+            className="w-9 h-9 flex items-center justify-center active:opacity-40 transition-opacity duration-150"
           >
-            <BackwardIcon/>
-          </div>
-          <div
+            <ChevronLeft/>
+          </button>
+          <button
+            type="button"
             onClick={onClickNext}
-            className="relative flex items-center justify-center p-2 rounded-full active:bg-black/10 transition-colors duration-150 cursor-pointer"
+            aria-label="다음 주"
+            className="w-9 h-9 flex items-center justify-center active:opacity-40 transition-opacity duration-150"
           >
-            <ForwardIcon/>
-          </div>
+            <ChevronRight/>
+          </button>
         </div>
       </div>
-      <div
-        className="relative grid w-full px-1 text-center text-[14px] font-medium text-black"
-        style={{
-          gridTemplateColumns: `repeat(${allDays.length}, minmax(0, 1fr))`,
-          gridTemplateRows: `auto repeat(${maxRow}, minmax(0, 1fr))`,
-          gap: '4px'
-        }}
-      >
+      {/* 본문 — A: 시간축 그리드 / B: 구멍 메운 그리드 / C: 요일별 리스트. 로딩/에러 오버레이 공유.
+          옅은 회색 rounded 카드는 요일 헤더부터 감싼다(상단 주차 라벨/description 제외). */}
+      <div className={`relative py-3 rounded-[20px] bg-[#FAFBFC] ${timeTableType === 'C' ? 'mx-3 px-1' : 'px-[2px]'}`}>
+        {timeTableType === 'C' ? (
+          /* ── C 타입 ── 왼쪽 시간 컬럼 없이, 요일별로 수업을 리스트로. 각 행: 시간(PM 1:00) + 썸네일 + 제목 */
+          <div className="flex flex-col gap-5 px-4 pt-1">
+            {(() => {
+              const rowToTime: Record<number, string> = {};
+              cells.forEach((c) => { if (c.time) rowToTime[c.row] = c.time; });
+              const koDays = ['월', '화', '수', '목', '금', '토', '일'];
+              const sections = days
+                .map((d, i) => ({
+                  d,
+                  i,
+                  dayLessons: cells
+                    .filter((c) => !!c.lesson && c.column === i + 1)
+                    .sort((a, b) => a.row - b.row),
+                }))
+                .filter((s) => s.dayLessons.length > 0);
+
+              if (sections.length === 0) {
+                return !isLoading && !isError ? (
+                  <div className="py-10 text-center text-[14px] text-[#7A7A7A]">
+                    {getLocaleString({ locale, key: 'no_this_week_lessons' })}
+                  </div>
+                ) : null;
+              }
+
+              return sections.map(({ d, i, dayLessons }) => (
+                <div key={d.date}>
+                  <div className="flex items-baseline gap-1.5 mb-2.5">
+                    <span className={`text-[15px] font-bold ${d.isToday ? 'text-[#2AA894]' : 'text-black'}`}>{koDays[i]}</span>
+                    <span className="text-[12px] text-[#9AA0A6]">{d.date.split('-').slice(1).join('.')}</span>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    {dayLessons.map((cell) => (
+                      <div
+                        key={`${cell.row}-${cell.column}`}
+                        onClick={() => {
+                          const lessonId = cell.lesson!.id;
+                          if (useSheet) {
+                            window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
+                          } else {
+                            kloudNav.push(KloudScreen.LessonDetail(lessonId));
+                          }
+                        }}
+                        className="flex items-center gap-3 active:opacity-70 transition-opacity cursor-pointer"
+                      >
+                        <span className="w-[62px] shrink-0 text-[12px] font-bold text-[#4E5968] font-paperlogy">
+                          {formatAmPm(rowToTime[cell.row])}
+                        </span>
+                        <div className="w-[52px] h-[52px] rounded-[10px] overflow-hidden bg-[#F1F3F6] shrink-0">
+                          {cell.lesson!.thumbnailUrl && (
+                            <Image src={cell.lesson!.thumbnailUrl} alt="" width={52} height={52} className="w-full h-full object-cover" quality={10} sizes="60px" />
+                          )}
+                        </div>
+                        <span className="flex-1 min-w-0 text-[14px] font-medium text-[#171717] line-clamp-2">{cell.lesson!.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        ) : timeTableType === 'B' ? (
+          /* ── B 타입 ── 그리드 유지, 각 요일 컬럼의 빈 구멍(시간 갭) 없이 위에서부터 빈틈없이 쌓음 (TIME 컬럼 없음) */
+          (() => {
+            const lessonsByDay = days.map((_, j) =>
+              cells.filter((c) => !!c.lesson && c.column === j + 1).sort((a, b) => a.row - b.row));
+            const maxPerDay = Math.max(...lessonsByDay.map((l) => l.length), 0);
+            // row → 진행 시간 (TIME 컬럼 셀에서). 각 수업 셀에 시간 라벨로 표기.
+            const rowToTime: Record<number, string> = {};
+            cells.forEach((c) => { if (c.time) rowToTime[c.row] = c.time; });
+            return (
+              <div
+                className="grid w-full text-center text-[14px] font-medium text-black"
+                style={{
+                  gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))`,
+                  gridTemplateRows: `auto repeat(${maxPerDay}, minmax(0, 1fr))`,
+                  gap: '4px',
+                }}
+              >
+                {/* 요일 헤더 */}
+                {days.map((value, j) => (
+                  <div
+                    key={value.day + j}
+                    className={`text-center flex flex-col items-center rounded-lg ${value.isToday ? 'bg-black' : ''}`}
+                    style={{ gridColumnStart: j + 1, gridRowStart: 1, paddingTop: '0.35rem', paddingBottom: '0.35rem' }}
+                  >
+                    <div className={`text-[11px] font-sans ${value.isToday ? 'text-white font-bold' : 'text-[#7A7A7A]'}`}>{value.day}</div>
+                    {value.date && value.date.length > 1 && (
+                      <div className={`text-[17px] leading-none font-paperlogy mt-[3px] ${value.isToday ? 'text-white font-bold' : 'text-[#BCBCBC]'}`}>
+                        {value.date.split('-')[2]}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {/* 구멍 메운 수업 — 요일 컬럼별로 위에서부터 연속 배치 */}
+                {lessonsByDay.map((list, j) => list.map((cell, k) => (
+                  <div
+                    key={`${cell.row}-${cell.column}`}
+                    onClick={() => {
+                      const lessonId = cell.lesson!.id;
+                      if (useSheet) {
+                        window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
+                      } else {
+                        kloudNav.push(KloudScreen.LessonDetail(lessonId));
+                      }
+                    }}
+                    className="overflow-hidden rounded-[8px] border shadow-sm active:scale-[0.97] transition-all duration-150 aspect-[1/1.76] cursor-pointer"
+                    style={{ gridColumnStart: j + 1, gridRowStart: k + 2, zIndex: 1 }}
+                  >
+                    <div className="relative w-full h-full flex flex-col">
+                      {cell.lesson!.thumbnailUrl ? (
+                        <div className="flex-1 relative w-full min-h-0">
+                          <Image src={cell.lesson!.thumbnailUrl} alt="lesson thumbnail" fill className="object-cover" quality={10} sizes="96px" />
+                        </div>
+                      ) : (
+                        <div className="flex-1 w-full bg-gray-200" />
+                      )}
+                      {/* 썸네일 위 진행 시간 배지 */}
+                      {rowToTime[cell.row] && (
+                        <div className="absolute top-1 left-1 px-1 py-0.5 rounded-[4px] bg-black/60 backdrop-blur-sm text-white text-[6.5px] font-bold font-paperlogy leading-none">
+                          {formatAmPm(rowToTime[cell.row])}
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                        {cell.lesson!.title}
+                      </div>
+                    </div>
+                  </div>
+                )))}
+                {/* 빈 주 */}
+                {maxPerDay === 0 && !isLoading && !isError && (
+                  <div className="col-span-full mt-4" style={{ gridRowStart: 2, gridColumnStart: 1 }}>
+                    <div>{getLocaleString({ locale, key: 'no_this_week_lessons' })}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        ) : (
+        <div
+          className="grid w-full text-center text-[14px] font-medium text-black"
+          style={{
+            gridTemplateColumns: `repeat(${allDays.length}, minmax(0, 1fr))`,
+            gridTemplateRows: `auto repeat(${maxRow}, minmax(0, 1fr))`,
+            gap: '4px'
+          }}
+        >
         {/* 수업 영역 배경 — 로딩 중에도 유지(셀 언마운트 방지) */}
         {cells.length > 0 && (
           <div
@@ -212,32 +407,46 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
             }}
           />
         )}
+
+        {/* 오늘 컬럼 강조 — 세로 하이라이트 스트립 (셀은 위에 얹힘). 오늘 수업 있을 때만 */}
+        {(() => {
+          const todayIdx = days.findIndex((d) => d.isToday);
+          if (todayIdx < 0 || !hasLessonToday) return null;
+          return (
+            <div
+              className="bg-[#EAF1FF] rounded-[10px] pointer-events-none"
+              style={{
+                gridColumnStart: todayIdx + 2,
+                gridColumnEnd: todayIdx + 3,
+                gridRowStart: 2,
+                gridRowEnd: maxRow + 3,
+                zIndex: 0,
+              }}
+            />
+          );
+        })()}
         {allDays.map((value, i) => (
           <div
             key={value.day + i}
-            className={`text-center flex flex-col items-center justify`}
+            className={`text-center flex flex-col items-center rounded-lg ${value.isToday ? 'bg-black' : ''}`}
             style={{
               gridColumnStart: i + 1,
               gridRowStart: 1,
-              paddingTop: '0.25rem',
-              paddingBottom: '0.25rem',
+              paddingTop: '0.35rem',
+              paddingBottom: '0.35rem',
               height: '100%',
             }}
           >
             {value.day != 'TIME' &&
               <div
-                className={`text-[12px] text-[#7A7A7A] font-sans`}
+                className={`text-[11px] font-sans ${value.isToday ? 'text-white font-bold' : 'text-[#7A7A7A]'}`}
               >
                 {value.day}
               </div>
             }
             {value.date && value.date.length > 1 && (
               <div
-                className={`
-      text-[14px] leading-none font-paperlogy mt-[6px] mb-[2px]
-      w-6 h-6 flex items-center justify-center mx-auto p-4
-      ${value.isToday ? 'bg-black text-white rounded-full' : 'text-[#BCBCBC]'}
-    `}
+                className={`text-[17px] leading-none font-paperlogy mt-[3px] ${value.isToday ? 'text-white font-bold' : 'text-[#BCBCBC]'}`}
               >
                 {value.date.split('-')[2]}
               </div>
@@ -296,7 +505,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                             alt="lesson thumbnail"
                             fill
                             className="object-cover"
-                            quality={50}
+                            quality={10}
+                            sizes="96px"
                           />
                         </div>
                       ) : (
@@ -325,6 +535,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
             <div>{getLocaleString({locale, key: 'no_this_week_lessons'})}</div>
           </div>
         ) : null}
+        </div>
+        )}
 
         {/* 로딩 오버레이 — 기존 셀 위에 덮어 깜빡임 없이 주차 전환 */}
         {isLoading && (

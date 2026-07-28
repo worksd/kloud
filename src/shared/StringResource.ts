@@ -1244,6 +1244,12 @@ export const StringResource = {
     jp: "スタジオのお知らせ",
     zh: "工作室公告"
   },
+  studio_address_copied: {
+    ko: "주소가 복사되었어요",
+    en: "Address copied to clipboard",
+    jp: "住所をコピーしました",
+    zh: "已复制地址",
+  },
   language_setting: {
     ko: "언어 설정",
     en: "Language Setting",
@@ -2067,7 +2073,7 @@ export const StringResource = {
     zh: '推荐的工作室',
   },
   no_this_week_lessons: {
-    ko: '이번주는 진행되는 수업이 없습니다.',
+    ko: '해당 일정에는 진행되는 수업이 없습니다.',
     en: 'There are no lessons scheduled for this week.',
     jp: '今週は予定されているレッスンがありません。',
     zh: '本周没有安排课程。'

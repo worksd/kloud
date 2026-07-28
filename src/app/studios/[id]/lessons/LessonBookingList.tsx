@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { GetBandLessonResponse, GetLessonButtonResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { getStudioLessonDetailAction } from "@/app/studios/[id]/lessons/get.lesson.buttons.action";
-import { LessonLevelLabel } from "@/app/components/LessonLabel";
+import { LessonLabel, LessonLevelLabel } from "@/app/components/LessonLabel";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
@@ -157,8 +158,7 @@ export function LessonBookingList({
             >
               <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#F1F3F6]">
                 {lesson.thumbnailUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={lesson.thumbnailUrl} alt={lesson.title} className="absolute inset-0 w-full h-full object-cover" />
+                  <Image src={lesson.thumbnailUrl} alt={lesson.title} fill className="object-cover" quality={50} sizes="45vw" />
                 )}
                 {lesson.label?.isEnded && (
                   <div className="absolute bottom-0 w-full bg-black/60 py-2 text-white text-center font-bold text-[14px]">
@@ -211,7 +211,7 @@ export function LessonBookingList({
               {/* 대표 이미지 */}
               {(detail?.thumbnailUrl ?? selectedCard?.thumbnailUrl) && (
                 <div className="px-5 pt-2">
-                  <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-[#F1F3F6]">
+                  <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-[#F1F3F6]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={detail?.thumbnailUrl ?? selectedCard?.thumbnailUrl}
@@ -232,8 +232,10 @@ export function LessonBookingList({
               <div className="px-5 pt-3.5">
                 <div className="flex items-center gap-1.5">
                   {detail?.level && <LessonLevelLabel label={detail.level} locale={locale} />}
-                  {detail?.genre && (
-                    <span className="px-2 py-0.5 rounded-[4px] bg-[#F1F3F6] text-[#4E5968] text-[12px] font-bold">{detail.genre}</span>
+                  {/* 장르는 앱 공통 LessonLabel로 — 한글 매핑(choreography→코레오 등)과 스타일을 다른 화면과 통일.
+                      'Default'는 장르 미지정이라 노출하지 않는다. */}
+                  {detail?.genre && detail.genre !== 'Default' && (
+                    <LessonLabel label={detail.genre} locale={locale} />
                   )}
                 </div>
                 <h2 className="mt-1.5 text-[20px] font-bold text-[#171717] leading-snug">

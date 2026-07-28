@@ -45,6 +45,8 @@ export type CommunityPracticeRoomResponse = {
 export type GetStudioResponse = {
     id: number;
     name: string;
+    /** 스튜디오 고유 slug(핸들). 있으면 제목 아래 작게 노출. */
+    slug?: string | null;
     address?: string;
     roadAddress?: string;
     profileImageUrl: string;
@@ -126,6 +128,8 @@ export type GetTimeTableResponse = {
   description: string;
   studioId: number;
   baseDate: string;
+  /** 시간표 렌더 타입. A=시간축 그리드 / B=구멍 메운 그리드 / C=요일별 리스트. 없으면 A. */
+  type?: 'A' | 'B' | 'C';
 }
 
 export type GetTimeTableDayResponse = {
