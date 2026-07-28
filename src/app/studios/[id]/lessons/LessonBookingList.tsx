@@ -7,7 +7,7 @@ import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { GetBandLessonResponse, GetLessonButtonResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { getStudioLessonDetailAction } from "@/app/studios/[id]/lessons/get.lesson.buttons.action";
-import { LessonLabel, LessonLevelLabel } from "@/app/components/LessonLabel";
+import { LessonLabel, LessonLevelLabel, LessonTypeLabel } from "@/app/components/LessonLabel";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { formatRelativeLessonDate } from "@/utils/lesson.relative.date";
@@ -200,31 +200,15 @@ export function LessonBookingList({
             onTouchMove={onDragMove}
             onTouchEnd={onDragEnd}
           >
-            {/* 드래그 핸들 + 닫기 버튼 (이미지 위쪽 헤더) */}
-            <div className="shrink-0 relative h-12">
+            {/* 드래그 핸들 (닫기 X 제거) */}
+            <div className="shrink-0 relative h-8">
               <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mt-3" />
-              <button
-                onClick={() => closeSheet()}
-                aria-label="close"
-                className="absolute right-3 top-2.5 flex h-8 w-8 items-center justify-center rounded-full active:bg-[#F1F3F6] transition-colors"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-                  <path d="M6 6l12 12M18 6L6 18" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
             </div>
 
             <div ref={scrollRef} className="overflow-y-auto overscroll-contain">
-              {/* 제목 — 상단 */}
-              <div className="px-5 pt-1 pb-3">
-                <h2 className="text-[20px] font-bold text-[#171717] leading-snug">
-                  {detail?.title ?? selectedCard?.title}
-                </h2>
-              </div>
-
-              {/* 포스터 + 하단 black dim 메타(레벨/장르 · 일시 · 시간 · 강의실) */}
+              {/* 포스터 + 하단 black dim(제목 · 종류/난이도/장르 · 일시 · 시간 · 강의실) */}
               {(detail?.thumbnailUrl ?? selectedCard?.thumbnailUrl) && (
-                <div className="px-5">
+                <div className="px-5 pt-1">
                   <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-[#F1F3F6]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -233,50 +217,29 @@ export function LessonBookingList({
                       className="w-full h-full object-cover"
                     />
                     {(() => {
-                      const hasChips = !!detail?.level || (!!detail?.genre && detail.genre !== 'Default');
+                      const hasChips = !!detail?.type || !!detail?.level || (!!detail?.genre && detail.genre !== 'Default');
                       const metaItems = [
                         detail?.startDate ?? undefined,
                         detail?.duration != null ? `${detail.duration}${t('minutes')}` : undefined,
-                        detail?.room?.name ?? undefined,
                       ].filter(Boolean) as string[];
-                      if (!hasChips && metaItems.length === 0) return null;
                       return (
-                        <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-12 bg-gradient-to-t from-black/85 via-black/45 to-transparent">
+                        <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-20 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
                           {hasChips && (
                             <div className="flex items-center gap-1.5 mb-2">
+                              {detail?.type && <LessonTypeLabel type={detail.type} locale={locale} />}
                               {detail?.level && <LessonLevelLabel label={detail.level} locale={locale} />}
                               {detail?.genre && detail.genre !== 'Default' && <LessonLabel label={detail.genre} locale={locale} />}
                             </div>
                           )}
+                          <h2 className="text-white text-[19px] font-bold leading-snug line-clamp-2">
+                            {detail?.title ?? selectedCard?.title}
+                          </h2>
                           {metaItems.length > 0 && (
-                            <p className="text-[13px] font-medium text-white/90">{metaItems.join(' · ')}</p>
+                            <p className="mt-1 text-[13px] font-medium text-white/85">{metaItems.join(' · ')}</p>
                           )}
                         </div>
                       );
                     })()}
-                  </div>
-                </div>
-              )}
-
-              {/* 강사 */}
-              {detail?.artists && detail.artists.length > 0 && (
-                <div className="px-5 mt-4">
-                  <p className="text-[13px] text-[#86898C] mb-2">{t('kiosk_artist')}</p>
-                  <div className="flex flex-wrap gap-3">
-                    {detail.artists.map((a) => (
-                      <div key={a.id} className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#F1F3F6] shrink-0">
-                          {a.profileImageUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={a.profileImageUrl} alt={a.nickName || a.name} className="w-full h-full object-cover" />
-                          )}
-                        </div>
-                        <div className="flex flex-col leading-tight">
-                          <span className="text-[14px] font-bold text-[#171717]">{a.nickName || a.name}</span>
-                          {a.nickName && a.name && <span className="text-[11px] text-[#A0A5AB]">{a.name}</span>}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
@@ -306,7 +269,7 @@ export function LessonBookingList({
                 </button>
               ) : (
                 <div className="w-full h-14 rounded-2xl bg-[#E4E8EC] flex items-center justify-center">
-                  <span className="text-[15px] font-bold text-[#A0A5AB]">{t('lesson_payment_unavailable')}</span>
+                  <span className="text-[15px] font-bold text-[#A0A5AB]">{detail.buttonTitle || t('lesson_payment_unavailable')}</span>
                 </div>
               )}
             </div>
