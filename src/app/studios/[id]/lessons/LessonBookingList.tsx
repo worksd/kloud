@@ -14,6 +14,60 @@ import { getLocaleString } from "@/app/components/locale";
 // 시간표 등 외부에서 이 시트를 열 때 쓰는 window 이벤트 (studioId로 스코프)
 export const openLessonSheetEvent = (studioId: number) => `studio-${studioId}-open-lesson-sheet`;
 
+const REL_WEEKDAYS: Record<Locale, string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  jp: ['日', '月', '火', '水', '木', '金', '土'],
+  zh: ['日', '一', '二', '三', '四', '五', '六'],
+};
+const LOCALE_TAG: Record<Locale, string> = { ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN' };
+
+// 그 날 자정(로컬)
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+// 그 주 월요일 자정(로컬)
+const mondayOf = (d: Date) => {
+  const s = startOfDay(d);
+  const day = s.getDay();
+  s.setDate(s.getDate() - (day === 0 ? 6 : day - 1));
+  return s;
+};
+const fmtTime = (d: Date, locale: Locale) => {
+  if (locale === 'ko') {
+    const h = d.getHours();
+    const ap = h < 12 ? '오전' : '오후';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${ap} ${h12}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+  return new Intl.DateTimeFormat(LOCALE_TAG[locale], { hour: 'numeric', minute: '2-digit' }).format(d);
+};
+
+// startDate(ISO) → 상대 날짜 + 시각. 오늘/내일/모레 · 이번 주/다음 주 요일 · 그 외 날짜.
+const formatRelativeLessonDate = (iso: string | undefined, locale: Locale): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  const dayDiff = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
+  const weekDiff = Math.round((mondayOf(d).getTime() - mondayOf(now).getTime()) / (7 * 86400000));
+  const wd = REL_WEEKDAYS[locale][d.getDay()];
+  const time = fmtTime(d, locale);
+
+  let dayLabel: string;
+  if (dayDiff === 0) dayLabel = { ko: '오늘', en: 'Today', jp: '今日', zh: '今天' }[locale];
+  else if (dayDiff === 1) dayLabel = { ko: '내일', en: 'Tomorrow', jp: '明日', zh: '明天' }[locale];
+  else if (dayDiff === 2) dayLabel = { ko: '모레', en: 'In 2 days', jp: '明後日', zh: '后天' }[locale];
+  else if (dayDiff > 2 && weekDiff === 0) dayLabel = { ko: `이번 주 ${wd}요일`, en: `This ${wd}`, jp: `今週${wd}曜`, zh: `本周${wd}` }[locale];
+  else if (weekDiff === 1) dayLabel = { ko: `다음 주 ${wd}요일`, en: `Next ${wd}`, jp: `来週${wd}曜`, zh: `下周${wd}` }[locale];
+  else {
+    // 그 외(2주 이상/과거) — 월 일 (요일)
+    const md = locale === 'ko'
+      ? `${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`
+      : new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', day: 'numeric', weekday: 'short' }).format(d);
+    return `${md} ${time}`;
+  }
+  return `${dayLabel} ${time}`;
+};
+
 // 'yyyy.MM.dd HH:mm' (KST) → epoch(ms). activateAt 비교용.
 function parseKstLocalToEpoch(activateAt: string): number {
   const [d, t] = activateAt.trim().split(' ');
@@ -51,6 +105,10 @@ export function LessonBookingList({
 }) {
   const router = useRouter();
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+
+  // 상대 날짜는 클라이언트 '지금' 기준이라 SSR/클라 하이드레이션 미스매치 방지용 마운트 가드
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<GetLessonResponse | null>(null); // null=로딩중
@@ -167,9 +225,11 @@ export function LessonBookingList({
                 )}
               </div>
               <span className="mt-2 text-[15px] font-bold text-[#171717] leading-tight line-clamp-1">{lesson.title}</span>
-              {lesson.description && (
-                <span className="mt-0.5 text-[12px] text-[#86898C] line-clamp-1">{lesson.description}</span>
-              )}
+              {(() => {
+                const when = mounted ? formatRelativeLessonDate(lesson.startDate, locale) : '';
+                const sub = when || lesson.description;
+                return sub ? <span className="mt-0.5 text-[12px] text-[#86898C] line-clamp-1">{sub}</span> : null;
+              })()}
             </button>
           ))}
         </div>
