@@ -11,6 +11,7 @@ import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 import { KioskEndpointModal } from "@/app/kiosk/KioskEndpointModal";
 import { listKioskPaymentsAction, cancelKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
+import { initKisDebug, isKisDebugVisible, recordKisResponse } from "@/app/kiosk/kiosk.kis.debug";
 
 // yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
 const formatYmd = (d: Date): string => {
@@ -121,13 +122,17 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   // 취소 결과 다이얼로그 — 단일 친화적 메시지로 표시
   const [cancelResult, setCancelResult] = useState<{ kind: 'success' | 'fail'; message?: string } | null>(null);
   // KIS 단말 ST(상태 조회) — Pending 결제 확인용
+  // raw — staging에서만 다이얼로그에 그대로 펼쳐 보여주는 KIS 원본 응답
   type VerifyOutcome =
-    | { kind: 'completed'; }                           // 0000 + auto /complete 성공
-    | { kind: 'no-record'; replyCode?: string; }       // ST97/98/99 — 단말에 매입 없음
-    | { kind: 'system-error'; message?: string; };     // E000 등 시스템 에러
+    | { kind: 'completed'; raw?: Record<string, unknown>; }                           // 0000 + auto /complete 성공
+    | { kind: 'no-record'; replyCode?: string; raw?: Record<string, unknown>; }       // ST97/98/99 — 단말에 매입 없음
+    | { kind: 'system-error'; message?: string; raw?: Record<string, unknown>; };     // E000 등 시스템 에러
   const [verifyTarget, setVerifyTarget] = useState<KioskPaymentRecord | null>(null);
   const [verifyOutcome, setVerifyOutcome] = useState<VerifyOutcome | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
+  // staging 여부 — 서버 액션(GUINNESS_API_SERVER)으로 확정된 뒤 raw 노출을 켠다
+  const [kisDebugOn, setKisDebugOn] = useState(false);
+  useEffect(() => { initKisDebug().then(() => setKisDebugOn(isKisDebugVisible())).catch(() => {}); }, []);
 
   // PIN 입력 처리 — BE가 내려준 password와 길이 + 값 모두 일치할 때만 진입.
   // password 미설정(undefined/'')이면 어떤 입력도 통과시키지 않음.
@@ -210,9 +215,12 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
     (window as Win).onKisPaymentResult = (response) => {
       console.log('[KioskAdminModal] onKisPaymentResult:', response);
       if (response?.outTranCode !== 'D2') {
+        // D1은 KioskForm 핸들러가 기록하므로 여기서 중복 기록하지 않는다.
         previousHandler?.(response);
         return;
       }
+      // D2(취소) raw 응답 수집 — staging 오버레이 / prod Discord
+      recordKisResponse('payment', response, cancelingIdRef.current ?? undefined);
       const targetId = cancelingIdRef.current;
       if (!targetId) return;
 
@@ -368,10 +376,20 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   useEffect(() => {
     const w = window as QueryWindow;
     w.onKisTransactionQueryResult = async (r) => {
+      // ST 조회 raw 응답 수집 — ST97 등이 왜 오는지 실제 단말 응답으로 확인하기 위함.
+      // 조회 키(요청 paymentId)와 단말이 echo한 outCustomerUuid를 함께 남겨 키 불일치를 바로 볼 수 있게 한다.
+      recordKisResponse('query', r, `요청=${verifyTargetRef.current?.paymentId ?? '-'} / echo=${r?.outCustomerUuid ?? '없음'}`);
       const target = verifyTargetRef.current;
+      const raw = (r ?? {}) as unknown as Record<string, unknown>;
       if (!target) { setVerifyLoading(false); return; }
-      // outCustomerUuid가 우리 paymentId와 다르면 무시 (안전장치)
+      // outCustomerUuid가 우리 paymentId와 다르면 이 결제의 응답이 아님.
+      // 그냥 return하면 다이얼로그가 빈 채로 남으므로 키 불일치를 명시해서 노출한다.
       if (r?.outCustomerUuid && r.outCustomerUuid !== target.paymentId) {
+        setVerifyOutcome({
+          kind: 'system-error',
+          message: `조회 키가 일치하지 않아요\n요청: ${target.paymentId}\n단말 응답: ${r.outCustomerUuid}`,
+          raw,
+        });
         setVerifyLoading(false);
         return;
       }
@@ -396,13 +414,13 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
             vanResponse: r as unknown as Record<string, unknown>,
           });
           if (isGuinnessErrorCase(res)) {
-            setVerifyOutcome({ kind: 'system-error', message: res.message ?? '결제 완료 처리에 실패했어요' });
+            setVerifyOutcome({ kind: 'system-error', message: res.message ?? '결제 완료 처리에 실패했어요', raw });
             return;
           }
           setPayments((prev) => prev.map((p) => p.paymentId === target.paymentId ? { ...p, status: 'Completed' } : p));
-          setVerifyOutcome({ kind: 'completed' });
+          setVerifyOutcome({ kind: 'completed', raw });
         } catch {
-          setVerifyOutcome({ kind: 'system-error', message: '결제 완료 처리에 실패했어요' });
+          setVerifyOutcome({ kind: 'system-error', message: '결제 완료 처리에 실패했어요', raw });
         } finally {
           setVerifyLoading(false);
         }
@@ -411,13 +429,13 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
 
       if (code.startsWith('ST')) {
         // ❌ 단말에 매입 없음 (ST97 카드사 거절 / ST98 키 오류 / ST99 거래 없음)
-        setVerifyOutcome({ kind: 'no-record', replyCode: code });
+        setVerifyOutcome({ kind: 'no-record', replyCode: code, raw });
         setVerifyLoading(false);
         return;
       }
 
       // 시스템 에러 — KIS-ANDAGT 미설치 등
-      setVerifyOutcome({ kind: 'system-error', message: r?.outReplyMsg1 });
+      setVerifyOutcome({ kind: 'system-error', message: r?.outReplyMsg1, raw });
       setVerifyLoading(false);
     };
     return () => { delete w.onKisTransactionQueryResult; };
@@ -987,6 +1005,19 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                   <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>확인</span>
                 </button>
               </>
+            )}
+
+            {/* staging 전용 — 단말이 실제로 준 응답 전체. 우리가 붙인 안내 문구(ST97='카드사 거절' 등)가
+                맞는지, 조회 키가 어긋난 건 아닌지 여기서 원본으로 확인한다. */}
+            {kisDebugOn && !verifyLoading && verifyOutcome?.raw && (
+              <div className="mt-[min(1.6vw,18px)] rounded-[12px] bg-[#0F1115] p-[12px] max-h-[30vh] overflow-y-auto">
+                <p className="text-[#8A949E] font-mono text-[11px] mb-[6px]">
+                  KIS ST raw (staging) · 요청 paymentId={verifyTarget.paymentId}
+                </p>
+                <pre className="text-[#E6E8EA] text-[11px] font-mono whitespace-pre-wrap break-all">
+                  {JSON.stringify(verifyOutcome.raw, null, 2)}
+                </pre>
+              </div>
             )}
           </div>
         </div>

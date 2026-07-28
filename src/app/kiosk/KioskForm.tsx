@@ -34,6 +34,8 @@ import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
 import {buildKioskReceipt} from "@/app/kiosk/kiosk.receipt";
 import {sendReceiptToPrinter} from "@/app/kiosk/kiosk.native";
+import {initKisDebug, recordKisResponse, setKisDebugContext} from "@/app/kiosk/kiosk.kis.debug";
+import {KisDebugOverlay} from "@/app/kiosk/KisDebugOverlay";
 import {KioskRoomReservationForm, KioskRoomBooking} from "@/app/kiosk/KioskRoomReservationForm";
 import {Toast} from "@/app/components/Toast";
 
@@ -352,6 +354,12 @@ export const KioskForm = ({
       });
   }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, roomBooking, kioskId, locale]);
 
+  // KIS 응답 디버그 채널 준비 — 환경(staging/prod) 1회 조회 + 리포트에 실을 키오스크 컨텍스트 등록
+  useEffect(() => {
+    setKisDebugContext({ kioskId, kioskName });
+    initKisDebug();
+  }, [kioskId, kioskName]);
+
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
     type KisResult = {
@@ -364,7 +372,9 @@ export const KioskForm = ({
     type KisWindow = Window & { onKisPaymentResult?: (result: KisResult) => void };
 
     (window as KisWindow).onKisPaymentResult = (result) => {
-      console.log('KIS 응답:', result);
+      // KIS raw 응답 수집 — staging은 KisDebugOverlay에 표시, prod는 Discord 전송.
+      // 조기 return(D2 위임/유령 응답)보다 앞에서 기록해 어떤 응답도 놓치지 않게 한다.
+      recordKisResponse('payment', result, activePaymentIdRef.current ?? discardContextRef.current?.paymentId);
       // 단일 채널이라 D2(취소) 응답이 여기로 올 수 있음 — admin 모달이 처리. 여기선 D1만 다룸.
       if (result?.outTranCode === 'D2') return;
 
@@ -491,6 +501,9 @@ export const KioskForm = ({
       cardBrand: str('outIssuerName'),
       cardNumber: str('outCardNo'),
       vanResponse: data,
+      // 연습실 예약이면 결제 시작(POST /kiosks/payments)에 보낸 시간대를 그대로 재전송.
+      // completeArgs는 실패 시 localStorage 재시도 큐에도 저장되므로 나중 재시도에도 같은 값이 실린다.
+      ...(roomBooking ? { startDate: roomBooking.startDate, endDate: roomBooking.endDate } : {}),
     };
 
     // KIS는 이미 매입 완료 — 서버 complete가 실패해도 클라가 가진 이 정보로 재시도해서 반드시 기록되게 한다.
@@ -1546,6 +1559,9 @@ export const KioskForm = ({
       {printerDebugOpen && (
         <KioskPrinterDebugOverlay onClose={() => setPrinterDebugOpen(false)} />
       )}
+
+      {/* staging에서만 노출되는 KIS raw 응답 뷰어 (prod는 Discord로 전송되므로 렌더 X) */}
+      <KisDebugOverlay />
 
       {printerDebugResult && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-[3%]">

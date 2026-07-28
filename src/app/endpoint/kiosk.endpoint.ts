@@ -79,6 +79,13 @@ export type CompleteKioskPaymentRequest = {
   cardBrand?: string;
   cardNumber?: string;
   vanResponse?: Record<string, unknown>;
+  /**
+   * 연습실 예약(practice-room) 결제일 때 예약 시간대 (KST 'YYYY.MM.DD HH:mm').
+   * StartKioskPayment에 보낸 값과 동일한 값을 그대로 재전송한다 — 서버가 complete 시점에
+   * 예약을 확정할 때 필요. 대관이 아닌 결제(수업/패스권/번들)에서는 미전송.
+   */
+  startDate?: string;
+  endDate?: string;
 };
 
 export type CompleteKioskPaymentResponse = {
@@ -99,7 +106,7 @@ export type CompleteKioskPaymentResponse = {
 export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, CompleteKioskPaymentResponse> = {
   method: 'post',
   path: (e) => `/kiosks/payments/${e.paymentId}/complete`,
-  bodyParams: ['targetUserId', 'kioskId', 'authNo', 'authDate', 'vanKey', 'totalAmount', 'cardBrand', 'cardNumber', 'vanResponse'],
+  bodyParams: ['targetUserId', 'kioskId', 'authNo', 'authDate', 'vanKey', 'totalAmount', 'cardBrand', 'cardNumber', 'vanResponse', 'startDate', 'endDate'],
 };
 
 // (중간 실패) DELETE /kiosks/payments/:paymentId — Pending soft-delete
