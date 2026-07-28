@@ -16,8 +16,8 @@ export type KioskRoomBooking = {
   date: string;         // 표시용 날짜 (dot 포맷 YYYY.MM.DD)
   startTime: string;
   endTime: string;
-  startDate: string;    // KST ISO "YYYY-MM-DDTHH:mm:ss+09:00"
-  endDate: string;      // KST ISO (자정 넘기면 +1일)
+  startDate: string;    // API 전송용 'YYYY.MM.DD HH:mm' (KST 벽시계, 서버 parseDatetime 규격)
+  endDate: string;      // 'YYYY.MM.DD HH:mm' (자정 넘기면 +1일)
 };
 
 // 자정을 넘겨 다음날 새벽까지 연속 대관할 수 있게 그리드를 확장한다.
@@ -47,7 +47,8 @@ const DAY_LABELS: Record<Locale, string[]> = {
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
-// 결제 API에 넘길 예약 시간대 — KST ISO(YYYY-MM-DDTHH:mm:ss+09:00). 자정 넘기면 종료일 +1.
+// 결제/이용권 API에 넘길 예약 시간대 — 서버 parseDatetime 규격 'yyyy.MM.dd HH:mm'(KST 벽시계).
+// ISO(…T…+09:00)로 보내면 서버가 공백 split에서 크래시하므로 점(.)+공백 포맷으로 통일. 자정 넘기면 종료일 +1.
 const buildBookingDates = (dateStr: string, sel: { startTime: string; endTime: string }) => {
   const startDay = dateStr; // YYYY-MM-DD
   const isNextDay = sel.endTime <= sel.startTime; // 자정 넘김 (예: 23:00~00:00)
@@ -60,9 +61,10 @@ const buildBookingDates = (dateStr: string, sel: { startTime: string; endTime: s
       endDay = toDateStr(next);
     }
   }
+  const dot = (d: string) => d.replace(/-/g, '.'); // YYYY-MM-DD → YYYY.MM.DD
   return {
-    startDate: `${startDay}T${sel.startTime}:00+09:00`,
-    endDate: `${endDay}T${sel.endTime}:00+09:00`,
+    startDate: `${dot(startDay)} ${sel.startTime}`,
+    endDate: `${dot(endDay)} ${sel.endTime}`,
   };
 };
 
