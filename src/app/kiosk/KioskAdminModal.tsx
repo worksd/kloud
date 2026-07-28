@@ -10,7 +10,7 @@ import { buildCancellationReceipt, buildReprintReceipt, ReceiptStudio } from "@/
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 import { KioskEndpointModal } from "@/app/kiosk/KioskEndpointModal";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, discardKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
 
 // yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
 const formatYmd = (d: Date): string => {
@@ -120,9 +120,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   const [confirmTarget, setConfirmTarget] = useState<KioskPaymentRecord | null>(null);
   // 취소 결과 다이얼로그 — 단일 친화적 메시지로 표시
   const [cancelResult, setCancelResult] = useState<{ kind: 'success' | 'fail'; message?: string } | null>(null);
-  // Pending 폐기 확인 다이얼로그
-  const [discardTarget, setDiscardTarget] = useState<KioskPaymentRecord | null>(null);
-  const [discardingId, setDiscardingId] = useState<string | null>(null);
   // KIS 단말 ST(상태 조회) — Pending 결제 확인용
   type VerifyOutcome =
     | { kind: 'completed'; }                           // 0000 + auto /complete 성공
@@ -318,21 +315,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
       .finally(() => setCancelingId(null));
   };
 
-  // Pending 폐기 — DELETE /kiosks/payments/:paymentId
-  const handleDiscard = (record: KioskPaymentRecord) => {
-    if (discardingId) return;
-    setDiscardingId(record.paymentId);
-    discardKioskPaymentAction(record.paymentId, kioskId)
-      .then((res) => {
-        if (isGuinnessErrorCase(res)) {
-          setToast(res.message ?? '폐기 처리에 실패했어요');
-          return;
-        }
-        setPayments((prev) => prev.filter((p) => p.paymentId !== record.paymentId));
-      })
-      .catch(() => setToast('폐기 처리에 실패했어요'))
-      .finally(() => { setDiscardingId(null); setDiscardTarget(null); });
-  };
 
   // 영수증 재발급 — GET /kiosks/:id/paymentRecords/:paymentId 응답을 받아 buildReprintReceipt → 시리얼 프린터 송출.
   const [reprintingId, setReprintingId] = useState<string | null>(null);
@@ -357,7 +339,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   //   native → web:  window.onKisTransactionQueryResult(result)
   // 응답 outReplyCode 분기:
   //   '0000' → 단말에 매입 있음 → 자동으로 POST /kiosks/payments/:id/complete 호출
-  //   'ST97' / 'ST98' / 'ST99' → 단말에 매입 없음 → '폐기'로 안내
+  //   'ST97' / 'ST98' / 'ST99' → 단말에 매입 없음 → 매입 없음 안내
   //   기타 (E000 등) → 시스템 에러로 노출
   type KisQueryResult = {
     success?: boolean;
@@ -380,7 +362,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
     onKisTransactionQueryResult?: (r: KisQueryResult) => void;
   };
 
-  // 응답 콜백 — 0000은 자동 /complete, ST??는 폐기 안내, 그 외는 에러로 표시
+  // 응답 콜백 — 0000은 자동 /complete, ST??는 매입 없음 안내, 그 외는 에러로 표시
   const verifyTargetRef = useRef<KioskPaymentRecord | null>(null);
   useEffect(() => { verifyTargetRef.current = verifyTarget; }, [verifyTarget]);
   useEffect(() => {
@@ -632,7 +614,6 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                     const isCancelled = record.status === 'Cancelled' || record.status === 'CancelPending';
                     const isPending = record.status === 'Pending';
                     const isThisCanceling = cancelingId === record.paymentId;
-                    const isThisDiscarding = discardingId === record.paymentId;
                     const badge = STATUS_BADGE[record.status] ?? { label: record.status, bg: '#E6E8EA', fg: '#6D7882' };
                     const userDisplay = record.user.nickName || record.user.name || '';
                     const phoneDisplay = fmtPhoneDisplay(record.user.phone);
@@ -704,11 +685,12 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                           {fmtAmount(record.amount)}
                         </span>
                         {isPending ? (
-                          // Pending: '결제 확인하기'(KIS ST 조회 → 자동 /complete) + '폐기'(DELETE) 두 버튼
+                          // Pending: '결제 확인하기'(KIS ST 조회 → 자동 /complete) + '취소하기'(일반 취소 흐름).
+                          // 폐기(DELETE)는 실제 매입된 결제를 그냥 지워 환불이 안 되므로 완료건과 동일한 취소(환불) 흐름으로 진행.
                           <div className="flex items-center shrink-0" style={{ gap: 'min(0.6vw,8px)' }}>
                             <button
                               onClick={() => handleVerifyPayment(record)}
-                              disabled={isThisDiscarding || verifyLoading}
+                              disabled={isThisCanceling || verifyLoading}
                               className="px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform disabled:opacity-50"
                             >
                               <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.6vw, 18px)' }}>
@@ -716,17 +698,17 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                               </span>
                             </button>
                             <button
-                              onClick={() => setDiscardTarget(record)}
-                              disabled={isThisDiscarding || discardingId !== null}
+                              onClick={() => setConfirmTarget(record)}
+                              disabled={isThisCanceling || cancelingId !== null}
                               className={`px-[min(1.6vw,18px)] py-[min(1.2vw,14px)] rounded-[12px] active:scale-[0.97] transition-transform ${
-                                discardingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
+                                cancelingId !== null ? 'bg-[#E6E8EA]' : 'bg-[#1E2124]'
                               }`}
                             >
                               <span
-                                className={`font-bold ${discardingId !== null ? 'text-[#86898C]' : 'text-white'}`}
+                                className={`font-bold ${cancelingId !== null ? 'text-[#86898C]' : 'text-white'}`}
                                 style={{ fontSize: 'min(1.6vw, 18px)' }}
                               >
-                                {isThisDiscarding ? '폐기 중…' : '폐기'}
+                                {isThisCanceling ? '취소 중…' : '취소하기'}
                               </span>
                             </button>
                           </div>
@@ -909,51 +891,8 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
         </div>
       )}
 
-      {/* Pending 폐기 확인 다이얼로그 */}
-      {discardTarget && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setDiscardTarget(null)} />
-          <div
-            className="relative bg-white rounded-[24px] w-full max-w-[560px] flex flex-col animate-[scaleIn_180ms_ease-out]"
-            style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
-          >
-            <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
-              결제 대기 건을 폐기할까요?
-            </p>
-            <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
-              단말에 매입이 안 된 결제 대기 항목을 정리해요.{'\n'}매입이 실제로 됐다면 먼저 ‘결제 확인하기’로 완료 처리하세요.
-            </p>
-            <div className="mt-[min(1.4vw,16px)] bg-[#F9F9FB] rounded-[16px] flex items-center justify-between px-[min(2.4vw,26px)] py-[min(1.6vw,18px)]">
-              <span className="text-[#1E2124] font-medium truncate" style={{ fontSize: 'min(1.7vw, 18px)' }}>
-                {discardTarget.productName ?? ''}
-              </span>
-              <span className="text-black font-bold shrink-0 ml-[min(1vw,12px)]" style={{ fontSize: 'min(1.9vw, 20px)' }}>
-                {fmtAmount(discardTarget.amount)}
-              </span>
-            </div>
-            <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
-              <button
-                onClick={() => setDiscardTarget(null)}
-                className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-                style={{ height: 'min(6.4vw,68px)' }}
-              >
-                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>아니요</span>
-              </button>
-              <button
-                onClick={() => handleDiscard(discardTarget)}
-                disabled={discardingId !== null}
-                className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform disabled:opacity-60"
-                style={{ height: 'min(6.4vw,68px)' }}
-              >
-                <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>네, 폐기할게요</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 결제 확인하기(KIS ST 조회) — 진행/결과 다이얼로그.
-          0000 = 자동 /complete 처리 후 'completed' 노출, ST?? = 폐기 안내, 그 외 = 시스템 에러 */}
+          0000 = 자동 /complete 처리 후 'completed' 노출, ST?? = 매입 없음 안내, 그 외 = 시스템 에러 */}
       {verifyTarget && (
         <div className="fixed inset-0 z-[72] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
           <div className="absolute inset-0 bg-black/60" onClick={() => { if (!verifyLoading) { setVerifyTarget(null); setVerifyOutcome(null); } }} />
@@ -1010,29 +949,14 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                   {verifyOutcome.replyCode === 'ST97' ? '결제 시도가 카드사에서 거절됐어요' :
                    verifyOutcome.replyCode === 'ST98' ? '결제 키 정보가 잘못됐어요' :
                    '이 결제로 단말에 매입된 거래가 없어요'}
-                  {'\n'}안전하게 폐기 처리하세요.
                 </p>
-                <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
-                  <button
-                    onClick={() => { setVerifyTarget(null); setVerifyOutcome(null); }}
-                    className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-                    style={{ height: 'min(6.4vw,68px)' }}
-                  >
-                    <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>닫기</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      const target = verifyTarget;
-                      setVerifyTarget(null);
-                      setVerifyOutcome(null);
-                      setDiscardTarget(target);
-                    }}
-                    className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
-                    style={{ height: 'min(6.4vw,68px)' }}
-                  >
-                    <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>폐기하기</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setVerifyTarget(null); setVerifyOutcome(null); }}
+                  className="mt-[min(2vw,22px)] w-full rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                  style={{ height: 'min(6.4vw,68px)' }}
+                >
+                  <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>확인</span>
+                </button>
               </>
             )}
 
