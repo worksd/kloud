@@ -10,63 +10,10 @@ import { getStudioLessonDetailAction } from "@/app/studios/[id]/lessons/get.less
 import { LessonLabel, LessonLevelLabel } from "@/app/components/LessonLabel";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { formatRelativeLessonDate } from "@/utils/lesson.relative.date";
 
 // 시간표 등 외부에서 이 시트를 열 때 쓰는 window 이벤트 (studioId로 스코프)
 export const openLessonSheetEvent = (studioId: number) => `studio-${studioId}-open-lesson-sheet`;
-
-const REL_WEEKDAYS: Record<Locale, string[]> = {
-  ko: ['일', '월', '화', '수', '목', '금', '토'],
-  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-  jp: ['日', '月', '火', '水', '木', '金', '土'],
-  zh: ['日', '一', '二', '三', '四', '五', '六'],
-};
-const LOCALE_TAG: Record<Locale, string> = { ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN' };
-
-// 그 날 자정(로컬)
-const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-// 그 주 월요일 자정(로컬)
-const mondayOf = (d: Date) => {
-  const s = startOfDay(d);
-  const day = s.getDay();
-  s.setDate(s.getDate() - (day === 0 ? 6 : day - 1));
-  return s;
-};
-const fmtTime = (d: Date, locale: Locale) => {
-  if (locale === 'ko') {
-    const h = d.getHours();
-    const ap = h < 12 ? '오전' : '오후';
-    const h12 = h % 12 === 0 ? 12 : h % 12;
-    return `${ap} ${h12}:${String(d.getMinutes()).padStart(2, '0')}`;
-  }
-  return new Intl.DateTimeFormat(LOCALE_TAG[locale], { hour: 'numeric', minute: '2-digit' }).format(d);
-};
-
-// startDate(ISO) → 상대 날짜 + 시각. 오늘/내일/모레 · 이번 주/다음 주 요일 · 그 외 날짜.
-const formatRelativeLessonDate = (iso: string | undefined, locale: Locale): string => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const now = new Date();
-  const dayDiff = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
-  const weekDiff = Math.round((mondayOf(d).getTime() - mondayOf(now).getTime()) / (7 * 86400000));
-  const wd = REL_WEEKDAYS[locale][d.getDay()];
-  const time = fmtTime(d, locale);
-
-  let dayLabel: string;
-  if (dayDiff === 0) dayLabel = { ko: '오늘', en: 'Today', jp: '今日', zh: '今天' }[locale];
-  else if (dayDiff === 1) dayLabel = { ko: '내일', en: 'Tomorrow', jp: '明日', zh: '明天' }[locale];
-  else if (dayDiff === 2) dayLabel = { ko: '모레', en: 'In 2 days', jp: '明後日', zh: '后天' }[locale];
-  else if (dayDiff > 2 && weekDiff === 0) dayLabel = { ko: `이번 주 ${wd}요일`, en: `This ${wd}`, jp: `今週${wd}曜`, zh: `本周${wd}` }[locale];
-  else if (weekDiff === 1) dayLabel = { ko: `다음 주 ${wd}요일`, en: `Next ${wd}`, jp: `来週${wd}曜`, zh: `下周${wd}` }[locale];
-  else {
-    // 그 외(2주 이상/과거) — 월 일 (요일)
-    const md = locale === 'ko'
-      ? `${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`
-      : new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', day: 'numeric', weekday: 'short' }).format(d);
-    return `${md} ${time}`;
-  }
-  return `${dayLabel} ${time}`;
-};
 
 // 'yyyy.MM.dd HH:mm' (KST) → epoch(ms). activateAt 비교용.
 function parseKstLocalToEpoch(activateAt: string): number {
@@ -226,7 +173,7 @@ export function LessonBookingList({
               </div>
               <span className="mt-2 text-[15px] font-bold text-[#171717] leading-tight line-clamp-1">{lesson.title}</span>
               {(() => {
-                const when = mounted ? formatRelativeLessonDate(lesson.startDate, locale) : '';
+                const when = mounted ? formatRelativeLessonDate(lesson, locale) : '';
                 const sub = when || lesson.description;
                 return sub ? <span className="mt-0.5 text-[12px] text-[#86898C] line-clamp-1">{sub}</span> : null;
               })()}
@@ -268,9 +215,16 @@ export function LessonBookingList({
             </div>
 
             <div ref={scrollRef} className="overflow-y-auto overscroll-contain">
-              {/* 대표 이미지 */}
+              {/* 제목 — 상단 */}
+              <div className="px-5 pt-1 pb-3">
+                <h2 className="text-[20px] font-bold text-[#171717] leading-snug">
+                  {detail?.title ?? selectedCard?.title}
+                </h2>
+              </div>
+
+              {/* 포스터 + 하단 black dim 메타(레벨/장르 · 일시 · 시간 · 강의실) */}
               {(detail?.thumbnailUrl ?? selectedCard?.thumbnailUrl) && (
-                <div className="px-5 pt-2">
+                <div className="px-5">
                   <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-[#F1F3F6]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -278,49 +232,31 @@ export function LessonBookingList({
                       alt={detail?.title ?? selectedCard?.title ?? ''}
                       className="w-full h-full object-cover"
                     />
-                    {/* D-day 배지 */}
-                    {detail?.dday && (
-                      <div className="absolute top-2.5 left-2.5">
-                        <span className="px-2 py-0.5 rounded-full bg-[#3CC0AF] text-white text-[11px] font-bold">{detail.dday}</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const hasChips = !!detail?.level || (!!detail?.genre && detail.genre !== 'Default');
+                      const metaItems = [
+                        detail?.startDate ?? undefined,
+                        detail?.duration != null ? `${detail.duration}${t('minutes')}` : undefined,
+                        detail?.room?.name ?? undefined,
+                      ].filter(Boolean) as string[];
+                      if (!hasChips && metaItems.length === 0) return null;
+                      return (
+                        <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-12 bg-gradient-to-t from-black/85 via-black/45 to-transparent">
+                          {hasChips && (
+                            <div className="flex items-center gap-1.5 mb-2">
+                              {detail?.level && <LessonLevelLabel label={detail.level} locale={locale} />}
+                              {detail?.genre && detail.genre !== 'Default' && <LessonLabel label={detail.genre} locale={locale} />}
+                            </div>
+                          )}
+                          {metaItems.length > 0 && (
+                            <p className="text-[13px] font-medium text-white/90">{metaItems.join(' · ')}</p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
-
-              {/* 제목 + 레벨/장르 */}
-              <div className="px-5 pt-3.5">
-                <div className="flex items-center gap-1.5">
-                  {detail?.level && <LessonLevelLabel label={detail.level} locale={locale} />}
-                  {/* 장르는 앱 공통 LessonLabel로 — 한글 매핑(choreography→코레오 등)과 스타일을 다른 화면과 통일.
-                      'Default'는 장르 미지정이라 노출하지 않는다. */}
-                  {detail?.genre && detail.genre !== 'Default' && (
-                    <LessonLabel label={detail.genre} locale={locale} />
-                  )}
-                </div>
-                <h2 className="mt-1.5 text-[20px] font-bold text-[#171717] leading-snug">
-                  {detail?.title ?? selectedCard?.title}
-                </h2>
-                {detail?.startDate && (
-                  <p className="mt-1 text-[13px] text-[#86898C]">{detail.startDate}</p>
-                )}
-              </div>
-
-              {/* 정보 행: 수업시간 · 강의실 */}
-              <div className="px-5 mt-4 flex flex-col gap-2.5">
-                {detail?.duration != null && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-[#86898C]">{t('lesson_duration')}</span>
-                    <span className="text-[14px] font-medium text-[#171717]">{detail.duration}{t('minutes')}</span>
-                  </div>
-                )}
-                {detail?.room?.name && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-[#86898C]">{t('lesson_room')}</span>
-                    <span className="text-[14px] font-medium text-[#171717]">{detail.room.name}</span>
-                  </div>
-                )}
-              </div>
 
               {/* 강사 */}
               {detail?.artists && detail.artists.length > 0 && (

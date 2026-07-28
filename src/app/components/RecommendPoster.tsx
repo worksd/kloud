@@ -2,6 +2,8 @@
 import { KloudScreen } from "@/shared/kloud.screen";
 import { Thumbnail } from "@/app/components/Thumbnail";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
+import { getLocale } from "@/utils/translate";
 
 export async function RecommendPoster({
                                         id,
@@ -11,6 +13,9 @@ export async function RecommendPoster({
                                         width = 160,
                                         type,
                                         label,
+                                        lessonDate,
+                                        startTime,
+                                        startDate,
                                       }: {
   id: number,
   posterUrl: string,
@@ -19,10 +24,16 @@ export async function RecommendPoster({
   width?: number,
   type?: 'default' | 'subscription',
   label?: { dday?: string },
+  /** 수업 시각 필드 — 넘기면 date 대신 상대 시각으로 렌더 */
+  lessonDate?: string,
+  startTime?: string,
+  startDate?: string,
 }) {
   const route = type === 'subscription'
     ? KloudScreen.LessonGroupDetail(id)
     : KloudScreen.LessonDetail(id);
+  const locale = await getLocale();
+  const hasWhen = !!(lessonDate || startTime || startDate);
 
   return (
     <NavigateClickWrapper method="push" route={route}>
@@ -52,11 +63,18 @@ export async function RecommendPoster({
           <div className="text-black text-[14px] font-bold leading-[150%] line-clamp-2">
             {title}
           </div>
-          {date && (
+          {hasWhen ? (
+            <LessonRelativeDate
+              when={{ date: lessonDate, startTime, startDate }}
+              locale={locale}
+              fallback={date}
+              className="text-[#6D7882] text-[12px] font-medium leading-[150%]"
+            />
+          ) : date ? (
             <div className="text-[#6D7882] text-[12px] font-medium leading-[150%]">
               {date}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </NavigateClickWrapper>
