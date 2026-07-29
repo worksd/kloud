@@ -155,6 +155,8 @@ export type GetTimeTableLessonResponse = {
   id: number;
   title: string;
   thumbnailUrl?: string;
+  /** 수업 시작 시각. KST 기준 문자열(yyyy-MM-dd HH:mm 등)로 오며 TZ 변환 없이 리터럴로 파싱한다. */
+  startDate?: string;
 }
 
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {

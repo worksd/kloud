@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import { KloudScreen } from "@/shared/kloud.screen";
 import React, { useState, useMemo, useEffect } from "react";
-import { GetTimeTableResponse, GetTimeTableCellResponse } from "@/app/endpoint/studio.endpoint";
+import { GetTimeTableResponse, GetTimeTableCellResponse, GetTimeTableLessonResponse } from "@/app/endpoint/studio.endpoint";
+import { parseLessonWallClock } from "@/utils/lesson.relative.date";
 // 주간 네비 chevron — 얇고 깔끔한 인라인 아이콘
 const ChevronLeft = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-[18px] h-[18px]">
@@ -118,6 +119,14 @@ const getRelativeWeekTitle = (baseDate: Date, refDate: Date, locale: Locale): st
   return getMonthWeekTitle(baseDate, locale);
 };
 
+
+// 수업 셀에 표기할 'HH:mm' — lesson.startDate(KST)를 TZ 변환 없이 리터럴 파싱해서 쓴다.
+// startDate가 없으면(구 응답) undefined를 반환해 호출부가 TIME 컬럼 셀의 row→time 맵으로 폴백한다.
+const lessonHhmm = (lesson?: GetTimeTableLessonResponse): string | undefined => {
+  const d = parseLessonWallClock({ startDate: lesson?.startDate });
+  if (!d) return undefined;
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
 
 // 'HH:mm' → 'PM 1:00' (12시간제 + AM/PM). 파싱 실패 시 원본.
 const formatAmPm = (t?: string): string => {
@@ -313,7 +322,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                         className="flex items-center gap-3 active:opacity-70 transition-opacity cursor-pointer"
                       >
                         <span className="w-[62px] shrink-0 text-[12px] font-bold text-[#4E5968] font-paperlogy">
-                          {formatAmPm(rowToTime[cell.row])}
+                          {formatAmPm(lessonHhmm(cell.lesson) ?? rowToTime[cell.row])}
                         </span>
                         <div className="w-[52px] h-[52px] rounded-[10px] overflow-hidden bg-[#F1F3F6] shrink-0">
                           {cell.lesson!.thumbnailUrl && (
@@ -362,7 +371,9 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                   </div>
                 ))}
                 {/* 구멍 메운 수업 — 요일 컬럼별로 위에서부터 연속 배치 */}
-                {lessonsByDay.map((list, j) => list.map((cell, k) => (
+                {lessonsByDay.map((list, j) => list.map((cell, k) => {
+                  const timeLabel = formatAmPm(lessonHhmm(cell.lesson) ?? rowToTime[cell.row]);
+                  return (
                   <div
                     key={`${cell.row}-${cell.column}`}
                     onClick={() => {
@@ -385,9 +396,9 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                         <div className="flex-1 w-full bg-gray-200" />
                       )}
                       {/* 썸네일 위 진행 시간 배지 */}
-                      {rowToTime[cell.row] && (
+                      {timeLabel && (
                         <div className="absolute top-1 left-1 px-1 py-0.5 rounded-[4px] bg-black/60 backdrop-blur-sm text-white text-[6.5px] font-bold font-paperlogy leading-none">
-                          {formatAmPm(rowToTime[cell.row])}
+                          {timeLabel}
                         </div>
                       )}
                       <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -395,7 +406,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                       </div>
                     </div>
                   </div>
-                )))}
+                  );
+                }))}
                 {/* 빈 주 */}
                 {maxPerDay === 0 && !isLoading && !isError && (
                   <div className="col-span-full" style={{ gridRowStart: 2, gridColumnStart: 1 }}>
