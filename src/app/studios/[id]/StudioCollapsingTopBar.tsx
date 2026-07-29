@@ -5,6 +5,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 
 // 스튜디오 상세 collapsing 헤더 — 최상단이면 배경 없이 백버튼만(이미지 위),
 // 커버 이미지를 지나 스크롤하면 흰 탑바 + 프로필 로고·제목이 페이드 인(백버튼도 검정으로).
+// 웹(appVersion === '')은 상태바가 없고 백버튼도 안 띄우므로 상단 패딩을 줄인다.
 export function StudioCollapsingTopBar({ title, appVersion, profileImageUrl }: {
   title: string;
   appVersion: string;
@@ -29,7 +30,8 @@ export function StudioCollapsingTopBar({ title, appVersion, profileImageUrl }: {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-30 flex items-center gap-1.5 px-2 pt-11 pb-3 transition-colors duration-200
+      className={`fixed top-0 left-0 right-0 z-30 flex items-center gap-1.5 px-2 pb-3 transition-colors duration-200
+        ${appVersion !== '' ? 'pt-11' : 'pt-3'}
         ${collapsed ? 'bg-white/95 backdrop-blur-sm border-b border-[#F1F3F6]' : 'bg-transparent border-b border-transparent'}`}
     >
       {appVersion !== '' && (
@@ -55,7 +57,7 @@ export function StudioCollapsingTopBar({ title, appVersion, profileImageUrl }: {
       {/* 프로필 로고 + 스튜디오명 — collapse 시 함께 페이드 인 */}
       <div
         className={`flex min-w-0 items-center gap-2 transition-opacity duration-200
-          ${collapsed ? 'opacity-100' : 'opacity-0'} ${appVersion !== '' ? '' : 'ml-2'}`}
+          ${collapsed ? 'opacity-100' : 'opacity-0'}`}
       >
         {profileImageUrl && (
           <span className="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#F1F3F6]">
