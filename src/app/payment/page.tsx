@@ -15,6 +15,7 @@ import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
+import { DeferredImage } from "@/app/components/DeferredImage";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
@@ -180,11 +181,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               {/* 썸네일 9:16 */}
               <div className="relative w-[120px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#F1F3F6] flex-shrink-0">
                 {thumbnailUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <DeferredImage
                     src={thumbnailUrl}
                     alt={title ?? ''}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 )}
               </div>
