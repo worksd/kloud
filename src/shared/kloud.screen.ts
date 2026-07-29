@@ -35,6 +35,11 @@ export const KloudScreen = {
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
   Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
+  /** 이용권(패스) 결제 — item 방식 */
+  PassPlanPayment: (id: number) => `/payment?item=pass-plan&id=${id}`,
+  /** 연습실 결제 — item 방식 + 예약 시간대(startTime/endTime, 'YYYY-MM-DDTHH:mm') */
+  PracticeRoomPayment: (roomId: number, startTime: string, endTime: string) =>
+    `/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`,
   BundlePayment: (id: number) => `/bundle/${id}/payment`,
   PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
   MyPass: '/profile/myPass',
@@ -62,6 +67,9 @@ export const KloudScreen = {
 
   /** 연습실 */
   StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,
+  /** 대관 예약 내역/상세 */
+  RoomBookings: '/roomBookings',
+  RoomBookingDetail: (id: number) => `/roomBookings/${id}`,
 
   /** 스튜디오 */
   Studios: '/studios',
@@ -87,8 +95,9 @@ export const KloudScreen = {
 } as const;
 
 
-export const isAuthScreen = (endpoint: string) => {
-  return endpoint.includes('/payment') && !endpoint.startsWith('/login');
+// 결제 페이지도 비로그인 진입 허용(비회원 연습실 결제 등). 현재 강제 로그인 대상 화면 없음.
+export const isAuthScreen = (_endpoint: string) => {
+  return false;
 }
 
 export const NO_DATA_ID = -1

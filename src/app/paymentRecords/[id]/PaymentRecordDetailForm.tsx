@@ -33,13 +33,16 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   const isLessonTicket = paymentRecord.paymentId.startsWith('LT');
   const isMembership = paymentRecord.paymentId.startsWith('SM');
   const isBundle = paymentRecord.paymentId.startsWith('BD');
+  const isPracticeRoom = paymentRecord.paymentId.startsWith('PR'); // 대관(연습실) 예약
   const informationTitle = isBundle
       ? await translate('promotion_information')
-      : isPassPlan
-          ? await translate('pass_plan_information')
-          : isLessonTicket
-              ? await translate('lesson_ticket_information')
-              : await translate('pass_plan_information');
+      : isPracticeRoom
+          ? await translate('practice_room_information')
+          : isPassPlan
+              ? await translate('pass_plan_information')
+              : isLessonTicket
+                  ? await translate('lesson_ticket_information')
+                  : await translate('pass_plan_information');
 
   // 금액 라벨 결정
   const amountLabel = isBundle

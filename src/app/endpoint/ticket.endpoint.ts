@@ -89,6 +89,18 @@ export const GetTicket: Endpoint<GetTicketParameter, TicketResponse> = {
   queryParams: ['isParent']
 }
 
+export type GetTicketByTokenParameter = {
+  id: number;
+  token: string;
+}
+
+// QR 스캔값(willUseTicketId=:id, token=쿼리)으로 티켓+lesson 조회 — 키오스크 수업 출석 체크용
+export const GetTicketByToken: Endpoint<GetTicketByTokenParameter, TicketResponse> = {
+  method: 'get',
+  path: (e) => `/tickets/${e.id}`,
+  queryParams: ['token']
+}
+
 export const GetInviteTicket: Endpoint<GetInviteTicketParameter, TicketResponse> = {
   method: 'get',
   path: (e) => `/tickets/${e.inviteCode}/one-time`,

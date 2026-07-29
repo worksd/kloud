@@ -11,6 +11,10 @@ export type GetPaymentRequest = {
   item: string
   targetUserId?: number
   date?: string
+  /** 연습실 필수 — 예약 시작 'YYYY-MM-DDTHH:mm' (KST). 서버가 이 구간으로 최종금액 계산 */
+  startTime?: string
+  /** 연습실 필수 — 예약 종료 'YYYY-MM-DDTHH:mm' (KST, 자정 넘기면 다음날) */
+  endTime?: string
 }
 
 export type DiscountPassRule = {
@@ -105,9 +109,13 @@ export type GetPaymentResponse = {
   refundDepositor?: string
   discounts?: DiscountResponse[];
   coupons?: CouponResponse[];
+  /** 대관 이용료 환불 기준일(N일). 내려오면 대관 전용 환불 안내를 노출, 없으면 기본 환불 안내. */
+  roomRefundDays?: number | null;
   studioRoom?: {
     id: number;
     name: string;
+    /** 홀 이용안내(유의사항) HTML. 결제 페이지 렌더용. */
+    description?: string;
     unitPrice?: number;
     minBookingDuration: number;
     maxBookingDuration?: number | null;
@@ -123,7 +131,7 @@ export type GetPaymentResponse = {
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   method: "get",
   path: `/payment`,
-  queryParams: ['itemId', 'item', 'targetUserId', 'date']
+  queryParams: ['itemId', 'item', 'targetUserId', 'date', 'startTime', 'endTime']
 };
 
 
@@ -156,6 +164,9 @@ export type CreateBillingKeyPaymentRequest = {
   paymentId: string;
   targetUserId?: number;
   discounts?: PaymentDiscount[];
+  /** 연습실 예약 시간대 ('yyyy.MM.dd HH:mm' KST) — practice-room 결제 필수. */
+  startDate?: string;
+  endDate?: string;
 }
 
 export type CreateBillingKeyPaymentResponse = {
@@ -165,5 +176,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'startDate', 'endDate']
 }

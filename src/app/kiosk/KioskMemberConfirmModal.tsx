@@ -41,10 +41,12 @@ const UserAvatar = ({ profileImageUrl }: { profileImageUrl?: string }) => (
   </div>
 );
 
+// 가운데 4자리(두 번째 그룹)를 *로 가림 — 표기 전용(원본 phone은 그대로). 11자리 초과분도 잘리지 않게 표시.
 const formatPhone = (digits: string) => {
   if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)} ${digits.slice(3)}`;
-  return `${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7, 11)}`;
+  const mid = (s: string) => '*'.repeat(s.length);
+  if (digits.length <= 7) return `${digits.slice(0, 3)} ${mid(digits.slice(3))}`;
+  return `${digits.slice(0, 3)} ${mid(digits.slice(3, 7))} ${digits.slice(7)}`;
 };
 
 export const KioskMemberConfirmModal = ({ phone, name, nickName, email, profileImageUrl, locale, onBack, onConfirm, users, onSelectUser }: KioskMemberConfirmModalProps) => {
@@ -80,7 +82,7 @@ export const KioskMemberConfirmModal = ({ phone, name, nickName, email, profileI
                   {user.name && user.nickName && (
                     <span className="text-[#8A949E] truncate" style={{ fontSize: 'min(1.4vw, 15px)' }}>{user.name}</span>
                   )}
-                  {user.phone && <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 16px)' }}>{user.phone}</span>}
+                  {user.phone && <span className="text-[#6D7882]" style={{ fontSize: 'min(1.5vw, 16px)' }}>{formatPhone(user.phone)}</span>}
                   {user.email && <span className="text-[#6D7882] truncate" style={{ fontSize: 'min(1.5vw, 16px)' }}>{user.email}</span>}
                 </div>
               </button>
@@ -108,7 +110,7 @@ export const KioskMemberConfirmModal = ({ phone, name, nickName, email, profileI
           <button
             onClick={onBack}
             className="flex-[280] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
-            style={{ height: 'min(6vw, 64px)' }}
+            style={{ height: 'min(7vw, 76px)' }}
           >
             <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2vw, 22px)' }}>{t('kiosk_back')}</span>
           </button>
@@ -116,7 +118,7 @@ export const KioskMemberConfirmModal = ({ phone, name, nickName, email, profileI
             <button
               onClick={onConfirm}
               className="flex-[604] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
-              style={{ height: 'min(6vw, 64px)' }}
+              style={{ height: 'min(7vw, 76px)' }}
             >
               <span className="text-white font-bold" style={{ fontSize: 'min(2vw, 22px)' }}>{t('confirm')}</span>
             </button>

@@ -15,6 +15,7 @@ export default async function KioskPage({ searchParams }: {
 
   return (
     <KioskBootstrap
+      route="kiosk"
       urlToken={urlToken}
       hasInitialToken={!!accessToken}
       initialKioskId={initialKioskId}

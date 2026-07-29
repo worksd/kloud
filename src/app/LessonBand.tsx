@@ -41,6 +41,9 @@ export async function LessonBand({title, lessons, type, label}: {
                 posterUrl={item?.thumbnailUrl ?? ''}
                 title={item.title}
                 description={item.description ?? ''}
+                date={item.date}
+                startTime={item.startTime}
+                startDate={item.startDate}
                 studioName={item.studioName}
                 studioImageUrl={item.studioImageUrl}
                 label={item.label}
@@ -54,6 +57,9 @@ export async function LessonBand({title, lessons, type, label}: {
                 id={item.id}
                 posterUrl={item?.thumbnailUrl ?? ''}
                 date={item.description ?? ''}
+                lessonDate={item.date}
+                startTime={item.startTime}
+                startDate={item.startDate}
                 title={item.title ?? ''}
                 type={item.type}
               />

@@ -1,4 +1,4 @@
-type CountrySpec = {
+export type CountrySpec = {
   key: string;
   region: string;
   nameKo: string;
@@ -139,3 +139,87 @@ export const COUNTRIES: CountrySpec[] = [
   {key: 'KW', region: '중동', nameKo: '쿠웨이트', nameEn: 'Kuwait', dial: '965', flag: '🇰🇼'},
   {key: 'YE', region: '중동', nameKo: '예맨', nameEn: 'Yemen', dial: '967', flag: '🇾🇪'},
 ];
+
+// 국가명 일본어/중국어. ko/en은 CountrySpec에 있음. 키는 CountrySpec.key.
+const COUNTRY_NAME_I18N: Record<string, { jp: string; zh: string }> = {
+  USCA: { jp: 'アメリカ/カナダ', zh: '美国/加拿大' },
+  KR: { jp: '韓国', zh: '韩国' },
+  TW: { jp: '台湾', zh: '台湾' },
+  JP: { jp: '日本', zh: '日本' },
+  CN: { jp: '中国', zh: '中国' },
+  SG: { jp: 'シンガポール', zh: '新加坡' },
+  HK: { jp: '香港', zh: '香港' },
+  ID: { jp: 'インドネシア', zh: '印度尼西亚' },
+  MY: { jp: 'マレーシア', zh: '马来西亚' },
+  PH: { jp: 'フィリピン', zh: '菲律宾' },
+  TH: { jp: 'タイ', zh: '泰国' },
+  BN: { jp: 'ブルネイ', zh: '文莱' },
+  VN: { jp: 'ベトナム', zh: '越南' },
+  LA: { jp: 'ラオス', zh: '老挝' },
+  MM: { jp: 'ミャンマー', zh: '缅甸' },
+  KH: { jp: 'カンボジア', zh: '柬埔寨' },
+  MO: { jp: 'マカオ', zh: '澳门' },
+  BD: { jp: 'バングラデシュ', zh: '孟加拉国' },
+  IN: { jp: 'インド', zh: '印度' },
+  PK: { jp: 'パキスタン', zh: '巴基斯坦' },
+  SA: { jp: 'サウジアラビア', zh: '沙特阿拉伯' },
+  AE: { jp: 'アラブ首長国連邦', zh: '阿联酋' },
+  BH: { jp: 'バーレーン', zh: '巴林' },
+  IL: { jp: 'イスラエル', zh: '以色列' },
+  EG: { jp: 'エジプト', zh: '埃及' },
+  NZ: { jp: 'ニュージーランド', zh: '新西兰' },
+  AU: { jp: 'オーストラリア', zh: '澳大利亚' },
+  GB: { jp: 'イギリス', zh: '英国' },
+  DE: { jp: 'ドイツ', zh: '德国' },
+  FR: { jp: 'フランス', zh: '法国' },
+  NL: { jp: 'オランダ', zh: '荷兰' },
+  ES: { jp: 'スペイン', zh: '西班牙' },
+  IT: { jp: 'イタリア', zh: '意大利' },
+  SE: { jp: 'スウェーデン', zh: '瑞典' },
+  CH: { jp: 'スイス', zh: '瑞士' },
+  PL: { jp: 'ポーランド', zh: '波兰' },
+  PT: { jp: 'ポルトガル', zh: '葡萄牙' },
+  BE: { jp: 'ベルギー', zh: '比利时' },
+  DK: { jp: 'デンマーク', zh: '丹麦' },
+  NO: { jp: 'ノルウェー', zh: '挪威' },
+  FI: { jp: 'フィンランド', zh: '芬兰' },
+  IE: { jp: 'アイルランド', zh: '爱尔兰' },
+  AT: { jp: 'オーストリア', zh: '奥地利' },
+  CZ: { jp: 'チェコ', zh: '捷克' },
+  GR: { jp: 'ギリシャ', zh: '希腊' },
+  LV: { jp: 'ラトビア', zh: '拉脱维亚' },
+  LT: { jp: 'リトアニア', zh: '立陶宛' },
+  RO: { jp: 'ルーマニア', zh: '罗马尼亚' },
+  SI: { jp: 'スロベニア', zh: '斯洛文尼亚' },
+  SK: { jp: 'スロバキア', zh: '斯洛伐克' },
+  HR: { jp: 'クロアチア', zh: '克罗地亚' },
+  LU: { jp: 'ルクセンブルク', zh: '卢森堡' },
+  BY: { jp: 'ベラルーシ', zh: '白俄罗斯' },
+  BA: { jp: 'ボスニア', zh: '波斯尼亚' },
+  BG: { jp: 'ブルガリア', zh: '保加利亚' },
+  RS: { jp: 'セルビア', zh: '塞尔维亚' },
+  EE: { jp: 'エストニア', zh: '爱沙尼亚' },
+  HU: { jp: 'ハンガリー', zh: '匈牙利' },
+  RU: { jp: 'ロシア', zh: '俄罗斯' },
+  UA: { jp: 'ウクライナ', zh: '乌克兰' },
+  AM: { jp: 'アルメニア', zh: '亚美尼亚' },
+  AZ: { jp: 'アゼルバイジャン', zh: '阿塞拜疆' },
+  KG: { jp: 'キルギス', zh: '吉尔吉斯斯坦' },
+  TJ: { jp: 'タジキスタン', zh: '塔吉克斯坦' },
+  TM: { jp: 'トルクメニスタン', zh: '土库曼斯坦' },
+  TR: { jp: 'トルコ', zh: '土耳其' },
+  OM: { jp: 'オマーン', zh: '阿曼' },
+  JO: { jp: 'ヨルダン', zh: '约旦' },
+  KW: { jp: 'クウェート', zh: '科威特' },
+  YE: { jp: 'イエメン', zh: '也门' },
+};
+
+// 로케일별 국가명. jp/zh 누락 시 영어로 폴백.
+export function getCountryName(country: CountrySpec, locale: 'ko' | 'en' | 'jp' | 'zh'): string {
+  switch (locale) {
+    case 'en': return country.nameEn;
+    case 'jp': return COUNTRY_NAME_I18N[country.key]?.jp ?? country.nameEn;
+    case 'zh': return COUNTRY_NAME_I18N[country.key]?.zh ?? country.nameEn;
+    default: return country.nameKo;
+  }
+}

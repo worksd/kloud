@@ -43,6 +43,11 @@ export const KioskNewUserDialog = ({ name, phone, locale, onConfirm, onCancel }:
           closing ? 'animate-[scaleOut_200ms_ease-in_forwards]' : 'animate-[scaleIn_200ms_ease-out]'
         }`}
       >
+        {/* 안내 — 매칭되는 회원이 없어서 신규 가입 흐름으로 안내 */}
+        <p className="text-[#86898C] font-medium leading-snug mb-[6px]" style={{ fontSize: 'min(1.7vh, 18px)' }}>
+          {t('kiosk_new_user_notice')}
+        </p>
+
         {/* 타이틀 */}
         <p className="text-black font-bold leading-snug" style={{ fontSize: 'min(2.4vh, 26px)' }}>
           {t('kiosk_new_user_title')}

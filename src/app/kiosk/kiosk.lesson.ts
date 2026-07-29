@@ -6,6 +6,7 @@
 import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { toAmPmTime } from "@/utils/time.format";
 
 const STATUS_LABEL_KEY: Record<string, StringResourceKey> = {
   [LessonStatus.Pending]: 'kiosk_lesson_status_pending',
@@ -53,18 +54,9 @@ export const lessonBlockLabel = (lesson: Pick<GetLessonResponse, 'status' | 'pri
   return '';
 };
 
-// "HH:mm" 문자열을 로케일 자연 포맷의 시간으로 (예: 오후 7:00 / 7:00 PM / 午後7:00 / 下午7:00)
-const toAmPm = (hhmm: string, locale: Locale): string => {
-  const [h, m] = hhmm.split(':').map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return '';
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d.toLocaleTimeString(INTL_LOCALE[locale], {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-};
+// "HH:mm" → 로케일 자연 포맷 시각. 구현은 utils/time.format(toAmPmTime)에 통일.
+// 키오스크 전역 시간 표기 규칙 — 수업/방문기록 등 시:분을 노출하는 곳은 모두 이걸 쓴다.
+export const toAmPm = (hhmm: string, locale: Locale): string => toAmPmTime(hhmm, locale);
 
 const addMinutes = (hhmm: string, minutes: number): string => {
   const [h, m] = hhmm.split(':').map(Number);

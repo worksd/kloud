@@ -67,9 +67,19 @@ export type CreateManualPaymentRecordRequest = {
   methodType: ManualPaymentMethodType;
   item: ManualPaymentItem;
   itemId: number;
-  targetUserId: number;
+  /** 회원 결제 시. 비회원(연습실 게스트)이면 생략하고 phone/name으로 식별. */
+  targetUserId?: number;
+  /** 직원이 편집한 실결제 금액 (admin 현장결제 등). 미지정이면 서버가 상품가로 계산. */
+  amount?: number;
   depositor?: string;
   discounts?: DiscountResponse[];
+  /** 연습실 예약 필수 — 예약 시간대 (KST, "YYYY-MM-DDTHH:mm:ss+09:00") */
+  startDate?: string;
+  endDate?: string;
+  /** 비회원 식별 — phone(+countryCode 기본 '82')로 예약자 find-or-create */
+  phone?: string;
+  countryCode?: string;
+  name?: string;
 }
 
 export type GetPaymentRecordsParameter = {
@@ -90,7 +100,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
   path: '/paymentRecords/manual',
-  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'depositor', 'discounts']
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'amount', 'depositor', 'discounts', 'startDate', 'endDate', 'phone', 'countryCode', 'name']
 }
 
 export type RefundPassResponse = {

@@ -3,7 +3,7 @@ import { AccountTransferComponent } from "@/app/tickets/[id]/AccountTransferComp
 import { getLocale, translate } from "@/utils/translate";
 import { Locale, StringResource } from "@/shared/StringResource";
 import { PassPlanTier } from "@/app/endpoint/pass.endpoint";
-import { formatRuleDescription, formatFeatureDescription } from "@/utils/pass.description";
+import { formatRuleDescription, formatFeatureDescription, formatMinutes } from "@/utils/pass.description";
 import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.svg"
 import { CircleImage } from "@/app/components/CircleImage";
 import Image from "next/image";
@@ -32,6 +32,7 @@ const ruleBenefitIcon = (benefitType: string) => {
     case 'Unlimited': return <UnlimitedIcon />;
     case 'FreeCount': return <FreeUnlimitedIcon />;
     case 'Discount': return <DiscountIcon />;
+    case 'TimeHours': return <PassRoomIcon />;
     default: return <UnlimitedIcon />;
   }
 };
@@ -176,14 +177,16 @@ export default async function MyPassDetailPage({params}: {
                       <div className="flex flex-col gap-0.5 min-w-0">
                         <span className="text-[14px] font-semibold text-black">{formatRuleDescription({
                           target: { type: rule.targetType, label: rule.targetLabel },
-                          benefit: { type: rule.benefitType, value: rule.benefitValue },
+                          benefit: { type: rule.benefitType, value: rule.benefitValue, startTime: rule.startTime, endTime: rule.endTime },
                           duration: rule.duration,
                           excludes: rule.excludes,
                         }, locale, passPlan?.tag ?? passPlan?.name)}</span>
                         <div className="flex items-center gap-2">
                           {rule.remainingCount != null && rule.benefitValue != null && (
                             <span className="text-[11px] font-bold text-[#5B5FF6]">
-                              {rule.usageCount}/{rule.benefitValue}{t(locale, 'times')}
+                              {rule.benefitType === 'TimeHours'
+                                ? t(locale, 'remaining_time').replace('{time}', formatMinutes(rule.remainingCount * 60, locale))
+                                : `${rule.usageCount}/${rule.benefitValue}${t(locale, 'times')}`}
                             </span>
                           )}
                           {isExpired && (
@@ -225,6 +228,55 @@ export default async function MyPassDetailPage({params}: {
                             </div>
                           </NavigateClickWrapper>
                         ))}
+                      </div>
+                    )}
+
+                    {/* 이 룰로 예약한 연습실 목록 — 연습실 관련 패스권일 때만. 탭 시 예약 상세로 이동. */}
+                    {(rule.roomBookings?.length ?? 0) > 0 && (
+                      <div className="flex flex-col gap-1.5 ml-2 mt-1.5">
+                        {rule.roomBookings!.map((b) => {
+                          const img = b.studioRoom?.imageUrls?.[0];
+                          const [sDate, sTime] = b.startDate.split(' ');
+                          const [eDate, eTime] = b.endDate.split(' ');
+                          const [, sm, sd] = (sDate ?? '').split('.');
+                          const dateLabel = sm && sd
+                            ? (locale === 'ko' ? `${Number(sm)}월 ${Number(sd)}일` : `${sm}.${sd}`)
+                            : (sDate ?? '');
+                          const range = sDate === eDate
+                            ? `${dateLabel} ${sTime ?? ''} ~ ${eTime ?? ''}`
+                            : `${dateLabel} ${sTime ?? ''} ~ ${eDate ?? ''} ${eTime ?? ''}`;
+                          // 이 예약이 소진한 이용 시간(N시간) — bold로 강조.
+                          const toMs = (dateStr?: string, timeStr?: string) => {
+                            const [y, m, d] = (dateStr ?? '').split('.').map(Number);
+                            const [hh, mm] = (timeStr ?? '').split(':').map(Number);
+                            return new Date(y || 0, (m || 1) - 1, d || 1, hh || 0, mm || 0).getTime();
+                          };
+                          const durMin = Math.round((toMs(eDate, eTime) - toMs(sDate, sTime)) / 60000);
+                          const durLabel = durMin > 0 ? formatMinutes(durMin, locale) : '';
+                          return (
+                            <NavigateClickWrapper key={b.id} method="push" route={KloudScreen.RoomBookingDetail(b.id)}>
+                              <div className="flex items-center gap-3 py-2 pl-2 pr-3 rounded-lg bg-[#F9FAFB] active:bg-[#F0F0F0] transition-colors">
+                                {img ? (
+                                  <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0 bg-[#F1F3F6]">
+                                    <Image src={img} alt="" fill sizes="40px" className="object-cover" />
+                                  </div>
+                                ) : (
+                                  <div className="w-10 h-10 rounded-md bg-[#F1F3F6] shrink-0" />
+                                )}
+                                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="text-[13px] font-medium text-[#333] truncate">{b.studioRoom?.name ?? ''}</span>
+                                    {durLabel && <span className="text-[12px] font-bold text-[#5B5FF6] shrink-0">{durLabel}</span>}
+                                  </div>
+                                  <span className="text-[11px] text-[#999]">{range}</span>
+                                </div>
+                                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0">
+                                  <path d="M9 6l6 6-6 6" stroke="#C4C9CF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
+                            </NavigateClickWrapper>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

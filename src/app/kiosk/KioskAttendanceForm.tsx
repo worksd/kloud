@@ -1,180 +1,165 @@
 'use client';
 
-import React, {useState, useEffect, useCallback} from 'react';
-import BackArrowIcon from '../../../public/assets/ic_back_arrow.svg';
-import {
-  searchUserAction,
-  createStudioAttendanceAction
-} from "@/app/kiosk/kiosk.actions";
+import React, {useCallback, useEffect, useState} from 'react';
+import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
+import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
+import {createStudioAttendanceAction, listStudioAttendancesAction, searchStudentsAction} from "@/app/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
-import {GetUserResponse} from "@/app/endpoint/user.endpoint";
-import {AttendanceStatus} from "@/app/endpoint/studio.endpoint";
+import {StudentListItemResponse} from "@/app/endpoint/student.endpoint";
+import {AttendanceStatus, StudioAttendanceItem} from "@/app/endpoint/studio.endpoint";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 import {kioskImageSrc} from "@/app/kiosk/kiosk.image";
+import {toAmPm} from "@/app/kiosk/kiosk.lesson";
 
-type Step = 'select-status' | 'phone' | 'select' | 'confirm' | 'loading' | 'complete';
+type Step = 'phone' | 'select' | 'detail';
 
-const COUNTRY_CODES = [
-  {code: '82', label: '🇰🇷 +82', placeholder: '010-0000-0000'},
-  {code: '1', label: '🇺🇸 +1', placeholder: '000-000-0000'},
-  {code: '81', label: '🇯🇵 +81', placeholder: '090-0000-0000'},
-  {code: '86', label: '🇨🇳 +86', placeholder: '000-0000-0000'},
-  {code: '44', label: '🇬🇧 +44', placeholder: '0000-000-0000'},
-];
-
-const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', 'delete'];
-
-const Keypad = ({onPress}: { onPress: (key: string) => void }) => (
-    <div className="grid grid-cols-3 gap-[8px] w-full max-w-[400px]">
-      {KEYPAD_KEYS.map((key, i) => (
-          <button
-              key={i}
-              onPointerDown={() => onPress(key)}
-              className="h-[64px] rounded-[12px] bg-gray-100 text-[24px] font-medium text-black flex items-center justify-center active:bg-gray-200 transition-colors select-none"
-          >
-            {key === 'delete' ? (
-                <svg width="44" height="28" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 3H20a1 1 0 011 1v16a1 1 0 01-1 1H9l-7-9 7-9z" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M16 9l-4 6M12 9l4 6" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-            ) : key}
-          </button>
-      ))}
-    </div>
-);
-
-type KioskAttendanceFormProps = {
-  studioName: string;
-  onBack: () => void;
-  onComplete: () => void;
-  locale: Locale;
+// 출석 대상 수강생 — GET /students 응답에서 화면/출결 API에 필요한 필드만 추린 형태.
+// StudentListItemResponse.id는 student ID이고 출결 API가 받는 targetUserId는 userId라,
+// 이 경계에서 userId만 들고 가도록 좁혀 잘못된 id가 흘러 들어가는 걸 막는다.
+type AttendanceStudent = {
+  /** 출결 API의 targetUserId */
+  userId: number;
+  name?: string;
+  nickName?: string;
+  phone?: string;
+  profileImageUrl?: string;
 };
 
-export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: KioskAttendanceFormProps) => {
+const toAttendanceStudent = (s: StudentListItemResponse): AttendanceStudent => ({
+  userId: s.userId,
+  name: s.name,
+  nickName: s.nickName,
+  phone: s.phone,
+  profileImageUrl: s.profileImageUrl,
+});
+
+const LOCALE_TAG: Record<Locale, string> = {ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN'};
+const WEEKDAYS: Record<Locale, string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  jp: ['日', '月', '火', '水', '木', '金', '土'],
+  zh: ['日', '一', '二', '三', '四', '五', '六'],
+};
+const pad = (n: number) => String(n).padStart(2, '0');
+const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+// 서버 createdAt(ISO 또는 'yyyy.MM.dd HH:mm') → '7월 25일 (금) 오후 3:47' 라벨. 파싱 실패 시 단말 현재 시각.
+const toLocalDateTimeLabel = (raw: string | undefined, locale: Locale): string => {
+  const parsed = raw ? new Date(raw.replace(/\./g, '-').replace(' ', 'T')) : null;
+  const d = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date();
+  const date = new Intl.DateTimeFormat(LOCALE_TAG[locale], {month: 'long', day: 'numeric'}).format(d);
+  const weekday = WEEKDAYS[locale][d.getDay()];
+  return `${date} (${weekday}) ${toAmPm(`${pad(d.getHours())}:${pad(d.getMinutes())}`, locale)}`;
+};
+const monthRange = (d: Date) => ({
+  startDate: ymd(new Date(d.getFullYear(), d.getMonth(), 1)),
+  endDate: ymd(new Date(d.getFullYear(), d.getMonth() + 1, 0)),
+});
+
+type KioskAttendanceFormProps = {
+  /** 완료 다이얼로그에 노출할 스튜디오 로고/이름 */
+  studioName: string;
+  studioImageUrl?: string;
+  onBack: () => void;
+  onHome: () => void;
+  onComplete: () => void;
+  locale: Locale;
+  /** 'admin'(상담실)이면 자동 홈복귀 미동작 */
+  variant?: 'kiosk' | 'admin';
+};
+
+export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome, locale, variant = 'kiosk'}: KioskAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
+  const admin = variant === 'admin';
 
-  const [step, setStep] = useState<Step>('select-status');
-  const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus | null>(null);
-  const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('82');
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userNickName, setUserNickName] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userPhone, setUserPhone] = useState<string | null>(null);
-  const [userProfileImageUrl, setUserProfileImageUrl] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<GetUserResponse[]>([]);
+  const [step, setStep] = useState<Step>('phone');
+  const [user, setUser] = useState<AttendanceStudent | null>(null);
+  const [searchResults, setSearchResults] = useState<AttendanceStudent[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(180);
-  const [completeCountdown, setCompleteCountdown] = useState(5);
+  const [loading, setLoading] = useState(false); // 유저 검색 중
 
+  // 출결
+  const [viewMonth, setViewMonth] = useState<Date>(() => new Date());
+  const [attendances, setAttendances] = useState<StudioAttendanceItem[]>([]);
+  const [attLoading, setAttLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  // 체크인/아웃 완료 다이얼로그. 닫으면(확인·바깥 탭) 홈으로 복귀한다.
+  // message=완료 문구, kind=체크인/체크아웃, time=처리 시각(오전/오후 표기)
+  const [done, setDone] = useState<{ message: string; kind: 'in' | 'out'; time: string } | null>(null);
+  // 오늘 출석 기록 — 뷰 월과 무관하게 별도 조회로 관리(달력 이동해도 안 틀어지도록).
+  // null=미출석, checkOutTime 있으면 오늘 할 동작이 없음(체크인·체크아웃 모두 완료)
+  const [todayRecord, setTodayRecord] = useState<StudioAttendanceItem | null>(null);
+  // studioAttendances 첫 응답이 오기 전엔 달력/CTA를 그리지 않는다 —
+  // 빈 달력이 먼저 뜨거나 체크인/체크아웃 버튼 라벨이 뒤늦게 뒤바뀌는 걸 막기 위함.
+  const [detailReady, setDetailReady] = useState(false);
+
+  const todayStr = ymd(new Date());
+
+  // 무인 키오스크만 무입력 시 자동 홈복귀
+  const [countdown, setCountdown] = useState(180);
   useEffect(() => {
+    if (admin) return;
     const timer = setInterval(() => {
       setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          onBack();
-          return 0;
-        }
+        if (prev <= 1) { clearInterval(timer); onBack(); return 0; }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [onBack]);
+  }, [onBack, admin]);
 
-  useEffect(() => {
-    if (step !== 'complete') return;
-    setCompleteCountdown(5);
-    const timer = setInterval(() => {
-      setCompleteCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          onComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [step, onComplete]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${String(secs).padStart(2, '0')}`;
-  };
-
-  const formatPhoneDisplay = (value: string) => {
-    const nums = value.replace(/\D/g, '');
-    if (nums.length <= 3) return nums;
-    if (nums.length <= 7) return `${nums.slice(0, 3)}-${nums.slice(3)}`;
-    return `${nums.slice(0, 3)}-${nums.slice(3, 7)}-${nums.slice(7, 11)}`;
-  };
-
-  const handleKeyPress = (key: string) => {
-    setError(null);
-    if (key === 'delete') {
-      setPhone((prev) => prev.slice(0, -1));
-    } else {
-      setPhone((prev) => {
-        const next = prev + key;
-        if (next.length > 11) return prev;
-        return next;
-      });
-    }
-  };
-
-  const statusLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in') : t('kiosk_check_out');
-  const statusDoLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_do') : t('kiosk_check_out_do');
-  const statusCompleteLabel = attendanceStatus === 'CheckIn' ? t('kiosk_check_in_complete') : t('kiosk_check_out_complete');
-
-  const callAttendanceApi = useCallback(async (targetUserId: number) => {
-    if (!attendanceStatus) return;
-    setStep('loading');
+  const fetchAttendances = useCallback(async (uid: number, month: Date) => {
+    setAttLoading(true);
+    const {startDate, endDate} = monthRange(month);
     try {
-      const result = await createStudioAttendanceAction(targetUserId, attendanceStatus);
-      if (isGuinnessErrorCase(result)) {
-        setError(t('kiosk_attendance_failed').replace('{0}', statusLabel));
-        setStep('phone');
-      } else {
-        setStep('complete');
-      }
+      const res = await listStudioAttendancesAction({targetUserId: uid, startDate, endDate});
+      setAttendances(!isGuinnessErrorCase(res) ? (res.attendances ?? []) : []);
     } catch {
-      setError(t('kiosk_attendance_failed').replace('{0}', statusLabel));
-      setStep('phone');
+      setAttendances([]);
+    } finally {
+      setAttLoading(false);
     }
-  }, [attendanceStatus, statusLabel]);
+  }, []);
 
-  const selectUser = (user: GetUserResponse) => {
-    setUserId(user.id);
-    setUserName(user.name || null);
-    setUserNickName(user.nickName || null);
-    setUserEmail(user.email || null);
-    setUserPhone(user.phone || null);
-    setUserProfileImageUrl(user.profileImageUrl || null);
-    setStep('confirm');
+  // 오늘 출석 여부 갱신 — 이번 달 전체(1일~말일)를 조회하고 그 안에 오늘 날짜가 있는지로 판단.
+  // (뷰 월과 무관하게 항상 '이번 달'을 조회하므로 달력을 다른 달로 넘겨도 안 틀어짐)
+  const refreshToday = useCallback(async (uid: number) => {
+    const {startDate, endDate} = monthRange(new Date());
+    try {
+      const res = await listStudioAttendancesAction({targetUserId: uid, startDate, endDate});
+      const today = !isGuinnessErrorCase(res) ? (res.attendances ?? []).find((a) => a.date === todayStr) : undefined;
+      setTodayRecord(today ?? null);
+    } catch {
+      setTodayRecord(null);
+    }
+  }, [todayStr]);
+
+  const selectUser = (u: AttendanceStudent) => {
+    setUser(u);
+    setError(null);
+    const now = new Date();
+    setViewMonth(now);
+    setStep('detail');
+    // 두 조회가 모두 끝난 뒤에 상세 UI를 그린다 (달력 기록 + 오늘 출석 여부가 함께 확정되도록)
+    setDetailReady(false);
+    Promise.all([fetchAttendances(u.userId, now), refreshToday(u.userId)])
+      .finally(() => setDetailReady(true));
   };
 
-  const handleSearch = async () => {
-    if (phone.length < 10) {
-      setError(t('kiosk_phone_error'));
-      return;
-    }
+  // 수강생 검색 — GET /students. 폰 뒷자리(숫자만)면 서버가 phone 검색, 이메일/이름이면 문자 검색으로 분기.
+  const searchUser = async (value: string) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await searchUserAction(phone);
-      if (isGuinnessErrorCase(result)) {
-        setError(t('kiosk_not_registered'));
-      } else if (result.users.length === 0) {
-        setError(t('kiosk_not_registered'));
-      } else if (result.users.length === 1) {
-        selectUser(result.users[0]);
+      const result = await searchStudentsAction(value);
+      const students = isGuinnessErrorCase(result) ? [] : (result.students ?? []).map(toAttendanceStudent);
+      // 0명 → 없다고 안내(신규 가입 없음) / 1명 → 바로 진행 / 2명+ → 선택 목록
+      if (students.length === 0) {
+        setError(t('kiosk_no_member_found'));
+      } else if (students.length === 1) {
+        selectUser(students[0]);
       } else {
-        setSearchResults(result.users);
+        setSearchResults(students);
         setStep('select');
       }
     } catch {
@@ -184,325 +169,310 @@ export const KioskAttendanceForm = ({studioName, onBack, onComplete, locale}: Ki
     }
   };
 
-  const handleBackStep = () => {
-    if (step === 'phone') {
-      setPhone('');
-      setError(null);
-      setStep('select-status');
-    } else if (step === 'select') {
-      setSearchResults([]);
-      setPhone('');
-      setError(null);
-      setStep('phone');
-    } else if (step === 'confirm') {
-      setUserId(null);
-      setUserName(null);
-      setUserNickName(null);
-      setUserEmail(null);
-      setUserPhone(null);
-      setUserProfileImageUrl(null);
-      setError(null);
-      if (searchResults.length > 1) {
-        setStep('select');
+  // 오늘 기록 없으면 체크인, 체크인만 있으면 체크아웃. 둘 다 끝났으면 할 동작이 없다.
+  const allDoneToday = !!todayRecord?.checkOutTime;
+  const nextStatus: AttendanceStatus = todayRecord ? 'CheckOut' : 'CheckIn';
+
+  const submitAttendance = async () => {
+    if (!user || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    const label = nextStatus === 'CheckIn' ? t('kiosk_check_in') : t('kiosk_check_out');
+    try {
+      const res = await createStudioAttendanceAction(user.userId, nextStatus);
+      if (isGuinnessErrorCase(res)) {
+        setError(t('kiosk_attendance_failed').replace('{0}', label));
       } else {
-        setStep('phone');
+        // 완료 다이얼로그 — 확인/바깥 탭으로 닫으면 홈으로 복귀하므로 목록 갱신은 하지 않는다.
+        // 시각은 서버 응답 createdAt 우선, 파싱 실패 시 단말 현재 시각.
+        setDone({
+          message: nextStatus === 'CheckIn' ? t('kiosk_check_in_complete') : t('kiosk_check_out_complete'),
+          kind: nextStatus === 'CheckIn' ? 'in' : 'out',
+          time: toLocalDateTimeLabel((res as { createdAt?: string }).createdAt, locale),
+        });
       }
-    } else {
-      onBack();
+    } catch {
+      setError(t('kiosk_attendance_failed').replace('{0}', label));
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const renderContent = () => {
-    switch (step) {
-      case 'select-status':
-        return (
-            <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
-                {t('kiosk_what_to_do')}
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[48px] w-full max-w-[500px] text-center">
-                {t('kiosk_select_check')}
-              </p>
-              <div className="w-full max-w-[500px] flex flex-col gap-[16px]">
-                <button
-                    onClick={() => {
-                      setAttendanceStatus('CheckIn');
-                      setStep('phone');
-                    }}
-                    className="w-full h-[80px] rounded-[16px] bg-black text-white text-[24px] font-medium transition-colors"
-                >
-                  {t('kiosk_check_in')}
-                </button>
-                <button
-                    onClick={() => {
-                      setAttendanceStatus('CheckOut');
-                      setStep('phone');
-                    }}
-                    className="w-full h-[80px] rounded-[16px] border-2 border-gray-200 text-black text-[24px] font-medium transition-colors"
-                >
-                  {t('kiosk_check_out')}
-                </button>
-              </div>
-            </>
-        );
+  // ── 전화/이메일 입력 (결제·수업출석과 동일 KioskPhoneInputForm) ──
+  if (step === 'phone') {
+    return (
+      <KioskPhoneInputForm
+        locale={locale}
+        variant={variant}
+        mode="lastFour"
+        onBack={onBack}
+        onHome={onHome}
+        onNext={(value) => searchUser(value)}
+        onSearchByEmail={(value) => searchUser(value)}
+        loading={loading}
+        errorMessage={error}
+        onDismissError={() => setError(null)}
+      />
+    );
+  }
 
-      case 'phone':
-        return (
-            <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[400px] text-center">
-                {t('kiosk_phone_title')}
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[400px] text-center">
-                {t('kiosk_phone_desc')}
-              </p>
-
-              <div className="relative mb-[8px] w-full max-w-[400px] flex justify-center">
-                <button
-                    onClick={() => setShowCountryPicker((v) => !v)}
-                    className="h-[48px] px-[16px] rounded-[12px] border-2 border-gray-200 flex items-center gap-[4px] text-[20px] font-medium text-black"
-                >
-                  {COUNTRY_CODES.find((c) => c.code === countryCode)?.label ?? `+${countryCode}`}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 9l6 6 6-6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                {showCountryPicker && (
-                    <div className="absolute top-[52px] left-0 bg-white border border-gray-200 rounded-[12px] shadow-lg z-10 overflow-hidden">
-                      {COUNTRY_CODES.map((c) => (
-                          <button
-                              key={c.code}
-                              onClick={() => {
-                                setCountryCode(c.code);
-                                setShowCountryPicker(false);
-                              }}
-                              className={`w-full px-[20px] py-[14px] text-[18px] text-black text-left hover:bg-gray-50 active:bg-gray-100 ${c.code === countryCode ? 'font-bold bg-gray-50' : ''}`}
-                          >
-                            {c.label}
-                          </button>
-                      ))}
-                    </div>
-                )}
-              </div>
-
-              <div className="w-full max-w-[400px] h-[72px] rounded-[16px] border-2 border-gray-200 flex items-center justify-center mb-[12px]">
-                <p className="text-[32px] font-medium tracking-[2px] text-black">
-                  {phone ? formatPhoneDisplay(phone) : <span className="text-gray-300">{COUNTRY_CODES.find(c => c.code === countryCode)?.placeholder ?? '010-0000-0000'}</span>}
-                </p>
-              </div>
-
-              {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
-
-              <Keypad onPress={handleKeyPress}/>
-
+  // ── 동명이인 선택 ──
+  if (step === 'select') {
+    return (
+      <div className="bg-white w-full h-screen overflow-hidden flex flex-col animate-[fadeIn_260ms_ease-out]">
+        <KioskTopBar title={t('kiosk_attendance')} onBack={() => { setSearchResults([]); setError(null); setStep('phone'); }} onHome={onHome} />
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
+          <p className="text-black text-[32px] font-bold mb-[8px] w-full max-w-[520px] text-center">{t('kiosk_select_user_title')}</p>
+          <p className="text-gray-400 text-[20px] mb-[28px] w-full max-w-[520px] text-center">{t('kiosk_select_user_desc')}</p>
+          <div className="w-full max-w-[520px] flex flex-col gap-[12px] overflow-y-auto max-h-[52vh]">
+            {searchResults.map((u) => (
               <button
-                  onClick={handleSearch}
-                  disabled={loading || phone.length < 10}
-                  className="w-full max-w-[400px] h-[64px] rounded-[16px] bg-black text-white text-[22px] font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-[16px]"
+                key={u.userId}
+                onClick={() => selectUser(u)}
+                className="w-full bg-gray-50 rounded-[16px] p-[20px] flex items-center gap-[16px] active:bg-gray-200 transition-colors"
               >
-                {loading ? t('kiosk_checking') : t('kiosk_confirm')}
-              </button>
-            </>
-        );
-
-      case 'select':
-        return (
-            <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
-                {t('kiosk_select_user_title')}
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[32px] w-full max-w-[500px] text-center">
-                {t('kiosk_select_user_desc')}
-              </p>
-
-              <div className="w-full max-w-[500px] flex flex-col gap-[12px] overflow-y-auto max-h-[400px]">
-                {searchResults.map((user) => (
-                    <button
-                        key={user.id}
-                        onClick={() => selectUser(user)}
-                        className="w-full bg-gray-50 rounded-[16px] p-[20px] flex items-center gap-[16px] hover:bg-gray-100 active:bg-gray-200 transition-colors"
-                    >
-                      <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
-                        {user.profileImageUrl ? (
-                            <img src={kioskImageSrc(user.profileImageUrl, 140)} alt="" className="w-full h-full object-cover"/>
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-[24px]">
-                              👤
-                            </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-start gap-[4px]">
-                        <p className="text-black text-[20px] font-bold">{user.name || user.nickName || '-'}</p>
-                        {user.phone && <p className="text-gray-500 text-[16px]">{formatPhoneDisplay(user.phone)}</p>}
-                      </div>
-                    </button>
-                ))}
-              </div>
-
-              <button
-                  onClick={() => {
-                    setSearchResults([]);
-                    setPhone('');
-                    setError(null);
-                    setStep('phone');
-                  }}
-                  className="w-full max-w-[500px] h-[64px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors mt-[16px]"
-              >
-                {t('kiosk_not_me')}
-              </button>
-            </>
-        );
-
-      case 'confirm':
-        return (
-            <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px] w-full max-w-[500px] text-center">
-                {t('kiosk_confirm_title')}
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[40px] w-full max-w-[500px] text-center">
-                {t('kiosk_confirm_desc')}
-              </p>
-
-              <div className="w-full max-w-[500px] bg-gray-50 rounded-[20px] p-[32px] flex flex-col items-center gap-[20px] mb-[32px]">
-                <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shrink-0">
-                  {userProfileImageUrl ? (
-                      <img src={kioskImageSrc(userProfileImageUrl, 200)} alt="" className="w-full h-full object-cover"/>
-                  ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-[32px]">
-                        👤
-                      </div>
+                <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+                  {u.profileImageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={kioskImageSrc(u.profileImageUrl, 140)} alt="" className="w-full h-full object-cover" />
                   )}
                 </div>
-
-                <div className="w-full flex flex-col gap-[12px]">
-                  {userName && (
-                      <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_name')}</p>
-                        <p className="text-black text-[20px] font-bold">{userName}</p>
-                      </div>
-                  )}
-                  {userNickName && (
-                      <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_nickname')}</p>
-                        <p className="text-black text-[20px] font-bold">{userNickName}</p>
-                      </div>
-                  )}
-                  {userPhone && (
-                      <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_phone')}</p>
-                        <p className="text-black text-[20px] font-bold">{formatPhoneDisplay(userPhone)}</p>
-                      </div>
-                  )}
-                  {userEmail && (
-                      <div className="flex items-center justify-between">
-                        <p className="text-gray-400 text-[18px]">{t('kiosk_label_email')}</p>
-                        <p className="text-black text-[20px] font-bold">{userEmail}</p>
-                      </div>
-                  )}
+                <div className="flex flex-col items-start gap-[4px]">
+                  <p className="text-black text-[20px] font-bold">{u.name || u.nickName || '-'}</p>
+                  {u.phone && <p className="text-gray-500 text-[16px]">{u.phone}</p>}
                 </div>
-              </div>
-
-              {error && <p className="text-red-500 text-[16px] text-center mb-[12px]">{error}</p>}
-
-              <div className="w-full max-w-[500px] flex flex-col gap-[12px]">
-                <button
-                    onClick={() => {
-                      if (userId) callAttendanceApi(userId);
-                    }}
-                    className="w-full h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
-                >
-                  {statusDoLabel}
-                </button>
-                <button
-                    onClick={() => {
-                      setUserId(null);
-                      setUserName(null);
-                      setUserNickName(null);
-                      setUserEmail(null);
-                      setUserPhone(null);
-                      setUserProfileImageUrl(null);
-                      setPhone('');
-                      setError(null);
-                      setStep('phone');
-                    }}
-                    className="w-full h-[72px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors"
-                >
-                  {t('kiosk_not_me')}
-                </button>
-              </div>
-            </>
-        );
-
-      case 'loading':
-        return (
-            <>
-              <div className="w-[60px] h-[60px] border-4 border-gray-200 border-t-black rounded-full animate-spin mb-[32px]"/>
-              <p className="text-black text-[28px] font-bold tracking-[-0.84px]">
-                {t('kiosk_attendance_processing').replace('{0}', statusLabel)}
-              </p>
-            </>
-        );
-
-      case 'complete':
-        return (
-            <>
-              <div className="w-[80px] h-[80px] rounded-full bg-black flex items-center justify-center mb-[32px]">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round"
-                        strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[16px]">
-                {statusCompleteLabel}
-              </p>
-              <p className="text-gray-400 text-[20px] mb-[48px]">
-                {userName ? `${userName}${t('kiosk_name_suffix')}` : ''}{t('kiosk_attendance_complete_msg').replace('{0}', statusLabel)}
-              </p>
-              <button
-                  onClick={onComplete}
-                  className="w-full max-w-[500px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-medium transition-colors"
-              >
-                {t('kiosk_confirm')}
               </button>
-              <p className="text-gray-400 text-[16px] mt-[20px]">
-                <span className="font-semibold text-black">{completeCountdown}</span>
-                <span>초 {t('kiosk_countdown_suffix')}</span>
-              </p>
-            </>
-        );
-    }
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 출결 상세 — 월 달력 뷰. 각 날짜 칸에 체크인~체크아웃 기록을 직접 표시 ──
+  const vy = viewMonth.getFullYear();
+  const vm = viewMonth.getMonth();
+  const lastDate = new Date(vy, vm + 1, 0).getDate();
+  const leadBlanks = new Date(vy, vm, 1).getDay(); // 0=일
+  // 격자를 빈 칸 없이 채운다 — 앞은 이전 달 말일들, 뒤는 다음 달 초일들을 dim 처리해서 함께 그린다.
+  const cells: { date: Date; inMonth: boolean }[] = [];
+  for (let i = leadBlanks; i > 0; i--) cells.push({date: new Date(vy, vm, 1 - i), inMonth: false});
+  for (let d = 1; d <= lastDate; d++) cells.push({date: new Date(vy, vm, d), inMonth: true});
+  for (let d = 1; cells.length % 7 !== 0; d++) cells.push({date: new Date(vy, vm + 1, d), inMonth: false});
+  const recsByDate = new Map<string, StudioAttendanceItem[]>();
+  attendances.forEach((a) => { const arr = recsByDate.get(a.date) ?? []; arr.push(a); recsByDate.set(a.date, arr); });
+  const changeMonth = (delta: number) => {
+    const next = new Date(vy, vm + delta, 1);
+    setViewMonth(next);
+    if (user) fetchAttendances(user.userId, next);
   };
 
   return (
-      <div className="bg-white w-full h-screen overflow-hidden flex flex-col">
-        <div className="h-[70px] px-[32px] flex items-center shrink-0 border-b border-gray-100 relative">
-          {step !== 'complete' && step !== 'loading' ? (
-              <button onClick={handleBackStep}
-                      className="w-[40px] h-[40px] flex items-center justify-center active:opacity-70 transition-opacity z-10">
-                <BackArrowIcon className="w-6 h-6"/>
-              </button>
-          ) : (
-              <div className="w-[40px]"/>
-          )}
-          <p className="absolute inset-0 flex items-center justify-center text-black text-[20px] font-bold pointer-events-none">{t('kiosk_attendance')}</p>
-          <div className="ml-auto z-10">
-            <p className="text-gray-500 text-[16px] tracking-[-0.48px]">
-              {studioName}
-            </p>
+    <div className="bg-white w-full h-screen overflow-hidden flex flex-col animate-[fadeIn_260ms_ease-out]">
+      <KioskTopBar
+        title={t('kiosk_attendance')}
+        onBack={() => { setUser(null); setError(null); setStep(searchResults.length > 1 ? 'select' : 'phone'); }}
+        onHome={onHome}
+      />
+
+      {/* studioAttendances 첫 응답 대기 — 이 동안엔 달력/CTA를 그리지 않는다 */}
+      {!detailReady && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-[20px]">
+          <div className="w-[52px] h-[52px] border-4 border-[#E8E8EA] border-t-[#1E2124] rounded-full animate-spin" />
+          <p className="text-[#8B95A1] text-[18px]">{t('kiosk_loading')}</p>
+        </div>
+      )}
+
+      {detailReady && (
+      <div className="flex-1 min-h-0 flex flex-col px-[48px] pt-[4px] pb-[24px] animate-[fadeIn_240ms_ease-out]">
+        {/* 헤더 — 회원 + 월 이동 */}
+        <div className="shrink-0 flex items-center justify-between mb-[28px]">
+          <div className="flex items-center gap-[14px] min-w-0">
+            <div className="w-[48px] h-[48px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+              {user?.profileImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={kioskImageSrc(user.profileImageUrl, 140)} alt="" className="w-full h-full object-cover" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-black text-[22px] font-bold truncate">{user?.name || user?.nickName || '-'}</p>
+              {user?.phone && <p className="text-gray-500 text-[15px]">{user.phone}</p>}
+            </div>
+          </div>
+          <div className="flex items-center gap-[16px]">
+            <button onClick={() => changeMonth(-1)} className="w-[44px] h-[44px] rounded-full bg-[#F2F4F6] flex items-center justify-center active:scale-[0.94] transition-transform">
+              <svg viewBox="0 0 24 24" fill="none" className="w-[40%] h-[40%]"><path d="M15 6L9 12L15 18" stroke="#1E2124" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            <span className="text-black text-[22px] font-bold" style={{minWidth: 160, textAlign: 'center'}}>
+              {new Intl.DateTimeFormat(LOCALE_TAG[locale], {year: 'numeric', month: 'long'}).format(viewMonth)}
+            </span>
+            <button onClick={() => changeMonth(1)} className="w-[44px] h-[44px] rounded-full bg-[#F2F4F6] flex items-center justify-center active:scale-[0.94] transition-transform">
+              <svg viewBox="0 0 24 24" fill="none" className="w-[40%] h-[40%]"><path d="M9 6L15 12L9 18" stroke="#1E2124" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-[48px] py-[40px]">
-          {renderContent()}
+        {/* 요일 헤더 */}
+        <div className="shrink-0 grid grid-cols-7 mb-[6px]">
+          {WEEKDAYS[locale].map((w, i) => (
+            <div key={w} className={`text-center text-[15px] font-bold ${i === 0 ? 'text-[#E0533F]' : 'text-[#8B95A1]'}`}>{w}</div>
+          ))}
         </div>
 
-        {step !== 'complete' && (
-            <div className="px-[48px] pb-[40px] flex justify-center shrink-0">
-              <p className="text-[18px] tracking-[-0.54px]">
-                <span className="font-semibold text-black">{formatTime(countdown)}</span>
-                <span className="text-gray-300"> {t('kiosk_countdown_suffix')}</span>
-              </p>
-            </div>
+        {/* 달력 그리드 — 각 칸에 체크인/체크아웃을 태그(pill)로 표시.
+            월 이동 중에는 이전 달 기록을 흐리게 남겨두고 응답이 오면 fade로 교체한다. */}
+        <div
+          key={`${vy}-${vm}`}
+          className={`flex-1 min-h-0 grid grid-cols-7 gap-[6px] animate-[fadeIn_240ms_ease-out] transition-opacity duration-200 ${attLoading ? 'opacity-40' : 'opacity-100'}`}
+          style={{gridAutoRows: '1fr'}}
+        >
+          {cells.map(({date, inMonth}, idx) => {
+            const dateStr = ymd(date);
+            const recs = recsByDate.get(dateStr) ?? [];
+            const isToday = dateStr === todayStr;
+            const dow = idx % 7;
+            // 이전/다음 달 칸은 dim — 격자만 채우고 내용은 흐리게
+            return (
+              <div
+                key={dateStr}
+                className={`min-h-0 rounded-[12px] border p-[7px] flex flex-col overflow-hidden ${
+                  isToday ? 'border-[#1E2124] bg-[#F7F8F9]' : 'border-[#EEF0F2]'
+                } ${inMonth ? '' : 'opacity-40 bg-[#FAFBFC]'}`}
+              >
+                <span
+                  className={`text-[14px] font-bold ${
+                    !inMonth ? 'text-[#B1B8BE]' : isToday ? 'text-[#1E2124]' : dow === 0 ? 'text-[#E0533F]' : 'text-[#4E5968]'
+                  }`}
+                >
+                  {date.getDate()}
+                </span>
+                <div className="flex-1 min-h-0 overflow-hidden flex flex-col items-start gap-[4px] mt-[4px]">
+                  {recs.map((r) => (
+                    <React.Fragment key={r.id}>
+                      {r.checkInTime && <AttendanceTag kind="in" label={t('kiosk_tag_check_in')} time={toAmPm(r.checkInTime, locale)} />}
+                      {/* 체크아웃 기록이 없으면 아무것도 안 붙인다 (미퇴실 같은 표기 X) */}
+                      {r.checkOutTime && <AttendanceTag kind="out" label={t('kiosk_tag_check_out')} time={toAmPm(r.checkOutTime, locale)} />}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 에러 */}
+        {error && <p className="shrink-0 mt-[12px] text-red-500 text-[16px] text-center">{error}</p>}
+
+        {/* CTA — 오늘 체크인·체크아웃을 모두 마쳤으면 출석 버튼은 노출하지 않고 홈 복귀만 안내 */}
+        {allDoneToday ? (
+          <>
+            <p className="shrink-0 mt-[16px] text-center text-[#8B95A1] text-[17px]">{t('kiosk_attendance_all_done')}</p>
+            <button
+              onClick={onHome}
+              className="shrink-0 mt-[10px] w-full h-[76px] rounded-[16px] bg-[#F2F4F6] flex items-center justify-center transition-transform active:scale-[0.98]"
+            >
+              <span className="text-[#1E2124] text-[24px] font-bold">{t('kiosk_go_home')}</span>
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={submitAttendance}
+            disabled={submitting}
+            className={`shrink-0 mt-[16px] w-full h-[76px] rounded-[16px] flex items-center justify-center transition-transform active:scale-[0.98] ${
+              todayRecord ? 'bg-[#E0533F]' : 'bg-[#1E2124]'
+            } ${submitting ? 'opacity-60' : ''}`}
+          >
+            {submitting ? (
+              <div className="w-7 h-7 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <span className="text-white text-[24px] font-bold">
+                {todayRecord ? t('kiosk_check_out_do') : t('kiosk_check_in_do')}
+              </span>
+            )}
+          </button>
         )}
       </div>
+      )}
+
+      {/* 체크인/체크아웃 완료 — 누가·언제 처리됐는지 함께 보여주고, 확인 또는 바깥 탭으로 닫으면 홈으로 */}
+      {done && (
+        <div
+          onClick={onHome}
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-[28px] w-full max-w-[520px] px-[40px] pt-[32px] pb-[32px] flex flex-col items-center animate-[scaleIn_180ms_ease-out]"
+          >
+            {/* 스튜디오 로고 + 이름 */}
+            <div className="flex items-center gap-[10px] mb-[24px] max-w-full">
+              <div className="w-[36px] h-[36px] rounded-full overflow-hidden bg-[#F2F4F6] shrink-0">
+                {studioImageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={kioskImageSrc(studioImageUrl, 120)} alt="" className="w-full h-full object-cover" />
+                )}
+              </div>
+              <span className="text-[#4E5968] text-[19px] font-bold truncate">{studioName}</span>
+            </div>
+
+            {/* 체크 아이콘 */}
+            <div className="w-[84px] h-[84px] rounded-full bg-[#EAF7F4] flex items-center justify-center mb-[24px]">
+              <svg viewBox="0 0 24 24" fill="none" className="w-[44%] h-[44%]">
+                <path d="M4 12.5L9.5 18L20 6.5" stroke="#1E9E8A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="text-black text-[28px] font-bold text-center leading-snug">{done.message}</p>
+
+            {/* 처리된 회원 + 시각 */}
+            <div className="mt-[24px] w-full rounded-[18px] bg-[#F7F8F9] px-[22px] py-[20px] flex flex-col gap-[14px]">
+              <div className="flex items-center gap-[14px] min-w-0">
+                <div className="w-[52px] h-[52px] rounded-full overflow-hidden bg-gray-200 shrink-0">
+                  {user?.profileImageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={kioskImageSrc(user.profileImageUrl, 140)} alt="" className="w-full h-full object-cover" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-black text-[20px] font-bold truncate">{user?.name || user?.nickName || '-'}</p>
+                  {user?.phone && <p className="text-[#8B95A1] text-[15px] truncate">{user.phone}</p>}
+                </div>
+              </div>
+              <div className="h-px bg-[#E8EAED]" />
+              <div className="flex items-center justify-between gap-[10px]">
+                <AttendanceTag
+                  kind={done.kind}
+                  label={done.kind === 'in' ? t('kiosk_tag_check_in') : t('kiosk_tag_check_out')}
+                />
+                <span className="text-black text-[18px] font-bold text-right">{done.time}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={onHome}
+              className="mt-[28px] w-full h-[72px] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.98] transition-transform"
+            >
+              <span className="text-white text-[22px] font-bold">{t('kiosk_confirm')}</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// 방문 기록 태그 — 시간 숫자만 나열하는 대신 '체크인 15:18' 형태의 pill로.
+//  in  = 체크인(민트) / out = 체크아웃(회색). 체크아웃 기록이 없으면 태그를 안 붙인다.
+const AttendanceTag = ({kind, label, time}: { kind: 'in' | 'out'; label: string; time?: string }) => {
+  const style = kind === 'in'
+    ? {box: 'bg-[#EAF7F4] text-[#1E9E8A]', dot: 'bg-[#1E9E8A]'}
+    : {box: 'bg-[#F2F4F6] text-[#6D7882]', dot: 'bg-[#B1B8BE]'};
+  return (
+    <span
+      className={`inline-flex items-center rounded-full font-bold leading-none max-w-full ${style.box}`}
+      style={{fontSize: 11, padding: '3px 7px', gap: 4}}
+    >
+      <span className={`shrink-0 rounded-full ${style.dot}`} style={{width: 4, height: 4}} />
+      <span className="truncate">{time ? `${label} ${time}` : label}</span>
+    </span>
   );
 };

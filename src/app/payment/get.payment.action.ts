@@ -7,11 +7,15 @@ export const getPaymentAction = async ({
   id,
   targetUserId,
   date,
+  startTime,
+  endTime,
 }: {
   item: string
   id: number
   targetUserId?: number
   date?: string
+  startTime?: string
+  endTime?: string
 }) => {
-  return await api.payment.get({ item, itemId: id, targetUserId, date })
+  return await api.payment.get({ item, itemId: id, targetUserId, date, startTime, endTime })
 }

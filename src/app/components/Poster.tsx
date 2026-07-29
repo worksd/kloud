@@ -7,6 +7,8 @@ import { translate } from "@/utils/translate";
 import { LessonLabel, LessonPosterTypeLabel } from "@/app/components/LessonLabel";
 import { GetLabelResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonTags } from "@/app/components/LessonTags";
+import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
+import { getLocale } from "@/utils/translate";
 
 export async function Poster({
                                id,
@@ -19,6 +21,9 @@ export async function Poster({
                                label,
                                type,
                                tags,
+                               date,
+                               startTime,
+                               startDate,
                              }: {
   id: number,
   posterUrl: string,
@@ -30,7 +35,13 @@ export async function Poster({
   label?: GetLabelResponse,
   type?: 'default' | 'subscription',
   tags?: string,
+  /** 수업 시각 필드 — 넘기면 설명 대신 상대 시각(오늘/내일/이번 주 …)으로 렌더 */
+  date?: string,
+  startTime?: string,
+  startDate?: string,
 }) {
+  const locale = await getLocale();
+  const hasWhen = !!(date || startTime || startDate);
   const route = type === 'subscription'
     ? KloudScreen.LessonGroupDetail(id)
     : KloudScreen.LessonDetail(id);
@@ -101,12 +112,19 @@ export async function Poster({
             {title}
           </div>
 
-          {/* 날짜 + 요일 + 시간 */}
-          {description && (
+          {/* 날짜 — 시각 필드가 있으면 상대 시각(오늘/내일/이번 주 …), 없으면 기존 설명 */}
+          {hasWhen ? (
+            <LessonRelativeDate
+              when={{ date, startTime, startDate }}
+              locale={locale}
+              fallback={description}
+              className="body-200 text-gray-500 text-[12px] truncate font-medium"
+            />
+          ) : description ? (
             <div className="body-200 text-gray-500 text-[12px] truncate font-medium">
               {description}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </NavigateClickWrapper>

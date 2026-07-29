@@ -1,5 +1,5 @@
 'use server'
-import { StudioItem } from "@/app/search/StudioItem";
+import { StudioGridItem } from "@/app/home/StudioGridItem";
 import { translate } from "@/utils/translate";
 import React from "react";
 import Divider from "@/app/studios/[id]/studio.divider";
@@ -22,11 +22,11 @@ export const NoMyStudioPage = async ({studios}: {studios: GetStudioResponse[]}) 
         className={'mt-6 px-6 text-[18px] font-bold text-black'}
         dangerouslySetInnerHTML={{__html: (await translate('studio_recommendation')).replace(/\n/g, '<br />')}}
       />
-      <ul className="flex flex-col mt-4">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-5 px-6 mt-4 pb-[calc(env(safe-area-inset-bottom,0px)+96px)]">
         {(studios ?? []).map((item) => (
-          <StudioItem key={item.id} item={item}/>
+          <StudioGridItem key={item.id} item={item}/>
         ))}
-      </ul>
+      </div>
     </div>
   )
 

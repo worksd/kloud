@@ -106,7 +106,8 @@ export const YoutubePreview = ({ videoId, duration = 5, className = "", watchMor
           className="relative z-20 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur rounded-full text-[13px] font-semibold text-black
             active:scale-95 transition-transform"
         >
-          <YoutubeIcon className="w-5 h-5 flex-shrink-0" />
+          {/* 아이콘 원본 20×16 — h-5로 늘리면 상하 여백 때문에 라벨과 중심이 어긋난다 */}
+          <YoutubeIcon className="w-5 h-4 flex-shrink-0 block" />
           <span className="leading-none whitespace-nowrap">{watchMoreLabel}</span>
         </a>
       </div>

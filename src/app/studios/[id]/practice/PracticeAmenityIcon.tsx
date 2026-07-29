@@ -29,7 +29,7 @@ function match(name: string): React.ReactNode {
   return <path {...P} d="M5 12.5 10 17l9-10" />;
 }
 
-export function CommunityAmenityIcon({ name, className }: { name: string; className?: string }) {
+export function PracticeAmenityIcon({ name, className }: { name: string; className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className}>
       {match(name)}

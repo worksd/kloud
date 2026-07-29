@@ -13,6 +13,9 @@ export const LessonGridItems = async ({ lessons }: { lessons: GetBandLessonRespo
             posterUrl={lesson.thumbnailUrl}
             title={lesson.title ?? ''}
             description={lesson.description ?? ''}
+            date={lesson.date}
+            startTime={lesson.startTime}
+            startDate={lesson.startDate}
             width={undefined}
             label={lesson.label}
           />

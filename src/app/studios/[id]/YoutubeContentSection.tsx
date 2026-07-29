@@ -5,6 +5,7 @@ import Image from "next/image";
 import { YoutubePreview } from "@/app/components/YoutubePreview";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import YoutubeIcon from "@/../public/assets/youtube-colored.svg";
 
 type YoutubeContent = {
   videoId: string;
@@ -53,8 +54,15 @@ export const YoutubeContentSection = ({ contents, title, channelUrl, locale }: {
         <div className="text-[20px] text-black font-bold">{title}</div>
         {channelUrl && (
           <a href={channelUrl} target="_blank" rel="noopener noreferrer"
-            className="text-[13px] text-[#999] font-medium active:opacity-60 transition-opacity">
-            {getLocaleString({ locale, key: 'more' })} &rsaquo;
+            className="flex items-center gap-1.5 text-[13px] text-[#999] font-medium active:opacity-60 transition-opacity">
+            {/* 아이콘 원본이 20×16 — h-5로 두면 상하 여백이 생겨 텍스트와 어긋난다. 원본 비율 유지 */}
+            <YoutubeIcon className="w-5 h-4 shrink-0 block" />
+            {/* leading-none + 별도 span: 라인하이트 때문에 아이콘과 중심이 안 맞는 것 방지 */}
+            <span className="leading-none">{getLocaleString({ locale, key: 'more' })}</span>
+            {/* › 문자는 베이스라인에 걸려 어긋나므로 아이콘으로 교체 */}
+            <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 shrink-0 block">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </a>
         )}
       </div>

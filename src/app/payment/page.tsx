@@ -8,13 +8,14 @@ import { UnifiedPaymentInfo } from "@/app/payment/UnifiedPaymentInfo";
 import { CircleImage } from "@/app/components/CircleImage";
 import { getLocale, translate } from "@/utils/translate";
 import TicketIcon from "../../../public/assets/ic_ticket.svg";
-import { BackButton } from "@/app/payment/BackButton";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
+import { PaymentProfileButton } from "@/app/payment/PaymentProfileButton";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
+import { DeferredImage } from "@/app/components/DeferredImage";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
 
@@ -48,19 +49,28 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     appVersion?: string
     targetUserId?: string
     date?: string
+    startTime?: string
+    endTime?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, item, id, os, appVersion = '', targetUserId, date } = params;
+  const { type, item, id, os, appVersion = '', targetUserId, date, startTime, endTime } = params;
   const paymentItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
+
+  // 연습실 결제는 장소·시간대(startTime/endTime)가 이미 선택된 상태로만 진입 가능.
+  if (paymentItem === 'practice-room' && (!startTime || !endTime)) {
+    notFound();
+  }
 
   const res = await getPaymentAction({
     item: paymentItem,
     id: itemId,
     targetUserId: parsedTargetUserId,
-    date: paymentItem === 'practice-room' ? date : undefined,
+    // 연습실: startTime/endTime 구간으로 서버가 최종금액 계산 (date 대신)
+    startTime: paymentItem === 'practice-room' ? startTime : undefined,
+    endTime: paymentItem === 'practice-room' ? endTime : undefined,
   });
 
   // BE가 redirectUrl을 내려주면 결제 폼 진입 없이 그 route로 push 후 결제 페이지를 back.
@@ -71,26 +81,29 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const cookieValue = (await cookies()).get(userIdKey)?.value;
   const actualPayerUserId = cookieValue ? Number(cookieValue) : undefined;
 
-  if (!('user' in res)) {
-    // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
-    // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
-    if (isGuinnessErrorCase(res)) {
-      // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
-      const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
-      return (
-        <PaymentErrorView
-          title={await translate('payment_error_title')}
-          message={res.message || await translate('unknown_error_message')}
-          backLabel={await translate('back')}
-          lessons={errorLessons}
-        />
-      );
-    }
+  // 에러 응답(code+message)이면 notFound('페이지를 찾을 수 없습니다') 대신 서버 메시지를 노출.
+  // 예: BUNDLE_DUPLICATE_REGISTRATION(이미 신청한 묶음) 등 도메인 에러.
+  if (isGuinnessErrorCase(res)) {
+    // 일부 에러는 충돌 수업 목록을 함께 내려줌 (예: BUNDLE_DUPLICATE_REGISTRATION)
+    const errorLessons = (res as { lessons?: PaymentErrorLesson[] }).lessons ?? [];
+    return (
+      <PaymentErrorView
+        title={await translate('payment_error_title')}
+        message={res.message || await translate('unknown_error_message')}
+        backLabel={await translate('back')}
+        lessons={errorLessons}
+      />
+    );
+  }
+
+  // 비회원 연습실 결제는 로그인 없이도 진행(@OptionalAuth — studioRoom+paymentId만 있으면 됨).
+  // 그 외 아이템은 user가 있어야 하므로 없으면 notFound.
+  if (!('user' in res) && paymentItem !== 'practice-room') {
     return notFound();
   }
 
-  // 대리 결제 여부 확인
-  const isProxyPayment = !!(actualPayerUserId && res.user.id !== actualPayerUserId);
+  // 대리 결제 여부 확인 (비회원은 user 없음 → false)
+  const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
 
   // 타입별로 데이터가 없는 경우 체크
   if (paymentItem === 'lesson' && !res.lesson) {
@@ -153,8 +166,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
       <div className="flex flex-col">
-        {appVersion === '' && (
-          <BackButton />
+        {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
+        {appVersion === '' && 'user' in res && res.user && (
+          <PaymentProfileButton
+            name={res.user.name ?? res.user.nickName ?? undefined}
+            profileImageUrl={res.user.profileImageUrl ?? undefined}
+            locale={await getLocale()}
+          />
         )}
         {/* lesson / lesson-group */}
         {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
@@ -163,11 +181,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               {/* 썸네일 9:16 */}
               <div className="relative w-[120px] aspect-[9/16] rounded-2xl overflow-hidden bg-[#F1F3F6] flex-shrink-0">
                 {thumbnailUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <DeferredImage
                     src={thumbnailUrl}
                     alt={title ?? ''}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 )}
               </div>
@@ -207,6 +224,18 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                           {res.lesson?.formattedDate
                             ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
                             : `${res.lesson?.duration}${await translate('minutes')}`}
+                        </span>
+                      </div>
+                    )}
+                    {/* 강사 — duration 아래, 전원 표기 */}
+                    {res.lesson?.artists && res.lesson.artists.length > 0 && (
+                      <div className="flex items-start gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-[1px] shrink-0">
+                          <circle cx="7" cy="4.5" r="2.5" stroke="#999" strokeWidth="1.1"/>
+                          <path d="M2.5 12c0-2.2 2-3.5 4.5-3.5s4.5 1.3 4.5 3.5" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
+                        </svg>
+                        <span className="text-[13px] font-medium text-[#666] break-words">
+                          {res.lesson.artists.map((a) => a.nickName || a.name).filter(Boolean).join(', ')}
                         </span>
                       </div>
                     )}
@@ -306,6 +335,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           <PracticeRoomPaymentWrapper
             payment={res}
             studioRoomId={itemId}
+            description={res.studioRoom?.description}
             url={process.env.GUINNESS_API_SERVER ?? ''}
             appVersion={appVersion}
             os={os}
@@ -313,6 +343,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             locale={await getLocale()}
             actualPayerUserId={actualPayerUserId}
             isProxyPayment={isProxyPayment}
+            preStartTime={startTime}
+            preEndTime={endTime}
           />
         ) : (
           <>

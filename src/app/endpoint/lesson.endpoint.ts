@@ -22,6 +22,7 @@ export type GetLessonResponse = {
     type?: LessonType;
     price?: number;
     level?: string;
+    dday?: string;          // 예: 'D-5' (수업 시작까지)
     artists?: GetArtistResponse[];
     studio?: GetStudioResponse;
     currentStudentCount?: number;
@@ -63,6 +64,22 @@ export type BundleItemResponse = {
     /** BE가 새로 내려주는 아이템 썸네일 URL. 일부 응답은 legacy로 thumbnailUrl을 줄 수 있어 폴백. */
     imageUrl?: string;
     thumbnailUrl?: string;
+}
+
+// GET /bundles — onSale=true면 판매중만(키오스크), 생략이면 전부(admin 키오스크). 페이지당 20개.
+export type GetBundlesRequest = {
+    onSale?: boolean;
+    page?: number;
+}
+
+export type BundleListResponse = {
+    bundle: BundleSummaryResponse[];
+}
+
+export const GetBundles: Endpoint<GetBundlesRequest, BundleListResponse> = {
+    method: 'get',
+    path: '/bundle',
+    queryParams: ['onSale', 'page'],
 }
 
 export type GetFormattedDateResponse = {

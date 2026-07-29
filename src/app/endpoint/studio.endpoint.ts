@@ -2,9 +2,10 @@ import { Endpoint } from "@/app/endpoint/index";
 import { GetBandLessonResponse, GetBandResponse, GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetAnnouncementResponse } from "@/app/endpoint/user.endpoint";
 import { AnnouncementResponse } from "@/app/endpoint/announcement.endpoint";
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetPassResponse, GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
+import { AmenityResponse, RoomDimensions } from "@/app/endpoint/studio.room.endpoint";
 
 export type IdParameter = {
   id: number;
@@ -23,9 +24,29 @@ export type StudioBannerResponse = {
   route: string;
 }
 
+// GET /studios/:id 의 practiceRooms[] — 커뮤니티 홀 요약 (홀정보 라우트의 축약본)
+export type CommunityPracticeRoomResponse = {
+  id: number;
+  name: string;
+  description?: string;
+  maxNumber?: number;
+  areaSize?: number;
+  dimensions?: RoomDimensions;
+  floorType?: string;
+  amenities?: AmenityResponse[];
+  pricePerHour?: number;
+  imageUrl?: string;
+  /** 오늘(KST) 아직 예약 가능한 시각 목록(정시 hour). 예: [5,7,8]=05·07·08시.
+   *  운영시간에서 수업·전체대관·정원소진·이미 시작·minBookingDuration 미만 구간 제외 결과.
+   *  수업전용 방에서는 생략됨. */
+  availableHours?: number[];
+}
+
 export type GetStudioResponse = {
     id: number;
     name: string;
+    /** 스튜디오 고유 slug(핸들). 있으면 제목 아래 작게 노출. */
+    slug?: string | null;
     address?: string;
     roadAddress?: string;
     profileImageUrl: string;
@@ -53,6 +74,15 @@ export type GetStudioResponse = {
     banners?: StudioBannerResponse[];
     lessonGroups?: LessonGroupSummary[];
     day: string;
+    // 커뮤니티(연습실 전용 스튜디오) 상세용 필드 — BE가 GET /studios/:id 응답에 함께 내려줌
+    description?: string | null;
+    images?: string[] | null;
+    notes?: string[] | null;
+    // 건물 시설 토글 목록 [{amenity, label, enabled}] — enabled=false도 포함되니 소비 측에서 필터.
+    amenities?: AmenityResponse[];
+    passPlans?: GetPassPlanResponse[];
+    // 연습실 전용 스튜디오의 방 요약 (홀 스펙/시설). 슬롯은 availability에서.
+    practiceRooms?: CommunityPracticeRoomResponse[];
 };
 
 export type YoutubeContentResponse = {
@@ -98,6 +128,8 @@ export type GetTimeTableResponse = {
   description: string;
   studioId: number;
   baseDate: string;
+  /** 시간표 렌더 타입. A=시간축 그리드 / B=구멍 메운 그리드 / C=요일별 리스트. 없으면 A. */
+  type?: 'A' | 'B' | 'C';
 }
 
 export type GetTimeTableDayResponse = {
@@ -182,4 +214,33 @@ export const CreateStudioAttendance: Endpoint<CreateStudioAttendanceRequest, Stu
   method: 'post',
   path: '/studio-attendances',
   bodyParams: ['targetUserId', 'status']
+}
+
+// GET /studio-attendances — 특정 수강생의 출결을 기간(startDate~endDate, 양끝 포함)으로 조회.
+export type StudioAttendanceItem = {
+  id: number;
+  studentId: number;
+  studentName: string;
+  profileImageUrl?: string | null;
+  date: string;                 // 체크인 일자 yyyy-MM-dd (KST)
+  checkInTime: string;          // HH:mm (KST)
+  checkOutTime?: string | null; // HH:mm | null(미퇴실)
+  stayMinutes?: number | null;  // 체류 분 | null
+}
+
+export type StudioAttendanceListResponse = {
+  attendances: StudioAttendanceItem[];
+  summary: { checkInCount: number };
+}
+
+export type ListStudioAttendancesParameter = {
+  targetUserId: number;
+  startDate?: string;  // yyyy-MM-dd (KST, 포함). 미지정 시 오늘
+  endDate?: string;    // yyyy-MM-dd (KST, 포함). 미지정 시 startDate와 동일
+}
+
+export const ListStudioAttendances: Endpoint<ListStudioAttendancesParameter, StudioAttendanceListResponse> = {
+  method: 'get',
+  path: '/studio-attendances',
+  queryParams: ['targetUserId', 'startDate', 'endDate'],
 }

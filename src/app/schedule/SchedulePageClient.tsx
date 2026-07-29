@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
-import { PracticeRoomView } from "@/app/schedule/PracticeRoomView";
+// import { PracticeRoomView } from "@/app/schedule/PracticeRoomView"; // 연습실 탭 주석 처리
 import { ScheduleTabView, CalendarLesson } from "@/app/schedule/ScheduleTabView";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
@@ -100,8 +100,8 @@ export const SchedulePageClient = ({
       .finally(() => setLoadingLessons(false));
   }, [weekKey]);
 
-  // 연습실 탭 상태
-  const [practiceDate, setPracticeDate] = useState(today);
+  // 연습실 탭 상태 (연습실 탭 주석 처리)
+  // const [practiceDate, setPracticeDate] = useState(today);
 
   return (
     <div className="flex flex-col">
@@ -123,6 +123,7 @@ export const SchedulePageClient = ({
           >
             {getLocaleString({ locale, key: 'lesson_tab' })}
           </button>
+          {/* 연습실 탭 주석 처리
           <button
             onClick={() => switchTab('practice')}
             className={`transition-all duration-200 ${
@@ -133,6 +134,7 @@ export const SchedulePageClient = ({
           >
             {getLocaleString({ locale, key: 'practice_room_tab' })}
           </button>
+          */}
         </div>
 
         {activeTab === 'lesson' && (
@@ -158,9 +160,11 @@ export const SchedulePageClient = ({
           active={activeTab === 'lesson'}
         />
       </div>
+      {/* 연습실 탭 주석 처리
       <div className={activeTab === 'practice' ? '' : 'hidden'}>
         <PracticeRoomView selectedDate={practiceDate} onChangeDate={setPracticeDate} locale={locale} studioId={studioId} />
       </div>
+      */}
 
     </div>
   );

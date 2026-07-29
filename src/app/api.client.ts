@@ -43,6 +43,10 @@ export class ApiClient extends EndpointClient {
     getLessons: this.endpointBuilder(API.Lesson.GetLessonGroupLessons),
   }
 
+  readonly bundle = {
+    list: this.endpointBuilder(API.Lesson.GetBundles),
+  }
+
   readonly studio = {
     get: this.endpointBuilder(API.Studio.GetStudio),
     list: this.endpointBuilder(API.Studio.ListStudios),
@@ -50,6 +54,7 @@ export class ApiClient extends EndpointClient {
     my: this.endpointBuilder(API.Studio.My),
     timeTable: this.endpointBuilder(API.Studio.TimeTable),
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
+    listAttendances: this.endpointBuilder(API.Studio.ListStudioAttendances),
   }
 
   readonly announcement = {
@@ -59,6 +64,7 @@ export class ApiClient extends EndpointClient {
 
   readonly ticket = {
     get: this.endpointBuilder(API.Ticket.GetTicket),
+    getByToken: this.endpointBuilder(API.Ticket.GetTicketByToken),
     list: this.endpointBuilder(API.Ticket.ListTickets),
     create: this.endpointBuilder(API.Ticket.CreateTicket),
     getInviteTicket: this.endpointBuilder(API.Ticket.GetInviteTicket),
@@ -123,6 +129,7 @@ export class ApiClient extends EndpointClient {
     list: this.endpointBuilder(API.Kiosk.GetKiosks),
     detail: this.endpointBuilder(API.Kiosk.GetKioskDetail),
     getPayment: this.endpointBuilder(API.Kiosk.GetKioskPayment),
+    getAdminPayment: this.endpointBuilder(API.Kiosk.GetKioskAdminPayment),
     startPayment: this.endpointBuilder(API.Kiosk.StartKioskPayment),
     completePayment: this.endpointBuilder(API.Kiosk.CompleteKioskPayment),
     discardPayment: this.endpointBuilder(API.Kiosk.DiscardKioskPayment),
@@ -154,6 +161,10 @@ export class ApiClient extends EndpointClient {
     record: this.endpointBuilder(API.TrackingEvent.RecordTrackingEvent),
   }
 
+  readonly alimtalk = {
+    sendPaymentReceipt: this.endpointBuilder(API.Alimtalk.SendPaymentReceipt),
+  }
+
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
   }
@@ -170,16 +181,25 @@ export class ApiClient extends EndpointClient {
     create: this.endpointBuilder(API.Student.CreateStudent),
     getByUser: this.endpointBuilder(API.Student.GetStudentByUser),
     getPasses: this.endpointBuilder(API.Student.GetStudentPasses),
+    list: this.endpointBuilder(API.Student.FindStudentList),
   }
 
   readonly studioRoom = {
     list: this.endpointBuilder(API.StudioRoom.ListStudioRooms),
-    getAvailability: this.endpointBuilder(API.StudioRoom.GetRoomAvailability),
+    get: this.endpointBuilder(API.StudioRoom.GetStudioRoom),
+    availability: this.endpointBuilder(API.StudioRoom.GetRoomsAvailability),
+    availabilityPartner: this.endpointBuilder(API.StudioRoom.GetPartnersRoomsAvailability),
+    slots: this.endpointBuilder(API.StudioRoom.GetStudioRoomSlots),
   }
 
   readonly roomBooking = {
     get: this.endpointBuilder(API.RoomBooking.GetRoomBooking),
+    list: this.endpointBuilder(API.RoomBooking.ListRoomBookings),
     delete: this.endpointBuilder(API.RoomBooking.DeleteRoomBooking),
+  }
+
+  readonly community = {
+    get: this.endpointBuilder(API.Community.GetCommunity),
   }
 }
 

@@ -16,6 +16,10 @@ export type SimplePaymentRecordResponse = {
 
 export type GetPassPlanListRequest = {
   studioId: number
+  /** admin(키오스크 상담실): 전부 불러오기 (KIOSK+withAll 분기). 응답은 기존 StudioPassPlanListResponse 유지. */
+  withAll?: boolean
+  /** 'active'(Ready+Private) 등 상태 필터. 생략 시 전부. */
+  status?: string
 }
 
 export type GetPassRequest = {
@@ -47,6 +51,15 @@ export type PassRuleTicket = {
   };
 }
 
+// 패스 룰로 예약한 연습실(홀) 예약 1건 — 연습실 관련 룰(TimeHours 등)에 실려 옴.
+export type PassRuleRoomBooking = {
+  id: number;
+  status: string;
+  studioRoom?: { id: number; name: string; imageUrls?: string[] };
+  startDate: string;   // 'yyyy.MM.dd HH:mm' KST
+  endDate: string;
+}
+
 export type PassRuleResponse = {
   id: number;
   status: string;
@@ -59,11 +72,16 @@ export type PassRuleResponse = {
   targetLabel?: string | null;
   benefitType: string;
   benefitValue?: number | null;
+  /** UnlimitedWindow 룰의 이용 가능 시간대 ('HH:mm'). */
+  startTime?: string | null;
+  endTime?: string | null;
   duration?: number | string | null;
   excludes?: { type: string; value?: string | null; label?: string | null }[];
   usable?: boolean;
   reason?: string;
   tickets: PassRuleTicket[];
+  /** 이 룰로 예약한 연습실 예약 목록(연습실 관련 룰에만). */
+  roomBookings?: PassRuleRoomBooking[];
 }
 
 export type PassRoomBookingResponse = {
@@ -125,6 +143,8 @@ export type GetPassPlanResponse = {
   name: string
   price?: number
   studio?: GetStudioResponse
+  /** 공개 상태 — 'Private'면 비공개(admin withAll 조회에 포함). 'Public'/'Ready' 등. */
+  status?: string
   isPopular: boolean,
   usageLimit?: number,
   expireDateStamp?: string,
@@ -190,7 +210,8 @@ export type PassStatus = 'Active' | 'Done' | 'Expired' | 'Pending' | 'Waiting' |
 export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse> = {
   method: "get",
   path: (e) => `/studios/${e.studioId}/pass-plans`,
-  pathParams: ['studioId']
+  pathParams: ['studioId'],
+  queryParams: ['withAll', 'status']
 };
 
 export const GetPassPlan: Endpoint<{ id: number }, GetPassPlanResponse> = {

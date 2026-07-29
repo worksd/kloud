@@ -211,6 +211,20 @@ export default async function SettingPage({
                 <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount ?? 0}</span>
               </div>
             </NavigateClickWrapper>
+
+            {(user.bookingCount ?? 0) > 0 && (
+              <NavigateClickWrapper method={'push'} route={KloudScreen.RoomBookings}>
+                <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" stroke="#191f28" strokeWidth="1.6"/>
+                    <path d="M3 9.5H21" stroke="#191f28" strokeWidth="1.6"/>
+                    <path d="M8 3V6M16 3V6" stroke="#191f28" strokeWidth="1.6" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-[12px] font-medium text-[#999] font-paperlogy text-center break-keep leading-tight">{await translate('room_bookings')}</span>
+                  <span className="text-[13px] font-bold text-black font-paperlogy">{user.bookingCount ?? 0}</span>
+                </div>
+              </NavigateClickWrapper>
+            )}
           </div>
         </section>
         </div>

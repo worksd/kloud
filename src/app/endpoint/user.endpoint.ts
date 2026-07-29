@@ -46,6 +46,7 @@ export type GetUserResponse = {
   ticketCount?: number
   paymentRecordCount?: number
   passCount?: number
+  bookingCount?: number   // 대관 예약 수 (GET /users/me)
   gender?: 'male' | 'female'
   parentPhone?: string
   parentCountryCode?: string
@@ -63,6 +64,11 @@ export type MyBookingResponse = {
     id: number;
     name: string;
     imageUrls?: string[];
+  };
+  studio?: {
+    id: number;
+    name: string;
+    profileImageUrl?: string | null;
   };
 }
 
@@ -97,6 +103,7 @@ export type GetMeResponse = {
   ticketCount?: number
   paymentRecordCount?: number
   passCount?: number
+  bookingCount?: number   // 대관 예약 수 (GET /users/me)
   myBookings?: MyBookingResponse[]
   myPasses?: MyPassResponse[]
   /** 연결된 소셜 계정 — Default 유저만 채워짐 (provider: 'Google'|'Kakao'|'Apple') */
@@ -107,7 +114,10 @@ export type GetAnnouncementResponse = {
   id: number
   title: string
   body: string
+  imageUrl?: string | null
   studio: GetStudioResponse,
+  /** 작성 시각 — ISO 또는 'yyyy.MM.dd HH:mm'(KST). 공지에 '작성 N분 전' 상대 표기용. */
+  createdAt?: string | null
 }
 
 export type SignOutParameter = {
