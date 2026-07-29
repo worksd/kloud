@@ -96,11 +96,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     );
   }
 
-  // 비회원 연습실 결제는 로그인 없이도 진행(@OptionalAuth — studioRoom+paymentId만 있으면 됨).
-  // 그 외 아이템은 user가 있어야 하므로 없으면 notFound.
-  if (!('user' in res) && paymentItem !== 'practice-room') {
-    return notFound();
-  }
+  // 비회원 결제는 아이템 종류와 무관하게 허용(@OptionalAuth). user 없이도 BE가 견적/paymentId를 발급하고,
+  // 결제 버튼 단계에서 PaymentButton이 폰 인증 시트(GuestInfoBottomSheet)로 payer를 확보한다.
+  // 여기서 notFound로 막으면 그 시트에 도달할 수 없다.
 
   // 대리 결제 여부 확인 (비회원은 user 없음 → false)
   const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);

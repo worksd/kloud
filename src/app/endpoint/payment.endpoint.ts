@@ -51,7 +51,11 @@ export type CouponResponse = {
 }
 
 export type GetPaymentResponse = {
-  user: GetUserResponse;
+  /**
+   * 결제 대상 회원. 비회원(미로그인) 진입에서는 BE가 아예 내려주지 않는다 — 아이템 종류와 무관하게 nullable.
+   * 결제 시점에 PaymentButton이 폰 인증 시트(GuestInfoBottomSheet)로 payer를 확보한다.
+   */
+  user?: GetUserResponse;
   /**
    * 회원이 보유한 패스권 목록 — 결제수단/할인이 아닌 별도 섹션으로 노출.
    * 과거에는 user.passes로 내려왔지만 user와 같은 레벨로 분리됨.
