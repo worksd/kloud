@@ -3,9 +3,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
 import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
-import {createStudioAttendanceAction, listStudioAttendancesAction, searchUserAction} from "@/app/kiosk/kiosk.actions";
+import {createStudioAttendanceAction, listStudioAttendancesAction, searchStudentsAction} from "@/app/kiosk/kiosk.actions";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
-import {GetUserResponse} from "@/app/endpoint/user.endpoint";
+import {StudentListItemResponse} from "@/app/endpoint/student.endpoint";
 import {AttendanceStatus, StudioAttendanceItem} from "@/app/endpoint/studio.endpoint";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
@@ -13,6 +13,26 @@ import {kioskImageSrc} from "@/app/kiosk/kiosk.image";
 import {toAmPm} from "@/app/kiosk/kiosk.lesson";
 
 type Step = 'phone' | 'select' | 'detail';
+
+// 출석 대상 수강생 — GET /students 응답에서 화면/출결 API에 필요한 필드만 추린 형태.
+// StudentListItemResponse.id는 student ID이고 출결 API가 받는 targetUserId는 userId라,
+// 이 경계에서 userId만 들고 가도록 좁혀 잘못된 id가 흘러 들어가는 걸 막는다.
+type AttendanceStudent = {
+  /** 출결 API의 targetUserId */
+  userId: number;
+  name?: string;
+  nickName?: string;
+  phone?: string;
+  profileImageUrl?: string;
+};
+
+const toAttendanceStudent = (s: StudentListItemResponse): AttendanceStudent => ({
+  userId: s.userId,
+  name: s.name,
+  nickName: s.nickName,
+  phone: s.phone,
+  profileImageUrl: s.profileImageUrl,
+});
 
 const LOCALE_TAG: Record<Locale, string> = {ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN'};
 const WEEKDAYS: Record<Locale, string[]> = {
@@ -53,8 +73,8 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
   const admin = variant === 'admin';
 
   const [step, setStep] = useState<Step>('phone');
-  const [user, setUser] = useState<GetUserResponse | null>(null);
-  const [searchResults, setSearchResults] = useState<GetUserResponse[]>([]);
+  const [user, setUser] = useState<AttendanceStudent | null>(null);
+  const [searchResults, setSearchResults] = useState<AttendanceStudent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // 유저 검색 중
 
@@ -114,7 +134,7 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
     }
   }, [todayStr]);
 
-  const selectUser = (u: GetUserResponse) => {
+  const selectUser = (u: AttendanceStudent) => {
     setUser(u);
     setError(null);
     const now = new Date();
@@ -122,22 +142,24 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
     setStep('detail');
     // 두 조회가 모두 끝난 뒤에 상세 UI를 그린다 (달력 기록 + 오늘 출석 여부가 함께 확정되도록)
     setDetailReady(false);
-    Promise.all([fetchAttendances(u.id, now), refreshToday(u.id)])
+    Promise.all([fetchAttendances(u.userId, now), refreshToday(u.userId)])
       .finally(() => setDetailReady(true));
   };
 
+  // 수강생 검색 — GET /students. 폰 뒷자리(숫자만)면 서버가 phone 검색, 이메일/이름이면 문자 검색으로 분기.
   const searchUser = async (value: string) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await searchUserAction(value);
+      const result = await searchStudentsAction(value);
+      const students = isGuinnessErrorCase(result) ? [] : (result.students ?? []).map(toAttendanceStudent);
       // 0명 → 없다고 안내(신규 가입 없음) / 1명 → 바로 진행 / 2명+ → 선택 목록
-      if (isGuinnessErrorCase(result) || result.users.length === 0) {
+      if (students.length === 0) {
         setError(t('kiosk_no_member_found'));
-      } else if (result.users.length === 1) {
-        selectUser(result.users[0]);
+      } else if (students.length === 1) {
+        selectUser(students[0]);
       } else {
-        setSearchResults(result.users);
+        setSearchResults(students);
         setStep('select');
       }
     } catch {
@@ -157,7 +179,7 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
     setError(null);
     const label = nextStatus === 'CheckIn' ? t('kiosk_check_in') : t('kiosk_check_out');
     try {
-      const res = await createStudioAttendanceAction(user.id, nextStatus);
+      const res = await createStudioAttendanceAction(user.userId, nextStatus);
       if (isGuinnessErrorCase(res)) {
         setError(t('kiosk_attendance_failed').replace('{0}', label));
       } else {
@@ -205,7 +227,7 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
           <div className="w-full max-w-[520px] flex flex-col gap-[12px] overflow-y-auto max-h-[52vh]">
             {searchResults.map((u) => (
               <button
-                key={u.id}
+                key={u.userId}
                 onClick={() => selectUser(u)}
                 className="w-full bg-gray-50 rounded-[16px] p-[20px] flex items-center gap-[16px] active:bg-gray-200 transition-colors"
               >
@@ -242,7 +264,7 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
   const changeMonth = (delta: number) => {
     const next = new Date(vy, vm + delta, 1);
     setViewMonth(next);
-    if (user) fetchAttendances(user.id, next);
+    if (user) fetchAttendances(user.userId, next);
   };
 
   return (

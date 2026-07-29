@@ -40,6 +40,13 @@ export const registerKioskUserAction = async (phone: string, countryCode: string
   return updateResult;
 };
 
+// 스튜디오 출석의 수강생 검색 — user search(/users/search)가 아니라 GET /students.
+// 학원(파트너 토큰) 소속 수강생만 대상이고, 이름·닉네임·폰·이메일을 한 번에 커버한다.
+// 검색어가 숫자뿐이면 서버가 phone 전용 검색으로 동작한다(폰 뒷자리 검색이 이 경로).
+export const searchStudentsAction = async (query: string) => {
+  return await api.student.list({ query });
+};
+
 export const createStudioAttendanceAction = async (targetUserId: number, status: AttendanceStatus) => {
   return await api.studio.createAttendance({ targetUserId, status });
 };
