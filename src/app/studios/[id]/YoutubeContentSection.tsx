@@ -5,6 +5,7 @@ import Image from "next/image";
 import { YoutubePreview } from "@/app/components/YoutubePreview";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { formatRelativePast } from "@/utils/relative.time";
 import YoutubeIcon from "@/../public/assets/youtube-colored.svg";
 
 type YoutubeContent = {
@@ -90,13 +91,25 @@ export const YoutubeContentSection = ({ contents, title, channelUrl, locale }: {
                   className="object-cover"
                 />
               )}
+
+              {/*
+                상대 시각을 썸네일 좌하단 배지로 — 카드 아래에 별도 한 줄로 두면
+                (썸네일 + 제목 2줄 + 시간 1줄) 카드가 세로로 늘어져 군더더기처럼 보인다.
+                우하단은 유튜브 로고/재생시간이 들어오는 자리라 왼쪽으로 피했다.
+                pointer-events-none으로 카드 탭을 막지 않는다.
+              */}
+              <span
+                className="pointer-events-none absolute bottom-1.5 left-1.5 z-20 rounded-[6px]
+                  bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white/95 backdrop-blur-sm"
+                title={new Date(content.publishedAt).toLocaleString(locale === 'ko' ? 'ko-KR' : undefined)}
+                suppressHydrationWarning
+              >
+                {formatRelativePast(content.publishedAt, locale)}
+              </span>
             </div>
-            <p className="text-[13px] text-[#333] mt-2 line-clamp-2 leading-[1.4]">
+            <p className="text-[13px] font-medium text-[#333] mt-2 line-clamp-2 leading-[1.4]">
               {content.title}
             </p>
-            <span className="text-[11px] text-[#AEAEAE] mt-1 block" suppressHydrationWarning>
-              {new Date(content.publishedAt).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-            </span>
           </div>
         ))}
       </div>
