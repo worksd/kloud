@@ -17,7 +17,7 @@ import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -107,9 +107,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   if (paymentItem === 'lesson' && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
-  if (paymentItem === 'lesson-group' && !res.lessonGroup) {
-    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
-  }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
@@ -125,13 +122,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.lesson?.title,
           studioName: res.lesson?.studio?.name,
           studioImageUrl: res.lesson?.studio?.profileImageUrl,
-        };
-      case 'lesson-group':
-        return {
-          thumbnailUrl: res.lessonGroup?.thumbnailUrl,
-          title: res.lessonGroup?.title,
-          studioName: res.lessonGroup?.studioName,
-          studioImageUrl: res.lessonGroup?.studioImageUrl,
         };
       case 'pass-plan':
         return {
@@ -172,8 +162,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             locale={await getLocale()}
           />
         )}
-        {/* lesson / lesson-group */}
-        {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
+        {/* lesson */}
+        {paymentItem === 'lesson' && (
           <div className="px-5 pt-4 pb-3">
             <div className="flex gap-4">
               {/* 썸네일 9:16 */}
@@ -250,9 +240,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                       </div>
                     )}
                   </div>
-                )}
-                {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
-                  <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
                 )}
               </div>
             </div>

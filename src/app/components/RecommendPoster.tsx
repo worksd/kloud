@@ -29,9 +29,8 @@ export async function RecommendPoster({
   startTime?: string,
   startDate?: string,
 }) {
-  const route = type === 'subscription'
-    ? KloudScreen.LessonGroupDetail(id)
-    : KloudScreen.LessonDetail(id);
+  void type;
+  const route = KloudScreen.LessonDetail(id);
   const locale = await getLocale();
   const hasWhen = !!(lessonDate || startTime || startDate);
 

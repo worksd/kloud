@@ -1,9 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { TicketResponse, LessonGroupTicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { TicketItem } from "@/app/tickets/ticket.item";
-import { LessonGroupTicketItem } from "@/app/lesson-group-tickets/ticket.item";
 import { getTicketsAction } from "@/app/tickets/get.tickets.action";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
@@ -11,7 +10,6 @@ import BackArrowIcon from "../../../public/assets/ic_back_arrow.svg";
 
 type Props = {
   initialTickets: TicketResponse[];
-  initialLessonGroupTickets: LessonGroupTicketResponse[];
   locale: Locale;
   noTicketsTitle: string;
   noTicketsMessage: string;
@@ -19,63 +17,34 @@ type Props = {
 
 export const TicketTabClient = ({
   initialTickets,
-  initialLessonGroupTickets,
   locale,
   noTicketsTitle,
   noTicketsMessage,
 }: Props) => {
-  const [activeTab, setActiveTab] = useState<'tickets' | 'lessonGroup'>('tickets');
-
   const handleBack = () => {
     (window as any).KloudEvent?.back();
   };
 
   return (
     <div className="w-full h-screen bg-white flex flex-col box-border">
-      {/* Header: Back Arrow + Tabs */}
+      {/* Header: Back Arrow + Title */}
       <div className="flex flex-row items-center gap-4 px-5 pt-4 pb-3 flex-shrink-0">
         <button onClick={handleBack} className="flex items-center justify-start flex-shrink-0">
           <BackArrowIcon className="w-6 h-6 text-black"/>
         </button>
-        <button
-          onClick={() => setActiveTab('tickets')}
-          className={`transition-all duration-300 ${
-            activeTab === 'tickets'
-              ? 'text-[20px] text-black font-bold'
-              : 'text-[16px] text-gray-400 font-medium'
-          }`}
-        >
+        <span className="text-[20px] text-black font-bold">
           {getLocaleString({ locale, key: 'my_tickets' })}
-        </button>
-        <button
-          onClick={() => setActiveTab('lessonGroup')}
-          className={`transition-all duration-300 ${
-            activeTab === 'lessonGroup'
-              ? 'text-[20px] text-black font-bold'
-              : 'text-[16px] text-gray-400 font-medium'
-          }`}
-        >
-          {getLocaleString({ locale, key: 'my_lesson_group_tickets' })}
-        </button>
+        </span>
       </div>
 
-      {/* Tab Content */}
+      {/* Ticket List */}
       <div className="flex-1 overflow-auto">
-        {activeTab === 'tickets' ? (
-          <TicketListContent
-            initialTickets={initialTickets}
-            locale={locale}
-            noTicketsTitle={noTicketsTitle}
-            noTicketsMessage={noTicketsMessage}
-          />
-        ) : (
-          <LessonGroupTicketListContent
-            initialTickets={initialLessonGroupTickets}
-            locale={locale}
-            noTicketsTitle={noTicketsTitle}
-            noTicketsMessage={noTicketsMessage}
-          />
-        )}
+        <TicketListContent
+          initialTickets={initialTickets}
+          locale={locale}
+          noTicketsTitle={noTicketsTitle}
+          noTicketsMessage={noTicketsMessage}
+        />
       </div>
     </div>
   );
@@ -163,41 +132,5 @@ const TicketListContent = ({
         )}
       </div>
     </>
-  );
-};
-
-const LessonGroupTicketListContent = ({
-  initialTickets,
-  locale,
-  noTicketsTitle,
-  noTicketsMessage,
-}: {
-  initialTickets: LessonGroupTicketResponse[];
-  locale: Locale;
-  noTicketsTitle: string;
-  noTicketsMessage: string;
-}) => {
-  if (initialTickets.length === 0) {
-    return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center bg-white p-4">
-        <h2 className="text-[20px] font-bold text-black mb-2">
-          {noTicketsTitle}
-        </h2>
-        <p className="text-[16px] text-[#86898C] text-center mb-8">
-          {noTicketsMessage}
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col mb-8">
-      {initialTickets.map((item) => (
-        <div className="flex flex-col" key={item.id}>
-          <LessonGroupTicketItem item={item} locale={locale} />
-          <div className="w-full h-[2px] bg-[#F7F8F9]" />
-        </div>
-      ))}
-    </div>
   );
 };

@@ -2,7 +2,7 @@
 import { api } from "@/app/api.client";
 import { PaymentDiscount } from "@/app/endpoint/payment.endpoint";
 
-export const billingKeyPaymentAction = async ({item, itemId, billingKey, paymentId, targetUserId, discounts, startDate, endDate}: {
+export const billingKeyPaymentAction = async ({item, itemId, billingKey, paymentId, targetUserId, discounts, startDate, endDate, policyId}: {
   item: string
   itemId: number,
   billingKey: string
@@ -11,6 +11,7 @@ export const billingKeyPaymentAction = async ({item, itemId, billingKey, payment
   discounts?: PaymentDiscount[]
   startDate?: string
   endDate?: string
+  policyId?: number
 }) => {
-  return await api.payment.billingKey({item, itemId, billingKey, paymentId, targetUserId, discounts, startDate, endDate})
+  return await api.payment.billingKey({item, itemId, billingKey, paymentId, targetUserId, discounts, startDate, endDate, policyId})
 }

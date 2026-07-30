@@ -15,7 +15,6 @@ import { StudioCollapsingTopBar } from "@/app/studios/[id]/StudioCollapsingTopBa
 import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
 import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
 import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.action";
-import { LessonGroupBand } from "@/app/home/LessonGroupBand";
 import { PracticeHallSection } from "@/app/studios/[id]/practice/PracticeHallSection";
 import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
 import { StudioPassList } from "@/app/studios/[id]/practice/StudioPassList";
@@ -137,14 +136,6 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           <>
             <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
             <TimeTableServerComponent studioId={studio.id} useSheet noMargin/>
-          </>
-        )}
-
-        {/* 정기수업 */}
-        {studio.lessonGroups && studio.lessonGroups.length > 0 && (
-          <>
-            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
-            <LessonGroupBand lessonGroups={studio.lessonGroups} locale={locale} />
           </>
         )}
 

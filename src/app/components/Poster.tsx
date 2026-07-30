@@ -42,9 +42,8 @@ export async function Poster({
 }) {
   const locale = await getLocale();
   const hasWhen = !!(date || startTime || startDate);
-  const route = type === 'subscription'
-    ? KloudScreen.LessonGroupDetail(id)
-    : KloudScreen.LessonDetail(id);
+  void type;
+  const route = KloudScreen.LessonDetail(id);
 
   return (
     <NavigateClickWrapper method={'push'} route={route}>

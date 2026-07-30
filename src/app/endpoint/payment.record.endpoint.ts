@@ -61,7 +61,7 @@ export type RequestDiscountParameter = {
 }
 
 export type ManualPaymentMethodType = 'credit' | 'pass' | 'account_transfer' | 'admin' | 'free' | 'billing';
-export type ManualPaymentItem = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
+export type ManualPaymentItem = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 export type CreateManualPaymentRecordRequest = {
   methodType: ManualPaymentMethodType;
@@ -80,6 +80,8 @@ export type CreateManualPaymentRecordRequest = {
   phone?: string;
   countryCode?: string;
   name?: string;
+  /** 가격정책(수강 횟수) 결제 시 선택한 정책 id */
+  policyId?: number;
 }
 
 export type GetPaymentRecordsParameter = {
@@ -100,7 +102,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
   path: '/paymentRecords/manual',
-  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'amount', 'depositor', 'discounts', 'startDate', 'endDate', 'phone', 'countryCode', 'name']
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'amount', 'depositor', 'discounts', 'startDate', 'endDate', 'phone', 'countryCode', 'name', 'policyId']
 }
 
 export type RefundPassResponse = {

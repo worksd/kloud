@@ -38,11 +38,6 @@ export class ApiClient extends EndpointClient {
     getSettlementStatement: this.endpointBuilder(API.Lesson.GetArtistSettlementStatement),
   }
 
-  readonly lessonGroup = {
-    get: this.endpointBuilder(API.Lesson.GetLessonGroup),
-    getLessons: this.endpointBuilder(API.Lesson.GetLessonGroupLessons),
-  }
-
   readonly bundle = {
     list: this.endpointBuilder(API.Lesson.GetBundles),
   }
@@ -71,12 +66,6 @@ export class ApiClient extends EndpointClient {
     checkDuplicate: this.endpointBuilder(API.Ticket.CheckDuplicateTicket),
     delete: this.endpointBuilder(API.Ticket.DeleteTicket),
     toUsed: this.endpointBuilder(API.Ticket.ToUsed),
-  }
-
-  readonly lessonGroupTicket = {
-    get: this.endpointBuilder(API.Ticket.GetLessonGroupTicket),
-    list: this.endpointBuilder(API.Ticket.ListLessonGroupTickets),
-    delete: this.endpointBuilder(API.Ticket.DeleteLessonGroupTicket),
   }
 
   readonly question = {

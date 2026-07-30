@@ -34,7 +34,7 @@ export const KloudScreen = {
   Kiosk: '/kiosk',
 
   /** 결제 (Pass, Subscription, Records, Tickets) */
-  Payment: (type: 'lesson' | 'pass-plan' | 'lesson-group' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
+  Payment: (type: 'lesson' | 'pass-plan' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
   /** 이용권(패스) 결제 — item 방식 */
   PassPlanPayment: (id: number) => `/payment?item=pass-plan&id=${id}`,
   /** 연습실 결제 — item 방식 + 예약 시간대(startTime/endTime, 'YYYY-MM-DDTHH:mm') */
@@ -59,11 +59,6 @@ export const KloudScreen = {
 
   /** 레슨 */
   LessonDetail: (id: number) => `/lessons/${id}`,
-
-  /** 정기수업 */
-  LessonGroupDetail: (id: number) => `/lesson-groups/${id}`,
-  LessonGroupTickets: '/lesson-group-tickets',
-  LessonGroupTicketDetail: (id: number, isParent: boolean) => `/lesson-group-tickets/${id}?isParent=${isParent}`,
 
   /** 연습실 */
   StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,
