@@ -5,7 +5,8 @@
  *  - GUINNESS_API_SERVER에 'staging' → 화면에 raw 응답 전부 노출 (KisDebugOverlay)
  *  - GUINNESS_API_SERVER에 'prod'    → Discord 웹훅으로 raw 응답 전송. 단, 실패 응답만.
  *
- * 성공 건은 Discord로 보내지 않는다(노이즈). 기기 화면 오버레이(staging)는 성공까지 전부 보여준다.
+ * Discord로는 실패만, 그중 사용자 취소(77UC)처럼 조치할 게 없는 코드도 제외한다(노이즈).
+ * 기기 화면 오버레이(staging)는 성공·취소까지 전부 그대로 보여준다.
  *
  * 환경 판정은 discord.webhook.ts와 동일하게 서버 런타임 env로만 한다.
  * GUINNESS_API_SERVER는 NEXT_PUBLIC_이 아니라 클라 번들에 없으므로 서버 액션으로 내려준다.
@@ -52,12 +53,28 @@ const isSuccessResponse = (payload: Record<string, unknown>): boolean => {
   return false;
 };
 
+/**
+ * 실패지만 알릴 가치가 없는 KIS 응답코드 — 조사할 게 없는 정상적인 흐름이라 채널만 채운다.
+ *  - 77UC : 사용자 취소(단말에서 고객이 직접 취소)
+ * 새로 추가할 때는 "우리가 고칠 수 있는 문제인가"를 기준으로 판단할 것.
+ * 단말/규격 문제를 여기 넣으면 그대로 안 보이게 된다.
+ */
+const IGNORED_REPLY_CODES = new Set(['77UC']);
+
+const isIgnoredFailure = (payload: Record<string, unknown>): boolean => {
+  const reply = payload.outReplyCode;
+  return typeof reply === 'string' && IGNORED_REPLY_CODES.has(reply.trim().toUpperCase());
+};
+
 export const reportKisResponseAction = async (report: KisDebugReport): Promise<void> => {
   // prod에서만 전송 — staging은 기기 화면 오버레이로 바로 확인한다.
   if (resolveEnv() !== 'prod') return;
 
   // 실패만 알림 — 성공 건은 채널을 채우기만 하고 볼 일이 없다.
   if (isSuccessResponse(report.payload)) return;
+
+  // 사용자 취소 등 조치할 게 없는 실패도 제외.
+  if (isIgnoredFailure(report.payload)) return;
 
   const url = process.env.KIOSK_KIS_DISCORD_WEBHOOK ?? process.env.NEXT_PUBLIC_DISCORD_ERROR_WEB_HOOK;
   if (!url) {
