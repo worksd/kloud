@@ -35,6 +35,8 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
   const showAttendance = canCheckIn || canLessonAttendance;
   // 노출 카드 수 — 1개면 전체폭(1열), 그 외엔 2열(2개 반반 / 3개 위2·아래1 / 4개 2×2)
   const cardCount = [canPurchase, showAttendance, canBookRoom].filter(Boolean).length;
+  // 카드 행 수 — 3개면 결제가 col-span-2로 내려가 2행, 그 외엔 1행.
+  const cardRows = cardCount === 3 ? 2 : 1;
 
   // 로우그래피 로고 5번 연속 탭 → 관리자 모드 진입 (1.5초 안에 5번)
   const tapCountRef = useRef(0);
@@ -52,8 +54,12 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
 
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden relative animate-[fadeIn_260ms_ease-out]">
-      {/* 키오스크 이미지 영역 — 카드/푸터를 뺀 나머지 높이를 전부 차지 */}
-      <div className="flex-1 min-h-0">
+      {/*
+        키오스크 이미지 영역 — 화면 높이의 고정 '비율'로 잡는다(650 : 카드행수×200).
+        flex-1(남는 높이 전부)로 두면 세로가 긴 단말에서 이 영역이 원본 이미지보다 훨씬
+        세로로 길어지고, object-cover가 높이를 채우면서 좌우가 잘린다.
+      */}
+      <div className="flex-[650] min-h-0">
         {kioskImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={kioskImageUrl} alt="" className="w-full h-full object-cover"/>
@@ -63,9 +69,14 @@ export const KioskHomeForm = ({studioName, kioskImageUrl, locale, canCheckIn, ca
       </div>
 
       {/* 카드 영역 — 위에 출석/연습실(반반), 결제는 맨 아래. 3개일 때 결제는 전체폭(col-span-2). */}
+      {/*
+        카드 영역도 비율로 — 한 행당 200으로 잡아 개편 전(이미지 650 : 카드 1행 200)의
+        행 높이를 그대로 유지한다. gridAutoRows: 1fr로 배정된 높이를 행끼리 나눈다.
+        (고정 px였을 때는 남는 높이가 전부 이미지로 가서 좌우 잘림이 생겼다)
+      */}
       <div
-        className={`shrink-0 grid ${cardCount === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-x-[2.9%] gap-y-[min(2.4vh,24px)] px-[5.6%] pt-[3.1%] pb-[2%]`}
-        style={{ gridAutoRows: 'min(20vh, 200px)' }}
+        className={`min-h-0 grid ${cardCount === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-x-[2.9%] gap-y-[min(2.4vh,24px)] px-[5.6%] pt-[3.1%] pb-[2%]`}
+        style={{ flex: cardRows * 200, gridAutoRows: '1fr' }}
       >
           {/* 출석 체크 — 스튜디오/수업 출석 중 하나라도 가능하면 노출. 진입 후 둘 다 가능하면 선택. */}
           {showAttendance && (
