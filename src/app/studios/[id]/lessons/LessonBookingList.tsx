@@ -20,6 +20,11 @@ export const openLessonSheetEvent = (studioId: number) => `studio-${studioId}-op
 const SHEET_MS = 320;
 /** iOS 시트가 쓰는 감속 곡선 — 초반에 빠르게 붙고 끝에서 부드럽게 멎는다. */
 const SHEET_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+/**
+ * 이 거리를 넘어야 '드래그'로 확정한다(px). 이 전에는 preventDefault도 하지 않는다 —
+ * 탭 도중의 미세한 손가락 움직임에 click이 취소되면 버튼이 안 눌린다.
+ */
+const DRAG_THRESHOLD = 12;
 /** 이 이상 내리면 닫기(px) */
 const DISMISS_DISTANCE = 96;
 /** 이 이상 빠르면 거리와 무관하게 닫기(px/ms ≈ 0.6 → 600px/s) */
@@ -72,7 +77,8 @@ export function LessonBookingList({
   const [entered, setEntered] = useState(false);
   const [dragY, setDragY] = useState(0);          // 드래그 중 아래로 이동 거리(px)
   const [dragging, setDragging] = useState(false);
-  const dragStart = useRef<number | null>(null);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const dragActive = useRef(false);               // 임계값을 넘겨 '드래그로 확정'됐는지
   const dragYRef = useRef(0);                     // onDragEnd에서 최신값을 읽기 위한 미러
   const lastMove = useRef<{ y: number; t: number } | null>(null);
   const velocityRef = useRef(0);                  // px/ms, 아래 방향이 양수
@@ -113,45 +119,55 @@ export function LessonBookingList({
   // state는 클로저에 갇힌 값이 잡힐 수 있다.
   const onDragStart = (e: React.TouchEvent) => {
     if (closingRef.current) return;
-    dragStart.current = e.touches[0].clientY;
-    lastMove.current = { y: e.touches[0].clientY, t: e.timeStamp };
+    const t = e.touches[0];
+    dragStart.current = { x: t.clientX, y: t.clientY };
+    dragActive.current = false;
+    lastMove.current = { y: t.clientY, t: e.timeStamp };
     velocityRef.current = 0;
   };
 
   const onDragMove = (e: React.TouchEvent) => {
     if (dragStart.current == null) return;
-    const y = e.touches[0].clientY;
-    const dy = y - dragStart.current;
-    const atTop = (scrollRef.current?.scrollTop ?? 0) <= 0;
+    const t = e.touches[0];
+    const dy = t.clientY - dragStart.current.y;
+    const dx = t.clientX - dragStart.current.x;
 
-    if (dy > 0 && atTop) {
-      // 브라우저 기본 스크롤/오버스크롤에 제스처를 빼앗기지 않게 우리가 소유한다.
-      // 이게 없으면 드래그가 스크롤과 경합해서 "내려도 잘 안 내려가는" 느낌이 난다.
-      if (e.cancelable) e.preventDefault();
-
-      const prev = lastMove.current;
-      if (prev && e.timeStamp > prev.t) {
-        // px/ms. 순간값은 튀므로 이전 속도와 섞어 완만하게 만든다.
-        const v = (y - prev.y) / (e.timeStamp - prev.t);
-        velocityRef.current = velocityRef.current * 0.7 + v * 0.3;
-      }
-      lastMove.current = { y, t: e.timeStamp };
-
-      dragYRef.current = dy;
+    // 임계값을 넘기 전에는 아무것도 하지 않는다. 여기서 preventDefault를 걸면
+    // 탭 도중의 미세한 손가락 움직임에도 click이 취소돼서 버튼이 안 눌린다.
+    if (!dragActive.current) {
+      if (dy <= DRAG_THRESHOLD) return;                     // 아직 탭일 수 있음
+      if ((scrollRef.current?.scrollTop ?? 0) > 0) return;  // 스크롤 중이면 스크롤 우선
+      if (Math.abs(dx) > Math.abs(dy)) return;              // 가로 제스처는 무시
+      dragActive.current = true;
       setDragging(true);
-      setDragY(dy);
-    } else if (dragYRef.current !== 0) {
-      dragYRef.current = 0;
-      velocityRef.current = 0;
-      setDragY(0);
     }
+
+    // 여기부터는 확정된 시트 드래그 — 브라우저 기본 스크롤/오버스크롤에 넘기지 않는다.
+    if (e.cancelable) e.preventDefault();
+
+    const prev = lastMove.current;
+    if (prev && e.timeStamp > prev.t) {
+      // px/ms. 순간값은 튀므로 이전 속도와 섞어 완만하게 만든다.
+      const v = (t.clientY - prev.y) / (e.timeStamp - prev.t);
+      velocityRef.current = velocityRef.current * 0.7 + v * 0.3;
+    }
+    lastMove.current = { y: t.clientY, t: e.timeStamp };
+
+    // 임계값만큼 빼서 드래그가 0에서 이어지게 — 활성화 순간 시트가 툭 튀지 않는다.
+    const next = Math.max(0, dy - DRAG_THRESHOLD);
+    dragYRef.current = next;
+    setDragY(next);
   };
 
   const onDragEnd = () => {
     if (dragStart.current == null) return;
+    const wasActive = dragActive.current;
     dragStart.current = null;
+    dragActive.current = false;
     lastMove.current = null;
     setDragging(false);
+    // 임계값을 못 넘었으면 드래그가 아니라 탭 — 아무것도 건드리지 않는다.
+    if (!wasActive) { velocityRef.current = 0; return; }
     // 거리 또는 속도 — 네이티브 시트는 짧게 튕겨도(플릭) 닫힌다. 거리만 보면
     // 빠르게 내렸을 때 스냅백해서 "안 닫힌다"고 느껴진다.
     const farEnough = dragYRef.current > DISMISS_DISTANCE;
