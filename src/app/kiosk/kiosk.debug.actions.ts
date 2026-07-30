@@ -3,7 +3,9 @@
 /**
  * 키오스크 KIS 단말 응답 디버깅 채널.
  *  - GUINNESS_API_SERVER에 'staging' → 화면에 raw 응답 전부 노출 (KisDebugOverlay)
- *  - GUINNESS_API_SERVER에 'prod'    → Discord 웹훅으로 raw 응답 전송
+ *  - GUINNESS_API_SERVER에 'prod'    → Discord 웹훅으로 raw 응답 전송. 단, 실패 응답만.
+ *
+ * 성공 건은 Discord로 보내지 않는다(노이즈). 기기 화면 오버레이(staging)는 성공까지 전부 보여준다.
  *
  * 환경 판정은 discord.webhook.ts와 동일하게 서버 런타임 env로만 한다.
  * GUINNESS_API_SERVER는 NEXT_PUBLIC_이 아니라 클라 번들에 없으므로 서버 액션으로 내려준다.
@@ -34,9 +36,28 @@ export type KisDebugReport = {
 // Discord embed 제한: description 4096, field value 1024
 const DESCRIPTION_LIMIT = 3600;
 
+/**
+ * 성공으로 확정할 수 있는 응답인지. 확정 가능한 성공만 걸러내고, 판정이 애매한 형태는
+ * 실패로 취급해 전송한다 — 디버깅 채널이므로 노이즈보다 누락이 더 나쁘다.
+ *  - success: true    → D1 결제 성공
+ *  - canceled: true   → D2 취소 성공
+ *  - outReplyCode 전부 0 ('0000') → KIS 정상 응답
+ * (resultCode는 채널별로 미설정 0이 올 수 있어 성공 근거로 쓰지 않는다)
+ */
+const isSuccessResponse = (payload: Record<string, unknown>): boolean => {
+  if (payload.success === true) return true;
+  if (payload.canceled === true) return true;
+  const reply = payload.outReplyCode;
+  if (typeof reply === 'string' && reply.trim() !== '' && /^0+$/.test(reply.trim())) return true;
+  return false;
+};
+
 export const reportKisResponseAction = async (report: KisDebugReport): Promise<void> => {
   // prod에서만 전송 — staging은 기기 화면 오버레이로 바로 확인한다.
   if (resolveEnv() !== 'prod') return;
+
+  // 실패만 알림 — 성공 건은 채널을 채우기만 하고 볼 일이 없다.
+  if (isSuccessResponse(report.payload)) return;
 
   const url = process.env.KIOSK_KIS_DISCORD_WEBHOOK ?? process.env.NEXT_PUBLIC_DISCORD_ERROR_WEB_HOOK;
   if (!url) {

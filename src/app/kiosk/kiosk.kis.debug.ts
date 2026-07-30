@@ -8,8 +8,8 @@
  *  - window.onKisTransactionQueryResult → recordKisResponse('query', ...)     (ST 거래상태조회)
  *
  * 환경별 동작:
- *  - staging → KisDebugOverlay가 구독해서 raw 응답을 화면에 전부 표시
- *  - prod    → reportKisResponseAction으로 Discord 전송 (fire-and-forget)
+ *  - staging → KisDebugOverlay가 구독해서 raw 응답을 화면에 전부 표시(성공까지 전부)
+ *  - prod    → reportKisResponseAction으로 Discord 전송 (fire-and-forget). 성공 건은 그쪽에서 걸러진다.
  * 환경 판정은 서버 액션(GUINNESS_API_SERVER)으로 최초 1회만 조회하고 캐시한다.
  */
 
