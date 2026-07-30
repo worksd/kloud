@@ -225,16 +225,28 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         </span>
                       </div>
                     )}
-                    {/* 강사 — duration 아래, 전원 표기 */}
+                    {/* 강사 — duration 아래, 프로필 사진 + 이름으로 전원 표기 */}
                     {res.lesson?.artists && res.lesson.artists.length > 0 && (
-                      <div className="flex items-start gap-1.5">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-[1px] shrink-0">
-                          <circle cx="7" cy="4.5" r="2.5" stroke="#999" strokeWidth="1.1"/>
-                          <path d="M2.5 12c0-2.2 2-3.5 4.5-3.5s4.5 1.3 4.5 3.5" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
-                        </svg>
-                        <span className="text-[13px] font-medium text-[#666] break-words">
-                          {res.lesson.artists.map((a) => a.nickName || a.name).filter(Boolean).join(', ')}
-                        </span>
+                      <div className="flex flex-col gap-1.5 mt-0.5">
+                        {res.lesson.artists.map((artist) => {
+                          const artistName = artist.nickName || artist.name;
+                          return (
+                            <div key={artist.id} className="flex items-center gap-1.5 min-w-0">
+                              {artist.profileImageUrl ? (
+                                <img
+                                  src={artist.profileImageUrl}
+                                  alt={artistName ?? ''}
+                                  className="w-5 h-5 rounded-full object-cover bg-[#F1F3F6] shrink-0"
+                                />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-[#F1F3F6] flex items-center justify-center shrink-0">
+                                  <span className="text-[10px] font-bold text-[#999]">{artistName?.charAt(0)}</span>
+                                </div>
+                              )}
+                              <span className="text-[13px] font-medium text-[#666] truncate">{artistName}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
