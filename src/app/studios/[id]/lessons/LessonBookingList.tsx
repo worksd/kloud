@@ -15,6 +15,16 @@ import { formatRelativeLessonDate } from "@/utils/lesson.relative.date";
 // 시간표 등 외부에서 이 시트를 열 때 쓰는 window 이벤트 (studioId로 스코프)
 export const openLessonSheetEvent = (studioId: number) => `studio-${studioId}-open-lesson-sheet`;
 
+// 바텀시트 모션 — iOS 시트 감각에 맞춘 값들.
+/** 열기/닫기 transition 길이(ms). 언마운트 타이머도 이 값을 그대로 쓴다. */
+const SHEET_MS = 320;
+/** iOS 시트가 쓰는 감속 곡선 — 초반에 빠르게 붙고 끝에서 부드럽게 멎는다. */
+const SHEET_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+/** 이 이상 내리면 닫기(px) */
+const DISMISS_DISTANCE = 96;
+/** 이 이상 빠르면 거리와 무관하게 닫기(px/ms ≈ 0.6 → 600px/s) */
+const DISMISS_VELOCITY = 0.6;
+
 // 'yyyy.MM.dd HH:mm' (KST) → epoch(ms). activateAt 비교용.
 function parseKstLocalToEpoch(activateAt: string): number {
   const [d, t] = activateAt.trim().split(' ');
@@ -63,6 +73,9 @@ export function LessonBookingList({
   const [dragY, setDragY] = useState(0);          // 드래그 중 아래로 이동 거리(px)
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef<number | null>(null);
+  const dragYRef = useRef(0);                     // onDragEnd에서 최신값을 읽기 위한 미러
+  const lastMove = useRef<{ y: number; t: number } | null>(null);
+  const velocityRef = useRef(0);                  // px/ms, 아래 방향이 양수
   const scrollRef = useRef<HTMLDivElement>(null);
   const closingRef = useRef(false);
 
@@ -90,28 +103,66 @@ export function LessonBookingList({
     setDragging(false);
     dragStart.current = null;
     setEntered(false); // 슬라이드 다운
-    setTimeout(() => { setSelectedId(null); setDetail(null); setDragY(0); closingRef.current = false; after?.(); }, 300);
+    // 언마운트 지연은 transform transition과 같은 길이여야 한다. 짧으면 애니메이션 도중에
+    // 시트가 사라져서 뚝 끊기는 느낌이 난다(기존 300ms vs 420ms 불일치).
+    setTimeout(() => { setSelectedId(null); setDetail(null); setDragY(0); closingRef.current = false; after?.(); }, SHEET_MS);
   };
 
   // 시트 전체 드래그로 내려 닫기. 내부 스크롤이 맨 위일 때만 드래그 시작(그 외엔 스크롤 우선).
-  const onDragStart = (e: React.TouchEvent) => { dragStart.current = e.touches[0].clientY; };
+  // dragY를 state와 ref 양쪽에 두는 이유 — onDragEnd에서 최신 값을 읽어야 하는데
+  // state는 클로저에 갇힌 값이 잡힐 수 있다.
+  const onDragStart = (e: React.TouchEvent) => {
+    if (closingRef.current) return;
+    dragStart.current = e.touches[0].clientY;
+    lastMove.current = { y: e.touches[0].clientY, t: e.timeStamp };
+    velocityRef.current = 0;
+  };
+
   const onDragMove = (e: React.TouchEvent) => {
     if (dragStart.current == null) return;
-    const dy = e.touches[0].clientY - dragStart.current;
+    const y = e.touches[0].clientY;
+    const dy = y - dragStart.current;
     const atTop = (scrollRef.current?.scrollTop ?? 0) <= 0;
+
     if (dy > 0 && atTop) {
+      // 브라우저 기본 스크롤/오버스크롤에 제스처를 빼앗기지 않게 우리가 소유한다.
+      // 이게 없으면 드래그가 스크롤과 경합해서 "내려도 잘 안 내려가는" 느낌이 난다.
+      if (e.cancelable) e.preventDefault();
+
+      const prev = lastMove.current;
+      if (prev && e.timeStamp > prev.t) {
+        // px/ms. 순간값은 튀므로 이전 속도와 섞어 완만하게 만든다.
+        const v = (y - prev.y) / (e.timeStamp - prev.t);
+        velocityRef.current = velocityRef.current * 0.7 + v * 0.3;
+      }
+      lastMove.current = { y, t: e.timeStamp };
+
+      dragYRef.current = dy;
       setDragging(true);
       setDragY(dy);
-    } else if (dragY !== 0) {
+    } else if (dragYRef.current !== 0) {
+      dragYRef.current = 0;
+      velocityRef.current = 0;
       setDragY(0);
     }
   };
+
   const onDragEnd = () => {
     if (dragStart.current == null) return;
     dragStart.current = null;
+    lastMove.current = null;
     setDragging(false);
-    if (dragY > 120) closeSheet();   // 충분히 내리면 닫기
-    else setDragY(0);                // 아니면 스냅백
+    // 거리 또는 속도 — 네이티브 시트는 짧게 튕겨도(플릭) 닫힌다. 거리만 보면
+    // 빠르게 내렸을 때 스냅백해서 "안 닫힌다"고 느껴진다.
+    const farEnough = dragYRef.current > DISMISS_DISTANCE;
+    const fastEnough = velocityRef.current > DISMISS_VELOCITY;
+    if (farEnough || fastEnough) {
+      closeSheet();
+    } else {
+      dragYRef.current = 0;
+      setDragY(0);              // 스냅백
+    }
+    velocityRef.current = 0;
   };
 
   // 마운트 직후 초기 transform(화면 밖)이 페인트된 다음 프레임에 entered=true로 → 확실히 슬라이드업 애니메이션
@@ -187,25 +238,35 @@ export function LessonBookingList({
         <div className="fixed inset-0 z-50 flex items-end">
           <div
             className="absolute inset-0 bg-black/50"
-            style={{ opacity: entered ? 1 : 0, transition: 'opacity 380ms ease-out' }}
+            style={{
+              // dim은 드래그 진행도에 따라 함께 옅어진다 — 손끝에 반응하는 느낌의 핵심.
+              opacity: entered ? Math.max(0, 1 - dragY / 400) : 0,
+              transition: dragging ? 'none' : `opacity ${SHEET_MS}ms ease-out`,
+            }}
             onClick={() => closeSheet()}
           />
           <div
             className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[88vh] will-change-transform"
             style={{
               transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
-              transition: dragging ? 'none' : 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+              transition: dragging ? 'none' : `transform ${SHEET_MS}ms ${SHEET_EASE}`,
+              // 세로 제스처를 우리가 소유한다. 없으면 브라우저 스크롤/오버스크롤과 경합해
+              // 드래그가 씹힌다. 내부 스크롤은 자식(scrollRef)이 pan-y로 따로 처리.
+              touchAction: 'none',
             }}
             onTouchStart={onDragStart}
             onTouchMove={onDragMove}
             onTouchEnd={onDragEnd}
+            onTouchCancel={onDragEnd}
           >
             {/* 드래그 핸들 (닫기 X 제거) */}
             <div className="shrink-0 relative h-8">
               <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mt-3" />
             </div>
 
-            <div ref={scrollRef} className="overflow-y-auto overscroll-contain">
+            {/* touch-action: pan-y — 부모가 none으로 잠근 세로 제스처를 여기서만 스크롤로 허용.
+                맨 위에서 아래로 당기는 경우는 onDragMove가 preventDefault로 가로채 시트 드래그로 쓴다. */}
+            <div ref={scrollRef} className="overflow-y-auto overscroll-contain [touch-action:pan-y]">
               {/* 포스터 + 하단 black dim(제목 · 종류/난이도/장르 · 일시 · 시간 · 강의실) */}
               {(detail?.thumbnailUrl ?? selectedCard?.thumbnailUrl) && (
                 <div className="px-5 pt-1">
