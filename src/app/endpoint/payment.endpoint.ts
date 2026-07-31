@@ -50,14 +50,34 @@ export type CouponResponse = {
   type: string;
 }
 
+/**
+ * 수강 횟수별 가격정책 — 한 수업을 1회/4회/8회 묶음으로 팔 때 횟수가 늘수록 할인해주는 구조.
+ * (예: 1회 35,000 / 4회 120,000 / 8회 200,000)
+ *
+ * 회당 가격과 할인율은 BE가 아니라 UI에서 price/count, price/originalPrice로 계산한다.
+ * 서버가 내려준 값과 표시값이 어긋나는 사고를 막으려고 파생값은 필드로 받지 않는다.
+ */
 export type PricePolicyResponse = {
   id: number;
   /** 수강 횟수 (예: 1, 4, 8) */
   count: number;
-  /** 해당 횟수 옵션의 가격 */
+  /** 실제 결제 금액. 이 옵션을 고르면 결제 상품가가 이 값이 된다. */
   price: number;
+  /**
+   * 할인 전 정가 (보통 1회권 단가 × count).
+   * 있으면 취소선 + 할인율 배지를 노출하고, 없으면 할인 없는 단순 옵션으로 렌더.
+   */
+  originalPrice?: number;
   /** 표시용 라벨 (옵션). 없으면 count 기반으로 '{count}회' 폴백. */
   label?: string;
+  /** 옵션 아래 보조 설명 (예: '주 1회 8주 과정'). */
+  description?: string;
+  /** 강조 배지 문구 (예: '가장 인기', '최대 할인'). 없으면 미노출. */
+  badge?: string;
+  /** 기본 선택 + 시각적 강조 대상. 없으면 첫 번째 옵션이 기본 선택된다. */
+  recommended?: boolean;
+  /** 구매일로부터 사용 가능 기간(일). 회차권 소진 기한 안내용. */
+  expiryDays?: number;
 }
 
 export type GetPaymentResponse = {

@@ -3254,17 +3254,37 @@ export const StringResource = {
     jp: '購入を進めますか？',
     zh: '是否继续购买？'
   },
+  /** 가격정책 섹션 헤더. "~를 선택하세요"식 지시문 대신 혜택을 앞세운다. */
   select_lesson_count: {
-    ko: '수강 횟수 선택',
-    en: 'Select sessions',
-    jp: '受講回数を選択',
-    zh: '选择课程次数'
+    ko: '많이 들을수록 할인',
+    en: 'Buy more, save more',
+    jp: '多く受けるほどお得',
+    zh: '买得越多越优惠'
   },
   times_unit: {
     ko: '회',
     en: ' sessions',
     jp: '回',
     zh: '次'
+  },
+  price_per_session: {
+    ko: '회당',
+    en: 'per session',
+    jp: '1回あたり',
+    zh: '每次'
+  },
+  you_save: {
+    ko: '할인 금액',
+    en: 'You save',
+    jp: '割引額',
+    zh: '优惠金额'
+  },
+  /** {days} 자리에 유효기간 일수를 치환해서 사용한다. */
+  valid_for_days: {
+    ko: '구매일로부터 {days}일',
+    en: 'Valid for {days} days',
+    jp: '購入日から{days}日',
+    zh: '自购买日起{days}天'
   },
   upcoming_payments: {
     ko: '다가오는 결제',

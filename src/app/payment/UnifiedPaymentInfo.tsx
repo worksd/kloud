@@ -1,7 +1,7 @@
 'use client'
 
 import PaymentButton, { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
@@ -9,6 +9,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { DiscountSection } from "@/app/lessons/[id]/payment/DiscountSection";
 import { PassesSection } from "@/app/payment/PassesSection";
 import { PricePolicySection } from "@/app/payment/PricePolicySection";
+import { MOCK_PRICE_POLICIES } from "@/app/payment/price.policy.mock";
 import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, PaymentMethodType, PricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
@@ -184,11 +185,20 @@ export const UnifiedPaymentInfo = ({
   };
 
   // 수강 횟수 가격정책 — 존재하면 옵션 선택 UI를 노출하고 선택한 정책의 price/id를 결제에 사용.
-  const pricePolicies: PricePolicyResponse[] = payment.pricePolicies ?? [];
+  // 스펙상 위치는 lesson 하위. payment 루트는 구버전 응답 폴백이다.
+  const pricePolicies: PricePolicyResponse[] = useMemo(() => {
+    const fromApi = payment.lesson?.pricePolicies ?? payment.pricePolicies ?? [];
+    if (fromApi.length > 0) return fromApi;
+    // TODO: 배포 전 반드시 제거 — 아래 목업 폴백 때문에 모든 lesson 결제에 가짜 가격이 노출된다.
+    //       (제거 후에는 정책이 없으면 기존처럼 lesson.price 단건 결제로 돌아간다)
+    return type === 'lesson' ? MOCK_PRICE_POLICIES : [];
+  }, [payment.lesson?.pricePolicies, payment.pricePolicies, type]);
   const hasPolicies = pricePolicies.length > 0;
-  const [selectedPolicyId, setSelectedPolicyId] = useState<number | undefined>(
-    hasPolicies ? pricePolicies[0].id : undefined
-  );
+  // 기본 선택 — recommended 우선, 없으면 첫 번째.
+  const defaultPolicyId = hasPolicies
+    ? (pricePolicies.find(p => p.recommended) ?? pricePolicies[0]).id
+    : undefined;
+  const [selectedPolicyId, setSelectedPolicyId] = useState<number | undefined>(defaultPolicyId);
   const selectedPolicy = hasPolicies
     ? (pricePolicies.find(p => p.id === selectedPolicyId) ?? pricePolicies[0])
     : undefined;
@@ -307,6 +317,20 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
+      {/* 수강 횟수 가격정책 선택 — 1회/4회/8회 등 옵션이 있을 때만 노출.
+          "무엇을 사는지"가 정해져야 결제 금액이 확정되므로 결제수단보다 위에 온다. */}
+      {hasPolicies && (
+        <>
+          <PricePolicySection
+            locale={locale}
+            policies={pricePolicies}
+            selectedPolicyId={selectedPolicyId}
+            onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
+          />
+          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
+        </>
+      )}
+
       {paymentMethods.length > 0 && (
         <>
           <PaymentMethodComponent
@@ -335,19 +359,6 @@ export const UnifiedPaymentInfo = ({
           />
 
           <div className="mt-5 mx-6 h-px bg-[#F0F0F0]" />
-        </>
-      )}
-
-      {/* 수강 횟수 가격정책 선택 — 1회/4회/8회 등 옵션이 있을 때만 노출 */}
-      {hasPolicies && (
-        <>
-          <PricePolicySection
-            locale={locale}
-            policies={pricePolicies}
-            selectedPolicyId={selectedPolicyId}
-            onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
-          />
-          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
         </>
       )}
 
