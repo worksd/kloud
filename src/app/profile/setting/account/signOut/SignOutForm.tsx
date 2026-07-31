@@ -9,6 +9,7 @@ import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
+import { safeLocalStorage, safeSessionStorage } from "@/utils/safe.storage";
 
 const reasons: StringResourceKey[] = [
   "sign_out_reason_no_contents",
@@ -47,8 +48,8 @@ export default function SignOutForm({locale}: { locale: Locale }) {
         if ('success' in res && res.success) {
           await unregisterDeviceAction()
           await clearCookies();
-          localStorage.clear();
-          sessionStorage.clear();
+          safeLocalStorage.clear();
+          safeSessionStorage.clear();
           window.KloudEvent?.clearToken()
           window.KloudEvent?.showToast('성공적으로 회원탈퇴하였습니다.')
           kloudNav.clearAndPush(data.route)
