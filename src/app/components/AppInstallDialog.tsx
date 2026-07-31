@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
+import { safeSessionStorage } from "@/utils/safe.storage";
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6740252635';
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.rawgraphy.blanc';
@@ -16,7 +17,8 @@ export function AppInstallDialog({ locale, profileImageUrl }: { locale: Locale; 
   // 모바일 웹에서만, 세션당 1회 노출. 데스크톱은 열지 않음. (os 쿼리가 비어있을 수 있어 UA로 감지)
   useEffect(() => {
     const SEEN_KEY = 'app_install_dialog_seen';
-    if (sessionStorage.getItem(SEEN_KEY)) return;   // 이번 세션에 이미 노출됨
+    // storage가 막힌 환경(인앱 브라우저 등)에서는 null이 와서 매번 노출된다 — 크래시보다는 낫다.
+    if (safeSessionStorage.getItem(SEEN_KEY)) return;   // 이번 세션에 이미 노출됨
     const ua = navigator.userAgent;
     let url: string | null = null;
     let show = false;
@@ -26,7 +28,7 @@ export function AppInstallDialog({ locale, profileImageUrl }: { locale: Locale; 
     if (show) {
       setStoreUrl(url);
       setOpen(true);
-      sessionStorage.setItem(SEEN_KEY, '1');
+      safeSessionStorage.setItem(SEEN_KEY, '1');
     }
   }, []);
 

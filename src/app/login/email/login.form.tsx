@@ -10,6 +10,7 @@ import { kloudNav } from "@/app/lib/kloudNav";
 import Logo from "../../../../public/assets/logo_black.svg";
 import { useRouter } from "next/navigation";
 import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
+import { safeLocalStorage } from "@/utils/safe.storage";
 
 type LoginFormProps = {
   appVersion: string;
@@ -37,7 +38,7 @@ export const LoginForm = (props: LoginFormProps) => {
 
   // 캐시된 이메일 불러오기
   useEffect(() => {
-    const cachedEmail = localStorage.getItem(CACHED_EMAIL_KEY);
+    const cachedEmail = safeLocalStorage.getItem(CACHED_EMAIL_KEY);
     if (cachedEmail) {
       setEmail(cachedEmail);
     }
@@ -70,7 +71,7 @@ export const LoginForm = (props: LoginFormProps) => {
     })
     if ('status' in res) {
       // 로그인 성공 시 이메일 캐시 저장
-      localStorage.setItem(CACHED_EMAIL_KEY, email);
+      safeLocalStorage.setItem(CACHED_EMAIL_KEY, email);
       saveRecentLoginMethod('email');
 
       if (props.appVersion == '') {
