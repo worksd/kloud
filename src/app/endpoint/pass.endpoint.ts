@@ -16,10 +16,29 @@ export type SimplePaymentRecordResponse = {
 
 export type GetPassPlanListRequest = {
   studioId: number
-  /** admin(키오스크 상담실): 전부 불러오기 (KIOSK+withAll 분기). 응답은 기존 StudioPassPlanListResponse 유지. */
-  withAll?: boolean
   /** 'active'(Ready+Private) 등 상태 필터. 생략 시 전부. */
   status?: string
+}
+
+/**
+ * 키오스크 관리자모드 전용 — 비공개(Private) 포함 패스권 플랜 전체 조회.
+ *
+ * BE는 아래 3개가 '모두' 맞을 때만 이 분기를 탄다. 하나라도 어긋나면
+ * 조용히 공개 패스권만 내려주는 다른 분기로 빠진다 (에러가 아니라서 눈치채기 어렵다).
+ *   1. header  x-guinness-client == 'KIOSK'  — /kiosk 경로면 proxy.ts가 자동으로 붙여준다
+ *   2. query   withAll == 'true'             — 문자열 비교라 false를 보내면 안 되고 아예 빼야 한다
+ *   3. query   studioId (양의 정수)
+ */
+export type GetKioskAllPassPlansRequest = {
+  studioId: number
+  /**
+   * 반드시 true. BE가 문자열 'true'로 비교하므로 false를 보내면 이 분기를 못 탄다.
+   * 전체 조회가 필요 없으면 이 엔드포인트 대신 GetPassPlans를 쓸 것.
+   */
+  withAll: true
+  /** 'active'(Ready+Private) 등 상태 필터. 생략 시 전부. */
+  status?: string
+  page?: number
 }
 
 export type GetPassRequest = {
@@ -163,6 +182,23 @@ export type GetPassPlansResponse = {
   passPlans: GetPassPlanResponse[]
 }
 
+/**
+ * 키오스크 관리자모드 전체 조회 응답 (파트너 조회와 동일 형식).
+ * withAll 조회는 페이지네이션이 없어 totalPage가 항상 null로 온다.
+ */
+export type KioskAllPassPlansResponse = {
+  passPlans: KioskAdminPassPlanResponse[]
+  totalPage: number | null
+}
+
+/** 전체 조회에서만 추가로 내려오는 필드를 얹은 형태. */
+export type KioskAdminPassPlanResponse = GetPassPlanResponse & {
+  /** 이 플랜의 현재 유효 패스 보유자 수. */
+  activePassCount?: number
+  createdAt?: string
+  unitPrice?: number
+}
+
 export type GetPassResponse = {
   id: number
   price: number
@@ -211,7 +247,15 @@ export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse
   method: "get",
   path: (e) => `/studios/${e.studioId}/pass-plans`,
   pathParams: ['studioId'],
-  queryParams: ['withAll', 'status']
+  queryParams: ['status']
+};
+
+// GET /passPlans?studioId={id}&withAll=true — 키오스크 관리자모드 전용.
+// studioId가 path가 아니라 query라는 점이 GetPassPlans와 다르다.
+export const GetKioskAllPassPlans: Endpoint<GetKioskAllPassPlansRequest, KioskAllPassPlansResponse> = {
+  method: "get",
+  path: `/passPlans`,
+  queryParams: ['studioId', 'withAll', 'status', 'page']
 };
 
 export const GetPassPlan: Endpoint<{ id: number }, GetPassPlanResponse> = {
