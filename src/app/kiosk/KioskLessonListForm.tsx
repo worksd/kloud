@@ -6,7 +6,7 @@ import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse, LessonStatus, BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
-import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
+import { getAllPassPlanListForKioskAction, getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { getBundlesAction } from "@/app/kiosk/get.bundles.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
@@ -141,17 +141,24 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   }, [tab, studioId, selectedDate]);
 
   // 패스권 탭 진입 시 목록 fetch.
-  // admin(상담실)은 비공개(Private) 포함 위해 withAll=true로 '한 번은' 재조회한다.
+  // admin(상담실)은 비공개(Private) 포함 위해 '한 번은' 재조회한다.
   // (초기 passPlans는 공개만 담겨 올 수 있어, length>0로 스킵하면 비공개가 안 보이던 문제)
+  //
+  // admin과 일반은 엔드포인트 자체가 다르다 —
+  //   admin  GET /passPlans?studioId={id}&withAll=true   (Private 포함, 페이지네이션 없음)
+  //   일반   GET /studios/{id}/pass-plans                (판매중 공개만)
   const didFetchPassPlansRef = useRef(false);
   useEffect(() => {
     if (tab !== 'pass-plans' || !studioId) return;
     if (didFetchPassPlansRef.current) return;
-    // 비admin은 이미 받은 공개 목록이 있으면 재조회 불필요. admin은 withAll 위해 항상 1회 조회.
+    // 비admin은 이미 받은 공개 목록이 있으면 재조회 불필요. admin은 전체 조회 위해 항상 1회 조회.
     if (!admin && passPlans.length > 0) return;
     didFetchPassPlansRef.current = true;
     setLoadingPassPlans(true);
-    getPassPlanListAction({ studioId, withAll: admin ? true : undefined })
+    const request = admin
+      ? getAllPassPlanListForKioskAction({ studioId })
+      : getPassPlanListAction({ studioId });
+    request
       .then(async (res) => {
         if (await handleKioskTokenExpired(res)) return;
         if ('passPlans' in res) setPassPlans(res.passPlans);
