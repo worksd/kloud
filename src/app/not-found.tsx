@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Logo from "../../public/assets/logo_black.svg"
+import { kloudNav } from "@/app/lib/kloudNav";
 
 export default function NotFound() {
-  const router = useRouter();
-
   useEffect(() => {
-    // 리포팅은 그대로 남기고(깨진 링크 파악용) 화면만 보여주지 않고 루트로 보낸다.
     fetch('/api/error-webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,11 +21,33 @@ export default function NotFound() {
         },
       }),
     }).catch(console.error);
+  }, []);
 
-    // replace라서 뒤로가기로 404가 다시 잡히지 않는다.
-    router.replace('/');
-  }, [router]);
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
+      {/* 404 아이콘 */}
+      <div className="mb-8">
+        <Logo/>
+      </div>
 
-  // 리다이렉트 되기 전 잠깐 뜨는 화면 — 404 UI 대신 빈 흰 화면.
-  return <div className="min-h-screen bg-white"/>;
+      {/* 메시지 */}
+      <h1 className="text-[20px] font-bold text-black mb-4">
+        페이지를 찾을 수 없습니다
+      </h1>
+
+      <p className="text-[16px] text-[#86898C] text-center mb-8 max-w-md">
+        요청하신 페이지는 현재 개발/점검 중입니다
+      </p>
+
+      {/* 홈으로 돌아가기 버튼 */}
+      <div
+        className="px-6 py-3 bg-black text-white rounded-lg font-semibold
+          transition-transform duration-100 active:scale-[0.98]
+          hover:bg-gray-800"
+        onClick={() => kloudNav.back()}
+      >
+        뒤로가기
+      </div>
+    </div>
+  );
 }
