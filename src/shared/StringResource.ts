@@ -3525,6 +3525,19 @@ export const StringResource = {
   kiosk_request_done: { ko: '신청 완료!', en: 'Request received!', jp: '申し込み完了！', zh: '申请完成！' },
   kiosk_take_receipt: { ko: '출력된 영수증을 받아가세요', en: 'Please take your receipt', jp: 'レシートをお受け取りください', zh: '请收取打印的收据' },
   kiosk_finish_at_info_desk: { ko: '인포에서 결제를 마무리해주세요', en: 'Please complete payment at the info desk', jp: 'インフォデスクで決済を完了してください', zh: '请到信息台完成支付' },
+  // 자동 사용처리(ticket.status = 'Used') — QR 체크인 없이 바로 입장
+  kiosk_attendance_auto_done: {
+    ko: '출석 처리까지 완료됐어요!',
+    en: "You're checked in!",
+    jp: '出席処理まで完了しました！',
+    zh: '已完成签到！',
+  },
+  kiosk_attendance_auto_done_desc: {
+    ko: 'QR 체크인 없이 바로 수업에 들어가시면 돼요',
+    en: 'No QR check-in needed — head straight to class',
+    jp: 'QRチェックインなしで、そのままレッスンにお進みください',
+    zh: '无需扫码签到，请直接前往课程',
+  },
   kiosk_close_in_5s: { ko: '5초 뒤에 닫혀요', en: 'Closing in 5 seconds', jp: '5秒後に閉じます', zh: '5秒后关闭' },
   kiosk_go_apply_lesson: { ko: '수업 신청 하러가기', en: 'Apply for a lesson', jp: 'レッスン申し込みへ', zh: '去申请课程' },
   kiosk_to_home: { ko: '처음으로', en: 'To home', jp: 'ホームへ', zh: '回到首页' },
