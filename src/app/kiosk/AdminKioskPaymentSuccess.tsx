@@ -18,6 +18,8 @@ type AdminKioskPaymentSuccessProps = {
   /** 이미 알고 있는 수신자 번호(숫자만). 있으면 바로 발송, 없으면 입력 플로우로. */
   defaultPhone?: string;
   defaultCountryCode?: string;
+  /** 자동 사용처리(ticket.status='Used')로 출석까지 끝난 건. QR 체크인 불필요 안내를 노출한다. */
+  attendanceDone?: boolean;
   onHome: () => void;
 };
 
@@ -26,7 +28,7 @@ type ReceiptStatus = 'idle' | 'sending' | 'sent' | 'error';
 // admin(상담실) 결제 완료 화면 — 무인 키오스크 성공 오버레이와 별개.
 // 직원이 결제한 실금액을 그대로 보여주고, 전자영수증(알림톡) 발송 버튼을 제공한다.
 export const AdminKioskPaymentSuccess = ({
-  title, thumbnailUrl, amount, locale, paymentId, defaultPhone, defaultCountryCode, onHome,
+  title, thumbnailUrl, amount, locale, paymentId, defaultPhone, defaultCountryCode, attendanceDone = false, onHome,
 }: AdminKioskPaymentSuccessProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
 
@@ -106,6 +108,21 @@ export const AdminKioskPaymentSuccess = ({
         <p className="text-black text-[38px] font-bold tracking-[-1px] text-center">
           {t('kiosk_admin_payment_done')}
         </p>
+
+        {/* 자동 사용처리 — 결제와 동시에 출석까지 끝나 QR 체크인이 필요 없음. 직원이 손님에게 바로 안내할 수 있게 노출. */}
+        {attendanceDone && (
+          <div className="w-full max-w-[560px] mt-[24px] rounded-[16px] bg-[#EAF7F4] border border-[#BFE7E0] px-[24px] py-[18px] flex items-center gap-[16px]">
+            <div className="w-[36px] h-[36px] rounded-full bg-[#1E9E8A] flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" className="w-[54%] h-[54%]">
+                <path d="M5 12.5L10 17.5L19 8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[#12796A] text-[22px] font-bold leading-snug">{t('kiosk_attendance_auto_done')}</span>
+              <span className="text-[#3D8C80] text-[17px] leading-snug mt-[2px]">{t('kiosk_attendance_auto_done_desc')}</span>
+            </div>
+          </div>
+        )}
 
         <div className="w-full max-w-[560px] mt-[36px] bg-gray-50 rounded-[20px] px-[28px] py-[24px] flex items-center gap-[18px]">
           <div className="w-[72px] h-[72px] rounded-[14px] overflow-hidden bg-gray-200 shrink-0">

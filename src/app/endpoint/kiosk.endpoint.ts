@@ -34,6 +34,22 @@ export const GetKioskAdminPayment: Endpoint<GetKioskAdminPaymentRequest, GetKios
 
 export type KioskPaymentType = 'card' | 'cash';
 
+/**
+ * 결제/패스사용으로 발급된 수강권 상태.
+ * 학원이 자동 사용처리(studio.ticketAutoUse = SameDayOnSite)를 켜면 당일 수업은
+ * 결제 즉시 'Used'로 발급되고 qrCodeUrl·rank가 전부 null로 내려온다 — 체크인 불필요.
+ */
+export type KioskTicketStatus = 'Paid' | 'Used' | 'Pending' | 'Cancelled' | 'CancelPending';
+
+/**
+ * 발급된 수강권 요약. 수강권을 발급하는 상품(수업)에만 채워지고
+ * 패스권 구매·연습실 예약 등은 null.
+ */
+export type KioskTicketSummary = {
+  id: number;
+  status: KioskTicketStatus;
+};
+
 // ① POST /kiosks/payments — Pending 생성 (card) / 즉시 Completed (cash)
 //    응답의 amount가 KIS 단말에 매입 요청할 금액
 export type StartKioskPaymentRequest = {
@@ -59,6 +75,11 @@ export type StartKioskPaymentResponse = {
   rank?: string | null;
   /** 'priority' | 'normal'. 그 외 null */
   rankType?: 'priority' | 'normal' | null;
+  /**
+   * ⚠️ 현재 BE 미포함 — 현금·무료는 이 시점에 발급까지 끝나지만 응답 DTO에 ticket이 없다.
+   * BE가 추가하면 자동 사용처리(Used) 안내가 현금 결제에서도 그대로 뜬다.
+   */
+  ticket?: KioskTicketSummary | null;
 };
 
 export const StartKioskPayment: Endpoint<StartKioskPaymentRequest, StartKioskPaymentResponse> = {
@@ -101,6 +122,11 @@ export type CompleteKioskPaymentResponse = {
   rank?: string | null;
   /** 'priority' | 'normal'. 그 외 null */
   rankType?: 'priority' | 'normal' | null;
+  /**
+   * 발급된 수강권 요약. 수업 결제인데 null이면 발급 실패, status='Used'면 자동 사용처리(출석까지 완료).
+   * 발급 성공 판정은 qrCodeUrl 유무가 아니라 이 필드로 한다.
+   */
+  ticket?: KioskTicketSummary | null;
 };
 
 export const CompleteKioskPayment: Endpoint<CompleteKioskPaymentRequest, CompleteKioskPaymentResponse> = {
@@ -148,6 +174,8 @@ export type UseKioskPassResponse = {
   rank?: string | null;
   /** 'priority' | 'normal'. 그 외 null */
   rankType?: 'priority' | 'normal' | null;
+  /** 발급된 수강권 요약. status='Used'면 자동 사용처리(출석까지 완료). 연습실 예약은 응답 스키마 자체가 달라 미포함. */
+  ticket?: KioskTicketSummary | null;
 };
 
 export const UseKioskPass: Endpoint<UseKioskPassRequest, UseKioskPassResponse> = {

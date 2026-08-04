@@ -23,6 +23,7 @@ import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
+import {KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
 import {AdminKioskNewUserDialog} from "@/app/kiosk/AdminKioskNewUserDialog";
@@ -83,12 +84,14 @@ type ParsedPaymentResult = {
   amount?: number;
   qrCodeUrl?: string | null;
   rank?: string | null;
+  /** 발급된 수강권 요약. 자동 사용처리된 건은 status='Used'로 오고 qrCodeUrl/rank는 비어 있다. */
+  ticket?: KioskTicketSummary | null;
   code?: string;
   message?: string;
 };
 
 const parsePaymentResult = (res: unknown): ParsedPaymentResult => {
-  const r = res as { code?: string; message?: string; paymentId?: string; amount?: number; qrCodeUrl?: string | null; rank?: string | null };
+  const r = res as { code?: string; message?: string; paymentId?: string; amount?: number; qrCodeUrl?: string | null; rank?: string | null; ticket?: KioskTicketSummary | null };
   const ok = !!r.paymentId && !isGuinnessErrorCase(res);
   return {
     ok,
@@ -96,6 +99,7 @@ const parsePaymentResult = (res: unknown): ParsedPaymentResult => {
     amount: r.amount,
     qrCodeUrl: r.qrCodeUrl ?? null,
     rank: r.rank ?? null,
+    ticket: r.ticket ?? null,
     code: r.code,
     message: r.message,
   };
@@ -195,6 +199,8 @@ export const KioskForm = ({
   const [paymentQrCodeUrl, setPaymentQrCodeUrl] = useState<string | null>(null);
   // BE complete 응답의 rank 라벨 (예: "No. 7 (A Group)") — 영수증 임팩트 박스에 노출
   const [paymentRank, setPaymentRank] = useState<string | null>(null);
+  // 발급된 수강권 상태. 'Used'면 학원이 자동 사용처리를 켜둔 상태로 출석까지 끝난 것 — 성공 화면에서 QR 체크인 불필요 안내
+  const [paymentTicketStatus, setPaymentTicketStatus] = useState<KioskTicketSummary['status'] | null>(null);
   // 패스권 사용 시 응답으로 받는 paymentId — 영수증의 결제번호 라인에 노출 (paymentInfo.paymentId보다 우선)
   const [receiptPaymentIdOverride, setReceiptPaymentIdOverride] = useState<string | null>(null);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -238,6 +244,7 @@ export const KioskForm = ({
     setSelectedPass(null);
     setPaymentQrCodeUrl(null);
     setPaymentRank(null);
+    setPaymentTicketStatus(null);
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
     setAdminPaidAmount(null);
@@ -843,6 +850,9 @@ export const KioskForm = ({
     if (parsed.qrCodeUrl) setPaymentQrCodeUrl(parsed.qrCodeUrl);
     if (opts?.receiptOverride && parsed.paymentId) setReceiptPaymentIdOverride(parsed.paymentId);
     if (parsed.rank) setPaymentRank(parsed.rank);
+    // 자동 사용처리 여부는 발급된 수강권 상태로만 판별 (qrCodeUrl은 발급 실패 때도 비어 있어 구분 불가).
+    // 이번 결제 응답이 항상 권위값이라 없으면 명시적으로 비운다 — 직전 결제의 'Used'가 남지 않도록.
+    setPaymentTicketStatus(parsed.ticket?.status ?? null);
   }, []);
 
   // 카드 결제 (Apple Pay 포함):
@@ -1136,6 +1146,10 @@ export const KioskForm = ({
         : currentScreen === 'payment-method' || currentScreen === 'pass-select' ? 'payment'
           : currentScreen;
 
+  // 학원의 자동 사용처리(studio.ticketAutoUse) 설정으로 결제 즉시 출석까지 끝난 건.
+  // 현금 결제는 BE 생성 응답에 ticket이 없어 아직 판별 불가 — 기존 안내로 폴백된다.
+  const isAutoAttended = paymentTicketStatus === 'Used';
+
   return (
     <div key={screenGroup} className="w-full h-screen overflow-hidden animate-[fadeIn_260ms_ease-out]">
       {currentScreen === 'home' && (
@@ -1344,6 +1358,7 @@ export const KioskForm = ({
           paymentId={receiptPaymentIdOverride ?? paymentInfo?.paymentId ?? null}
           defaultPhone={phone || selectedUser?.phone || ''}
           defaultCountryCode={phoneCountryCode}
+          attendanceDone={isAutoAttended}
           onHome={() => { setPaymentResult(null); goHome(); }}
         />
       )}
@@ -1366,6 +1381,26 @@ export const KioskForm = ({
             <p className="text-[#6D7882] text-center mt-[min(0.8vw,8px)]" style={{ fontSize: 'min(2vw,22px)' }}>
               {paymentMethod === 'cash' ? t('kiosk_finish_at_info_desk') : t('kiosk_take_receipt')}
             </p>
+
+            {/* 자동 사용처리(ticket.status='Used') — 결제와 동시에 출석까지 끝나 QR 체크인이 필요 없음을 명확히 안내.
+                이 경우 서버가 qrCodeUrl·rank를 비워서 내려주므로 화면에 안내가 없으면 손님이 체크인 대기를 하게 된다. */}
+            {isAutoAttended && (
+              <div className="w-full max-w-[720px] mt-[min(2.6vw,28px)] rounded-[16px] bg-[#EAF7F4] border border-[#BFE7E0] px-[min(3vw,32px)] py-[min(2vw,22px)] flex items-center gap-[min(1.6vw,18px)]">
+                <div className="rounded-full bg-[#1E9E8A] flex items-center justify-center shrink-0" style={{ width: 'min(3.6vw,40px)', height: 'min(3.6vw,40px)' }}>
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '54%', height: '54%' }}>
+                    <path d="M5 12.5L10 17.5L19 8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div className="flex flex-col min-w-0 text-left">
+                  <span className="text-[#12796A] font-bold leading-snug" style={{ fontSize: 'min(2.2vw,24px)' }}>
+                    {t('kiosk_attendance_auto_done')}
+                  </span>
+                  <span className="text-[#3D8C80] leading-snug mt-[min(0.4vw,4px)]" style={{ fontSize: 'min(1.7vw,19px)' }}>
+                    {t('kiosk_attendance_auto_done_desc')}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* 결제 항목 카드 — 결제수단 폼/영수증과 동일 패턴으로 할인 반영한 실결제액 노출.
                 할인 라인이 있으면 원가는 취소선으로 부가 노출 (사용자가 차감 흐름을 한눈에 확인). */}
@@ -1414,6 +1449,7 @@ export const KioskForm = ({
                     setPaymentInfo(null);
                     setPaymentQrCodeUrl(null);
                     setPaymentRank(null);
+                    setPaymentTicketStatus(null);
                     setReceiptPaymentIdOverride(null);
                     setCurrentScreen('lesson-list');
                   }}
