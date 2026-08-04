@@ -204,8 +204,20 @@ const stampBox = (): PrinterLine[] => [
   { align: 'C', text: '+--------------------+' },
 ];
 
-const qrLine = (qrText: string | undefined): PrinterLine[] =>
-  qrText ? [{ blank: 1 }, { align: 'C', qr: qrText, size: 6 }] : [];
+// 체크인 영역 — 평소엔 입장 QR을 찍는다.
+// 자동 사용처리(ticket.status='Used')된 건은 서버가 qrCodeUrl을 비워 보내 이 자리가 통째로 비므로,
+// QR 대신 출석이 이미 끝났다는 안내를 같은 자리에 인쇄한다 (손님이 체크인을 기다리지 않도록).
+const checkInLines = (qrText: string | undefined, attended = false): PrinterLine[] => {
+  if (attended) {
+    // 바로 위 '[ 수업 정보 ]' 박스와 겹쳐 보이지 않도록 '===' 박스 대신 '*** ***' 배너 스타일로 (전표 라인과 동일 톤)
+    return [
+      { blank: 1 },
+      { align: 'C', bold: true, text: '*** 출석 완료 ***' },
+      { align: 'C', text: 'QR 체크인 없이 바로 입장하세요' },
+    ];
+  }
+  return qrText ? [{ blank: 1 }, { align: 'C', qr: qrText, size: 6 }] : [];
+};
 
 // 스튜디오 별 영수증 하단 안내 문구 — 줄바꿈은 '\n'으로
 const footerLines = (footer: string | undefined): PrinterLine[] => {
@@ -267,10 +279,12 @@ export type CardReceiptInput = {
   passDiscount?: number;
   card: CardPaymentInfo;
   qrText?: string;
+  /** 자동 사용처리로 출석까지 끝난 건 — QR 자리에 '출석 완료' 안내를 대신 인쇄 */
+  attended?: boolean;
 };
 
 export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] => {
-  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, card, passDiscount = 0, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, card, passDiscount = 0, qrText, attended } = input;
   const total = sumPrice(items);
   const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   const lines: PrinterLine[] = [
@@ -288,7 +302,7 @@ export const buildCardPaymentReceipt = (input: CardReceiptInput): PrinterLine[] 
   lines.push({ align: 'C', bold: true, text: '** 신용승인전표 **' });
   lines.push(...cardMetaLines(card));
   lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank));
-  lines.push(...qrLine(qrText));
+  lines.push(...checkInLines(qrText, attended));
   lines.push(...footerLines(studio.receiptFooter));
   return lines;
 };
@@ -310,10 +324,12 @@ export type PassReceiptInput = {
   items: ReceiptItem[];
   passName?: string;
   qrText?: string;
+  /** 자동 사용처리로 출석까지 끝난 건 — QR 자리에 '출석 완료' 안내를 대신 인쇄 */
+  attended?: boolean;
 };
 
 export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] => {
-  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passName, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passName, qrText, attended } = input;
   const total = sumPrice(items);
   const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   // 패스권으로 풀커버되는 영수증 — 패스권 차감 라인을 먼저 노출하고, 합계는 차감 후 실결제액(0원)으로 표시
@@ -327,7 +343,7 @@ export const buildPassPaymentReceipt = (input: PassReceiptInput): PrinterLine[] 
     { blank: 1 },
     { align: 'C', bold: true, text: '** 결제 완료 **' },
     ...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank),
-    ...qrLine(qrText),
+    ...checkInLines(qrText, attended),
     ...footerLines(studio.receiptFooter),
   ];
 };
@@ -350,10 +366,12 @@ export type CashRequestReceiptInput = {
   /** 패스권으로 일부 차감된 금액 (없으면 0) — 카드 영수증과 동일 패턴 */
   passDiscount?: number;
   qrText?: string;
+  /** 자동 사용처리로 출석까지 끝난 건 — QR 자리에 '출석 완료' 안내를 대신 인쇄 */
+  attended?: boolean;
 };
 
 export const buildCashRequestReceipt = (input: CashRequestReceiptInput): PrinterLine[] => {
-  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passDiscount = 0, qrText } = input;
+  const { studio, transaction, user, items, itemType, artists, lessonDateTime, rank, passDiscount = 0, qrText, attended } = input;
   const total = sumPrice(items);
   const highlightTitle = itemType === 'lesson' ? items[0]?.name : undefined;
   const lines: PrinterLine[] = [
@@ -372,7 +390,7 @@ export const buildCashRequestReceipt = (input: CashRequestReceiptInput): Printer
   lines.push({ blank: 1 });
   lines.push(...stampBox());
   lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime, rank));
-  lines.push(...qrLine(qrText));
+  lines.push(...checkInLines(qrText, attended));
   lines.push(...footerLines(studio.receiptFooter));
   return lines;
 };
@@ -414,7 +432,8 @@ export const buildCancellationReceipt = (input: CancellationReceiptInput): Print
     lines.push(...cardMetaLines(card, { authNoLabel: '취소승인번호', authDateLabel: '취소일시' }));
   }
   lines.push(...lessonHighlightLines(highlightTitle, artists, lessonDateTime));
-  lines.push(...qrLine(qrText));
+  // 취소 전표는 출석 안내 대상이 아님 — QR만 (있을 때)
+  lines.push(...checkInLines(qrText));
   lines.push(...footerLines(studio.receiptFooter));
   return lines;
 };
@@ -449,6 +468,8 @@ export type BuildKioskReceiptInput = {
   /** KIS 단말 응답 raw — card 케이스에서 카드번호/승인번호/카드사 등 메타 추출에 사용 */
   cardData?: Record<string, unknown>;
   qrText?: string;
+  /** 자동 사용처리로 출석까지 끝난 건 — QR 자리에 '출석 완료' 안내를 대신 인쇄 */
+  attended?: boolean;
 };
 
 const pickStr = (data: Record<string, unknown>, key: string): string | undefined => {
@@ -516,6 +537,8 @@ export const buildReprintReceipt = (
   const qrText = detail.qrCodeUrl;
   // 재발급 영수증에도 입장번호 라벨(rank)을 그대로 노출 — 원거래에서 발급된 라벨을 detail 응답에서 받아옴.
   const rank = detail.rank ?? undefined;
+  // ⚠️ 자동 사용처리('출석 완료' 안내)는 재발급에서 판별 불가 — detail 응답에 ticket이 없다.
+  //    BE가 추가하면 각 빌더에 attended를 넘기면 된다.
 
   // methodType은 'Card' | 'Credit' | 'Cash' | 'Pass' 등 — 영수증 빌더는 소문자.
   // BE가 'card' 외에 'credit' / easy-pay 계열도 내려주므로 카드 계열을 명시적으로 묶어서 처리.
@@ -573,22 +596,22 @@ function parseTimestamp(s: string): Date | undefined {
 }
 
 export const buildKioskReceipt = (input: BuildKioskReceiptInput): PrinterLine[] => {
-  const { paymentMethod, studio, transaction, user, items, itemType, artists, lessonDateTime, rank, discount, cardData = {}, qrText } = input;
+  const { paymentMethod, studio, transaction, user, items, itemType, artists, lessonDateTime, rank, discount, cardData = {}, qrText, attended } = input;
   switch (paymentMethod) {
     case 'card':
       return buildCardPaymentReceipt({
-        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText,
+        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
         passDiscount: discount?.amount ?? 0,
         card: cardInfoFromKisData(cardData),
       });
     case 'pass':
       return buildPassPaymentReceipt({
-        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText,
+        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
         passName: discount?.description || discount?.targetLabel,
       });
     case 'cash':
       return buildCashRequestReceipt({
-        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText,
+        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
         passDiscount: discount?.amount ?? 0,
       });
   }
