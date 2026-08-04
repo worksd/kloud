@@ -460,9 +460,9 @@ export const KioskForm = ({
 
     let cancelled = false;
     let homeTimer: ReturnType<typeof setTimeout> | undefined;
-    const finishUp = (qrText?: string, rankText?: string) => {
+    const finishUp = (qrText?: string, rankText?: string, ticketStatus?: KioskTicketSummary['status'] | null) => {
       if (cancelled) return;
-      handlePrintReceipt(qrText, rankText);
+      handlePrintReceipt(qrText, rankText, ticketStatus);
       if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
 
@@ -528,7 +528,7 @@ export const KioskForm = ({
             removePendingCompletion(completePaymentId);
             applyReceiptFields(parsed);
             // setPaymentQrCodeUrl/setPaymentRank는 비동기라 같은 tick의 handlePrintReceipt 클로저엔 반영 안 됨 → 값을 인자로 직접 전달
-            finishUp(parsed.qrCodeUrl ?? undefined, parsed.rank ?? undefined);
+            finishUp(parsed.qrCodeUrl ?? undefined, parsed.rank ?? undefined, parsed.ticket?.status ?? null);
             return;
           }
           // 도메인 에러(res.ok=false) — 마지막 시도까지 재시도 후 로컬 큐로 보관
@@ -755,7 +755,7 @@ export const KioskForm = ({
 
   // 영수증 인쇄 — 결제 컨텍스트만 buildKioskReceipt에 넘기면 수단별 dispatch + KIS 응답 파싱은 receipt 모듈이 처리.
   // qrText는 백엔드 POST /kiosks/payments 응답의 qrCodeUrl을 그대로 받아 푸터 QR로 인쇄.
-  const handlePrintReceipt = useCallback((qrText?: string, rankText?: string) => {
+  const handlePrintReceipt = useCallback((qrText?: string, rankText?: string, ticketStatus?: KioskTicketSummary['status'] | null) => {
     if (!paymentItem || !paymentMethod) return;
     // /me의 studio는 필드 누락 케이스가 있어 /kiosks/payment 응답의 lesson|passPlan.studio가 있으면 우선 사용
     const itemStudio = paymentInfo?.lesson?.studio ?? paymentInfo?.passPlan?.studio;
@@ -792,6 +792,8 @@ export const KioskForm = ({
       lessonDateTime: selectedLesson ? lessonDateTime : undefined,
       // rankText(인자) 우선 — 카드 결제 complete 직후엔 paymentRank 상태가 아직 미반영이라 인자로 받은 값을 사용
       rank: selectedLesson ? (rankText ?? paymentRank ?? undefined) : undefined,
+      // 자동 사용처리된 건은 QR이 없으므로 그 자리에 '출석 완료' 안내를 인쇄. rank와 같은 이유로 인자 우선.
+      attended: (ticketStatus ?? paymentTicketStatus) === 'Used',
       items: [{ name: paymentItem.title, price: paymentItem.price }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,
@@ -803,7 +805,7 @@ export const KioskForm = ({
       qrText,
     });
     sendReceiptToPrinter(lines);
-  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, roomBooking, paymentInfo, receiptPaymentIdOverride, paymentRank]);
+  }, [paymentItem, paymentResult, paymentMethod, selectedDiscount, studioName, studioReceiptFooter, kioskReceiptFooter, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskName, selectedUser, phone, selectedLesson, selectedPassPlan, roomBooking, paymentInfo, receiptPaymentIdOverride, paymentRank, paymentTicketStatus]);
 
   // 공통: 선택된 할인을 PaymentDiscount[] 형태로 직렬화.
   // 서버가 passRule 풀 객체를 함께 요구해서 그대로 전달.
