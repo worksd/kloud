@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { authToken } from "@/app/splash/auth.token.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";

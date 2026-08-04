@@ -1,11 +1,15 @@
 'use server'
 
-import { getLocale } from "@/utils/translate";
+import { translate } from "@/utils/translate";
+import { BOTTOM_MENU_DEFS, BottomMenuItem, parseBottomMenuKeys } from "@/shared/bottom.menu";
 
-export async function getBottomMenuList() {
-  const locale = await getLocale();
-  if (locale == "ko") return JSON.parse(process.env.NEXT_PUBLIC_BOTTOM_MENU_LIST || "[]");
-  else if (locale == 'jp') return JSON.parse(process.env.NEXT_PUBLIC_BOTTOM_MENU_LIST_JP || "[]");
-  else if (locale == 'zh') return JSON.parse(process.env.NEXT_PUBLIC_BOTTOM_MENU_LIST_ZH || "[]")
-  else return JSON.parse(process.env.NEXT_PUBLIC_BOTTOM_MENU_LIST_EN || "[]");
+export async function getBottomMenuList(): Promise<BottomMenuItem[]> {
+  const keys = parseBottomMenuKeys(process.env.NEXT_PUBLIC_BOTTOM_MENU_LIST);
+
+  return Promise.all(
+    keys.map(async (key) => {
+      const { labelKey, ...rest } = BOTTOM_MENU_DEFS[key];
+      return { label: await translate(labelKey), ...rest };
+    })
+  );
 }

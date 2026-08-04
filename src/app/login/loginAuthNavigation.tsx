@@ -1,7 +1,6 @@
 'use client'
 import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog } from "@/utils/dialog.factory";
 import { kloudNav } from "@/app/lib/kloudNav";
 
