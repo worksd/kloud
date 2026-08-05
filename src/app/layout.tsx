@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -37,6 +38,7 @@ export default function RootLayout({
     <GlobalErrorHandler />
     {children}
     <Analytics />
+    <SpeedInsights />
     </body>
     </html>
   );
