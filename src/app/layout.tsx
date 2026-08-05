@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { ReactNode } from "react";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
+import { Analytics } from '@vercel/analytics/next';
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -35,6 +36,7 @@ export default function RootLayout({
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
     {children}
+    <Analytics />
     </body>
     </html>
   );
