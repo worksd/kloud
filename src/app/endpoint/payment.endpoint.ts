@@ -208,8 +208,6 @@ export type CreateBillingKeyPaymentRequest = {
   /** 연습실 예약 시간대 ('yyyy.MM.dd HH:mm' KST) — practice-room 결제 필수. */
   startDate?: string;
   endDate?: string;
-  /** 가격정책(수강 횟수) 결제 시 선택한 정책 id */
-  policyId?: number;
 }
 
 export type CreateBillingKeyPaymentResponse = {
@@ -219,5 +217,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'startDate', 'endDate', 'policyId']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'startDate', 'endDate']
 }

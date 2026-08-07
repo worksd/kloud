@@ -39,6 +39,9 @@ export const PaymentTypes = [
   {value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room'},
   // 번들(묶음) 결제 — paymentId prefix `BD`로 BE가 라우팅. 결제 API는 lesson/passPlan과 동일.
   {value: 'bundle', prefix: 'BD', apiValue: 'bundle'},
+  // 수업 가격 정책(정기) 결제 — paymentId prefix `LGT`. itemId는 lesson이 아니라 가격 정책 id다.
+  // 수업 결제 화면에서 정책을 고르면 lesson 결제가 이 타입으로 바뀐다.
+  {value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];
@@ -84,7 +87,7 @@ const purgeLessonCache = (lessonId: number) => {
 export default function PaymentButton({
                                         appVersion,
                                         id,
-                                        policyId,
+                                        lessonId,
                                         selectedPass,
                                         selectedBilling,
                                         selectedDiscounts,
@@ -104,7 +107,11 @@ export default function PaymentButton({
                                       }: {
   appVersion: string;
   id: number,
-  policyId?: number,
+  /**
+   * 실제 수업 id. lesson 결제면 id와 같고, 가격 정책(lessonGroup) 결제면 itemId가 정책 id라 따로 받는다.
+   * 정원 확인·캐시 무효화·패스권 사용처럼 "어느 수업이냐"가 필요한 동작은 전부 이 값을 쓴다.
+   */
+  lessonId?: number,
   selectedPass?: GetPassResponse,
   selectedBilling?: GetBillingResponse,
   selectedDiscounts?: DiscountResponse[],
@@ -130,11 +137,17 @@ export default function PaymentButton({
   const [guestSheetOpen, setGuestSheetOpen] = useState(false);
   const router = useRouter();
 
+  // 수업 결제(lesson)와 가격 정책 결제(lessonGroup)는 결제 상품만 다를 뿐 둘 다 한 수업을 사는 것이다.
+  // 정원 확인·캐시 무효화·패스권 사용은 결제 itemId가 아니라 targetLessonId 기준으로 돌아야 한다
+  // (lessonGroup은 itemId가 가격 정책 id라 그대로 쓰면 엉뚱한 수업을 건드린다).
+  const isLessonPurchase = type.value === 'lesson' || type.value === 'lessonGroup';
+  const targetLessonId = lessonId ?? (type.value === 'lesson' ? id : undefined);
+
   const onPaymentSuccess = useCallback(async ({ paymentId, delay }: { paymentId: string; delay: number }) => {
     try {
       setIsSubmitting(true);
       // 결제 성공 → lesson detail 캐시 무효화 (티켓 보유 반영된 fresh 응답 받도록)
-      if (type.value === 'lesson') purgeLessonCache(id);
+      if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
       await new Promise((r) => setTimeout(r, delay));
       const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
       const isWeb = !appVersion?.trim();
@@ -163,7 +176,7 @@ export default function PaymentButton({
     } finally {
       setIsSubmitting(false);
     }
-  }, [router, appVersion, id, type]);
+  }, [router, appVersion, isLessonPurchase, targetLessonId]);
 
   // authedPayer: 폰 인증 성공 시 handlePayment로 전달받는 사용자. 없으면 로그인된 user 사용.
   const handlePayment = async (authedPayer?: { userId: number; name: string; phone: string }) => {
@@ -191,10 +204,9 @@ export default function PaymentButton({
           targetUserId: payer.id,
           discounts: selectedDiscounts,
           ...roomManualFields,
-          policyId,
         })
         if ('paymentId' in res) {
-          if (type.value === 'lesson') purgeLessonCache(id);
+          if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
           const route = KloudScreen.PaymentRecordDetail(res.paymentId)
           if (appVersion == '' && route) {
             router.replace(route)
@@ -214,15 +226,14 @@ export default function PaymentButton({
     if (method === 'credit' || method === 'foreign_card' || method === 'naver_pay' || method === 'kakao_pay' || method === 'toss_pay') {
       const buildCustomData = () => {
         const customData: Record<string, unknown> = { actualPayerUserId, discounts: selectedDiscounts };
-        if (policyId != null) customData.policyId = policyId;
         if (type.value === 'practiceRoom' && practiceRoomInfo) {
           customData.startDate = practiceRoomInfo.startDate;
           customData.endDate = practiceRoomInfo.endDate;
         }
         return customData;
       };
-      if (type.value == 'lesson') {
-        const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
+      if (isLessonPurchase && targetLessonId != null) {
+        const capacityCheckResponse = await checkCapacityLessonAction({lessonId: targetLessonId});
 
         if ('message' in capacityCheckResponse) {
           const dialog = await createDialog({id: 'Simple', message: capacityCheckResponse.message})
@@ -346,8 +357,8 @@ export default function PaymentButton({
       if (selectedBilling && selectedBilling.billingKey) {
         // 일반 카드 결제 흐름(credit/foreign/easy-pay)과 동일하게 빌링키 결제도
         // lesson 정원 확인을 선행 — 정원 초과 시 결제 다이얼로그 진입 차단.
-        if (type.value === 'lesson') {
-          const capacityCheckResponse = await checkCapacityLessonAction({lessonId: id});
+        if (isLessonPurchase && targetLessonId != null) {
+          const capacityCheckResponse = await checkCapacityLessonAction({lessonId: targetLessonId});
           if ('message' in capacityCheckResponse) {
             const dialog = await createDialog({id: 'Simple', message: capacityCheckResponse.message});
             if (appVersion == '' && dialog) setWebDialogInfo(dialog);
@@ -407,7 +418,6 @@ export default function PaymentButton({
           ...(type.value === 'practiceRoom' && practiceRoomInfo
             ? { startDate: practiceRoomInfo.startDate, endDate: practiceRoomInfo.endDate }
             : {}),
-          policyId,
         });
         if ('paymentId' in res) {
           setDepositorCookie(depositor)
@@ -416,17 +426,17 @@ export default function PaymentButton({
           const dialogInfo = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialogInfo))
         }
-      } else if (data.id == 'UsePass' && selectedPass?.id && (type.value == 'lesson' || type.value == 'practiceRoom')) {
+      } else if (data.id == 'UsePass' && selectedPass?.id && (isLessonPurchase || type.value == 'practiceRoom')) {
         if (type.value === 'practiceRoom' && !practiceRoomInfo) return;
         const res = await selectAndUsePassAction({
           passId: selectedPass.id,
-          lessonId: type.value === 'lesson' ? id : undefined,
+          lessonId: isLessonPurchase ? targetLessonId : undefined,
           studioRoomId: type.value === 'practiceRoom' ? practiceRoomInfo!.studioRoomId : undefined,
           startDate: practiceRoomInfo?.startDate,
           endDate: practiceRoomInfo?.endDate,
         });
         if ('id' in res) {
-          if (type.value === 'lesson') purgeLessonCache(id);
+          if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
           const pushRoute = KloudScreen.TicketDetail(res.id, false);
           if (appVersion == '') {
             router.replace(pushRoute ?? '/')
@@ -473,7 +483,6 @@ export default function PaymentButton({
           billingKey: data.customData ?? '',
           paymentId,
           targetUserId: actualPayerUserId,
-          policyId,
           discounts: selectedDiscounts?.map(d => ({
             key: d.key,
             amount: d.amount,
@@ -486,7 +495,7 @@ export default function PaymentButton({
             : {}),
         })
         if ('success' in res && res.success) {
-          if (type.value === 'lesson') purgeLessonCache(id);
+          if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
           // 웹은 결제 결과 검증 핸들러(/payment-redirect)로, 네이티브는 결제상세로.
           if (appVersion == '') {
             router.push(`/payment-redirect?paymentId=${paymentId}`);

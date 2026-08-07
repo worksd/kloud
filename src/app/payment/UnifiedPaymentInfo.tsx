@@ -15,12 +15,14 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-type UnifiedPaymentType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
+type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
     case 'lesson':
       return { value: 'lesson', prefix: 'LT', apiValue: 'lesson' };
+    case 'lesson-group':
+      return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
     case 'pass-plan':
       return { value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan' };
     case 'practice-room':
@@ -40,6 +42,8 @@ const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
 const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): number => {
   switch (type) {
     case 'lesson':
+    // lesson-group으로 진입해도 정책 선택 전 기본값은 lesson id — 정책이 선택되면 호출부가 정책 id로 대체한다.
+    case 'lesson-group':
       return payment.lesson?.id ?? 0;
     case 'pass-plan':
       return payment.passPlan?.id ?? 0;
@@ -53,6 +57,7 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
 const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): string => {
   switch (type) {
     case 'lesson':
+    case 'lesson-group':
       return payment.lesson?.title ?? '';
     case 'pass-plan':
       return payment.passPlan?.name ?? '';
@@ -68,6 +73,7 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
   if (payment.price != null) return payment.price;
   switch (type) {
     case 'lesson':
+    case 'lesson-group':
       return payment.lesson?.price ?? 0;
     case 'pass-plan':
       return payment.passPlan?.price ?? 0;
@@ -465,9 +471,9 @@ export const UnifiedPaymentInfo = ({
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
           selectedDiscounts={noPass ? undefined : activeDiscounts}
-          type={getPaymentType(type)}
-          id={getItemId(payment, type)}
-          policyId={selectedPolicyId}
+          type={selectedPolicy ? getPaymentType('lesson-group') : getPaymentType(type)}
+          id={selectedPolicy ? selectedPolicy.id : getItemId(payment, type)}
+          lessonId={payment.lesson?.id}
           price={priceAvailable ? totalPrice : null}
           title={getItemTitle(payment, type)}
           user={payment.user}
@@ -488,7 +494,8 @@ export const UnifiedPaymentInfo = ({
             )) ||
             (!priceAvailable && selectedMethod === 'pass' && !selectedPass)
           }
-          paymentId={payment.paymentId}
+          // 정책을 고르면 그 정책의 결제 id로 결제한다 — 최상위 paymentId는 기본 정책의 것일 뿐이다
+          paymentId={selectedPolicy?.paymentId ?? payment.paymentId}
           actualPayerUserId={noPass ? undefined : actualPayerUserId}
           hasRefundAccount={payment.refundAccountNumber != null && payment.refundAccountNumber.length > 0}
           onBillingCardsChange={(cards) => setCards(cards)}

@@ -17,7 +17,7 @@ import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
+type PaymentPageType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -103,8 +103,11 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   // 대리 결제 여부 확인 (비회원은 user 없음 → false)
   const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
 
+  // 가격 정책(정기) 결제도 응답은 수업 결제와 같은 모양(res.lesson + lesson.pricePolicies)이라 수업과 동일하게 렌더한다.
+  const isLessonLike = paymentItem === 'lesson' || paymentItem === 'lesson-group';
+
   // 타입별로 데이터가 없는 경우 체크
-  if (paymentItem === 'lesson' && !res.lesson) {
+  if (isLessonLike && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
@@ -117,6 +120,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const getItemInfo = () => {
     switch (paymentItem) {
       case 'lesson':
+      case 'lesson-group':
         return {
           thumbnailUrl: res.lesson?.thumbnailUrl,
           title: res.lesson?.title,
@@ -163,7 +167,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           />
         )}
         {/* lesson */}
-        {paymentItem === 'lesson' && (
+        {isLessonLike && (
           <div className="px-5 pt-4 pb-3">
             <div className="flex gap-4">
               {/* 썸네일 9:16 */}
@@ -180,14 +184,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               {/* 메타 정보 */}
               <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
                 <p className="text-[18px] font-bold text-black leading-snug break-words line-clamp-2">{title}</p>
-                {paymentItem === 'lesson' && res.lesson?.tags && (
+                {isLessonLike && res.lesson?.tags && (
                   <LessonTags tags={res.lesson.tags} />
                 )}
                 <div className="flex items-center gap-2">
                   {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
                   <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
                 </div>
-                {paymentItem === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
+                {isLessonLike && (res.lesson?.formattedDate || res.lesson?.date) && (
                   <div className="flex flex-col gap-1 mt-1">
                     <div className="flex items-center gap-1.5">
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
