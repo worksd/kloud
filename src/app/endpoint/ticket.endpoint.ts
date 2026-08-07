@@ -125,6 +125,35 @@ export const DeleteTicket: Endpoint<RevertUsagePassesParameter, SimpleResponse> 
   bodyParams: ['reason', 'requester']
 }
 
+export type PostponeTicketParameter = {
+  id: number;
+}
+
+/**
+ * 회차 미루기 응답 — 옮겨진 회차 정보.
+ * 서버가 어떤 모양으로 내려주든 안전하게 다루려고 전부 optional로 둔다.
+ * (성공 판정은 에러 코드(isGuinnessErrorCase) 부재로 한다)
+ */
+export type PostponeTicketResponse = {
+  /** 옮겨진 뒤의 수강권 id. 서버가 새 티켓을 만들면 값이 바뀔 수 있다. */
+  id?: number;
+  /** 옮겨간 회차 */
+  lesson?: GetLessonResponse;
+  /** 남은 미루기 가능 횟수 — 내려주면 성공 안내에 덧붙인다. */
+  remainingPostponeCount?: number;
+}
+
+/**
+ * POST /tickets/:id/postpone — 수강생 본인이 못 오는 회차를 다음 회차로 옮긴다.
+ * 아직 시작하지 않은 회차만 가능하고, 가능 횟수는 결제 1건 기준으로 가격 정책의 postponeLimit이 정한다
+ * (정책에 없으면 학원 기본 설정). 제약 위반은 LESSON_POSTPONE_* 에러 코드로 내려온다.
+ */
+export const PostponeTicket: Endpoint<PostponeTicketParameter, PostponeTicketResponse> = {
+  method: 'post',
+  path: (e) => `/tickets/${e.id}/postpone`,
+  pathParams: ['id'],
+}
+
 export const ToUsed: Endpoint<ToUsedParameter, TicketResponse> = {
   method: 'post',
   path: (e) => `/tickets/${e.id}/use`,

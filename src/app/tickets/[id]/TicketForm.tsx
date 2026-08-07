@@ -18,6 +18,9 @@ import {getLocaleString} from "@/app/components/locale";
 import {Locale} from "@/shared/StringResource";
 import {createDialog, DialogInfo} from "@/utils/dialog.factory";
 import {deleteTicketAction} from "@/app/tickets/[id]/delete.ticket.action";
+import {postponeTicketAction} from "@/app/tickets/[id]/postpone.ticket.action";
+import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
+import {StringResourceKey} from "@/shared/StringResource";
 import {useRouter} from "next/navigation";
 import {kloudNav} from "@/app/lib/kloudNav";
 import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
@@ -42,6 +45,15 @@ function calculateTimeLeft(qrCodeUrl?: string): number {
   }
 }
 
+// 회차 미루기 실패 — BE 에러 코드를 사용자 문구로. 모르는 코드는 서버 메시지를 그대로 보여주고,
+// 그것도 없으면 일반 안내로 떨어진다.
+const POSTPONE_ERROR_MESSAGES: Record<string, StringResourceKey> = {
+  LESSON_POSTPONE_NOT_ALLOWED: 'postpone_error_not_allowed',
+  LESSON_POSTPONE_TOO_LATE: 'postpone_error_too_late',
+  LESSON_POSTPONE_LIMIT_EXCEEDED: 'postpone_error_limit_exceeded',
+  LESSON_POSTPONE_NO_SLOT: 'postpone_error_no_slot',
+};
+
 export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = ''}: {
   ticket: TicketResponse,
   isJustPaid: string,
@@ -55,6 +67,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
+  const [isPostponing, setIsPostponing] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -164,6 +177,25 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
     return `0:${secs.toString().padStart(2, '0')}`;
   };
 
+  // 미루기는 아직 안 쓴(Paid) 수강권만 대상. 시점·횟수 제약은 서버가 판정하므로 여기서 날짜를 재계산하지 않는다
+  // — 클라가 잘못 계산해 정상 요청을 막는 쪽이 서버가 거절하고 사유를 알려주는 쪽보다 나쁘다.
+  const canPostpone = ticket.status === 'Paid';
+
+  const showSimpleDialog = async (message: string) => {
+    const dialog = await createDialog({id: 'Simple', message});
+    if (dialog && window.KloudEvent) {
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
+  };
+
+  const handlePostponeClick = async () => {
+    if (isPostponing) return;
+    const dialog = await createDialog({id: 'PostponeTicket'});
+    if (dialog && window.KloudEvent) {
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
+  };
+
   const handleCancelClick = async () => {
     // LP로 시작하면 다이얼로그 띄우기
     if (ticket.paymentId.startsWith('LP')) {
@@ -179,6 +211,35 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
+      if (data.id == 'PostponeTicket') {
+        if (isPostponing) return;
+        setIsPostponing(true);
+        try {
+          const res = await postponeTicketAction({ticketId: ticket.id});
+          if (isGuinnessErrorCase(res)) {
+            const key = POSTPONE_ERROR_MESSAGES[res.code ?? ''];
+            await showSimpleDialog(
+              key
+                ? getLocaleString({locale, key})
+                : (res.message || getLocaleString({locale, key: 'postpone_error_unknown'}))
+            );
+            return;
+          }
+          // 성공 — 남은 횟수를 내려주면 함께 안내한다.
+          const remaining = res.remainingPostponeCount;
+          await showSimpleDialog(
+            remaining != null
+              ? getLocaleString({locale, key: 'postpone_ticket_success_remaining'}).replace('{count}', String(remaining))
+              : getLocaleString({locale, key: 'postpone_ticket_success'})
+          );
+          router.refresh();
+        } catch {
+          await showSimpleDialog(getLocaleString({locale, key: 'postpone_error_unknown'}));
+        } finally {
+          setIsPostponing(false);
+        }
+        return;
+      }
       if (data.id == 'CancelTicket' && ticket.paymentId.startsWith('LP')) {
         try {
           const res = await deleteTicketAction({ticketId: ticket.id});
@@ -207,7 +268,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         }
       }
     };
-  }, [ticket.id, ticket.paymentId, locale, router]);
+  }, [ticket.id, ticket.paymentId, locale, router, isPostponing]);
 
   // 티켓 렌더링 헬퍼 함수들
   const getBorderClass = () => {
@@ -559,6 +620,18 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
           {/* 취소하기 및 결제내역 버튼 */}
           <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
             <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2 flex items-center gap-6">
+              {canPostpone && (
+                <>
+                  <button
+                    onClick={handlePostponeClick}
+                    disabled={isPostponing}
+                    className="text-[14px] font-medium text-white active:opacity-70 transition-opacity disabled:opacity-50"
+                  >
+                    {getLocaleString({locale, key: 'postpone_ticket'})}
+                  </button>
+                  <div className="h-[14px] w-px bg-white/30"/>
+                </>
+              )}
               {ticket.isRefundable == true && (
                 <>
                   <button

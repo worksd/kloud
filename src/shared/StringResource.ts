@@ -3279,6 +3279,69 @@ export const StringResource = {
     jp: '割引額',
     zh: '优惠金额'
   },
+  // 회차 미루기 (POST /tickets/:id/postpone)
+  postpone_ticket: {
+    ko: '미루기',
+    en: 'Postpone',
+    jp: '延期',
+    zh: '延期'
+  },
+  postpone_ticket_title: {
+    ko: '다음 회차로 미룰까요?',
+    en: 'Postpone to the next session?',
+    jp: '次の回に延期しますか？',
+    zh: '要延期到下一节课吗？'
+  },
+  postpone_ticket_message: {
+    ko: '이번 회차 수강권이 다음 회차로 옮겨져요. 미룰 수 있는 횟수는 정해져 있어요.',
+    en: 'This session will be moved to the next one. The number of postponements is limited.',
+    jp: '今回の受講券が次の回に移ります。延期できる回数には制限があります。',
+    zh: '本次课程将移至下一节课。延期次数有限。'
+  },
+  postpone_ticket_success: {
+    ko: '다음 회차로 옮겼어요',
+    en: 'Moved to the next session',
+    jp: '次の回に移しました',
+    zh: '已移至下一节课'
+  },
+  /** {count} 자리에 남은 미루기 횟수를 치환한다. */
+  postpone_ticket_success_remaining: {
+    ko: '다음 회차로 옮겼어요. 앞으로 {count}번 더 미룰 수 있어요.',
+    en: 'Moved to the next session. You can postpone {count} more time(s).',
+    jp: '次の回に移しました。あと{count}回延期できます。',
+    zh: '已移至下一节课。还可延期{count}次。'
+  },
+  // 미루기 실패 — BE 에러 코드별 안내
+  postpone_error_not_allowed: {
+    ko: '이 수강권은 회차를 미룰 수 없어요',
+    en: 'This ticket cannot be postponed',
+    jp: 'この受講券は延期できません',
+    zh: '该课程券无法延期'
+  },
+  postpone_error_too_late: {
+    ko: '이미 시작한 회차는 미룰 수 없어요',
+    en: 'A session that has already started cannot be postponed',
+    jp: 'すでに始まった回は延期できません',
+    zh: '已开始的课程无法延期'
+  },
+  postpone_error_limit_exceeded: {
+    ko: '미룰 수 있는 횟수를 모두 썼어요',
+    en: "You've used all your postponements",
+    jp: '延期できる回数をすべて使いました',
+    zh: '延期次数已用完'
+  },
+  postpone_error_no_slot: {
+    ko: '옮길 수 있는 다음 회차가 없어요',
+    en: 'There is no next session to move to',
+    jp: '移せる次の回がありません',
+    zh: '没有可移动的下一节课'
+  },
+  postpone_error_unknown: {
+    ko: '회차를 미루지 못했어요. 잠시 후 다시 시도해주세요',
+    en: 'Could not postpone. Please try again shortly',
+    jp: '延期できませんでした。しばらくしてからもう一度お試しください',
+    zh: '延期失败，请稍后重试'
+  },
   /** 가격 정책의 postponeLimit — {count} 자리에 미룰 수 있는 횟수를 치환한다. */
   postpone_limit_notice: {
     ko: '미루기 {count}회 가능',
