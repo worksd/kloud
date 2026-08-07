@@ -3,7 +3,7 @@ import { LessonType } from '@/entities/lesson/lesson';
 import { GetStudioResponse } from '@/app/endpoint/studio.endpoint';
 import { TicketListResponse, TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { GetArtistResponse } from '@/app/endpoint/artist.endpoint';
-import type { PricePolicyResponse } from '@/app/endpoint/payment.endpoint';
+import type { LessonPricePolicyResponse } from '@/app/endpoint/payment.endpoint';
 
 export type GetLessonParameter = {
     id: number;
@@ -43,11 +43,12 @@ export type GetLessonResponse = {
     /** 이 수업이 포함된 판매중 묶음 목록. BE가 status=Public + closeDate>now + 본 lesson 포함 조건으로 필터해 내려줌. */
     bundles?: BundleSummaryResponse[];
     /**
-     * 수강 횟수별 가격정책 (예: 4회 12만원 / 8회 20만원).
-     * 내려오면 결제 페이지에서 횟수 선택 UI를 노출하고, 선택한 옵션의 price가 상품가가 된다.
-     * 없거나 빈 배열이면 기존처럼 lesson.price 단건 결제.
+     * 수업 가격 정책 (예: '월 4회' 10만원 / '월 8회' 19만원) — 이 수업을 정기로 사는 방식 목록.
+     * lessonCount 오름차순 정렬로 내려온다. 내려오면 결제 페이지에서 방식 선택 UI를 노출하고,
+     * 선택한 옵션의 price가 상품가, 그 옵션의 paymentId가 결제 id가 된다.
+     * 없거나 빈 배열이면 정기로 팔지 않는 수업 — 기존처럼 lesson.price 단건 결제.
      */
-    pricePolicies?: PricePolicyResponse[];
+    pricePolicies?: LessonPricePolicyResponse[];
 };
 
 export type BundleSummaryResponse = {

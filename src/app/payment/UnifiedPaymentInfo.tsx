@@ -9,8 +9,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { DiscountSection } from "@/app/lessons/[id]/payment/DiscountSection";
 import { PassesSection } from "@/app/payment/PassesSection";
 import { PricePolicySection } from "@/app/payment/PricePolicySection";
-import { MOCK_PRICE_POLICIES } from "@/app/payment/price.policy.mock";
-import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, PaymentMethodType, PricePolicyResponse } from "@/app/endpoint/payment.endpoint";
+import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, LessonPricePolicyResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
@@ -184,19 +183,18 @@ export const UnifiedPaymentInfo = ({
     };
   };
 
-  // 수강 횟수 가격정책 — 존재하면 옵션 선택 UI를 노출하고 선택한 정책의 price/id를 결제에 사용.
+  // 수업 가격 정책 — 존재하면 방식 선택 UI를 노출하고 선택한 정책의 price/paymentId로 결제한다.
   // 스펙상 위치는 lesson 하위. payment 루트는 구버전 응답 폴백이다.
-  const pricePolicies: PricePolicyResponse[] = useMemo(() => {
+  // 판매 중단(Cancelled)된 방식은 제외 — 이미 산 수강권은 유지되지만 새로 팔지는 않는다.
+  // 정렬은 서버가 lessonCount 오름차순으로 보장하므로 그대로 쓴다.
+  const pricePolicies: LessonPricePolicyResponse[] = useMemo(() => {
     const fromApi = payment.lesson?.pricePolicies ?? payment.pricePolicies ?? [];
-    if (fromApi.length > 0) return fromApi;
-    // TODO: 배포 전 반드시 제거 — 아래 목업 폴백 때문에 모든 lesson 결제에 가짜 가격이 노출된다.
-    //       (제거 후에는 정책이 없으면 기존처럼 lesson.price 단건 결제로 돌아간다)
-    return type === 'lesson' ? MOCK_PRICE_POLICIES : [];
-  }, [payment.lesson?.pricePolicies, payment.pricePolicies, type]);
+    return fromApi.filter(p => p.status !== 'Cancelled');
+  }, [payment.lesson?.pricePolicies, payment.pricePolicies]);
   const hasPolicies = pricePolicies.length > 0;
-  // 기본 선택 — recommended 우선, 없으면 첫 번째.
+  // 기본 선택 — isRecommended 우선, 없으면 회차 수가 가장 적은 첫 번째.
   const defaultPolicyId = hasPolicies
-    ? (pricePolicies.find(p => p.recommended) ?? pricePolicies[0]).id
+    ? (pricePolicies.find(p => p.isRecommended) ?? pricePolicies[0]).id
     : undefined;
   const [selectedPolicyId, setSelectedPolicyId] = useState<number | undefined>(defaultPolicyId);
   const selectedPolicy = hasPolicies

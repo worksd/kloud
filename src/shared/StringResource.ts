@@ -3279,6 +3279,13 @@ export const StringResource = {
     jp: '割引額',
     zh: '优惠金额'
   },
+  /** 가격 정책의 postponeLimit — {count} 자리에 미룰 수 있는 횟수를 치환한다. */
+  postpone_limit_notice: {
+    ko: '미루기 {count}회 가능',
+    en: 'Postpone up to {count}×',
+    jp: '{count}回まで延期可',
+    zh: '可延期{count}次'
+  },
   /** {days} 자리에 유효기간 일수를 치환해서 사용한다. */
   valid_for_days: {
     ko: '구매일로부터 {days}일',

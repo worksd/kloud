@@ -1,16 +1,17 @@
 'use client'
 
-import { PricePolicyResponse } from "@/app/endpoint/payment.endpoint";
+import { LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
 /**
- * 수강 횟수 가격정책 선택 섹션 — 한 수업을 1회/4회/8회 등 여러 횟수 옵션으로 구매할 수 있을 때 노출.
- * 선택한 정책의 id가 결제 요청의 policyId로 전송되고, 해당 옵션의 price가 상품 가격이 된다.
+ * 수업 가격 정책 선택 섹션 — 한 수업을 '월 4회'/'월 8회' 등 여러 방식으로 살 수 있을 때 노출.
+ * 선택한 정책의 paymentId로 결제하고, 해당 옵션의 price가 상품 가격이 된다.
  *
  * 이 UI의 목적은 "많이 살수록 싸다"를 한눈에 보여주는 것이라
  * 총액보다 회당 가격을 비교 축으로 잡고 할인율·절약액을 함께 노출한다.
- * 회당가격·할인율은 전부 price/count/originalPrice에서 파생 — 서버가 따로 내려주지 않는다.
+ * 회당가격·할인율은 전부 price/lessonCount/originalPrice에서 파생 — 서버가 따로 내려주지 않는다.
+ * 정렬은 서버가 lessonCount 오름차순으로 보장하므로 여기서 재정렬하지 않는다.
  */
 export const PricePolicySection = ({
   locale,
@@ -19,18 +20,19 @@ export const PricePolicySection = ({
   onSelectPolicy,
 }: {
   locale: Locale,
-  policies: PricePolicyResponse[],
+  policies: LessonPricePolicyResponse[],
   selectedPolicyId?: number,
-  onSelectPolicy: (policy: PricePolicyResponse) => void,
+  onSelectPolicy: (policy: LessonPricePolicyResponse) => void,
 }) => {
   const fmt = (n: number) => new Intl.NumberFormat("ko-KR").format(n);
   const won = getLocaleString({ locale, key: 'won' });
   const timesUnit = getLocaleString({ locale, key: 'times_unit' });
 
-  const labelOf = (p: PricePolicyResponse) => p.label ?? `${p.count}${timesUnit}`;
-  const perSession = (p: PricePolicyResponse) => Math.round(p.price / Math.max(p.count, 1));
+  // name은 필수값이지만, 비어서 오면 회차 수로 폴백해 빈 라벨이 찍히지 않게 한다.
+  const labelOf = (p: LessonPricePolicyResponse) => p.name || `${p.lessonCount}${timesUnit}`;
+  const perSession = (p: LessonPricePolicyResponse) => Math.round(p.price / Math.max(p.lessonCount, 1));
   // 할인율은 버림 — 실제보다 크게 보이면 안 된다.
-  const discountRate = (p: PricePolicyResponse) =>
+  const discountRate = (p: LessonPricePolicyResponse) =>
     p.originalPrice && p.originalPrice > p.price
       ? Math.floor((1 - p.price / p.originalPrice) * 100)
       : 0;
@@ -106,7 +108,7 @@ export const PricePolicySection = ({
                     {fmt(policy.price)}{won}
                   </span>
                   {/* 옵션마다 총액 규모가 달라서, 회당 가격이 있어야 실제 이득이 읽힌다 */}
-                  {policy.count > 1 && (
+                  {policy.lessonCount > 1 && (
                     <span className={`text-[11px] font-medium ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
                       {getLocaleString({ locale, key: 'price_per_session' })} {fmt(perSession(policy))}{won}
                     </span>
@@ -114,17 +116,17 @@ export const PricePolicySection = ({
                 </span>
               </div>
 
-              {/* 절약액·유효기간은 선택된 옵션에서만 펼친다 — 접힌 카드가 조용해야 비교가 쉽다 */}
-              {isSelected && (saved > 0 || policy.expiryDays) && (
+              {/* 절약액·미루기 한도는 선택된 옵션에서만 펼친다 — 접힌 카드가 조용해야 비교가 쉽다 */}
+              {isSelected && (saved > 0 || policy.postponeLimit != null) && (
                 <div className="mt-3 pt-3 border-t border-white/15 flex items-center justify-between gap-2">
                   {saved > 0 ? (
                     <span className="text-[12px] font-bold text-white">
                       {getLocaleString({ locale, key: 'you_save' })} {fmt(saved)}{won}
                     </span>
                   ) : <span/>}
-                  {policy.expiryDays && (
+                  {policy.postponeLimit != null && (
                     <span className="text-[11px] font-medium text-white/60">
-                      {getLocaleString({ locale, key: 'valid_for_days' }).replace('{days}', String(policy.expiryDays))}
+                      {getLocaleString({ locale, key: 'postpone_limit_notice' }).replace('{count}', String(policy.postponeLimit))}
                     </span>
                   )}
                 </div>

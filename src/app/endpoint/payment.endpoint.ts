@@ -50,34 +50,46 @@ export type CouponResponse = {
   type: string;
 }
 
+/** 가격 정책 판매 상태. Cancelled(판매 중단)는 결제 화면에 노출하지 않는다 — 이미 산 수강권은 유지된다. */
+export type LessonPricePolicyStatus = 'Active' | 'Cancelled';
+
 /**
- * 수강 횟수별 가격정책 — 한 수업을 1회/4회/8회 묶음으로 팔 때 횟수가 늘수록 할인해주는 구조.
- * (예: 1회 35,000 / 4회 120,000 / 8회 200,000)
+ * 수업 가격 정책 — 한 수업을 "회차 수 × 가격" 조합으로 파는 방식 하나.
+ * (예: '월 4회' 100,000 / '월 8회' 190,000)
  *
- * 회당 가격과 할인율은 BE가 아니라 UI에서 price/count, price/originalPrice로 계산한다.
+ * 응답은 항상 lessonCount 오름차순으로 정렬되어 온다 — 별도의 노출 순서 값은 없으므로 클라에서 재정렬하지 않는다.
+ * 회당 가격과 할인율은 BE가 아니라 UI에서 price/lessonCount, price/originalPrice로 계산한다.
  * 서버가 내려준 값과 표시값이 어긋나는 사고를 막으려고 파생값은 필드로 받지 않는다.
  */
-export type PricePolicyResponse = {
+export type LessonPricePolicyResponse = {
   id: number;
-  /** 수강 횟수 (예: 1, 4, 8) */
-  count: number;
+  /**
+   * 이 정책으로 결제할 때 쓰는 결제 id ('LGT…'). 결제 승인·환불·정산이 전부 이 id로 갈린다.
+   * 학생이 정책을 고르면 최상위 paymentId 대신 이 값으로 결제한다.
+   */
+  paymentId: string;
+  /** 수강생에게 보이는 방식 이름 (예: '월 4회') */
+  name: string;
+  /** 한 번에 판매하는 회차 수 (예: 1, 4, 8) */
+  lessonCount: number;
   /** 실제 결제 금액. 이 옵션을 고르면 결제 상품가가 이 값이 된다. */
   price: number;
   /**
-   * 할인 전 정가 (보통 1회권 단가 × count).
-   * 있으면 취소선 + 할인율 배지를 노출하고, 없으면 할인 없는 단순 옵션으로 렌더.
+   * 할인 전 정가. 판매가(price)보다 클 때만 취소선 + 할인율 배지를 노출한다.
    */
   originalPrice?: number;
-  /** 표시용 라벨 (옵션). 없으면 count 기반으로 '{count}회' 폴백. */
-  label?: string;
-  /** 옵션 아래 보조 설명 (예: '주 1회 8주 과정'). */
+  /** 방식 설명 (예: '주 2회 4주 과정'). */
   description?: string;
-  /** 강조 배지 문구 (예: '가장 인기', '최대 할인'). 없으면 미노출. */
+  /** 강조 배지 문구 (예: '최대 할인'). 없으면 미노출. */
   badge?: string;
-  /** 기본 선택 + 시각적 강조 대상. 없으면 첫 번째 옵션이 기본 선택된다. */
-  recommended?: boolean;
-  /** 구매일로부터 사용 가능 기간(일). 회차권 소진 기한 안내용. */
-  expiryDays?: number;
+  /** 기본 선택 대상. 한 수업에서 하나만 true. 없으면 회차 수 오름차순 첫 번째가 기본 선택된다. */
+  isRecommended?: boolean;
+  /** true면 1회 결제도 고를 수 있다. 기본 false(정기결제로만 판매). */
+  canOneTimePayment?: boolean;
+  /** 결제 1건 기준으로 회차를 미룰 수 있는 횟수. 없으면 학원 기본값을 따른다. */
+  postponeLimit?: number;
+  /** 판매 상태. Cancelled면 결제 화면에서 제외. */
+  status?: LessonPricePolicyStatus;
 }
 
 export type GetPaymentResponse = {
@@ -95,11 +107,11 @@ export type GetPaymentResponse = {
   redirectUrl?: string;
   price?: number;
   /**
-   * 수강 횟수별 가격정책 — 한 수업을 1회/4회/8회 등 여러 횟수 옵션으로 구매 가능할 때 내려옴.
-   * 존재하면 결제 화면에서 옵션 선택 UI를 노출하고, 선택한 정책의 id를 policyId로 결제 요청에 전송한다.
+   * 수업 가격 정책 — 정기로 파는 수업일 때 내려온다. 스펙상 위치는 lesson 하위이고 여기는 구버전 응답 폴백.
+   * 존재하면 결제 화면에서 방식 선택 UI를 노출하고, 선택한 정책의 paymentId로 결제한다.
    * 선택된 옵션의 price가 결제 금액(상품가)이 된다.
    */
-  pricePolicies?: PricePolicyResponse[];
+  pricePolicies?: LessonPricePolicyResponse[];
   methods: GetPaymentMethodResponse[];
   cards?: GetBillingResponse[];
   lesson?: GetLessonResponse;
