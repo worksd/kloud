@@ -3670,6 +3670,8 @@ export const StringResource = {
   kiosk_lesson_status_completed:    { ko: '수업 종료', en: 'Ended',        jp: 'レッスン終了',     zh: '已结束' },
   kiosk_lesson_status_sale_closed:  { ko: '결제 마감', en: 'Sales closed', jp: '販売終了',         zh: '销售结束' },
   kiosk_lesson_unavailable:         { ko: '구매불가', en: 'Unavailable',  jp: '購入不可',         zh: '不可购买' },
+  /** 가격 정책으로만 파는 수업 — 낱개 가격이 없어 상세에선 금액 대신 이 문구를 노출. 실제 금액은 결제 화면에서 방식 선택 후 확정 */
+  kiosk_price_by_policy:            { ko: '수강 횟수별 가격', en: 'Priced by sessions', jp: '受講回数別の料金', zh: '按次数计价' },
 
   // Kiosk — 분 단위 접미사 (예: 90분 / 90 min / 90分 / 90分钟)
   kiosk_minutes_suffix: { ko: '분', en: ' min', jp: '分', zh: '分钟' },

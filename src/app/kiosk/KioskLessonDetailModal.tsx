@@ -140,10 +140,11 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
           style={{ padding: 'min(2vw, 22px) min(5.6vw, 60px)' }}
         >
           <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}></span>
-          {/* admin(상담실)은 '구매불가' 표기 없이 항상 금액 노출 (price 없으면 0원) */}
+          {/* 낱개 가격이 없으면 가격 정책 수업 — 금액은 결제 화면에서 방식 선택으로 확정되므로 안내 문구만.
+              admin(상담실)은 기존대로 금액(없으면 0원) 노출. */}
           {lesson.price == null && !admin ? (
-            <span className="text-[#86898C] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-              {t('kiosk_lesson_unavailable')}
+            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+              {t('kiosk_price_by_policy')}
             </span>
           ) : (
             <span className="flex items-baseline" style={{ gap: 'min(0.6vw, 6px)' }}>

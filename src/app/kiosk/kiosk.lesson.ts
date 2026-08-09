@@ -34,9 +34,12 @@ const NON_PAYABLE_STATUSES: ReadonlySet<string> = new Set([
   LessonStatus.Pending,      // 공개 예정
 ]);
 
-/** 수업이 결제 가능한 상태인지. price가 없거나 status가 비결제 상태면 false. */
+/**
+ * 수업이 결제 가능한 상태인지 — status로만 판정한다.
+ * 낱개 가격(price)이 없어도 가격 정책으로만 파는 수업일 수 있으므로 막지 않는다
+ * (2026-08-08: 낱개 가격 없음 = 구매 불가 분기 제거. 정말 판매 불가면 BE가 status로 거른다).
+ */
 export const isLessonPayable = (lesson: Pick<GetLessonResponse, 'status' | 'price'>): boolean => {
-  if (lesson.price == null) return false;
   return !lesson.status || !NON_PAYABLE_STATUSES.has(lesson.status);
 };
 
@@ -47,9 +50,8 @@ export const lessonStatusLabel = (status: string | undefined, locale: Locale): s
   return key ? getLocaleString({ locale, key }) : '';
 };
 
-/** 결제 불가 사유 라벨 — price 없으면 '구매불가' 우선, 그 외엔 status 라벨. 결제 가능한 수업이면 빈 문자열. */
+/** 결제 불가 사유 라벨 — status 기준. 결제 가능한 수업이면 빈 문자열. (price 없음은 더 이상 사유가 아님) */
 export const lessonBlockLabel = (lesson: Pick<GetLessonResponse, 'status' | 'price'>, locale: Locale): string => {
-  if (lesson.price == null) return getLocaleString({ locale, key: 'kiosk_lesson_unavailable' });
   if (lesson.status && NON_PAYABLE_STATUSES.has(lesson.status)) return lessonStatusLabel(lesson.status, locale);
   return '';
 };

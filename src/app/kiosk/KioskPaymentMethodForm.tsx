@@ -4,7 +4,7 @@ import React from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
-import { DiscountResponse } from "@/app/endpoint/payment.endpoint";
+import { DiscountResponse, LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type KioskPaymentMethodFormProps = {
@@ -36,6 +36,10 @@ type KioskPaymentMethodFormProps = {
   cardEnabled?: boolean;
   cashEnabled?: boolean;
   passEnabled?: boolean;
+  /** 가격 정책 수업(정기) — 방식(회차 수 × 가격) 목록. 있으면 선택 UI를 노출하고 price는 선택 정책의 금액으로 내려온다. */
+  pricePolicies?: LessonPricePolicyResponse[];
+  selectedPolicyId?: number;
+  onSelectPolicy?: (policyId: number) => void;
 };
 
 export const KioskPaymentMethodForm = ({
@@ -60,6 +64,9 @@ export const KioskPaymentMethodForm = ({
   cardEnabled = true,
   cashEnabled = true,
   passEnabled = true,
+  pricePolicies = [],
+  selectedPolicyId,
+  onSelectPolicy,
 }: KioskPaymentMethodFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
@@ -115,6 +122,44 @@ export const KioskPaymentMethodForm = ({
           </div>
         </div>
       </div>
+
+      {/* 수강 횟수(가격 정책) 선택 — 정기 판매 수업만. 고른 방식의 paymentId·금액으로 결제된다 */}
+      {pricePolicies.length > 0 && (
+        <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
+          <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+            {t('select_lesson_count')}
+          </p>
+          <div className="flex" style={{ gap: 'min(1.4vw, 16px)' }}>
+            {pricePolicies.map((policy) => {
+              const isSelected = policy.id === selectedPolicyId;
+              const label = policy.name || `${policy.lessonCount}${t('times_unit')}`;
+              return (
+                <button
+                  key={policy.id}
+                  type="button"
+                  onClick={() => onSelectPolicy?.(policy.id)}
+                  aria-pressed={isSelected}
+                  className={`flex-1 min-w-0 rounded-[20px] flex flex-col items-center justify-center transition-all active:scale-[0.97] border-2
+                    ${isSelected ? 'border-[#1E2124] bg-[#1E2124]' : 'border-[#E6E8EA] bg-white'}`}
+                  style={{ padding: 'min(2vw,22px) min(1.4vw,16px)' }}
+                >
+                  <span className={`font-bold truncate max-w-full ${isSelected ? 'text-white' : 'text-black'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
+                    {label}
+                  </span>
+                  <span className={`font-bold mt-[min(0.6vw,6px)] ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                    {fmt(policy.price)}{t('won')}
+                  </span>
+                  {policy.lessonCount > 1 && (
+                    <span className={`mt-[2px] ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`} style={{ fontSize: 'min(1.5vw, 17px)' }}>
+                      {t('price_per_session')} {fmt(Math.round(policy.price / Math.max(policy.lessonCount, 1)))}{t('won')}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 결제 정보 섹션 — 회원 + 결제 금액 한 묶음 */}
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
