@@ -20,6 +20,7 @@ import {studioKey} from "@/shared/cookies.key";
 import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
 import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
+import {TrackView} from "@/app/components/TrackView";
 
 export default async function Home({
                                      searchParams
@@ -40,6 +41,7 @@ export default async function Home({
 
     const content = (
         <div>
+          <TrackView event="enter_home" props={{studioId: res.myStudio?.studio?.id ?? null}}/>
           <FcmTokenRequester/>
           {!hasStudioCookie && res.myStudio?.studio?.id && (
             <StudioCookieSetter studioId={res.myStudio.studio.id} />

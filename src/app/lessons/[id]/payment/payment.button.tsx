@@ -15,6 +15,7 @@ import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { trackEvent } from "@/app/lib/analytics";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { getLocaleString } from "@/app/components/locale";
@@ -523,7 +524,19 @@ export default function PaymentButton({
 
   return (
     <div>
-      <CommonSubmitButton originProps={{onClick: () => handlePayment()}} disabled={disabled || isSubmitting}>
+      <CommonSubmitButton
+        originProps={{onClick: () => {
+          // 결제 시도 시점 — 성공/실패 이전이라 '결제 버튼을 눌렀다' 자체를 센다.
+          trackEvent('click_payment_button', {
+            item: type.apiValue,
+            itemId: id,
+            method: method ?? null,
+            price: price ?? 0,
+          });
+          handlePayment();
+        }}}
+        disabled={disabled || isSubmitting}
+      >
         <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-center text-white">
           {price == null
             ? method === 'pass'

@@ -39,6 +39,7 @@ import {initKisDebug, recordKisResponse, setKisDebugContext} from "@/app/kiosk/k
 import {KisDebugOverlay} from "@/app/kiosk/KisDebugOverlay";
 import {KioskRoomReservationForm, KioskRoomBooking} from "@/app/kiosk/KioskRoomReservationForm";
 import {Toast} from "@/app/components/Toast";
+import {trackEvent} from "@/app/lib/analytics";
 
 type SearchedUser = {
   id: number;
@@ -1147,6 +1148,16 @@ export const KioskForm = ({
       : currentScreen === 'phone' || currentScreen === 'searching' || currentScreen === 'member-confirm' ? 'member'
         : currentScreen === 'payment-method' || currentScreen === 'pass-select' ? 'payment'
           : currentScreen;
+
+  // 키오스크 수업 화면 진입 — 리스트↔상세 왕복(같은 'lessons' 그룹)은 재진입으로 세지 않고,
+  // 다른 그룹에서 lessons 그룹으로 넘어올 때만 1회 전송한다.
+  const prevScreenGroupRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (screenGroup === 'lessons' && prevScreenGroupRef.current !== 'lessons') {
+      trackEvent('enter_kiosk_lesson', { kioskId, studioId, variant });
+    }
+    prevScreenGroupRef.current = screenGroup;
+  }, [screenGroup, kioskId, studioId, variant]);
 
   // 학원의 자동 사용처리(studio.ticketAutoUse) 설정으로 결제 즉시 출석까지 끝난 건.
   // 현금 결제는 BE 생성 응답에 ticket이 없어 아직 판별 불가 — 기존 안내로 폴백된다.

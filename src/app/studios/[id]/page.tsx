@@ -5,6 +5,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { AppInstallDialog } from "@/app/components/AppInstallDialog";
 import { getLocale } from "@/utils/translate";
 import { notFound } from "next/navigation";
+import { TrackView } from "@/app/components/TrackView";
 
 export type Props = {
   params: Promise<{ id: string }>;
@@ -28,6 +29,7 @@ export default async function StudioDetail({params, searchParams}: Props) {
 
   return (
     <div className={'flex flex-col'}>
+      <TrackView event="enter_studio" props={{studioId: id}}/>
       {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
       {appVersion == '' && <AppInstallDialog locale={await getLocale()} profileImageUrl={profileImageUrl}/>}
       <StudioDetailForm id={id} appVersion={appVersion}/>

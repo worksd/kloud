@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { ReactNode } from "react";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
+import { Analytics } from "@vercel/analytics/react";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -35,6 +36,8 @@ export default function RootLayout({
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
     {children}
+    {/* Vercel Web Analytics — 이게 없으면 track() 커스텀 이벤트도 전송되지 않는다 */}
+    <Analytics />
     </body>
     </html>
   );

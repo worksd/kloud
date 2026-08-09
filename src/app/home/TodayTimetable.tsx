@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { kloudNav } from '@/app/lib/kloudNav';
+import { trackEvent } from '@/app/lib/analytics';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { LessonTags } from '@/app/components/LessonTags';
 
@@ -96,6 +97,8 @@ export function TodayTimetable({
   };
 
   const onClick = (lesson: TimetableLesson) => {
+    // 오늘 밴드 클릭 — 화면 전환에 잘리지 않게 네비게이션보다 먼저 쏜다.
+    trackEvent('click_band_today', { lessonId: lesson.id, bandTitle: title ?? null });
     kloudNav.push(KloudScreen.LessonDetail(lesson.id));
   };
 

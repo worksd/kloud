@@ -16,6 +16,7 @@ import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
+import { TrackView } from "@/app/components/TrackView";
 
 type PaymentPageType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
 
@@ -157,6 +158,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
+      <TrackView event="enter_payment" props={{item: paymentItem, itemId}}/>
       <div className="flex flex-col">
         {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
         {appVersion === '' && 'user' in res && res.user && (

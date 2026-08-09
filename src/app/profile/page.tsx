@@ -1,4 +1,5 @@
 import { api } from "@/app/api.client";
+import { TrackView } from "@/app/components/TrackView";
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
 import { handleApiError } from "@/utils/handle.api.error";
@@ -33,6 +34,7 @@ export default async function SettingPage({
 
     return (
       <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
+        <TrackView event="enter_profile"/>
         {/* 고정 헤더: 아이콘 + 프로필 */}
         <div className="flex-shrink-0 bg-white">
           <div className="flex justify-end items-center gap-3 px-5 py-3">

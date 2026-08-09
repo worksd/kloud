@@ -4,6 +4,7 @@ import React from "react";
 import { RecommendPoster } from "@/app/components/RecommendPoster";
 import ComingLabel from "../../public/assets/ic_label_comming.svg";
 import NewLabel from "../../public/assets/new.svg";
+import { resolveBandEvent } from "@/app/lib/analytics";
 
 export async function LessonBand({title, lessons, type, label}: {
   title: string,
@@ -13,6 +14,9 @@ export async function LessonBand({title, lessons, type, label}: {
 }) {
 
   if (lessons.length == 0) return;
+
+  // 밴드 종류에 따라 클릭 이벤트 이름이 갈린다. 어떤 수업을 몇 번째에서 눌렀는지는 custom data로.
+  const bandEvent = resolveBandEvent({ type, label, title });
 
   return (
     <div className="flex flex-col mb-2">
@@ -49,6 +53,7 @@ export async function LessonBand({title, lessons, type, label}: {
                 label={item.label}
                 type={item.type}
                 tags={item.label?.tags ?? undefined}
+                track={{ event: bandEvent, props: { lessonId: item.id, bandTitle: title, position: index } }}
               />
             }
             {
@@ -62,6 +67,7 @@ export async function LessonBand({title, lessons, type, label}: {
                 startDate={item.startDate}
                 title={item.title ?? ''}
                 type={item.type}
+                track={{ event: bandEvent, props: { lessonId: item.id, bandTitle: title, position: index } }}
               />
             }
           </div>

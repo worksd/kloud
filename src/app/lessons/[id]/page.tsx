@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { AppInstallDialog } from "@/app/components/AppInstallDialog";
 import { getLocale } from "@/utils/translate";
 import { LessonViewTracker } from "@/app/lessons/[id]/LessonViewTracker";
+import { TrackView } from "@/app/components/TrackView";
 
 type Props = {
   params: Promise<{ id: string }>
@@ -36,6 +37,7 @@ export default async function LessonDetailPage({params, searchParams}: {
 
   return (
     <div>
+      <TrackView event="enter_lesson" props={{lessonId, studioId: res.studio?.id ?? null}}/>
       {/* 조회수 트래킹 — 진입 시 1회 POST /tracking-events (5분 디바운스). 앱/웹 공통. */}
       <LessonViewTracker lessonId={lessonId}/>
       {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
