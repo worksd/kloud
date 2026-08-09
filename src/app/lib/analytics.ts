@@ -1,4 +1,8 @@
-'use client';
+// 'use client' 없음 — 의도된 공유 모듈이다.
+// resolveBandEvent와 이벤트 타입은 서버 컴포넌트(LessonBand 등)에서도 쓰는데,
+// 'use client'를 붙이면 서버에서 import한 export가 전부 클라이언트 참조가 되어
+// 호출하는 순간 SSR이 죽는다 ("Attempted to call ... from the server").
+// trackEvent는 클라이언트에서만 동작하고, 서버에서 호출되면 조용히 no-op 한다.
 
 import { track } from '@vercel/analytics';
 
@@ -80,6 +84,8 @@ const sanitize = (props?: AnalyticsProps): AnalyticsProps | undefined => {
  * track()이 어떤 이유로든 던져도 삼킨다.
  */
 export const trackEvent = (event: AnalyticsEvent, props?: AnalyticsProps) => {
+  // 서버(SSR/RSC)에서 실수로 호출돼도 크래시 없이 무시 — @vercel/analytics의 track은 브라우저 전용이다.
+  if (typeof window === 'undefined') return;
   try {
     track(event, sanitize(props));
   } catch {
