@@ -18,7 +18,7 @@ import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentError
 import { DeferredImage } from "@/app/components/DeferredImage";
 import { TrackView } from "@/app/components/TrackView";
 
-type PaymentPageType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -104,8 +104,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   // 대리 결제 여부 확인 (비회원은 user 없음 → false)
   const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
 
-  // 가격 정책(정기) 결제도 응답은 수업 결제와 같은 모양(res.lesson + lesson.pricePolicies)이라 수업과 동일하게 렌더한다.
-  const isLessonLike = paymentItem === 'lesson' || paymentItem === 'lesson-group';
+  // 가격 정책 수업도 진입은 일반 lesson 결제와 동일 — 방식 선택은 결제 화면(UnifiedPaymentInfo)에서 한다.
+  // (2026-08-08: pricePolicyId를 미리 골라 보내던 lesson-group 진입 경로는 제거됨)
+  const isLessonLike = paymentItem === 'lesson';
 
   // 타입별로 데이터가 없는 경우 체크
   if (isLessonLike && !res.lesson) {
@@ -121,7 +122,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const getItemInfo = () => {
     switch (paymentItem) {
       case 'lesson':
-      case 'lesson-group':
         return {
           thumbnailUrl: res.lesson?.thumbnailUrl,
           title: res.lesson?.title,

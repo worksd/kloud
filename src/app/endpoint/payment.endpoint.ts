@@ -58,8 +58,8 @@ export type LessonPricePolicyStatus = 'Active' | 'Cancelled';
  * (예: '월 4회' 100,000 / '월 8회' 190,000)
  *
  * 응답은 항상 lessonCount 오름차순으로 정렬되어 온다 — 별도의 노출 순서 값은 없으므로 클라에서 재정렬하지 않는다.
- * 회당 가격과 할인율은 BE가 아니라 UI에서 price/lessonCount, price/originalPrice로 계산한다.
- * 서버가 내려준 값과 표시값이 어긋나는 사고를 막으려고 파생값은 필드로 받지 않는다.
+ * 회당 가격은 BE가 아니라 UI에서 price/lessonCount로 계산한다.
+ * (2026-08-08 후속 변경으로 originalPrice·badge는 계약에서 삭제됐다 — 할인 표시 없음)
  */
 export type LessonPricePolicyResponse = {
   id: number;
@@ -68,20 +68,14 @@ export type LessonPricePolicyResponse = {
    * 학생이 정책을 고르면 최상위 paymentId 대신 이 값으로 결제한다.
    */
   paymentId: string;
-  /** 수강생에게 보이는 방식 이름 (예: '월 4회') */
-  name: string;
+  /** 수강생에게 보이는 방식 이름 (예: '월 4회'). 서버가 없으면 '{회차 수}회'로 채워 내려주지만 optional로 방어한다. */
+  name?: string;
   /** 한 번에 판매하는 회차 수 (예: 1, 4, 8) */
   lessonCount: number;
   /** 실제 결제 금액. 이 옵션을 고르면 결제 상품가가 이 값이 된다. */
   price: number;
-  /**
-   * 할인 전 정가. 판매가(price)보다 클 때만 취소선 + 할인율 배지를 노출한다.
-   */
-  originalPrice?: number;
   /** 방식 설명 (예: '주 2회 4주 과정'). */
   description?: string;
-  /** 강조 배지 문구 (예: '최대 할인'). 없으면 미노출. */
-  badge?: string;
   /** 기본 선택 대상. 한 수업에서 하나만 true. 없으면 회차 수 오름차순 첫 번째가 기본 선택된다. */
   isRecommended?: boolean;
   /** true면 1회 결제도 고를 수 있다. 기본 false(정기결제로만 판매). */
