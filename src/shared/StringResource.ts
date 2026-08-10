@@ -2818,6 +2818,8 @@ export const StringResource = {
   week_4: { ko: '넷째주', en: 'Week 4', jp: '第4週', zh: '第4周' },
   week_5: { ko: '다섯째주', en: 'Week 5', jp: '第5週', zh: '第5周' },
   week_6: { ko: '여섯째주', en: 'Week 6', jp: '第6週', zh: '第6周' },
+  /** 정기 수업 반복 요일 표시 — {days} 자리에 'weekday_*' 라벨을 ', '로 이어 치환 (예: '매주 목, 금') */
+  weekly_days: { ko: '매주 {days}', en: 'Every {days}', jp: '毎週{days}', zh: '每周{days}' },
   weekday_sun: { ko: '일', en: 'Sun', jp: '日', zh: '日' },
   weekday_mon: { ko: '월', en: 'Mon', jp: '月', zh: '一' },
   weekday_tue: { ko: '화', en: 'Tue', jp: '火', zh: '二' },

@@ -33,7 +33,8 @@ export type GetLessonResponse = {
     buttonRoute: string;
     buttons: GetLessonButtonResponse[];
     paymentType?: 'Subscription' | 'Default'
-    days?: string;
+    /** 매주 열리는 요일 (0=일 ~ 6=토). 가격 정책(정기) 수업이면 결제 조회 응답에도 포함 — '매주 목·금' 표시용. */
+    days?: number[];
     description?: string;
     genre?: string;
     tags?: string;

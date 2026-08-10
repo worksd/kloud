@@ -156,6 +156,17 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
   const timeText = await translate('time');
 
+  // 정기(가격 정책) 수업 — BE가 lesson.days(0=일~6=토)를 내려주면 날짜 자리에 '매주 목, 금'을 보여준다.
+  // 이때 단일 날짜(startDate)는 첫 수업 시작일일 뿐이라 시간 줄로 내려 '시작일 + 시각'으로 노출.
+  const WEEKDAY_KEYS = ['weekday_sun', 'weekday_mon', 'weekday_tue', 'weekday_wed', 'weekday_thu', 'weekday_fri', 'weekday_sat'] as const;
+  const recurrenceDays = (res.lesson?.days ?? []).filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6);
+  const weeklyLabel = paymentItem === 'lesson' && recurrenceDays.length > 0
+    ? (await translate('weekly_days')).replace(
+        '{days}',
+        (await Promise.all([...recurrenceDays].sort((x, y) => x - y).map((d) => translate(WEEKDAY_KEYS[d])))).join(', ')
+      )
+    : null;
+
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
       <TrackView event="enter_payment" props={{item: paymentItem, itemId}}/>
@@ -203,9 +214,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         <path d="M9.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
                       </svg>
                       <span className="text-[13px] font-medium text-[#666]">
-                        {res.lesson?.formattedDate
-                          ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
-                          : res.lesson?.date}
+                        {weeklyLabel
+                          ?? (res.lesson?.formattedDate
+                            ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
+                            : res.lesson?.date)}
                       </span>
                     </div>
                     {(res.lesson?.formattedDate?.startTime || res.lesson?.duration) && (
@@ -216,7 +228,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         </svg>
                         <span className="text-[13px] font-medium text-[#666]">
                           {res.lesson?.formattedDate
-                            ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
+                            ? `${weeklyLabel && res.lesson.formattedDate.date
+                                ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''} `
+                                : ''}${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
                             : `${res.lesson?.duration}${await translate('minutes')}`}
                         </span>
                       </div>
