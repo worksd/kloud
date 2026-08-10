@@ -155,15 +155,17 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
   const timeText = await translate('time');
+  const locale = await getLocale();
 
-  // 정기(가격 정책) 수업 — BE가 lesson.days(0=일~6=토)를 내려주면 날짜 자리에 '매주 목, 금'을 보여준다.
+  // 정기(가격 정책) 수업 — BE가 lesson.days(0=일~6=토)를 내려주면 날짜 자리에 '매주 목요일, 금요일'을 보여준다.
   // 이때 단일 날짜(startDate)는 첫 수업 시작일일 뿐이라 시간 줄로 내려 '시작일 + 시각'으로 노출.
-  const WEEKDAY_KEYS = ['weekday_sun', 'weekday_mon', 'weekday_tue', 'weekday_wed', 'weekday_thu', 'weekday_fri', 'weekday_sat'] as const;
+  const WEEKDAY_KEYS = ['weekday_full_sun', 'weekday_full_mon', 'weekday_full_tue', 'weekday_full_wed', 'weekday_full_thu', 'weekday_full_fri', 'weekday_full_sat'] as const;
+  const weekdayJoiner = locale === 'jp' ? '・' : locale === 'zh' ? '、' : ', ';
   const recurrenceDays = (res.lesson?.days ?? []).filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6);
   const weeklyLabel = paymentItem === 'lesson' && recurrenceDays.length > 0
     ? (await translate('weekly_days')).replace(
         '{days}',
-        (await Promise.all([...recurrenceDays].sort((x, y) => x - y).map((d) => translate(WEEKDAY_KEYS[d])))).join(', ')
+        (await Promise.all([...recurrenceDays].sort((x, y) => x - y).map((d) => translate(WEEKDAY_KEYS[d])))).join(weekdayJoiner)
       )
     : null;
 
@@ -220,7 +222,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                             : res.lesson?.date)}
                       </span>
                     </div>
-                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration) && (
+                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration || (weeklyLabel && res.lesson?.date)) && (
                       <div className="flex items-center gap-1.5">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                           <circle cx="7" cy="7" r="5.5" stroke="#999" strokeWidth="1.1"/>
@@ -231,7 +233,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                             ? `${weeklyLabel && res.lesson.formattedDate.date
                                 ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''} `
                                 : ''}${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
-                            : `${res.lesson?.duration}${await translate('minutes')}`}
+                            : weeklyLabel && res.lesson?.date
+                              // 정기 수업 실응답엔 formattedDate가 없다 — BE 완성 포맷(date: '2026.08.10(월) 오후 7:30')이 시작일+시각
+                              ? res.lesson.date
+                              : `${res.lesson?.duration}${await translate('minutes')}`}
                         </span>
                       </div>
                     )}

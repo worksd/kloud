@@ -2818,8 +2818,19 @@ export const StringResource = {
   week_4: { ko: '넷째주', en: 'Week 4', jp: '第4週', zh: '第4周' },
   week_5: { ko: '다섯째주', en: 'Week 5', jp: '第5週', zh: '第5周' },
   week_6: { ko: '여섯째주', en: 'Week 6', jp: '第6週', zh: '第6周' },
-  /** 정기 수업 반복 요일 표시 — {days} 자리에 'weekday_*' 라벨을 ', '로 이어 치환 (예: '매주 목, 금') */
-  weekly_days: { ko: '매주 {days}', en: 'Every {days}', jp: '毎週{days}', zh: '每周{days}' },
+  /**
+   * 정기 수업 반복 요일 표시 — {days} 자리에 'weekday_full_*' 라벨을 로케일별 구분자로 이어 치환.
+   * (예: '매주 목요일, 금요일' / 'Every Thursday, Friday' / '毎週木曜日・金曜日' / '每周四、周五')
+   * zh는 라벨(周四)에 이미 '周'가 있어 템플릿이 '每{days}' — '每周{days}'로 바꾸면 '每周周四'가 된다.
+   */
+  weekly_days: { ko: '매주 {days}', en: 'Every {days}', jp: '毎週{days}', zh: '每{days}' },
+  weekday_full_sun: { ko: '일요일', en: 'Sunday', jp: '日曜日', zh: '周日' },
+  weekday_full_mon: { ko: '월요일', en: 'Monday', jp: '月曜日', zh: '周一' },
+  weekday_full_tue: { ko: '화요일', en: 'Tuesday', jp: '火曜日', zh: '周二' },
+  weekday_full_wed: { ko: '수요일', en: 'Wednesday', jp: '水曜日', zh: '周三' },
+  weekday_full_thu: { ko: '목요일', en: 'Thursday', jp: '木曜日', zh: '周四' },
+  weekday_full_fri: { ko: '금요일', en: 'Friday', jp: '金曜日', zh: '周五' },
+  weekday_full_sat: { ko: '토요일', en: 'Saturday', jp: '土曜日', zh: '周六' },
   weekday_sun: { ko: '일', en: 'Sun', jp: '日', zh: '日' },
   weekday_mon: { ko: '월', en: 'Mon', jp: '月', zh: '一' },
   weekday_tue: { ko: '화', en: 'Tue', jp: '火', zh: '二' },
