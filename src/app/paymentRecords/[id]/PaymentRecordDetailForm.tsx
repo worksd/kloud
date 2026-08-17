@@ -34,6 +34,8 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
   const isMembership = paymentRecord.paymentId.startsWith('SM');
   const isBundle = paymentRecord.paymentId.startsWith('BD');
   const isPracticeRoom = paymentRecord.paymentId.startsWith('PR'); // 대관(연습실) 예약
+  // 아는 상품 종류(BD/PR/LP/LT)만 제목을 만든다. 그 외(LGT 정기, SM 멤버십 등)는 null —
+  // 예전 else 폴백('패스권 정보')이 LGT 결제에 잘못 붙어서, 매칭 안 되면 상품 정보 영역을 통째로 숨긴다.
   const informationTitle = isBundle
       ? await translate('promotion_information')
       : isPracticeRoom
@@ -42,7 +44,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
               ? await translate('pass_plan_information')
               : isLessonTicket
                   ? await translate('lesson_ticket_information')
-                  : await translate('pass_plan_information');
+                  : null;
 
   // 금액 라벨 결정
   const amountLabel = isBundle
@@ -73,10 +75,11 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
           </div>
         </div>
 
+        {/* 패스권/수강권/프로모션 정보 — 아는 상품 종류일 때만 (spacer 포함 통째 숨김) */}
+        {informationTitle != null && (<>
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
 
-        {/* 패스권/수강권/프로모션 정보 */}
         {isBundle ? (
           // 번들 — productRoute 클릭 라우팅 없이 구성 수강권 리스트만 렌더
           <div className="px-5 py-5">
@@ -159,6 +162,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
           </RippleEffect>
         </NavigateClickWrapper>
         )}
+        </>)}
 
         {/* Spacer */}
         <div className="h-3 bg-[#f9f9fb]"/>
