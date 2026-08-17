@@ -5,7 +5,9 @@
 //  - 좌측 사이드바(수업/패스권/연습실/행사)는 목록 페이지들이 아직 없어 제외
 //  - 검색 input은 /search가 빈 스텁이라 제외
 //  - fixed + 페이지별 padding 대신 sticky(문서 흐름 안)라 어떤 페이지도 겹침 없이 밀려 내려간다
-// 앱 웹뷰(KloudEvent 존재 or appVersion 쿼리)와 /kiosk 경로에선 아무것도 렌더하지 않는다.
+// 웹/앱 판단은 layout(서버, x-guinness-version 헤더)이 한다 — 여기서 mounted 게이트로 하면
+// SSR HTML에 없다가 hydration 후 나타나며 컨텐츠를 밀어내는 깜빡임이 생긴다(풀 리로드마다 재발).
+// /kiosk 경로 가드만 클라이언트에 남긴다(SPA로 키오스크에 진입하는 예외 대비).
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -30,10 +32,11 @@ const isLocale = (v: string | undefined): v is Locale =>
 
 type Profile = { nickName?: string; name?: string; profileImageUrl?: string };
 
-export const WebTopNav = () => {
-  const [mounted, setMounted] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-  const [isLogin, setIsLogin] = useState(false);
+export const WebTopNav = ({ initialLogin = false }: {
+  /** 서버(layout)가 쿠키로 판단한 로그인 여부 — SSR부터 올바른 버튼(로그인/프로필)을 그린다 */
+  initialLogin?: boolean;
+}) => {
+  const [isLogin, setIsLogin] = useState(initialLogin);
   const [locale, setLocale] = useState<Locale>('ko');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
@@ -41,23 +44,18 @@ export const WebTopNav = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // 앱 웹뷰 판별 — 네이티브 브릿지(KloudEvent)가 최우선 신호, appVersion 쿼리는 보조
-    const params = new URLSearchParams(window.location.search);
-    const inApp = !!window.KloudEvent || (params.get('appVersion') ?? '') !== '';
+    // 로그인/로케일 최신화 (SPA 전환 중 쿠키가 바뀐 경우 대비) + 프로필 조회
     const loggedIn = !!readCookie(accessTokenKey);
-    setIsApp(inApp);
     setIsLogin(loggedIn);
     const cookieLocale = readCookie(localeKey);
     if (isLocale(cookieLocale)) setLocale(cookieLocale);
-    setMounted(true);
-
-    if (!inApp && loggedIn) {
+    if (loggedIn) {
       getWebTopNavProfileAction().then(setProfile).catch(() => {});
     }
   }, []);
 
   // 키오스크는 자체 전체화면 UI — 상단바 대상 아님
-  if (!mounted || isApp || pathname?.startsWith('/kiosk')) return null;
+  if (pathname?.startsWith('/kiosk')) return null;
 
   const returnUrl = pathname ?? '/';
   const loginQuery = `?returnUrl=${encodeURIComponent(returnUrl)}`;

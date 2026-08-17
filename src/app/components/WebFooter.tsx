@@ -1,28 +1,13 @@
-'use client';
-
-// PC 웹(≥lg, 앱 웹뷰 아님) 전 페이지 공통 푸터 — 회사 정보 법적 표기.
-// 게이팅은 WebTopNav와 동일: 앱 웹뷰(KloudEvent/appVersion)와 /kiosk 경로 미렌더, lg 미만 CSS 숨김.
+// PC 웹 전 페이지 공통 푸터 — 회사 정보 법적 표기. 서버 컴포넌트 (SSR부터 존재 — hydration 팝인 없음).
+// 웹/앱·/kiosk 노출 판단은 layout(x-guinness-version/entry 헤더)이 한다.
 // 값·문구는 src/shared/company.ts 단일 출처 — 파트너스 웹 사이드바 푸터와 같은 형식(라벨 ' : ' 값).
+// .web-footer: 라우트 전환(loading.tsx) 중 globals.css body:has 규칙이 숨긴다 — 깜빡임 방지.
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { COMPANY_INFO, LEGAL_LINKS } from '@/shared/company';
 
 export const WebFooter = () => {
-  const [mounted, setMounted] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setIsApp(!!window.KloudEvent || (params.get('appVersion') ?? '') !== '');
-    setMounted(true);
-  }, []);
-
-  if (!mounted || isApp || pathname?.startsWith('/kiosk')) return null;
-
   return (
-    <footer className="hidden lg:block border-t border-[#f0f1f3] bg-[#fafbfc]">
+    <footer className="web-footer hidden lg:block border-t border-[#f0f1f3] bg-[#fafbfc]">
       {/* 중앙 정렬 없이 뷰포트 왼쪽에 붙인다 — 회사 정보 푸터의 통상 배치 */}
       <div className="w-full px-8 py-10 flex flex-col gap-5">
         {/* 링크 — 개인정보 처리방침은 관례상 이용약관보다 굵게 */}

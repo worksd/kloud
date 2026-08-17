@@ -902,3 +902,9 @@ html, body {
   font-weight: 500;
 }
 
+
+/* 라우트 전환(loading.tsx) 중에는 PC 웹 푸터를 숨긴다 — 컨텐츠 높이가 무너진 순간
+   스크롤 클램프로 푸터가 한 프레임 보이는 깜빡임 방지. 마커는 src/app/loading.tsx */
+body:has([data-route-loading]) .web-footer {
+  display: none !important;
+}

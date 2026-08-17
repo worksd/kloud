@@ -175,7 +175,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const isWeb = appVersion === '';
 
   return (
-    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
+    // 모바일/앱: 자체 스크롤 컨테이너(h-screen + overscroll-none). PC 웹은 문서 흐름으로 풀어야
+    // 레이아웃 푸터에 스크롤이 닿는다 — overscroll-none이 body로의 스크롤 체이닝을 막아 푸터가 안 보였다.
+    <div className={`relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide ${isWeb ? 'lg:h-auto lg:overflow-visible lg:overscroll-auto lg:pb-0' : ''}`}>
       <TrackView event="enter_payment" props={{item: paymentItem, itemId}}/>
       {isWeb && (
         <div className="hidden lg:block">

@@ -88,8 +88,8 @@ export default async function LessonDetailPcForm({lesson, appVersion}: {
           {lesson.adminType && <LessonAdminInfoSection lessonId={lesson.id} adminType={lesson.adminType}/>}
         </div>
 
-        {/* 우측: 포스터 sticky */}
-        <div className="col-start-2 row-start-1 sticky top-12 self-start">
+        {/* 우측: 포스터 — sticky 없이 페이지와 함께 스크롤 (따라오지 않는다) */}
+        <div className="col-start-2 row-start-1 self-start">
           <div className="relative w-full aspect-[4/5] overflow-hidden rounded-2xl bg-[#F1F3F6] shadow-sm">
             {lesson.thumbnailUrl ? (
               <Image
