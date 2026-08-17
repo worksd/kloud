@@ -81,21 +81,17 @@ export const PaymentRecordDetailPcForm = async ({paymentRecord, locale}: {
     <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
       <div className="mx-auto w-full max-w-[680px] px-8 flex flex-col gap-4">
 
-        {/* 헤더 — 상태 + 결제번호 + 총액을 한눈에 */}
-        {/* px-6 — 아래 카드들의 내부 패딩(p-6)과 좌우 라인을 맞춘다 */}
-        <header className="flex items-end justify-between gap-4 px-6 pb-2">
-          {/* items-start 필수 — flex-col 기본(stretch)이면 배지가 아래 결제번호 줄 폭만큼 늘어난다 */}
-          <div className="flex flex-col gap-2 items-start">
+        {/* 헤더 — 다른 섹션들과 같은 카드로 통일. 금액이 히어로(영수증 첫인상), 배지/일시는 위, 결제번호는 아래 */}
+        <header className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
+          <div className="flex items-center justify-between gap-4">
             <PaymentStatusBadge status={paymentRecord.status} locale={locale}/>
-            <div className="flex items-center gap-2 text-[12px] text-[#6d7882] font-medium">
-              <span>{await translate('payment_id')}</span>
-              <span>{displayPaymentId}</span>
-              {paymentRecord.createdAt && <span>· {paymentRecord.createdAt}</span>}
-            </div>
+            {paymentRecord.createdAt && (
+              <span className="text-[12px] text-[#8A949E] font-medium shrink-0">{paymentRecord.createdAt}</span>
+            )}
           </div>
-          <div className="flex items-baseline gap-1 shrink-0">
-            <span className="text-[26px] font-bold text-black">{fmt(paymentRecord.amount)}</span>
-            <span className="text-[15px] text-[#6d7882]">{wonText}</span>
+          <div className="mt-4 flex items-baseline gap-1.5">
+            <span className="text-[32px] font-bold text-black leading-none tracking-tight">{fmt(paymentRecord.amount)}</span>
+            <span className="text-[17px] text-[#6d7882]">{wonText}</span>
           </div>
         </header>
 
@@ -184,6 +180,8 @@ export const PaymentRecordDetailPcForm = async ({paymentRecord, locale}: {
 
             <div className="h-px bg-[#eef0f2]"/>
 
+            {/* 결제번호 — 헤더에서 내려옴(라벨 중복 노출이 어색해 메타 행으로 통합) */}
+            <Row label={await translate('payment_id')}>{displayPaymentId}</Row>
             <Row label={await translate('payment_datetime')}>{paymentRecord.createdAt}</Row>
             {(paymentRecord.confirmedAt || paymentRecord.accountTransferConfirmDate) && (
               <Row label={await translate('confirmation_datetime')}>
