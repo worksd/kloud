@@ -85,6 +85,13 @@ export const kloudNav = {
   },
 
   async navigateMain({route}: { route?: string }) {
+    // 웹(네이티브 아님) 폴백 — '메인 재부팅' 개념이 없으므로 목적지(없으면 홈)로 브라우저 이동.
+    // replace: 우회 목적(결제 에러 redirectUrl 등)이라 back으로 중간 페이지에 되돌아가지 않게.
+    // 이 폴백이 없으면 웹에서 navigateMain을 타는 모든 흐름(PushAndBackRedirect 등)이 빈 화면 dead-end가 된다.
+    if (!isMobile()) {
+      if (typeof window !== 'undefined') window.location.replace(route && route.length > 0 ? route : '/');
+      return;
+    }
     const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList,
@@ -93,8 +100,8 @@ export const kloudNav = {
         title: await applyTitle(route ?? ''),
         ignoreSafeArea: applyIgnoreSafeArea(route ?? ''),
       })
-    })
-    if (isMobile()) (window as any).KloudEvent.navigateMain(bootInfo);
+    });
+    (window as any).KloudEvent.navigateMain(bootInfo);
   },
 
   async fullSheet(route: string) {
