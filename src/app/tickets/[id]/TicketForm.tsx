@@ -54,13 +54,15 @@ const POSTPONE_ERROR_MESSAGES: Record<string, StringResourceKey> = {
   LESSON_POSTPONE_NO_SLOT: 'postpone_error_no_slot',
 };
 
-export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = ''}: {
+export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = '', appVersion = ''}: {
   ticket: TicketResponse,
   isJustPaid: string,
   inviteCode: string,
   locale: Locale,
   guidelines?: GuidelineResponse[],
-  endpoint?: string
+  endpoint?: string,
+  /** 웹 직접 접근 판별용 — ''이면 웹. PC(lg)에서 하단 흰 섹션 폭을 티켓 비율에 맞춰 좁힌다. */
+  appVersion?: string,
 }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -269,6 +271,10 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
       }
     };
   }, [ticket.id, ticket.paymentId, locale, router, isPostponing]);
+
+  // PC 웹(lg)에선 티켓 카드(356px)만 비율대로 남고 하단 흰 섹션이 전폭으로 퍼진다 —
+  // 섹션을 티켓과 같은 폭으로 좁혀 중앙 정렬 (iPad '앱'은 appVersion이 있어 기존 그대로).
+  const pcSection = appVersion === '' ? 'lg:max-w-[420px] lg:mx-auto lg:rounded-[20px] lg:overflow-hidden' : '';
 
   // 티켓 렌더링 헬퍼 함수들
   const getBorderClass = () => {
@@ -559,9 +565,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   };
 
   return (
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-neutral-900 ticket-container">
-        {/* 배경 이미지 및 Backdrop Blur - 고정 */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      <div className={`fixed inset-0 w-screen h-screen overflow-hidden bg-neutral-900 ticket-container ${appVersion === '' ? 'lg:bg-white' : ''}`}>
+        {/* 배경 이미지 및 Backdrop Blur - 고정. PC 웹(lg)에선 블러 썸네일 없이 흰 배경만 노출 */}
+        <div className={`fixed inset-0 overflow-hidden pointer-events-none z-0 ${appVersion === '' ? 'lg:hidden' : ''}`}>
           {ticket.lesson?.thumbnailUrl && (
               <Image
                   src={ticket.lesson.thumbnailUrl}
@@ -656,7 +662,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
           {/* 멤버십 정보 표시 (ticketType이 membership일 때) */}
           {ticket.ticketType === 'membership' && ticket.studio && (
-            <div className="px-6 py-4 bg-white relative z-10">
+            <div className={`px-6 py-4 bg-white relative z-10 ${pcSection}`}>
               <div className="text-[16px] font-bold text-black mb-3">
                 {getLocaleString({locale, key: 'membership_signup'})}
               </div>
@@ -675,7 +681,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
           {/* Guidelines 섹션 */}
           {guidelines.length > 0 && (
-            <div className="bg-white relative z-10 px-6 py-6 rounded-t-[20px] -mt-2">
+            <div className={`bg-white relative z-10 px-6 py-6 rounded-t-[20px] -mt-2 ${pcSection} ${appVersion === '' ? 'lg:mb-12' : ''}`}>
               <div className="flex flex-col gap-6">
                 {guidelines.map((guideline, index) => (
                   <div key={guideline.id} className="flex flex-col gap-2">
