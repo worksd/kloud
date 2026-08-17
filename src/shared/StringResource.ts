@@ -3267,12 +3267,16 @@ export const StringResource = {
     jp: '購入を進めますか？',
     zh: '是否继续购买？'
   },
-  /** 가격정책 섹션 헤더. "~를 선택하세요"식 지시문 대신 혜택을 앞세운다. */
+  /**
+   * 가격정책 섹션 헤더 — 모바일/PC/키오스크 공용.
+   * 예전 카피('많이 들을수록 할인')는 8/8 계약 변경으로 할인 표시(originalPrice)가
+   * 사라진 뒤 근거 없는 할인 주장이 돼 중립 문구로 교체.
+   */
   select_lesson_count: {
-    ko: '많이 들을수록 할인',
-    en: 'Buy more, save more',
-    jp: '多く受けるほどお得',
-    zh: '买得越多越优惠'
+    ko: '수강 횟수 선택',
+    en: 'Select sessions',
+    jp: '受講回数を選択',
+    zh: '选择课时数'
   },
   times_unit: {
     ko: '회',
