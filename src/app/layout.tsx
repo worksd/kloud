@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
 import { Analytics } from "@vercel/analytics/react";
+import { WebTopNav } from "@/app/components/WebTopNav";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -35,6 +36,8 @@ export default function RootLayout({
     <html lang="en" className={`${paperFont.variable}`}>
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
+    {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 상단바 — sticky라 컨텐츠와 겹치지 않는다 */}
+    <WebTopNav />
     {children}
     {/* Vercel Web Analytics — 이게 없으면 track() 커스텀 이벤트도 전송되지 않는다 */}
     <Analytics />
