@@ -66,9 +66,11 @@ type KioskAttendanceFormProps = {
   locale: Locale;
   /** 'admin'(상담실)이면 자동 홈복귀 미동작 */
   variant?: 'kiosk' | 'admin';
+  /** 전화 입력 형태 — 키오스크 설정(phonePadType)에서 파생. 'lastFour'면 뒷 4자리 패드. */
+  phoneInputMode?: 'phone' | 'lastFour';
 };
 
-export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome, locale, variant = 'kiosk'}: KioskAttendanceFormProps) => {
+export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome, locale, variant = 'kiosk', phoneInputMode = 'phone'}: KioskAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
 
@@ -204,7 +206,7 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
       <KioskPhoneInputForm
         locale={locale}
         variant={variant}
-        mode="lastFour"
+        mode={phoneInputMode}
         onBack={onBack}
         onHome={onHome}
         onNext={(value) => searchUser(value)}

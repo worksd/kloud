@@ -225,6 +225,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
       kioskName={selected?.name}
       kioskImageUrl={selected?.imageUrl ?? studio?.kioskImageUrl}
       kioskPassword={selected?.password}
+      phonePadType={selected?.phonePadType}
       canCheckIn={selected?.canCheckIn ?? false}
       canPurchase={selected?.canPurchase ?? false}
       canBookRoom={selected?.canBookRoom ?? false}

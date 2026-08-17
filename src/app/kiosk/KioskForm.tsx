@@ -23,7 +23,7 @@ import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
 import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
-import {KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
+import {KioskPhonePadType, KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
 import {LessonPricePolicyResponse} from "@/app/endpoint/payment.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
@@ -121,6 +121,8 @@ export type KioskFormProps = {
   kioskImageUrl?: string;
   /** 관리자 모드 진입 비밀번호 — BE에서 키오스크 단위로 내려주는 값 */
   kioskPassword?: string;
+  /** 전화 입력 패드 형태 — 'Short'면 뒷 4자리, 'Default'(기본)면 전체 번호. 모든 전화 입력 UI가 이 값 하나로 분기한다. */
+  phonePadType?: KioskPhonePadType;
   canCheckIn: boolean;
   canPurchase: boolean;
   canBookRoom?: boolean;
@@ -143,6 +145,7 @@ export const KioskForm = ({
   kioskName,
   kioskImageUrl,
   kioskPassword,
+  phonePadType,
   canCheckIn,
   canPurchase,
   canBookRoom = false,
@@ -221,6 +224,9 @@ export const KioskForm = ({
   const [autoUsePassPlanId, setAutoUsePassPlanId] = useState<number | null>(null);
   const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay' | 'kakaopay' | 'zeropay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+  // 전화 입력 형태 — variant(admin/kiosk)나 플로우(구매/출석)와 무관하게 오직 phonePadType으로만 분기.
+  // 검색 API가 LIKE 연산이라 뒷 4자리로도 회원 조회가 된다.
+  const phoneInputMode: 'phone' | 'lastFour' = phonePadType === 'Short' ? 'lastFour' : 'phone';
 
   // 출석 체크 진입 — 둘 다 가능하면 선택 화면, 하나만 가능하면 해당 출석으로 바로 이동.
   const enterAttendance = () => {
@@ -617,6 +623,12 @@ export const KioskForm = ({
         return;
       }
       if (!res.users || res.users.length === 0) {
+        // 뒷 4자리 모드에선 신규 가입 불가(4자리는 진짜 전화번호가 아님) — 미조회 안내만
+        if (phoneInputMode === 'lastFour') {
+          setErrorMessage(t('kiosk_new_user_notice'));
+          setCurrentScreen('phone');
+          return;
+        }
         // 유저 없음 → 신규 가입 다이얼로그
         setNewUserDialog({ phone: phoneNumber, countryCode, suggestedName: generateRandomNickname() });
         setCurrentScreen('phone');
@@ -1265,6 +1277,7 @@ export const KioskForm = ({
         <KioskPhoneInputForm
           locale={locale}
           variant={variant}
+          mode={phoneInputMode}
           onBack={() => setCurrentScreen(roomBooking ? 'room-reservation' : 'lesson-list')}
           onNext={handlePhoneNext}
           onSearchByEmail={handleEmailSearch}
@@ -1743,6 +1756,7 @@ export const KioskForm = ({
           onComplete={goHome}
           locale={locale}
           variant={variant}
+          phoneInputMode={phoneInputMode}
         />
       )}
 
@@ -1753,6 +1767,7 @@ export const KioskForm = ({
           onHome={goHome}
           locale={locale}
           variant={variant}
+          phoneInputMode={phoneInputMode}
         />
       )}
     </div>
