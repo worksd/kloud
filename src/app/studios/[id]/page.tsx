@@ -1,4 +1,5 @@
 import { StudioDetailForm } from "@/app/studios/[id]/studio.detail";
+import { StudioDetailPcForm } from "@/app/studios/[id]/StudioDetailPcForm";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { Metadata, ResolvingMetadata } from "next";
@@ -27,12 +28,26 @@ export default async function StudioDetail({params, searchParams}: Props) {
     if (!isGuinnessErrorCase(studio)) profileImageUrl = studio.profileImageUrl;
   }
 
+  // 웹 직접 접근 + viewport ≥1024px(lg)이면 PC 폼, 그 외(앱 웹뷰/좁은 웹)는 기존 모바일 폼.
+  // 둘 다 SSR 렌더 후 CSS로 토글 (수업 상세와 동일 패턴). getStudioDetail 중복 호출은 fetch 메모이제이션으로 1회.
+  const isWeb = appVersion == '';
   return (
     <div className={'flex flex-col'}>
       <TrackView event="enter_studio" props={{studioId: id}}/>
-      {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
-      {appVersion == '' && <AppInstallDialog locale={await getLocale()} profileImageUrl={profileImageUrl}/>}
-      <StudioDetailForm id={id} appVersion={appVersion}/>
+      {isWeb ? (
+        <>
+          <div className="hidden lg:block">
+            <StudioDetailPcForm id={id} appVersion={appVersion}/>
+          </div>
+          <div className="lg:hidden">
+            {/* 앱 설치 유도는 모바일 웹에서만 — PC엔 무의미 */}
+            <AppInstallDialog locale={await getLocale()} profileImageUrl={profileImageUrl}/>
+            <StudioDetailForm id={id} appVersion={appVersion}/>
+          </div>
+        </>
+      ) : (
+        <StudioDetailForm id={id} appVersion={appVersion}/>
+      )}
     </div>
 
   )
