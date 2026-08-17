@@ -1,5 +1,7 @@
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import LessonDetailForm from "@/app/lessons/[id]/payment/LessonDetailForm";
+import LessonDetailPcForm from "@/app/lessons/[id]/payment/LessonDetailPcForm";
+import { NoOverscrollOnPc } from "@/app/lessons/[id]/NoOverscrollOnPc";
 import { getLessonDetailAction } from "@/app/lessons/[id]/action/getLessonDetailAction";
 import { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
@@ -35,14 +37,31 @@ export default async function LessonDetailPage({params, searchParams}: {
     );
   }
 
+  // 웹 직접 접근(appVersion === '') + viewport ≥1024px(lg)일 때만 PC 폼.
+  // 그 외(앱 웹뷰 / 좁은 웹)는 기존 모바일 폼. 둘 다 SSR 렌더 후 CSS로 토글 —
+  // 서버는 viewport를 모르므로 media query 분기가 hydration mismatch 없이 안전하다.
+  const isWeb = appVersion == '';
   return (
     <div>
       <TrackView event="enter_lesson" props={{lessonId, studioId: res.studio?.id ?? null}}/>
       {/* 조회수 트래킹 — 진입 시 1회 POST /tracking-events (5분 디바운스). 앱/웹 공통. */}
       <LessonViewTracker lessonId={lessonId}/>
-      {/* 웹 진입 시 앱 설치 유도 다이얼로그 (기존 상단바 대체) */}
-      {appVersion == '' && <AppInstallDialog locale={await getLocale()} profileImageUrl={res.studio?.profileImageUrl}/>}
-      <LessonDetailForm lesson={res} appVersion={appVersion}/>
+      {isWeb ? (
+        <>
+          {/* PC 뷰포트에서만 문서 오버스크롤 차단 — 컴포넌트가 media query로 자체 게이팅 */}
+          <NoOverscrollOnPc/>
+          <div className="hidden lg:block">
+            <LessonDetailPcForm lesson={res} appVersion={appVersion}/>
+          </div>
+          <div className="lg:hidden">
+            {/* 앱 설치 유도는 모바일 웹에서만 — PC엔 무의미 */}
+            <AppInstallDialog locale={await getLocale()} profileImageUrl={res.studio?.profileImageUrl}/>
+            <LessonDetailForm lesson={res} appVersion={appVersion}/>
+          </div>
+        </>
+      ) : (
+        <LessonDetailForm lesson={res} appVersion={appVersion}/>
+      )}
     </div>
 
   )
