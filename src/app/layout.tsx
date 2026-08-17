@@ -6,6 +6,7 @@ import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
 import { Analytics } from "@vercel/analytics/react";
 import { WebTopNav } from "@/app/components/WebTopNav";
+import { WebFooter } from "@/app/components/WebFooter";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -39,6 +40,8 @@ export default function RootLayout({
     {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 상단바 — sticky라 컨텐츠와 겹치지 않는다 */}
     <WebTopNav />
     {children}
+    {/* PC 웹 공통 푸터 — 회사 정보 법적 표기 (값은 src/shared/company.ts 단일 출처) */}
+    <WebFooter />
     {/* Vercel Web Analytics — 이게 없으면 track() 커스텀 이벤트도 전송되지 않는다 */}
     <Analytics />
     </body>
