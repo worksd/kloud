@@ -106,7 +106,15 @@ const priceBands = (slots: TimeSlotResponse[]): PriceBand[] => {
 // navigateStudioId가 주어지면(홈 섹션 등) 카드 탭 시 시트 대신 스튜디오 상세(?studioRoomId=)로 이동 —
 // 상세 페이지에서 딥링크로 해당 홀 시트가 자동으로 열린다.
 // studioId가 주어지면(스튜디오 상세) 날짜 변경 시 GET /studios/:id/roomSlots로 예약 가능 시각을 갱신한다.
-export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStudioId, studioId }: { rooms: StudioRoomResponse[]; locale: Locale; navigateStudioId?: number; studioId?: number }) {
+export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStudioId, studioId, pcSheet = false }: {
+  rooms: StudioRoomResponse[];
+  locale: Locale;
+  navigateStudioId?: number;
+  studioId?: number;
+  /** PC 웹 폼에서 렌더될 때 true — 시간표/날짜 시트를 풀폭 바텀시트 대신 중앙 모달로.
+      viewport CSS(lg:)만으로 하면 가로 1024px 이상 iPad '앱'까지 바뀌므로 prop으로 스코프한다. */
+  pcSheet?: boolean;
+}) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const router = useRouter();
   const pathname = usePathname();
@@ -541,7 +549,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
 
       {/* 시간표 바텀시트 — 핸들/헤더를 아래로 끌면 닫힘 */}
       {sheetRoom && (
-        <div className="fixed inset-0 z-50 flex items-end">
+        <div className={`fixed inset-0 z-50 flex ${pcSheet ? 'lg:items-center lg:justify-center' : ''} items-end`}>
           <div
             className="absolute inset-0 bg-black/50 touch-none"
             style={{ opacity: entered ? 1 : 0, transition: 'opacity 300ms ease' }}
@@ -549,7 +557,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
           />
           <div
             ref={sheetRef}
-            className="relative w-full bg-white rounded-t-3xl flex flex-col max-h-[85vh]"
+            className={`relative w-full bg-white rounded-t-3xl flex flex-col max-h-[85vh] ${pcSheet ? 'lg:max-w-[560px] lg:rounded-3xl lg:max-h-[80vh] lg:shadow-2xl' : ''}`}
             style={{
               transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
               transition: dragging ? 'none' : 'transform 300ms cubic-bezier(0.32,0.72,0,1)',
@@ -557,10 +565,10 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
           >
             {/* 드래그 핸들 + 헤더 (이 영역을 아래로 끌면 닫힘) */}
             <div className="shrink-0 touch-none" onTouchStart={onSheetDragStart} onTouchMove={onSheetDragMove} onTouchEnd={onSheetDragEnd}>
-              <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mt-3 mb-2" />
+              <div className={`w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mt-3 mb-2 ${pcSheet ? 'lg:hidden lg:mt-0' : ''}`} />
 
-              {/* 헤더: 홀 이름 + 닫기(X) + 날짜 칩 */}
-              <div className="px-5 pt-1 pb-3">
+              {/* 헤더: 홀 이름 + 닫기(X) + 날짜 칩 — PC 모달은 핸들 바가 숨어 그 몫의 상단 여백(lg:pt-5)을 직접 가진다 */}
+              <div className={`px-5 pt-1 pb-3 ${pcSheet ? 'lg:pt-5' : ''}`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-3 min-w-0">
                   {sheetRoom.imageUrls?.[0] && (
@@ -813,9 +821,9 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
 
       {/* 날짜 선택 캘린더 시트 (시간표 시트 위에 뜨도록 z 상위) */}
       {dateOpen && (
-        <div className={`fixed inset-0 z-[60] flex items-end ${dateClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_180ms_ease-out]'}`}>
+        <div className={`fixed inset-0 z-[60] flex items-end ${pcSheet ? 'lg:items-center lg:justify-center' : ''} ${dateClosing ? 'animate-[fadeOut_200ms_ease-in_forwards]' : 'animate-[fadeIn_180ms_ease-out]'}`}>
           <div className="absolute inset-0 bg-black/50 touch-none" onClick={() => closeDateSheet()} />
-          <div className={`relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] ${dateClosing ? 'animate-[slideDown_220ms_ease-in_forwards]' : 'animate-[slideUp_220ms_ease-out]'}`}>
+          <div className={`relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] ${pcSheet ? 'lg:max-w-[440px] lg:rounded-3xl lg:pb-6 lg:shadow-2xl' : ''} ${dateClosing ? 'animate-[slideDown_220ms_ease-in_forwards]' : 'animate-[slideUp_220ms_ease-out]'}`}>
             <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mb-3" />
             <div className="flex items-center justify-between mb-3">
               <p className="text-[17px] font-bold text-[#171717]">{t('community_select_date')}</p>

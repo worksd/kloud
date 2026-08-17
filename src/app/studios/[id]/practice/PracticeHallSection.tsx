@@ -11,10 +11,13 @@ export async function PracticeHallSection({
   studioId,
   practiceRooms,
   locale,
+  pcSheet = false,
 }: {
   studioId: number;
   practiceRooms?: CommunityPracticeRoomResponse[];
   locale: Locale;
+  /** PC 웹 폼에서 렌더 시 true — 홀 시트를 중앙 모달로 (PracticeHallSchedule로 전달) */
+  pcSheet?: boolean;
 }) {
   const specs = practiceRooms ?? [];
   if (specs.length === 0) return null;
@@ -47,7 +50,7 @@ export async function PracticeHallSection({
   return (
     <div className="px-4">
       <h2 className="text-[20px] font-bold text-black mb-3">{await translate('community_hall_status')}</h2>
-      <PracticeHallSchedule rooms={rooms} locale={locale} studioId={studioId} />
+      <PracticeHallSchedule rooms={rooms} locale={locale} studioId={studioId} pcSheet={pcSheet} />
     </div>
   );
 }

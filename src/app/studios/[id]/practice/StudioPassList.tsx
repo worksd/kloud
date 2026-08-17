@@ -13,7 +13,13 @@ const MAX_VISIBLE = 3;
 
 // 스튜디오에서 구매 가능한 이용권 목록. 선택한 순간 하단 액션 바에 "구매하기" 노출.
 // 최대 3개만 노출, "더보기"는 스튜디오 패스권 전체 페이지로 이동(일반 스튜디오와 동일 route).
-export function StudioPassList({ passes, studioId, locale }: { passes: CommunityPass[]; studioId: number; locale: Locale }) {
+export function StudioPassList({ passes, studioId, locale, directPayment = false }: {
+  passes: CommunityPass[];
+  studioId: number;
+  locale: Locale;
+  /** PC 웹 폼에서 true — 탭 시 선택→하단 액션바 단계 없이 바로 결제 페이지로 이동 */
+  directPayment?: boolean;
+}) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const { setAction, clearAction, activeSource } = usePracticeAction();
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
@@ -48,8 +54,12 @@ export function StudioPassList({ passes, studioId, locale }: { passes: Community
         return (
           <button
             key={p.id}
-            onClick={() => setSelectedId((prev) => (prev === p.id ? null : p.id))}
-            className={`w-full text-left rounded-2xl border p-4 transition-colors flex items-center gap-3 ${selected ? 'border-[#3CC0AF] bg-[#EAF7F4]' : 'border-[#EEF0F2] active:bg-[#FAFBFC]'}`}
+            onClick={() => {
+              // PC 웹 — 두 단계(선택→액션바) 대신 바로 결제로
+              if (directPayment) { kloudNav.push(KloudScreen.PassPlanPayment(p.id)); return; }
+              setSelectedId((prev) => (prev === p.id ? null : p.id));
+            }}
+            className={`w-full text-left rounded-2xl border p-4 transition-colors flex items-center gap-3 cursor-pointer ${selected ? 'border-[#3CC0AF] bg-[#EAF7F4]' : 'border-[#EEF0F2] active:bg-[#FAFBFC] hover:bg-[#FAFBFC]'}`}
           >
             {/* 아이콘 (티켓) */}
             <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center ${selected ? 'bg-white' : 'bg-[#F1F3F6]'}`}>
