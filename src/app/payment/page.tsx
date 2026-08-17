@@ -16,6 +16,7 @@ import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
+import PaymentPcForm from "@/app/payment/PaymentPcForm";
 import { TrackView } from "@/app/components/TrackView";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
@@ -169,10 +170,37 @@ export default async function UnifiedPaymentPage({ searchParams }: {
       )
     : null;
 
+  // 웹 직접 접근 + viewport ≥1024px(lg)이면 PC 2-column 폼, 그 외(앱 웹뷰/좁은 웹)는 기존 렌더.
+  // 서버는 viewport를 모르므로 둘 다 SSR 렌더 후 CSS(hidden lg:block / lg:hidden)로 토글한다.
+  const isWeb = appVersion === '';
+
   return (
     <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
       <TrackView event="enter_payment" props={{item: paymentItem, itemId}}/>
-      <div className="flex flex-col">
+      {isWeb && (
+        <div className="hidden lg:block">
+          <PaymentPcForm
+            payment={res}
+            paymentItem={paymentItem}
+            itemId={itemId}
+            thumbnailUrl={thumbnailUrl}
+            title={title}
+            studioName={studioName}
+            studioImageUrl={studioImageUrl}
+            os={os}
+            appVersion={appVersion}
+            beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+            actualPayerUserId={actualPayerUserId}
+            isProxyPayment={isProxyPayment}
+            locale={locale}
+            apiUrl={process.env.GUINNESS_API_SERVER ?? ''}
+            weeklyLabel={weeklyLabel}
+            preStartTime={startTime}
+            preEndTime={endTime}
+          />
+        </div>
+      )}
+      <div className={isWeb ? 'flex flex-col lg:hidden' : 'flex flex-col'}>
         {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
         {appVersion === '' && 'user' in res && res.user && (
           <PaymentProfileButton

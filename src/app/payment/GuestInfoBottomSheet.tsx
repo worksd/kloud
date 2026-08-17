@@ -77,13 +77,26 @@ export const GuestInfoBottomSheet = ({
   const dragStart = useRef<number | null>(null);
   const closingRef = useRef(false);
 
-  // 마운트 시 슬라이드업 + 열려있는 동안 배경 스크롤 잠금
+  // PC 웹(≥1024px)이면 바텀시트 대신 중앙 모달(WebLoginDialog와 동일한 톤)로 렌더.
+  // 이 컴포넌트는 결제 버튼 클릭 후(클라이언트)에만 마운트되므로 window 접근 안전.
+  const [isPc] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches);
+
+  // 마운트 시 등장 애니메이션(모바일 슬라이드업 / PC 페이드+스케일) + 열려있는 동안 배경 스크롤 잠금
   useEffect(() => {
     const raf = requestAnimationFrame(() => setEntered(true));
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { cancelAnimationFrame(raf); document.body.style.overflow = prev; };
   }, []);
+
+  // PC 모달은 ESC로 닫기
+  useEffect(() => {
+    if (!isPc) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPc]);
 
   const close = (after?: () => void) => {
     if (closingRef.current) return;
@@ -148,19 +161,44 @@ export const GuestInfoBottomSheet = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end">
-      <div className="absolute inset-0 bg-black/50" style={{ opacity: entered ? 1 : 0, transition: 'opacity 250ms ease' }} onClick={() => close()} />
+    <div className={`fixed inset-0 z-[60] flex ${isPc ? 'items-center justify-center' : 'items-end'}`}>
       <div
-        className="relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] will-change-transform"
-        style={{
-          transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
-          transition: dragging ? 'none' : 'transform 250ms cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-        onTouchStart={onDragStart}
-        onTouchMove={onDragMove}
-        onTouchEnd={onDragEnd}
+        className={`absolute inset-0 ${isPc ? 'bg-black/40 backdrop-blur-sm' : 'bg-black/50'}`}
+        style={{ opacity: entered ? 1 : 0, transition: 'opacity 250ms ease' }}
+        onClick={() => close()}
+      />
+      <div
+        className={isPc
+          ? 'relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl px-8 pt-10 pb-8 will-change-transform'
+          : 'relative w-full bg-white rounded-t-3xl px-5 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] will-change-transform'}
+        style={isPc
+          ? {
+              opacity: entered ? 1 : 0,
+              transform: `scale(${entered ? 1 : 0.96})`,
+              transition: 'opacity 250ms ease, transform 250ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }
+          : {
+              transform: `translateY(${entered ? dragY : (typeof window !== 'undefined' ? window.innerHeight : 1000)}px)`,
+              transition: dragging ? 'none' : 'transform 250ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+        onTouchStart={isPc ? undefined : onDragStart}
+        onTouchMove={isPc ? undefined : onDragMove}
+        onTouchEnd={isPc ? undefined : onDragEnd}
       >
-        <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mb-4" />
+        {isPc ? (
+          <button
+            type="button"
+            aria-label="닫기"
+            onClick={() => close()}
+            className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#f5f6f8] transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3 3L15 15M15 3L3 15" stroke="#505356" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </button>
+        ) : (
+          <div className="w-10 h-1 rounded-full bg-[#E6E8EA] mx-auto mb-4" />
+        )}
 
         <p className="text-[18px] font-bold text-[#171717]">{t(titleKey)}</p>
         <p className="mt-1 text-[13px] text-[#86898C] leading-snug">{t(descKey)}</p>

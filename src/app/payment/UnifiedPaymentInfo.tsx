@@ -2,6 +2,7 @@
 
 import PaymentButton, { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { RefundInformation } from "@/app/lessons/[id]/payment/RefundInformation";
 import { PurchaseInformation } from "@/app/lessons/[id]/payment/PurchaseInformation";
 import { SellerInformation } from "@/app/lessons/[id]/payment/SellerInformation";
@@ -116,6 +117,7 @@ export const UnifiedPaymentInfo = ({
   actualPayerUserId,
   isProxyPayment,
   practiceRoomInfo,
+  buttonSlotId,
 }: {
   payment: GetPaymentResponse,
   type: UnifiedPaymentType,
@@ -127,6 +129,11 @@ export const UnifiedPaymentInfo = ({
   isProxyPayment?: boolean,
   locale: Locale,
   practiceRoomInfo?: { studioRoomId: number; startDate: string; endDate: string },
+  /**
+   * 결제 버튼을 화면 하단 고정 대신 이 id의 DOM 노드로 portal한다.
+   * PC 결제 폼(PaymentPcForm)이 우측 요약 카드 아래 슬롯을 두고 지정 — 모바일 인스턴스는 미지정(고정 버튼 유지).
+   */
+  buttonSlotId?: string,
 }) => {
   // easy_pay의 providers를 개별 메서드로 풀어서 사용
   const easyPayLabel: Record<string, string> = {
@@ -237,6 +244,8 @@ export const UnifiedPaymentInfo = ({
   );
   const [depositor, setDepositor] = useState(beforeDepositor);
   const [mounted, setMounted] = useState(false);
+  // portal 대상은 서버 렌더된 노드라 마운트 후에만 찾을 수 있다
+  const [buttonSlot, setButtonSlot] = useState<HTMLElement | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(
     (type === 'pass-plan' || type === 'practice-room' || !initialPass || !initialPassIsDiscount)
@@ -256,6 +265,11 @@ export const UnifiedPaymentInfo = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!buttonSlotId) return;
+    setButtonSlot(document.getElementById(buttonSlotId));
+  }, [buttonSlotId]);
 
   if (needsMountCheck(type) && !mounted) return null;
 
@@ -463,7 +477,12 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
-      <div className="fixed bottom-2 left-0 w-full px-6">
+      {/* 결제 버튼.
+          - 기본(모바일/앱 웹뷰): full-width fixed bottom
+          - buttonSlotId 지정(PC 폼): 우측 요약 카드 아래 슬롯으로 portal — 화면 하단 고정 아님.
+            slot 노드를 찾기 전(첫 페인트)에는 잠깐 fixed로 렌더되지만 PC 인스턴스는 곧바로 이동한다. */}
+      {(() => {
+        const paymentButton = (
         <PaymentButton
           locale={locale}
           method={selectedMethod}
@@ -501,7 +520,11 @@ export const UnifiedPaymentInfo = ({
           onBillingCardsChange={(cards) => setCards(cards)}
           practiceRoomInfo={practiceRoomInfo}
         />
-      </div>
+        );
+        return buttonSlot
+          ? createPortal(<div className="w-full">{paymentButton}</div>, buttonSlot)
+          : <div className="fixed bottom-2 left-0 w-full px-6 z-30">{paymentButton}</div>;
+      })()}
     </div>
   )
 }
