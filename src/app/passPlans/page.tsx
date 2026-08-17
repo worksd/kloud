@@ -3,8 +3,8 @@ import { PurchaseStudioPassForm } from "@/app/passPlans/PurchaseStudioPassForm";
 import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId: number }> }) {
-  const {studioId} = await searchParams;
+export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId: number, appVersion?: string }> }) {
+  const {studioId, appVersion = ''} = await searchParams;
   const studioRes = await getStudioDetail(studioId);
   const res = await getPassPlanListAction({studioId});
 
@@ -20,6 +20,7 @@ export default async function PassPage({searchParams}: { searchParams: Promise<{
         selectPassPlanText={await translate('select_pass_plan')}
         studioImageUrl={studioRes.profileImageUrl}
         locale={await getLocale()}
+        appVersion={appVersion}
       />
     )
   }

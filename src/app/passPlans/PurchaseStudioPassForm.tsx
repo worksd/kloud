@@ -19,6 +19,7 @@ export const PurchaseStudioPassForm = ({
                                          selectPassPlanText,
                                          studioImageUrl,
                                          locale,
+                                         appVersion = '',
                                        }: {
   passPlans: GetPassPlanResponse[],
   popularPassPlan: GetPassPlanResponse,
@@ -29,6 +30,8 @@ export const PurchaseStudioPassForm = ({
   selectPassPlanText: string,
   studioImageUrl?: string,
   locale: Locale,
+  /** ''이면 웹 직접 접근 — PC(lg)에서 중앙 컬럼 레이아웃. 앱 웹뷰(태블릿 포함)는 기존 그대로. */
+  appVersion?: string,
 }) => {
 
   const recommendedPlans = passPlans.filter(p => p.isRecommended);
@@ -36,8 +39,14 @@ export const PurchaseStudioPassForm = ({
 
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
 
+  // PC 웹에선 모바일 풀폭 리스트가 훵해서 중앙 560px 컬럼으로 좁힌다. 클라이언트 상태(선택)를 가진 폼이라
+  // PC 전용 컴포넌트를 따로 만들지 않고 단일 인스턴스에 반응형 클래스만 얹는다 (티켓 상세와 동일 접근).
+  const isWeb = appVersion === '';
+  const pcCol = isWeb ? 'lg:w-full lg:max-w-[560px] lg:mx-auto' : '';
+
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className={`flex flex-col min-h-screen bg-white ${isWeb ? 'lg:items-center lg:pt-10' : ''}`}>
+      <div className={`flex flex-col w-full ${pcCol}`}>
       {/* 타이틀 */}
       <div className="px-6 pt-3 pb-2 flex items-center gap-3">
         {studioImageUrl && (
@@ -77,8 +86,8 @@ export const PurchaseStudioPassForm = ({
         </div>
       )}
 
-      {/* 안내 사항 */}
-      <div className="flex flex-col bg-[#F7F8F9] px-6 py-6 gap-3">
+      {/* 안내 사항 — PC 컬럼 안에선 풀블리드 대신 라운드 박스 */}
+      <div className={`flex flex-col bg-[#F7F8F9] px-6 py-6 gap-3 ${isWeb ? 'lg:rounded-2xl lg:mx-6' : ''}`}>
         <div className="font-bold text-[14px] text-[#555]">{purchasePassInformationText}</div>
         <div className="text-[13px] text-[#999] whitespace-pre-line leading-relaxed">{passRefundPolicyText}</div>
       </div>
@@ -92,6 +101,7 @@ export const PurchaseStudioPassForm = ({
         }} disabled={passPlan == null}>
           <div>{passPlan ? `${passPlan.name} 구매하기` : purchasePassText}</div>
         </CommonSubmitButton>
+      </div>
       </div>
     </div>
   )
