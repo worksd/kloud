@@ -25,21 +25,45 @@ export default async function LoginIntroPage({
     recentLogin: await translate('recent_login'),
   };
 
-  // PC 카드 레이아웃은 웹 직접 접근일 때만 — 태블릿 '앱' 웹뷰(가로 ≥1024px)의 로그인은 기존 그대로.
+  // PC 카드 레이아웃/장식 배경은 웹 직접 접근일 때만 — 태블릿 '앱' 웹뷰(가로 ≥1024px)의 로그인은 기존 그대로.
   const isWeb = appVersion === '' || appVersion == null;
 
   return (
     <section
-      className={`w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-5 ${isWeb ? 'lg:justify-center lg:pb-0' : ''}`}>
-      {/* 모바일: 로고 상단 + 버튼 하단(세로 스트레치) / PC(lg): 중앙 카드 */}
-      <div className={isWeb ? "contents lg:flex lg:flex-col lg:items-center lg:w-full lg:max-w-[420px] lg:border lg:border-[#f0f1f3] lg:rounded-3xl lg:shadow-sm lg:px-10 lg:pt-16 lg:pb-12" : "contents"}>
-        {/* PC 웹 카드에선 로고 미노출 — 상단바(WebTopNav)에 이미 로고가 있어 중복 (모바일/앱은 유지) */}
-        <div className={`flex-1 w-full flex justify-center pt-36 ${isWeb ? 'lg:hidden' : ''}`}>
+      className={`relative w-screen min-h-screen flex flex-col items-center pb-7 px-5 ${isWeb ? 'overflow-hidden lg:justify-center lg:pb-0' : 'bg-white'}`}
+      style={isWeb ? { background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' } : undefined}
+    >
+      {/* 장식 블롭 — 웹 전용. pointer-events 차단 없이 배경 분위기만. 컨텐츠는 relative로 위에 얹는다. */}
+      {isWeb && (
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-[360px] h-[360px] rounded-full bg-[#8AB4FF]/40 blur-3xl"/>
+          <div className="absolute top-1/4 -right-32 w-[420px] h-[420px] rounded-full bg-[#E3A6FF]/35 blur-3xl"/>
+          <div className="absolute -bottom-36 left-1/4 w-[400px] h-[400px] rounded-full bg-[#8FE8D2]/35 blur-3xl"/>
+        </div>
+      )}
+
+      {/* 모바일: 로고 상단 + 버튼 하단(세로 스트레치) / PC(lg): 반투명 유리 카드 */}
+      <div className={isWeb
+        ? "contents relative lg:flex lg:flex-col lg:items-center lg:w-full lg:max-w-[420px] lg:bg-white/80 lg:backdrop-blur-xl lg:border lg:border-white/70 lg:rounded-3xl lg:shadow-[0_24px_60px_-16px_rgba(91,95,246,0.25)] lg:px-10 lg:pt-14 lg:pb-12"
+        : "contents"}>
+        <div className={`relative flex-1 w-full flex flex-col items-center pt-36 ${isWeb ? 'lg:flex-none lg:pt-0' : ''}`}>
           <DevTapLogo />
+          {/* 웹 전용 환영 카피 — 앱은 기존 로고 단독 유지 */}
+          {isWeb && (
+            <div className="flex flex-col items-center mt-6 mb-2 lg:mb-8 text-center">
+              <h1 className="font-paperlogy text-[20px] lg:text-[22px] text-black leading-snug">
+                {await translate('login_intro_title')}
+              </h1>
+              <p className="text-[13px] lg:text-[14px] text-[#6d7882] mt-2 whitespace-pre-line leading-relaxed">
+                {await translate('login_intro_subtitle')}
+              </p>
+            </div>
+          )}
         </div>
 
-
-        <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl} translations={translations}/>
+        <div className="relative w-full flex justify-center">
+          <LoginButtonForm os={os} appVersion={appVersion} returnUrl={returnUrl} translations={translations}/>
+        </div>
       </div>
 
     </section>

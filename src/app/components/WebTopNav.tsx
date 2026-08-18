@@ -62,18 +62,19 @@ export const WebTopNav = ({ initialLogin = false }: {
 
   // PC(lg)에선 페이지 이동 없이 다이얼로그로 로그인 — 보던 페이지 컨텍스트 유지.
   // 상단바 자체가 lg 미만에선 숨겨지지만, 혹시 모를 좁은 뷰포트 호출은 로그인 페이지로 폴백.
+  // 웹에선 /login('시작하기' 한 단계)을 거치지 않고 바로 로그인 수단 선택(/login/intro)으로.
   const handleLogin = () => {
     if (window.matchMedia('(min-width: 1024px)').matches) {
       setLoginDialogOpen(true);
     } else {
-      router.push(KloudScreen.Login(loginQuery));
+      router.push(KloudScreen.LoginIntro(loginQuery));
     }
   };
 
   const handleLogout = async () => {
     await unregisterDeviceAction();
     await clearCookies();
-    router.replace(KloudScreen.Login(loginQuery));
+    router.replace(KloudScreen.LoginIntro(loginQuery));
   };
 
   const displayName = profile?.nickName || profile?.name;

@@ -25,14 +25,15 @@ export const MobileWebViewTopBar = ({returnUrl, os, isLogin} : {returnUrl?: stri
   const router = useRouter()
   const loginQuery = returnUrl ? `?returnUrl=${returnUrl}` : '';
 
+  // 웹에선 /login('시작하기' 한 단계)을 거치지 않고 바로 로그인 수단 선택(/login/intro)으로.
   const handleLogin = () => {
-    router.push(KloudScreen.Login(loginQuery));
+    router.push(KloudScreen.LoginIntro(loginQuery));
   };
 
   const handleLogout = async () => {
     await unregisterDeviceAction()
     await clearCookies();
-    router.replace(KloudScreen.Login(loginQuery))
+    router.replace(KloudScreen.LoginIntro(loginQuery))
   };
 
   return (

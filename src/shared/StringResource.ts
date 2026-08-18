@@ -101,6 +101,18 @@ export const StringResource = {
     jp: "始める",
     zh: "开始"
   },
+  login_intro_title: {
+    ko: "댄스의 모든 순간, 로우그래피",
+    en: "Every dance moment, Rawgraphy",
+    jp: "ダンスのすべての瞬間、Rawgraphy",
+    zh: "舞蹈的每一刻，Rawgraphy"
+  },
+  login_intro_subtitle: {
+    ko: "원하는 스튜디오의 수업을 확인하고\n간편하게 예약해보세요",
+    en: "Browse classes from your favorite studios\nand book in seconds",
+    jp: "お気に入りのスタジオのレッスンをチェックして\n簡単に予約しましょう",
+    zh: "查看喜欢的舞室课程\n轻松完成预约"
+  },
   sign_up: {
     ko: "가입하기",
     en: "Sign Up",
