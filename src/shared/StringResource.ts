@@ -215,6 +215,18 @@ export const StringResource = {
     jp: '練習室レンタル',
     zh: '练习室租赁'
   },
+  lessons_home_title: {
+    ko: '당신의 수업을 찾아보세요',
+    en: 'Find your next class',
+    jp: 'あなたのレッスンを見つけよう',
+    zh: '找到属于你的课程'
+  },
+  lessons_home_subtitle: {
+    ko: '원하는 스튜디오의 수업을 한 곳에서 둘러보세요',
+    en: 'Browse classes from every studio in one place',
+    jp: 'すべてのスタジオのレッスンをひとつの場所で',
+    zh: '在一个地方浏览所有工作室的课程'
+  },
   profile_empty_message: {
     ko: '아직 활동 내역이 없어요',
     en: 'No activity yet',
