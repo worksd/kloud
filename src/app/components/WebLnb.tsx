@@ -85,13 +85,15 @@ const ProfileIcon = ({className, filled}: IconProps) => (
   </svg>
 );
 
-const useMenus = (labels: LnbLabels, isLogin: boolean) => {
+const useMenus = (labels: LnbLabels, isLogin: boolean, myStudios: LnbStudio[] = []) => {
   const pathname = usePathname() ?? '/';
+  // 내 스튜디오 클릭 = 첫 번째 스튜디오 선택. 목록이 아직 안 왔으면 /myStudio(서버가 정함) 폴백.
+  const myStudioHref = myStudios.length > 0 ? `/myStudio?id=${myStudios[0].id}` : '/myStudio';
   return [
     { key: 'home', label: labels.home, href: '/', Icon: HomeIcon, active: pathname === '/' },
-    // 내 스튜디오·프로필은 로그인 사용자에게만. 경로는 /myStudio 하나 — 어느 스튜디오인지는 서버가 정한다.
+    // 내 스튜디오·프로필은 로그인 사용자에게만
     ...(isLogin ? [
-      { key: 'myStudio', label: labels.myStudio, href: '/myStudio', Icon: StudioIcon, active: pathname.startsWith('/myStudio') },
+      { key: 'myStudio', label: labels.myStudio, href: myStudioHref, Icon: StudioIcon, active: pathname.startsWith('/myStudio') },
     ] : []),
     { key: 'rooms', label: labels.rooms, href: '/studioRooms', Icon: RoomIcon, active: pathname.startsWith('/studioRooms') },
     ...(isLogin ? [
@@ -118,11 +120,14 @@ const ExpandedMenus = ({labels, isLogin, myStudios = [], onNavigate}: {
   myStudios?: LnbStudio[];
   onNavigate?: () => void;
 }) => {
-  const menus = useMenus(labels, isLogin);
+  const menus = useMenus(labels, isLogin, myStudios);
   const pathname = usePathname() ?? '/';
   const searchParams = useSearchParams();
-  // /myStudio?id=33 — 지금 보고 있는 스튜디오 하이라이트용
-  const activeStudioId = pathname === '/myStudio' ? searchParams.get('id') : null;
+  // /myStudio?id=33 — 지금 보고 있는 스튜디오 하이라이트.
+  // id 없이 /myStudio에 있으면 기본으로 첫 번째 스튜디오가 선택된 것으로 표시한다.
+  const activeStudioId = pathname === '/myStudio'
+    ? (searchParams.get('id') ?? (myStudios[0] ? String(myStudios[0].id) : null))
+    : null;
   const activeIdx = menus.findIndex((m) => m.active);
   const myStudioIdx = menus.findIndex((m) => m.key === 'myStudio');
   const showStudios = myStudioIdx >= 0 && myStudios.length > 0;
