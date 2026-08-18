@@ -1,5 +1,6 @@
 import Logo from "../../public/assets/logo_black.svg"
 import { Metadata, Viewport } from 'next'
+import { HomeRedirect } from "@/app/HomeRedirect";
 
 export const metadata: Metadata = {
   title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
@@ -23,9 +24,19 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1.0,
 }
-export default async function Main() {
+export default async function Main({searchParams}: {
+  searchParams: Promise<{ appVersion?: string }>
+}) {
+  const { appVersion = '' } = await searchParams;
+  const isWeb = appVersion === '';
+
   return (
-    <main className="h-screen overflow-hidden bg-white flex items-center justify-center select-none">
+    <>
+    {/* PC 웹(lg+) 진입 시 즉시 /lessons(메인)로 replace. 앱 웹뷰는 미렌더 → 무동작. */}
+    {isWeb && <HomeRedirect/>}
+
+    {/* welcome — PC 웹에서는 lg:hidden으로 paint 단계에서 가려져 flash 최소화 */}
+    <main className={`h-screen overflow-hidden bg-white flex items-center justify-center select-none ${isWeb ? 'lg:hidden' : ''}`}>
       <div className="w-full max-w-5xl mx-auto px-4">
         {/* Logo and Welcome */}
         <div className="flex flex-col items-center justify-center">
@@ -58,5 +69,6 @@ export default async function Main() {
         </div>
       </div>
     </main>
+    </>
   );
 }
