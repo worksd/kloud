@@ -19,6 +19,7 @@ import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
 import { UserStatus } from "@/entities/user/user.status";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import { COUNTRIES } from "@/app/certification/COUNTRIES";
 
 type Step = 'methods' | 'email-login' | 'email-signup' | 'phone-input' | 'phone-code';
 
@@ -44,7 +45,9 @@ export const WebLoginDialog = ({
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const countryCode = 'KR';
+  const [countryCode, setCountryCode] = useState('KR');
+  const [countryOpen, setCountryOpen] = useState(false);
+  const selectedCountry = COUNTRIES.find((c) => c.key === countryCode) ?? COUNTRIES[0];
 
   // 액션 상태
   const [error, setError] = useState('');
@@ -75,6 +78,7 @@ export const WebLoginDialog = ({
       setCode('');
       setPhone('');
       setLoading(false);
+      setCountryOpen(false);
     } else {
       // 열릴 때 캐시된 이메일 채우기
       try {
@@ -194,7 +198,8 @@ export const WebLoginDialog = ({
       />
 
       {/* dialog panel */}
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      {/* overflow-hidden이면 국가코드 드롭다운이 패널 밖에서 잘린다 — 라운드는 유지되므로 클리핑 해제 */}
+      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl">
 
         {/* header: back + close */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
@@ -410,8 +415,39 @@ export const WebLoginDialog = ({
                 onSubmit={(e) => { e.preventDefault(); if (phone.length >= 8 && !loading) handleSendSMS(); }}
               >
                 <div className={`flex items-center gap-2`}>
-                  <div className="px-4 py-3 rounded-xl ring-1 ring-gray-200 bg-[#F5F6F8] text-[14px] font-medium text-black shrink-0">
-                    +82
+                  {/* 국가코드 선택 — PC라 바텀시트 대신 드롭다운 */}
+                  <div className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setCountryOpen((v) => !v)}
+                      className="px-3 py-3 rounded-xl ring-1 ring-gray-200 bg-[#F5F6F8] text-[14px] font-medium text-black flex items-center gap-1.5 hover:ring-gray-300 transition"
+                    >
+                      <span className="text-base leading-none">{selectedCountry.flag}</span>
+                      <span>+{selectedCountry.dial}</span>
+                      <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5">
+                        <path d="M6 9l6 6 6-6" stroke="#6d7882" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    {countryOpen && (
+                      <>
+                        {/* 바깥 클릭 닫기용 투명 오버레이 */}
+                        <div className="fixed inset-0 z-10" onClick={() => setCountryOpen(false)} aria-hidden/>
+                        <div className="absolute left-0 top-[calc(100%+6px)] z-20 w-[260px] max-h-64 overflow-y-auto bg-white rounded-xl ring-1 ring-gray-200 shadow-lg py-1">
+                          {COUNTRIES.map((c) => (
+                            <button
+                              key={c.key}
+                              type="button"
+                              onClick={() => { setCountryCode(c.key); setCountryOpen(false); }}
+                              className={`w-full px-3.5 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 ${c.key === countryCode ? 'bg-gray-50' : ''}`}
+                            >
+                              <span className="text-lg leading-none">{c.flag}</span>
+                              <span className="text-[13px] text-gray-900 truncate">{locale === 'ko' ? c.nameKo : c.nameEn}</span>
+                              <span className="ml-auto text-[13px] font-semibold text-gray-600 shrink-0">+{c.dial}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className={`flex-1 ${inputBoxCls}`}>
                     <input
@@ -444,7 +480,7 @@ export const WebLoginDialog = ({
             <>
               <h2 className="text-[18px] font-bold text-black mt-4">{getLocaleString({locale, key: 'certification_code'})}</h2>
               <p className="text-[13px] text-[#86898C] mt-2">
-                +82 {phone} 로 전송됨
+                +{selectedCountry.dial} {phone} 로 전송됨
               </p>
 
               <form
