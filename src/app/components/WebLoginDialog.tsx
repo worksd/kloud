@@ -4,7 +4,7 @@
 // methods → email-login / email-signup / phone-input → phone-code 단계 전환을 다이얼로그 내부에서 처리.
 // 카카오는 OAuth 웹 플로우(redirect)로 빠짐.
 // 모든 액션은 기존 server action 재사용 (emailLoginAction, signUpAction, sendVerificationSMS, phoneLoginAction).
-// 성공 시 기본 경로(/lessons)로 풀 리로드(상단바 세션 반영). New 유저면 /onboarding으로.
+// 성공 시 홈(/)으로 풀 리로드(상단바 세션 반영). New 유저면 /onboarding으로.
 
 import { useEffect, useState } from "react";
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
@@ -20,6 +20,7 @@ import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
 import { UserStatus } from "@/entities/user/user.status";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { COUNTRIES } from "@/app/certification/COUNTRIES";
+import { formatKR, onlyDigits } from "@/app/components/PhoneVerification";
 
 type Step = 'methods' | 'email-login' | 'email-signup' | 'phone-input' | 'phone-code';
 
@@ -51,6 +52,9 @@ export const WebLoginDialog = ({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // 닫힘 애니메이션 — open이 꺼진 뒤 220ms 동안 mounted를 유지하며 fadeOut/dialogOut을 재생
+  const [closing, setClosing] = useState(false);
+
   // ESC 키
   useEffect(() => {
     if (!open) return;
@@ -67,16 +71,21 @@ export const WebLoginDialog = ({
     return () => { document.body.style.overflow = prev; };
   }, [open]);
 
-  // 닫힐 때 상태 reset
+  // 닫힐 때: 애니메이션 동안 컨텐츠가 바뀌지 않게, 상태 reset은 퇴장이 끝난 뒤에
   useEffect(() => {
     if (!open) {
-      setStep('methods');
-      setError('');
-      setPassword('');
-      setCode('');
-      setPhone('');
-      setLoading(false);
-      setCountryOpen(false);
+      setClosing(true);
+      const t = setTimeout(() => {
+        setClosing(false);
+        setStep('methods');
+        setError('');
+        setPassword('');
+        setCode('');
+        setPhone('');
+        setLoading(false);
+        setCountryOpen(false);
+      }, 220);
+      return () => clearTimeout(t);
     } else {
       // 열릴 때 캐시된 이메일 채우기
       try {
@@ -86,16 +95,16 @@ export const WebLoginDialog = ({
     }
   }, [open]);
 
-  if (!open) return null;
+  if (!open && !closing) return null;
 
   // 로그인 성공 후 라우팅 — 풀 리로드로 방금 세팅된 세션 쿠키가 레이아웃(상단바) 포함
   // 서버 컴포넌트에 확실히 반영되게 (이메일 로그인 페이지와 동일 방식).
-  // returnUrl 없이 항상 기본 경로(/lessons)로 — ?login=true 쿼리도 이 리로드로 함께 사라진다.
+  // returnUrl 없이 항상 홈(/)으로 — ?login=true 쿼리도 이 리로드로 함께 사라진다.
   const onLoginSuccess = (status?: UserStatus) => {
     if (status === UserStatus.New) {
       window.location.replace(KloudScreen.Onboard);
     } else {
-      window.location.replace('/lessons');
+      window.location.replace('/');
     }
   };
 
@@ -192,12 +201,12 @@ export const WebLoginDialog = ({
       <button
         aria-label="닫기"
         onClick={onCloseAction}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className={`absolute inset-0 bg-black/40 backdrop-blur-sm ${open ? 'animate-[fadeIn_200ms_ease-out]' : 'animate-[fadeOut_200ms_ease-in_forwards]'}`}
       />
 
       {/* dialog panel */}
       {/* overflow-hidden이면 국가코드 드롭다운이 패널 밖에서 잘린다 — 라운드는 유지되므로 클리핑 해제 */}
-      <div className="relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl">
+      <div className={`relative w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl ${open ? 'animate-[dialogIn_240ms_cubic-bezier(0.16,1,0.3,1)]' : 'animate-[dialogOut_200ms_ease-in_forwards]'}`}>
 
         {/* header: back + close */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
@@ -225,13 +234,17 @@ export const WebLoginDialog = ({
 
         <div className="px-8 pt-12 pb-8 flex flex-col items-center">
           {/* 로고 */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/logo_black.svg" alt="rawgraphy" style={{ height: 18, width: 'auto' }}/>
+          {/* 로고 — 수단 선택 단계에서만. 이메일/휴대폰 단계는 타이틀만 남긴다 */}
+          {step === 'methods' && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/assets/logo_black.svg" alt="rawgraphy" style={{ height: 18, width: 'auto' }}/>
+          )}
 
           {/* methods */}
           {step === 'methods' && (
             <>
-              <p className="text-[14px] text-[#86898C] mt-3">{getLocaleString({locale, key: 'do_start'})}</p>
+              {/* 브랜드 카피 — 웰컴 문구의 '순간까지'까지만 (login_dialog_copy) */}
+              <p className="text-[13px] text-[#86898C] mt-3 text-center leading-relaxed px-2">{getLocaleString({locale, key: 'login_dialog_copy'})}</p>
 
               <div className="w-full mt-8 flex flex-col gap-2">
                 <button
@@ -448,11 +461,12 @@ export const WebLoginDialog = ({
                     )}
                   </div>
                   <div className={`flex-1 ${inputBoxCls}`}>
+                    {/* 표기는 다른 인증 화면과 동일하게 KR 포맷(010 1234 5678), 상태값은 숫자만 */}
                     <input
                       type="tel"
-                      placeholder="01012345678"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder={countryCode === 'KR' ? '010 1234 5678' : 'Phone number'}
+                      value={countryCode === 'KR' ? formatKR(phone) : phone}
+                      onChange={(e) => setPhone(onlyDigits(e.target.value))}
                       autoFocus
                       autoComplete="tel"
                       className={inputCls}

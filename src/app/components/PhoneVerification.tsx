@@ -11,11 +11,11 @@ import { Locale } from "@/shared/StringResource";
 /** ---------- Country Spec & Dataset ---------- */
 
 
-// 숫자만 추출
-const onlyDigits = (s = '') => s.replace(/\D/g, '');
+// 숫자만 추출 (로그인 다이얼로그 등에서도 재사용)
+export const onlyDigits = (s = '') => s.replace(/\D/g, '');
 
-// KR 전용 포맷: 010 1234 5678
-function formatKR(digits: string) {
+// KR 전용 포맷: 010 1234 5678 (로그인 다이얼로그 등에서도 재사용)
+export function formatKR(digits: string) {
   const d = onlyDigits(digits);
   if (d.length <= 3) return d;
   if (d.length <= 7) return `${d.slice(0, 3)} ${d.slice(3)}`;

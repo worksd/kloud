@@ -365,6 +365,12 @@ export const StringResource = {
     jp: "ようこそ！",
     zh: "欢迎! "
   },
+  login_dialog_copy: {
+    ko: "댄스 스튜디오를 마주하는 순간부터 수업을 듣는 순간까지",
+    en: "From the moment you find a studio to the moment you dance",
+    jp: "スタジオと出会う瞬間からレッスンを受ける瞬間まで",
+    zh: "从遇见舞室的那一刻，到起舞的每一刻"
+  },
   welcome_message: {
     ko: "댄스 스튜디오를 마주하는 순간부터 수업을 듣는 순간까지, Rawgraphy입니다",
     en: "Create amazing moments with Rawgraphy.",
