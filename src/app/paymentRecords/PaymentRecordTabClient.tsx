@@ -78,7 +78,8 @@ export const PaymentRecordTabClient = ({
   );
 };
 
-const PaymentRecordListContent = ({
+// PC 웹(프로필 셸)에서도 재사용 — 리스트/무한스크롤/빈 상태만 담당
+export const PaymentRecordListContent = ({
   initialRecords,
   locale,
   noRecordsMessage,
@@ -160,7 +161,8 @@ const PaymentRecordListContent = ({
   );
 };
 
-const UpcomingPaymentsContent = ({
+// PC 웹(프로필 셸)에서도 재사용
+export const UpcomingPaymentsContent = ({
   subscriptions,
   locale,
 }: {

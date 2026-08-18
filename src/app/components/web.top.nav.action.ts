@@ -8,8 +8,8 @@ export const getWebTopNavProfileAction = async () => {
   try {
     const res = await api.user.me({});
     if (res && typeof res === 'object' && 'id' in res) {
-      const u = res as { nickName?: string; name?: string; profileImageUrl?: string };
-      return { nickName: u.nickName, name: u.name, profileImageUrl: u.profileImageUrl };
+      const u = res as { nickName?: string; name?: string; profileImageUrl?: string; email?: string };
+      return { nickName: u.nickName, name: u.name, profileImageUrl: u.profileImageUrl, email: u.email };
     }
     return null;
   } catch {

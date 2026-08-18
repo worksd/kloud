@@ -15,6 +15,7 @@ export const KloudScreen = {
   Certification: `/certification`,
 
   /** 프로필 관련 */
+  Profile: '/profile',
   ProfileSetting: '/profile/setting',
   ProfileEdit: '/profile/profileEdit',
   MyAccount: '/profile/setting/account',

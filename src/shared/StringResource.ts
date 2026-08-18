@@ -191,6 +191,18 @@ export const StringResource = {
     jp: '設定',
     zh: '设置'
   },
+  profile: {
+    ko: '프로필',
+    en: 'Profile',
+    jp: 'プロフィール',
+    zh: '个人资料'
+  },
+  profile_empty_message: {
+    ko: '아직 활동 내역이 없어요',
+    en: 'No activity yet',
+    jp: 'まだ活動履歴がありません',
+    zh: '暂无活动记录'
+  },
   onboarding_profile: {
     ko: "프로필 설정",
     en: "Profile Setup",

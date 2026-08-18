@@ -30,7 +30,7 @@ const readCookie = (name: string): string | undefined => {
 const isLocale = (v: string | undefined): v is Locale =>
   v === 'ko' || v === 'en' || v === 'jp' || v === 'zh';
 
-type Profile = { nickName?: string; name?: string; profileImageUrl?: string };
+type Profile = { nickName?: string; name?: string; profileImageUrl?: string; email?: string };
 
 export const WebTopNav = ({ initialLogin = false }: {
   /** 서버(layout)가 쿠키로 판단한 로그인 여부 — SSR부터 올바른 버튼(로그인/프로필)을 그린다 */
@@ -127,6 +127,8 @@ export const WebTopNav = ({ initialLogin = false }: {
   );
 };
 
+// tving 웹 스타일 프로필 드롭다운 — 트리거는 아바타만, 패널은
+// [프로필 헤더(아바타+이름 → 프로필 화면)] + 바로가기 메뉴 + 로그아웃. 테마는 화이트.
 const ProfileDropdown = ({profile, displayName, onLogout, locale}: {
   profile: Profile | null;
   displayName?: string;
@@ -145,45 +147,76 @@ const ProfileDropdown = ({profile, displayName, onLogout, locale}: {
     return () => document.removeEventListener('mousedown', onClick);
   }, [open]);
 
+  const menuItemCls = "block px-5 py-2.5 text-[13px] text-[#505356] hover:text-black hover:bg-[#f7f8f9] transition-colors";
+
   return (
     <div ref={ref} className="relative">
+      {/* 트리거: 아바타만 */}
       <button
         onClick={() => setOpen(v => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-[#f5f6f8] transition-colors"
+        aria-label="profile menu"
+        className={`block rounded-full transition-shadow ${open ? 'ring-2 ring-black' : 'hover:ring-2 hover:ring-[#dcdee0]'}`}
       >
         {profile?.profileImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.profileImageUrl} alt="" className="w-7 h-7 rounded-full object-cover"/>
+          <img src={profile.profileImageUrl} alt="" className="w-8 h-8 rounded-full object-cover"/>
         ) : (
-          <div className="w-7 h-7 rounded-full bg-[#dcdee0]"/>
-        )}
-        {displayName && (
-          <span className="text-[13px] font-medium text-black max-w-[120px] truncate">
-            {displayName}
-          </span>
+          <div className="w-8 h-8 rounded-full bg-[#dcdee0]"/>
         )}
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+8px)] min-w-[160px] bg-white rounded-xl border border-[#f0f1f3] shadow-lg py-1.5 z-50"
+          className="absolute right-0 top-[calc(100%+10px)] w-[264px] bg-white rounded-2xl border border-[#f0f1f3] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.16)] py-2 z-50"
         >
+          {/* 프로필 헤더 — 클릭 시 프로필 화면으로 (설정은 프로필 페이지 사이드바에서 진입) */}
           <Link
-            href={KloudScreen.ProfileSetting}
+            href={KloudScreen.Profile}
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2.5 text-[13px] text-black hover:bg-[#f7f8f9] transition-colors"
+            className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#f7f8f9] transition-colors"
           >
-            {getLocaleString({locale, key: 'setting'})}
+            {profile?.profileImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.profileImageUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0"/>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#dcdee0] shrink-0"/>
+            )}
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-[14px] font-bold text-black truncate">
+                {displayName ?? getLocaleString({locale, key: 'profile'})}
+              </span>
+              {profile?.email && (
+                <span className="text-[12px] text-[#8A949E] truncate">{profile.email}</span>
+              )}
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0">
+              <path d="M9 6l6 6-6 6" stroke="#C4C9CF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </Link>
-          <div className="my-1 h-px bg-[#f0f1f3]"/>
+
+          <div className="my-1.5 h-px bg-[#f0f1f3]"/>
+
+          {/* 바로가기 — 프로필 화면의 해당 탭으로 (별도 페이지 라우팅 없음) */}
+          <Link href={`${KloudScreen.Profile}?tab=tickets`} role="menuitem" onClick={() => setOpen(false)} className={menuItemCls}>
+            {getLocaleString({locale, key: 'my_tickets'})}
+          </Link>
+          <Link href={`${KloudScreen.Profile}?tab=pass`} role="menuitem" onClick={() => setOpen(false)} className={menuItemCls}>
+            {getLocaleString({locale, key: 'my_pass'})}
+          </Link>
+          <Link href={`${KloudScreen.Profile}?tab=payments`} role="menuitem" onClick={() => setOpen(false)} className={menuItemCls}>
+            {getLocaleString({locale, key: 'payment_records'})}
+          </Link>
+
+          <div className="my-1.5 h-px bg-[#f0f1f3]"/>
+
           <button
             role="menuitem"
             onClick={() => { setOpen(false); onLogout(); }}
-            className="w-full text-left px-4 py-2.5 text-[13px] text-black hover:bg-[#f7f8f9] transition-colors"
+            className={`w-full text-left ${menuItemCls}`}
           >
             {getLocaleString({locale, key: 'log_out'})}
           </button>

@@ -1,3 +1,4 @@
+'use server'
 import { PassOrder } from "@/app/endpoint/pass.endpoint";
 import { api } from "@/app/api.client";
 
