@@ -92,10 +92,10 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
   const handleLogout = async () => {
     await unregisterDeviceAction();
     await clearCookies();
-    // PC: 풀 리로드로 로그아웃 상태를 상단바/서버 컴포넌트에 확실히 반영하며 메인+로그인 다이얼로그로.
+    // PC: 풀 리로드로 로그아웃 상태를 상단바/서버 컴포넌트에 확실히 반영하며 홈(/lessons)으로.
     // (이미 /lessons면 router.replace는 pathname이 안 바뀌어 쿠키 재확인 effect가 안 돈다)
     if (window.matchMedia('(min-width: 1024px)').matches) {
-      window.location.replace('/lessons?login=true');
+      window.location.replace('/lessons');
     } else {
       router.replace(KloudScreen.LoginIntro(''));
     }
