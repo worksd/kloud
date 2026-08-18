@@ -24,7 +24,7 @@ const readCookie = (name: string): string | undefined => {
 };
 
 // 고정 레일을 보여주는 브라우즈 루트 — LNB 메뉴의 최상위 목적지들
-const BROWSE_ROOTS = new Set(['/', '/myStudio', '/studioRooms', '/profile']);
+const BROWSE_ROOTS = new Set(['/', '/myStudio', '/studioRooms', '/profile', '/search']);
 
 export const WebShell = ({initialLogin, lnbLabels, myStudioId, children}: {
   initialLogin: boolean;

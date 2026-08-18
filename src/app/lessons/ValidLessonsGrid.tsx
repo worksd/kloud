@@ -12,11 +12,13 @@ import { LessonRelativeDate } from '@/app/components/LessonRelativeDate';
 import { LessonTypeLabel } from '@/app/components/LessonLabel';
 import { LessonType } from '@/entities/lesson/lesson';
 import { Locale } from '@/shared/StringResource';
+import { getLocaleString } from '@/app/components/locale';
 
 const artistOf = (l: ValidLessonResponse) => l.artists?.[0]?.nickName ?? l.artists?.[0]?.name;
 
 
-const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) => {
+// 검색 결과(/search) 등 다른 PC 격자에서도 재사용
+export const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) => {
   const soldOut = l.status === 'Ready';
   return (
     <Link href={KloudScreen.LessonDetail(l.id)} className="flex flex-col gap-3 group">

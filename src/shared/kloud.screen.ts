@@ -63,6 +63,7 @@ export const KloudScreen = {
 
   /** 내 스튜디오 (PC 웹) */
   MyStudio: '/myStudio',
+  Search: (keyword: string) => `/search?q=${encodeURIComponent(keyword)}`,
 
   /** 연습실 */
   StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,

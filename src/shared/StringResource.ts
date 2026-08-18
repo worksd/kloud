@@ -371,6 +371,42 @@ export const StringResource = {
     jp: "スタジオと出会う瞬間からレッスンを受ける瞬間まで",
     zh: "从遇见舞室的那一刻，到起舞的每一刻"
   },
+  search_placeholder: {
+    ko: "수업이나 스튜디오를 검색해보세요",
+    en: "Search classes or studios",
+    jp: "レッスンやスタジオを検索",
+    zh: "搜索课程或舞室"
+  },
+  search_section_studios: {
+    ko: "스튜디오",
+    en: "Studios",
+    jp: "スタジオ",
+    zh: "舞室"
+  },
+  search_section_upcoming: {
+    ko: "다가올 수업",
+    en: "Upcoming classes",
+    jp: "これからのレッスン",
+    zh: "即将开始的课程"
+  },
+  search_section_last: {
+    ko: "종료된 수업",
+    en: "Past classes",
+    jp: "終了したレッスン",
+    zh: "已结束的课程"
+  },
+  search_empty_result: {
+    ko: "검색 결과가 없어요",
+    en: "No results found",
+    jp: "検索結果がありません",
+    zh: "没有搜索结果"
+  },
+  search_result_for: {
+    ko: "검색 결과",
+    en: "Search results",
+    jp: "検索結果",
+    zh: "搜索结果"
+  },
   welcome_message: {
     ko: "댄스 스튜디오를 마주하는 순간부터 수업을 듣는 순간까지, Rawgraphy입니다",
     en: "Create amazing moments with Rawgraphy.",

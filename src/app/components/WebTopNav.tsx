@@ -3,7 +3,7 @@
 // PC 웹(≥lg, 앱 웹뷰 아님) 전 페이지 공통 상단바 — 로고 + 로그인/프로필.
 // shelf 'Add PC-specific components'의 WebTopNav에서 상단바만 이식한 축소판:
 //  - 좌측 사이드바(수업/패스권/연습실/행사)는 목록 페이지들이 아직 없어 제외
-//  - 검색 input은 /search가 빈 스텁이라 제외
+//  - 가운데 검색창은 소비자 검색 API(/search/suggestions·contents) 연동 — 결과는 /search?q=
 //  - fixed + 페이지별 padding 대신 sticky(문서 흐름 안)라 어떤 페이지도 겹침 없이 밀려 내려간다
 // 웹/앱 판단은 layout(서버, x-guinness-version 헤더)이 한다 — 여기서 mounted 게이트로 하면
 // SSR HTML에 없다가 hydration 후 나타나며 컨텐츠를 밀어내는 깜빡임이 생긴다(풀 리로드마다 재발).
@@ -20,6 +20,7 @@ import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 import { getWebTopNavProfileAction } from '@/app/components/web.top.nav.action';
 import { WebLoginDialog } from '@/app/components/WebLoginDialog';
+import { WebSearchBox } from '@/app/components/WebSearchBox';
 
 const readCookie = (name: string): string | undefined => {
   if (typeof document === 'undefined') return undefined;
@@ -124,6 +125,11 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/logo_black.svg" alt="rawgraphy" style={{ height: 14, width: 'auto', display: 'block' }}/>
         </Link>
+
+        {/* 가운데 검색창 — 추천 검색어 드롭다운 포함 (GET /search/suggestions) */}
+        <div className="flex-1 flex justify-center px-6">
+          <WebSearchBox locale={locale}/>
+        </div>
 
         <div className="ml-auto flex items-center gap-3 shrink-0">
           {isLogin ? (

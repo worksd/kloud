@@ -144,6 +144,11 @@ export class ApiClient extends EndpointClient {
     cancel: this.endpointBuilder(API.Subscription.Cancel),
   }
 
+  readonly search = {
+    suggestions: this.endpointBuilder(API.Search.GetSearchSuggestions),
+    contents: this.endpointBuilder(API.Search.GetSearchContents),
+  }
+
   readonly home = {
     getHome: this.endpointBuilder(API.Home.GetHome),
     getStage: this.endpointBuilder(API.Home.GetStage),
