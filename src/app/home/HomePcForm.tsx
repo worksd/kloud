@@ -64,10 +64,10 @@ const PosterCard = ({l, locale, endedLabel}: { l: RichLesson; locale: Locale; en
   const studioName = l.studioName || l.studio?.name;
   return (
     <Link href={KloudScreen.LessonDetail(l.id)} className="w-[240px] flex-none snap-start group">
-      <div className="relative overflow-hidden rounded-[16px] bg-[#F1F3F6] aspect-[3/4]">
+      <div className="relative overflow-hidden rounded-[16px] bg-[#F1F3F6] aspect-[3/4] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)]">
         {l.thumbnailUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={l.thumbnailUrl} alt={l.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"/>
+          <img src={l.thumbnailUrl} alt={l.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"/>
         )}
         {(l.label?.type === 'PopUp' || l.label?.type === 'Workshop') && (
           <div className="absolute top-2 left-2 bg-[#1F1F1F] px-1 py-1 rounded-[4px] text-white font-paperlogy font-bold text-[11px] leading-none">

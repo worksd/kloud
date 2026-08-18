@@ -9,6 +9,8 @@ import { KloudScreen } from '@/shared/kloud.screen';
 import { ValidLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { getValidLessonsAction } from '@/app/lessons/get.valid.lessons.action';
 import { LessonRelativeDate } from '@/app/components/LessonRelativeDate';
+import { LessonTypeLabel } from '@/app/components/LessonLabel';
+import { LessonType } from '@/entities/lesson/lesson';
 import { Locale } from '@/shared/StringResource';
 
 const artistOf = (l: ValidLessonResponse) => l.artists?.[0]?.nickName ?? l.artists?.[0]?.name;
@@ -18,28 +20,31 @@ const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) => 
   const soldOut = l.status === 'Ready';
   return (
     <Link href={KloudScreen.LessonDetail(l.id)} className="flex flex-col gap-3 group">
-      <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#F1F3F6]">
+      <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#F1F3F6] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)]">
         {l.thumbnailUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={l.thumbnailUrl}
             alt={l.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"
           />
         )}
         {/* 왼쪽 위 — 스튜디오 로고 (장르 대신) */}
         {l.studio.profileImageUrl && (
-          <div className="absolute top-2 left-2 w-7 h-7 rounded-full overflow-hidden ring-2 ring-white/80 shadow-sm bg-white">
+          <div className="absolute top-2.5 left-2.5 w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/80 shadow-sm bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={l.studio.profileImageUrl} alt={l.studio.name} className="w-full h-full object-cover"/>
           </div>
         )}
-        {/* 정원 마감 — status가 Ready면 표시 (예약 가능 여부는 status 하나로 판단) */}
-        {soldOut && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-white/90">
-            <span className="text-[11px] font-bold text-[#E5484D]">{l.statusLabel}</span>
-          </div>
-        )}
+        {/* 오른쪽 위 — 정원 마감(위) + 수업 타입(정규/워크샵/팝업/오디션) 라벨 */}
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+          {soldOut && (
+            <div className="px-2 py-0.5 rounded-md bg-white/90">
+              <span className="text-[11px] font-bold text-[#E5484D]">{l.statusLabel}</span>
+            </div>
+          )}
+          {l.type && <LessonTypeLabel type={l.type as LessonType} locale={locale}/>}
+        </div>
       </div>
       <div className="flex flex-col gap-1">
         <span className="text-[15px] font-bold text-black truncate">{l.title}</span>
