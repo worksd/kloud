@@ -482,6 +482,19 @@ export const UnifiedPaymentInfo = ({
           - buttonSlotId 지정(PC 폼): 우측 요약 카드 아래 슬롯으로 portal — 화면 하단 고정 아님.
             slot 노드를 찾기 전(첫 페인트)에는 잠깐 fixed로 렌더되지만 PC 인스턴스는 곧바로 이동한다. */}
       {(() => {
+        // 버튼 비활성 사유 — 아래 disabled 식과 같은 순서로 첫 사유 하나만 (PC 웹 hover 툴팁용)
+        const needMethod = type === 'practice-room' || totalPrice > 0;
+        const disabledReason = priceNotAvailable
+          ? getLocaleString({locale, key: 'payment_disabled_price_unavailable'})
+          : (type === 'practice-room' && !practiceRoomInfo)
+            ? getLocaleString({locale, key: 'payment_disabled_no_slot'})
+            : (needMethod && !selectedMethod)
+              ? getLocaleString({locale, key: 'payment_disabled_no_method'})
+              : (selectedMethod === 'pass' && !selectedPass)
+                ? getLocaleString({locale, key: 'payment_disabled_no_pass'})
+                : (needMethod && selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
+                  ? getLocaleString({locale, key: 'payment_disabled_no_card'})
+                  : undefined;
         const paymentButton = (
         <PaymentButton
           locale={locale}
@@ -514,6 +527,7 @@ export const UnifiedPaymentInfo = ({
             (!priceAvailable && selectedMethod === 'pass' && !selectedPass)
           }
           // 정책을 고르면 그 정책의 결제 id로 결제한다 — 최상위 paymentId는 기본 정책의 것일 뿐이다
+          disabledReason={disabledReason}
           paymentId={selectedPolicy?.paymentId ?? payment.paymentId}
           actualPayerUserId={noPass ? undefined : actualPayerUserId}
           hasRefundAccount={payment.refundAccountNumber != null && payment.refundAccountNumber.length > 0}

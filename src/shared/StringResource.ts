@@ -221,6 +221,36 @@ export const StringResource = {
     jp: 'あなたのレッスンを見つけよう',
     zh: '找到属于你的课程'
   },
+  payment_disabled_price_unavailable: {
+    ko: '결제 정보를 불러오지 못했어요',
+    en: "Couldn't load payment info",
+    jp: '決済情報を読み込めませんでした',
+    zh: '无法加载支付信息'
+  },
+  payment_disabled_no_slot: {
+    ko: '이용할 시간을 먼저 선택해주세요',
+    en: 'Select a time slot first',
+    jp: '利用時間を先に選択してください',
+    zh: '请先选择使用时间'
+  },
+  payment_disabled_no_method: {
+    ko: '결제수단을 선택해주세요',
+    en: 'Select a payment method',
+    jp: 'お支払い方法を選択してください',
+    zh: '请选择支付方式'
+  },
+  payment_disabled_no_pass: {
+    ko: '사용할 패스를 선택해주세요',
+    en: 'Select a pass to use',
+    jp: '使用するパスを選択してください',
+    zh: '请选择要使用的通票'
+  },
+  payment_disabled_no_card: {
+    ko: '결제할 카드를 선택해주세요',
+    en: 'Select a card to pay with',
+    jp: '決済するカードを選択してください',
+    zh: '请选择支付卡'
+  },
   lessons_home_subtitle: {
     ko: '원하는 스튜디오의 수업을 한 곳에서 둘러보세요',
     en: 'Browse classes from every studio in one place',

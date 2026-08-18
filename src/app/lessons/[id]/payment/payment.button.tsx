@@ -98,6 +98,7 @@ export default function PaymentButton({
                                         method,
                                         depositor,
                                         disabled,
+                                        disabledReason,
                                         paymentId,
                                         user,
                                         actualPayerUserId,
@@ -123,6 +124,8 @@ export default function PaymentButton({
   user?: GetUserResponse,
   depositor: string,
   disabled: boolean,
+  /** disabled 사유 — PC 웹(lg)에서 버튼 hover 시 툴팁으로 노출 */
+  disabledReason?: string,
   paymentId: string,
   actualPayerUserId?: number,
   locale: Locale,
@@ -523,7 +526,16 @@ export default function PaymentButton({
 
 
   return (
-    <div>
+    <div className="relative group">
+      {/* 비활성 사유 툴팁 — PC 웹(lg) hover 시에만. 앱/모바일은 기존 그대로 */}
+      {disabled && disabledReason && appVersion === '' && (
+        <div className="hidden lg:group-hover:flex absolute bottom-[calc(100%+10px)] left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+          <div className="relative bg-[#1F1F1F] text-white text-[12px] font-medium px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+            {disabledReason}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1F1F1F]"/>
+          </div>
+        </div>
+      )}
       <CommonSubmitButton
         originProps={{onClick: () => {
           // 결제 시도 시점 — 성공/실패 이전이라 '결제 버튼을 눌렀다' 자체를 센다.
