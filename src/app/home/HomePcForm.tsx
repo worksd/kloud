@@ -95,7 +95,8 @@ const Band = ({title, subtitle, children}: { title: string; subtitle?: string; c
       <h2 className="text-[22px] font-bold text-black tracking-tight">{title}</h2>
       {subtitle && <p className="text-[13px] text-[#86898C] mt-1">{subtitle}</p>}
     </div>
-    <div className="overflow-x-auto scrollbar-hide">
+    {/* py+음수 마진 — 호버 리프트/섀도가 overflow 컨테이너에 잘리지 않게 */}
+    <div className="overflow-x-auto scrollbar-hide py-6 -my-6">
       <div className="flex gap-5 snap-x">
         {/* leading spacer 0.25rem + gap 1.25rem = 타이틀(pl-6)과 첫 카드 정렬 */}
         <div className="shrink-0 w-1" aria-hidden/>

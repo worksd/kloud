@@ -78,7 +78,8 @@ export const LessonsPcHeroCarousel = ({items}: {items: HeroItem[]}) => {
         onMouseDown={onMouseDown}
         onClickCapture={onClickCapture}
         onDragStart={(e) => e.preventDefault()}
-        className="flex overflow-x-auto snap-x scrollbar-hide gap-4 cursor-grab select-none"
+        // py+음수 마진 — 호버로 카드가 떠오르고 섀도가 퍼질 때 overflow 컨테이너에 잘리지 않게 상하 여유
+        className="flex overflow-x-auto snap-x scrollbar-hide gap-4 cursor-grab select-none py-6 -my-6 px-3 -mx-3"
       >
         {items.map((item) => (
           <Link
