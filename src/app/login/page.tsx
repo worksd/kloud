@@ -35,7 +35,7 @@ export default async function Login({
 
   return (
     <section
-      className={`w-screen min-h-screen bg-white flex flex-col items-center pb-7 px-5 ${isWeb ? 'lg:justify-center lg:pb-0' : ''}`}
+      className={`w-full min-h-screen bg-white flex flex-col items-center pb-7 px-5 ${isWeb ? 'lg:justify-center lg:pb-0' : ''}`}
     >
       <LoginCookieCleaner />
       {/* 모바일: 로고 상단 + 버튼 하단(세로 스트레치) / PC(lg): 중앙 카드 안에 로고·버튼을 모아 배치 */}

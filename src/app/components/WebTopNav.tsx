@@ -32,9 +32,11 @@ const isLocale = (v: string | undefined): v is Locale =>
 
 type Profile = { nickName?: string; name?: string; profileImageUrl?: string; email?: string };
 
-export const WebTopNav = ({ initialLogin = false }: {
+export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
   /** 서버(layout)가 쿠키로 판단한 로그인 여부 — SSR부터 올바른 버튼(로그인/프로필)을 그린다 */
   initialLogin?: boolean;
+  /** LNB 펼침/접힘 토글 (WebShell 소유) — 있으면 로고 왼쪽에 햄버거 노출 */
+  onToggleLnb?: () => void;
 }) => {
   const [isLogin, setIsLogin] = useState(initialLogin);
   const [locale, setLocale] = useState<Locale>('ko');
@@ -86,16 +88,24 @@ export const WebTopNav = ({ initialLogin = false }: {
   return (
     // sticky — 문서 흐름 안에 있어 페이지 컨텐츠를 자연스럽게 아래로 밀고, 스크롤해도 상단 고정
     <header className="hidden lg:flex sticky top-0 h-16 bg-white border-b border-[#f0f1f3] z-50 items-center">
-      <div className="w-full h-full px-6 flex items-center gap-6">
-        {/* 로고 — 아직 랜딩 목적지가 정해지지 않아 클릭 이동 없음. 정해지면 아래 Link로 복원.
-        <Link href="/" aria-label="rawgraphy" className="shrink-0">
-          <img src="/assets/logo_black.svg" alt="rawgraphy" style={{ height: 14, width: 'auto', display: 'block' }}/>
-        </Link>
-        */}
-        <div aria-label="rawgraphy" className="shrink-0 select-none">
+      <div className="w-full h-full px-4 flex items-center gap-4">
+        {/* 햄버거 — LNB 펼침/접힘 (유튜브 방식) */}
+        {onToggleLnb && (
+          <button
+            onClick={onToggleLnb}
+            aria-label="메뉴 열기/닫기"
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f5f6f8] transition-colors shrink-0"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+              <path d="M4 6h16M4 12h16M4 18h16" stroke="#1a1a1a" strokeWidth="1.7" strokeLinecap="round"/>
+            </svg>
+          </button>
+        )}
+        {/* 로고 — 기본 route(/)로. PC 웹에선 HomeRedirect가 메인(/lessons)으로 보낸다 */}
+        <Link href="/" aria-label="rawgraphy" className="shrink-0 select-none">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/logo_black.svg" alt="rawgraphy" style={{ height: 14, width: 'auto', display: 'block' }}/>
-        </div>
+        </Link>
 
         <div className="ml-auto flex items-center gap-3 shrink-0">
           {isLogin ? (
@@ -200,6 +210,20 @@ const ProfileDropdown = ({profile, displayName, onLogout, locale}: {
 
           {/* 수강/패스권/결제 바로가기는 프로필 화면 사이드바에서 보므로 여기엔 두지 않는다 */}
           <div className="my-1.5 h-px bg-[#f0f1f3]"/>
+
+          {/* 설정 — 프로필 사이드바가 아니라 여기(탑내비)에서 진입 */}
+          <Link
+            href={KloudScreen.ProfileSetting}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className={`flex items-center gap-2.5 ${menuItemCls}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
+              <path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.5-2.4 1a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.4-1-2 3.5 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.5 2.4-1a7.6 7.6 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
+            </svg>
+            {getLocaleString({locale, key: 'setting'})}
+          </Link>
 
           <button
             role="menuitem"

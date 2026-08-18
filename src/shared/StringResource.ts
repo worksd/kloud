@@ -197,6 +197,24 @@ export const StringResource = {
     jp: 'プロフィール',
     zh: '个人资料'
   },
+  lnb_home: {
+    ko: '홈',
+    en: 'Home',
+    jp: 'ホーム',
+    zh: '首页'
+  },
+  lnb_my_studio: {
+    ko: '내 스튜디오',
+    en: 'My Studio',
+    jp: 'マイスタジオ',
+    zh: '我的工作室'
+  },
+  lnb_practice_room: {
+    ko: '연습실 대관',
+    en: 'Practice Rooms',
+    jp: '練習室レンタル',
+    zh: '练习室租赁'
+  },
   profile_empty_message: {
     ko: '아직 활동 내역이 없어요',
     en: 'No activity yet',

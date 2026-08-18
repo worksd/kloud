@@ -31,7 +31,7 @@ export default async function LoginIntroPage({
 
   return (
     <section
-      className={`relative w-screen min-h-screen flex flex-col items-center pb-7 px-5 ${isWeb ? 'overflow-hidden lg:justify-center lg:pb-0' : 'bg-white'}`}
+      className={`relative w-full min-h-screen flex flex-col items-center pb-7 px-5 ${isWeb ? 'overflow-hidden lg:justify-center lg:pb-0' : 'bg-white'}`}
       style={isWeb ? LOGIN_GRADIENT_STYLE : undefined}
     >
       {/* 장식 블롭 — 웹 전용. pointer-events 차단 없이 배경 분위기만. 컨텐츠는 relative로 위에 얹는다. */}

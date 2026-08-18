@@ -1,7 +1,6 @@
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import LessonDetailForm from "@/app/lessons/[id]/payment/LessonDetailForm";
 import LessonDetailPcForm from "@/app/lessons/[id]/payment/LessonDetailPcForm";
-import { NoOverscrollOnPc } from "@/app/lessons/[id]/NoOverscrollOnPc";
 import { getLessonDetailAction } from "@/app/lessons/[id]/action/getLessonDetailAction";
 import { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
@@ -49,7 +48,6 @@ export default async function LessonDetailPage({params, searchParams}: {
       {isWeb ? (
         <>
           {/* PC 뷰포트에서만 문서 오버스크롤 차단 — 컴포넌트가 media query로 자체 게이팅 */}
-          <NoOverscrollOnPc/>
           <div className="hidden lg:block">
             <LessonDetailPcForm lesson={res} appVersion={appVersion}/>
           </div>

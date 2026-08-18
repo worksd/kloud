@@ -7,8 +7,8 @@ import { accessTokenKey } from "@/shared/cookies.key";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
 import { Analytics } from "@vercel/analytics/react";
-import { WebTopNav } from "@/app/components/WebTopNav";
-import { WebFooter } from "@/app/components/WebFooter";
+import { WebShell } from "@/app/components/WebShell";
+import { translate } from "@/utils/translate";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -48,17 +48,25 @@ export default async function RootLayout({
     <html lang="en" className={`${paperFont.variable}`}>
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
-    {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 상단바 — sticky라 컨텐츠와 겹치지 않는다 */}
-    {showWebChrome && <WebTopNav initialLogin={isLogin} />}
-    {/* 컨텐츠 영역이 lg에서 항상 최소 100vh — 페이지 전환 중 loading으로 높이가 무너져도
-        푸터가 fold 아래(스크롤해야 보이는 위치)에 머물러 위로 튀어오르거나 번쩍이지 않는다.
-        flex-1 sticky-footer 방식은 로딩 중 푸터가 화면 하단에 '보이는' 높이가 돼 번쩍임이 남는다.
-        lg 미만/앱에선 클래스 비활성 — 그냥 래퍼 div (동작 불변). */}
-    <div className="lg:min-h-screen">
-      {children}
-    </div>
-    {/* PC 웹 공통 푸터 — 회사 정보 법적 표기 (값은 src/shared/company.ts 단일 출처) */}
-    {showWebChrome && <WebFooter />}
+    {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 크롬 — 상단바 + 유튜브식 LNB(레일/드로어).
+        푸터(회사 정보)는 LNB 왼쪽 아래에 산다 (WebLnb의 LnbFooter). */}
+    {showWebChrome ? (
+      <WebShell
+        initialLogin={isLogin}
+        lnbLabels={{
+          home: await translate('lnb_home'),
+          myStudio: await translate('lnb_my_studio'),
+          rooms: await translate('lnb_practice_room'),
+          profile: await translate('profile'),
+        }}
+      >
+        {children}
+      </WebShell>
+    ) : (
+      <div className="lg:min-h-screen">
+        {children}
+      </div>
+    )}
     {/* Vercel Web Analytics — 이게 없으면 track() 커스텀 이벤트도 전송되지 않는다 */}
     <Analytics />
     </body>
