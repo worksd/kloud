@@ -1,6 +1,7 @@
 import { CouponRegisterForm } from '@/app/profile/setting/coupon/CouponRegisterForm';
 import { getLocale, translate } from '@/utils/translate';
 import { api } from '@/app/api.client';
+import { SettingPcShell } from '@/app/profile/setting/SettingPcShell';
 
 export default async function CouponRegisterPage({
   searchParams,
@@ -20,14 +21,26 @@ export default async function CouponRegisterPage({
     // ignore — 비로그인으로 처리
   }
 
+  const locale = await getLocale();
+  const title = await translate('coupon_register');
+
   return (
-    <div className="flex flex-col w-screen h-[100dvh] bg-white">
-      {isWeb && (
-        <div className="flex h-14 shrink-0 items-center justify-center bg-white">
-          <h1 className="text-[16px] font-bold text-black">{await translate('coupon_register')}</h1>
+    <SettingPcShell
+      isWeb={isWeb}
+      title={title}
+      flush
+      mobile={
+        <div className="flex flex-col w-screen h-[100dvh] bg-white">
+          {isWeb && (
+            <div className="flex h-14 shrink-0 items-center justify-center bg-white">
+              <h1 className="text-[16px] font-bold text-black">{title}</h1>
+            </div>
+          )}
+          <CouponRegisterForm locale={locale} initialCode={code} isLoggedIn={isLoggedIn} />
         </div>
-      )}
-      <CouponRegisterForm locale={await getLocale()} initialCode={code} isLoggedIn={isLoggedIn} />
-    </div>
+      }
+    >
+      <CouponRegisterForm locale={locale} initialCode={code} isLoggedIn={isLoggedIn} />
+    </SettingPcShell>
   );
 }

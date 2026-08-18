@@ -10,7 +10,13 @@ import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMetho
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-export const BillingCardForm = ({cards, locale, birth}: { cards: GetBillingResponse[], locale: Locale, birth?: string | null }) => {
+export const BillingCardForm = ({cards, locale, birth, pcCard = false}: {
+  cards: GetBillingResponse[],
+  locale: Locale,
+  birth?: string | null,
+  /** PC(lg) 카드 안 렌더 — 우하단 고정 + 버튼을 컨텐츠 우상단으로 */
+  pcCard?: boolean,
+}) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -58,19 +64,19 @@ export const BillingCardForm = ({cards, locale, birth}: { cards: GetBillingRespo
   }, [])
 
   return (
-    <main className="p-6">
-      <div className="w-full max-w-md mx-auto relative">
+    <main className={`p-6 ${pcCard ? 'lg:p-0' : ''}`}>
+      <div className={`w-full max-w-md mx-auto relative ${pcCard ? 'lg:max-w-none' : ''}`}>
         {/* + 버튼 */}
         <button
           onClick={() => setShowForm(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition"
+          className={`fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition ${pcCard ? 'lg:absolute lg:bottom-auto lg:-top-14 lg:right-0 lg:w-10 lg:h-10 lg:text-2xl lg:border lg:border-[#dcdee0] lg:drop-shadow-none' : ''}`}
           aria-label="카드 추가"
         >
           +
         </button>
 
         {newCards.length === 0 ? (
-          <div className="text-center text-gray-500 mt-60">
+          <div className={`text-center text-gray-500 mt-60 ${pcCard ? 'lg:mt-16 lg:mb-16' : ''}`}>
             <div className="text-[22px] font-bold text-black">{getLocaleString({
               locale,
               key: 'no_registered_payment_method_message'

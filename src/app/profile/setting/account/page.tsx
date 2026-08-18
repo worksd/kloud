@@ -1,16 +1,19 @@
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { MenuItem } from "@/app/profile/setting.menu.item";
 import { translate } from "@/utils/translate";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
+import { SettingPcShell } from "@/app/profile/setting/SettingPcShell";
 
-export default async function MyAccountPage() {
-
+export default async function MyAccountPage({searchParams}: {
+  searchParams: Promise<{ appVersion?: string }>
+}) {
+  const { appVersion } = await searchParams;
   const user = await getUserAction();
-  if (user && 'id' in user) {
-    return <div className={'flex flex-col'}>
+  if (!user || !('id' in user)) return null;
 
+  const menuList = (
+    <>
       {user.phone ? <div className={'flex flex-col px-6 text-black py-4 space-y-1 font-medium'}>
         <div className={'flex flex-row space-x-1 items-center'}>
           <div className={'text-black'}>{await translate('cell_phone_certificate')}</div>
@@ -51,7 +54,17 @@ export default async function MyAccountPage() {
       <NavigateClickWrapper method={'push'} route={KloudScreen.SignOut}>
         <MenuItem label="sign_out"/>
       </NavigateClickWrapper>
+    </>
+  );
 
-    </div>
-  }
+  return (
+    <SettingPcShell
+      isWeb={appVersion === '' || appVersion == null}
+      title={await translate('my_account')}
+      flush
+      mobile={<div className={'flex flex-col'}>{menuList}</div>}
+    >
+      {menuList}
+    </SettingPcShell>
+  );
 }

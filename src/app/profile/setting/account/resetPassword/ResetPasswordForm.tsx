@@ -15,7 +15,11 @@ import { getLocaleString } from "@/app/components/locale";
 
 type ResetPasswordPage = 'current' | 'new'
 
-export const ResetPasswordForm = ({locale} : {locale: Locale}) => {
+export const ResetPasswordForm = ({locale, pcCard = false} : {
+  locale: Locale,
+  /** PC(lg) 카드 안 렌더 — 화면 하단 고정 버튼을 폼 흐름 마지막으로 */
+  pcCard?: boolean,
+}) => {
 
   const [page, setPage] = useState<ResetPasswordPage>('current');
   const [oldPassword, setOldPassword] = React.useState<string>('');
@@ -176,7 +180,7 @@ export const ResetPasswordForm = ({locale} : {locale: Locale}) => {
 
       }
 
-      <div className="fixed bottom-4 left-0 right-0 px-6">
+      <div className={`fixed bottom-4 left-0 right-0 px-6 ${pcCard ? 'lg:static lg:px-0 lg:pt-8' : ''}`}>
         <CommonSubmitButton
           originProps={{onClick}}
           disabled={

@@ -1,9 +1,14 @@
 import React from "react";
 import { translate } from "@/utils/translate";
+import { SettingPcShell } from "@/app/profile/setting/SettingPcShell";
 
-export default async function BusinessInfoPage() {
-  return (
-    <div className="bg-gray-50 p-6 rounded-lg shadow-sm text-gray-700 w-full max-w-md space-y-5">
+export default async function BusinessInfoPage({searchParams}: {
+  searchParams: Promise<{ appVersion?: string }>
+}) {
+  const { appVersion } = await searchParams;
+
+  const infoBlock = (
+    <div className="bg-gray-50 p-6 rounded-lg shadow-sm text-gray-700 w-full max-w-md space-y-5 lg:max-w-none lg:shadow-none lg:bg-[#F7F8F9]">
       {[
         {label: await translate("business_name"), value: "로우그래피 주식회사"},
         {label: await translate("representative"), value: "서종렬"},
@@ -28,5 +33,15 @@ export default async function BusinessInfoPage() {
         </div>
       ))}
     </div>
+  );
+
+  return (
+    <SettingPcShell
+      isWeb={appVersion === '' || appVersion == null}
+      title={await translate('business_info')}
+      mobile={infoBlock}
+    >
+      {infoBlock}
+    </SettingPcShell>
   );
 }

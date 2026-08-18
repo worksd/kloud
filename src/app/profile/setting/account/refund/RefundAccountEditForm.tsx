@@ -18,6 +18,7 @@ export const RefundAccountEditForm = ({
                                         refundAccountPlaceholder,
                                         refundDepositorText,
                                         refundDepositorPlaceholder,
+                                        pcCard = false,
                                       }: {
   initialAccountNumber?: string;
   initialAccountBank?: string;
@@ -31,6 +32,8 @@ export const RefundAccountEditForm = ({
   refundAccountPlaceholder: string;
   refundDepositorText: string;
   refundDepositorPlaceholder: string;
+  /** PC(lg) 카드 안 렌더 — 풀스크린 높이를 카드 흐름에 맞게 조정 */
+  pcCard?: boolean;
 }) => {
   const [refundAccountBank, setRefundAccountBank] = useState(initialAccountBank ?? "");
   const [refundAccountNumber, setRefundAccountNumber] = useState(initialAccountNumber ?? "");
@@ -72,7 +75,7 @@ export const RefundAccountEditForm = ({
   }, [baseRoute, isFromBottomSheet]);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#F7F8F9]">
+    <div className={`flex min-h-[100dvh] flex-col bg-[#F7F8F9] ${pcCard ? 'lg:min-h-0 lg:rounded-2xl' : ''}`}>
       {/* 안내 */}
       <div className="px-6 pt-6 pb-5">
         <p className="text-[13px] text-[#86898C] leading-relaxed">
