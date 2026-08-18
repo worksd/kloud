@@ -21,13 +21,14 @@ import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
 import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
 import {TrackView} from "@/app/components/TrackView";
+import {HomePcForm} from "@/app/home/HomePcForm";
 
 export default async function Home({
                                      searchParams
                                    }: {
-  searchParams: Promise<{ os: string }>
+  searchParams: Promise<{ os: string, appVersion?: string }>
 }) {
-  const {os} = await searchParams
+  const {os, appVersion} = await searchParams
   const res = await getHomeAction()
   const hideDialogIds = await getHideDialogIdsAction()
   const locale = await getLocale()
@@ -78,9 +79,25 @@ export default async function Home({
         </div>
     );
 
-    return studio && firstThumb
+    const mobile = studio && firstThumb
       ? <HomeAlphaBgProvider initialImage={firstThumb}>{content}</HomeAlphaBgProvider>
       : content;
+
+    // 웹 직접 접근 + viewport ≥1024px(lg)이면 PC 홈 — 모바일 홈의 fixed 헤더/플로팅 버튼이
+    // PC 크롬(탑바·LNB)을 덮는 문제를 피한다. 앱 웹뷰/좁은 웹은 기존 렌더 그대로.
+    const isWeb = appVersion === '' || appVersion == null;
+    if (!isWeb) return mobile;
+
+    return (
+      <>
+        <div className="hidden lg:block">
+          <HomePcForm home={res}/>
+        </div>
+        <div className="lg:hidden">
+          {mobile}
+        </div>
+      </>
+    );
   } else {
     const result = await handleApiError(res, 'GET /home');
     if (result === 'TOKEN_EXPIRED') return <TokenExpiredRedirect />;
