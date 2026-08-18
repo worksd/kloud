@@ -89,7 +89,7 @@ const MenuRow = ({icon, label, count, active, onClick}: {
 }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-5 py-3.5 cursor-pointer transition-colors text-left ${
+    className={`w-full flex items-center gap-3 px-3.5 py-3.5 rounded-lg cursor-pointer transition-colors text-left ${
       active ? 'bg-[#f1f3f6]' : 'hover:bg-[#f7f8f9]'
     }`}
   >
@@ -253,6 +253,7 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
   // 한 번 방문한 탭은 mounted 유지 → 데이터 캐시 (재클릭 시 refetch 없음)
   const [visited, setVisited] = useState<Set<ProfileTabKey>>(() => new Set([initialTab]));
 
+  // 탭은 URL 동기화 없이 클라이언트 state로만 관리 (?tab= 쿼리는 진입 시 초기 탭 지정용으로만)
   const openTab = (key: ProfileTabKey) => {
     setTab(key);
     setVisited((prev) => {
@@ -309,8 +310,8 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
             </NavigateClickWrapper>
           </section>
 
-          {/* 메뉴 — 탭 전환 (설정만 실제 페이지 이동) */}
-          <nav className="rounded-2xl border border-[#f0f1f3] bg-white py-2">
+          {/* 메뉴 — 탭 전환 (설정만 실제 페이지 이동). 좌우 패딩 + 살짝 rounded로 눌린 항목이 카드 안에 떠 보이게 */}
+          <nav className="rounded-2xl border border-[#f0f1f3] bg-white p-2">
             <MenuRow
               icon={<TicketIcon viewBox="0 0 24 24" className="w-[20px] h-[20px]"/>}
               label={t.myTickets}
@@ -347,7 +348,7 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
             />
             <div className="my-2 h-px bg-[#f0f1f3]"/>
             <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-              <div className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#f7f8f9] cursor-pointer transition-colors">
+              <div className="flex items-center gap-3 px-3.5 py-3.5 rounded-lg hover:bg-[#f7f8f9] cursor-pointer transition-colors">
                 <span className="w-[22px] h-[22px] flex items-center justify-center shrink-0"><SettingIcon viewBox="0 0 24 24" className="w-[20px] h-[20px]"/></span>
                 <span className="text-[14px] font-medium text-black flex-1 truncate">{t.setting}</span>
                 <Chevron/>

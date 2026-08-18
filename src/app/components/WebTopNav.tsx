@@ -198,26 +198,19 @@ const ProfileDropdown = ({profile, displayName, onLogout, locale}: {
             </svg>
           </Link>
 
-          <div className="my-1.5 h-px bg-[#f0f1f3]"/>
-
-          {/* 바로가기 — 프로필 화면의 해당 탭으로 (별도 페이지 라우팅 없음) */}
-          <Link href={`${KloudScreen.Profile}?tab=tickets`} role="menuitem" onClick={() => setOpen(false)} className={menuItemCls}>
-            {getLocaleString({locale, key: 'my_tickets'})}
-          </Link>
-          <Link href={`${KloudScreen.Profile}?tab=pass`} role="menuitem" onClick={() => setOpen(false)} className={menuItemCls}>
-            {getLocaleString({locale, key: 'my_pass'})}
-          </Link>
-          <Link href={`${KloudScreen.Profile}?tab=payments`} role="menuitem" onClick={() => setOpen(false)} className={menuItemCls}>
-            {getLocaleString({locale, key: 'payment_records'})}
-          </Link>
-
+          {/* 수강/패스권/결제 바로가기는 프로필 화면 사이드바에서 보므로 여기엔 두지 않는다 */}
           <div className="my-1.5 h-px bg-[#f0f1f3]"/>
 
           <button
             role="menuitem"
             onClick={() => { setOpen(false); onLogout(); }}
-            className={`w-full text-left ${menuItemCls}`}
+            className={`w-full text-left flex items-center gap-2.5 ${menuItemCls}`}
           >
+            {/* 로그아웃 아이콘 — 문 밖으로 나가는 화살표 */}
+            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0">
+              <path d="M15 4H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M11 12h9m0 0-3-3m3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             {getLocaleString({locale, key: 'log_out'})}
           </button>
         </div>

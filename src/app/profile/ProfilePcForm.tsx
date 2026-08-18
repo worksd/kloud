@@ -13,6 +13,7 @@ import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { formatEndDate } from "@/app/profile/profile.format";
+import { DdayText } from "@/app/components/DdayText";
 import {
   ProfilePcClient,
   ProfileContentCard,
@@ -75,7 +76,8 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"/>
 
-                <div className="absolute inset-0 flex flex-col justify-center px-6">
+                {/* 메타(배지·제목·스튜디오)는 왼쪽 아래 정렬 */}
+                <div className="absolute inset-0 flex flex-col justify-end px-6 pb-6">
                   <div className="flex items-center gap-2 mb-2">
                     {upcoming.dday && (
                       <span className="text-[12px] font-extrabold text-black bg-white px-2 py-0.5 rounded-full">
@@ -117,41 +119,60 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
         </ProfileContentCard>
       )}
 
-      {/* 보유 패스권 */}
+      {/* 보유 패스권 — 격자 없이 풀폭 리스트. 활성 패스는 다크 + 브랜드 빛 + D-day 배지 */}
       {hasPasses && (
         <ProfileContentCard title={await translate('my_pass')}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3">
             {user.myPasses!.map((pass) => {
               const isActive = pass.status === 'Active';
               return (
                 <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
-                  <div className={`w-full h-[72px] rounded-2xl overflow-hidden cursor-pointer hover:scale-[0.99] transition-all duration-150 flex items-center ${
-                    isActive ? 'bg-[#1E2124]' : 'bg-[#F1F3F6]'
-                  }`}>
+                  <div
+                    className={`relative overflow-hidden rounded-2xl p-4 pr-5 flex items-center gap-4 cursor-pointer transition-all duration-150 ${
+                      isActive ? 'hover:opacity-95' : 'bg-[#F4F6F8] hover:bg-[#EFF1F4]'
+                    }`}
+                    style={isActive ? { background: 'linear-gradient(120deg, #17191C 0%, #2A2F35 100%)' } : undefined}
+                  >
+                    {/* 활성 패스에만 은은한 브랜드 빛 */}
+                    {isActive && (
+                      <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 w-[200px] h-[200px] rounded-full bg-[#5B5FF6]/30 blur-3xl"/>
+                    )}
+
                     {pass.passPlan?.imageUrl ? (
-                      <div className="w-[72px] h-[72px] flex-shrink-0">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={pass.passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className={`w-[72px] h-[72px] flex-shrink-0 flex items-center justify-center ${
-                        isActive ? 'bg-white/5' : 'bg-[#E8E8EA]'
+                      <div className={`relative w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center ${
+                        isActive ? 'bg-white/10' : 'bg-[#E8EAED]'
                       }`}>
-                        <PassPlanIcon className="w-6 h-6 opacity-30" />
+                        <PassPlanIcon className={`w-6 h-6 ${isActive ? 'opacity-60 invert' : 'opacity-30'}`} />
                       </div>
                     )}
-                    <div className="px-4 flex flex-col min-w-0 flex-1">
-                      <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#999]'}`}>
+
+                    <div className="relative flex flex-col gap-1 min-w-0 flex-1">
+                      <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#8A949E]'}`}>
                         {pass.passPlan?.name}
                       </span>
                       {(pass.endDate || pass.passPlan?.expireDateStamp) && (
-                        <span className={`text-[11px] mt-1 truncate ${isActive ? 'text-white/40' : 'text-[#BBB]'}`}>
+                        <span className={`text-[12px] truncate ${isActive ? 'text-white/50' : 'text-[#B4BAC0]'}`}>
                           {pass.endDate && typeof pass.endDate === 'string'
                             ? `~ ${formatEndDate(pass.endDate, locale)}`
                             : pass.passPlan?.expireDateStamp}
                         </span>
                       )}
                     </div>
+
+                    {isActive && typeof pass.endDate === 'string' && (
+                      <span className="relative text-[11px] bg-white px-2.5 py-1 rounded-full font-paperlogy shrink-0">
+                        <DdayText input={pass.endDate}/>
+                      </span>
+                    )}
+
+                    <svg viewBox="0 0 24 24" fill="none" className="relative w-4 h-4 shrink-0">
+                      <path d="M9 6l6 6-6 6" stroke={isActive ? 'rgba(255,255,255,0.35)' : '#C4C9CF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
                 </NavigateClickWrapper>
               );
