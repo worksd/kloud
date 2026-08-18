@@ -1,6 +1,7 @@
 import { LoginButtonForm } from "@/app/login/login.button.form";
 import { DevTapLogo } from "@/app/login/DevTapToGo";
 import { translate } from "@/utils/translate";
+import { LOGIN_GRADIENT_STYLE, LOGIN_WEB_CARD_CLS, LoginGradientBlobs } from "@/app/login/loginWebDecor";
 
 export default async function LoginIntroPage({
                                                searchParams,
@@ -31,20 +32,14 @@ export default async function LoginIntroPage({
   return (
     <section
       className={`relative w-screen min-h-screen flex flex-col items-center pb-7 px-5 ${isWeb ? 'overflow-hidden lg:justify-center lg:pb-0' : 'bg-white'}`}
-      style={isWeb ? { background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' } : undefined}
+      style={isWeb ? LOGIN_GRADIENT_STYLE : undefined}
     >
       {/* 장식 블롭 — 웹 전용. pointer-events 차단 없이 배경 분위기만. 컨텐츠는 relative로 위에 얹는다. */}
-      {isWeb && (
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 -left-24 w-[360px] h-[360px] rounded-full bg-[#8AB4FF]/40 blur-3xl"/>
-          <div className="absolute top-1/4 -right-32 w-[420px] h-[420px] rounded-full bg-[#E3A6FF]/35 blur-3xl"/>
-          <div className="absolute -bottom-36 left-1/4 w-[400px] h-[400px] rounded-full bg-[#8FE8D2]/35 blur-3xl"/>
-        </div>
-      )}
+      {isWeb && <LoginGradientBlobs/>}
 
       {/* 모바일: 로고 상단 + 버튼 하단(세로 스트레치) / PC(lg): 반투명 유리 카드 */}
       <div className={isWeb
-        ? "contents relative lg:flex lg:flex-col lg:items-center lg:w-full lg:max-w-[420px] lg:bg-white/80 lg:backdrop-blur-xl lg:border lg:border-white/70 lg:rounded-3xl lg:shadow-[0_24px_60px_-16px_rgba(91,95,246,0.25)] lg:px-10 lg:pt-14 lg:pb-12"
+        ? `contents relative lg:flex lg:flex-col lg:items-center ${LOGIN_WEB_CARD_CLS} lg:px-10 lg:pt-14 lg:pb-12`
         : "contents"}>
         <div className={`relative flex-1 w-full flex flex-col items-center pt-36 ${isWeb ? 'lg:flex-none lg:pt-0' : ''}`}>
           <DevTapLogo />
