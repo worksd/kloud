@@ -9,11 +9,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import SettingIcon from "../../../public/assets/ic_setting.svg";
 import EditIcon from "../../../public/assets/ic_edit.svg";
-import TicketIcon from "../../../public/assets/ic_ticket.svg";
-import PassPlanIcon from "../../../public/assets/ic_pass_plan.svg";
-import ReceiptIcon from "../../../public/assets/ic_receipt.svg";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { has, formatPhone } from "@/app/profile/profile.format";
@@ -37,6 +33,7 @@ export type ProfileTabKey = 'home' | 'tickets' | 'pass' | 'payments' | 'bookings
 export type ProfilePcTranslations = {
   editProfile: string;
   setting: string;
+  homeTab: string;
   myTickets: string;
   myPass: string;
   paymentRecords: string;
@@ -60,12 +57,6 @@ const EmptyMessage = ({children}: { children: React.ReactNode }) => (
   <p className="py-16 text-center text-[14px] text-[#A0A5AB] whitespace-pre-line">{children}</p>
 );
 
-const Chevron = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 shrink-0">
-    <path d="M9 6l6 6-6 6" stroke="#C4C9CF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
 const Spinner = () => (
   <div className="py-16 flex items-center justify-center">
     <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin"/>
@@ -77,27 +68,6 @@ export const ProfileContentCard = ({title, children}: { title?: string; children
     {title && <h2 className="text-[16px] font-bold text-black mb-5">{title}</h2>}
     {children}
   </section>
-);
-
-// 사이드바 메뉴 한 줄 — 탭 전환 버튼 (라우팅 없음)
-const MenuRow = ({icon, label, count, active, onClick}: {
-  icon: React.ReactNode;
-  label: string;
-  count?: number;
-  active: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 px-3.5 py-3.5 rounded-lg cursor-pointer transition-colors text-left ${
-      active ? 'bg-[#f1f3f6]' : 'hover:bg-[#f7f8f9]'
-    }`}
-  >
-    <span className="w-[22px] h-[22px] flex items-center justify-center shrink-0">{icon}</span>
-    <span className={`text-[14px] flex-1 truncate ${active ? 'font-bold' : 'font-medium'} text-black`}>{label}</span>
-    {count != null && <span className="text-[13px] font-bold text-[#6d7882] font-paperlogy">{count}</span>}
-    <Chevron/>
-  </button>
 );
 
 // ── 탭 패널: 각자 서버 액션으로 데이터를 불러와 뿌린다 ─────────────────
@@ -264,107 +234,114 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
     });
   };
 
+  // 탭이 바뀌면 스크롤은 맨 위에서 시작.
+  // 패널 교체 직후 이미지/리스트 로드로 레이아웃이 늦게 움직이며 잔여 스크롤이 남을 수 있어
+  // 즉시 + 다음 프레임 + 짧은 지연까지 여러 번 밀어 확실히 0으로 고정한다.
+  useEffect(() => {
+    const reset = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    reset();
+    const raf = requestAnimationFrame(reset);
+    const t1 = setTimeout(reset, 60);
+    const t2 = setTimeout(reset, 200);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [tab]);
+
   const panel = (key: ProfileTabKey, node: React.ReactNode) =>
     visited.has(key) && (
       <div className={tab === key ? 'flex flex-col gap-4' : 'hidden'}>{node}</div>
     );
 
+  const tabs: { key: ProfileTabKey; label: string; count?: number }[] = [
+    { key: 'home', label: t.homeTab },
+    { key: 'tickets', label: t.myTickets, count: user.ticketCount ?? 0 },
+    { key: 'pass', label: t.myPass, count: user.passCount ?? 0 },
+    { key: 'payments', label: t.paymentRecords, count: user.paymentRecordCount ?? 0 },
+    { key: 'bookings', label: t.roomBookings, count: user.bookingCount ?? 0 },
+  ];
+
   return (
-    <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
-      <div className="mx-auto w-full max-w-[1040px] px-8 flex items-start gap-6">
+    <div className="w-full min-h-screen bg-white pt-12 pb-24">
+      <div className="mx-auto w-full max-w-[1040px] px-8">
 
-        {/* ── 좌측 사이드바 ── */}
-        <aside className="w-[300px] shrink-0 flex flex-col gap-4">
-          {/* 프로필 카드 — 클릭 시 홈 탭으로 */}
-          <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
-            <button onClick={() => openTab('home')} className="w-full flex items-center gap-4 min-w-0 text-left cursor-pointer">
-              {has(user.profileImageUrl) ? (
-                <div className="w-14 h-14 rounded-full overflow-hidden shrink-0">
-                  <Image
-                    src={user.profileImageUrl!}
-                    alt="profile"
-                    width={56}
-                    height={56}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-[#F1F3F6] shrink-0"/>
-              )}
-              <div className="flex flex-col min-w-0">
-                <div className="font-bold text-[16px] text-black truncate">
-                  {has(user.nickName) ? user.nickName : '-'}
-                  {has(user.name) && <span className="text-[13px] font-normal text-[#999]"> ({user.name})</span>}
-                </div>
-                <div className="text-[#8A949E] text-[13px] truncate">
-                  {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
-                </div>
-              </div>
-            </button>
+        {/* ── 채널 헤더 — 유튜브 프로필 스타일: 큰 아바타 + 이름/핸들 + 액션 버튼 ── */}
+        <div className="flex items-center gap-8">
+          {has(user.profileImageUrl) ? (
+            <div className="w-[140px] h-[140px] rounded-full overflow-hidden shrink-0">
+              <Image
+                src={user.profileImageUrl!}
+                alt="profile"
+                width={140}
+                height={140}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-[140px] h-[140px] rounded-full bg-[#F1F3F6] shrink-0 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" className="w-14 h-14">
+                <circle cx="12" cy="8.5" r="3.5" stroke="#C4C9CF" strokeWidth="1.6"/>
+                <path d="M5 20c.8-3.2 3.6-5 7-5s6.2 1.8 7 5" stroke="#C4C9CF" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            </div>
+          )}
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <h1 className="text-[28px] font-bold text-black leading-tight truncate">
+              {has(user.nickName) ? user.nickName : '-'}
+              {has(user.name) && <span className="text-[16px] font-normal text-[#8A949E]"> ({user.name})</span>}
+            </h1>
+            <p className="text-[14px] text-[#8A949E] truncate">
+              {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
+            </p>
+            <div className="mt-2.5 flex items-center gap-2">
+              <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+                <button className="h-9 px-4 rounded-full bg-[#f1f3f6] hover:bg-[#e6e8eb] text-[13px] font-semibold text-black flex items-center gap-1.5 transition-colors">
+                  <EditIcon viewBox="0 0 24 24" className="w-4 h-4"/>
+                  {t.editProfile}
+                </button>
+              </NavigateClickWrapper>
+            </div>
+          </div>
+        </div>
 
-            <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-              <button className="mt-5 w-full h-10 rounded-full border border-[#dcdee0] hover:border-black text-[13px] font-semibold text-black flex items-center justify-center gap-1.5 transition-colors">
-                <EditIcon viewBox="0 0 24 24" className="w-4 h-4"/>
-                {t.editProfile}
-              </button>
-            </NavigateClickWrapper>
-          </section>
+        {/* ── 탭 바 — 활성 탭 밑줄 (유튜브 채널 탭 방식) ── */}
+        <div className="mt-9 border-b border-[#f0f1f3]">
+          <div className="flex gap-1">
+            {tabs.map(({key, label, count}) => {
+              const active = tab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => openTab(key)}
+                  className={`relative px-4 py-3 text-[15px] transition-colors ${
+                    active ? 'text-black font-bold' : 'text-[#8A949E] font-medium hover:text-black'
+                  }`}
+                >
+                  {label}
+                  {count != null && count > 0 && (
+                    <span className={`ml-1.5 text-[12px] font-paperlogy ${active ? 'text-[#6d7882]' : 'text-[#B0B8BF]'}`}>{count}</span>
+                  )}
+                  {active && <span className="absolute bottom-0 left-3 right-3 h-[3px] rounded-full bg-black"/>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-          {/* 메뉴 — 탭 전환 (설정만 실제 페이지 이동). 좌우 패딩 + 살짝 rounded로 눌린 항목이 카드 안에 떠 보이게 */}
-          <nav className="rounded-2xl border border-[#f0f1f3] bg-white p-2">
-            <MenuRow
-              icon={<TicketIcon viewBox="0 0 24 24" className="w-[20px] h-[20px]"/>}
-              label={t.myTickets}
-              count={user.ticketCount ?? 0}
-              active={tab === 'tickets'}
-              onClick={() => openTab('tickets')}
-            />
-            <MenuRow
-              icon={<PassPlanIcon viewBox="0 0 24 24" className="w-[20px] h-[20px]"/>}
-              label={t.myPass}
-              count={user.passCount ?? 0}
-              active={tab === 'pass'}
-              onClick={() => openTab('pass')}
-            />
-            <MenuRow
-              icon={<ReceiptIcon viewBox="0 0 24 24" className="w-[20px] h-[20px]"/>}
-              label={t.paymentRecords}
-              count={user.paymentRecordCount ?? 0}
-              active={tab === 'payments'}
-              onClick={() => openTab('payments')}
-            />
-            <MenuRow
-              icon={
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" stroke="#191f28" strokeWidth="1.6"/>
-                  <path d="M3 9.5H21" stroke="#191f28" strokeWidth="1.6"/>
-                  <path d="M8 3V6M16 3V6" stroke="#191f28" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-              }
-              label={t.roomBookings}
-              count={user.bookingCount ?? 0}
-              active={tab === 'bookings'}
-              onClick={() => openTab('bookings')}
-            />
-            <div className="my-2 h-px bg-[#f0f1f3]"/>
-            <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-              <div className="flex items-center gap-3 px-3.5 py-3.5 rounded-lg hover:bg-[#f7f8f9] cursor-pointer transition-colors">
-                <span className="w-[22px] h-[22px] flex items-center justify-center shrink-0"><SettingIcon viewBox="0 0 24 24" className="w-[20px] h-[20px]"/></span>
-                <span className="text-[14px] font-medium text-black flex-1 truncate">{t.setting}</span>
-                <Chevron/>
-              </div>
-            </NavigateClickWrapper>
-          </nav>
-        </aside>
-
-        {/* ── 우측 컨텐츠: 탭별 패널 ── */}
-        <main className="flex-1 min-w-0">
+        {/* ── 탭 컨텐츠 ── */}
+        <div className="py-8">
           {panel('home', homeContent)}
           {panel('tickets', <TicketsPanel locale={locale} t={t}/>)}
           {panel('pass', <PassPanel locale={locale} t={t}/>)}
           {panel('payments', <PaymentsPanel locale={locale} t={t}/>)}
           {panel('bookings', <BookingsPanel t={t}/>)}
-        </main>
+        </div>
       </div>
     </div>
   );

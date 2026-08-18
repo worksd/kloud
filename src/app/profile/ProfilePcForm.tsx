@@ -34,6 +34,7 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
   const t: ProfilePcTranslations = {
     editProfile: await translate('edit_profile'),
     setting: await translate('setting'),
+    homeTab: await translate('lnb_home'),
     myTickets: await translate('my_tickets'),
     myPass: await translate('my_pass'),
     paymentRecords: await translate('payment_records'),
