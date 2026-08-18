@@ -5,12 +5,15 @@
 // - 그 외(상세 등): 레일 없음. 햄버거를 누르면 왼쪽에서 드로어가 슬라이드로 등장(오버레이 딤).
 // 푸터(회사 정보)는 펼친 레일/드로어의 왼쪽 아래에 위치한다 (유튜브 가이드 하단 링크와 동일한 자리).
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { COMPANY_INFO, LEGAL_LINKS } from '@/shared/company';
 
 export type LnbLabels = { home: string; myStudio: string; rooms: string; profile: string };
+
+/** LNB '내 스튜디오' 하위에 보여줄 스튜디오 요약 */
+export type LnbStudio = { id: number; name: string; profileImageUrl?: string };
 
 // 아이콘 — 아웃라인/필 쌍. 활성 메뉴는 유튜브처럼 채워진 아이콘으로.
 type IconProps = { className?: string; filled?: boolean };
@@ -85,10 +88,10 @@ const ProfileIcon = ({className, filled}: IconProps) => (
 const useMenus = (labels: LnbLabels, isLogin: boolean) => {
   const pathname = usePathname() ?? '/';
   return [
-    { key: 'home', label: labels.home, href: '/lessons', Icon: HomeIcon, active: pathname === '/lessons' || pathname === '/' },
-    // 내 스튜디오·프로필은 로그인 사용자에게만
+    { key: 'home', label: labels.home, href: '/', Icon: HomeIcon, active: pathname === '/' },
+    // 내 스튜디오·프로필은 로그인 사용자에게만. 경로는 /myStudio 하나 — 어느 스튜디오인지는 서버가 정한다.
     ...(isLogin ? [
-      { key: 'myStudio', label: labels.myStudio, href: '/home', Icon: StudioIcon, active: pathname.startsWith('/home') },
+      { key: 'myStudio', label: labels.myStudio, href: '/myStudio', Icon: StudioIcon, active: pathname.startsWith('/myStudio') },
     ] : []),
     { key: 'rooms', label: labels.rooms, href: '/studioRooms', Icon: RoomIcon, active: pathname.startsWith('/studioRooms') },
     ...(isLogin ? [
@@ -106,11 +109,28 @@ const AnimatedIcon = ({Icon, filled}: { Icon: React.ComponentType<IconProps>; fi
 );
 
 // 펼침 상태 메뉴 리스트 (레일·드로어 공용) — 활성 필(pill)은 별도 레이어로 두고 translateY로 슬라이드
-const EXPANDED_ROW_STEP = 50; // h-11(44) + gap-1.5(6)
+const EXPANDED_ROW_STEP = 50;  // 메뉴 행: h-11(44) + gap-1.5(6)
+const STUDIO_ROW_STEP = 42;    // 스튜디오 서브 행: h-9(36) + gap-1.5(6)
 
-const ExpandedMenus = ({labels, isLogin, onNavigate}: { labels: LnbLabels; isLogin: boolean; onNavigate?: () => void }) => {
+const ExpandedMenus = ({labels, isLogin, myStudios = [], onNavigate}: {
+  labels: LnbLabels;
+  isLogin: boolean;
+  myStudios?: LnbStudio[];
+  onNavigate?: () => void;
+}) => {
   const menus = useMenus(labels, isLogin);
+  const pathname = usePathname() ?? '/';
+  const searchParams = useSearchParams();
+  // /myStudio?id=33 — 지금 보고 있는 스튜디오 하이라이트용
+  const activeStudioId = pathname === '/myStudio' ? searchParams.get('id') : null;
   const activeIdx = menus.findIndex((m) => m.active);
+  const myStudioIdx = menus.findIndex((m) => m.key === 'myStudio');
+  const showStudios = myStudioIdx >= 0 && myStudios.length > 0;
+
+  // 필 위치 — '내 스튜디오' 아래 스튜디오 서브 행들이 끼면 그 높이만큼 밀어준다
+  const pillOffset = (idx: number) =>
+    idx * EXPANDED_ROW_STEP + (showStudios && idx > myStudioIdx ? myStudios.length * STUDIO_ROW_STEP : 0);
+
   return (
     <div className="relative flex flex-col gap-1.5 px-3">
       {/* 슬라이딩 필 — 활성 메뉴 위치로 부드럽게 이동 */}
@@ -118,21 +138,49 @@ const ExpandedMenus = ({labels, isLogin, onNavigate}: { labels: LnbLabels; isLog
         <div
           aria-hidden
           className="absolute top-0 left-3 right-3 h-11 rounded-xl bg-[#f1f3f6] transition-transform duration-300 ease-out"
-          style={{ transform: `translateY(${activeIdx * EXPANDED_ROW_STEP}px)` }}
+          style={{ transform: `translateY(${pillOffset(activeIdx)}px)` }}
         />
       )}
       {menus.map(({key, label, href, Icon, active}) => (
-        <Link
-          key={key}
-          href={href}
-          onClick={onNavigate}
-          className={`relative z-10 flex items-center gap-5 h-11 px-3.5 rounded-xl text-[14px] text-black transition-colors ${
-            active ? 'font-semibold' : 'hover:bg-[#f7f8f9]'
-          }`}
-        >
-          <AnimatedIcon Icon={Icon} filled={active}/>
-          <span className="truncate">{label}</span>
-        </Link>
+        <React.Fragment key={key}>
+          <Link
+            href={href}
+            onClick={onNavigate}
+            className={`relative z-10 flex items-center gap-5 h-11 px-3.5 rounded-xl text-[14px] text-black transition-colors ${
+              active ? 'font-semibold' : 'hover:bg-[#f7f8f9]'
+            }`}
+          >
+            <AnimatedIcon Icon={Icon} filled={active}/>
+            <span className="truncate">{label}</span>
+          </Link>
+
+          {/* '내 스튜디오' 하위 — 내가 다니는 스튜디오. 세로 가이드 라인 + 작은 로고/텍스트로 메뉴와 구분 */}
+          {key === 'myStudio' && showStudios && (
+            <div className="relative z-10 ml-[26px] pl-3 border-l-2 border-[#eef0f2] flex flex-col gap-1.5">
+              {myStudios.map((studio) => (
+                <Link
+                  key={`studio-${studio.id}`}
+                  href={`/myStudio?id=${studio.id}`}
+                  onClick={onNavigate}
+                  title={studio.name}
+                  className={`flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-[13px] transition-colors ${
+                    activeStudioId === String(studio.id)
+                      ? 'bg-[#f1f3f6] text-black font-semibold'
+                      : 'text-[#6D7882] hover:bg-[#f7f8f9] hover:text-black'
+                  }`}
+                >
+                  <span className="w-[22px] h-[22px] rounded-full overflow-hidden bg-[#F1F3F6] shrink-0">
+                    {studio.profileImageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={studio.profileImageUrl} alt="" className="w-full h-full object-cover"/>
+                    )}
+                  </span>
+                  <span className="truncate">{studio.name}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </React.Fragment>
       ))}
     </div>
   );
@@ -163,8 +211,21 @@ const LnbFooter = () => (
 );
 
 /** 브라우즈 루트용 고정 레일 — open: 아이콘+라벨+하단 푸터 / mini: 아이콘만 */
-export const WebLnbRail = ({open, labels, isLogin}: { open: boolean; labels: LnbLabels; isLogin: boolean }) => {
+export const WebLnbRail = ({open, labels, isLogin, myStudios}: { open: boolean; labels: LnbLabels; isLogin: boolean; myStudios?: LnbStudio[] }) => {
   const menus = useMenus(labels, isLogin);
+  // 컨텐츠 교체를 폭 애니메이션(200ms)과 동기화 — 닫힐 땐 애니메이션이 끝난 뒤에 mini로 교체.
+  // 펼친 컨텐츠(메뉴 라벨·푸터)는 아래에서 고정 폭(w-60)으로 두므로, 폭이 줄어드는 동안
+  // 텍스트가 재줄바꿈되며 푸터가 꿀렁이지 않고 overflow-x-hidden 클리핑으로 매끄럽게 가려진다.
+  const [showExpanded, setShowExpanded] = useState(open);
+  useEffect(() => {
+    if (open) {
+      setShowExpanded(true);
+      return;
+    }
+    const t = setTimeout(() => setShowExpanded(false), 200);
+    return () => clearTimeout(t);
+  }, [open]);
+
   return (
     <nav
       aria-label="LNB"
@@ -172,16 +233,17 @@ export const WebLnbRail = ({open, labels, isLogin}: { open: boolean; labels: Lnb
         open ? 'w-60' : 'w-[72px]'
       } pt-3`}
     >
-      {open ? (
-        <>
-          <ExpandedMenus labels={labels} isLogin={isLogin}/>
+      {showExpanded ? (
+        // 고정 폭 w-60 — 레일 폭이 애니메이션되는 동안에도 내부 레이아웃(특히 푸터 줄바꿈)이 변하지 않게
+        <div className="w-60 shrink-0 flex-1 flex flex-col">
+          <ExpandedMenus labels={labels} isLogin={isLogin} myStudios={myStudios}/>
           <div className="mt-auto">
             <div className="mx-6 h-px bg-[#f0f1f3]"/>
             <LnbFooter/>
           </div>
-        </>
+        </div>
       ) : (
-        <div className="relative flex flex-col gap-2 px-2.5">
+        <div className="relative flex flex-col gap-2 px-2.5 w-[72px] shrink-0">
           {/* 슬라이딩 필 — 숏 레일도 동일하게. 타일 높이 52(py-3.5 + 아이콘 24) + gap 8 = step 60 */}
           {menus.findIndex((m) => m.active) >= 0 && (
             <div
@@ -209,10 +271,11 @@ export const WebLnbRail = ({open, labels, isLogin}: { open: boolean; labels: Lnb
 };
 
 /** 상세 페이지용 드로어 — 왼쪽에서 슬라이드 인/아웃, 오버레이 딤 (유튜브 watch 페이지 방식) */
-export const WebLnbDrawer = ({open, labels, isLogin, onCloseAction}: {
+export const WebLnbDrawer = ({open, labels, isLogin, myStudios, onCloseAction}: {
   open: boolean;
   labels: LnbLabels;
   isLogin: boolean;
+  myStudios?: LnbStudio[];
   onCloseAction: () => void;
 }) => (
   <div className={`hidden lg:block ${open ? '' : 'pointer-events-none'}`}>
@@ -247,7 +310,7 @@ export const WebLnbDrawer = ({open, labels, isLogin, onCloseAction}: {
       </div>
 
       <div className="flex-1 overflow-y-auto pt-1 flex flex-col">
-        <ExpandedMenus labels={labels} isLogin={isLogin} onNavigate={onCloseAction}/>
+        <ExpandedMenus labels={labels} isLogin={isLogin} myStudios={myStudios} onNavigate={onCloseAction}/>
         <div className="mt-auto">
           <div className="mx-6 h-px bg-[#f0f1f3]"/>
           <LnbFooter/>

@@ -12,6 +12,8 @@ import { WebTopNav } from '@/app/components/WebTopNav';
 import { WebLnbRail, WebLnbDrawer, LnbLabels } from '@/app/components/WebLnb';
 import { NoOverscrollOnPc } from '@/app/components/NoOverscrollOnPc';
 import { accessTokenKey } from '@/shared/cookies.key';
+import { getMyStudiosAction } from '@/app/components/get.my.studios.action';
+import { LnbStudio } from '@/app/components/WebLnb';
 
 const LNB_OPEN_KEY = 'kloud_lnb_open';
 
@@ -22,14 +24,17 @@ const readCookie = (name: string): string | undefined => {
 };
 
 // 고정 레일을 보여주는 브라우즈 루트 — LNB 메뉴의 최상위 목적지들
-const BROWSE_ROOTS = new Set(['/', '/lessons', '/home', '/studioRooms', '/profile']);
+const BROWSE_ROOTS = new Set(['/', '/myStudio', '/studioRooms', '/profile']);
 
-export const WebShell = ({initialLogin, lnbLabels, children}: {
+export const WebShell = ({initialLogin, lnbLabels, myStudioId, children}: {
   initialLogin: boolean;
   lnbLabels: LnbLabels;
+  /** 스튜디오 쿠키(서버) — LNB '내 스튜디오' 링크(/myStudios/:id)용 */
+  myStudioId?: string;
   children: React.ReactNode;
 }) => {
   const pathname = usePathname() ?? '/';
+  // /myStudios/:id는 LNB '내 스튜디오' 메뉴의 목적지 — 브라우즈 루트로 취급
   const isBrowse = BROWSE_ROOTS.has(pathname);
 
   const [railOpen, setRailOpen] = useState(true);     // 브라우즈: 펼침 vs 숏
@@ -37,10 +42,22 @@ export const WebShell = ({initialLogin, lnbLabels, children}: {
   // 로그인 여부 — SSR은 layout(쿠키) 판단, 이후엔 경로 전환마다 쿠키 재확인 (WebTopNav와 동일 규칙).
   // 미로그인이면 LNB의 내 스튜디오·프로필 메뉴를 숨긴다.
   const [isLogin, setIsLogin] = useState(initialLogin);
+  // LNB '내 스튜디오' 하위 스튜디오 목록 — 로그인 상태에서 1회 조회 (셸이 라우팅에도 살아있어 캐시 유지)
+  const [myStudios, setMyStudios] = useState<LnbStudio[]>([]);
 
   useEffect(() => {
     setIsLogin(!!readCookie(accessTokenKey));
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isLogin) {
+      setMyStudios([]);
+      return;
+    }
+    let alive = true;
+    getMyStudiosAction().then((studios) => { if (alive) setMyStudios(studios); });
+    return () => { alive = false; };
+  }, [isLogin]);
 
   // 저장된 레일 펼침 상태 복원 (기본 펼침)
   useEffect(() => {
@@ -81,10 +98,13 @@ export const WebShell = ({initialLogin, lnbLabels, children}: {
         <WebTopNav initialLogin={initialLogin} onToggleLnb={toggleLnb}/>
       </Suspense>
 
-      {/* 브라우즈 루트: 고정 레일 / 상세: 슬라이드 드로어 */}
-      {isBrowse
-        ? <WebLnbRail open={railOpen} labels={lnbLabels} isLogin={isLogin}/>
-        : <WebLnbDrawer open={drawerOpen} labels={lnbLabels} isLogin={isLogin} onCloseAction={() => setDrawerOpen(false)}/>}
+      {/* 브라우즈 루트: 고정 레일 / 상세: 슬라이드 드로어.
+          LNB는 useSearchParams(?id= 하이라이트) 사용 — 정적 프리렌더 대비 Suspense 경계 필요 */}
+      <Suspense fallback={null}>
+        {isBrowse
+          ? <WebLnbRail open={railOpen} labels={lnbLabels} isLogin={isLogin} myStudios={myStudios}/>
+          : <WebLnbDrawer open={drawerOpen} labels={lnbLabels} isLogin={isLogin} myStudios={myStudios} onCloseAction={() => setDrawerOpen(false)}/>}
+      </Suspense>
 
       {/* 컨텐츠 — 브라우즈 루트에서만 레일 폭만큼 좌측 패딩. lg 미만/상세는 풀폭 */}
       <div className={`transition-[padding-left] duration-200 ${isBrowse ? (railOpen ? 'lg:pl-60' : 'lg:pl-[72px]') : ''}`}>
