@@ -30,11 +30,10 @@ export type PhoneVerificationStepConfig = {
   placeholder?: string;
 }
 
-export default function PhoneVerificationForm({steps, locale, isFromLogin, returnUrl, isWeb = false}: {
+export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb = false}: {
   steps: PhoneVerificationStepConfig[],
   locale: Locale,
   isFromLogin: boolean,
-  returnUrl?: string,
   /** 웹 직접 접근 여부 — PC(lg) 유리 카드 레이아웃 + 인라인 에러(네이티브 다이얼로그 대체) 기준 */
   isWeb?: boolean,
 }) {
@@ -123,10 +122,8 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, retur
             userId: res.user.id,
           })
           if (isWeb) {
-            // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에 반영되게 (이메일 로그인과 동일)
-            window.location.replace(returnUrl || '/');
-          } else if (returnUrl) {
-            router.replace(returnUrl);
+            // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에 반영되게 (이메일 로그인과 동일). 항상 기본 경로로.
+            window.location.replace('/');
           } else {
             await LoginAuthNavigation({status: res.user.status, window})
           }

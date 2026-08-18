@@ -591,10 +591,9 @@ export default function PaymentButton({
             void handlePayment({ userId: info.userId, name: info.name, phone: info.phone });
           }}
           onLogin={() => {
-            // 다른 방식(소셜/이메일) 로그인 화면으로. 로그인 후 현재 결제 페이지로 복귀.
+            // 다른 방식(소셜/이메일) 로그인 화면으로. PC 웹은 WebLoginRedirect가 공통 다이얼로그로 보낸다.
             setGuestSheetOpen(false);
-            const returnUrl = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
-            const route = KloudScreen.LoginIntro(`?returnUrl=${encodeURIComponent(returnUrl)}`);
+            const route = KloudScreen.LoginIntro('');
             if (appVersion === '') router.push(route);
             else kloudNav.push(route);
           }}

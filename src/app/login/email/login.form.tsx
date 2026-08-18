@@ -17,7 +17,6 @@ type LoginFormProps = {
   appVersion: string;
   /** 웹 직접 접근 여부 — PC(lg) 유리 카드 레이아웃 적용 기준 (page.tsx에서 판정) */
   isWeb?: boolean;
-  returnUrl?: string;
   emailLabel: string;
   emailPlaceholder: string;
   passwordLabel: string;
@@ -58,8 +57,7 @@ export const LoginForm = (props: LoginFormProps) => {
   }
 
   const onClickSignUp = async () => {
-    const signUpQuery = props.returnUrl ? `?returnUrl=${encodeURIComponent(props.returnUrl)}` : ''
-    const route = KloudScreen.SignUp(signUpQuery)
+    const route = KloudScreen.SignUp('')
     if (props.appVersion === '') {
       router.replace(route)
     } else {
@@ -78,8 +76,8 @@ export const LoginForm = (props: LoginFormProps) => {
       saveRecentLoginMethod('email');
 
       if (props.appVersion == '') {
-        // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 서버 컴포넌트에 확실히 반영되게
-        window.location.replace(props.returnUrl || '/');
+        // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 서버 컴포넌트에 확실히 반영되게. 항상 기본 경로로.
+        window.location.replace('/');
       } else {
         await LoginAuthNavigation({
           status: res.status,

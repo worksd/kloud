@@ -11,7 +11,6 @@ interface NavigateClickItemProps {
   action?: 'changeLocale',
   locale?: Locale,
   route?: string;
-  returnUrl?: string;
   bootInfo?: string;
   children: React.ReactNode;
   option?: KloudNavOptions;
@@ -19,7 +18,7 @@ interface NavigateClickItemProps {
   track?: { event: AnalyticsEvent; props?: AnalyticsProps };
 }
 
-export function NavigateClickWrapper({ method, route, action, locale, returnUrl, children, track }: NavigateClickItemProps) {
+export function NavigateClickWrapper({ method, route, action, locale, children, track }: NavigateClickItemProps) {
   const router = useRouter()
   return (
     <div
@@ -48,12 +47,7 @@ export function NavigateClickWrapper({ method, route, action, locale, returnUrl,
           }
         } else {
           if (method === 'push' && route) {
-            if (returnUrl && !route.includes('returnUrl')) {
-              const separator = route.includes('?') ? '&' : '?';
-              router.push(route + `${separator}returnUrl=${encodeURIComponent(returnUrl)}`);
-            } else {
-              router.push(route);
-            }
+            router.push(route);
           } else if (method == 'back') {
             router.back();
           } else {

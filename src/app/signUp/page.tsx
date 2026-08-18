@@ -2,15 +2,14 @@ import { SignupForm } from "@/app/signUp/signup.form";
 import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { translate } from "@/utils/translate";
 
-export default async function EmailSignUpPage({searchParams}: { searchParams: Promise<{ returnUrl: string, appVersion: string }> }) {
-  const {returnUrl, appVersion} = await searchParams
+export default async function EmailSignUpPage({searchParams}: { searchParams: Promise<{ appVersion: string }> }) {
+  const {appVersion} = await searchParams
   return (
     <div className={"flex flex-col pt-24"}>
       <div className="flex justify-between items-center">
         {appVersion == '' && <SimpleHeader titleResource={'sign_up'}/>}
       </div>
       <SignupForm
-        returnUrl={returnUrl}
         appVersion={appVersion}
         requireLabel={await translate('required')}
         emailLabel={await translate('email')}

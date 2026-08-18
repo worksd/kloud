@@ -17,8 +17,6 @@ export interface KloudNavOptions {
   /** 기본 true: 네이티브에서 safe area 무시 */
   ignoreSafeArea?: boolean;
   title?: string;
-  /** push 시 붙일 returnUrl */
-  returnUrl?: string;
   /** navigateMain 에 사용 */
   bootInfo?: unknown;
   /** Next.js useRouter() 결과를 넘기면 SPA 네비게이션 */
@@ -28,17 +26,13 @@ export interface KloudNavOptions {
 /** 내부 유틸 */
 const isMobile = () => typeof window !== 'undefined' && !!(window as any).KloudEvent;
 
-const withReturnUrl = (route: string, returnUrl?: string) =>
-  returnUrl ? `${route}?returnUrl=${encodeURIComponent(returnUrl)}` : route;
-
 /** 공용 네비게이션 객체 */
 export const kloudNav = {
   async push(route: string) {
-    const finalRoute = withReturnUrl(route);
     if (isMobile()) {
       (window as any).KloudEvent.push(
         JSON.stringify({
-          route: finalRoute,
+          route,
           ignoreSafeArea: applyIgnoreSafeArea(route),
           title: await applyTitle(route)
         })
@@ -46,7 +40,7 @@ export const kloudNav = {
       return;
     }
     // 웹(네이티브 아님) 폴백 — 브라우저 네비게이션
-    if (typeof window !== 'undefined') window.location.href = finalRoute;
+    if (typeof window !== 'undefined') window.location.href = route;
   },
 
   back() {
@@ -123,7 +117,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     (route.startsWith('/lessons/') && !route.includes('/payment')) ||
     (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons')) ||
     route.startsWith('/tickets/') ||
-    route.startsWith(KloudScreen.Onboard('')) ||
+    route.startsWith(KloudScreen.Onboard) ||
     route.startsWith(KloudScreen.Certification) ||
     route.startsWith('/qrs') ||
     route.startsWith('/community/') ||

@@ -5,7 +5,7 @@ export const KloudScreen = {
   Maintenance: '/maintenance',
 
   /** 온보딩 / 인증 */
-  Onboard: (returnUrl: string) => `/onboarding?returnUrl=${returnUrl}`,
+  Onboard: '/onboarding',
   Login: (query: string) => `/login${query}`,
   LoginIntro: (query: string) => `/login/intro${query}`,
   LoginEmail: (query: string) => `/login/email${query}`,

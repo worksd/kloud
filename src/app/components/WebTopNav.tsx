@@ -10,7 +10,7 @@
 // /kiosk 경로 가드만 클라이언트에 남긴다(SPA로 키오스크에 진입하는 예외 대비).
 
 import { useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { accessTokenKey, localeKey } from '@/shared/cookies.key';
@@ -41,8 +41,8 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
   const [isLogin, setIsLogin] = useState(initialLogin);
   const [locale, setLocale] = useState<Locale>('ko');
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
@@ -63,24 +63,42 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
   // 키오스크는 자체 전체화면 UI — 상단바 대상 아님
   if (pathname?.startsWith('/kiosk')) return null;
 
-  const returnUrl = pathname ?? '/';
-  const loginQuery = `?returnUrl=${encodeURIComponent(returnUrl)}`;
+  // 다이얼로그 열림은 ?login=true 쿼리가 단일 소스 — /login 계열 진입도 WebLoginRedirect가
+  // /lessons?login=true로 보내 같은 다이얼로그 하나로 통합된다. 이미 로그인 상태면 무시.
+  const loginDialogOpen = searchParams?.get('login') === 'true' && !isLogin;
+
+  // 열기: push(뒤로가기로 닫힘) / 닫기: replace(히스토리에 안 남김). 다른 쿼리는 보존.
+  const setLoginQuery = (on: boolean) => {
+    const params = new URLSearchParams(searchParams?.toString());
+    if (on) params.set('login', 'true');
+    else params.delete('login');
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : (pathname ?? '/');
+    if (on) router.push(url);
+    else router.replace(url);
+  };
 
   // PC(lg)에선 페이지 이동 없이 다이얼로그로 로그인 — 보던 페이지 컨텍스트 유지.
   // 상단바 자체가 lg 미만에선 숨겨지지만, 혹시 모를 좁은 뷰포트 호출은 로그인 페이지로 폴백.
   // 웹에선 /login('시작하기' 한 단계)을 거치지 않고 바로 로그인 수단 선택(/login/intro)으로.
   const handleLogin = () => {
     if (window.matchMedia('(min-width: 1024px)').matches) {
-      setLoginDialogOpen(true);
+      setLoginQuery(true);
     } else {
-      router.push(KloudScreen.LoginIntro(loginQuery));
+      router.push(KloudScreen.LoginIntro(''));
     }
   };
 
   const handleLogout = async () => {
     await unregisterDeviceAction();
     await clearCookies();
-    router.replace(KloudScreen.LoginIntro(loginQuery));
+    // PC: 풀 리로드로 로그아웃 상태를 상단바/서버 컴포넌트에 확실히 반영하며 메인+로그인 다이얼로그로.
+    // (이미 /lessons면 router.replace는 pathname이 안 바뀌어 쿠키 재확인 effect가 안 돈다)
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      window.location.replace('/lessons?login=true');
+    } else {
+      router.replace(KloudScreen.LoginIntro(''));
+    }
   };
 
   const displayName = profile?.nickName || profile?.name;
@@ -126,11 +144,10 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
         </div>
       </div>
 
-      {/* PC 전용 로그인 다이얼로그 — 성공 시 returnUrl(현재 페이지)로 복귀 */}
+      {/* PC 전용 로그인 다이얼로그 — 성공 시 기본 경로(/lessons)로 풀 리로드 */}
       <WebLoginDialog
         open={loginDialogOpen}
-        onCloseAction={() => setLoginDialogOpen(false)}
-        returnUrl={returnUrl}
+        onCloseAction={() => setLoginQuery(false)}
         locale={locale}
       />
     </header>

@@ -52,7 +52,7 @@ export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
       }
       const status = res.status
       if (status == UserStatus.New) {
-        kloudNav.clearAndPush(KloudScreen.Onboard(''))
+        kloudNav.clearAndPush(KloudScreen.Onboard)
       }
       else if (status == UserStatus.Ready) {
         await kloudNav.navigateMain({ route: resolveAppRoute(link) })

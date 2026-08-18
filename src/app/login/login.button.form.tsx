@@ -9,10 +9,9 @@ import { PhoneLoginButton } from "@/app/login/phone.login.button";
 import { getRecentLoginMethod, LoginMethod } from "@/app/login/recentLoginMethod";
 import { useEffect, useState } from "react";
 
-export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
+export const LoginButtonForm = ({ os, appVersion, translations }: {
   os: string,
   appVersion: string,
-  returnUrl?: string,
   translations: {
     continueWithApple: string,
     continueWithGoogle: string,
@@ -22,7 +21,6 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
     recentLogin: string,
   }
 }) => {
-  const loginEmailQuery = returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : '';
   const [recentMethod, setRecentMethod] = useState<LoginMethod | null>(null);
 
   useEffect(() => {
@@ -47,7 +45,6 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
       )}
       <KakaoLoginButton
         appVersion={appVersion}
-        callbackUrl={returnUrl}
         title={translations.continueWithKakao}
         isRecentLogin={recentMethod === 'kakao'}
         recentLoginText={translations.recentLogin}
@@ -55,8 +52,7 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
       <div className="w-full self-stretch">
         <NavigateClickWrapper
           method="push"
-          route={KloudScreen.LoginPhone(loginEmailQuery)}
-          returnUrl={returnUrl}>
+          route={KloudScreen.LoginPhone('')}>
           <PhoneLoginButton
             title={translations.continueWithPhone}
             isRecentLogin={recentMethod === 'phone'}
@@ -67,8 +63,7 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
       <div className="w-full self-stretch">
         <NavigateClickWrapper
           method="push"
-          route={KloudScreen.LoginEmail(loginEmailQuery)}
-          returnUrl={returnUrl}>
+          route={KloudScreen.LoginEmail('')}>
           <EmailLoginButton
             title={translations.continueWithEmail}
             isRecentLogin={recentMethod === 'email'}

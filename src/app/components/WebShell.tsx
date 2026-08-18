@@ -6,7 +6,7 @@
 // 푸터는 컨텐츠 하단이 아니라 LNB(펼친 레일/드로어) 왼쪽 아래에 산다.
 // 레이아웃(서버)에서 showWebChrome일 때만 렌더 — 앱 웹뷰/키오스크는 이 셸을 타지 않는다.
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { WebTopNav } from '@/app/components/WebTopNav';
 import { WebLnbRail, WebLnbDrawer, LnbLabels } from '@/app/components/WebLnb';
@@ -76,7 +76,10 @@ export const WebShell = ({initialLogin, lnbLabels, children}: {
     <>
       {/* PC(lg)에선 문서 위아래 오버스크롤 바운스 제거 — 전 페이지 공통. 모바일 웹 제스처는 유지 */}
       <NoOverscrollOnPc/>
-      <WebTopNav initialLogin={initialLogin} onToggleLnb={toggleLnb}/>
+      {/* WebTopNav는 useSearchParams(?login=true) 사용 — 정적 프리렌더 대비 Suspense 경계 필요 */}
+      <Suspense fallback={null}>
+        <WebTopNav initialLogin={initialLogin} onToggleLnb={toggleLnb}/>
+      </Suspense>
 
       {/* 브라우즈 루트: 고정 레일 / 상세: 슬라이드 드로어 */}
       {isBrowse

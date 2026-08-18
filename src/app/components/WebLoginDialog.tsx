@@ -4,7 +4,7 @@
 // methods → email-login / email-signup / phone-input → phone-code 단계 전환을 다이얼로그 내부에서 처리.
 // 카카오는 OAuth 웹 플로우(redirect)로 빠짐.
 // 모든 액션은 기존 server action 재사용 (emailLoginAction, signUpAction, sendVerificationSMS, phoneLoginAction).
-// 성공 시 returnUrl로 풀 리로드 복귀(상단바 세션 반영). New 유저면 /onboarding으로.
+// 성공 시 기본 경로(/lessons)로 풀 리로드(상단바 세션 반영). New 유저면 /onboarding으로.
 
 import { useEffect, useState } from "react";
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
@@ -28,12 +28,10 @@ const CACHED_EMAIL_KEY = 'kloud_cached_email';
 export const WebLoginDialog = ({
   open,
   onCloseAction,
-  returnUrl,
   locale,
 }: {
   open: boolean;
   onCloseAction: () => void;
-  returnUrl: string;
   locale: Locale;
 }) => {
   // 단계
@@ -92,18 +90,18 @@ export const WebLoginDialog = ({
 
   // 로그인 성공 후 라우팅 — 풀 리로드로 방금 세팅된 세션 쿠키가 레이아웃(상단바) 포함
   // 서버 컴포넌트에 확실히 반영되게 (이메일 로그인 페이지와 동일 방식).
-  // router.replace는 returnUrl이 현재 페이지면 pathname이 안 바뀌어 상단바가 로그인 전 상태로 남는다.
+  // returnUrl 없이 항상 기본 경로(/lessons)로 — ?login=true 쿼리도 이 리로드로 함께 사라진다.
   const onLoginSuccess = (status?: UserStatus) => {
     if (status === UserStatus.New) {
-      window.location.replace(KloudScreen.Onboard(returnUrl || ''));
+      window.location.replace(KloudScreen.Onboard);
     } else {
-      window.location.replace(returnUrl || '/');
+      window.location.replace('/lessons');
     }
   };
 
   // ── 액션 ─────────────────────────────────────────────────────
   const handleKakao = () => {
-    const state = encodeURIComponent(returnUrl || '/');
+    const state = encodeURIComponent('/');
     const URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_REDIRECT_URL}&response_type=code&state=${state}`;
     window.location.href = URL;
   };
