@@ -87,59 +87,101 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
     </div>
   );
 
-  return (
+  // 모바일/PC가 공유하는 라벨·조각들
+  const hallName = booking.studioRoom?.name ?? await translate('practice_room');
+  const detailTitle = await translate('room_booking_detail_title');
+  const cancelInfoTitle = await translate('cancellation_information');
+  const showCancelInfo = booking.status === 'Cancelled' && !!(booking.cancelledAt || booking.cancelReason);
+
+  const heroImage = (
+    <>
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={image} alt={booking.studioRoom?.name ?? ''} className="w-full h-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+            <rect x="3" y="5" width="22" height="18" rx="3" stroke="#CDD1D5" strokeWidth="1.5" />
+            <path d="M3 17L9 12L14 16L19 11L25 17" stroke="#CDD1D5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
+    </>
+  );
+
+  const headerInfo = (
+    <>
+      {booking.studio && (
+        <div className="flex items-center gap-2 mb-2.5">
+          {booking.studio.profileImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={booking.studio.profileImageUrl} alt={booking.studio.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
+          )}
+          <span className="text-[14px] font-bold text-[#4E5968]">{booking.studio.name}</span>
+        </div>
+      )}
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className={`px-2.5 py-1 rounded-full text-[12px] font-bold ${statusInfo.cls}`}>{statusLabel}</span>
+        <span className="px-2.5 py-1 rounded-full text-[12px] font-bold bg-[#F1F3F6] text-[#4E5968]">{typeLabel}</span>
+      </div>
+      <h1 className="text-[22px] font-bold text-[#191f28] leading-tight">{hallName}</h1>
+    </>
+  );
+
+  const bookingRows = (
+    <div className="flex flex-col gap-4">
+      <Row label={await translate('room_booking_period')} value={fmtPeriod(booking.startDate, booking.endDate)} />
+      {reserverName && (
+        <Row label={await translate('room_booking_reserver')} value={reserverPhone ? `${reserverName} · ${reserverPhone}` : reserverName} />
+      )}
+      {booking.pass?.passPlanName && (
+        <Row label={await translate('room_booking_used_pass')} value={booking.pass.passPlanName} />
+      )}
+      {booking.notice && (
+        <Row label={await translate('room_booking_memo')} value={booking.notice} />
+      )}
+      <Row label={await translate('room_booking_created')} value={fmtDateTime(booking.createdAt)} />
+    </div>
+  );
+
+  const cancelRows = showCancelInfo && (
+    <div className="flex flex-col gap-4">
+      {booking.cancelledAt && (
+        <Row label={await translate('cancellation_datetime')} value={fmtDateTime(booking.cancelledAt)} />
+      )}
+      {booking.cancelReason && (
+        <Row label={await translate('cancellation_reason')} value={booking.cancelReason} />
+      )}
+    </div>
+  );
+
+  const refundSection = (
+    <RoomBookingRefundSection
+      bookingId={booking.id}
+      cancellable={!!booking.isRefundable}
+      paymentId={booking.paymentId}
+      locale={locale}
+    />
+  );
+
+  const mobile = (
     <div className="bg-white min-h-screen">
       <div className="relative w-full aspect-[16/9] bg-[#F1F3F6]">
         {appVersion === '' && <BackButton />}
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt={booking.studioRoom?.name ?? ''} className="w-full h-full object-cover" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
-              <rect x="3" y="5" width="22" height="18" rx="3" stroke="#CDD1D5" strokeWidth="1.5" />
-              <path d="M3 17L9 12L14 16L19 11L25 17" stroke="#CDD1D5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        )}
+        {heroImage}
       </div>
 
       {/* 스튜디오(로고+이름) + 홀 이름 + 상태 */}
       <div className="px-5 pt-5">
-        {booking.studio && (
-          <div className="flex items-center gap-2 mb-2.5">
-            {booking.studio.profileImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={booking.studio.profileImageUrl} alt={booking.studio.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
-            )}
-            <span className="text-[14px] font-bold text-[#4E5968]">{booking.studio.name}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className={`px-2.5 py-1 rounded-full text-[12px] font-bold ${statusInfo.cls}`}>{statusLabel}</span>
-          <span className="px-2.5 py-1 rounded-full text-[12px] font-bold bg-[#F1F3F6] text-[#4E5968]">{typeLabel}</span>
-        </div>
-        <h1 className="text-[22px] font-bold text-[#191f28] leading-tight">{booking.studioRoom?.name ?? await translate('practice_room')}</h1>
+        {headerInfo}
       </div>
 
       <div className="h-3 bg-[#f9f9fb] mt-5" />
 
       {/* 예약 정보 */}
       <div className="px-5 py-5">
-        <p className="text-[16px] font-bold text-black mb-4">{await translate('room_booking_detail_title')}</p>
-        <div className="flex flex-col gap-4">
-          <Row label={await translate('room_booking_period')} value={fmtPeriod(booking.startDate, booking.endDate)} />
-          {reserverName && (
-            <Row label={await translate('room_booking_reserver')} value={reserverPhone ? `${reserverName} · ${reserverPhone}` : reserverName} />
-          )}
-          {booking.pass?.passPlanName && (
-            <Row label={await translate('room_booking_used_pass')} value={booking.pass.passPlanName} />
-          )}
-          {booking.notice && (
-            <Row label={await translate('room_booking_memo')} value={booking.notice} />
-          )}
-          <Row label={await translate('room_booking_created')} value={fmtDateTime(booking.createdAt)} />
-        </div>
+        <p className="text-[16px] font-bold text-black mb-4">{detailTitle}</p>
+        {bookingRows}
 
         {/* 홀 정보 — 설명(HTML)·면적·크기·바닥·시설 */}
         {booking.studioRoom && (
@@ -150,19 +192,12 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
       </div>
 
       {/* 취소 정보 — 취소된 예약일 때 사유/일시 */}
-      {booking.status === 'Cancelled' && (booking.cancelledAt || booking.cancelReason) && (
+      {cancelRows && (
         <>
           <div className="h-3 bg-[#f9f9fb]" />
           <div className="px-5 py-5">
-            <p className="text-[16px] font-bold text-black mb-4">{await translate('cancellation_information')}</p>
-            <div className="flex flex-col gap-4">
-              {booking.cancelledAt && (
-                <Row label={await translate('cancellation_datetime')} value={fmtDateTime(booking.cancelledAt)} />
-              )}
-              {booking.cancelReason && (
-                <Row label={await translate('cancellation_reason')} value={booking.cancelReason} />
-              )}
-            </div>
+            <p className="text-[16px] font-bold text-black mb-4">{cancelInfoTitle}</p>
+            {cancelRows}
           </div>
         </>
       )}
@@ -171,13 +206,61 @@ export default async function RoomBookingDetailPage({ params, searchParams }: {
 
       {/* 환불 안내사항 — 펼치면 안내 문구 + '취소하기'(DELETE /roomBookings/:id). 예약/대기 상태만 취소 가능. */}
       <div className="px-5 py-5">
-        <RoomBookingRefundSection
-          bookingId={booking.id}
-          cancellable={!!booking.isRefundable}
-          paymentId={booking.paymentId}
-          locale={locale}
-        />
+        {refundSection}
       </div>
     </div>
+  );
+
+  // 웹 직접 접근 + viewport ≥1024px(lg)이면 PC 카드 레이아웃, 그 외(앱 웹뷰/좁은 웹)는 기존 렌더.
+  // 서버는 viewport를 모르므로 둘 다 SSR 렌더 후 CSS로 토글 (결제내역/마이패스 상세와 동일 패턴).
+  const isWeb = appVersion === '';
+  if (!isWeb) return mobile;
+
+  return (
+    <>
+      <div className="hidden lg:block">
+        <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
+          <div className="mx-auto w-full max-w-[680px] px-8 flex flex-col gap-4">
+
+            {/* 헤더 카드 — 홀 이미지 + 스튜디오/배지/홀 이름 */}
+            <header className="rounded-2xl border border-[#f0f1f3] bg-white overflow-hidden">
+              <div className="relative w-full aspect-[16/9] bg-[#F1F3F6]">
+                {heroImage}
+              </div>
+              <div className="p-6">
+                {headerInfo}
+              </div>
+            </header>
+
+            {/* 예약 정보 */}
+            <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
+              <h2 className="text-[16px] font-bold text-black mb-5">{detailTitle}</h2>
+              {bookingRows}
+              {booking.studioRoom && (
+                <div className="mt-5">
+                  <RoomBookingHallInfo room={booking.studioRoom} locale={locale} />
+                </div>
+              )}
+            </section>
+
+            {/* 취소 정보 */}
+            {cancelRows && (
+              <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
+                <h2 className="text-[16px] font-bold text-black mb-5">{cancelInfoTitle}</h2>
+                {cancelRows}
+              </section>
+            )}
+
+            {/* 환불 안내사항 */}
+            <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
+              {refundSection}
+            </section>
+          </div>
+        </div>
+      </div>
+      <div className="lg:hidden">
+        {mobile}
+      </div>
+    </>
   );
 }
