@@ -371,6 +371,48 @@ export const StringResource = {
     jp: "スタジオと出会う瞬間からレッスンを受ける瞬間まで",
     zh: "从遇见舞室的那一刻，到起舞的每一刻"
   },
+  terms_of_use: {
+    ko: "이용약관",
+    en: "Terms of Use",
+    jp: "利用規約",
+    zh: "使用条款"
+  },
+  footer_representative: {
+    ko: "대표자명",
+    en: "CEO",
+    jp: "代表者名",
+    zh: "法人代表"
+  },
+  footer_business_number: {
+    ko: "사업자번호",
+    en: "Business Reg. No.",
+    jp: "事業者登録番号",
+    zh: "营业执照号"
+  },
+  footer_ecommerce_number: {
+    ko: "통신판매업신고",
+    en: "E-commerce Permit",
+    jp: "通信販売業申告",
+    zh: "电商备案号"
+  },
+  footer_customer_center: {
+    ko: "고객센터",
+    en: "Customer Center",
+    jp: "カスタマーセンター",
+    zh: "客服中心"
+  },
+  today_lessons: {
+    ko: "오늘의 수업",
+    en: "Today's Classes",
+    jp: "今日のレッスン",
+    zh: "今日课程"
+  },
+  no_open_lessons: {
+    ko: "지금 예약 가능한 수업이 없어요",
+    en: "No classes available right now",
+    jp: "今予約できるレッスンがありません",
+    zh: "当前没有可预约的课程"
+  },
   search_placeholder: {
     ko: "수업이나 스튜디오를 검색해보세요",
     en: "Search classes or studios",

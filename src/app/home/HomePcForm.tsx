@@ -4,38 +4,21 @@
 
 import React from "react";
 import Link from "next/link";
-import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
+import { HomeLessonResponse } from "@/app/endpoint/home.endpoint";
+import { ParsedHome } from "@/app/home/home.bands";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { CircleImage } from "@/app/components/CircleImage";
 import { LessonsPcHeroCarousel, HeroItem } from "@/app/lessons/LessonsPcHeroCarousel";
-import { GetBandLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { LessonTags } from "@/app/components/LessonTags";
 import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
 import { getLocale, translate } from "@/utils/translate";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 
-// 홈 밴드 수업 아이템 — FE 타입보다 실제 응답이 더 풍부하다 (dday·statusLabel·정원·레벨·studio 등).
-// 모바일과 같은 응답을 쓰므로 여기서만 옵셔널로 넓혀 소비한다.
-type RichLesson = GetBandLessonResponse & {
-  statusLabel?: string;
-  dday?: string;
-  level?: string;
-  limit?: number;
-  currentStudentCount?: number;
-  price?: number | null;
-  genre?: string | null;
-  studio?: { id: number; name: string; profileImageUrl?: string };
-};
-
-// 새 BE /home 응답 — myStudio 래퍼 대신 top-level jumbotrons/weeklyLessons/todayLessons로 내려온다.
-// 구형(myStudio.bands)도 같이 지원해 어느 쪽이 와도 스튜디오 홈을 그린다.
-type RichHome = GetHomeResponse & {
-  jumbotrons?: RichLesson[];
-  weeklyLessons?: RichLesson[];
-  todayLessons?: RichLesson[];
-};
+// 홈 수업 카드 — 통합 응답의 수업 탐색 밴드 아이템(HomeLessonResponse)과
+// 내 스튜디오 밴드 수업(GetBandLessonResponse) 둘 다 이 넓은 타입으로 소비한다.
+type RichLesson = HomeLessonResponse;
 
 const artistOf = (l: RichLesson) =>
   (l.artists?.[0]?.nickName ?? l.artists?.[0]?.name) ?? (l.artist?.nickName ?? l.artist?.name);
@@ -48,17 +31,14 @@ const genreOf = (l: RichLesson) => {
   return genre && genre !== 'Default' ? genre : undefined;
 };
 
-const LEVEL_LABEL: Record<string, string> = {
-  Beginner: '입문',
-  Basic: '초급',
-  Advanced: '고급',
-};
-
 const isEndedOf = (l: RichLesson) => l.label?.isEnded ?? false;
 
 // 포스터 카드 — 모바일 Poster와 동일 구조(PC 폭 240): 썸네일(팝업/워크샵 라벨·종료 하단 바)
 // + 아래 텍스트(스튜디오 로고·이름, 태그, 제목, 상대 시각)
-const PosterCard = ({l, locale, endedLabel}: { l: RichLesson; locale: Locale; endedLabel: string }) => {
+// 라벨들은 서버(HomePcForm)에서 translate로 미리 풀어 내려준다 — getLocaleString은 'use client' 모듈이라 서버에서 호출 불가
+const PosterCard = ({l, locale, endedLabel, popupLabel, workshopLabel}: {
+  l: RichLesson; locale: Locale; endedLabel: string; popupLabel: string; workshopLabel: string;
+}) => {
   const ended = isEndedOf(l);
   const studioImage = l.studioImageUrl || l.studio?.profileImageUrl;
   const studioName = l.studioName || l.studio?.name;
@@ -71,7 +51,7 @@ const PosterCard = ({l, locale, endedLabel}: { l: RichLesson; locale: Locale; en
         )}
         {(l.label?.type === 'PopUp' || l.label?.type === 'Workshop') && (
           <div className="absolute top-2 left-2 bg-[#1F1F1F] px-1 py-1 rounded-[4px] text-white font-paperlogy font-bold text-[11px] leading-none">
-            {l.label.type === 'PopUp' ? '팝업' : '워크샵'}
+            {l.label.type === 'PopUp' ? popupLabel : workshopLabel}
           </div>
         )}
         {/* 종료 — 모바일과 동일하게 썸네일 하단 검정 바 */}
@@ -126,33 +106,34 @@ const Band = ({title, subtitle, children}: { title: string; subtitle?: string; c
   </section>
 );
 
-export const HomePcForm = async ({home}: { home: GetHomeResponse }) => {
-  const rich = home as RichHome;
+export const HomePcForm = async ({home}: { home: ParsedHome }) => {
   const my = home.myStudio;
   const locale = await getLocale();
   const endedLabel = await translate('finish');
+  const popupLabel = await translate('popup');
+  const workshopLabel = await translate('workshop');
 
-  // 밴드 구성 — 구형(myStudio.bands) 우선, 없으면 새 top-level todayLessons로 조립.
+  // 밴드 구성 — 내 스튜디오(myStudio.bands)가 있으면 그걸, 없으면 탐색 밴드(TodayLessons)로 조립.
   // weeklyLessons는 주간 시간표가 요일별로 이미 보여주므로 밴드로는 노출하지 않는다.
   const bands: { title: string; type: string; lessons: RichLesson[] }[] = (my?.bands?.length ?? 0) > 0
     ? my!.bands.map((b) => ({ title: b.title, type: b.type, lessons: b.lessons as RichLesson[] }))
     : [
-        ...((rich.todayLessons?.length ?? 0) > 0 ? [{ title: '오늘의 수업', type: 'Today', lessons: rich.todayLessons! }] : []),
+        ...(home.todayLessons.length > 0 ? [{ title: await translate('today_lessons'), type: 'Today', lessons: home.todayLessons }] : []),
       ];
 
-  // 점보트론 — myStudio.jumbotrons(구형) > top-level jumbotrons(신형) > 밴드 수업 썸네일 폴백
-  const jumbotrons = ((my?.jumbotrons?.length ? my.jumbotrons : rich.jumbotrons) ?? []) as RichLesson[];
+  // 점보트론 — 내 스튜디오 점보트론 > 탐색 Jumbotrons 밴드 > 밴드 수업 썸네일 폴백
+  const jumbotrons = ((my?.jumbotrons?.length ? my.jumbotrons : home.jumbotrons) ?? []) as RichLesson[];
   const jumbotronSource: RichLesson[] = jumbotrons.length > 0
     ? jumbotrons
     : bands.flatMap((b) => b.lessons).filter((l) => l.thumbnailUrl).slice(0, 8);
 
   // 보여줄 스튜디오 홈 컨텐츠가 하나도 없을 때만 추천 스튜디오 그리드
   if (jumbotronSource.length === 0 && bands.length === 0) {
-    const studios = home.recommendedStudios ?? [];
+    const studios = home.recommendedStudios;
     return (
       <div className="w-full min-h-screen bg-white pt-10 pb-20">
         <div className="mx-auto w-full max-w-6xl px-6">
-          <h1 className="text-[24px] font-bold text-black mb-8">추천 스튜디오</h1>
+          <h1 className="text-[24px] font-bold text-black mb-8">{await translate('recommended_studios')}</h1>
           <div className="grid grid-cols-4 gap-5">
             {studios.map((s) => (
               <NavigateClickWrapper key={s.id} method="push" route={KloudScreen.StudioDetail(s.id)}>
@@ -222,7 +203,7 @@ export const HomePcForm = async ({home}: { home: GetHomeResponse }) => {
           if (lessons.length === 0) return null;
           return (
             <Band key={band.title} title={band.title}>
-              {lessons.map((l) => <PosterCard key={l.id} l={l} locale={locale} endedLabel={endedLabel}/>)}
+              {lessons.map((l) => <PosterCard key={l.id} l={l} locale={locale} endedLabel={endedLabel} popupLabel={popupLabel} workshopLabel={workshopLabel}/>)}
             </Band>
           );
         })}

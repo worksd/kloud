@@ -10,6 +10,7 @@ import { StudioCookieSetter } from "@/app/home/StudioCookieSetter";
 import { TrackView } from "@/app/components/TrackView";
 import { handleApiError } from "@/utils/handle.api.error";
 import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
+import { parseHomeBands } from "@/app/home/home.bands";
 
 export default async function MyStudioHomePage({searchParams}: {
   searchParams: Promise<{ id?: string }>
@@ -17,14 +18,15 @@ export default async function MyStudioHomePage({searchParams}: {
   const { id } = await searchParams;
   const res = id ? await api.home.getHome({ studioId: id }) : await getHomeAction();
 
-  if ('studios' in res) {
-    const studioId = res.myStudio?.studio?.id;
+  if ('bands' in res) {
+    const home = parseHomeBands(res);
+    const studioId = home.myStudio?.studio?.id;
     return (
       <>
         <TrackView event="enter_home" props={{studioId: studioId ?? null}}/>
         {/* 스튜디오 쿠키 동기화 — 연습실 일정 등 쿠키 기반 화면들과 컨텍스트를 맞춘다 */}
         {studioId && <StudioCookieSetter studioId={studioId}/>}
-        <HomePcForm home={res}/>
+        <HomePcForm home={home}/>
       </>
     );
   }

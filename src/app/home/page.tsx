@@ -23,6 +23,7 @@ import {HomeHeader} from "@/app/home/HomeHeader";
 import {TrackView} from "@/app/components/TrackView";
 import {HomePcForm} from "@/app/home/HomePcForm";
 import {PcRedirect} from "@/app/components/PcRedirect";
+import {parseHomeBands} from "@/app/home/home.bands";
 
 export default async function Home({
                                      searchParams
@@ -35,21 +36,23 @@ export default async function Home({
   const locale = await getLocale()
   const cookieStore = await cookies();
   const hasStudioCookie = !!cookieStore.get(studioKey)?.value;
-  if ('studios' in res) {
-    const studio = res.myStudio?.studio;
-    const firstThumb = res.myStudio?.jumbotrons?.[0]?.thumbnailUrl
-      ?? res.myStudio?.bands?.flatMap(b => b.lessons)?.find(l => l.thumbnailUrl)?.thumbnailUrl
+  if ('bands' in res) {
+    // 통합 응답({bands}) → 평면 구조로 — 기존 화면 로직은 그대로 쓴다
+    const home = parseHomeBands(res);
+    const studio = home.myStudio?.studio;
+    const firstThumb = home.myStudio?.jumbotrons?.[0]?.thumbnailUrl
+      ?? home.myStudio?.bands?.flatMap(b => b.lessons)?.find(l => l.thumbnailUrl)?.thumbnailUrl
       ?? '';
 
     const content = (
         <div>
-          <TrackView event="enter_home" props={{studioId: res.myStudio?.studio?.id ?? null}}/>
+          <TrackView event="enter_home" props={{studioId: home.myStudio?.studio?.id ?? null}}/>
           <FcmTokenRequester/>
-          {!hasStudioCookie && res.myStudio?.studio?.id && (
-            <StudioCookieSetter studioId={res.myStudio.studio.id} />
+          {!hasStudioCookie && home.myStudio?.studio?.id && (
+            <StudioCookieSetter studioId={home.myStudio.studio.id} />
           )}
-          {res.alerts && res.alerts.length > 0 && <HomeAlerts alerts={res.alerts} locale={locale}/>}
-          <EventScreen os={os} events={res.events ?? []} hideDialogIds={hideDialogIds} hideForeverMessage={await translate('do_not_show_again')}/>
+          {home.alerts.length > 0 && <HomeAlerts alerts={home.alerts} locale={locale}/>}
+          <EventScreen os={os} events={home.events} hideDialogIds={hideDialogIds} hideForeverMessage={await translate('do_not_show_again')}/>
           <HomeHeader hasStudio={!!studio} os={os}>
             {studio ? (
               <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>
@@ -67,15 +70,15 @@ export default async function Home({
           </HomeHeader>
           <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
-              res.myStudio ? (
-                  <MyStudioPage res={res.myStudio} bundles={res.bundles} roomSlots={res.roomSlots} myBookings={res.myBookings}/>
+              home.myStudio ? (
+                  <MyStudioPage res={home.myStudio} bundles={home.bundles} roomSlots={home.roomSlots} myBookings={home.myBookings}/>
               ) : (
-                  <NoMyStudioPage studios={res.recommendedStudios}/>
+                  <NoMyStudioPage studios={home.recommendedStudios}/>
               )}
 
           </div>
           <div className={`fixed right-4 z-20 ${os === 'Android' ? 'bottom-1' : 'bottom-24'}`}>
-            <PassPurchaseButton studioId={res.myStudio?.studio?.id}/>
+            <PassPurchaseButton studioId={home.myStudio?.studio?.id}/>
           </div>
         </div>
     );
@@ -95,7 +98,7 @@ export default async function Home({
             리다이렉트 전 블랭크 방지를 위해 아래 PC 폼은 그대로 그려둔다. */}
         <PcRedirect to={KloudScreen.MyStudio}/>
         <div className="hidden lg:block">
-          <HomePcForm home={res}/>
+          <HomePcForm home={home}/>
         </div>
         <div className="lg:hidden">
           {mobile}

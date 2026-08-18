@@ -1,5 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
-import { BundleSummaryResponse, GetBandResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
+import { BundleSummaryResponse, GetBandResponse, GetBandLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
@@ -10,18 +10,59 @@ export type HomeAlertResponse = {
   route: string;
 }
 
+/** 오늘(KST) 내 연습실 예약(방 무관 flat, 시작시각 오름차순, 취소 제외). RoomSlots 밴드에만 실림. */
+export type MyRoomBookingResponse = {
+  id: number;
+  studioRoomId: number;
+  roomName: string;
+  startDate: string;
+  endDate: string;
+}
+
+/** 웹 확장 스튜디오 — 수업 탐색 밴드의 studio·PopularStudios 아이템. slug는 웹 URL 라우팅용. */
+export type WebStudioResponse = {
+  id: number;
+  name: string;
+  profileImageUrl?: string;
+  slug?: string;
+  coverImageUrl?: string;
+  address?: string;
+  roadAddress?: string;
+}
+
+/** 수업 탐색 밴드의 수업 카드 — 소비자 수업 카드에 웹용 확장 스튜디오가 항상 실린 형태. */
+export type HomeLessonResponse = GetBandLessonResponse & {
+  statusLabel?: string;
+  dday?: string;
+  level?: string;
+  limit?: number;
+  currentStudentCount?: number;
+  price?: number | null;
+  genre?: string | null;
+  studio?: WebStudioResponse;
+}
+
+export type HomeLessonBandType = 'Jumbotrons' | 'TodayLessons' | 'WeeklyLessons' | 'OngoingLessons';
+
+/**
+ * GET /home 통합 응답의 밴드 — 배열 순서대로 그리고 type으로 가른다.
+ * 수업 탐색 밴드(Jumbotrons~PopularStudios)는 누구나, 사람에 매인 밴드는 로그인 시에만 온다.
+ * 모르는 type은 건너뛸 것 (parseHomeBands가 그렇게 한다) — 밴드가 추가돼도 깨지지 않게.
+ */
+export type HomeBandResponse =
+  | { type: 'Alerts'; items: HomeAlertResponse[] }
+  | { type: 'MyStudio'; myStudio: GetMyStudioResponse }
+  | { type: 'MyStudios'; items: GetStudioResponse[] }
+  | { type: 'RecommendedStudios'; items: GetStudioResponse[] }
+  | { type: 'Events'; items: GetEventResponse[] }
+  | { type: 'Bundles'; items: BundleSummaryResponse[] }
+  | { type: 'RoomSlots'; roomSlots?: RoomSlotsSummaryResponse; myBookings?: MyRoomBookingResponse[] }
+  | { type: HomeLessonBandType; items: HomeLessonResponse[] }
+  | { type: 'PopularStudios'; items: WebStudioResponse[] };
+
+/** 앱·웹 공통 통합 응답 — 이전의 평면 구조(studios/myStudio/... , 웹 전용 jumbotrons/...)는 없어졌다. */
 export type GetHomeResponse = {
-  studios: GetStudioResponse[];
-  myStudio?: GetMyStudioResponse;
-  recommendedStudios: GetStudioResponse[];
-  events?: GetEventResponse[];
-  alerts?: HomeAlertResponse[];
-  /** 선택된(또는 첫 번째 가입) 스튜디오의 판매중 묶음. 없으면 []. 레슨 상세의 bundles와 동일 shape. */
-  bundles?: BundleSummaryResponse[];
-  /** 선택된 스튜디오의 오늘(KST) 공개(유료) 연습실별 예약 가능 시각 요약. 없으면(스튜디오 없음/공개 홀 없음) undefined. rooms[].id로 studio.practiceRooms 메타 조인. 날짜 이동은 GET /studios/:id/roomSlots. */
-  roomSlots?: RoomSlotsSummaryResponse;
-  /** 오늘(KST) 내 연습실 예약(방 무관 flat, 시작시각 오름차순, 취소 제외). roomSlots와 세트로 포함/생략. 홈에서만 내려옴(roomSlots API엔 없음). */
-  myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[];
+  bands: HomeBandResponse[];
 }
 
 export type GetStagResponse = {

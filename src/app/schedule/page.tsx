@@ -5,17 +5,19 @@ import { SchedulePageClient } from "@/app/schedule/SchedulePageClient";
 import { getWeeklyLessonsAction } from "@/app/schedule/get.weekly.lessons.action";
 import { getLocale } from "@/utils/translate";
 import { TrackView } from "@/app/components/TrackView";
+import { parseHomeBands } from "@/app/home/home.bands";
 
 export default async function SchedulePage() {
   const res = await getHomeAction();
 
-  if (!('studios' in res)) return null;
+  if (!('bands' in res)) return null;
+  const home = parseHomeBands(res);
 
-  if (!res.myStudio) {
+  if (!home.myStudio) {
     return (
       <div className="bg-white min-h-screen">
         <TrackView event="enter_schedule"/>
-        <NoMyStudioPage studios={res.recommendedStudios} />
+        <NoMyStudioPage studios={home.recommendedStudios} />
       </div>
     );
   }
@@ -54,11 +56,11 @@ export default async function SchedulePage() {
 
   return (
     <>
-    <TrackView event="enter_schedule" props={{studioId: res.myStudio.studio.id}}/>
+    <TrackView event="enter_schedule" props={{studioId: home.myStudio.studio.id}}/>
     <SchedulePageClient
-      studioImageUrl={res.myStudio.studio.profileImageUrl}
-      studioName={res.myStudio.studio.name}
-      studioId={res.myStudio.studio.id}
+      studioImageUrl={home.myStudio.studio.profileImageUrl}
+      studioName={home.myStudio.studio.name}
+      studioId={home.myStudio.studio.id}
       lessons={lessons}
       locale={locale}
     />
