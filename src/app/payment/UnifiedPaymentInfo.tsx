@@ -205,9 +205,12 @@ export const UnifiedPaymentInfo = ({
     return fromApi.filter(p => p.status !== 'Cancelled');
   }, [payment.lesson?.pricePolicies, payment.pricePolicies]);
   const hasPolicies = pricePolicies.length > 0;
-  // 기본 선택 — isRecommended 우선, 없으면 회차 수가 가장 적은 첫 번째.
+  // 기본 선택 — 구매 가능한(usable !== false) 방식 중 isRecommended 우선, 없으면 첫 번째.
+  // 전부 불가면 첫 번째를 선택해 사유를 보여주고 결제 버튼은 disabled로 막는다.
   const defaultPolicyId = hasPolicies
-    ? (pricePolicies.find(p => p.isRecommended) ?? pricePolicies[0]).id
+    ? (pricePolicies.find(p => p.isRecommended && p.usable !== false)
+        ?? pricePolicies.find(p => p.usable !== false)
+        ?? pricePolicies[0]).id
     : undefined;
   const [selectedPolicyId, setSelectedPolicyId] = useState<number | undefined>(defaultPolicyId);
   const selectedPolicy = hasPolicies
@@ -484,7 +487,9 @@ export const UnifiedPaymentInfo = ({
       {(() => {
         // 버튼 비활성 사유 — 아래 disabled 식과 같은 순서로 첫 사유 하나만 (PC 웹 hover 툴팁용)
         const needMethod = type === 'practice-room' || totalPrice > 0;
-        const disabledReason = priceNotAvailable
+        const disabledReason = selectedPolicy?.usable === false
+          ? (selectedPolicy.reason ?? getLocaleString({locale, key: 'payment_disabled_policy_unusable'}))
+          : priceNotAvailable
           ? getLocaleString({locale, key: 'payment_disabled_price_unavailable'})
           : (type === 'practice-room' && !practiceRoomInfo)
             ? getLocaleString({locale, key: 'payment_disabled_no_slot'})
@@ -511,6 +516,7 @@ export const UnifiedPaymentInfo = ({
           user={payment.user}
           depositor={depositor}
           disabled={
+            selectedPolicy?.usable === false ||
             priceNotAvailable ||
             (type === 'practice-room' && !practiceRoomInfo) ||
             // 연습실은 서버가 총액을 나중에 계산해 totalPrice가 0일 수 있음 → 결제수단은 항상 필수

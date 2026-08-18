@@ -1,8 +1,29 @@
 'use client'
 
-import { LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
+import { DayOfWeek, LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+
+// 방식별 요일 표기 — '매주 월·수' 형태. 요일이 없는 방식은 표기하지 않는다.
+const DAY_LABEL: Record<Locale, Record<DayOfWeek, string>> = {
+  ko: { SUN: '일', MON: '월', TUE: '화', WED: '수', THU: '목', FRI: '금', SAT: '토' },
+  en: { SUN: 'Sun', MON: 'Mon', TUE: 'Tue', WED: 'Wed', THU: 'Thu', FRI: 'Fri', SAT: 'Sat' },
+  jp: { SUN: '日', MON: '月', TUE: '火', WED: '水', THU: '木', FRI: '金', SAT: '土' },
+  zh: { SUN: '日', MON: '一', TUE: '二', WED: '三', THU: '四', FRI: '五', SAT: '六' },
+};
+const WEEKLY_PREFIX: Record<Locale, (days: string) => string> = {
+  ko: (d) => `매주 ${d}`,
+  en: (d) => `Every ${d}`,
+  jp: (d) => `毎週${d}`,
+  zh: (d) => `每周${d}`,
+};
+
+const weeklyDaysLabel = (policy: LessonPricePolicyResponse, locale: Locale): string | null => {
+  if (!policy.days || policy.days.length === 0) return null;
+  const order: DayOfWeek[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const sorted = [...policy.days].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  return WEEKLY_PREFIX[locale](sorted.map((d) => DAY_LABEL[locale][d]).join('·'));
+};
 
 /**
  * 수업 가격 정책 선택 섹션 — 한 수업을 '월 4회'/'월 8회' 등 여러 방식으로 살 수 있을 때 노출.
@@ -41,17 +62,23 @@ export const PricePolicySection = ({
       <div className="flex flex-col gap-2.5">
         {policies.map((policy) => {
           const isSelected = policy.id === selectedPolicyId;
+          // usable === false만 구매 불가 — 구응답(필드 없음)은 구매 가능으로 취급
+          const unusable = policy.usable === false;
+          const daysLabel = weeklyDaysLabel(policy, locale);
 
           return (
             <button
               key={policy.id}
               type="button"
-              onClick={() => onSelectPolicy(policy)}
+              onClick={() => { if (!unusable) onSelectPolicy(policy); }}
               aria-pressed={isSelected}
-              className={`relative w-full text-left rounded-2xl px-5 py-4 transition-all duration-200 select-none active:scale-[0.98]
-                ${isSelected
-                  ? 'border-[1.5px] border-black bg-black shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                  : 'border border-[#EEEFF0] bg-white'}`}
+              aria-disabled={unusable}
+              className={`relative w-full text-left rounded-2xl px-5 py-4 transition-all duration-200 select-none
+                ${unusable
+                  ? 'border border-[#EEEFF0] bg-[#FAFAFA] cursor-not-allowed'
+                  : isSelected
+                    ? 'border-[1.5px] border-black bg-black shadow-[0_4px_12px_rgba(0,0,0,0.2)] active:scale-[0.98]'
+                    : 'border border-[#EEEFF0] bg-white active:scale-[0.98]'}`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -65,11 +92,17 @@ export const PricePolicySection = ({
                   </span>
 
                   <span className="flex flex-col min-w-0">
-                    <span className={`text-[15px] font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
+                    <span className={`text-[15px] font-bold ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-black'}`}>
                       {labelOf(policy)}
                     </span>
+                    {/* 방식이 다니는 요일 — 방식 선택이 곧 요일 선택이라 명시한다 */}
+                    {daysLabel && (
+                      <span className={`text-[12px] font-medium truncate ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
+                        {daysLabel}
+                      </span>
+                    )}
                     {policy.description && (
-                      <span className={`text-[12px] font-medium truncate ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
+                      <span className={`text-[12px] font-medium truncate ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
                         {policy.description}
                       </span>
                     )}
@@ -77,17 +110,24 @@ export const PricePolicySection = ({
                 </div>
 
                 <span className="flex flex-col items-end flex-shrink-0">
-                  <span className={`text-[16px] font-bold ${isSelected ? 'text-white' : 'text-black'}`}>
+                  <span className={`text-[16px] font-bold ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-black'}`}>
                     {fmt(policy.price)}{won}
                   </span>
                   {/* 옵션마다 총액 규모가 달라서, 회당 가격이 있어야 실제 이득이 읽힌다 */}
                   {policy.lessonCount > 1 && (
-                    <span className={`text-[11px] font-medium ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
+                    <span className={`text-[11px] font-medium ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
                       {getLocaleString({ locale, key: 'price_per_session' })} {fmt(perSession(policy))}{won}
                     </span>
                   )}
                 </span>
               </div>
+
+              {/* 구매 불가 사유 — 서버가 로케일 문구를 그대로 내려준다 */}
+              {unusable && policy.reason && (
+                <div className="mt-2.5 pt-2.5 border-t border-[#EEEFF0]">
+                  <span className="text-[12px] font-medium text-[#E5484D]">{policy.reason}</span>
+                </div>
+              )}
 
               {/* 미루기 한도는 선택된 옵션에서만 펼친다 — 접힌 카드가 조용해야 비교가 쉽다 */}
               {isSelected && policy.postponeLimit != null && (

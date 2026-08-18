@@ -245,6 +245,12 @@ export const StringResource = {
     jp: '使用するパスを選択してください',
     zh: '请选择要使用的通票'
   },
+  payment_disabled_policy_unusable: {
+    ko: '지금은 구매할 수 없는 방식이에요',
+    en: 'This option is not available right now',
+    jp: '現在購入できないプランです',
+    zh: '当前无法购买此方案'
+  },
   payment_disabled_no_card: {
     ko: '결제할 카드를 선택해주세요',
     en: 'Select a card to pay with',
