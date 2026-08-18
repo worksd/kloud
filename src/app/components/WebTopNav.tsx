@@ -64,7 +64,7 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
   if (pathname?.startsWith('/kiosk')) return null;
 
   // 다이얼로그 열림은 ?login=true 쿼리가 단일 소스 — /login 계열 진입도 WebLoginRedirect가
-  // /lessons?login=true로 보내 같은 다이얼로그 하나로 통합된다. 이미 로그인 상태면 무시.
+  // /?login=true로 보내 같은 다이얼로그 하나로 통합된다. 이미 로그인 상태면 무시.
   const loginDialogOpen = searchParams?.get('login') === 'true' && !isLogin;
 
   // 열기: push(뒤로가기로 닫힘) / 닫기: replace(히스토리에 안 남김). 다른 쿼리는 보존.
@@ -92,10 +92,10 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
   const handleLogout = async () => {
     await unregisterDeviceAction();
     await clearCookies();
-    // PC: 풀 리로드로 로그아웃 상태를 상단바/서버 컴포넌트에 확실히 반영하며 홈(/lessons)으로.
-    // (이미 /lessons면 router.replace는 pathname이 안 바뀌어 쿠키 재확인 effect가 안 돈다)
+    // PC: 풀 리로드로 로그아웃 상태를 상단바/서버 컴포넌트에 확실히 반영하며 홈(/)으로.
+    // (이미 홈이면 router.replace는 pathname이 안 바뀌어 쿠키 재확인 effect가 안 돈다)
     if (window.matchMedia('(min-width: 1024px)').matches) {
-      window.location.replace('/lessons');
+      window.location.replace('/');
     } else {
       router.replace(KloudScreen.LoginIntro(''));
     }
@@ -119,7 +119,7 @@ export const WebTopNav = ({ initialLogin = false, onToggleLnb }: {
             </svg>
           </button>
         )}
-        {/* 로고 — 기본 route(/)로. PC 웹에선 HomeRedirect가 메인(/lessons)으로 보낸다 */}
+        {/* 로고 — 홈(/)으로. PC 웹 홈은 루트에서 바로 수업 격자를 그린다 */}
         <Link href="/" aria-label="rawgraphy" className="shrink-0 select-none">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/logo_black.svg" alt="rawgraphy" style={{ height: 14, width: 'auto', display: 'block' }}/>

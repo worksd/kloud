@@ -9,7 +9,7 @@ export default async function EmailLogin({searchParams}: {
 }) {
   const {appVersion, os} = await searchParams;
   // 웹 직접 접근이면 그래디언트 — 앱 웹뷰는 기존 흰 배경 그대로.
-  // PC 웹(lg+)은 전용 페이지 대신 WebLoginRedirect가 /lessons?login=true(공통 다이얼로그)로 보낸다.
+  // PC 웹(lg+)은 전용 페이지 대신 WebLoginRedirect가 /?login=true(공통 다이얼로그)로 보낸다.
   const isWeb = appVersion === '' || appVersion == null;
   return (
     <section

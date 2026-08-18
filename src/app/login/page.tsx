@@ -31,7 +31,7 @@ export default async function Login({
   }
 
   // 웹 직접 접근 여부 — 태블릿 '앱' 웹뷰(가로 ≥1024px)의 로그인은 기존 그대로.
-  // PC 웹(lg+)은 전용 페이지 대신 WebLoginRedirect가 /lessons?login=true(공통 다이얼로그)로 보낸다.
+  // PC 웹(lg+)은 전용 페이지 대신 WebLoginRedirect가 /?login=true(공통 다이얼로그)로 보낸다.
   const isWeb = appVersion === '' || appVersion == null;
 
   return (

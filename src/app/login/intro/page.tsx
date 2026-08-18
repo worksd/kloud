@@ -28,7 +28,7 @@ export default async function LoginIntroPage({
 
   // PC 카드 레이아웃/장식 배경은 웹 직접 접근일 때만 — 태블릿 '앱' 웹뷰(가로 ≥1024px)의 로그인은 기존 그대로.
   const isWeb = appVersion === '' || appVersion == null;
-  // PC 웹(lg+)은 전용 페이지 대신 /lessons?login=true(공통 다이얼로그)로 —
+  // PC 웹(lg+)은 전용 페이지 대신 /?login=true(공통 다이얼로그)로 —
   // 단, 카카오 OAuth 콜백(code) 처리 중엔 리다이렉트하면 코드 소비 전에 이탈하므로 제외.
   const redirectPcToDialog = isWeb && !code;
 

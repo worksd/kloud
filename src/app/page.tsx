@@ -1,6 +1,6 @@
 import Logo from "../../public/assets/logo_black.svg"
 import { Metadata, Viewport } from 'next'
-import { HomeRedirect } from "@/app/HomeRedirect";
+import { LessonsHome } from "@/app/lessons/LessonsHome";
 
 export const metadata: Metadata = {
   title: 'Rawgraphy - 댄스 스튜디오 예약 플랫폼',
@@ -32,10 +32,14 @@ export default async function Main({searchParams}: {
 
   return (
     <>
-    {/* PC 웹(lg+) 진입 시 즉시 /lessons(메인)로 replace. 앱 웹뷰는 미렌더 → 무동작. */}
-    {isWeb && <HomeRedirect/>}
+    {/* PC 웹(lg+) 홈 — 예약 가능 수업 격자를 루트에서 바로 그린다 (구 /lessons, 리다이렉트 훕 없이) */}
+    {isWeb && (
+      <div className="hidden lg:block">
+        <LessonsHome/>
+      </div>
+    )}
 
-    {/* welcome — PC 웹에서는 lg:hidden으로 paint 단계에서 가려져 flash 최소화 */}
+    {/* welcome — PC 웹에서는 lg:hidden으로 paint 단계에서 가려진다 (모바일 웹/앱 전용) */}
     <main className={`h-screen overflow-hidden bg-white flex items-center justify-center select-none ${isWeb ? 'lg:hidden' : ''}`}>
       <div className="w-full max-w-5xl mx-auto px-4">
         {/* Logo and Welcome */}

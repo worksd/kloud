@@ -59,7 +59,7 @@ const KakaoLoginButton = ({title, appVersion, isRecentLogin, recentLoginText}: K
             if (res.success) {
               saveRecentLoginMethod('kakao');
               // 웹 플로우 — 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에
-              // 반영되게. returnUrl 없이 항상 기본 경로로(PC는 HomeRedirect가 /lessons로 보낸다).
+              // 반영되게. returnUrl 없이 항상 홈(/)으로.
               if (res.status === UserStatus.Ready) {
                 window.location.replace('/');
               } else if (res.status === UserStatus.New) {
