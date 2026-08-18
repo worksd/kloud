@@ -22,6 +22,7 @@ import {HomeAlphaBgProvider} from "@/app/home/HomeAlphaBg";
 import {HomeHeader} from "@/app/home/HomeHeader";
 import {TrackView} from "@/app/components/TrackView";
 import {HomePcForm} from "@/app/home/HomePcForm";
+import {PcRedirect} from "@/app/components/PcRedirect";
 
 export default async function Home({
                                      searchParams
@@ -90,6 +91,9 @@ export default async function Home({
 
     return (
       <>
+        {/* PC 웹 내 스튜디오의 정식 경로는 /myStudio — 서버가 스튜디오를 정하므로 id 없이 replace.
+            리다이렉트 전 블랭크 방지를 위해 아래 PC 폼은 그대로 그려둔다. */}
+        <PcRedirect to={KloudScreen.MyStudio}/>
         <div className="hidden lg:block">
           <HomePcForm home={res}/>
         </div>

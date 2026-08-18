@@ -41,7 +41,8 @@ export default async function RootLayout({
   const appVersion = h.get('x-guinness-version') ?? '';
   const entryPath = h.get('x-guinness-entry') ?? '';
   const showWebChrome = appVersion === '' && !entryPath.startsWith('/kiosk');
-  const isLogin = !!(await cookies()).get(accessTokenKey)?.value;
+  const cookieStore = await cookies();
+  const isLogin = !!cookieStore.get(accessTokenKey)?.value;
 
   return (
 
