@@ -107,7 +107,7 @@ export const ValidLessonsGrid = ({initialLessons, totalPage, locale = 'ko'}: {
 
   if (lessons.length === 0) {
     return (
-      <p className="py-40 text-center text-[14px] text-[#A0A5AB]">지금 예약 가능한 수업이 없어요</p>
+      <p className="py-40 text-center text-[14px] text-[#A0A5AB]">{getLocaleString({locale, key: 'no_open_lessons'})}</p>
     );
   }
 

@@ -1,11 +1,33 @@
-// PC 웹 전 페이지 공통 푸터 — 회사 정보 법적 표기. 서버 컴포넌트 (SSR부터 존재 — hydration 팝인 없음).
-// 웹/앱·/kiosk 노출 판단은 layout(x-guinness-version/entry 헤더)이 한다.
-// 값·문구는 src/shared/company.ts 단일 출처 — 파트너스 웹 사이드바 푸터와 같은 형식(라벨 ' : ' 값).
+'use client';
+
+// PC 웹 상세 페이지(레일 없는 경로)용 공통 푸터 — 회사 정보 법적 표기.
+// 브라우즈 루트에선 LNB(LnbFooter)가 같은 정보를 보여주므로 WebShell이 상세에서만 이걸 붙인다.
+// 라벨은 StringResource(쿠키 로케일) — 회사 상호/주소 등 법적 표기 값 자체는 한국어 유지.
+// 값·문구는 src/shared/company.ts 단일 출처.
 // .web-footer: 라우트 전환(loading.tsx) 중 globals.css body:has 규칙이 숨긴다 — 깜빡임 방지.
 
+import { useEffect, useState } from 'react';
 import { COMPANY_INFO, LEGAL_LINKS } from '@/shared/company';
+import { Locale } from '@/shared/StringResource';
+import { getLocaleString } from '@/app/components/locale';
+import { localeKey } from '@/shared/cookies.key';
+
+const readCookie = (name: string): string | undefined => {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : undefined;
+};
+
+const isLocale = (v: string | undefined): v is Locale =>
+  v === 'ko' || v === 'en' || v === 'jp' || v === 'zh';
 
 export const WebFooter = () => {
+  const [locale, setLocale] = useState<Locale>('ko');
+  useEffect(() => {
+    const cookieLocale = readCookie(localeKey);
+    if (isLocale(cookieLocale)) setLocale(cookieLocale);
+  }, []);
+
   return (
     <footer className="web-footer hidden lg:block border-t border-[#f0f1f3] bg-[#fafbfc]">
       {/* 중앙 정렬 없이 뷰포트 왼쪽에 붙인다 — 회사 정보 푸터의 통상 배치 */}
@@ -18,7 +40,7 @@ export const WebFooter = () => {
             rel="noopener noreferrer"
             className="font-bold text-[#4E5968] hover:text-black transition-colors"
           >
-            개인정보 처리방침
+            {getLocaleString({locale, key: 'privacy_agreement'})}
           </a>
           <span className="text-[#D1D5DB]">·</span>
           <a
@@ -27,7 +49,7 @@ export const WebFooter = () => {
             rel="noopener noreferrer"
             className="font-medium text-[#6D7882] hover:text-black transition-colors"
           >
-            이용약관
+            {getLocaleString({locale, key: 'terms_of_use'})}
           </a>
         </div>
 
@@ -36,14 +58,14 @@ export const WebFooter = () => {
         <div className="flex flex-col gap-1 text-[12px] leading-relaxed text-[#8A949E]">
           <span className="font-medium text-[#6D7882]">{COMPANY_INFO.name}</span>
           <span>
-            대표자명 : {COMPANY_INFO.representative}
+            {getLocaleString({locale, key: 'footer_representative'})} : {COMPANY_INFO.representative}
             <span className="mx-2 text-[#D1D5DB]">|</span>
-            사업자번호 : {COMPANY_INFO.businessRegistrationNumber}
+            {getLocaleString({locale, key: 'footer_business_number'})} : {COMPANY_INFO.businessRegistrationNumber}
           </span>
           <span>
-            통신판매업신고 : {COMPANY_INFO.eCommerceRegNumber}
+            {getLocaleString({locale, key: 'footer_ecommerce_number'})} : {COMPANY_INFO.eCommerceRegNumber}
             <span className="mx-2 text-[#D1D5DB]">|</span>
-            고객센터 : {COMPANY_INFO.customerServicePhone}
+            {getLocaleString({locale, key: 'footer_customer_center'})} : {COMPANY_INFO.customerServicePhone}
           </span>
           <span>{COMPANY_INFO.address}</span>
         </div>

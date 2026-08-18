@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { WebTopNav } from '@/app/components/WebTopNav';
 import { WebLnbRail, WebLnbDrawer, LnbLabels } from '@/app/components/WebLnb';
 import { NoOverscrollOnPc } from '@/app/components/NoOverscrollOnPc';
+import { WebFooter } from '@/app/components/WebFooter';
 import { accessTokenKey } from '@/shared/cookies.key';
 import { getMyStudiosAction } from '@/app/components/get.my.studios.action';
 import { LnbStudio } from '@/app/components/WebLnb';
@@ -112,6 +113,8 @@ export const WebShell = ({initialLogin, lnbLabels, myStudioId, children}: {
         <div className="lg:min-h-screen">
           {children}
         </div>
+        {/* 상세 페이지(레일 없음)엔 컨텐츠 하단 공통 푸터 — 브라우즈 루트는 LNB의 LnbFooter가 담당 */}
+        {!isBrowse && <WebFooter/>}
       </div>
     </>
   );

@@ -5,10 +5,24 @@
 // - 그 외(상세 등): 레일 없음. 햄버거를 누르면 왼쪽에서 드로어가 슬라이드로 등장(오버레이 딤).
 // 푸터(회사 정보)는 펼친 레일/드로어의 왼쪽 아래에 위치한다 (유튜브 가이드 하단 링크와 동일한 자리).
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { COMPANY_INFO, LEGAL_LINKS } from '@/shared/company';
+import { Locale } from '@/shared/StringResource';
+import { getLocaleString } from '@/app/components/locale';
+import { changeLocale } from '@/utils/translate';
+import { LOCALE_MAP } from '@/app/components/LocaleMap';
+import { localeKey } from '@/shared/cookies.key';
+
+const readCookie = (name: string): string | undefined => {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : undefined;
+};
+
+const isLocale = (v: string | undefined): v is Locale =>
+  v === 'ko' || v === 'en' || v === 'jp' || v === 'zh';
 
 export type LnbLabels = { home: string; myStudio: string; rooms: string; profile: string };
 
@@ -192,32 +206,105 @@ const ExpandedMenus = ({labels, isLogin, myStudios = [], onNavigate}: {
 };
 
 // LNB 하단 푸터 — 회사 정보 법적 표기 컴팩트판 (WebFooter와 같은 값, src/shared/company.ts 단일 출처)
-const LnbFooter = () => (
-  <div className="px-6 pt-5 pb-6 flex flex-col gap-2.5">
-    <div className="flex items-center gap-1.5 text-[12px]">
-      <a href={LEGAL_LINKS.privacy} target="_blank" rel="noopener noreferrer"
-         className="font-bold text-[#4E5968] hover:text-black transition-colors">개인정보 처리방침</a>
-      <span className="text-[#D1D5DB]">·</span>
-      <a href={LEGAL_LINKS.terms} target="_blank" rel="noopener noreferrer"
-         className="font-medium text-[#6D7882] hover:text-black transition-colors">이용약관</a>
+// + 언어 변경 스위처. 라벨은 StringResource — 회사 상호/주소 등 법적 표기 값 자체는 한국어 유지.
+const LnbFooter = () => {
+  const [locale, setLocale] = useState<Locale>('ko');
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const cookieLocale = readCookie(localeKey);
+    if (isLocale(cookieLocale)) setLocale(cookieLocale);
+  }, []);
+
+  useEffect(() => {
+    if (!langOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [langOpen]);
+
+  const handleSelectLocale = async (next: Locale) => {
+    setLangOpen(false);
+    if (next === locale) return;
+    await changeLocale(next);
+    // 풀 리로드 — 서버 컴포넌트(상단바·페이지 문구)까지 새 언어로
+    window.location.reload();
+  };
+
+  return (
+    <div className="px-6 pt-5 pb-6 flex flex-col gap-2.5">
+      {/* 언어 변경 — 위로 열리는 컴팩트 드롭다운 */}
+      <div ref={langRef} className="relative">
+        {langOpen && (
+          <div className="absolute bottom-[calc(100%+6px)] left-0 w-[148px] bg-white rounded-xl border border-[#f0f1f3] shadow-[0_8px_28px_-6px_rgba(0,0,0,0.16)] py-1.5 z-50">
+            {(Object.keys(LOCALE_MAP) as Locale[]).map((l) => (
+              <button
+                key={l}
+                onClick={() => handleSelectLocale(l)}
+                className={`w-full text-left flex items-center gap-2 px-3.5 py-2 text-[12px] transition-colors hover:bg-[#f7f8f9] ${
+                  l === locale ? 'font-bold text-black' : 'text-[#505356]'
+                }`}
+              >
+                <span>{LOCALE_MAP[l].emoji}</span>
+                <span>{LOCALE_MAP[l].name}</span>
+                {l === locale && (
+                  <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 ml-auto">
+                    <path d="M5 12l5 5 9-10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+        <button
+          onClick={() => setLangOpen((v) => !v)}
+          className="flex items-center gap-1.5 text-[12px] font-medium text-[#6D7882] hover:text-black transition-colors"
+        >
+          {/* 지구본 아이콘 */}
+          <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.5"/>
+            <ellipse cx="12" cy="12" rx="3.8" ry="8.5" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M4 9.5h16M4 14.5h16" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+          <span>{LOCALE_MAP[locale].name}</span>
+          <svg viewBox="0 0 24 24" fill="none" className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`}>
+            <path d="M6 15l6-6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-[12px]">
+        <a href={LEGAL_LINKS.privacy} target="_blank" rel="noopener noreferrer"
+           className="font-bold text-[#4E5968] hover:text-black transition-colors">
+          {getLocaleString({locale, key: 'privacy_agreement'})}
+        </a>
+        <span className="text-[#D1D5DB]">·</span>
+        <a href={LEGAL_LINKS.terms} target="_blank" rel="noopener noreferrer"
+           className="font-medium text-[#6D7882] hover:text-black transition-colors">
+          {getLocaleString({locale, key: 'terms_of_use'})}
+        </a>
+      </div>
+      <div className="flex flex-col gap-0.5 text-[11px] leading-relaxed text-[#8A949E]">
+        <span className="font-medium text-[#6D7882]">{COMPANY_INFO.name}</span>
+        <span>{getLocaleString({locale, key: 'footer_representative'})} : {COMPANY_INFO.representative}</span>
+        <span>{getLocaleString({locale, key: 'footer_business_number'})} : {COMPANY_INFO.businessRegistrationNumber}</span>
+        <span>{getLocaleString({locale, key: 'footer_ecommerce_number'})} : {COMPANY_INFO.eCommerceRegNumber}</span>
+        <span>{getLocaleString({locale, key: 'footer_customer_center'})} : {COMPANY_INFO.customerServicePhone}</span>
+        <span>{COMPANY_INFO.address}</span>
+      </div>
+      <span className="text-[11px] text-[#B0B8BF]">
+        © {new Date().getFullYear()} {COMPANY_INFO.copyrightName} All rights reserved.
+      </span>
     </div>
-    <div className="flex flex-col gap-0.5 text-[11px] leading-relaxed text-[#8A949E]">
-      <span className="font-medium text-[#6D7882]">{COMPANY_INFO.name}</span>
-      <span>대표자명 : {COMPANY_INFO.representative}</span>
-      <span>사업자번호 : {COMPANY_INFO.businessRegistrationNumber}</span>
-      <span>통신판매업신고 : {COMPANY_INFO.eCommerceRegNumber}</span>
-      <span>고객센터 : {COMPANY_INFO.customerServicePhone}</span>
-      <span>{COMPANY_INFO.address}</span>
-    </div>
-    <span className="text-[11px] text-[#B0B8BF]">
-      © {new Date().getFullYear()} {COMPANY_INFO.copyrightName} All rights reserved.
-    </span>
-  </div>
-);
+  );
+};
 
 /** 브라우즈 루트용 고정 레일 — open: 아이콘+라벨+하단 푸터 / mini: 아이콘만 */
 export const WebLnbRail = ({open, labels, isLogin, myStudios}: { open: boolean; labels: LnbLabels; isLogin: boolean; myStudios?: LnbStudio[] }) => {
-  const menus = useMenus(labels, isLogin);
+  const menus = useMenus(labels, isLogin, myStudios);
   // 컨텐츠 교체를 폭 애니메이션(200ms)과 동기화 — 닫힐 땐 애니메이션이 끝난 뒤에 mini로 교체.
   // 펼친 컨텐츠(메뉴 라벨·푸터)는 아래에서 고정 폭(w-60)으로 두므로, 폭이 줄어드는 동안
   // 텍스트가 재줄바꿈되며 푸터가 꿀렁이지 않고 overflow-x-hidden 클리핑으로 매끄럽게 가려진다.
