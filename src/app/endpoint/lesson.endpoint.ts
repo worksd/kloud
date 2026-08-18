@@ -201,6 +201,49 @@ export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListRe
     queryParams: ['studioId', 'page']
 }
 
+/** GET /lessons/valid 아이템 — 전체 스튜디오를 가로질러 지금 예약 가능한 수업. studio 항상 포함. */
+export type ValidLessonResponse = {
+    id: number;
+    /** 실질적으로 'Recruiting'(예약 가능) / 'Ready'(정원 마감) 둘 중 하나 */
+    status: LessonStatus;
+    statusLabel: string;
+    type?: string;
+    title: string;
+    thumbnailUrl: string;
+    /** 'yyyy.MM.dd HH:mm' (KST) */
+    startDate: string;
+    /** 로케일 적용된 표시용 일시 문구 */
+    date: string;
+    dday: string;
+    price: number;
+    /** 기본값(Default)이면 null */
+    genre: string | null;
+    level?: string;
+    artists: GetArtistResponse[];
+    studio: { id: number; name: string; profileImageUrl?: string };
+    label?: GetLabelResponse;
+    /** 매주 반복 요일(0=일~6=토). 비반복이면 키 생략 */
+    days?: number[];
+    description?: string;
+}
+
+export type ValidLessonListResponse = {
+    lessons: ValidLessonResponse[];
+    /** ceil(전체 건수 / 20) */
+    totalPage: number;
+}
+
+export type GetValidLessonsParameter = {
+    page?: number;
+}
+
+/** 예약 가능 수업 전체 목록 — 시작 시각 가까운 순, 페이지당 20개 고정. 로그인 필요. */
+export const ListValidLessons: Endpoint<GetValidLessonsParameter, ValidLessonListResponse> = {
+    method: 'get',
+    path: `/lessons/valid`,
+    queryParams: ['page'],
+}
+
 export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, GetLessonListResponse> = {
     method: 'get',
     path: `/lessons`,
