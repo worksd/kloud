@@ -6,7 +6,7 @@
 // 모든 액션은 기존 server action 재사용 (emailLoginAction, signUpAction, sendVerificationSMS, phoneLoginAction).
 // 성공 시 홈(/)으로 풀 리로드(상단바 세션 반영). New 유저면 /onboarding으로.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import KakaoLogo from "../../../public/assets/logo_kakao.svg";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { Locale } from "@/shared/StringResource";
@@ -52,8 +52,10 @@ export const WebLoginDialog = ({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 닫힘 애니메이션 — open이 꺼진 뒤 220ms 동안 mounted를 유지하며 fadeOut/dialogOut을 재생
+  // 닫힘 애니메이션 — open이 꺼진 뒤 220ms 동안 mounted를 유지하며 fadeOut/dialogOut을 재생.
+  // 열린 적이 있을 때만 — 최초 마운트(open=false)에 퇴장을 재생하면 하드 리프레시마다 한 번 번쩍인다.
   const [closing, setClosing] = useState(false);
+  const wasOpenRef = useRef(false);
 
   // ESC 키
   useEffect(() => {
@@ -74,6 +76,8 @@ export const WebLoginDialog = ({
   // 닫힐 때: 애니메이션 동안 컨텐츠가 바뀌지 않게, 상태 reset은 퇴장이 끝난 뒤에
   useEffect(() => {
     if (!open) {
+      if (!wasOpenRef.current) return;
+      wasOpenRef.current = false;
       setClosing(true);
       const t = setTimeout(() => {
         setClosing(false);
@@ -87,6 +91,7 @@ export const WebLoginDialog = ({
       }, 220);
       return () => clearTimeout(t);
     } else {
+      wasOpenRef.current = true;
       // 열릴 때 캐시된 이메일 채우기
       try {
         const cached = localStorage.getItem(CACHED_EMAIL_KEY);
