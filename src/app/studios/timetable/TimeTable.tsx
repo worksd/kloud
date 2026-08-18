@@ -139,18 +139,24 @@ const formatAmPm = (t?: string): string => {
   return `${ampm} ${h12}:${String(Number.isNaN(mm) ? 0 : mm).padStart(2, '0')}`;
 };
 
-export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickEvent}: {
+export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickEvent, hqImages = false}: {
   timeTable: GetTimeTableResponse,
   studioId: number,
   locale: Locale,
   /** true면 수업 셀 탭 시 상세 이동 대신 스튜디오 바텀시트 오픈 이벤트를 발생시킨다. */
   useSheet?: boolean,
+  /** PC 웹처럼 셀이 크게 그려지는 곳에서 true — 셀 썸네일을 고화질(quality/sizes ↑)로 로드 */
+  hqImages?: boolean,
   /**
    * 셀 탭 시 보낼 분석 이벤트. 시간표는 홈·스튜디오 상세에서 함께 쓰는데 홈 클릭만 세고 싶어
    * 호출부가 지정할 때만 보낸다.
    */
   clickEvent?: AnalyticsEvent,
 }) => {
+  // 셀 썸네일 로드 품질 — 모바일은 데이터 절약(저화질), PC 웹은 셀이 커서 고화질
+  const cellImgQuality = hqImages ? 75 : 10;
+  const cellImgSizes = hqImages ? '320px' : '96px';
+
   // 셀 탭 동작 — 렌더 타입(A/B/C) 3곳이 같은 흐름이라 여기로 모은다. 분석 이벤트도 여기 한 곳에서만 나간다.
   const openLesson = (lessonId: number) => {
     if (clickEvent) trackEvent(clickEvent, { lessonId, studioId });
@@ -335,7 +341,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                         </span>
                         <div className="w-[52px] h-[52px] rounded-[10px] overflow-hidden bg-[#F1F3F6] shrink-0">
                           {cell.lesson!.thumbnailUrl && (
-                            <Image src={cell.lesson!.thumbnailUrl} alt="" width={52} height={52} className="w-full h-full object-cover" quality={10} sizes="60px" />
+                            <Image src={cell.lesson!.thumbnailUrl} alt="" width={52} height={52} className="w-full h-full object-cover" quality={hqImages ? 75 : 10} sizes={hqImages ? "120px" : "60px"} />
                           )}
                         </div>
                         <span className="flex-1 min-w-0 text-[14px] font-medium text-[#171717] line-clamp-2">{cell.lesson!.title}</span>
@@ -392,7 +398,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                     <div className="relative w-full h-full flex flex-col">
                       {cell.lesson!.thumbnailUrl ? (
                         <div className="flex-1 relative w-full min-h-0">
-                          <Image src={cell.lesson!.thumbnailUrl} alt="lesson thumbnail" fill className="object-cover" quality={10} sizes="96px" />
+                          <Image src={cell.lesson!.thumbnailUrl} alt="lesson thumbnail" fill className="object-cover" quality={cellImgQuality} sizes={cellImgSizes} />
                         </div>
                       ) : (
                         <div className="flex-1 w-full bg-gray-200" />
@@ -533,8 +539,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                             alt="lesson thumbnail"
                             fill
                             className="object-cover"
-                            quality={10}
-                            sizes="96px"
+                            quality={cellImgQuality}
+                            sizes={cellImgSizes}
                           />
                         </div>
                       ) : (

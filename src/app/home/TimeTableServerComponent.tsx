@@ -6,14 +6,14 @@ import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.actio
 import { getLocale } from "@/utils/translate";
 import { AnalyticsEvent } from "@/app/lib/analytics";
 
-export const TimeTableServerComponent = async ({studioId, useSheet = false, noMargin = false, clickEvent}: { studioId: number, useSheet?: boolean, noMargin?: boolean, clickEvent?: AnalyticsEvent }) => {
+export const TimeTableServerComponent = async ({studioId, useSheet = false, noMargin = false, clickEvent, hqImages = false}: { studioId: number, useSheet?: boolean, noMargin?: boolean, clickEvent?: AnalyticsEvent, hqImages?: boolean }) => {
   const res = await getTimeTableAction({
     studioId,
   });
   if ('cells' in res) {
     return (
       <div className={noMargin ? '' : 'my-4'}>
-        <TimeTable studioId={studioId} timeTable={res} locale={await getLocale()} useSheet={useSheet} clickEvent={clickEvent}/>
+        <TimeTable studioId={studioId} timeTable={res} locale={await getLocale()} useSheet={useSheet} clickEvent={clickEvent} hqImages={hqImages}/>
       </div>
     )
   }
