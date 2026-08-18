@@ -44,15 +44,19 @@ export const WebTopNav = ({ initialLogin = false }: {
   const router = useRouter();
 
   useEffect(() => {
-    // 로그인/로케일 최신화 (SPA 전환 중 쿠키가 바뀐 경우 대비) + 프로필 조회
+    // 로그인/로케일 최신화 + 프로필 조회 — 마운트 시 1회가 아니라 경로가 바뀔 때마다.
+    // 상단바는 루트 레이아웃에 살아서 소프트 내비게이션에도 리마운트되지 않으므로,
+    // 로그인/로그아웃 후 router.replace로 복귀하는 플로우(카카오 콜백 등)에서 쿠키를 다시 읽어야 갱신된다.
     const loggedIn = !!readCookie(accessTokenKey);
     setIsLogin(loggedIn);
     const cookieLocale = readCookie(localeKey);
     if (isLocale(cookieLocale)) setLocale(cookieLocale);
     if (loggedIn) {
       getWebTopNavProfileAction().then(setProfile).catch(() => {});
+    } else {
+      setProfile(null);
     }
-  }, []);
+  }, [pathname]);
 
   // 키오스크는 자체 전체화면 UI — 상단바 대상 아님
   if (pathname?.startsWith('/kiosk')) return null;
