@@ -3,8 +3,9 @@
 // 모바일 웹뷰·좁은 웹은 LessonDetailForm.tsx 사용. 분기는 page.tsx에서 appVersion + viewport(lg)로.
 // (shelf 'Add PC-specific components' 이식분 — WebTopNav는 미도입이라 상단 여백만 pt-12로 조정)
 
-import { StudioProfileImage } from '@/app/lessons/[id]/StudioProfileImage';
 import { LessonArtistItem } from '@/app/lessons/[id]/lesson.artist.item';
+import Link from 'next/link';
+import { KloudScreen } from '@/shared/kloud.screen';
 import { GetLessonResponse } from '@/app/endpoint/lesson.endpoint';
 import { LessonInfoSection } from '@/app/lessons/[id]/lesson.info.section';
 import { getLocale, translate } from '@/utils/translate';
@@ -31,7 +32,29 @@ export default async function LessonDetailPcForm({lesson, appVersion}: {
           {/* 헤더: 스튜디오 + 라벨 */}
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-start">
-              {lesson.studio && <StudioProfileImage studio={lesson.studio}/>}
+              {/* 스튜디오 진입 버튼 — 모바일(24px 로고 단독)보다 키우고, 이름+화살표로 클릭 가능함을 드러낸다 */}
+              {lesson.studio && (
+                <Link
+                  href={KloudScreen.StudioDetail(lesson.studio.id)}
+                  className="group inline-flex items-center gap-2.5 -ml-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-[#f5f6f8] transition-colors"
+                >
+                  {lesson.studio.profileImageUrl ? (
+                    <Image
+                      className="rounded-full border border-[#f0f1f3] w-8 h-8 box-border object-cover object-center"
+                      src={lesson.studio.profileImageUrl}
+                      alt={`${lesson.studio.name} 스튜디오`}
+                      width={32}
+                      height={32}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#dcdee0]"/>
+                  )}
+                  <span className="text-[15px] font-semibold text-black">{lesson.studio.name}</span>
+                  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-[#C4C9CF] group-hover:text-black transition-colors">
+                    <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+              )}
               <div className="flex justify-center items-start gap-[3px]">
                 {lesson.level && <LessonLevelLabel label={lesson.level} locale={locale}/>}
                 {lesson.type && <LessonTypeLabel type={lesson.type} locale={locale}/>}
