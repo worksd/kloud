@@ -108,6 +108,22 @@ export type GetMeResponse = {
   myPasses?: MyPassResponse[]
   /** 연결된 소셜 계정 — Default 유저만 채워짐 (provider: 'Google'|'Kakao'|'Apple') */
   socialLinks?: { provider: string }[]
+  /** 강사로 소속된 학원 목록. 강사가 아니면 빈 배열 — 개인수업 개설 진입 시그널 */
+  artistStudios?: { id: number; name: string; profileImageUrl?: string }[]
+  /**
+   * 내 강사 프로필 (SimpleArtistResponse) — 강사(type=Artist)로 연결된 계정에만, 미연결이면 키 생략.
+   * 강사 수업 목록(GET /artists/:id/lessons)은 이 안의 id로 호출한다.
+   */
+  artist?: {
+    id: number
+    name?: string
+    nickName?: string
+    profileImageUrl?: string
+    phone?: string
+    instagramAddress?: string
+    /** 강사 태그 (콤마 구분) */
+    tag?: string | null
+  }
 }
 
 export type GetAnnouncementResponse = {
@@ -197,6 +213,8 @@ export const SearchUserByPhone: Endpoint<SearchUserByPhoneParameter, GetUserResp
 
 export type SearchUserParameter = {
   query: string;
+  /** 강사 계정 전용 — 자기 소속 학원의 수강생을 찾을 때. 파트너는 생략(계정의 학원이 우선) */
+  studioId?: number;
 }
 
 export type UserListResponse = {
@@ -206,5 +224,5 @@ export type UserListResponse = {
 export const SearchUser: Endpoint<SearchUserParameter, UserListResponse> = {
   method: 'get',
   path: '/users/search',
-  queryParams: ['query']
+  queryParams: ['query', 'studioId']
 }

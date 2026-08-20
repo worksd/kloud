@@ -195,6 +195,42 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     path: (e) => `/lessons/${e.id}`,
 };
 
+/**
+ * 강사 개인수업 개설 — POST /lessons 의 강사 경로.
+ * studioId(소속 학원)를 보내면 서버가 개인수업(Private)·Basic·강사 본인으로 강제하므로
+ * artists/type/level/genre 는 보내지 않는다. 정산은 없음 고정.
+ * limit 은 룸 수용 인원(maxNumber)까지, price 는 0원 허용·음수 거부.
+ */
+export type CreatePrivateLessonRequest = {
+    studioId: number;
+    studioRoomId: number;
+    /** 'YYYY.MM.dd HH:mm' (KST) */
+    startDate: string;
+    /** 수업 길이(분) */
+    duration: number;
+    price: number;
+    limit: number;
+    title: string;
+    thumbnailUrl?: string;
+};
+
+/** POST /lessons 응답 (SimpleLessonResponse) */
+export type CreateLessonResponse = {
+    id: number;
+    title: string;
+    /** 'yyyy-MM-dd HH:mm' */
+    startDate: string;
+    /** 로케일 적용 표시용 일시 */
+    date: string;
+    thumbnailUrl?: string;
+};
+
+export const CreatePrivateLesson: Endpoint<CreatePrivateLessonRequest, CreateLessonResponse> = {
+    method: 'post',
+    path: `/lessons`,
+    bodyParams: ['studioId', 'studioRoomId', 'startDate', 'duration', 'price', 'limit', 'title', 'thumbnailUrl'],
+};
+
 export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons/ongoing`,

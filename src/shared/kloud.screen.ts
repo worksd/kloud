@@ -61,6 +61,12 @@ export const KloudScreen = {
   /** 레슨 */
   LessonDetail: (id: number) => `/lessons/${id}`,
 
+  /** 개인수업 (강사) */
+  PrivateLessonCreate: '/privateLessons/create',
+  PrivateLessonInvite: (lessonId: number, studioId: number) => `/privateLessons/${lessonId}/invite?studioId=${studioId}`,
+  /** 강사가 진행한 수업 목록 */
+  ArtistLessons: '/artistLessons',
+
   /** 내 스튜디오 (PC 웹) */
   MyStudio: '/myStudio',
   Search: (keyword: string) => `/search?q=${encodeURIComponent(keyword)}`,

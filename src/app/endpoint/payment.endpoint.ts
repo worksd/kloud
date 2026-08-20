@@ -15,6 +15,8 @@ export type GetPaymentRequest = {
   startTime?: string
   /** 연습실 필수 — 예약 종료 'YYYY-MM-DDTHH:mm' (KST, 자정 넘기면 다음날) */
   endTime?: string
+  /** 강사 경로 전용 — 강사가 자기 소속 학원의 수업을 조회할 때. 파트너는 생략(계정의 학원이 우선) */
+  studioId?: number
 }
 
 export type DiscountPassRule = {
@@ -173,7 +175,7 @@ export type GetPaymentResponse = {
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   method: "get",
   path: `/payment`,
-  queryParams: ['itemId', 'item', 'targetUserId', 'date', 'startTime', 'endTime']
+  queryParams: ['itemId', 'item', 'targetUserId', 'date', 'startTime', 'endTime', 'studioId']
 };
 
 

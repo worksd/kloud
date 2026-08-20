@@ -30,6 +30,7 @@ export class ApiClient extends EndpointClient {
 
   readonly lesson = {
     get: this.endpointBuilder(API.Lesson.GetLesson),
+    createPrivate: this.endpointBuilder(API.Lesson.CreatePrivateLesson),
     listOngoingLessons: this.endpointBuilder(API.Lesson.ListOngoingLessons),
     listValidLessons: this.endpointBuilder(API.Lesson.ListValidLessons),
     listByDate: this.endpointBuilder(API.Lesson.ListStudioLessonsByDate),
@@ -164,6 +165,7 @@ export class ApiClient extends EndpointClient {
 
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
+    getLessons: this.endpointBuilder(API.Artist.GetArtistLessons),
   }
 
   readonly common = {

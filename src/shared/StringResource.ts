@@ -227,6 +227,169 @@ export const StringResource = {
     jp: '今いちばん注目のワークショップ',
     zh: '当下最受关注的工作坊'
   },
+  // ── 개인수업 (강사) ─────────────────────────────────────
+  artist_greeting_title: {
+    ko: '안녕하세요, {name} 강사님 👋',
+    en: 'Hello, {name}! 👋',
+    jp: 'こんにちは、{name}先生 👋',
+    zh: '您好，{name} 老师 👋'
+  },
+  artist_greeting_subtitle: {
+    ko: '빈 시간에 개인수업을 열고 수강생을 등록해보세요',
+    en: 'Open a private lesson and register your students',
+    jp: '空き時間に個人レッスンを開いて受講生を登録しましょう',
+    zh: '在空闲时间开设私教课并登记学员'
+  },
+  private_lesson_create: {
+    ko: '개인수업 만들기',
+    en: 'Create private lesson',
+    jp: '個人レッスンを作成',
+    zh: '创建私教课'
+  },
+  artist_my_lessons: {
+    ko: '내 수업',
+    en: 'My lessons',
+    jp: '担当レッスン',
+    zh: '我的课程'
+  },
+  artist_my_lessons_empty: {
+    ko: '아직 진행한 수업이 없어요',
+    en: 'No lessons yet',
+    jp: 'まだ担当したレッスンがありません',
+    zh: '还没有授课记录'
+  },
+  private_lesson_studio: {
+    ko: '스튜디오 선택',
+    en: 'Studio',
+    jp: 'スタジオ選択',
+    zh: '选择工作室'
+  },
+  private_lesson_room: {
+    ko: '강의실 선택',
+    en: 'Room',
+    jp: '教室選択',
+    zh: '选择教室'
+  },
+  private_lesson_day_schedule: {
+    ko: '강의실 일정',
+    en: 'Room schedule',
+    jp: '教室の予定',
+    zh: '教室日程'
+  },
+  private_lesson_no_schedule: {
+    ko: '이 날은 일정이 없어요',
+    en: 'No schedule on this day',
+    jp: 'この日の予定はありません',
+    zh: '当天没有日程'
+  },
+  private_lesson_time_conflict: {
+    ko: '이 시간은 기존 일정과 겹쳐요',
+    en: 'This time overlaps an existing schedule',
+    jp: 'この時間は既存の予定と重なります',
+    zh: '该时间与现有日程重叠'
+  },
+  private_lesson_datetime: {
+    ko: '수업 일시',
+    en: 'Date & time',
+    jp: 'レッスン日時',
+    zh: '上课时间'
+  },
+  private_lesson_duration: {
+    ko: '수업 길이(분)',
+    en: 'Duration (min)',
+    jp: 'レッスン時間(分)',
+    zh: '课程时长(分钟)'
+  },
+  private_lesson_limit: {
+    ko: '정원',
+    en: 'Capacity',
+    jp: '定員',
+    zh: '人数上限'
+  },
+  private_lesson_limit_max: {
+    ko: '최대 {count}명',
+    en: 'Up to {count}',
+    jp: '最大{count}名',
+    zh: '最多 {count} 人'
+  },
+  private_lesson_title_label: {
+    ko: '수업명',
+    en: 'Lesson title',
+    jp: 'レッスン名',
+    zh: '课程名称'
+  },
+  private_lesson_created: {
+    ko: '개인수업이 만들어졌어요',
+    en: 'Private lesson created',
+    jp: '個人レッスンを作成しました',
+    zh: '私教课已创建'
+  },
+  invite_students_title: {
+    ko: '수강생 등록',
+    en: 'Register students',
+    jp: '受講生登録',
+    zh: '学员登记'
+  },
+  invite_search_placeholder: {
+    ko: '이름·닉네임·연락처로 검색',
+    en: 'Search by name or phone',
+    jp: '名前・電話番号で検索',
+    zh: '按姓名或电话搜索'
+  },
+  invite_no_result: {
+    ko: '검색 결과가 없어요',
+    en: 'No results',
+    jp: '検索結果がありません',
+    zh: '没有搜索结果'
+  },
+  search: {
+    ko: '검색',
+    en: 'Search',
+    jp: '検索',
+    zh: '搜索'
+  },
+  invite_register_with_pass: {
+    ko: '수강권으로 등록',
+    en: 'Register with pass',
+    jp: 'パスで登録',
+    zh: '使用课程券登记'
+  },
+  invite_register_onsite: {
+    ko: '현장결제로 등록',
+    en: 'Register with on-site payment',
+    jp: '現地決済で登録',
+    zh: '现场付款登记'
+  },
+  invite_no_pass: {
+    ko: '사용 가능한 수강권이 없어요',
+    en: 'No usable pass',
+    jp: '使用可能なパスがありません',
+    zh: '没有可用的课程券'
+  },
+  invite_success: {
+    ko: '{name}님을 등록했어요',
+    en: '{name} registered',
+    jp: '{name}さんを登録しました',
+    zh: '已登记 {name}'
+  },
+  invite_confirm_pass: {
+    ko: '{name}님을 이 수강권으로 등록할까요?',
+    en: "Register {name} with this pass?",
+    jp: '{name}さんをこのパスで登録しますか？',
+    zh: '用此课程券登记 {name} 吗？'
+  },
+  invite_confirm_onsite: {
+    ko: '{name}님을 현장결제({price})로 등록할까요?',
+    en: 'Register {name} with on-site payment ({price})?',
+    jp: '{name}さんを現地決済({price})で登録しますか？',
+    zh: '以现场付款({price})登记 {name} 吗？'
+  },
+  lesson_admin_invite_button: {
+    ko: '수강생 등록',
+    en: 'Register student',
+    jp: '受講生を登録',
+    zh: '登记学员'
+  },
   payment_disabled_price_unavailable: {
     ko: '결제 정보를 불러오지 못했어요',
     en: "Couldn't load payment info",
