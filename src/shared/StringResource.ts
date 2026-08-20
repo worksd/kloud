@@ -1792,6 +1792,78 @@ export const StringResource = {
     jp: "マイサブスクリプション",
     zh: "我的订阅"
   },
+  subscription_confirm_notice: {
+    ko: '{cycle} 이 카드로 자동 결제되는 정기결제예요',
+    en: 'This is a subscription — charged to this card {cycle}',
+    jp: '{cycle}このカードで自動決済されるサブスクリプションです',
+    zh: '这是订阅付款 — {cycle}自动从此卡扣款'
+  },
+  cycle_monthly: {
+    ko: '매달',
+    en: 'every month',
+    jp: '毎月',
+    zh: '每月'
+  },
+  cycle_every_weeks: {
+    ko: '{n}주마다',
+    en: 'every {n} weeks',
+    jp: '{n}週ごとに',
+    zh: '每{n}周'
+  },
+  cycle_every_sessions: {
+    ko: '{n}회 수강마다',
+    en: 'every {n} sessions',
+    jp: '{n}回ごとに',
+    zh: '每{n}次课'
+  },
+  subscription_per_weeks: {
+    ko: '/ {n}주',
+    en: '/ {n} wks',
+    jp: '/ {n}週',
+    zh: '/ {n}周'
+  },
+  subscription_per_sessions: {
+    ko: '/ {n}회',
+    en: '/ {n} sessions',
+    jp: '/ {n}回',
+    zh: '/ {n}次'
+  },
+  regular_payment: {
+    ko: '일반결제',
+    en: 'One-time payment',
+    jp: '通常決済',
+    zh: '普通支付'
+  },
+  subscription_badge: {
+    ko: '정기결제로 편하게',
+    en: 'Easy with subscription',
+    jp: 'サブスクでらくらく',
+    zh: '订阅更省心'
+  },
+  subscription_per_month: {
+    ko: '/ 월',
+    en: '/ mo',
+    jp: '/ 月',
+    zh: '/ 月'
+  },
+  subscription_benefit_1: {
+    ko: '{cycle} 자동 결제 — 놓칠 걱정 없어요',
+    en: 'Auto-charged {cycle} — never miss it',
+    jp: '{cycle}自動決済 — 忘れる心配なし',
+    zh: '{cycle}自动扣款 — 不怕错过'
+  },
+  subscription_benefit_2: {
+    ko: '카드 한 번 등록이면 매번 결제할 필요 없어요',
+    en: 'Register a card once, no more checkout',
+    jp: 'カード登録は一度だけ、毎回の決済は不要',
+    zh: '绑卡一次，无需每次付款'
+  },
+  subscription_benefit_3: {
+    ko: '언제든 해지할 수 있어요',
+    en: 'Cancel anytime',
+    jp: 'いつでも解約できます',
+    zh: '随时可取消'
+  },
   my_membership: {
     ko: "멤버십",
     en: "My Membership",

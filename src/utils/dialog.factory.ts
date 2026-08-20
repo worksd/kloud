@@ -239,6 +239,17 @@ export async function createDialog({id, message, title, customData}: {
       cancelTitle: await translate('cancel'),
       customData: customData,
     }
+  } else if (id == 'RequestSubscription') {
+    // 정기결제(구독) 생성 확인 — canSubscribe 상품의 billing 결제
+    return {
+      id: 'RequestSubscription',
+      type: 'YESORNO',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      customData: customData,
+    }
   } else if (id == 'BillingKeyNotFound') {
     return {
       id: 'BillingKeyNotFound',
@@ -334,6 +345,7 @@ export type DialogId =
   | 'SkipCertification'
   | 'DeleteBillingCard'
   | 'RequestBillingKeyPayment'
+  | 'RequestSubscription'
   | 'BillingKeyNotFound'
   | 'CapacityFull'
   | 'ChangePhoneNumber'

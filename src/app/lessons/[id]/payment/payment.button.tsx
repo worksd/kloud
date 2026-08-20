@@ -14,6 +14,7 @@ import { selectAndUsePassAction } from "@/app/lessons/[id]/action/selectAndUsePa
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { billingKeyPaymentAction } from "@/app/lessons/[id]/action/billing.key.payment.action";
+import { createSubscriptionAction } from "@/app/lessons/[id]/action/create.subscription.action";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { trackEvent } from "@/app/lib/analytics";
 import { checkCapacityLessonAction } from "@/app/lessons/[id]/payment/check.capacity.lesson.action";
@@ -106,6 +107,8 @@ export default function PaymentButton({
                                         hasRefundAccount,
                                         onBillingCardsChange,
                                         practiceRoomInfo,
+                                        canSubscribe,
+                                        subscriptionCycleLabel,
                                       }: {
   appVersion: string;
   id: number,
@@ -132,6 +135,10 @@ export default function PaymentButton({
   hasRefundAccount: boolean,
   onBillingCardsChange?: (cards: GetBillingResponse[]) => void,
   practiceRoomInfo?: { studioRoomId: number; startDate: string; endDate: string },
+  /** GET /payment의 canSubscribe — true면 billing 결제가 단건이 아니라 구독 생성(POST /subscription)으로 간다 */
+  canSubscribe?: boolean,
+  /** 정기결제 주기 문장 라벨 (예: '4주마다', '매달') — 선택한 가격 정책으로 연산된 값 */
+  subscriptionCycleLabel?: string,
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -370,12 +377,19 @@ export default function PaymentButton({
             return;
           }
         }
+        // canSubscribe=true면 단건 빌링키 결제가 아니라 구독 생성(POST /subscription) — 확인 문구도 정기결제용
         const dialog = await createDialog({
-          id: 'RequestBillingKeyPayment',
+          id: canSubscribe ? 'RequestSubscription' : 'RequestBillingKeyPayment',
           title: title,
           message: [
             `${getLocaleString({locale, key: 'billing_key_payment_amount'})}: ${(price ?? 0).toLocaleString()}${getLocaleString({locale, key: 'won'})}`,
             `${getLocaleString({locale, key: 'billing_key_payment_method'})}: ${selectedBilling.cardName}`,
+            ...(canSubscribe
+              ? [getLocaleString({locale, key: 'subscription_confirm_notice'}).replace(
+                  '{cycle}',
+                  subscriptionCycleLabel ?? getLocaleString({locale, key: 'cycle_monthly'}),
+                )]
+              : []),
             ``,
             `${getLocaleString({locale, key: 'billing_key_payment_confirm_question'})}`
           ].join('\n'),
@@ -474,6 +488,28 @@ export default function PaymentButton({
         } else {
           const dialog = await createDialog({id: 'PaymentFail', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
+        }
+      } else if (data.id == 'RequestSubscription') {
+        // 정기결제(구독) 생성 — 단건 결제가 아니라 매달 자동결제를 건다
+        const res = await createSubscriptionAction({
+          item: type.apiValue,
+          itemId: id,
+          billingKey: data.customData ?? '',
+        });
+        if ('subscription' in res && res.subscription?.subscriptionId) {
+          if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
+          const route = KloudScreen.MySubscriptionDetail(res.subscription.subscriptionId);
+          if (appVersion == '') {
+            router.push(route);
+          } else {
+            // 첫 회차 결제 웹훅 반영 대기 후 구독 상세로 스택 초기화 이동
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await kloudNav.navigateMain({ route });
+          }
+        } else if (isGuinnessErrorCase(res)) {
+          const dialog = await createDialog({id: 'PaymentFail', message: res.message})
+          if (appVersion == '' && dialog) setWebDialogInfo(dialog);
+          else window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
         const showFail = async (message?: string) => {

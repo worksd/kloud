@@ -10,6 +10,7 @@ import { PaymentMethodComponent } from "@/app/lessons/[id]/payment/PaymentMethod
 import { DiscountSection } from "@/app/lessons/[id]/payment/DiscountSection";
 import { PassesSection } from "@/app/payment/PassesSection";
 import { PricePolicySection } from "@/app/payment/PricePolicySection";
+import { SubscriptionSection } from "@/app/payment/SubscriptionSection";
 import { CouponResponse, DiscountResponse, GetPaymentMethodResponse, GetPaymentResponse, LessonPricePolicyResponse, PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
@@ -153,6 +154,11 @@ export const UnifiedPaymentInfo = ({
       return [m];
     });
 
+  // canSubscribe=true면 정기결제 스페셜 섹션을 따로 노출한다.
+  // 결제수단 목록은 BE가 주는 대로 전부(billing 포함) 그대로 — 일반 billing 선택은 단건 결제,
+  // 정기결제 섹션 선택(subscribeSelected)일 때만 구독 생성(POST /subscription)으로 간다.
+  const canSubscribe = payment.canSubscribe === true;
+
   // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
   // 비회원(연습실 게스트)은 user가 없으므로 옵셔널 체이닝.
   const availablePasses: GetPassResponse[] = payment.passes ?? payment.user?.passes ?? [];
@@ -265,6 +271,13 @@ export const UnifiedPaymentInfo = ({
     }
   }
 
+  // 정기결제 섹션이 선택됐는지 — 결제수단은 'billing'을 공유하되 제출 경로(단건/구독)만 가른다
+  const [subscribeSelected, setSubscribeSelected] = useState(false);
+  // 패스 선택 등 어떤 경로로든 수단이 billing에서 벗어나면 구독 모드 해제
+  useEffect(() => {
+    if (subscribeSelected && selectedMethod !== 'billing') setSubscribeSelected(false);
+  }, [subscribeSelected, selectedMethod]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -280,6 +293,29 @@ export const UnifiedPaymentInfo = ({
   const noPass = type === 'pass-plan' || type === 'practice-room';
   // 가격정책이 있으면 선택된 옵션의 가격이 상품가가 된다.
   const itemPrice = hasPolicies ? (selectedPolicy?.price ?? 0) : getItemPrice(payment, type);
+
+  // 정기결제 주기 — 선택한 가격 정책으로 연산: 회차 수 ÷ 주당 요일 수 ≈ N주마다.
+  // 요일 없는 정책은 회차 기준(N회마다), 정책 없는 상품(패스플랜 등)은 월 단위 폴백.
+  const subscriptionCycle = (() => {
+    if (selectedPolicy && selectedPolicy.lessonCount > 0) {
+      const daysPerWeek = selectedPolicy.days?.length ?? 0;
+      if (daysPerWeek > 0) {
+        const weeks = Math.max(1, Math.round(selectedPolicy.lessonCount / daysPerWeek));
+        return {
+          suffix: getLocaleString({ locale, key: 'subscription_per_weeks' }).replace('{n}', String(weeks)),
+          label: getLocaleString({ locale, key: 'cycle_every_weeks' }).replace('{n}', String(weeks)),
+        };
+      }
+      return {
+        suffix: getLocaleString({ locale, key: 'subscription_per_sessions' }).replace('{n}', String(selectedPolicy.lessonCount)),
+        label: getLocaleString({ locale, key: 'cycle_every_sessions' }).replace('{n}', String(selectedPolicy.lessonCount)),
+      };
+    }
+    return {
+      suffix: getLocaleString({ locale, key: 'subscription_per_month' }),
+      label: getLocaleString({ locale, key: 'cycle_monthly' }),
+    };
+  })();
   const priceAvailable = hasPolicies || payment.price != null;
   const priceNotAvailable = !priceAvailable && payment.methods.length === 0;
 
@@ -352,6 +388,25 @@ export const UnifiedPaymentInfo = ({
         </>
       )}
 
+      {/* 정기결제 스페셜 섹션 — canSubscribe 상품에서만. 선택 시 구독 생성(POST /subscription) 경로 */}
+      {canSubscribe && (
+        <SubscriptionSection
+          locale={locale}
+          price={itemPrice}
+          cycleSuffix={subscriptionCycle.suffix}
+          cycleLabel={subscriptionCycle.label}
+          cards={cards ?? []}
+          onCardsChangeAction={(cards) => setCards(cards)}
+          selectedBillingCard={selectedBillingCard}
+          selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
+          selected={subscribeSelected}
+          onSelectAction={() => {
+            setSubscribeSelected(true);
+            handleSelectMethod('billing');
+          }}
+        />
+      )}
+
       {paymentMethods.length > 0 && (
         <>
           <PaymentMethodComponent
@@ -364,8 +419,12 @@ export const UnifiedPaymentInfo = ({
             selectBillingCard={(card: GetBillingResponse) => setSelectedBillingCard(card)}
             selectPass={(pass: GetPassResponse) => setSelectedPass(pass)}
             paymentOptions={paymentMethods}
-            selectedMethod={selectedMethod}
-            selectPaymentMethodAction={handleSelectMethod}
+            selectedMethod={subscribeSelected ? undefined : selectedMethod}
+            selectPaymentMethodAction={(m) => {
+              // 일반 수단을 고르면 정기결제 모드 해제 (같은 billing이어도 단건 경로)
+              setSubscribeSelected(false);
+              handleSelectMethod(m);
+            }}
             depositor={depositor}
             setDepositorAction={setDepositor}
             refundAccount={{
@@ -376,7 +435,14 @@ export const UnifiedPaymentInfo = ({
 
             os={os}
             appVersion={appVersion}
-            titleOverride={payment.price == null ? getLocaleString({ locale, key: 'application_method' }) : undefined}
+            titleOverride={
+              payment.price == null
+                ? getLocaleString({ locale, key: 'application_method' })
+                // 정기결제 섹션이 따로 있으면 이 목록은 '일반결제' — 단건 경로임을 구분
+                : canSubscribe
+                  ? getLocaleString({ locale, key: 'regular_payment' })
+                  : undefined
+            }
           />
 
           <div className="mt-5 mx-6 h-px bg-[#F0F0F0]" />
@@ -535,6 +601,8 @@ export const UnifiedPaymentInfo = ({
           // 정책을 고르면 그 정책의 결제 id로 결제한다 — 최상위 paymentId는 기본 정책의 것일 뿐이다
           disabledReason={disabledReason}
           paymentId={selectedPolicy?.paymentId ?? payment.paymentId}
+          canSubscribe={subscribeSelected}
+          subscriptionCycleLabel={subscriptionCycle.label}
           actualPayerUserId={noPass ? undefined : actualPayerUserId}
           hasRefundAccount={payment.refundAccountNumber != null && payment.refundAccountNumber.length > 0}
           onBillingCardsChange={(cards) => setCards(cards)}

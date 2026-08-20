@@ -116,6 +116,16 @@ export type GetPaymentResponse = {
    */
   pricePolicies?: LessonPricePolicyResponse[];
   methods: GetPaymentMethodResponse[];
+  /**
+   * 이 상품을 정기결제(구독)로 살 수 있는지 — 정기결제 UI 노출 판단 기준.
+   * 타입별 판정이 비대칭이다:
+   * - pass-plan: 기간형 혜택(Unlimited/UnlimitedWindow/Discount) 보유 여부만 본다 —
+   *   true여도 등록 카드가 없을 수 있으니 cards가 비면 카드 등록 플로우 먼저.
+   * - lesson: 가격 정책 존재 + '내 등록 카드(빌링) 보유'까지 검사 — true면 바로 구독 가능.
+   *   비로그인 조회는 사실상 항상 false → 로그인 후 재조회로 갱신할 것.
+   * - bundle/practice-room: 항상 false. (구응답에는 필드 없음 — undefined면 기존 동작 유지)
+   */
+  canSubscribe?: boolean;
   cards?: GetBillingResponse[];
   lesson?: GetLessonResponse;
   passPlan?: GetPassPlanResponse;
