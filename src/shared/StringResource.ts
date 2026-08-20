@@ -221,6 +221,12 @@ export const StringResource = {
     jp: 'あなたのレッスンを見つけよう',
     zh: '找到属于你的课程'
   },
+  lessons_home_workshop_title: {
+    ko: '지금 가장 주목받는 워크샵',
+    en: "Workshops everyone's watching",
+    jp: '今いちばん注目のワークショップ',
+    zh: '当下最受关注的工作坊'
+  },
   payment_disabled_price_unavailable: {
     ko: '결제 정보를 불러오지 못했어요',
     en: "Couldn't load payment info",

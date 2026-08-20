@@ -220,7 +220,8 @@ export type ValidLessonResponse = {
     genre: string | null;
     level?: string;
     artists: GetArtistResponse[];
-    studio: { id: number; name: string; profileImageUrl?: string };
+    /** address: 도로명 우선, 없으면 지번 — 둘 다 없으면 키 생략 (워크샵 카드에서 표기) */
+    studio: { id: number; name: string; profileImageUrl?: string; address?: string };
     label?: GetLabelResponse;
     /** 매주 반복 요일(0=일~6=토). 비반복이면 키 생략 */
     days?: number[];
@@ -228,16 +229,24 @@ export type ValidLessonResponse = {
 }
 
 export type ValidLessonListResponse = {
+    /** 워크샵을 뺀 수업 (Default/PopUp/Regular/Audition) */
     lessons: ValidLessonResponse[];
-    /** ceil(전체 건수 / 20) */
-    totalPage: number;
+    /** Workshop 타입만 — 카드 모양은 lessons와 동일. 같은 page가 두 리스트에 함께 적용된다. */
+    workshops?: ValidLessonResponse[];
+    /** lessons의 ceil(전체 건수 / 18) */
+    lessonsTotalPage?: number;
+    /** workshops의 ceil(전체 건수 / 18) */
+    workshopsTotalPage?: number;
+    /** (구응답) 단일 리스트 시절 전체 페이지 수 — lessonsTotalPage 폴백용 */
+    totalPage?: number;
 }
 
 export type GetValidLessonsParameter = {
     page?: number;
 }
 
-/** 예약 가능 수업 전체 목록 — 시작 시각 가까운 순, 페이지당 20개 고정. 로그인 필요. */
+/** 예약 가능 수업 전체 목록 — 시작 시각 가까운 순, 리스트별 페이지당 18개 고정. 인증 불필요.
+ *  정원 마감은 서버 필터가 아니다 — status(Recruiting=예약 가능 / Ready=정원 마감)로 구분. */
 export const ListValidLessons: Endpoint<GetValidLessonsParameter, ValidLessonListResponse> = {
     method: 'get',
     path: `/lessons/valid`,

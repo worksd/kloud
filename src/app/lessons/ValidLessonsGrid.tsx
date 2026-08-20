@@ -1,7 +1,9 @@
 'use client';
 
-// PC 홈 수업 그리드 — GET /lessons/valid 를 5열 세로 썸네일(3:4) 격자로.
-// 밴드/히어로 구분 없이 전부 같은 카드. 스크롤 하단 도달 시 다음 페이지 로드 (페이지당 20개).
+// PC 홈 수업 그리드 — GET /lessons/valid.
+// 워크샵(workshops)은 최상단 다크 스포트라이트 밴드(큰 카드 가로 스크롤)로 강조하고,
+// 일반 수업(lessons)은 그 아래 5열 세로 썸네일(3:4) 격자.
+// 페이지네이션은 리스트별 독립(리스트당 18개) — 격자는 세로 스크롤 하단, 워크샵은 가로 스크롤 끝에서 다음 페이지 로드.
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -65,9 +67,135 @@ export const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale
   );
 };
 
-export const ValidLessonsGrid = ({initialLessons, totalPage, locale = 'ko'}: {
-  initialLessons: ValidLessonResponse[];
+// 다크 밴드 위에 올라가는 워크샵 카드 — LessonCard와 같은 구성이되 폭 고정 + 밝은 텍스트.
+const WorkshopCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) => {
+  const soldOut = l.status === 'Ready';
+  return (
+    <Link href={KloudScreen.LessonDetail(l.id)} className="flex flex-col gap-3 group w-[232px] shrink-0 snap-start">
+      <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#1F1F1F] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.7)]">
+        {l.thumbnailUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={l.thumbnailUrl}
+            alt={l.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"
+          />
+        )}
+        {l.studio.profileImageUrl && (
+          <div className="absolute top-2.5 left-2.5 w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/80 shadow-sm bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={l.studio.profileImageUrl} alt={l.studio.name} className="w-full h-full object-cover"/>
+          </div>
+        )}
+        {soldOut && (
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-white/90">
+            <span className="text-[11px] font-bold text-[#E5484D]">{l.statusLabel}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="text-[15px] font-bold text-white truncate">{l.title}</span>
+        <span className="text-[12px] text-[#A0A5AB] truncate">
+          {l.studio.name}{artistOf(l) ? ` · ${artistOf(l)}` : ''}
+        </span>
+        <LessonRelativeDate
+          when={{ startDate: l.startDate }}
+          locale={locale}
+          fallback={l.date}
+          className="text-[12px] text-[#6B7280] truncate"
+        />
+        {/* 스튜디오 주소 — 살짝만 (가장 어두운 톤 + 핀 아이콘). 없으면 미노출 */}
+        {l.studio.address && (
+          <span className="flex items-center gap-1 text-[11px] text-[#5C5F63] min-w-0">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="shrink-0">
+              <path
+                d="M12 21s-7-5.1-7-11a7 7 0 1114 0c0 5.9-7 11-7 11z"
+                stroke="currentColor" strokeWidth="2" strokeLinejoin="round"
+              />
+              <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            <span className="truncate">{l.studio.address}</span>
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+};
+
+// 워크샵 스포트라이트 — 최상단 다크 밴드 + 큰 카드 가로 스크롤.
+// 가로 스크롤 끝(sentinel, root=스크롤 컨테이너)에 닿으면 다음 페이지 로드.
+const WorkshopSpotlight = ({initial, totalPage, locale}: {
+  initial: ValidLessonResponse[];
   totalPage: number;
+  locale: Locale;
+}) => {
+  const [workshops, setWorkshops] = useState<ValidLessonResponse[]>(initial);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const endRef = useRef<HTMLDivElement | null>(null);
+  const hasMore = page < totalPage;
+
+  const loadMore = useCallback(async () => {
+    if (isLoading || !hasMore) return;
+    setIsLoading(true);
+    const nextPage = page + 1;
+    const res = await getValidLessonsAction({ page: nextPage });
+    if ('lessons' in res) {
+      const list = res.workshops ?? [];
+      setWorkshops((prev) => {
+        const seen = new Set(prev.map((l) => l.id));
+        return [...prev, ...list.filter((l) => !seen.has(l.id))];
+      });
+      setPage(nextPage);
+    }
+    setIsLoading(false);
+  }, [page, isLoading, hasMore]);
+
+  useEffect(() => {
+    if (!endRef.current || !scrollRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) loadMore();
+      },
+      { root: scrollRef.current, threshold: 0.1 },
+    );
+    observer.observe(endRef.current);
+    return () => observer.disconnect();
+  }, [loadMore, hasMore, isLoading]);
+
+  if (workshops.length === 0) return null;
+
+  return (
+    <section className="mb-10 rounded-3xl bg-[#0F0F0F] px-7 pt-6 pb-7 overflow-hidden">
+      <header className="flex items-baseline gap-2.5 mb-5">
+        <h2 className="text-[20px] font-bold text-white tracking-tight">
+          {getLocaleString({locale, key: 'lessons_home_workshop_title'})}
+        </h2>
+        {/* 밴드 SOON/NEW 태그와 같은 계열의 포인트 — 강조 섹션임을 알리는 액센트 */}
+        <span className="px-1.5 py-0.5 rounded-[4px] bg-[#E5484D] text-white text-[10px] font-bold font-paperlogy leading-none">
+          HOT
+        </span>
+      </header>
+
+      {/* 세로 격자보다 큰 카드(232px)를 가로로 — 상단 히어로 톤 */}
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-x pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {workshops.map((l) => <WorkshopCard key={l.id} l={l} locale={locale}/>)}
+        <div ref={endRef} className="w-10 shrink-0 flex items-center justify-center">
+          {isLoading && (
+            <div className="w-5 h-5 border-2 border-[#3A3A3A] border-t-white rounded-full animate-spin"/>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export const ValidLessonsGrid = ({initialLessons, initialWorkshops = [], lessonsTotalPage, workshopsTotalPage = 0, locale = 'ko'}: {
+  initialLessons: ValidLessonResponse[];
+  initialWorkshops?: ValidLessonResponse[];
+  lessonsTotalPage: number;
+  workshopsTotalPage?: number;
   locale?: Locale;
 }) => {
   const [lessons, setLessons] = useState<ValidLessonResponse[]>(initialLessons);
@@ -75,7 +203,7 @@ export const ValidLessonsGrid = ({initialLessons, totalPage, locale = 'ko'}: {
   const [isLoading, setIsLoading] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const hasMore = page < totalPage;
+  const hasMore = page < lessonsTotalPage;
 
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
@@ -105,23 +233,40 @@ export const ValidLessonsGrid = ({initialLessons, totalPage, locale = 'ko'}: {
     return () => observerRef.current?.disconnect();
   }, [loadMore, hasMore, isLoading]);
 
-  if (lessons.length === 0) {
-    return (
-      <p className="py-40 text-center text-[14px] text-[#A0A5AB]">{getLocaleString({locale, key: 'no_open_lessons'})}</p>
-    );
-  }
+  const hasWorkshops = initialWorkshops.length > 0 || workshopsTotalPage > 0;
 
   return (
     <>
-      <div className="grid grid-cols-6 gap-x-4 gap-y-10">
-        {lessons.map((l) => <LessonCard key={l.id} l={l} locale={locale}/>)}
-      </div>
+      {/* 워크샵은 최상단에서 강조 — 없으면 밴드 자체가 안 그려진다 */}
+      {hasWorkshops && (
+        <WorkshopSpotlight initial={initialWorkshops} totalPage={workshopsTotalPage} locale={locale}/>
+      )}
 
-      <div ref={loadMoreRef} className="flex items-center justify-center py-8">
-        {isLoading && (
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin"/>
-        )}
-      </div>
+      {/* 페이지 헤더는 워크샵 아래, 수업 격자 위 — 기능 설명 대신 사용자를 부르는 한 줄 (큰 플랫폼 톤) */}
+      <header className="mb-7">
+        <h1 className="text-[24px] font-bold text-black tracking-tight">
+          {getLocaleString({locale, key: 'lessons_home_title'})}
+        </h1>
+        <p className="text-[14px] text-[#86898C] mt-1.5">
+          {getLocaleString({locale, key: 'lessons_home_subtitle'})}
+        </p>
+      </header>
+
+      {lessons.length === 0 ? (
+        <p className="py-40 text-center text-[14px] text-[#A0A5AB]">{getLocaleString({locale, key: 'no_open_lessons'})}</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-6 gap-x-4 gap-y-10">
+            {lessons.map((l) => <LessonCard key={l.id} l={l} locale={locale}/>)}
+          </div>
+
+          <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+            {isLoading && (
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin"/>
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 };
