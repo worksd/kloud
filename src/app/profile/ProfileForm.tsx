@@ -14,6 +14,7 @@ import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
+import { UserType } from "@/entities/user/user.type";
 import { Locale } from "@/shared/StringResource";
 import { has, formatEndDate, formatPhone } from "@/app/profile/profile.format";
 
@@ -57,6 +58,45 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto pb-8">
+
+      {/* 강사 인사말 + 개인수업 만들기/내 수업 — Artist 계정(또는 artistStudios 보유)에만 */}
+      {(user.type === UserType.Artist || (user.artistStudios?.length ?? 0) > 0) && (
+        <section className="px-4 mb-6">
+          <div className="rounded-2xl bg-[#0F0F0F] px-5 py-5">
+            <div className="text-white text-[16px] font-bold">
+              {/* 강사 활동명(artist.nickName) 우선 — 유저 닉네임과 다를 수 있다 */}
+              {(await translate('artist_greeting_title')).replace('{name}', user.artist?.nickName ?? user.nickName ?? user.name ?? '')}
+            </div>
+            <div className="text-[#A0A5AB] text-[13px] mt-1">
+              {await translate('artist_greeting_subtitle')}
+            </div>
+            <div className="mt-4 flex gap-2">
+              {/* NavigateClickWrapper는 자체 div라 flex-1 래퍼로 폭을 반씩 나눈다 */}
+              <div className="flex-1 min-w-0">
+                <NavigateClickWrapper method={'push'} route={KloudScreen.PrivateLessonCreate}>
+                  <button
+                    type="button"
+                    className="w-full h-11 rounded-xl bg-white text-black text-[14px] font-bold active:scale-[0.97] transition-transform duration-150"
+                  >
+                    {await translate('private_lesson_create')}
+                  </button>
+                </NavigateClickWrapper>
+              </div>
+              {/* 여태 진행한 수업 목록 */}
+              <div className="flex-1 min-w-0">
+                <NavigateClickWrapper method={'push'} route={KloudScreen.ArtistLessons}>
+                  <button
+                    type="button"
+                    className="w-full h-11 rounded-xl border border-white/25 text-white text-[14px] font-bold active:scale-[0.97] transition-transform duration-150"
+                  >
+                    {await translate('artist_my_lessons')}
+                  </button>
+                </NavigateClickWrapper>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 다음 예정 수업 */}
       {upcoming && (
