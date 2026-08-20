@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { MoreVertical, QrCode, Wallet } from 'lucide-react';
+import { MoreVertical, QrCode, UserPlus, Wallet } from 'lucide-react';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { Locale } from '@/shared/StringResource';
@@ -13,9 +13,12 @@ import { getLessonSettleUpAction } from '@/app/lessons/[id]/action/get.lesson.se
 type Props = {
   lessonId: number;
   locale: Locale;
+  /** artist면 '수강생 등록' 메뉴 노출 (초대 화면의 강사 경로 API가 studioId를 요구한다) */
+  adminType?: 'artist' | 'partner';
+  studioId?: number;
 };
 
-export function LessonAdminMenu({ lessonId, locale }: Props) {
+export function LessonAdminMenu({ lessonId, locale, adminType, studioId }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
   const [settleUp, setSettleUp] = useState<ArtistSettlementStatementResponse | null>(null);
@@ -26,6 +29,13 @@ export function LessonAdminMenu({ lessonId, locale }: Props) {
   const onClickQR = () => {
     closeSheet();
     kloudNav.push(KloudScreen.QRScanWithLesson(lessonId));
+  };
+
+  // 강사(artist)만 — 개인수업 수강생 등록 화면으로
+  const canInvite = adminType === 'artist' && studioId != null;
+  const onClickInvite = () => {
+    closeSheet();
+    if (studioId != null) kloudNav.push(KloudScreen.PrivateLessonInvite(lessonId, studioId));
   };
 
   // 강사 정산 보기 클릭 시 그때 fetch — 매 진입 시 fresh 응답.
@@ -83,6 +93,18 @@ export function LessonAdminMenu({ lessonId, locale }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className={'mx-auto my-2 w-10 h-1 rounded-full bg-[#E5E7EB]'}/>
+            {canInvite && (
+              <button
+                type={'button'}
+                onClick={onClickInvite}
+                className={'w-full flex items-center gap-3 px-6 py-4 active:bg-[#F7F8F9] transition-colors'}
+              >
+                <UserPlus size={20} className={'text-[#1E2124]'}/>
+                <span className={'text-[15px] font-semibold text-black'}>
+                  {getLocaleString({ locale, key: 'lesson_admin_invite_button' })}
+                </span>
+              </button>
+            )}
             <button
               type={'button'}
               onClick={onClickQR}

@@ -5,7 +5,12 @@ import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { LessonStudentsListClient } from "@/app/lessons/[id]/LessonStudentsListClient";
 import { LessonAdminMenu } from "@/app/lessons/[id]/LessonAdminMenu";
 
-export async function LessonAdminInfoSection({ lessonId, adminType }: { lessonId: number; adminType: 'artist' | 'partner' }) {
+export async function LessonAdminInfoSection({ lessonId, adminType, studioId }: {
+  lessonId: number;
+  adminType: 'artist' | 'partner';
+  /** 강사(artist)의 '수강생 등록' 진입에 필요 — 강사 경로 API가 학원 id를 요구한다 */
+  studioId?: number;
+}) {
   const [tickets, locale] = await Promise.all([
     getLessonTicketsAction(lessonId),
     getLocale(),
@@ -14,7 +19,7 @@ export async function LessonAdminInfoSection({ lessonId, adminType }: { lessonId
   return (
     <div className={'w-full flex flex-col'}>
       <div className={'w-full h-3 bg-[#f7f8f9]'}/>
-      <StudentsBlock tickets={tickets} lessonId={lessonId} locale={locale} adminType={adminType}/>
+      <StudentsBlock tickets={tickets} lessonId={lessonId} locale={locale} adminType={adminType} studioId={studioId}/>
     </div>
   );
 }
@@ -24,11 +29,13 @@ async function StudentsBlock({
   lessonId,
   locale,
   adminType,
+  studioId,
 }: {
   tickets: TicketResponse[];
   lessonId: number;
   locale: Locale;
   adminType: 'artist' | 'partner';
+  studioId?: number;
 }) {
   const visible = tickets.filter(
     (t) => t.status !== 'Cancelled' && t.status !== 'CancelPending',
@@ -48,7 +55,7 @@ async function StudentsBlock({
           <span className={'text-[#919191] text-[13px]'}>{countText}</span>
         </div>
 
-        <LessonAdminMenu lessonId={lessonId} locale={locale}/>
+        <LessonAdminMenu lessonId={lessonId} locale={locale} adminType={adminType} studioId={studioId}/>
       </header>
 
       <LessonStudentsListClient tickets={tickets} lessonId={lessonId} locale={locale} adminType={adminType}/>
