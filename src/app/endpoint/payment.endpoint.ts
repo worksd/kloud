@@ -84,8 +84,9 @@ export type LessonPricePolicyResponse = {
   postponeLimit?: number;
   /** 판매 상태. Cancelled면 결제 화면에서 제외. */
   status?: LessonPricePolicyStatus;
-  /** 이 방식이 다니는 요일. 요일을 두지 않은 방식은 키 생략(그 수업의 모든 회차 수강). */
-  days?: DayOfWeek[];
+  /** 이 방식이 다니는 요일. 요일을 두지 않은 방식은 키 생략(그 수업의 모든 회차 수강).
+   *  결제 응답은 'MON'~'SUN' 문자열, 수업 상세(GET /lessons/:id) 응답은 숫자(0=일~6=토)로 온다 — 둘 다 받는다. */
+  days?: (DayOfWeek | number)[];
   /** 지금 결제하면 산 횟수만큼 수강권이 바로 나가는지. true면 결제도 통과한다. 구응답엔 없음. */
   usable?: boolean;
   /** usable=false일 때만 — 로케일 적용된 사유 문구가 그대로 온다 (코드값 아님). */

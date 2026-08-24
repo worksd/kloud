@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
+import { LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
+import { getKioskLessonPoliciesAction } from "@/app/kiosk/kiosk.actions";
+import { weeklyDaysLabel } from "@/app/payment/PricePolicySection";
 import {
   formatLessonDate,
   formatLessonDuration,
@@ -28,6 +31,18 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 
   const [closing, setClosing] = useState(false);
+
+  // 가격 정책 수업(price=null) — 일자별 목록 응답엔 방식 목록이 없어 상세(GET /lessons/:id)로 보충 조회.
+  // TODO(/kiosks 마이그레이션): 비-kiosk 호출 — /kiosks/lessons 신설 시 목록 응답 pricePolicies로 대체.
+  const isPolicyLesson = lesson.price == null && variant !== 'admin';
+  const [fetched, setFetched] = useState<LessonPricePolicyResponse[] | null>(null);
+  useEffect(() => {
+    if (!isPolicyLesson) return;
+    // 취소 플래그 없이 단순하게 — 언마운트 후 setState는 React 18에서 무해하고,
+    // StrictMode 이중 실행도 같은 결과라 문제없다.
+    getKioskLessonPoliciesAction(lesson.id).then(setFetched);
+  }, [isPolicyLesson, lesson.id]);
+  const policies: LessonPricePolicyResponse[] = lesson.pricePolicies ?? fetched ?? [];
   const close = (after?: () => void) => {
     if (closing) return;
     setClosing(true);
@@ -140,12 +155,30 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
           style={{ padding: 'min(2vw, 22px) min(5.6vw, 60px)' }}
         >
           <span className="text-[#6D7882]" style={{ fontSize: 'min(2vw, 22px)' }}></span>
-          {/* 낱개 가격이 없으면 가격 정책 수업 — 금액은 결제 화면에서 방식 선택으로 확정되므로 안내 문구만.
-              admin(상담실)은 기존대로 금액(없으면 0원) 노출. */}
+          {/* 낱개 가격이 없으면 가격 정책 수업 — 방식(회차 수 × 가격) 목록을 상세에서 받아 보여준다.
+              금액 확정은 결제 화면의 방식 선택에서. admin(상담실)은 기존대로 금액(없으면 0원) 노출. */}
           {lesson.price == null && !admin ? (
-            <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-              {t('kiosk_price_by_policy')}
-            </span>
+            <div className="flex flex-col items-end" style={{ gap: 'min(0.5vw, 6px)' }}>
+              <span className={`font-bold ${policies.length > 0 ? 'text-[#6D7882]' : 'text-[#1E2124]'}`} style={{ fontSize: policies.length > 0 ? 'min(1.7vw, 19px)' : 'min(2.2vw, 24px)' }}>
+                {t('kiosk_price_by_policy')}
+              </span>
+              {policies.map((p) => {
+                const daysLabel = weeklyDaysLabel(p, locale);
+                return (
+                  <span key={p.id} className="flex items-baseline" style={{ gap: 'min(0.8vw, 10px)' }}>
+                    <span className="text-[#6D7882]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+                      {p.name || `${p.lessonCount}${t('times_unit')}`}
+                      {daysLabel && (
+                        <span className="text-[#A6ADB4]" style={{ fontSize: 'min(1.5vw, 17px)' }}> · {daysLabel}</span>
+                      )}
+                    </span>
+                    <span className="text-black font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                      {fmt(p.price)}{t('won')}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
           ) : (
             <span className="flex items-baseline" style={{ gap: 'min(0.6vw, 6px)' }}>
               <span className="text-black font-bold" style={{ fontSize: 'min(3.7vw, 40px)' }}>{fmt(lesson.price ?? 0)}</span>

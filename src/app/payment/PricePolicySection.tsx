@@ -18,10 +18,16 @@ const WEEKLY_PREFIX: Record<Locale, (days: string) => string> = {
   zh: (d) => `每周${d}`,
 };
 
-const weeklyDaysLabel = (policy: LessonPricePolicyResponse, locale: Locale): string | null => {
-  if (!policy.days || policy.days.length === 0) return null;
-  const order: DayOfWeek[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  const sorted = [...policy.days].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+const DOW_ORDER: DayOfWeek[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+// 결제 응답은 'MON' 문자열, 수업 상세 응답은 숫자(0=일~6=토) — 둘 다 문자열 코드로 정규화
+const toDow = (d: DayOfWeek | number): DayOfWeek | undefined =>
+  typeof d === 'number' ? DOW_ORDER[d] : d;
+
+/** '매주 월·수' 표기 — 요일이 없는 방식은 null. 키오스크 상세 등에서도 재사용. */
+export const weeklyDaysLabel = (policy: Pick<LessonPricePolicyResponse, 'days'>, locale: Locale): string | null => {
+  const days = (policy.days ?? []).map(toDow).filter((d): d is DayOfWeek => d != null);
+  if (days.length === 0) return null;
+  const sorted = [...days].sort((a, b) => DOW_ORDER.indexOf(a) - DOW_ORDER.indexOf(b));
   return WEEKLY_PREFIX[locale](sorted.map((d) => DAY_LABEL[locale][d]).join('·'));
 };
 
