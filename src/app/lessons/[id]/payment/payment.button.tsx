@@ -1,7 +1,7 @@
 "use client";
 
 import CommonSubmitButton from "@/app/components/buttons/CommonSubmitButton";
-import {startTransition, useCallback, useEffect, useState} from "react";
+import {startTransition, useCallback, useEffect, useRef, useState} from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { PaymentRequest, requestPayment, Entity } from "@portone/browser-sdk/v2";
 import { createAccountTransferMessage, createDialog, DialogInfo } from "@/utils/dialog.factory";
@@ -554,11 +554,16 @@ export default function PaymentButton({
     }
   }
 
+  // 다이얼로그 확인은 항상 최신 렌더의 클로저를 타야 한다 — deps 나열(depositor/selectedPass…)로는
+  // paymentId·선택 정책(id/type)·할인·카드 갱신을 다 좇지 못해, 가격 정책을 바꿔 골라도
+  // 마운트 시점의 기본(첫 번째) 정책 paymentId로 결제되는 스테일 클로저 버그가 났다.
+  const onConfirmDialogRef = useRef(onConfirmDialog);
+  onConfirmDialogRef.current = onConfirmDialog;
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      await onConfirmDialog(data)
+      await onConfirmDialogRef.current(data)
     }
-  }, [depositor, selectedPass, isSubmitting, practiceRoomInfo])
+  }, [])
 
 
   return (
