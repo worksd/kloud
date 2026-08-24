@@ -21,7 +21,7 @@ import {KioskAttendanceSelectForm} from "@/app/kiosk/KioskAttendanceSelectForm";
 import {KioskLessonAttendanceForm} from "@/app/kiosk/KioskLessonAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {KioskPhonePadType, KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
 import {LessonPricePolicyResponse} from "@/app/endpoint/payment.endpoint";
@@ -183,6 +183,8 @@ export const KioskForm = ({
   const adminOnsiteBusyRef = useRef(false);
   // admin 결제(카드/현장)에서 직원이 편집한 실결제 금액 — 성공 화면 금액 표시에 사용
   const [adminPaidAmount, setAdminPaidAmount] = useState<number | null>(null);
+  // admin(상담실) — 가격 정책 수업의 방식 목록 (수업 상세 보충 조회). 무인은 결제 조회 응답에 실려 온다.
+  const [adminPolicies, setAdminPolicies] = useState<LessonPricePolicyResponse[]>([]);
   const [phone, setPhone] = useState('');
   const [phoneCountryCode, setPhoneCountryCode] = useState('82');
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
@@ -315,6 +317,9 @@ export const KioskForm = ({
   //  2) GET /kiosks/:id     — kiosk별 receiptFooter 등 상세 (영수증 하단 안내 문구)
   // 두 호출은 서로 독립이라 병렬로 보냄.
   const lastFetchedKeyRef = useRef<string | null>(null);
+  // 가격 정책 수업 — 조회와 결제 사이에 다른 학생이 먼저 사면 LESSON_GROUP_* 에러가 난다.
+  // 그때 이 카운터를 올려 결제 상세를 재조회해 방식 목록(usable/reason)을 갱신한다.
+  const [paymentInfoRefreshKey, setPaymentInfoRefreshKey] = useState(0);
   // Fix A — complete 성공으로 확정된 paymentId 집합. 같은 paymentId로 2차 create/단말 호출을 원천 차단.
   const completedPaymentIdsRef = useRef<Set<string>>(new Set());
   // Fix B — 현재 진행 중인 활성 카드결제 시도의 paymentId. 단말 호출 직전 설정, 결과 처리 시 해제.
@@ -333,7 +338,7 @@ export const KioskForm = ({
 
     // 같은 selection으로 재진입(예: pass-select 갔다오기)일 땐 fetch/reset skip → 선택해둔 할인/패스권 보존.
     // key 변하면 새 transaction이므로 stale state 즉시 클리어 + refetch.
-    const key = `${selectedUser.id}:${item}:${itemId}:${kioskId}`;
+    const key = `${selectedUser.id}:${item}:${itemId}:${kioskId}:${paymentInfoRefreshKey}`;
     if (lastFetchedKeyRef.current === key) return;
     lastFetchedKeyRef.current = key;
 
@@ -371,7 +376,7 @@ export const KioskForm = ({
       .catch(() => {
         // kiosk 상세 실패는 영수증 footer 없이 진행 — 토스트도 띄우지 않음 (결제 본 흐름엔 영향 없음)
       });
-  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, roomBooking, kioskId, locale]);
+  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, roomBooking, kioskId, locale, paymentInfoRefreshKey]);
 
   // KIS 응답 디버그 채널 준비 — 환경(staging/prod) 1회 조회 + 리포트에 실을 키오스크 컨텍스트 등록
   useEffect(() => {
@@ -761,8 +766,10 @@ export const KioskForm = ({
   // 가격 정책 수업(정기) — 결제 조회 응답의 정책 목록에서 방식을 고르고 그 항목의 paymentId('LGT…')로 결제한다.
   // 키오스크엔 자동 결제 수단이 없어 갱신은 걸리지 않고, 한 번의 결제로 lessonCount만큼 수강권이 발급된다.
   // 판매 중단(Cancelled) 정책은 제외. 최상위 paymentId/price는 기본 정책의 값이라 미선택 시 폴백과 일치한다.
+  // admin(상담실)은 heavy 결제 조회를 하지 않아 방식 목록을 수업 상세로 보충 조회한다 —
+  // 이게 없으면 상담실 결제가 항상 기본(첫 번째) 정책 paymentId로 잡히는 버그가 된다.
   const kioskPricePolicies: LessonPricePolicyResponse[] = selectedLesson
-    ? (paymentInfo?.lesson?.pricePolicies ?? paymentInfo?.pricePolicies ?? []).filter((p) => p.status !== 'Cancelled')
+    ? (paymentInfo?.lesson?.pricePolicies ?? paymentInfo?.pricePolicies ?? (variant === 'admin' ? adminPolicies : []) ?? []).filter((p) => p.status !== 'Cancelled')
     : [];
   const selectedKioskPolicy: LessonPricePolicyResponse | undefined =
     kioskPricePolicies.find((p) => p.id === selectedKioskPolicyId)
@@ -770,6 +777,13 @@ export const KioskForm = ({
   // 실제 결제에 쓰는 id/금액 — 정책 수업이면 선택한 정책의 것, 아니면 기존 응답 그대로.
   const effectivePaymentId = selectedKioskPolicy?.paymentId ?? paymentInfo?.paymentId;
   const effectivePrice = selectedKioskPolicy?.price ?? paymentInfo?.price ?? paymentItem?.price ?? 0;
+  // admin(상담실) 결제 화면 진입 시 — 가격 정책 수업이면 방식 목록 보충 조회
+  useEffect(() => {
+    if (variant !== 'admin' || currentScreen !== 'admin-payment') return;
+    if (!selectedLesson || selectedLesson.price != null) { setAdminPolicies([]); return; }
+    setSelectedKioskPolicyId(null);
+    getKioskLessonPoliciesAction(selectedLesson.id).then(setAdminPolicies);
+  }, [variant, currentScreen, selectedLesson]);
 
   // 결제수단 활성화 여부 — paymentInfo.methods의 isEnabled를 type별로 추출.
   // 키오스크 응답은 paymentMethod로 wrap되어 옴, 일반 결제 응답은 root에 type. 둘 다 지원.
@@ -827,7 +841,8 @@ export const KioskForm = ({
       attended: (ticketStatus ?? paymentTicketStatus) === 'Used',
       // 가격 정책 결제면 상품명을 '제목 · N회'로 (BE의 정기결제 상품명 규칙과 동일), 금액은 정책가.
       items: [{
-        name: selectedKioskPolicy ? `${paymentItem.title} · ${selectedKioskPolicy.lessonCount}회` : paymentItem.title,
+        // BE 상품명 규칙(B-2)과 맞춤: '{수업 제목} · {방식 이름}' — 이름 없는 옛 정책은 회차 수 폴백
+        name: selectedKioskPolicy ? `${paymentItem.title} · ${selectedKioskPolicy.name || `${selectedKioskPolicy.lessonCount}회`}` : paymentItem.title,
         price: selectedKioskPolicy ? selectedKioskPolicy.price : paymentItem.price,
       }],
       discount: selectedDiscount ? {
@@ -877,6 +892,12 @@ export const KioskForm = ({
       setIsPaying(false);
       setPaymentMethod(null);
       setToastMessage(parsed.message ?? '결제를 시작하지 못했어요');
+      // 가격 정책 에러(판매 중단·겹침·회차 부족)면 결제 상세를 재조회해 방식 목록을 갱신 —
+      // 조회 시점과 판정이 달라진 것이므로 화면의 usable/reason도 새로 받아야 한다.
+      if (parsed.code?.startsWith('LESSON_GROUP')) {
+        lastFetchedKeyRef.current = null;
+        setPaymentInfoRefreshKey((n) => n + 1);
+      }
       return null;
     }
     return parsed;
@@ -900,6 +921,8 @@ export const KioskForm = ({
   const handleCardPayment = useCallback(async (variant: 'card' | 'applepay' = 'card') => {
     // 가격 정책 수업이면 선택한 정책의 paymentId('LGT…')로 결제 — 서버가 그 id로 금액 계산·수강권 발급.
     if (!paymentItem || isPaying || !selectedUser || !effectivePaymentId || !kioskId) return;
+    // 선택한 방식이 결제 불가(usable=false)면 진입 차단 — 버튼도 비활성이지만 이중 방어
+    if (selectedKioskPolicy?.usable === false) return;
 
     // Fix A — 이미 complete로 확정된 paymentId면 재결제/단말 호출 차단.
     // (결제 성공 직후 홈 전환 전 버튼 재탭으로 같은 paymentId로 2차 create가 나가는 사고 방지)
@@ -938,7 +961,7 @@ export const KioskForm = ({
       inInstallment: '00',
       inCustomerUuid: parsed.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, effectivePaymentId, kioskId, runStartPayment, roomBooking]);
+  }, [paymentItem, isPaying, selectedUser, effectivePaymentId, kioskId, runStartPayment, roomBooking, selectedKioskPolicy]);
 
   // admin(상담실) 카드결제 — 직원이 편집한 금액(customAmount)을 단말 매입 금액으로 사용.
   //  ① POST /kiosks/payments — Pending 생성(paymentId 확보)  ② requestKisPayment(D1)에 편집 금액 송출
@@ -962,14 +985,19 @@ export const KioskForm = ({
     setPaymentMethod('card');
     setAdminPaidAmount(Math.round(customAmount));
 
-    // 결제하기 시점에 서버에서 paymentId 발급
-    const res = await getKioskAdminPaymentAction(item, itemId);
-    const paymentId = (res as { paymentId?: string })?.paymentId;
+    // 가격 정책 수업이면 고른 방식의 paymentId(LGT…)로 결제 — 경량 조회는 기본(첫 번째) 정책
+    // paymentId를 돌려주므로 그대로 쓰면 선택과 무관하게 맨 위 방식이 결제되는 버그가 된다.
+    let paymentId = selectedKioskPolicy?.paymentId;
     if (!paymentId) {
-      setIsPaying(false);
-      setPaymentMethod(null);
-      setToastMessage((res as { message?: string })?.message ?? '결제를 시작하지 못했어요');
-      return;
+      // 결제하기 시점에 서버에서 paymentId 발급
+      const res = await getKioskAdminPaymentAction(item, itemId);
+      paymentId = (res as { paymentId?: string })?.paymentId;
+      if (!paymentId) {
+        setIsPaying(false);
+        setPaymentMethod(null);
+        setToastMessage((res as { message?: string })?.message ?? '결제를 시작하지 못했어요');
+        return;
+      }
     }
 
     // 발급받은 paymentId로 Pending 생성 — 편집금액(customAmount)을 함께 전송.
@@ -986,7 +1014,7 @@ export const KioskForm = ({
       inInstallment: '00',
       inCustomerUuid: parsed.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId, runStartPayment]);
+  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId, runStartPayment, selectedKioskPolicy]);
 
   // admin 현장결제 — 카드단말 흐름 아님. 확인 다이얼로그(폼)에서 확인 시 호출되어
   // POST /paymentRecords/manual (methodType='admin', 편집 amount)로 즉시 기록 → '결제 완료' 성공 화면.
@@ -1002,7 +1030,11 @@ export const KioskForm = ({
     setAdminPaidAmount(Math.round(customAmount));
     setPaymentMethod('onsite'); // 'cash' 아님 — 성공 화면에서 '결제 완료' 멘트로 분기
     try {
-      const res = await createAdminManualPaymentAction({ item, itemId, targetUserId: selectedUser.id, amount: Math.round(customAmount) });
+      // 가격 정책 수업이면 계약 단위로 결제 — item을 'lesson-group', itemId를 고른 정책 id로 보낸다.
+      // (수업 id 그대로 보내면 회차 1장 결제가 되어 방식 선택이 무시된다)
+      const effItem = selectedKioskPolicy ? 'lesson-group' : item;
+      const effItemId = selectedKioskPolicy ? selectedKioskPolicy.id : itemId;
+      const res = await createAdminManualPaymentAction({ item: effItem, itemId: effItemId, targetUserId: selectedUser.id, amount: Math.round(customAmount) });
       const parsed = parsePaymentResult(res);
       if (!parsed.ok) {
         setPaymentMethod(null);
@@ -1017,7 +1049,7 @@ export const KioskForm = ({
     } finally {
       adminOnsiteBusyRef.current = false;
     }
-  }, [paymentItem, selectedUser, selectedLesson, selectedPassPlan, applyReceiptFields]);
+  }, [paymentItem, selectedUser, selectedLesson, selectedPassPlan, applyReceiptFields, selectedKioskPolicy]);
 
   // QR 간편결제 (카카오페이/제로페이) — KIS 간편결제 흐름:
   //  ⓪ requestKisEasyPay 네이티브 인터페이스 존재 확인
@@ -1058,6 +1090,8 @@ export const KioskForm = ({
   // 현금 결제: POST /kiosks/payments(type='cash') 한 방에 즉시 Completed + qrCodeUrl 수령
   const handleCashPayment = useCallback(async () => {
     if (!paymentItem || !selectedUser || !effectivePaymentId || !kioskId || isPaying) return;
+    // 선택한 방식이 결제 불가(usable=false)면 진입 차단 — 버튼도 비활성이지만 이중 방어
+    if (selectedKioskPolicy?.usable === false) return;
     setPaymentMethod('cash');
     setIsPaying(true);
 
@@ -1073,7 +1107,7 @@ export const KioskForm = ({
 
     applyReceiptFields(parsed); // cash 즉시 발급 — QR/입장번호 라벨 반영
     setPaymentResult({ status: 'success', data: {} });
-  }, [paymentItem, selectedUser, effectivePaymentId, kioskId, isPaying, runStartPayment, applyReceiptFields, roomBooking]);
+  }, [paymentItem, selectedUser, effectivePaymentId, kioskId, isPaying, runStartPayment, applyReceiptFields, roomBooking, selectedKioskPolicy]);
 
   // 결제수단 화면 하단 '신청하기'(최종금액 0원) 핸들러.
   //  - 차감할 패스권(FreeCount/Unlimited)이 선택돼 있으면 패스 사용 (B 흐름) — POST /kiosks/passes/:passId/use
@@ -1308,10 +1342,14 @@ export const KioskForm = ({
             title: paymentItem.title,
             subtitle: paymentItem.subtitle,
             thumbnailUrl: paymentItem.thumbnailUrl,
-            price: paymentItem.price,
+            // 가격 정책 수업이면 고른 방식의 가격으로 금액 입력을 시드한다 (낱개 가격은 null → 0)
+            price: effectivePrice,
           }}
           locale={locale}
           loading={isPaying}
+          pricePolicies={kioskPricePolicies}
+          selectedPolicyId={selectedKioskPolicy?.id}
+          onSelectPolicy={(id) => setSelectedKioskPolicyId(id)}
           onBack={() => setCurrentScreen('member-confirm')}
           onHome={goHome}
           onPay={(amount, method) => { if (method === 'card') handleAdminCardPayment(amount); else handleAdminOnsitePayment(amount); }}
@@ -1619,7 +1657,8 @@ export const KioskForm = ({
 
       {cashConfirmOpen && paymentItem && (
         <KioskCashConfirmDialog
-          amount={Math.max(0, paymentItem.price - (selectedDiscount?.amount ?? 0))}
+          // 가격 정책 수업은 낱개 가격(price)이 null — 고른 방식의 가격(effectivePrice) 기준으로 안내
+          amount={Math.max(0, effectivePrice - (selectedDiscount?.amount ?? 0))}
           locale={locale}
           onCancel={() => setCashConfirmOpen(false)}
           onConfirm={() => { setCashConfirmOpen(false); handleCashPayment(); }}

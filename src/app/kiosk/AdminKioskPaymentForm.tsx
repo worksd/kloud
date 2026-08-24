@@ -1,10 +1,11 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Locale} from '@/shared/StringResource';
 import {getLocaleString} from '@/app/components/locale';
 import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
+import {LessonPricePolicyResponse} from '@/app/endpoint/payment.endpoint';
 
 type AdminKioskPaymentItem = {
   title: string;
@@ -17,6 +18,10 @@ type AdminKioskPaymentFormProps = {
   item: AdminKioskPaymentItem;
   locale: Locale;
   loading?: boolean;
+  /** 가격 정책 수업(정기) — 방식 목록. 있으면 선택 UI를 노출하고 고른 방식의 paymentId로 결제된다 */
+  pricePolicies?: LessonPricePolicyResponse[];
+  selectedPolicyId?: number;
+  onSelectPolicy?: (policyId: number) => void;
   onBack: () => void;
   onHome: () => void;
   onPay: (amount: number, method: 'card' | 'onsite') => void;
@@ -26,13 +31,18 @@ const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '�
 
 // admin(상담실) 결제 폼 — 고른 상품 정보를 보여주고, 금액을 직원이 편집한 뒤
 // '결제하기'로 requestKisPayment(단말 매입)를 호출한다.
-export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onHome, onPay}: AdminKioskPaymentFormProps) => {
+export const AdminKioskPaymentForm = ({item, locale, loading, pricePolicies = [], selectedPolicyId, onSelectPolicy, onBack, onHome, onPay}: AdminKioskPaymentFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
 
   // 금액은 숫자 문자열(원 단위)로 관리 — 상품가로 초기화, 직원이 키패드로 수정
   const [amountStr, setAmountStr] = useState<string>(String(Math.max(0, Math.round(item.price))));
   const [showOnsiteConfirm, setShowOnsiteConfirm] = useState(false);
   const amount = Number(amountStr || '0');
+
+  // 방식(가격 정책) 선택이 바뀌면 금액 입력을 그 방식의 가격으로 다시 시드한다
+  useEffect(() => {
+    setAmountStr(String(Math.max(0, Math.round(item.price))));
+  }, [item.price]);
 
   const handleKey = (key: string) => {
     if (loading) return;
@@ -72,6 +82,34 @@ export const AdminKioskPaymentForm = ({item, locale, loading, onBack, onHome, on
               {item.subtitle && <p className="text-gray-500 text-[16px] truncate">{item.subtitle}</p>}
             </div>
           </div>
+
+          {/* 수강 횟수(가격 정책) 선택 — 정기 판매 수업만. 고른 방식의 paymentId·금액으로 결제된다 */}
+          {pricePolicies.length > 0 && (
+            <div className="mt-[28px]">
+              <p className="text-gray-400 text-[18px] mb-[10px]">{t('select_lesson_count')}</p>
+              <div className="flex gap-[12px]">
+                {pricePolicies.map((policy) => {
+                  const isSelected = policy.id === selectedPolicyId;
+                  const label = policy.name || `${policy.lessonCount}${t('times_unit')}`;
+                  return (
+                    <button
+                      key={policy.id}
+                      type="button"
+                      onClick={() => onSelectPolicy?.(policy.id)}
+                      aria-pressed={isSelected}
+                      className={`flex-1 min-w-0 rounded-[16px] flex flex-col items-center justify-center border-2 transition-all active:scale-[0.97] py-[14px] px-[10px]
+                        ${isSelected ? 'border-[#1E2124] bg-[#1E2124]' : 'border-[#E6E8EA] bg-white'}`}
+                    >
+                      <span className={`font-bold text-[18px] truncate max-w-full ${isSelected ? 'text-white' : 'text-black'}`}>{label}</span>
+                      <span className={`font-bold text-[20px] mt-[4px] ${isSelected ? 'text-white' : 'text-[#1E2124]'}`}>
+                        {policy.price.toLocaleString('ko-KR')}{t('won')}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* 결제 금액 (편집 가능) */}
           <div className="mt-[28px]">
