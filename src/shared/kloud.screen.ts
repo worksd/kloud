@@ -101,9 +101,27 @@ export const KloudScreen = {
 } as const;
 
 
-// 결제 페이지도 비로그인 진입 허용(비회원 연습실 결제 등). 현재 강제 로그인 대상 화면 없음.
-export const isAuthScreen = (_endpoint: string) => {
-  return false;
+// 결제 페이지(/payment)는 비로그인 진입 허용이라 목록에 넣지 않는다 (폰 인증으로 payer 확보).
+// 비로그인 웹 접근 시 로그인(/login/intro)으로 보낼 경로 프리픽스.
+// proxy가 웹(appVersion == '') + accessToken 쿠키 없음일 때만 검사한다 — 앱 웹뷰는 네이티브가 세션을 보장.
+// 여기 없던 시절엔 각 페이지가 me 조회 실패 후 null을 반환해 빈 화면이 났다.
+const AUTH_SCREEN_PREFIXES = [
+  '/profile',
+  '/tickets',
+  '/paymentRecords',
+  '/roomBookings',
+  '/qrs',
+  '/privateLessons',
+  '/artistLessons',
+  '/notifications',
+  '/onboarding',
+];
+// 약관·개인정보처리방침은 비로그인 열람 가능해야 한다 (스토어 심사 요건)
+const PUBLIC_EXCEPTIONS = ['/profile/policy'];
+
+export const isAuthScreen = (endpoint: string) => {
+  if (PUBLIC_EXCEPTIONS.some((p) => endpoint === p || endpoint.startsWith(p + '/'))) return false;
+  return AUTH_SCREEN_PREFIXES.some((p) => endpoint === p || endpoint.startsWith(p + '/'));
 }
 
 export const NO_DATA_ID = -1
