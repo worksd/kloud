@@ -179,11 +179,12 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
     return `0:${secs.toString().padStart(2, '0')}`;
   };
 
-  // 미루기는 정기(가격 정책) 계약 수강권(paymentId 'LGT…')이면서 아직 안 쓴(Paid) 것만 대상 —
+  // TODO: 미루기 기능 잠시 비활성 (2026-08-25) — 다시 켤 때 아래 조건으로 복원.
+  // 원래 조건: 정기(가격 정책) 계약 수강권(paymentId 'LGT…')이면서 아직 안 쓴(Paid) 것만 대상 —
   // 단건(LT) 수강권은 서버가 LESSON_POSTPONE_NOT_ALLOWED로 거절하므로 버튼 자체를 숨긴다.
-  // 시점·횟수 제약은 서버가 판정하므로 여기서 날짜를 재계산하지 않는다
-  // — 클라가 잘못 계산해 정상 요청을 막는 쪽이 서버가 거절하고 사유를 알려주는 쪽보다 나쁘다.
-  const canPostpone = ticket.status === 'Paid' && !!ticket.paymentId?.startsWith('LGT');
+  // 시점·횟수 제약은 서버가 판정하므로 여기서 날짜를 재계산하지 않는다.
+  // const canPostpone = ticket.status === 'Paid' && !!ticket.paymentId?.startsWith('LGT');
+  const canPostpone = false;
 
   const showSimpleDialog = async (message: string) => {
     const dialog = await createDialog({id: 'Simple', message});
