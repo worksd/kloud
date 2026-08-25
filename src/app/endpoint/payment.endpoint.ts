@@ -222,6 +222,14 @@ export type CreateBillingKeyPaymentRequest = {
   /** 연습실 예약 시간대 ('yyyy.MM.dd HH:mm' KST) — practice-room 결제 필수. */
   startDate?: string;
   endDate?: string;
+  /**
+   * 정기수업 시작 회차 id — item='lesson-group'일 때만 서버가 읽는다(그 외 무시).
+   * 결제 화면에 띄운 회차(lesson.id)를 넣으면 그 회차부터 계약 회차 수만큼 잡힌다.
+   * 안 보내면 오늘 기준 앞으로 열릴 첫 회차부터. 잘못된 값은 에러 없이 조용히 무시되므로
+   * 검증은 발급된 수강권의 첫 회차 날짜로 할 것. 보내면 미납 유예 검사
+   * (LESSON_GROUP_DELAYED_TICKET_EXISTS 403)가 새로 켜진다.
+   */
+  firstLessonId?: number;
 }
 
 export type CreateBillingKeyPaymentResponse = {
@@ -231,5 +239,5 @@ export type CreateBillingKeyPaymentResponse = {
 export const CreateBillingKeyPayment: Endpoint<CreateBillingKeyPaymentRequest, CreateBillingKeyPaymentResponse> = {
   method: "post",
   path: `/paymentRecords/billingKey`,
-  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'startDate', 'endDate']
+  bodyParams: ['billingKey', 'item', 'itemId', 'paymentId', 'targetUserId', 'discounts', 'startDate', 'endDate', 'firstLessonId']
 }

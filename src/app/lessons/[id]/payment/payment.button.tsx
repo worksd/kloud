@@ -241,6 +241,11 @@ export default function PaymentButton({
           customData.startDate = practiceRoomInfo.startDate;
           customData.endDate = practiceRoomInfo.endDate;
         }
+        // 정기수업 시작 회차 — 결제 화면에 띄운 회차부터 계약을 잡도록 웹훅에 전달.
+        // 기존 키(actualPayerUserId/discounts 등)는 유지하고 키만 추가할 것 (파싱 실패 시 구독·대리결제 분기 전체가 빠진다)
+        if (type.value === 'lessonGroup' && targetLessonId != null) {
+          customData.firstLessonId = targetLessonId;
+        }
         return customData;
       };
       if (isLessonPurchase && targetLessonId != null) {
@@ -495,6 +500,8 @@ export default function PaymentButton({
           item: type.apiValue,
           itemId: id,
           billingKey: data.customData ?? '',
+          // 정기수업 시작 회차 — 결제 화면에 띄운 회차부터. lesson-group 외에는 서버가 무시
+          ...(type.value === 'lessonGroup' && targetLessonId != null ? { firstLessonId: targetLessonId } : {}),
         });
         if ('subscription' in res && res.subscription?.subscriptionId) {
           if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
@@ -522,6 +529,8 @@ export default function PaymentButton({
           itemId: id,
           billingKey: data.customData ?? '',
           paymentId,
+          // 정기수업 시작 회차 — lesson-group 외에는 서버가 무시
+          ...(type.value === 'lessonGroup' && targetLessonId != null ? { firstLessonId: targetLessonId } : {}),
           targetUserId: actualPayerUserId,
           discounts: selectedDiscounts?.map(d => ({
             key: d.key,

@@ -1828,6 +1828,12 @@ export const StringResource = {
     jp: '/ {n}回',
     zh: '/ {n}次'
   },
+  first_lesson_start_notice: {
+    ko: '첫 수업 시작일은 {date}입니다',
+    en: 'Your first class starts on {date}',
+    jp: '初回レッスンは{date}に始まります',
+    zh: '首节课将于 {date} 开始'
+  },
   regular_payment: {
     ko: '일반결제',
     en: 'One-time payment',

@@ -384,6 +384,19 @@ export const UnifiedPaymentInfo = ({
             selectedPolicyId={selectedPolicyId}
             onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
           />
+          {/* 첫 수업 시작일 안내 — 결제 화면에 띄운 회차(firstLessonId로 전송되는 그 회차)부터 계약이 잡힌다.
+              date는 서버가 로케일 적용해 내려주는 표시 문자열 그대로. */}
+          {payment.lesson?.date && (
+            <div className="mx-6 mt-3 flex items-center gap-2.5 rounded-xl bg-[#EEF2FF] border border-[#E0E7FF] px-4 py-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#4F51D8]">
+                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+                <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              <span className="text-[13px] font-semibold text-[#3F3FA8]">
+                {getLocaleString({ locale, key: 'first_lesson_start_notice' }).replace('{date}', payment.lesson.date)}
+              </span>
+            </div>
+          )}
           <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
         </>
       )}
