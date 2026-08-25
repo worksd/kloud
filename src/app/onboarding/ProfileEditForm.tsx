@@ -35,6 +35,7 @@ export const ProfileEditForm = ({
                                   maleText,
                                   femaleText,
                                   locale,
+                                  pcCard = false,
                                 }: {
   user: GetUserResponse;
   nickNameText: string;
@@ -57,6 +58,8 @@ export const ProfileEditForm = ({
   maleText: string;
   femaleText: string;
   locale: Locale;
+  /** PC(lg) 카드 안 렌더 — 풀스크린 여백/고정 버튼을 카드 흐름에 맞게 조정 (프로필 수정 PC 뷰) */
+  pcCard?: boolean;
 }) => {
   const [nickName, setNickName] = React.useState<string>(user.nickName ?? "");
   const [name, setName] = React.useState<string>(user.name ?? "");
@@ -144,7 +147,7 @@ export const ProfileEditForm = ({
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-32">
+    <div className={`flex flex-col min-h-screen bg-white pb-32 ${pcCard ? 'lg:min-h-0 lg:pb-8' : ''}`}>
       {/* 계정 정보 섹션 */}
       <section className="px-6 pt-6">
         <h2 className="text-[18px] font-bold text-black mb-4">{accountInfoText}</h2>
@@ -246,8 +249,8 @@ export const ProfileEditForm = ({
         </div>
       </section>
 
-      {/* 하단 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 px-6 py-6">
+      {/* 하단 버튼 — PC 카드에선 화면 고정 대신 폼 흐름의 마지막으로 */}
+      <div className={`fixed bottom-0 left-0 right-0 px-6 py-6 ${pcCard ? 'lg:static lg:py-0 lg:pt-8' : ''}`}>
         <AsyncCommonSubmitButton
           onClick={onClick}
           disabled={!hasChanges}

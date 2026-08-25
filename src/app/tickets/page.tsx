@@ -15,10 +15,7 @@ export default async function TicketListPage() {
 }
 
 async function TicketListServer() {
-  const [ticketRes, lessonGroupRes] = await Promise.all([
-    api.ticket.list({ page: 1 }),
-    api.lessonGroupTicket.list({ page: 1 }),
-  ]);
+  const ticketRes = await api.ticket.list({ page: 1 });
 
   if (!('tickets' in ticketRes)) {
     const result = await handleApiError(ticketRes, 'GET /tickets');
@@ -31,12 +28,10 @@ async function TicketListServer() {
   const noTicketsMessage = await translate('no_payment_records_message');
 
   const initialTickets = 'tickets' in ticketRes ? ticketRes.tickets : [];
-  const initialLessonGroupTickets = 'lessonGroupTickets' in lessonGroupRes ? lessonGroupRes.lessonGroupTickets : [];
 
   return (
     <TicketTabClient
       initialTickets={initialTickets}
-      initialLessonGroupTickets={initialLessonGroupTickets}
       locale={locale}
       noTicketsTitle={noTicketsTitle}
       noTicketsMessage={noTicketsMessage}

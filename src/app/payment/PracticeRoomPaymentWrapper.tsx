@@ -54,6 +54,7 @@ export const PracticeRoomPaymentWrapper = ({
   preStartTime,
   preEndTime,
   description,
+  buttonSlotId,
 }: {
   payment: GetPaymentResponse;
   studioRoomId: number;
@@ -69,6 +70,8 @@ export const PracticeRoomPaymentWrapper = ({
   preEndTime?: string;
   /** 룸 설명서(이용안내/유의사항) HTML. 결제 응답엔 없어 GET /studioRooms/:id에서 조회해 전달. */
   description?: string;
+  /** PC 폼에서 결제 버튼을 옮겨 붙일 슬롯 id — UnifiedPaymentInfo로 그대로 전달 */
+  buttonSlotId?: string;
 }) => {
   // 연습실 결제는 시간대까지 이미 골라 들어온다(커뮤니티 등). 결제 페이지에선 시간 선택 없음.
   const selectedTime = preStartTime && preEndTime ? { startTime: preStartTime, endTime: preEndTime } : null;
@@ -184,6 +187,7 @@ export const PracticeRoomPaymentWrapper = ({
         actualPayerUserId={actualPayerUserId}
         isProxyPayment={isProxyPayment}
         practiceRoomInfo={selectedTime ? buildPracticeRoomInfo(studioRoomId, selectedTime.startTime, selectedTime.endTime) : undefined}
+        buttonSlotId={buttonSlotId}
       />
     </>
   );

@@ -9,10 +9,9 @@ import { PhoneLoginButton } from "@/app/login/phone.login.button";
 import { getRecentLoginMethod, LoginMethod } from "@/app/login/recentLoginMethod";
 import { useEffect, useState } from "react";
 
-export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
+export const LoginButtonForm = ({ os, appVersion, translations }: {
   os: string,
   appVersion: string,
-  returnUrl?: string,
   translations: {
     continueWithApple: string,
     continueWithGoogle: string,
@@ -22,7 +21,6 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
     recentLogin: string,
   }
 }) => {
-  const loginEmailQuery = returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : '';
   const [recentMethod, setRecentMethod] = useState<LoginMethod | null>(null);
 
   useEffect(() => {
@@ -47,7 +45,6 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
       )}
       <KakaoLoginButton
         appVersion={appVersion}
-        callbackUrl={returnUrl}
         title={translations.continueWithKakao}
         isRecentLogin={recentMethod === 'kakao'}
         recentLoginText={translations.recentLogin}
@@ -55,8 +52,7 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
       <div className="w-full self-stretch">
         <NavigateClickWrapper
           method="push"
-          route={KloudScreen.LoginPhone(loginEmailQuery)}
-          returnUrl={returnUrl}>
+          route={KloudScreen.LoginPhone('')}>
           <PhoneLoginButton
             title={translations.continueWithPhone}
             isRecentLogin={recentMethod === 'phone'}
@@ -67,8 +63,7 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
       <div className="w-full self-stretch">
         <NavigateClickWrapper
           method="push"
-          route={KloudScreen.LoginEmail(loginEmailQuery)}
-          returnUrl={returnUrl}>
+          route={KloudScreen.LoginEmail('')}>
           <EmailLoginButton
             title={translations.continueWithEmail}
             isRecentLogin={recentMethod === 'email'}
@@ -81,9 +76,16 @@ export const LoginButtonForm = ({ os, appVersion, returnUrl, translations }: {
   );
 };
 
-export const LargeKloudButton = ({ title }: { title: string }) => {
+export const LargeKloudButton = ({ title, fitContainer = false }: {
+  title: string,
+  /**
+   * true면 PC(lg)에서 w-screen 대신 컨테이너 폭을 따른다 — 로그인 카드(max-w 420px) 안에서
+   * 100vw로 터지는 것 방지. 기본 false: 모바일/앱(태블릿 포함)은 기존 그대로.
+   */
+  fitContainer?: boolean,
+}) => {
   return (
-    <div className="relative w-screen px-4">
+    <div className={fitContainer ? 'relative w-screen px-4 lg:w-full lg:px-0' : 'relative w-screen px-4'}>
       <div
         className="
           flex items-center justify-center

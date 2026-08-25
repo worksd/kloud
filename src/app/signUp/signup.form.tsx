@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 
 type SignUpFormProps = {
   appVersion: string;
-  returnUrl: string;
   requireLabel: string;
   emailLabel: string;
   emailPlaceholder: string;
@@ -61,13 +60,14 @@ export const SignupForm = (props: SignUpFormProps) => {
       if (props.appVersion == '') {
         // TODO 스마트하게 바꿔보자..
         if (res.status == UserStatus.Ready) {
-          router.replace(props.returnUrl);
+          // 웹: returnUrl 없이 항상 기본 경로로 (풀 리로드로 세션 쿠키 반영)
+          window.location.replace('/');
         }
         else if (res.status == UserStatus.Deactivate) {
           router.replace(KloudScreen.LoginDeactivate)
         }
         else if (res.status == UserStatus.New) {
-          router.replace(KloudScreen.Onboard(props.returnUrl))
+          router.replace(KloudScreen.Onboard)
         }
       } else {
         await LoginAuthNavigation({

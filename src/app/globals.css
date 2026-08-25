@@ -10,6 +10,11 @@
 @keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
 @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
+/* PC 로그인 다이얼로그 오픈 — 살짝 아래에서 떠오르며 확대 */
+@keyframes dialogIn { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes dialogOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(14px) scale(0.97); } }
+/* 라우트 전환 상단 프로그레스 바 — 바(40% 폭)가 좌→우로 무한히 흐르는 인디터미네이트 */
+@keyframes routeProgress { from { transform: translateX(-100%); } to { transform: translateX(350%); } }
 
 :root {
   --background: #ffffff;
@@ -902,3 +907,9 @@ html, body {
   font-weight: 500;
 }
 
+
+/* 라우트 전환(loading.tsx) 중에는 PC 웹 푸터를 숨긴다 — 컨텐츠 높이가 무너진 순간
+   스크롤 클램프로 푸터가 한 프레임 보이는 깜빡임 방지. 마커는 src/app/loading.tsx */
+body:has([data-route-loading]) .web-footer {
+  display: none !important;
+}

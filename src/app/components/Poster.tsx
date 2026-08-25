@@ -9,6 +9,7 @@ import { GetLabelResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonTags } from "@/app/components/LessonTags";
 import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
 import { getLocale } from "@/utils/translate";
+import { AnalyticsEvent, AnalyticsProps } from "@/app/lib/analytics";
 
 export async function Poster({
                                id,
@@ -24,6 +25,7 @@ export async function Poster({
                                date,
                                startTime,
                                startDate,
+                               track,
                              }: {
   id: number,
   posterUrl: string,
@@ -39,15 +41,16 @@ export async function Poster({
   date?: string,
   startTime?: string,
   startDate?: string,
+  /** 밴드에서 넘겨주는 클릭 분석 이벤트. 없으면 아무것도 보내지 않는다. */
+  track?: { event: AnalyticsEvent; props?: AnalyticsProps },
 }) {
   const locale = await getLocale();
   const hasWhen = !!(date || startTime || startDate);
-  const route = type === 'subscription'
-    ? KloudScreen.LessonGroupDetail(id)
-    : KloudScreen.LessonDetail(id);
+  void type;
+  const route = KloudScreen.LessonDetail(id);
 
   return (
-    <NavigateClickWrapper method={'push'} route={route}>
+    <NavigateClickWrapper method={'push'} route={route} track={track}>
       <div
         className="flex flex-col active:scale-[0.98] transition-transform duration-150"
         style={{width: `${width}px`}}

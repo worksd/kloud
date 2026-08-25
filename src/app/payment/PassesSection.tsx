@@ -43,17 +43,31 @@ export const PassesSection = ({
   passes,
   selectedPass,
   onSelectPass,
+  disabledReason,
 }: {
   locale: Locale;
   passes: GetPassResponse[];
   selectedPass?: GetPassResponse;
   onSelectPass: (pass: GetPassResponse | undefined) => void;
+  /** 섹션 전체 비활성 사유 — 가격 정책(정기, LGT) 결제 등 패스 사용이 아예 불가한 화면.
+   *  숨기는 대신 흐리게 두고 이 문구를 보여줘 '내 패스가 왜 안 보이지'를 막는다. */
+  disabledReason?: string;
 }) => {
+  const sectionBlocked = !!disabledReason;
   return (
     <div className="flex flex-col gap-y-2 px-6 mt-5">
       <div className="text-[15px] font-bold text-black">
         {getLocaleString({ locale, key: 'pass' })}
       </div>
+      {sectionBlocked && (
+        <div className="flex items-center gap-1.5 -mt-0.5">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#86898C]">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+            <path d="M12 8v5M12 16.2v.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <span className="text-[12px] text-[#86898C]">{disabledReason}</span>
+        </div>
+      )}
 
       {passes.length === 0 && (
         <div className="rounded-2xl border border-[#EEEFF0] bg-white px-5 py-6 text-center text-[13px] text-[#999]">
@@ -68,8 +82,9 @@ export const PassesSection = ({
           // 단일 passRule(신규) 우선, 없으면 passRules[] (legacy) fallback.
           const primaryRule = getPrimaryRule(pass);
           const features = pass.passFeatures ?? [];
-          const isUsable = !!primaryRule?.usable || features.some(f => f.usable);
-          const blockedReason = isUsable
+          // 섹션 비활성이면 개별 usable과 무관하게 전부 잠근다 (사유는 헤더 아래 한 줄로 통일)
+          const isUsable = !sectionBlocked && (!!primaryRule?.usable || features.some(f => f.usable));
+          const blockedReason = isUsable || sectionBlocked
             ? undefined
             : (primaryRule && !primaryRule.usable ? primaryRule.reason : undefined);
           return (

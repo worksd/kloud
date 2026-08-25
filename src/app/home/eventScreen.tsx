@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { setHideDialogCookie } from "@/app/home/hide.dialog.cookie";
 import { DialogInfo } from "@/utils/dialog.factory";
-import { GetHomeResponse } from "@/app/endpoint/home.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 

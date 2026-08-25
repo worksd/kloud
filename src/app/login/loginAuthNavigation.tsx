@@ -1,7 +1,6 @@
 'use client'
 import { UserStatus } from "@/entities/user/user.status";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog } from "@/utils/dialog.factory";
 import { kloudNav } from "@/app/lib/kloudNav";
 
@@ -13,7 +12,7 @@ export const LoginAuthNavigation = async ({status, message, window}: {status?: U
     kloudNav.push(KloudScreen.LoginDeactivate)
   }
   else if (status == UserStatus.New) {
-    kloudNav.clearAndPush(KloudScreen.Onboard(''))
+    kloudNav.clearAndPush(KloudScreen.Onboard)
   } else {
     const dialogInfo = await createDialog({id: 'LoginFail', message})
     window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));

@@ -16,8 +16,10 @@ import { LessonTags } from "@/app/components/LessonTags";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
+import PaymentPcForm from "@/app/payment/PaymentPcForm";
+import { TrackView } from "@/app/components/TrackView";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'lesson-group' | 'practice-room' | 'bundle';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -103,11 +105,12 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   // 대리 결제 여부 확인 (비회원은 user 없음 → false)
   const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
 
+  // 가격 정책 수업도 진입은 일반 lesson 결제와 동일 — 방식 선택은 결제 화면(UnifiedPaymentInfo)에서 한다.
+  // (2026-08-08: pricePolicyId를 미리 골라 보내던 lesson-group 진입 경로는 제거됨)
+  const isLessonLike = paymentItem === 'lesson';
+
   // 타입별로 데이터가 없는 경우 체크
-  if (paymentItem === 'lesson' && !res.lesson) {
-    return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
-  }
-  if (paymentItem === 'lesson-group' && !res.lessonGroup) {
+  if (isLessonLike && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
@@ -125,13 +128,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.lesson?.title,
           studioName: res.lesson?.studio?.name,
           studioImageUrl: res.lesson?.studio?.profileImageUrl,
-        };
-      case 'lesson-group':
-        return {
-          thumbnailUrl: res.lessonGroup?.thumbnailUrl,
-          title: res.lessonGroup?.title,
-          studioName: res.lessonGroup?.studioName,
-          studioImageUrl: res.lessonGroup?.studioImageUrl,
         };
       case 'pass-plan':
         return {
@@ -160,10 +156,53 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
   const { thumbnailUrl, title, studioName, studioImageUrl } = getItemInfo();
   const timeText = await translate('time');
+  const locale = await getLocale();
+
+  // 정기(가격 정책) 수업 — BE가 lesson.days(0=일~6=토)를 내려주면 날짜 자리에 '매주 목요일, 금요일'을 보여준다.
+  // 이때 단일 날짜(startDate)는 첫 수업 시작일일 뿐이라 시간 줄로 내려 '시작일 + 시각'으로 노출.
+  const WEEKDAY_KEYS = ['weekday_full_sun', 'weekday_full_mon', 'weekday_full_tue', 'weekday_full_wed', 'weekday_full_thu', 'weekday_full_fri', 'weekday_full_sat'] as const;
+  const weekdayJoiner = locale === 'jp' ? '・' : locale === 'zh' ? '、' : ', ';
+  const recurrenceDays = (res.lesson?.days ?? []).filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6);
+  const weeklyLabel = paymentItem === 'lesson' && recurrenceDays.length > 0
+    ? (await translate('weekly_days')).replace(
+        '{days}',
+        (await Promise.all([...recurrenceDays].sort((x, y) => x - y).map((d) => translate(WEEKDAY_KEYS[d])))).join(weekdayJoiner)
+      )
+    : null;
+
+  // 웹 직접 접근 + viewport ≥1024px(lg)이면 PC 2-column 폼, 그 외(앱 웹뷰/좁은 웹)는 기존 렌더.
+  // 서버는 viewport를 모르므로 둘 다 SSR 렌더 후 CSS(hidden lg:block / lg:hidden)로 토글한다.
+  const isWeb = appVersion === '';
 
   return (
-    <div className="relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide">
-      <div className="flex flex-col">
+    // 모바일/앱: 자체 스크롤 컨테이너(h-screen + overscroll-none). PC 웹은 문서 흐름으로 풀어야
+    // 레이아웃 푸터에 스크롤이 닿는다 — overscroll-none이 body로의 스크롤 체이닝을 막아 푸터가 안 보였다.
+    <div className={`relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide ${isWeb ? 'lg:h-auto lg:overflow-visible lg:overscroll-auto lg:pb-0' : ''}`}>
+      <TrackView event="enter_payment" props={{item: paymentItem, itemId}}/>
+      {isWeb && (
+        <div className="hidden lg:block">
+          <PaymentPcForm
+            payment={res}
+            paymentItem={paymentItem}
+            itemId={itemId}
+            thumbnailUrl={thumbnailUrl}
+            title={title}
+            studioName={studioName}
+            studioImageUrl={studioImageUrl}
+            os={os}
+            appVersion={appVersion}
+            beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+            actualPayerUserId={actualPayerUserId}
+            isProxyPayment={isProxyPayment}
+            locale={locale}
+            apiUrl={process.env.GUINNESS_API_SERVER ?? ''}
+            weeklyLabel={weeklyLabel}
+            preStartTime={startTime}
+            preEndTime={endTime}
+          />
+        </div>
+      )}
+      <div className={isWeb ? 'flex flex-col lg:hidden' : 'flex flex-col'}>
         {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
         {appVersion === '' && 'user' in res && res.user && (
           <PaymentProfileButton
@@ -172,8 +211,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             locale={await getLocale()}
           />
         )}
-        {/* lesson / lesson-group */}
-        {(paymentItem === 'lesson' || paymentItem === 'lesson-group') && (
+        {/* lesson */}
+        {isLessonLike && (
           <div className="px-5 pt-4 pb-3">
             <div className="flex gap-4">
               {/* 썸네일 9:16 */}
@@ -190,14 +229,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               {/* 메타 정보 */}
               <div className="flex flex-col justify-start gap-2 min-w-0 flex-1">
                 <p className="text-[18px] font-bold text-black leading-snug break-words line-clamp-2">{title}</p>
-                {paymentItem === 'lesson' && res.lesson?.tags && (
+                {isLessonLike && res.lesson?.tags && (
                   <LessonTags tags={res.lesson.tags} />
                 )}
                 <div className="flex items-center gap-2">
                   {studioImageUrl && <CircleImage size={20} imageUrl={studioImageUrl} />}
                   <span className="text-[14px] font-medium text-[#86898C]">{studioName}</span>
                 </div>
-                {paymentItem === 'lesson' && (res.lesson?.formattedDate || res.lesson?.date) && (
+                {isLessonLike && (res.lesson?.formattedDate || res.lesson?.date) && (
                   <div className="flex flex-col gap-1 mt-1">
                     <div className="flex items-center gap-1.5">
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -207,12 +246,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         <path d="M9.5 1V3" stroke="#999" strokeWidth="1.1" strokeLinecap="round"/>
                       </svg>
                       <span className="text-[13px] font-medium text-[#666]">
-                        {res.lesson?.formattedDate
-                          ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
-                          : res.lesson?.date}
+                        {weeklyLabel
+                          ?? (res.lesson?.formattedDate
+                            ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''}`
+                            : res.lesson?.date)}
                       </span>
                     </div>
-                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration) && (
+                    {(res.lesson?.formattedDate?.startTime || res.lesson?.duration || (weeklyLabel && res.lesson?.date)) && (
                       <div className="flex items-center gap-1.5">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                           <circle cx="7" cy="7" r="5.5" stroke="#999" strokeWidth="1.1"/>
@@ -220,8 +260,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                         </svg>
                         <span className="text-[13px] font-medium text-[#666]">
                           {res.lesson?.formattedDate
-                            ? `${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
-                            : `${res.lesson?.duration}${await translate('minutes')}`}
+                            ? `${weeklyLabel && res.lesson.formattedDate.date
+                                ? `${res.lesson.formattedDate.date}${res.lesson.formattedDate.weekday ? ` (${res.lesson.formattedDate.weekday})` : ''} `
+                                : ''}${res.lesson.formattedDate.startTime} - ${res.lesson.formattedDate.endTime}`
+                            : weeklyLabel && res.lesson?.date
+                              // 정기 수업 실응답엔 formattedDate가 없다 — BE 완성 포맷(date: '2026.08.10(월) 오후 7:30')이 시작일+시각
+                              ? res.lesson.date
+                              : `${res.lesson?.duration}${await translate('minutes')}`}
                         </span>
                       </div>
                     )}
@@ -250,9 +295,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
                       </div>
                     )}
                   </div>
-                )}
-                {paymentItem === 'lesson-group' && res.lessonGroup?.description && (
-                  <p className="text-[12px] font-medium text-[#999] mt-1">{res.lessonGroup.description}</p>
                 )}
               </div>
             </div>

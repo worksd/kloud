@@ -4,9 +4,7 @@ import { OnboardingForm } from "@/app/onboarding/OnboardingForm";
 import { getLocale, translate } from "@/utils/translate";
 import { getPhoneVerificationSteps } from "@/app/login/action/get.phone.verification.steps";
 
-export default async function Onboarding({searchParams}: {
-  searchParams: Promise<{ appVersion: string, returnUrl: string }>
-}) {
+export default async function Onboarding() {
 
   const user = await getUserAction();
   if (user && 'id' in user) {

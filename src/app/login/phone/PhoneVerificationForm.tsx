@@ -20,6 +20,7 @@ import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nick
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
 import { useRouter } from "next/navigation";
+import { LOGIN_WEB_CARD_CLS } from "@/app/login/loginWebDecor";
 
 type PhoneVerificationStep = 'phone' | 'code';
 export type PhoneVerificationStepConfig = {
@@ -29,11 +30,12 @@ export type PhoneVerificationStepConfig = {
   placeholder?: string;
 }
 
-export default function PhoneVerificationForm({steps, locale, isFromLogin, returnUrl}: {
+export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb = false}: {
   steps: PhoneVerificationStepConfig[],
   locale: Locale,
   isFromLogin: boolean,
-  returnUrl?: string,
+  /** 웹 직접 접근 여부 — PC(lg) 유리 카드 레이아웃 + 인라인 에러(네이티브 다이얼로그 대체) 기준 */
+  isWeb?: boolean,
 }) {
   const router = useRouter();
 
@@ -42,6 +44,8 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, retur
   const [code, setCode] = useState<string>('')
   const [disabled, setDisabled] = useState<boolean>(true);
   const [smsSent, setSmsSent] = useState(false);
+  // 웹: 네이티브 showDialog가 없으므로 인라인 에러로 표시
+  const [webError, setWebError] = useState<string | null>(null);
   const [resendAvailableAt, setResendAvailableAt] = useState<string | null>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
@@ -80,8 +84,12 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, retur
       });
       codeRef?.current?.focus();
     } else if ('message' in res && res.message) {
-      const dialog = await createDialog({id: 'Simple', message: res.message, title: errorTitle});
-      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      if (isWeb) {
+        setWebError(res.message);
+      } else {
+        const dialog = await createDialog({id: 'Simple', message: res.message, title: errorTitle});
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      }
     }
   }
 
@@ -113,18 +121,23 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, retur
             accessToken: res.accessToken,
             userId: res.user.id,
           })
-          if (returnUrl) {
-            router.replace(returnUrl);
+          if (isWeb) {
+            // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에 반영되게 (이메일 로그인과 동일). 항상 기본 경로로.
+            window.location.replace('/');
           } else {
             await LoginAuthNavigation({status: res.user.status, window})
           }
         } else {
-          const resendDialog = await createDialog({
-            id: 'Simple',
-            message: await translate('certification_code_mismatch'),
-            title: await translate('certification')
-          })
-          window.KloudEvent.showDialog(JSON.stringify(resendDialog))
+          if (isWeb) {
+            setWebError(await translate('certification_code_mismatch'));
+          } else {
+            const resendDialog = await createDialog({
+              id: 'Simple',
+              message: await translate('certification_code_mismatch'),
+              title: await translate('certification')
+            })
+            window.KloudEvent.showDialog(JSON.stringify(resendDialog))
+          }
         }
       } else {
         const res = await updateUserAction({phone, countryCode, code})
@@ -168,49 +181,60 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, retur
     : steps.find((v) => v.id === 'phone')?.buttonText;
 
   return (
-    <div className="fixed inset-0 bg-white overflow-hidden px-6">
-      <div className={'pt-16'} onClick={handleOnClickBack}>
-        <BackIcon/>
-      </div>
-      {/* 위 컨텐츠: 버튼과 겹치지 않도록 아래 여백만 확보 */}
-      <div className="pt-24 pb-4">
-        <div className="text-black font-bold text-[22px]">
-          {message}
+    // 웹 PC(lg): fixed 풀스크린 흰 배경 대신 페이지 그래디언트 위 중앙 유리 카드
+    <div className={`fixed inset-0 bg-white overflow-hidden px-6 ${isWeb ? 'lg:static lg:bg-transparent lg:overflow-visible lg:px-0 lg:min-h-screen lg:flex lg:items-center lg:justify-center' : ''}`}>
+      <div className={isWeb ? `contents lg:block ${LOGIN_WEB_CARD_CLS} lg:px-10 lg:pt-10 lg:pb-10` : 'contents'}>
+        {/* 뒤로가기 — PC(lg) 카드에선 불필요해 숨김 (브라우저 뒤로가기로 충분) */}
+        <div className={`pt-16 ${isWeb ? 'lg:hidden' : ''}`} onClick={handleOnClickBack}>
+          <BackIcon className="cursor-pointer"/>
         </div>
-        <div className="mt-9 space-y-4">
-          <PhoneVerification
-            locale={locale}
-            ref={phoneRef}
-            phone={phone}
-            countryCode={countryCode}
-            onChangeCountryCodeAction={(value: string) => setCountryCode(value)}
-            onChangePhoneAction={(value: string) => {
-              setPhone(value);
-            }}/>
-
-          {smsSent && (
-            <VerificationCodeForm
-              ref={codeRef}
-              placeholder={steps.find((value) => value.id == 'code')?.placeholder ?? ''}
-              value={code}
-              handleChangeAction={(value: string) => {
-                setCode(value)
-              }}
+        {/* 위 컨텐츠: 버튼과 겹치지 않도록 아래 여백만 확보 */}
+        <div className={`pt-24 pb-4 ${isWeb ? 'lg:pt-0 lg:pb-0' : ''}`}>
+          <div className="text-black font-bold text-[22px]">
+            {message}
+          </div>
+          <div className="mt-9 space-y-4">
+            <PhoneVerification
               locale={locale}
-              resendAvailableAt={resendAvailableAt}
-              onResendAction={sendSmsVerification}
-            />
-          )}
-        </div>
-      </div>
+              ref={phoneRef}
+              phone={phone}
+              countryCode={countryCode}
+              onChangeCountryCodeAction={(value: string) => setCountryCode(value)}
+              onChangePhoneAction={(value: string) => {
+                setPhone(value);
+                setWebError(null);
+              }}/>
 
-      {/* 하단 고정 버튼 */}
-      <div className="fixed left-0 right-0 pb-6 px-6 bg-white/70">
-        <AsyncCommonSubmitButton
-          disabled={disabled}
-          onClick={handleOnClick}>
-          {buttonText}
-        </AsyncCommonSubmitButton>
+            {smsSent && (
+              <VerificationCodeForm
+                ref={codeRef}
+                placeholder={steps.find((value) => value.id == 'code')?.placeholder ?? ''}
+                value={code}
+                handleChangeAction={(value: string) => {
+                  setCode(value)
+                  setWebError(null);
+                }}
+                locale={locale}
+                resendAvailableAt={resendAvailableAt}
+                onResendAction={sendSmsVerification}
+              />
+            )}
+
+            {/* 인라인 에러 (웹) */}
+            {webError && (
+              <p className="text-[13px] font-medium text-[#E5484D]">{webError}</p>
+            )}
+          </div>
+        </div>
+
+        {/* 하단 고정 버튼 — 웹 PC(lg)는 카드 안 흐름으로 */}
+        <div className={`fixed left-0 right-0 pb-6 px-6 bg-white/70 ${isWeb ? 'lg:static lg:p-0 lg:bg-transparent lg:mt-8' : ''}`}>
+          <AsyncCommonSubmitButton
+            disabled={disabled}
+            onClick={handleOnClick}>
+            {buttonText}
+          </AsyncCommonSubmitButton>
+        </div>
       </div>
     </div>
   );

@@ -171,6 +171,19 @@ export const getKioskDetailAction = async (kioskId: number) => {
 };
 
 // 키오스크에서 결제 화면 진입 시 호출 — price/discounts(적용 가능한 패스권 등)/methods 응답
+// 가격 정책 수업의 방식 목록 — 일자별 목록 응답에는 pricePolicies가 없어 상세로 보충 조회.
+// 실패는 빈 배열 (모달은 '수강 횟수별 가격' 문구만 남긴다).
+// TODO(/kiosks 마이그레이션): 비-kiosk API — /kiosks/lessons 신설 시 함께 이전할 것.
+export const getKioskLessonPoliciesAction = async (lessonId: number) => {
+  try {
+    const res = await api.lesson.get({ id: lessonId });
+    if ('id' in res) return res.pricePolicies ?? [];
+    return [];
+  } catch {
+    return [];
+  }
+};
+
 export const getKioskPaymentAction = async (params: { kioskId: number; targetUserId: number; item: string; itemId: number }) => {
   return await api.kiosk.getPayment(params);
 };

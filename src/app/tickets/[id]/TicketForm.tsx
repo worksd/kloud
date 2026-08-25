@@ -18,6 +18,9 @@ import {getLocaleString} from "@/app/components/locale";
 import {Locale} from "@/shared/StringResource";
 import {createDialog, DialogInfo} from "@/utils/dialog.factory";
 import {deleteTicketAction} from "@/app/tickets/[id]/delete.ticket.action";
+import {postponeTicketAction} from "@/app/tickets/[id]/postpone.ticket.action";
+import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
+import {StringResourceKey} from "@/shared/StringResource";
 import {useRouter} from "next/navigation";
 import {kloudNav} from "@/app/lib/kloudNav";
 import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
@@ -42,19 +45,31 @@ function calculateTimeLeft(qrCodeUrl?: string): number {
   }
 }
 
-export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = ''}: {
+// 회차 미루기 실패 — BE 에러 코드를 사용자 문구로. 모르는 코드는 서버 메시지를 그대로 보여주고,
+// 그것도 없으면 일반 안내로 떨어진다.
+const POSTPONE_ERROR_MESSAGES: Record<string, StringResourceKey> = {
+  LESSON_POSTPONE_NOT_ALLOWED: 'postpone_error_not_allowed',
+  LESSON_POSTPONE_TOO_LATE: 'postpone_error_too_late',
+  LESSON_POSTPONE_LIMIT_EXCEEDED: 'postpone_error_limit_exceeded',
+  LESSON_POSTPONE_NO_SLOT: 'postpone_error_no_slot',
+};
+
+export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines = [], endpoint = '', appVersion = ''}: {
   ticket: TicketResponse,
   isJustPaid: string,
   inviteCode: string,
   locale: Locale,
   guidelines?: GuidelineResponse[],
-  endpoint?: string
+  endpoint?: string,
+  /** 웹 직접 접근 판별용 — ''이면 웹. PC(lg)에서 하단 흰 섹션 폭을 티켓 비율에 맞춰 좁힌다. */
+  appVersion?: string,
 }) {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
+  const [isPostponing, setIsPostponing] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -164,6 +179,28 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
     return `0:${secs.toString().padStart(2, '0')}`;
   };
 
+  // TODO: 미루기 기능 잠시 비활성 (2026-08-25) — 다시 켤 때 아래 조건으로 복원.
+  // 원래 조건: 정기(가격 정책) 계약 수강권(paymentId 'LGT…')이면서 아직 안 쓴(Paid) 것만 대상 —
+  // 단건(LT) 수강권은 서버가 LESSON_POSTPONE_NOT_ALLOWED로 거절하므로 버튼 자체를 숨긴다.
+  // 시점·횟수 제약은 서버가 판정하므로 여기서 날짜를 재계산하지 않는다.
+  // const canPostpone = ticket.status === 'Paid' && !!ticket.paymentId?.startsWith('LGT');
+  const canPostpone = false;
+
+  const showSimpleDialog = async (message: string) => {
+    const dialog = await createDialog({id: 'Simple', message});
+    if (dialog && window.KloudEvent) {
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
+  };
+
+  const handlePostponeClick = async () => {
+    if (isPostponing) return;
+    const dialog = await createDialog({id: 'PostponeTicket'});
+    if (dialog && window.KloudEvent) {
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
+  };
+
   const handleCancelClick = async () => {
     // LP로 시작하면 다이얼로그 띄우기
     if (ticket.paymentId.startsWith('LP')) {
@@ -179,6 +216,35 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
+      if (data.id == 'PostponeTicket') {
+        if (isPostponing) return;
+        setIsPostponing(true);
+        try {
+          const res = await postponeTicketAction({ticketId: ticket.id});
+          if (isGuinnessErrorCase(res)) {
+            const key = POSTPONE_ERROR_MESSAGES[res.code ?? ''];
+            await showSimpleDialog(
+              key
+                ? getLocaleString({locale, key})
+                : (res.message || getLocaleString({locale, key: 'postpone_error_unknown'}))
+            );
+            return;
+          }
+          // 성공 — 남은 횟수를 내려주면 함께 안내한다.
+          const remaining = res.remainingPostponeCount;
+          await showSimpleDialog(
+            remaining != null
+              ? getLocaleString({locale, key: 'postpone_ticket_success_remaining'}).replace('{count}', String(remaining))
+              : getLocaleString({locale, key: 'postpone_ticket_success'})
+          );
+          router.refresh();
+        } catch {
+          await showSimpleDialog(getLocaleString({locale, key: 'postpone_error_unknown'}));
+        } finally {
+          setIsPostponing(false);
+        }
+        return;
+      }
       if (data.id == 'CancelTicket' && ticket.paymentId.startsWith('LP')) {
         try {
           const res = await deleteTicketAction({ticketId: ticket.id});
@@ -207,7 +273,11 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         }
       }
     };
-  }, [ticket.id, ticket.paymentId, locale, router]);
+  }, [ticket.id, ticket.paymentId, locale, router, isPostponing]);
+
+  // PC 웹(lg)에선 티켓 카드(356px)만 비율대로 남고 하단 흰 섹션이 전폭으로 퍼진다 —
+  // 섹션을 티켓과 같은 폭으로 좁혀 중앙 정렬 (iPad '앱'은 appVersion이 있어 기존 그대로).
+  const pcSection = appVersion === '' ? 'lg:max-w-[420px] lg:mx-auto lg:rounded-[20px] lg:overflow-hidden' : '';
 
   // 티켓 렌더링 헬퍼 함수들
   const getBorderClass = () => {
@@ -498,9 +568,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   };
 
   return (
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-neutral-900 ticket-container">
-        {/* 배경 이미지 및 Backdrop Blur - 고정 */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      <div className={`fixed inset-0 w-screen h-screen overflow-hidden bg-neutral-900 ticket-container ${appVersion === '' ? 'lg:bg-white' : ''}`}>
+        {/* 배경 이미지 및 Backdrop Blur - 고정. PC 웹(lg)에선 블러 썸네일 없이 흰 배경만 노출 */}
+        <div className={`fixed inset-0 overflow-hidden pointer-events-none z-0 ${appVersion === '' ? 'lg:hidden' : ''}`}>
           {ticket.lesson?.thumbnailUrl && (
               <Image
                   src={ticket.lesson.thumbnailUrl}
@@ -559,6 +629,18 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
           {/* 취소하기 및 결제내역 버튼 */}
           <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
             <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2 flex items-center gap-6">
+              {canPostpone && (
+                <>
+                  <button
+                    onClick={handlePostponeClick}
+                    disabled={isPostponing}
+                    className="text-[14px] font-medium text-white active:opacity-70 transition-opacity disabled:opacity-50"
+                  >
+                    {getLocaleString({locale, key: 'postpone_ticket'})}
+                  </button>
+                  <div className="h-[14px] w-px bg-white/30"/>
+                </>
+              )}
               {ticket.isRefundable == true && (
                 <>
                   <button
@@ -583,7 +665,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
           {/* 멤버십 정보 표시 (ticketType이 membership일 때) */}
           {ticket.ticketType === 'membership' && ticket.studio && (
-            <div className="px-6 py-4 bg-white relative z-10">
+            <div className={`px-6 py-4 bg-white relative z-10 ${pcSection}`}>
               <div className="text-[16px] font-bold text-black mb-3">
                 {getLocaleString({locale, key: 'membership_signup'})}
               </div>
@@ -602,7 +684,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
           {/* Guidelines 섹션 */}
           {guidelines.length > 0 && (
-            <div className="bg-white relative z-10 px-6 py-6 rounded-t-[20px] -mt-2">
+            <div className={`bg-white relative z-10 px-6 py-6 rounded-t-[20px] -mt-2 ${pcSection} ${appVersion === '' ? 'lg:mb-12' : ''}`}>
               <div className="flex flex-col gap-6">
                 {guidelines.map((guideline, index) => (
                   <div key={guideline.id} className="flex flex-col gap-2">

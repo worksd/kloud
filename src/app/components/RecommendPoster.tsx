@@ -4,6 +4,7 @@ import { Thumbnail } from "@/app/components/Thumbnail";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
 import { getLocale } from "@/utils/translate";
+import { AnalyticsEvent, AnalyticsProps } from "@/app/lib/analytics";
 
 export async function RecommendPoster({
                                         id,
@@ -16,6 +17,7 @@ export async function RecommendPoster({
                                         lessonDate,
                                         startTime,
                                         startDate,
+                                        track,
                                       }: {
   id: number,
   posterUrl: string,
@@ -28,15 +30,16 @@ export async function RecommendPoster({
   lessonDate?: string,
   startTime?: string,
   startDate?: string,
+  /** 밴드에서 넘겨주는 클릭 분석 이벤트. 없으면 아무것도 보내지 않는다. */
+  track?: { event: AnalyticsEvent; props?: AnalyticsProps },
 }) {
-  const route = type === 'subscription'
-    ? KloudScreen.LessonGroupDetail(id)
-    : KloudScreen.LessonDetail(id);
+  void type;
+  const route = KloudScreen.LessonDetail(id);
   const locale = await getLocale();
   const hasWhen = !!(lessonDate || startTime || startDate);
 
   return (
-    <NavigateClickWrapper method="push" route={route}>
+    <NavigateClickWrapper method="push" route={route} track={track}>
       <div
         className="flex flex-col gap-2 active:scale-[0.98] transition-transform duration-150"
         style={{width: `${width}px`}}

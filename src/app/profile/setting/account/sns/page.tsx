@@ -8,6 +8,7 @@ import { translate } from "@/utils/translate";
 import { getUserAction } from "@/app/onboarding/action/get.user.action";
 import { getMySocialLinksAction } from "@/app/profile/setting/account/sns/sns.actions";
 import { SnsConnectForm } from "@/app/profile/setting/account/sns/SnsConnectForm";
+import { SettingPcShell } from "@/app/profile/setting/SettingPcShell";
 
 export default async function SnsConnectPage({ searchParams }: {
   searchParams: Promise<{ os?: string; appVersion?: string }>
@@ -25,8 +26,7 @@ export default async function SnsConnectPage({ searchParams }: {
 
   const connectedProviders = await getMySocialLinksAction();
 
-  return (
-    <div className={'flex flex-col min-h-screen bg-white'}>
+  const form = (
       <SnsConnectForm
         os={os}
         appVersion={appVersion}
@@ -50,6 +50,15 @@ export default async function SnsConnectPage({ searchParams }: {
           cancel: await translate('cancel'),
         }}
       />
-    </div>
+  );
+
+  return (
+    <SettingPcShell
+      isWeb={appVersion === '' || appVersion == null}
+      title={await translate('sns_account_connect')}
+      mobile={<div className={'flex flex-col min-h-screen bg-white'}>{form}</div>}
+    >
+      {form}
+    </SettingPcShell>
   );
 }

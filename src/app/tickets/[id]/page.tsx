@@ -6,9 +6,9 @@ import { translate, getLocale } from "@/utils/translate";
 
 export default async function TicketDetail({params, searchParams}: {
   params: Promise<{ id: number }>,
-  searchParams: Promise<{ isJustPaid: string, inviteCode: string, isParent: boolean }>
+  searchParams: Promise<{ isJustPaid: string, inviteCode: string, isParent: boolean, appVersion?: string }>
 }) {
-  const {isJustPaid, inviteCode, isParent} = await searchParams
+  const {isJustPaid, inviteCode, isParent, appVersion = ''} = await searchParams
   const ticket = inviteCode && inviteCode.length == 10 ?
     await api.ticket.getInviteTicket({inviteCode})
     : await api.ticket.get({id: (await params).id, isParent});
@@ -18,7 +18,7 @@ export default async function TicketDetail({params, searchParams}: {
     const guidelinesResponse = studioId ? await api.guideline.list({studioId}) : null;
     const guidelines = guidelinesResponse && 'guidelines' in guidelinesResponse ? guidelinesResponse.guidelines : [];
     return <div>
-      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale} guidelines={guidelines} endpoint={process.env.GUINNESS_API_SERVER ?? ''}/>
+      <TicketForm isJustPaid={isJustPaid} ticket={ticket} inviteCode={inviteCode} locale={locale} guidelines={guidelines} endpoint={process.env.GUINNESS_API_SERVER ?? ''} appVersion={appVersion}/>
       <QrCodeDialogScreen
         qrCodeUrl={ticket.qrCodeUrl}
         ticketId={ticket.id}

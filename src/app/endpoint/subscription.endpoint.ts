@@ -21,6 +21,8 @@ export type CreateSubscriptionParameter = {
   item: string,
   itemId: number
   billingKey: string
+  /** 정기수업 시작 회차 id — item='lesson-group'일 때만 서버가 읽는다. payment.endpoint의 firstLessonId 주석 참고 */
+  firstLessonId?: number
 }
 
 export type CreateSubscriptionResponse = {
@@ -52,7 +54,7 @@ export const Get: Endpoint<{ subscriptionId: string }, GetSubscriptionResponse> 
 export const Create: Endpoint<CreateSubscriptionParameter, CreateSubscriptionResponse> = {
   method: 'post',
   path: '/subscription',
-  bodyParams: ['item', 'itemId', 'billingKey'],
+  bodyParams: ['item', 'itemId', 'billingKey', 'firstLessonId'],
 }
 
 export const Cancel: Endpoint<CancelSubscriptionParameter, SimpleSubscriptionResponse> = {

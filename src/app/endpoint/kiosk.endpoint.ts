@@ -323,6 +323,12 @@ export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKiosk
   bodyParams: ['targetUserId', 'kioskId'],
 };
 
+/**
+ * 전화번호 입력 패드 형태 — 'Short'면 뒷 4자리만, 'Default'면 전체 번호(기존).
+ * 회원 검색 API가 LIKE 연산이라 4자리로도 조회된다. 모든 전화 입력 UI 분기가 이 값 하나만 본다.
+ */
+export type KioskPhonePadType = 'Short' | 'Default';
+
 // 키오스크 사용 형태 — 'kiosk'(무인 키오스크) | 'admin'(상담실 태블릿, 직원이 앞에 앉혀놓고 진행)
 export type KioskMode = 'kiosk' | 'admin';
 
@@ -342,6 +348,8 @@ export type KioskResponse = {
   canLessonAttendance?: boolean;
   /** 키오스크별 관리자 모드 진입 비밀번호 (BE 설정값). 미설정이면 관리자 모드 진입 불가. */
   password?: string;
+  /** 전화번호 입력 패드 형태. 미지정이면 'Default'(전체 번호) 취급. */
+  phonePadType?: KioskPhonePadType;
   createdAt: string;
   updatedAt: string;
 };

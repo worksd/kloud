@@ -34,6 +34,7 @@ const EmptyWeek = ({ title, sub }: { title: string; sub: string }) => (
 );
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { AnalyticsEvent, trackEvent } from "@/app/lib/analytics";
 import { getLocaleString } from "@/app/components/locale";
 import { Locale } from "@/shared/StringResource";
 import { getRelativeWeekPrefix } from "@/utils/lesson.relative.date";
@@ -138,13 +139,34 @@ const formatAmPm = (t?: string): string => {
   return `${ampm} ${h12}:${String(Number.isNaN(mm) ? 0 : mm).padStart(2, '0')}`;
 };
 
-export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
+export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickEvent, hqImages = false}: {
   timeTable: GetTimeTableResponse,
   studioId: number,
   locale: Locale,
   /** true면 수업 셀 탭 시 상세 이동 대신 스튜디오 바텀시트 오픈 이벤트를 발생시킨다. */
   useSheet?: boolean,
+  /** PC 웹처럼 셀이 크게 그려지는 곳에서 true — 셀 썸네일을 고화질(quality/sizes ↑)로 로드 */
+  hqImages?: boolean,
+  /**
+   * 셀 탭 시 보낼 분석 이벤트. 시간표는 홈·스튜디오 상세에서 함께 쓰는데 홈 클릭만 세고 싶어
+   * 호출부가 지정할 때만 보낸다.
+   */
+  clickEvent?: AnalyticsEvent,
 }) => {
+  // 셀 썸네일 로드 품질 — 모바일은 데이터 절약(저화질), PC 웹은 셀이 커서 고화질
+  const cellImgQuality = hqImages ? 75 : 10;
+  const cellImgSizes = hqImages ? '320px' : '96px';
+
+  // 셀 탭 동작 — 렌더 타입(A/B/C) 3곳이 같은 흐름이라 여기로 모은다. 분석 이벤트도 여기 한 곳에서만 나간다.
+  const openLesson = (lessonId: number) => {
+    if (clickEvent) trackEvent(clickEvent, { lessonId, studioId });
+    if (useSheet) {
+      window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
+    } else {
+      kloudNav.push(KloudScreen.LessonDetail(lessonId));
+    }
+  };
+
   const [baseDate, setBaseDate] = useState<Date>(new Date(timeTable.baseDate));
   const [cells, setCells] = useState<GetTimeTableCellResponse[]>(timeTable.cells);
   const [isLoading, setIsLoading] = useState(false);
@@ -311,14 +333,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                     {dayLessons.map((cell) => (
                       <div
                         key={`${cell.row}-${cell.column}`}
-                        onClick={() => {
-                          const lessonId = cell.lesson!.id;
-                          if (useSheet) {
-                            window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
-                          } else {
-                            kloudNav.push(KloudScreen.LessonDetail(lessonId));
-                          }
-                        }}
+                        onClick={() => openLesson(cell.lesson!.id)}
                         className="flex items-center gap-3 active:opacity-70 transition-opacity cursor-pointer"
                       >
                         <span className="w-[62px] shrink-0 text-[12px] font-bold text-[#4E5968] font-paperlogy">
@@ -326,7 +341,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                         </span>
                         <div className="w-[52px] h-[52px] rounded-[10px] overflow-hidden bg-[#F1F3F6] shrink-0">
                           {cell.lesson!.thumbnailUrl && (
-                            <Image src={cell.lesson!.thumbnailUrl} alt="" width={52} height={52} className="w-full h-full object-cover" quality={10} sizes="60px" />
+                            <Image src={cell.lesson!.thumbnailUrl} alt="" width={52} height={52} className="w-full h-full object-cover" quality={hqImages ? 75 : 10} sizes={hqImages ? "120px" : "60px"} />
                           )}
                         </div>
                         <span className="flex-1 min-w-0 text-[14px] font-medium text-[#171717] line-clamp-2">{cell.lesson!.title}</span>
@@ -376,21 +391,14 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                   return (
                   <div
                     key={`${cell.row}-${cell.column}`}
-                    onClick={() => {
-                      const lessonId = cell.lesson!.id;
-                      if (useSheet) {
-                        window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
-                      } else {
-                        kloudNav.push(KloudScreen.LessonDetail(lessonId));
-                      }
-                    }}
+                    onClick={() => openLesson(cell.lesson!.id)}
                     className="overflow-hidden rounded-[8px] border shadow-sm active:scale-[0.97] transition-all duration-150 aspect-[1/1.76] cursor-pointer"
                     style={{ gridColumnStart: j + 1, gridRowStart: k + 2, zIndex: 1 }}
                   >
                     <div className="relative w-full h-full flex flex-col">
                       {cell.lesson!.thumbnailUrl ? (
                         <div className="flex-1 relative w-full min-h-0">
-                          <Image src={cell.lesson!.thumbnailUrl} alt="lesson thumbnail" fill className="object-cover" quality={10} sizes="96px" />
+                          <Image src={cell.lesson!.thumbnailUrl} alt="lesson thumbnail" fill className="object-cover" quality={cellImgQuality} sizes={cellImgSizes} />
                         </div>
                       ) : (
                         <div className="flex-1 w-full bg-gray-200" />
@@ -505,13 +513,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                   key={`${item.row}-${item.column}`}
                   onClick={() => {
                     if (!isLesson) return;
-                    const lessonId = item.lesson!.id;
-                    // 스튜디오 상세: 바텀시트 오픈 이벤트. 홈 등: 수업 상세로 이동.
-                    if (useSheet) {
-                      window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
-                    } else {
-                      kloudNav.push(KloudScreen.LessonDetail(lessonId));
-                    }
+                    openLesson(item.lesson!.id);
                   }}
                   className={`overflow-hidden transition-all duration-150
                     ${isLesson ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
@@ -537,8 +539,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false}: {
                             alt="lesson thumbnail"
                             fill
                             className="object-cover"
-                            quality={10}
-                            sizes="96px"
+                            quality={cellImgQuality}
+                            sizes={cellImgSizes}
                           />
                         </div>
                       ) : (

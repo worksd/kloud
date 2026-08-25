@@ -237,6 +237,8 @@ export type UsePassRequest = {
   studioRoomId?: number
   startDate?: string
   endDate?: string
+  /** 강사 경로 전용 — 강사가 어느 학원으로 등록하는지. 파트너·앱 본인 사용은 보내지 않는다 */
+  studioId?: number
 }
 
 export type PassOrder = 'upcoming' | 'newest'
@@ -282,7 +284,7 @@ export const CreatePass: Endpoint<CreatePassRequest, GetPassResponse> = {
 export const UsePass: Endpoint<UsePassRequest, TicketResponse> = {
   method: 'post',
   path: (e) => `/passes/${e.passId}/use`,
-  bodyParams: ['lessonId', 'studioRoomId', 'startDate', 'endDate']
+  bodyParams: ['lessonId', 'studioRoomId', 'startDate', 'endDate', 'studioId']
 }
 
 export enum PassPlanTier {

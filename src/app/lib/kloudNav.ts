@@ -17,8 +17,6 @@ export interface KloudNavOptions {
   /** 기본 true: 네이티브에서 safe area 무시 */
   ignoreSafeArea?: boolean;
   title?: string;
-  /** push 시 붙일 returnUrl */
-  returnUrl?: string;
   /** navigateMain 에 사용 */
   bootInfo?: unknown;
   /** Next.js useRouter() 결과를 넘기면 SPA 네비게이션 */
@@ -28,17 +26,13 @@ export interface KloudNavOptions {
 /** 내부 유틸 */
 const isMobile = () => typeof window !== 'undefined' && !!(window as any).KloudEvent;
 
-const withReturnUrl = (route: string, returnUrl?: string) =>
-  returnUrl ? `${route}?returnUrl=${encodeURIComponent(returnUrl)}` : route;
-
 /** 공용 네비게이션 객체 */
 export const kloudNav = {
   async push(route: string) {
-    const finalRoute = withReturnUrl(route);
     if (isMobile()) {
       (window as any).KloudEvent.push(
         JSON.stringify({
-          route: finalRoute,
+          route,
           ignoreSafeArea: applyIgnoreSafeArea(route),
           title: await applyTitle(route)
         })
@@ -46,7 +40,7 @@ export const kloudNav = {
       return;
     }
     // 웹(네이티브 아님) 폴백 — 브라우저 네비게이션
-    if (typeof window !== 'undefined') window.location.href = finalRoute;
+    if (typeof window !== 'undefined') window.location.href = route;
   },
 
   back() {
@@ -85,6 +79,13 @@ export const kloudNav = {
   },
 
   async navigateMain({route}: { route?: string }) {
+    // 웹(네이티브 아님) 폴백 — '메인 재부팅' 개념이 없으므로 목적지(없으면 홈)로 브라우저 이동.
+    // replace: 우회 목적(결제 에러 redirectUrl 등)이라 back으로 중간 페이지에 되돌아가지 않게.
+    // 이 폴백이 없으면 웹에서 navigateMain을 타는 모든 흐름(PushAndBackRedirect 등)이 빈 화면 dead-end가 된다.
+    if (!isMobile()) {
+      if (typeof window !== 'undefined') window.location.replace(route && route.length > 0 ? route : '/');
+      return;
+    }
     const bottomMenuList = await getBottomMenuList();
     const bootInfo = JSON.stringify({
       bottomMenuList,
@@ -93,8 +94,8 @@ export const kloudNav = {
         title: await applyTitle(route ?? ''),
         ignoreSafeArea: applyIgnoreSafeArea(route ?? ''),
       })
-    })
-    if (isMobile()) (window as any).KloudEvent.navigateMain(bootInfo);
+    });
+    (window as any).KloudEvent.navigateMain(bootInfo);
   },
 
   async fullSheet(route: string) {
@@ -114,10 +115,9 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
     (route.startsWith('/lessons/') && !route.includes('/payment')) ||
-    (route.startsWith('/lesson-groups/') && !route.includes('/payment')) ||
     (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons')) ||
     route.startsWith('/tickets/') ||
-    route.startsWith(KloudScreen.Onboard('')) ||
+    route.startsWith(KloudScreen.Onboard) ||
     route.startsWith(KloudScreen.Certification) ||
     route.startsWith('/qrs') ||
     route.startsWith('/community/') ||
@@ -174,8 +174,6 @@ const applyTitle = async (route: string) => {
     return await translate('room_booking_detail_title')
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
-  } else if (route.startsWith('/lesson-group-tickets')) {
-    return await translate('my_lesson_group_tickets')
   } else if (route.startsWith(KloudScreen.MySubscription)) {
     return await translate('my_subscription')
   } else if (route.startsWith('/paymentRecords')) {

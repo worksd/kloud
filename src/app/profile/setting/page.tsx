@@ -1,6 +1,5 @@
 import { MenuItem } from "@/app/profile/setting.menu.item";
 import React from "react";
-import { DynamicHeader, SimpleHeader } from "@/app/components/headers/SimpleHeader";
 import { VersionMenu } from "@/app/profile/setting/version.menu";
 import { DialogClickWrapper } from "@/utils/DialogClickWrapper";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
@@ -14,8 +13,10 @@ export default async function AccountSetting({
   searchParams: Promise<{ appVersion: string, os: string }>
 }) {
   const { os, appVersion } = await searchParams
-  return (
-    <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
+
+  // 메뉴 리스트 — 모바일/PC 공용
+  const menuList = (
+    <>
       <NavigateClickWrapper method={'push'} route={KloudScreen.StudioSetting}>
         <MenuItem label="studio_setting"/>
       </NavigateClickWrapper>
@@ -53,6 +54,34 @@ export default async function AccountSetting({
       </DialogClickWrapper>
 
       <QRScannerMenu/>
+    </>
+  );
+
+  const mobile = (
+    <div className="flex flex-col w-screen min-h-screen bg-white mx-auto">
+      {menuList}
     </div>
-  )
+  );
+
+  // 웹 직접 접근 + viewport ≥1024px(lg)이면 중앙 카드 레이아웃, 그 외(앱 웹뷰/좁은 웹)는 기존 렌더.
+  const isWeb = appVersion === '' || appVersion == null;
+  if (!isWeb) return mobile;
+
+  return (
+    <>
+      <div className="hidden lg:block">
+        <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
+          <div className="mx-auto w-full max-w-[680px] px-8">
+            <section className="rounded-2xl border border-[#f0f1f3] bg-white overflow-hidden pt-4 pb-2">
+              <h1 className="text-[18px] font-bold text-black px-6 pt-2 pb-3">{await translate('setting')}</h1>
+              {menuList}
+            </section>
+          </div>
+        </div>
+      </div>
+      <div className="lg:hidden">
+        {mobile}
+      </div>
+    </>
+  );
 }

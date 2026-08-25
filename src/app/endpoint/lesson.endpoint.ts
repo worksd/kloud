@@ -3,6 +3,7 @@ import { LessonType } from '@/entities/lesson/lesson';
 import { GetStudioResponse } from '@/app/endpoint/studio.endpoint';
 import { TicketListResponse, TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { GetArtistResponse } from '@/app/endpoint/artist.endpoint';
+import type { LessonPricePolicyResponse } from '@/app/endpoint/payment.endpoint';
 
 export type GetLessonParameter = {
     id: number;
@@ -32,7 +33,8 @@ export type GetLessonResponse = {
     buttonRoute: string;
     buttons: GetLessonButtonResponse[];
     paymentType?: 'Subscription' | 'Default'
-    days?: string;
+    /** 매주 열리는 요일 (0=일 ~ 6=토). 가격 정책(정기) 수업이면 결제 조회 응답에도 포함 — '매주 목·금' 표시용. */
+    days?: number[];
     description?: string;
     genre?: string;
     tags?: string;
@@ -41,6 +43,13 @@ export type GetLessonResponse = {
     adminType?: 'artist' | 'partner';
     /** 이 수업이 포함된 판매중 묶음 목록. BE가 status=Public + closeDate>now + 본 lesson 포함 조건으로 필터해 내려줌. */
     bundles?: BundleSummaryResponse[];
+    /**
+     * 수업 가격 정책 (예: '월 4회' 10만원 / '월 8회' 19만원) — 이 수업을 정기로 사는 방식 목록.
+     * lessonCount 오름차순 정렬로 내려온다. 내려오면 결제 페이지에서 방식 선택 UI를 노출하고,
+     * 선택한 옵션의 price가 상품가, 그 옵션의 paymentId가 결제 id가 된다.
+     * 없거나 빈 배열이면 정기로 팔지 않는 수업 — 기존처럼 lesson.price 단건 결제.
+     */
+    pricePolicies?: LessonPricePolicyResponse[];
 };
 
 export type BundleSummaryResponse = {
@@ -186,10 +195,98 @@ export const GetLesson: Endpoint<GetLessonParameter, GetLessonResponse> = {
     path: (e) => `/lessons/${e.id}`,
 };
 
+/**
+ * 강사 개인수업 개설 — POST /lessons 의 강사 경로.
+ * studioId(소속 학원)를 보내면 서버가 개인수업(Private)·Basic·강사 본인으로 강제하므로
+ * artists/type/level/genre 는 보내지 않는다. 정산은 없음 고정.
+ * limit 은 룸 수용 인원(maxNumber)까지, price 는 0원 허용·음수 거부.
+ */
+export type CreatePrivateLessonRequest = {
+    studioId: number;
+    studioRoomId: number;
+    /** 'YYYY.MM.dd HH:mm' (KST) */
+    startDate: string;
+    /** 수업 길이(분) */
+    duration: number;
+    price: number;
+    limit: number;
+    title: string;
+    thumbnailUrl?: string;
+};
+
+/** POST /lessons 응답 (SimpleLessonResponse) */
+export type CreateLessonResponse = {
+    id: number;
+    title: string;
+    /** 'yyyy-MM-dd HH:mm' */
+    startDate: string;
+    /** 로케일 적용 표시용 일시 */
+    date: string;
+    thumbnailUrl?: string;
+};
+
+export const CreatePrivateLesson: Endpoint<CreatePrivateLessonRequest, CreateLessonResponse> = {
+    method: 'post',
+    path: `/lessons`,
+    bodyParams: ['studioId', 'studioRoomId', 'startDate', 'duration', 'price', 'limit', 'title', 'thumbnailUrl'],
+};
+
 export const ListOngoingLessons: Endpoint<GetStudioLessonParameter, LessonListResponse> = {
     method: 'get',
     path: `/lessons/ongoing`,
     queryParams: ['studioId', 'page']
+}
+
+/** GET /lessons/valid 아이템 — 전체 스튜디오를 가로질러 지금 예약 가능한 수업. studio 항상 포함. */
+export type ValidLessonResponse = {
+    id: number;
+    /** 실질적으로 'Recruiting'(예약 가능) / 'Ready'(정원 마감) 둘 중 하나 */
+    status: LessonStatus;
+    statusLabel: string;
+    type?: string;
+    title: string;
+    thumbnailUrl: string;
+    /** 'yyyy.MM.dd HH:mm' (KST) */
+    startDate: string;
+    /** 로케일 적용된 표시용 일시 문구 */
+    date: string;
+    dday: string;
+    price: number;
+    /** 기본값(Default)이면 null */
+    genre: string | null;
+    level?: string;
+    artists: GetArtistResponse[];
+    /** address: 도로명 우선, 없으면 지번 — 둘 다 없으면 키 생략 (워크샵 카드에서 표기) */
+    studio: { id: number; name: string; profileImageUrl?: string; address?: string };
+    label?: GetLabelResponse;
+    /** 매주 반복 요일(0=일~6=토). 비반복이면 키 생략 */
+    days?: number[];
+    description?: string;
+}
+
+export type ValidLessonListResponse = {
+    /** 워크샵을 뺀 수업 (Default/PopUp/Regular/Audition) */
+    lessons: ValidLessonResponse[];
+    /** Workshop 타입만 — 카드 모양은 lessons와 동일. 같은 page가 두 리스트에 함께 적용된다. */
+    workshops?: ValidLessonResponse[];
+    /** lessons의 ceil(전체 건수 / 18) */
+    lessonsTotalPage?: number;
+    /** workshops의 ceil(전체 건수 / 18) */
+    workshopsTotalPage?: number;
+    /** (구응답) 단일 리스트 시절 전체 페이지 수 — lessonsTotalPage 폴백용 */
+    totalPage?: number;
+}
+
+export type GetValidLessonsParameter = {
+    page?: number;
+}
+
+/** 예약 가능 수업 전체 목록 — 시작 시각 가까운 순, 리스트별 페이지당 18개 고정. 인증 불필요.
+ *  정원 마감은 서버 필터가 아니다 — status(Recruiting=예약 가능 / Ready=정원 마감)로 구분. */
+export const ListValidLessons: Endpoint<GetValidLessonsParameter, ValidLessonListResponse> = {
+    method: 'get',
+    path: `/lessons/valid`,
+    queryParams: ['page'],
 }
 
 export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, GetLessonListResponse> = {
@@ -294,63 +391,6 @@ export const GetArtistSettlementStatement: Endpoint<GetArtistSettlementStatement
     method: 'get',
     path: () => `/artist-settlements/statement`,
     queryParams: ['lessonId', 'artistId'],
-}
-
-// LessonGroup (정기수업) 관련 타입
-export type GetLessonGroupParameter = {
-    id: number;
-}
-
-export type GetLessonGroupLessonsParameter = {
-    id: number;
-    year?: number;
-    month?: number;
-    page?: number;
-}
-
-export type GetLessonGroupResponse = {
-    id: number;
-    title: string;
-    thumbnailUrl?: string;
-    level?: string;
-    price?: number;
-    unitPrice?: number;
-    limit: number;
-    genre?: string;
-    description?: string;
-    status: string;
-    studio?: GetStudioResponse;
-    artist?: GetArtistResponse;
-    studioRoom?: GetStudioRoomResponse;
-    days?: string[];
-    startTime?: string;
-    duration?: number;
-    generateAheadDays?: number;
-    webSiteUrl?: string;
-    ticket?: LessonGroupTicketResponse;
-    currentStudentCount: number;
-    paymentCount?: number;
-    lastLessonDate?: string;
-    buttons?: GetLessonButtonResponse[];
-}
-
-export type LessonGroupTicketResponse = {
-    id: number;
-    status: string;
-    remainingCount?: number;
-    startDate?: string;
-    endDate?: string;
-}
-
-export const GetLessonGroup: Endpoint<GetLessonGroupParameter, GetLessonGroupResponse> = {
-    method: 'get',
-    path: (e) => `/lesson-groups/${e.id}`,
-}
-
-export const GetLessonGroupLessons: Endpoint<GetLessonGroupLessonsParameter, LessonListResponse> = {
-    method: 'get',
-    path: (e) => `/lesson-groups/${e.id}/lessons`,
-    queryParams: ['year', 'month', 'page'],
 }
 
 export enum LessonStatus {

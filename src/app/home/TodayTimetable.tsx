@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { kloudNav } from '@/app/lib/kloudNav';
+import { trackEvent } from '@/app/lib/analytics';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { LessonTags } from '@/app/components/LessonTags';
 
@@ -96,10 +97,9 @@ export function TodayTimetable({
   };
 
   const onClick = (lesson: TimetableLesson) => {
-    const route = lesson.type === 'subscription'
-      ? KloudScreen.LessonGroupDetail(lesson.id)
-      : KloudScreen.LessonDetail(lesson.id);
-    kloudNav.push(route);
+    // 오늘 밴드 클릭 — 화면 전환에 잘리지 않게 네비게이션보다 먼저 쏜다.
+    trackEvent('click_band_today', { lessonId: lesson.id, bandTitle: title ?? null });
+    kloudNav.push(KloudScreen.LessonDetail(lesson.id));
   };
 
   // 끝난/남은 경계에 그려지는 marker. 단, 진행중 row가 이미 있으면 카드와 겹치므로 숨긴다.

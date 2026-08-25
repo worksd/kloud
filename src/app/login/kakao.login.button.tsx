@@ -15,12 +15,11 @@ import { RecentLoginTooltip } from "@/app/login/RecentLoginTooltip";
 type KakaoLoginButtonProps = {
   title: string;
   appVersion: string;
-  callbackUrl?: string;
   isRecentLogin?: boolean;
   recentLoginText?: string;
 }
 
-const KakaoLoginButton = ({title, appVersion, callbackUrl, isRecentLogin, recentLoginText}: KakaoLoginButtonProps) => {
+const KakaoLoginButton = ({title, appVersion, isRecentLogin, recentLoginText}: KakaoLoginButtonProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prevCodeRef = useRef<string | null>(null);
@@ -59,11 +58,12 @@ const KakaoLoginButton = ({title, appVersion, callbackUrl, isRecentLogin, recent
             const res = await kakaoLoginAction({code});
             if (res.success) {
               saveRecentLoginMethod('kakao');
-              const decodedState = decodeURIComponent(state);
+              // 웹 플로우 — 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에
+              // 반영되게. returnUrl 없이 항상 홈(/)으로.
               if (res.status === UserStatus.Ready) {
-                router.replace(decodedState);
+                window.location.replace('/');
               } else if (res.status === UserStatus.New) {
-                router.replace(KloudScreen.Onboard(decodedState));
+                window.location.replace(KloudScreen.Onboard);
               }
             }
             else {
@@ -93,7 +93,7 @@ const KakaoLoginButton = ({title, appVersion, callbackUrl, isRecentLogin, recent
       if (isSubmitting) return;
       setIsSubmitting(true);
       if (appVersion == '') {
-        const state = callbackUrl ? encodeURIComponent(callbackUrl) : encodeURIComponent('/');
+        const state = encodeURIComponent('/');
         const URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_OAUTH_REDIRECT_URL}&response_type=code&state=${state}`;
         window.location.href = URL;
       } else {

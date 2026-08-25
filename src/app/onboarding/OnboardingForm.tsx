@@ -12,7 +12,6 @@ import { VerificationCodeForm } from "@/app/login/phone/VerificationCodeForm";
 import { flushSync } from "react-dom";
 import { AgreementForm } from "@/app/onboarding/ServiceAgreementForm";
 import { kloudNav } from "@/app/lib/kloudNav";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { GenderBottomSheet } from "@/app/onboarding/GenderBottomSheet";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { sendVerificationSMS } from "@/app/certification/send.message.action";

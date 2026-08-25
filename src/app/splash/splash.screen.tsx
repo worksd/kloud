@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { authToken } from "@/app/splash/auth.token.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
-import { getBottomMenuList } from "@/utils/bottom.menu.fetch.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -53,7 +52,7 @@ export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
       }
       const status = res.status
       if (status == UserStatus.New) {
-        kloudNav.clearAndPush(KloudScreen.Onboard(''))
+        kloudNav.clearAndPush(KloudScreen.Onboard)
       }
       else if (status == UserStatus.Ready) {
         await kloudNav.navigateMain({ route: resolveAppRoute(link) })

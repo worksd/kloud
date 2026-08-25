@@ -239,6 +239,17 @@ export async function createDialog({id, message, title, customData}: {
       cancelTitle: await translate('cancel'),
       customData: customData,
     }
+  } else if (id == 'RequestSubscription') {
+    // 정기결제(구독) 생성 확인 — canSubscribe 상품의 billing 결제
+    return {
+      id: 'RequestSubscription',
+      type: 'YESORNO',
+      title: title ?? '',
+      message: message ?? '',
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      customData: customData,
+    }
   } else if (id == 'BillingKeyNotFound') {
     return {
       id: 'BillingKeyNotFound',
@@ -270,6 +281,16 @@ export async function createDialog({id, message, title, customData}: {
       type: 'YESORNO',
       title: await translate('do_cancel'),
       message: message ?? await translate('confirm_cancel_ticket'),
+      confirmTitle: await translate('confirm'),
+      cancelTitle: await translate('cancel'),
+      customData,
+    }
+  } else if (id == 'PostponeTicket') {
+    return {
+      id: 'PostponeTicket',
+      type: 'YESORNO',
+      title: await translate('postpone_ticket_title'),
+      message: message ?? await translate('postpone_ticket_message'),
       confirmTitle: await translate('confirm'),
       cancelTitle: await translate('cancel'),
       customData,
@@ -324,10 +345,12 @@ export type DialogId =
   | 'SkipCertification'
   | 'DeleteBillingCard'
   | 'RequestBillingKeyPayment'
+  | 'RequestSubscription'
   | 'BillingKeyNotFound'
   | 'CapacityFull'
   | 'ChangePhoneNumber'
   | 'CancelTicket'
+  | 'PostponeTicket'
   | 'ConfirmAttendance'
   | 'HomeAlert'
   | 'CancelRoomBooking'

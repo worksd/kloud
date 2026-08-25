@@ -101,6 +101,18 @@ export const StringResource = {
     jp: "始める",
     zh: "开始"
   },
+  login_intro_title: {
+    ko: "댄스의 모든 순간, 로우그래피",
+    en: "Every dance moment, Rawgraphy",
+    jp: "ダンスのすべての瞬間、Rawgraphy",
+    zh: "舞蹈的每一刻，Rawgraphy"
+  },
+  login_intro_subtitle: {
+    ko: "원하는 스튜디오의 수업을 확인하고\n간편하게 예약해보세요",
+    en: "Browse classes from your favorite studios\nand book in seconds",
+    jp: "お気に入りのスタジオのレッスンをチェックして\n簡単に予約しましょう",
+    zh: "查看喜欢的舞室课程\n轻松完成预约"
+  },
   sign_up: {
     ko: "가입하기",
     en: "Sign Up",
@@ -178,6 +190,253 @@ export const StringResource = {
     en: 'Setting',
     jp: '設定',
     zh: '设置'
+  },
+  profile: {
+    ko: '프로필',
+    en: 'Profile',
+    jp: 'プロフィール',
+    zh: '个人资料'
+  },
+  lnb_home: {
+    ko: '홈',
+    en: 'Home',
+    jp: 'ホーム',
+    zh: '首页'
+  },
+  lnb_my_studio: {
+    ko: '내 스튜디오',
+    en: 'My Studio',
+    jp: 'マイスタジオ',
+    zh: '我的工作室'
+  },
+  lnb_practice_room: {
+    ko: '연습실 대관',
+    en: 'Practice Rooms',
+    jp: '練習室レンタル',
+    zh: '练习室租赁'
+  },
+  lessons_home_title: {
+    ko: '당신의 수업을 찾아보세요',
+    en: 'Find your next class',
+    jp: 'あなたのレッスンを見つけよう',
+    zh: '找到属于你的课程'
+  },
+  lessons_home_workshop_title: {
+    ko: '지금 가장 주목받는 워크샵',
+    en: "Workshops everyone's watching",
+    jp: '今いちばん注目のワークショップ',
+    zh: '当下最受关注的工作坊'
+  },
+  // ── 개인수업 (강사) ─────────────────────────────────────
+  artist_greeting_title: {
+    ko: '안녕하세요, {name} 강사님 👋',
+    en: 'Hello, {name}! 👋',
+    jp: 'こんにちは、{name}先生 👋',
+    zh: '您好，{name} 老师 👋'
+  },
+  artist_greeting_subtitle: {
+    ko: '빈 시간에 개인수업을 열고 수강생을 등록해보세요',
+    en: 'Open a private lesson and register your students',
+    jp: '空き時間に個人レッスンを開いて受講生を登録しましょう',
+    zh: '在空闲时间开设私教课并登记学员'
+  },
+  private_lesson_create: {
+    ko: '개인수업 만들기',
+    en: 'Create private lesson',
+    jp: '個人レッスンを作成',
+    zh: '创建私教课'
+  },
+  artist_my_lessons: {
+    ko: '내 수업',
+    en: 'My lessons',
+    jp: '担当レッスン',
+    zh: '我的课程'
+  },
+  artist_my_lessons_empty: {
+    ko: '아직 진행한 수업이 없어요',
+    en: 'No lessons yet',
+    jp: 'まだ担当したレッスンがありません',
+    zh: '还没有授课记录'
+  },
+  private_lesson_studio: {
+    ko: '스튜디오 선택',
+    en: 'Studio',
+    jp: 'スタジオ選択',
+    zh: '选择工作室'
+  },
+  private_lesson_room: {
+    ko: '강의실 선택',
+    en: 'Room',
+    jp: '教室選択',
+    zh: '选择教室'
+  },
+  private_lesson_day_schedule: {
+    ko: '강의실 일정',
+    en: 'Room schedule',
+    jp: '教室の予定',
+    zh: '教室日程'
+  },
+  private_lesson_no_schedule: {
+    ko: '이 날은 일정이 없어요',
+    en: 'No schedule on this day',
+    jp: 'この日の予定はありません',
+    zh: '当天没有日程'
+  },
+  private_lesson_time_conflict: {
+    ko: '이 시간은 기존 일정과 겹쳐요',
+    en: 'This time overlaps an existing schedule',
+    jp: 'この時間は既存の予定と重なります',
+    zh: '该时间与现有日程重叠'
+  },
+  private_lesson_datetime: {
+    ko: '수업 일시',
+    en: 'Date & time',
+    jp: 'レッスン日時',
+    zh: '上课时间'
+  },
+  private_lesson_duration: {
+    ko: '수업 길이(분)',
+    en: 'Duration (min)',
+    jp: 'レッスン時間(分)',
+    zh: '课程时长(分钟)'
+  },
+  private_lesson_limit: {
+    ko: '정원',
+    en: 'Capacity',
+    jp: '定員',
+    zh: '人数上限'
+  },
+  private_lesson_limit_max: {
+    ko: '최대 {count}명',
+    en: 'Up to {count}',
+    jp: '最大{count}名',
+    zh: '最多 {count} 人'
+  },
+  private_lesson_title_label: {
+    ko: '수업명',
+    en: 'Lesson title',
+    jp: 'レッスン名',
+    zh: '课程名称'
+  },
+  private_lesson_created: {
+    ko: '개인수업이 만들어졌어요',
+    en: 'Private lesson created',
+    jp: '個人レッスンを作成しました',
+    zh: '私教课已创建'
+  },
+  invite_students_title: {
+    ko: '수강생 등록',
+    en: 'Register students',
+    jp: '受講生登録',
+    zh: '学员登记'
+  },
+  invite_search_placeholder: {
+    ko: '이름·닉네임·연락처로 검색',
+    en: 'Search by name or phone',
+    jp: '名前・電話番号で検索',
+    zh: '按姓名或电话搜索'
+  },
+  invite_no_result: {
+    ko: '검색 결과가 없어요',
+    en: 'No results',
+    jp: '検索結果がありません',
+    zh: '没有搜索结果'
+  },
+  search: {
+    ko: '검색',
+    en: 'Search',
+    jp: '検索',
+    zh: '搜索'
+  },
+  invite_register_with_pass: {
+    ko: '수강권으로 등록',
+    en: 'Register with pass',
+    jp: 'パスで登録',
+    zh: '使用课程券登记'
+  },
+  invite_register_onsite: {
+    ko: '현장결제로 등록',
+    en: 'Register with on-site payment',
+    jp: '現地決済で登録',
+    zh: '现场付款登记'
+  },
+  invite_no_pass: {
+    ko: '사용 가능한 수강권이 없어요',
+    en: 'No usable pass',
+    jp: '使用可能なパスがありません',
+    zh: '没有可用的课程券'
+  },
+  invite_success: {
+    ko: '{name}님을 등록했어요',
+    en: '{name} registered',
+    jp: '{name}さんを登録しました',
+    zh: '已登记 {name}'
+  },
+  invite_confirm_pass: {
+    ko: '{name}님을 이 수강권으로 등록할까요?',
+    en: "Register {name} with this pass?",
+    jp: '{name}さんをこのパスで登録しますか？',
+    zh: '用此课程券登记 {name} 吗？'
+  },
+  invite_confirm_onsite: {
+    ko: '{name}님을 현장결제({price})로 등록할까요?',
+    en: 'Register {name} with on-site payment ({price})?',
+    jp: '{name}さんを現地決済({price})で登録しますか？',
+    zh: '以现场付款({price})登记 {name} 吗？'
+  },
+  lesson_admin_invite_button: {
+    ko: '수강생 등록',
+    en: 'Register student',
+    jp: '受講生を登録',
+    zh: '登记学员'
+  },
+  payment_disabled_price_unavailable: {
+    ko: '결제 정보를 불러오지 못했어요',
+    en: "Couldn't load payment info",
+    jp: '決済情報を読み込めませんでした',
+    zh: '无法加载支付信息'
+  },
+  payment_disabled_no_slot: {
+    ko: '이용할 시간을 먼저 선택해주세요',
+    en: 'Select a time slot first',
+    jp: '利用時間を先に選択してください',
+    zh: '请先选择使用时间'
+  },
+  payment_disabled_no_method: {
+    ko: '결제수단을 선택해주세요',
+    en: 'Select a payment method',
+    jp: 'お支払い方法を選択してください',
+    zh: '请选择支付方式'
+  },
+  payment_disabled_no_pass: {
+    ko: '사용할 패스를 선택해주세요',
+    en: 'Select a pass to use',
+    jp: '使用するパスを選択してください',
+    zh: '请选择要使用的通票'
+  },
+  payment_disabled_policy_unusable: {
+    ko: '지금은 구매할 수 없는 방식이에요',
+    en: 'This option is not available right now',
+    jp: '現在購入できないプランです',
+    zh: '当前无法购买此方案'
+  },
+  payment_disabled_no_card: {
+    ko: '결제할 카드를 선택해주세요',
+    en: 'Select a card to pay with',
+    jp: '決済するカードを選択してください',
+    zh: '请选择支付卡'
+  },
+  lessons_home_subtitle: {
+    ko: '원하는 스튜디오의 수업을 한 곳에서 둘러보세요',
+    en: 'Browse classes from every studio in one place',
+    jp: 'すべてのスタジオのレッスンをひとつの場所で',
+    zh: '在一个地方浏览所有工作室的课程'
+  },
+  profile_empty_message: {
+    ko: '아직 활동 내역이 없어요',
+    en: 'No activity yet',
+    jp: 'まだ活動履歴がありません',
+    zh: '暂无活动记录'
   },
   onboarding_profile: {
     ko: "프로필 설정",
@@ -274,6 +533,90 @@ export const StringResource = {
     en: "Welcome!",
     jp: "ようこそ！",
     zh: "欢迎! "
+  },
+  login_dialog_copy: {
+    ko: "댄스 스튜디오를 마주하는 순간부터 수업을 듣는 순간까지",
+    en: "From the moment you find a studio to the moment you dance",
+    jp: "スタジオと出会う瞬間からレッスンを受ける瞬間まで",
+    zh: "从遇见舞室的那一刻，到起舞的每一刻"
+  },
+  terms_of_use: {
+    ko: "이용약관",
+    en: "Terms of Use",
+    jp: "利用規約",
+    zh: "使用条款"
+  },
+  footer_representative: {
+    ko: "대표자명",
+    en: "CEO",
+    jp: "代表者名",
+    zh: "法人代表"
+  },
+  footer_business_number: {
+    ko: "사업자번호",
+    en: "Business Reg. No.",
+    jp: "事業者登録番号",
+    zh: "营业执照号"
+  },
+  footer_ecommerce_number: {
+    ko: "통신판매업신고",
+    en: "E-commerce Permit",
+    jp: "通信販売業申告",
+    zh: "电商备案号"
+  },
+  footer_customer_center: {
+    ko: "고객센터",
+    en: "Customer Center",
+    jp: "カスタマーセンター",
+    zh: "客服中心"
+  },
+  today_lessons: {
+    ko: "오늘의 수업",
+    en: "Today's Classes",
+    jp: "今日のレッスン",
+    zh: "今日课程"
+  },
+  no_open_lessons: {
+    ko: "지금 예약 가능한 수업이 없어요",
+    en: "No classes available right now",
+    jp: "今予約できるレッスンがありません",
+    zh: "当前没有可预约的课程"
+  },
+  search_placeholder: {
+    ko: "수업이나 스튜디오를 검색해보세요",
+    en: "Search classes or studios",
+    jp: "レッスンやスタジオを検索",
+    zh: "搜索课程或舞室"
+  },
+  search_section_studios: {
+    ko: "스튜디오",
+    en: "Studios",
+    jp: "スタジオ",
+    zh: "舞室"
+  },
+  search_section_upcoming: {
+    ko: "다가올 수업",
+    en: "Upcoming classes",
+    jp: "これからのレッスン",
+    zh: "即将开始的课程"
+  },
+  search_section_last: {
+    ko: "종료된 수업",
+    en: "Past classes",
+    jp: "終了したレッスン",
+    zh: "已结束的课程"
+  },
+  search_empty_result: {
+    ko: "검색 결과가 없어요",
+    en: "No results found",
+    jp: "検索結果がありません",
+    zh: "没有搜索结果"
+  },
+  search_result_for: {
+    ko: "검색 결과",
+    en: "Search results",
+    jp: "検索結果",
+    zh: "搜索结果"
   },
   welcome_message: {
     ko: "댄스 스튜디오를 마주하는 순간부터 수업을 듣는 순간까지, Rawgraphy입니다",
@@ -1448,6 +1791,90 @@ export const StringResource = {
     en: "My Subscription",
     jp: "マイサブスクリプション",
     zh: "我的订阅"
+  },
+  subscription_confirm_notice: {
+    ko: '{cycle} 이 카드로 자동 결제되는 정기결제예요',
+    en: 'This is a subscription — charged to this card {cycle}',
+    jp: '{cycle}このカードで自動決済されるサブスクリプションです',
+    zh: '这是订阅付款 — {cycle}自动从此卡扣款'
+  },
+  cycle_monthly: {
+    ko: '매달',
+    en: 'every month',
+    jp: '毎月',
+    zh: '每月'
+  },
+  cycle_every_weeks: {
+    ko: '{n}주마다',
+    en: 'every {n} weeks',
+    jp: '{n}週ごとに',
+    zh: '每{n}周'
+  },
+  cycle_every_sessions: {
+    ko: '{n}회 수강마다',
+    en: 'every {n} sessions',
+    jp: '{n}回ごとに',
+    zh: '每{n}次课'
+  },
+  subscription_per_weeks: {
+    ko: '/ {n}주',
+    en: '/ {n} wks',
+    jp: '/ {n}週',
+    zh: '/ {n}周'
+  },
+  subscription_per_sessions: {
+    ko: '/ {n}회',
+    en: '/ {n} sessions',
+    jp: '/ {n}回',
+    zh: '/ {n}次'
+  },
+  pass_blocked_for_price_policy: {
+    ko: '수강 방식(정기) 결제에는 패스권을 사용할 수 없어요',
+    en: "Passes can't be used for subscription-style purchases",
+    jp: '受講プラン(定期)決済にはパスを使用できません',
+    zh: '课程方案（定期）付款不可使用通票'
+  },
+  first_lesson_start_notice: {
+    ko: '첫 수업 시작일은 {date}입니다',
+    en: 'Your first class starts on {date}',
+    jp: '初回レッスンは{date}に始まります',
+    zh: '首节课将于 {date} 开始'
+  },
+  regular_payment: {
+    ko: '일반결제',
+    en: 'One-time payment',
+    jp: '通常決済',
+    zh: '普通支付'
+  },
+  subscription_badge: {
+    ko: '정기결제로 편하게',
+    en: 'Easy with subscription',
+    jp: 'サブスクでらくらく',
+    zh: '订阅更省心'
+  },
+  subscription_per_month: {
+    ko: '/ 월',
+    en: '/ mo',
+    jp: '/ 月',
+    zh: '/ 月'
+  },
+  subscription_benefit_1: {
+    ko: '{cycle} 자동 결제 — 놓칠 걱정 없어요',
+    en: 'Auto-charged {cycle} — never miss it',
+    jp: '{cycle}自動決済 — 忘れる心配なし',
+    zh: '{cycle}自动扣款 — 不怕错过'
+  },
+  subscription_benefit_2: {
+    ko: '카드 한 번 등록이면 매번 결제할 필요 없어요',
+    en: 'Register a card once, no more checkout',
+    jp: 'カード登録は一度だけ、毎回の決済は不要',
+    zh: '绑卡一次，无需每次付款'
+  },
+  subscription_benefit_3: {
+    ko: '언제든 해지할 수 있어요',
+    en: 'Cancel anytime',
+    jp: 'いつでも解約できます',
+    zh: '随时可取消'
   },
   my_membership: {
     ko: "멤버십",
@@ -2818,6 +3245,19 @@ export const StringResource = {
   week_4: { ko: '넷째주', en: 'Week 4', jp: '第4週', zh: '第4周' },
   week_5: { ko: '다섯째주', en: 'Week 5', jp: '第5週', zh: '第5周' },
   week_6: { ko: '여섯째주', en: 'Week 6', jp: '第6週', zh: '第6周' },
+  /**
+   * 정기 수업 반복 요일 표시 — {days} 자리에 'weekday_full_*' 라벨을 로케일별 구분자로 이어 치환.
+   * (예: '매주 목요일, 금요일' / 'Every Thursday, Friday' / '毎週木曜日・金曜日' / '每周四、周五')
+   * zh는 라벨(周四)에 이미 '周'가 있어 템플릿이 '每{days}' — '每周{days}'로 바꾸면 '每周周四'가 된다.
+   */
+  weekly_days: { ko: '매주 {days}', en: 'Every {days}', jp: '毎週{days}', zh: '每{days}' },
+  weekday_full_sun: { ko: '일요일', en: 'Sunday', jp: '日曜日', zh: '周日' },
+  weekday_full_mon: { ko: '월요일', en: 'Monday', jp: '月曜日', zh: '周一' },
+  weekday_full_tue: { ko: '화요일', en: 'Tuesday', jp: '火曜日', zh: '周二' },
+  weekday_full_wed: { ko: '수요일', en: 'Wednesday', jp: '水曜日', zh: '周三' },
+  weekday_full_thu: { ko: '목요일', en: 'Thursday', jp: '木曜日', zh: '周四' },
+  weekday_full_fri: { ko: '금요일', en: 'Friday', jp: '金曜日', zh: '周五' },
+  weekday_full_sat: { ko: '토요일', en: 'Saturday', jp: '土曜日', zh: '周六' },
   weekday_sun: { ko: '일', en: 'Sun', jp: '日', zh: '日' },
   weekday_mon: { ko: '월', en: 'Mon', jp: '月', zh: '一' },
   weekday_tue: { ko: '화', en: 'Tue', jp: '火', zh: '二' },
@@ -3254,11 +3694,111 @@ export const StringResource = {
     jp: '購入を進めますか？',
     zh: '是否继续购买？'
   },
-  my_lesson_group_tickets: {
-    ko: '정기 수업',
-    en: 'Lesson Group Tickets',
-    jp: '定期レッスン受講券',
-    zh: '定期课程票'
+  /**
+   * 가격정책 섹션 헤더 — 모바일/PC/키오스크 공용.
+   * 예전 카피('많이 들을수록 할인')는 8/8 계약 변경으로 할인 표시(originalPrice)가
+   * 사라진 뒤 근거 없는 할인 주장이 돼 중립 문구로 교체.
+   */
+  select_lesson_count: {
+    ko: '수강 횟수 선택',
+    en: 'Select sessions',
+    jp: '受講回数を選択',
+    zh: '选择课时数'
+  },
+  times_unit: {
+    ko: '회',
+    en: ' sessions',
+    jp: '回',
+    zh: '次'
+  },
+  price_per_session: {
+    ko: '회당',
+    en: 'per session',
+    jp: '1回あたり',
+    zh: '每次'
+  },
+  you_save: {
+    ko: '할인 금액',
+    en: 'You save',
+    jp: '割引額',
+    zh: '优惠金额'
+  },
+  // 회차 미루기 (POST /tickets/:id/postpone)
+  postpone_ticket: {
+    ko: '미루기',
+    en: 'Postpone',
+    jp: '延期',
+    zh: '延期'
+  },
+  postpone_ticket_title: {
+    ko: '다음 회차로 미룰까요?',
+    en: 'Postpone to the next session?',
+    jp: '次の回に延期しますか？',
+    zh: '要延期到下一节课吗？'
+  },
+  postpone_ticket_message: {
+    ko: '이번 회차 수강권이 다음 회차로 옮겨져요. 미룰 수 있는 횟수는 정해져 있어요.',
+    en: 'This session will be moved to the next one. The number of postponements is limited.',
+    jp: '今回の受講券が次の回に移ります。延期できる回数には制限があります。',
+    zh: '本次课程将移至下一节课。延期次数有限。'
+  },
+  postpone_ticket_success: {
+    ko: '다음 회차로 옮겼어요',
+    en: 'Moved to the next session',
+    jp: '次の回に移しました',
+    zh: '已移至下一节课'
+  },
+  /** {count} 자리에 남은 미루기 횟수를 치환한다. */
+  postpone_ticket_success_remaining: {
+    ko: '다음 회차로 옮겼어요. 앞으로 {count}번 더 미룰 수 있어요.',
+    en: 'Moved to the next session. You can postpone {count} more time(s).',
+    jp: '次の回に移しました。あと{count}回延期できます。',
+    zh: '已移至下一节课。还可延期{count}次。'
+  },
+  // 미루기 실패 — BE 에러 코드별 안내
+  postpone_error_not_allowed: {
+    ko: '이 수강권은 회차를 미룰 수 없어요',
+    en: 'This ticket cannot be postponed',
+    jp: 'この受講券は延期できません',
+    zh: '该课程券无法延期'
+  },
+  postpone_error_too_late: {
+    ko: '이미 시작한 회차는 미룰 수 없어요',
+    en: 'A session that has already started cannot be postponed',
+    jp: 'すでに始まった回は延期できません',
+    zh: '已开始的课程无法延期'
+  },
+  postpone_error_limit_exceeded: {
+    ko: '미룰 수 있는 횟수를 모두 썼어요',
+    en: "You've used all your postponements",
+    jp: '延期できる回数をすべて使いました',
+    zh: '延期次数已用完'
+  },
+  postpone_error_no_slot: {
+    ko: '옮길 수 있는 다음 회차가 없어요',
+    en: 'There is no next session to move to',
+    jp: '移せる次の回がありません',
+    zh: '没有可移动的下一节课'
+  },
+  postpone_error_unknown: {
+    ko: '회차를 미루지 못했어요. 잠시 후 다시 시도해주세요',
+    en: 'Could not postpone. Please try again shortly',
+    jp: '延期できませんでした。しばらくしてからもう一度お試しください',
+    zh: '延期失败，请稍后重试'
+  },
+  /** 가격 정책의 postponeLimit — {count} 자리에 미룰 수 있는 횟수를 치환한다. */
+  postpone_limit_notice: {
+    ko: '미루기 {count}회 가능',
+    en: 'Postpone up to {count}×',
+    jp: '{count}回まで延期可',
+    zh: '可延期{count}次'
+  },
+  /** {days} 자리에 유효기간 일수를 치환해서 사용한다. */
+  valid_for_days: {
+    ko: '구매일로부터 {days}일',
+    en: 'Valid for {days} days',
+    jp: '購入日から{days}日',
+    zh: '自购买日起{days}天'
   },
   upcoming_payments: {
     ko: '다가오는 결제',
@@ -3574,6 +4114,8 @@ export const StringResource = {
   kiosk_lesson_status_completed:    { ko: '수업 종료', en: 'Ended',        jp: 'レッスン終了',     zh: '已结束' },
   kiosk_lesson_status_sale_closed:  { ko: '결제 마감', en: 'Sales closed', jp: '販売終了',         zh: '销售结束' },
   kiosk_lesson_unavailable:         { ko: '구매불가', en: 'Unavailable',  jp: '購入不可',         zh: '不可购买' },
+  /** 가격 정책으로만 파는 수업 — 낱개 가격이 없어 상세에선 금액 대신 이 문구를 노출. 실제 금액은 결제 화면에서 방식 선택 후 확정 */
+  kiosk_price_by_policy:            { ko: '수강 횟수별 가격', en: 'Priced by sessions', jp: '受講回数別の料金', zh: '按次数计价' },
 
   // Kiosk — 분 단위 접미사 (예: 90분 / 90 min / 90分 / 90分钟)
   kiosk_minutes_suffix: { ko: '분', en: ' min', jp: '分', zh: '分钟' },
@@ -4035,6 +4577,12 @@ export const StringResource = {
   community_reserve_hours: { ko: '{count}시간 예약하기', en: 'Reserve {count}h', jp: '{count}時間 予約する', zh: '预约{count}小时' },
   popular: { ko: '인기', en: 'Popular', jp: '人気', zh: '热门' },
   lesson_payment_unavailable: { ko: '현재 결제할 수 없는 수업이에요', en: 'Payment unavailable', jp: '現在決済できないレッスンです', zh: '当前无法支付该课程' },
+
+  // 하단 탭 라벨 (BOTTOM_MENU_DEFS)
+  bottom_menu_home: { ko: '홈', en: 'home', jp: 'ホーム', zh: '首页' },
+  bottom_menu_schedule: { ko: '일정', en: 'schedule', jp: 'スケジュール', zh: '日程' },
+  bottom_menu_practice: { ko: '연습실', en: 'Practice', jp: '練習室', zh: '练习室' },
+  bottom_menu_profile: { ko: '마이페이지', en: 'my', jp: 'マイ', zh: '我的' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

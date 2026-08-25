@@ -11,10 +11,12 @@ import Logo from "../../../../public/assets/logo_black.svg";
 import { useRouter } from "next/navigation";
 import { saveRecentLoginMethod } from "@/app/login/recentLoginMethod";
 import { safeLocalStorage } from "@/utils/safe.storage";
+import { LOGIN_WEB_CARD_CLS } from "@/app/login/loginWebDecor";
 
 type LoginFormProps = {
   appVersion: string;
-  returnUrl?: string;
+  /** 웹 직접 접근 여부 — PC(lg) 유리 카드 레이아웃 적용 기준 (page.tsx에서 판정) */
+  isWeb?: boolean;
   emailLabel: string;
   emailPlaceholder: string;
   passwordLabel: string;
@@ -55,8 +57,7 @@ export const LoginForm = (props: LoginFormProps) => {
   }
 
   const onClickSignUp = async () => {
-    const signUpQuery = props.returnUrl ? `?returnUrl=${encodeURIComponent(props.returnUrl)}` : ''
-    const route = KloudScreen.SignUp(signUpQuery)
+    const route = KloudScreen.SignUp('')
     if (props.appVersion === '') {
       router.replace(route)
     } else {
@@ -75,8 +76,8 @@ export const LoginForm = (props: LoginFormProps) => {
       saveRecentLoginMethod('email');
 
       if (props.appVersion == '') {
-        // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 서버 컴포넌트에 확실히 반영되게
-        window.location.replace(props.returnUrl || '/');
+        // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 서버 컴포넌트에 확실히 반영되게. 항상 기본 경로로.
+        window.location.replace('/');
       } else {
         await LoginAuthNavigation({
           status: res.status,
@@ -101,12 +102,14 @@ export const LoginForm = (props: LoginFormProps) => {
   }, []);
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
+  const isWeb = props.isWeb ?? false;
 
   return (
-    <div className="fixed inset-0 bg-white overscroll-none">
+    // 웹 PC(lg): fixed 풀스크린 흰 배경 대신 문서 흐름으로 — 페이지의 그래디언트/상단바가 보이게
+    <div className={`fixed inset-0 bg-white overscroll-none ${isWeb ? 'lg:static lg:bg-transparent' : ''}`}>
       {/* 가운데 블록 */}
-      <div className="h-full w-full flex items-center justify-center">
-        <div className="w-full max-w-sm px-6">
+      <div className={`h-full w-full flex items-center justify-center ${isWeb ? 'lg:h-auto lg:min-h-screen' : ''}`}>
+        <div className={`w-full max-w-sm px-6 ${isWeb ? `${LOGIN_WEB_CARD_CLS} lg:px-10 lg:py-14` : ''}`}>
           <div className="flex flex-col items-center text-center gap-6 ">
             {/* 로고 */}
             <Logo className="mx-auto h-10"/>
@@ -166,12 +169,9 @@ export const LoginForm = (props: LoginFormProps) => {
             >
               {props.buttonText}
             </button>
-          </div>
-        </div>
-      </div>
 
-      {/* “아직 회원이 아니신가요?” 항상 화면 맨 아래 중앙 고정 */}
-      <div className="fixed inset-x-0 bottom-8 z-50">
+            {/* “아직 회원이 아니신가요?” — 모바일: 화면 맨 아래 고정 / 웹 PC(lg): 카드 안 버튼 아래 */}
+            <div className={`fixed inset-x-0 bottom-8 z-50 ${isWeb ? 'lg:static lg:z-auto' : ''}`}>
         <div
           className="
       mx-auto flex items-center justify-center gap-1
@@ -190,6 +190,9 @@ export const LoginForm = (props: LoginFormProps) => {
           >
             {props.createAccountText}
           </button>
+        </div>
+      </div>
+          </div>
         </div>
       </div>
     </div>

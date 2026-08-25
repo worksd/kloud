@@ -23,6 +23,8 @@ type KioskLessonAttendanceFormProps = {
   onHome: () => void;
   locale: Locale;
   variant?: 'kiosk' | 'admin';
+  /** 전화 입력 형태 — 키오스크 설정(phonePadType)에서 파생. 'lastFour'면 뒷 4자리 패드. */
+  phoneInputMode?: 'phone' | 'lastFour';
 };
 
 type Mode = 'qr' | 'manual';
@@ -149,7 +151,7 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 //  - QR 모드: 네이티브 HID 스캐너(startQrScan) → onQrScanResult → willUseTicketId/token 파싱 → 티켓 조회
 //  - 수동 모드: 수업 선택 → 전화/이메일 입력 → 해당 레슨 티켓에서 유저 매칭
 //  두 경로 모두 확인 화면(이 수업 맞나요?) 후 toUsed로 출석 처리.
-export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, variant = 'kiosk'}: KioskLessonAttendanceFormProps) => {
+export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, variant = 'kiosk', phoneInputMode = 'phone'}: KioskLessonAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
 
@@ -410,6 +412,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
       <KioskPhoneInputForm
         locale={locale}
         variant={variant}
+        mode={phoneInputMode}
         onBack={() => setStatus('manual-lesson')}
         onHome={onBack}
         onNext={(phone) => searchInLesson(phone)}

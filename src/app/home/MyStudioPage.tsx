@@ -61,7 +61,7 @@ export default async function MyStudioPage({res, bundles, roomSlots, myBookings}
           return (
             <React.Fragment key={value.title}>
               {/* 오늘 밴드 위에 주간 시간표 그리드 노출 */}
-              <TimeTableServerComponent studioId={res.studio.id} />
+              <TimeTableServerComponent studioId={res.studio.id} clickEvent="click_band_timetable" />
               <TodayTimetable
                 title={value.title}
                 lessons={value.lessons.map((l) => ({

@@ -2,10 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { ReactNode } from "react";
+import { headers, cookies } from "next/headers";
+import { accessTokenKey } from "@/shared/cookies.key";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { WebShell } from "@/app/components/WebShell";
+import { translate } from "@/utils/translate";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -26,19 +30,49 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  // 웹 크롬(상단바/푸터) 노출 판단을 서버에서 — proxy가 심어주는 헤더 기반.
+  // 클라이언트 mounted 게이트로 하면 SSR HTML에 없다가 hydration 후 뿅 나타나며
+  // 컨텐츠를 밀어내는 깜빡임이 생긴다 (kloudNav.push 웹 폴백이 풀 리로드라 이동마다 재발).
+  const h = await headers();
+  const appVersion = h.get('x-guinness-version') ?? '';
+  const entryPath = h.get('x-guinness-entry') ?? '';
+  const showWebChrome = appVersion === '' && !entryPath.startsWith('/kiosk');
+  const cookieStore = await cookies();
+  const isLogin = !!cookieStore.get(accessTokenKey)?.value;
+
   return (
 
     <html lang="en" className={`${paperFont.variable}`}>
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
-    {children}
+    {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 크롬 — 상단바 + 유튜브식 LNB(레일/드로어).
+        푸터(회사 정보)는 LNB 왼쪽 아래에 산다 (WebLnb의 LnbFooter). */}
+    {showWebChrome ? (
+      <WebShell
+        initialLogin={isLogin}
+        lnbLabels={{
+          home: await translate('lnb_home'),
+          myStudio: await translate('lnb_my_studio'),
+          rooms: await translate('lnb_practice_room'),
+          profile: await translate('profile'),
+        }}
+      >
+        {children}
+      </WebShell>
+    ) : (
+      <div className="lg:min-h-screen">
+        {children}
+      </div>
+    )}
+    {/* Vercel Web Analytics — 이게 없으면 track() 커스텀 이벤트도 전송되지 않는다 */}
     <Analytics />
     <SpeedInsights />
+
     </body>
     </html>
   );

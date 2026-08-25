@@ -30,17 +30,14 @@ export class ApiClient extends EndpointClient {
 
   readonly lesson = {
     get: this.endpointBuilder(API.Lesson.GetLesson),
+    createPrivate: this.endpointBuilder(API.Lesson.CreatePrivateLesson),
     listOngoingLessons: this.endpointBuilder(API.Lesson.ListOngoingLessons),
+    listValidLessons: this.endpointBuilder(API.Lesson.ListValidLessons),
     listByDate: this.endpointBuilder(API.Lesson.ListStudioLessonsByDate),
     checkCapacity: this.endpointBuilder(API.Lesson.CheckCapacity),
     getTickets: this.endpointBuilder(API.Lesson.GetLessonTickets),
     getSettleUp: this.endpointBuilder(API.Lesson.GetLessonSettleUp),
     getSettlementStatement: this.endpointBuilder(API.Lesson.GetArtistSettlementStatement),
-  }
-
-  readonly lessonGroup = {
-    get: this.endpointBuilder(API.Lesson.GetLessonGroup),
-    getLessons: this.endpointBuilder(API.Lesson.GetLessonGroupLessons),
   }
 
   readonly bundle = {
@@ -71,12 +68,7 @@ export class ApiClient extends EndpointClient {
     checkDuplicate: this.endpointBuilder(API.Ticket.CheckDuplicateTicket),
     delete: this.endpointBuilder(API.Ticket.DeleteTicket),
     toUsed: this.endpointBuilder(API.Ticket.ToUsed),
-  }
-
-  readonly lessonGroupTicket = {
-    get: this.endpointBuilder(API.Ticket.GetLessonGroupTicket),
-    list: this.endpointBuilder(API.Ticket.ListLessonGroupTickets),
-    delete: this.endpointBuilder(API.Ticket.DeleteLessonGroupTicket),
+    postpone: this.endpointBuilder(API.Ticket.PostponeTicket),
   }
 
   readonly question = {
@@ -153,6 +145,11 @@ export class ApiClient extends EndpointClient {
     cancel: this.endpointBuilder(API.Subscription.Cancel),
   }
 
+  readonly search = {
+    suggestions: this.endpointBuilder(API.Search.GetSearchSuggestions),
+    contents: this.endpointBuilder(API.Search.GetSearchContents),
+  }
+
   readonly home = {
     getHome: this.endpointBuilder(API.Home.GetHome),
     getStage: this.endpointBuilder(API.Home.GetStage),
@@ -168,6 +165,7 @@ export class ApiClient extends EndpointClient {
 
   readonly artist = {
     getArtist: this.endpointBuilder(API.Artist.getArtist),
+    getLessons: this.endpointBuilder(API.Artist.GetArtistLessons),
   }
 
   readonly common = {

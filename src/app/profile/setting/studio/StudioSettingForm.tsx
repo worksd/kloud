@@ -12,12 +12,15 @@ export const StudioSettingForm = ({
   currentStudioId,
   myStudiosLabel,
   recommendedStudiosLabel,
+  pcCard = false,
 }: {
   myStudios: GetStudioResponse[];
   recommendedStudios: GetStudioResponse[];
   currentStudioId?: string;
   myStudiosLabel: string;
   recommendedStudiosLabel: string;
+  /** PC(lg) 카드 안 렌더 — 풀스크린 높이/하단 버튼 여백을 카드 흐름에 맞게 조정 */
+  pcCard?: boolean;
 }) => {
   const [selectedId, setSelectedId] = useState<number | null>(
     currentStudioId ? Number(currentStudioId) : null
@@ -34,7 +37,7 @@ export const StudioSettingForm = ({
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className={`flex flex-col min-h-screen bg-white ${pcCard ? 'lg:min-h-0' : ''}`}>
       <div className="flex-1 pt-4">
         {myStudios.length > 0 && (
           <Section label={myStudiosLabel}>
@@ -63,7 +66,7 @@ export const StudioSettingForm = ({
         )}
       </div>
 
-      <div className="sticky bottom-0 px-4 pb-8 pt-3 bg-white">
+      <div className={`sticky bottom-0 px-4 pb-8 pt-3 bg-white ${pcCard ? 'lg:px-6 lg:pb-4' : ''}`}>
         <button
           onClick={handleSave}
           disabled={!selectedId || !hasChanged || saving}

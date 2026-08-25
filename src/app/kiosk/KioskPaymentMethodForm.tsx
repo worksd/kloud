@@ -4,7 +4,7 @@ import React from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
-import { DiscountResponse } from "@/app/endpoint/payment.endpoint";
+import { DiscountResponse, LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 
 type KioskPaymentMethodFormProps = {
@@ -36,6 +36,10 @@ type KioskPaymentMethodFormProps = {
   cardEnabled?: boolean;
   cashEnabled?: boolean;
   passEnabled?: boolean;
+  /** 가격 정책 수업(정기) — 방식(회차 수 × 가격) 목록. 있으면 선택 UI를 노출하고 price는 선택 정책의 금액으로 내려온다. */
+  pricePolicies?: LessonPricePolicyResponse[];
+  selectedPolicyId?: number;
+  onSelectPolicy?: (policyId: number) => void;
 };
 
 export const KioskPaymentMethodForm = ({
@@ -60,6 +64,9 @@ export const KioskPaymentMethodForm = ({
   cardEnabled = true,
   cashEnabled = true,
   passEnabled = true,
+  pricePolicies = [],
+  selectedPolicyId,
+  onSelectPolicy,
 }: KioskPaymentMethodFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
@@ -79,6 +86,12 @@ export const KioskPaymentMethodForm = ({
   const isFree = price === 0;
   const userPrimaryName = user.nickName || user.name || '-';
   const userSecondaryName = user.nickName && user.name ? user.name : '';
+
+  // 선택한 가격 정책이 지금 결제 불가(usable=false)인지 — 결제수단 버튼을 막고 사유를 노출한다.
+  // (조회~결제 사이에 다른 학생이 먼저 사도 서버가 LESSON_GROUP_*로 한 번 더 막는다)
+  const selectedPolicy = pricePolicies.find((p) => p.id === selectedPolicyId);
+  const payBlocked = selectedPolicy?.usable === false;
+  const policyBlockedReason = payBlocked ? (selectedPolicy?.reason ?? '') : null;
 
   return (
     <div className="bg-white w-full h-screen flex flex-col overflow-hidden animate-[fadeIn_260ms_ease-out]">
@@ -115,6 +128,54 @@ export const KioskPaymentMethodForm = ({
           </div>
         </div>
       </div>
+
+      {/* 수강 횟수(가격 정책) 선택 — 정기 판매 수업만. 고른 방식의 paymentId·금액으로 결제된다.
+          usable=false 방식은 회색 처리하되 숨기지 않는다 — 선택하면 아래에 사유(reason)를 보여주고 결제 버튼만 막는다 */}
+      {pricePolicies.length > 0 && (
+        <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
+          <p className="text-[#86898C] font-bold mb-[min(1vw,12px)]" style={{ fontSize: 'min(1.8vw, 20px)' }}>
+            {t('select_lesson_count')}
+          </p>
+          <div className="flex" style={{ gap: 'min(1.4vw, 16px)' }}>
+            {pricePolicies.map((policy) => {
+              const isSelected = policy.id === selectedPolicyId;
+              const unusable = policy.usable === false;
+              const label = policy.name || `${policy.lessonCount}${t('times_unit')}`;
+              return (
+                <button
+                  key={policy.id}
+                  type="button"
+                  onClick={() => onSelectPolicy?.(policy.id)}
+                  aria-pressed={isSelected}
+                  className={`flex-1 min-w-0 rounded-[20px] flex flex-col items-center justify-center transition-all active:scale-[0.97] border-2
+                    ${unusable
+                      ? (isSelected ? 'border-[#B0B8BF] bg-[#FAFAFA]' : 'border-[#EEEFF0] bg-[#FAFAFA]')
+                      : isSelected ? 'border-[#1E2124] bg-[#1E2124]' : 'border-[#E6E8EA] bg-white'}`}
+                  style={{ padding: 'min(2vw,22px) min(1.4vw,16px)' }}
+                >
+                  <span className={`font-bold truncate max-w-full ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-black'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
+                    {label}
+                  </span>
+                  <span className={`font-bold mt-[min(0.6vw,6px)] ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2.2vw, 24px)' }}>
+                    {fmt(policy.price)}{t('won')}
+                  </span>
+                  {policy.lessonCount > 1 && (
+                    <span className={`mt-[2px] ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`} style={{ fontSize: 'min(1.5vw, 17px)' }}>
+                      {t('price_per_session')} {fmt(Math.round(policy.price / Math.max(policy.lessonCount, 1)))}{t('won')}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {/* 선택한 방식이 결제 불가면 서버 사유(로케일 완성 문장)를 그대로 노출 */}
+          {policyBlockedReason && (
+            <p className="text-[#E5484D] font-bold mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 19px)' }}>
+              {policyBlockedReason}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 결제 정보 섹션 — 회원 + 결제 금액 한 묶음 */}
       <div className="shrink-0 px-[5.6%] pb-[min(2vw,22px)]">
@@ -260,7 +321,10 @@ export const KioskPaymentMethodForm = ({
                   {/* 카드 결제 */}
                   <button
                     onClick={onSelectCard}
-                    className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
+                    disabled={payBlocked}
+                    className={`aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center transition-transform ${
+                      payBlocked ? 'opacity-40' : 'cursor-pointer active:scale-[0.97]'
+                    }`}
                   >
                     <svg width="28" height="38" viewBox="0 0 54 70" fill="none">
                       <rect x="2" y="2" width="50" height="66" rx="8" fill="#A6B5C9"/>
@@ -274,7 +338,10 @@ export const KioskPaymentMethodForm = ({
                   {/* Apple Pay — 동일 KIS 단말 (credit 활성화와 함께 노출) */}
                   <button
                     onClick={onSelectApplePay}
-                    className="aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform"
+                    disabled={payBlocked}
+                    className={`aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center transition-transform ${
+                      payBlocked ? 'opacity-40' : 'cursor-pointer active:scale-[0.97]'
+                    }`}
                   >
                     <svg width="32" height="40" viewBox="0 0 54 70" fill="none">
                       <rect x="2" y="2" width="50" height="66" rx="8" fill="#A6B5C9"/>
@@ -314,9 +381,10 @@ export const KioskPaymentMethodForm = ({
               {showCash && (
                 <button
                   onClick={onSelectCash}
-                  className={`aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center cursor-pointer active:scale-[0.97] transition-transform ${
-                    isSingle ? singleButtonWidth : ''
-                  }`}
+                  disabled={payBlocked}
+                  className={`aspect-square bg-[#F9F9FB] rounded-[20px] flex flex-col items-center justify-center transition-transform ${
+                    payBlocked ? 'opacity-40' : 'cursor-pointer active:scale-[0.97]'
+                  } ${isSingle ? singleButtonWidth : ''}`}
                 >
                   <svg width="36" height="28" viewBox="0 0 72 54" fill="none">
                     <rect x="2" y="2" width="68" height="50" rx="8" fill="#A6B5C9"/>
@@ -341,7 +409,10 @@ export const KioskPaymentMethodForm = ({
         {fullyCovered ? (
           <button
             onClick={onPayWithPass}
-            className="w-full h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+            disabled={payBlocked}
+            className={`w-full h-[min(7vh,72px)] rounded-[16px] flex items-center justify-center transition-transform ${
+              payBlocked ? 'bg-[#BCBFC2]' : 'bg-[#1E2124] active:scale-[0.97]'
+            }`}
           >
             <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw, 26px)' }}>{t('kiosk_submit')}</span>
           </button>

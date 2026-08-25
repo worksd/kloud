@@ -80,6 +80,8 @@ export type CreateManualPaymentRecordRequest = {
   phone?: string;
   countryCode?: string;
   name?: string;
+  /** 강사 경로 전용 — 강사가 어느 학원으로 결제를 등록하는지. 파트너는 보내지 않는다 */
+  studioId?: number;
 }
 
 export type GetPaymentRecordsParameter = {
@@ -100,7 +102,7 @@ export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentReco
 export const CreateManualPaymentRecord: Endpoint<CreateManualPaymentRecordRequest, GetPaymentRecordResponse> = {
   method: 'post',
   path: '/paymentRecords/manual',
-  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'amount', 'depositor', 'discounts', 'startDate', 'endDate', 'phone', 'countryCode', 'name']
+  bodyParams: ['methodType', 'item', 'itemId', 'targetUserId', 'amount', 'depositor', 'discounts', 'startDate', 'endDate', 'phone', 'countryCode', 'name', 'studioId']
 }
 
 export type RefundPassResponse = {

@@ -10,7 +10,12 @@ import { changeLocale, translate } from "@/utils/translate";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { LOCALE_MAP } from "@/app/components/LocaleMap";
 
-export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, confirmText: string }) => {
+export const LanguageChangeForm = ({locale, confirmText, pcCard = false}: {
+  locale: Locale,
+  confirmText: string,
+  /** PC(lg) 카드 안 렌더 — 풀스크린 고정 레이아웃을 카드 흐름에 맞게 조정 */
+  pcCard?: boolean,
+}) => {
   const [currentLocale, setCurrentLocale] = useState<Locale>(locale);
 
   const handleChangeLocale = async (newLocale: Locale) => {
@@ -18,11 +23,17 @@ export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, conf
   };
 
   const handleClickSubmit = async () => {
-    const dialog = await createDialog({
-      id: 'ChangeLocale',
-      message: `\n${LOCALE_MAP[currentLocale].emoji} ${LOCALE_MAP[currentLocale].name}\n\n ${await translate('change_locale_dialog_message')}`
-    });
-    window.KloudEvent.showDialog(JSON.stringify(dialog));
+    if (window.KloudEvent?.showDialog) {
+      const dialog = await createDialog({
+        id: 'ChangeLocale',
+        message: `\n${LOCALE_MAP[currentLocale].emoji} ${LOCALE_MAP[currentLocale].name}\n\n ${await translate('change_locale_dialog_message')}`
+      });
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    } else {
+      // 웹: 네이티브 다이얼로그가 없으므로 바로 적용 + 풀 리로드로 번역 반영
+      await changeLocale(currentLocale);
+      window.location.reload();
+    }
   };
 
   useEffect(() => {
@@ -42,7 +53,7 @@ export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, conf
   ] as const;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white px-4 mt-2">
+    <div className={`fixed inset-0 flex flex-col bg-white px-4 mt-2 ${pcCard ? 'lg:static lg:px-0 lg:mt-0' : ''}`}>
       <ul className="flex flex-col w-full space-y-2">
         {languageOptions.map((option) => (
           <li key={option.value}>
@@ -86,7 +97,7 @@ export const LanguageChangeForm = ({locale, confirmText}: { locale: Locale, conf
         ))}
       </ul>
 
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 bg-white">
+      <div className={`fixed bottom-0 left-0 right-0 px-4 pb-6 bg-white ${pcCard ? 'lg:static lg:px-0 lg:pb-0 lg:pt-6' : ''}`}>
         <CommonSubmitButton originProps={{onClick: handleClickSubmit}}>
           {confirmText}
         </CommonSubmitButton>

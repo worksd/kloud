@@ -6,6 +6,7 @@ import { studioKey } from "@/shared/cookies.key";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { PartnerRoomBookingsBoard } from "@/app/studioRooms/PartnerRoomBookingsBoard";
 import { OpenInApp } from "@/app/components/OpenInApp";
+import StudioRoomsPcForm from "@/app/studioRooms/StudioRoomsPcForm";
 
 // 파트너(관리자) 예약일정표 — GET /studios/:id의 practiceRooms로 홀 셀렉터,
 // 선택 홀의 GET /roomBookings?studioRoomId= 목록 표시. (파트너 토큰으로 스코프)
@@ -17,9 +18,19 @@ export default async function StudioRoomsSchedulePage({ searchParams }: {
   const { appVersion = '' } = await searchParams;
   const locale = await getLocale();
 
-  // 웹 진입 → 앱 열기(딥링크). 이 페이지는 앱 전용.
+  // 웹 진입: PC(lg+)는 연습실 목록 mock 그리드(LNB '연습실 대관' 목적지),
+  // 좁은 웹은 기존대로 앱 열기(딥링크). 앱은 아래 파트너 일정표 그대로.
   if (appVersion === '') {
-    return <OpenInApp path="/studioRooms" locale={locale} />;
+    return (
+      <>
+        <div className="hidden lg:block">
+          <StudioRoomsPcForm />
+        </div>
+        <div className="lg:hidden">
+          <OpenInApp path="/studioRooms" locale={locale} />
+        </div>
+      </>
+    );
   }
 
   const studioId = Number((await cookies()).get(studioKey)?.value);
