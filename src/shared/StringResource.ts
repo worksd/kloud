@@ -1834,11 +1834,12 @@ export const StringResource = {
     jp: '受講プラン(定期)決済にはパスを使用できません',
     zh: '课程方案（定期）付款不可使用通票'
   },
+  // '첫 수업 시작일은~'은 시리즈 개강일로 오해됨 — 구매자 본인의 수강 시작임을 결제 행동과 묶어 명시
   first_lesson_start_notice: {
-    ko: '첫 수업 시작일은 {date}입니다',
-    en: 'Your first class starts on {date}',
-    jp: '初回レッスンは{date}に始まります',
-    zh: '首节课将于 {date} 开始'
+    ko: '결제하면 {date} 수업부터 수강이 시작돼요',
+    en: 'After payment, your classes start from the {date} session',
+    jp: '決済すると{date}のレッスンから受講が始まります',
+    zh: '付款后将从 {date} 的课程开始上课'
   },
   regular_payment: {
     ko: '일반결제',

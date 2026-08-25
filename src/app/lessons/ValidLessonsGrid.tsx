@@ -15,21 +15,31 @@ import { LessonTypeLabel } from '@/app/components/LessonLabel';
 import { LessonType } from '@/entities/lesson/lesson';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
+import { optimizedImageSrc } from '@/utils/optimized.image';
 
 const artistOf = (l: ValidLessonResponse) => l.artists?.[0]?.nickName ?? l.artists?.[0]?.name;
 
 
 // 검색 결과(/search) 등 다른 PC 격자에서도 재사용
-export const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) => {
+// memo: 무한 스크롤로 페이지가 붙을 때 기존 카드 수백 개가 통째로 리렌더되는 것을 막는다 (l/locale 불변).
+export const LessonCard = React.memo(function LessonCard({l, locale}: { l: ValidLessonResponse; locale: Locale }) {
   const soldOut = l.status === 'Ready';
   return (
-    <Link href={KloudScreen.LessonDetail(l.id)} className="flex flex-col gap-3 group">
+    // content-visibility: 화면 밖 카드는 렌더/페인트를 통째로 스킵 (긴 그리드 스크롤 성능의 핵심).
+    // contain-intrinsic-size로 스킵 중에도 대략적 높이를 유지해 스크롤바 튐 방지.
+    <Link
+      href={KloudScreen.LessonDetail(l.id)}
+      className="flex flex-col gap-3 group [content-visibility:auto] [contain-intrinsic-size:auto_400px]"
+    >
       <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#F1F3F6] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)]">
         {l.thumbnailUrl && (
+          // 원본 대신 optimizer 리사이즈(카드 폭×DPR2 ≈ 640) + lazy — 원본 수 MB 디코드가 스크롤을 막던 주범
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={l.thumbnailUrl}
+            src={optimizedImageSrc(l.thumbnailUrl, 640)}
             alt={l.title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"
           />
         )}
@@ -37,7 +47,7 @@ export const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale
         {l.studio.profileImageUrl && (
           <div className="absolute top-2.5 left-2.5 w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/80 shadow-sm bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={l.studio.profileImageUrl} alt={l.studio.name} className="w-full h-full object-cover"/>
+            <img src={optimizedImageSrc(l.studio.profileImageUrl, 96)} alt={l.studio.name} loading="lazy" decoding="async" className="w-full h-full object-cover"/>
           </div>
         )}
         {/* 오른쪽 위 — 정원 마감(위) + 수업 타입(정규/워크샵/팝업/오디션) 라벨 */}
@@ -65,26 +75,32 @@ export const LessonCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale
       </div>
     </Link>
   );
-};
+});
 
 // 다크 밴드 위에 올라가는 워크샵 카드 — LessonCard와 같은 구성이되 폭 고정 + 밝은 텍스트.
-const WorkshopCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) => {
+// memo: 페이지 append 시 기존 카드 리렌더 방지 (LessonCard와 동일).
+const WorkshopCard = React.memo(function WorkshopCard({l, locale}: { l: ValidLessonResponse; locale: Locale }) {
   const soldOut = l.status === 'Ready';
   return (
-    <Link href={KloudScreen.LessonDetail(l.id)} className="flex flex-col gap-3 group w-[232px] shrink-0 snap-start">
+    <Link
+      href={KloudScreen.LessonDetail(l.id)}
+      className="flex flex-col gap-3 group w-[232px] shrink-0 snap-start [content-visibility:auto] [contain-intrinsic-size:232px_400px]"
+    >
       <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#1F1F1F] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.7)]">
         {l.thumbnailUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={l.thumbnailUrl}
+            src={optimizedImageSrc(l.thumbnailUrl, 640)}
             alt={l.title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"
           />
         )}
         {l.studio.profileImageUrl && (
           <div className="absolute top-2.5 left-2.5 w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/80 shadow-sm bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={l.studio.profileImageUrl} alt={l.studio.name} className="w-full h-full object-cover"/>
+            <img src={optimizedImageSrc(l.studio.profileImageUrl, 96)} alt={l.studio.name} loading="lazy" decoding="async" className="w-full h-full object-cover"/>
           </div>
         )}
         {soldOut && (
@@ -120,7 +136,7 @@ const WorkshopCard = ({l, locale}: { l: ValidLessonResponse; locale: Locale }) =
       </div>
     </Link>
   );
-};
+});
 
 // 워크샵 스포트라이트 — 최상단 다크 밴드 + 큰 카드 가로 스크롤.
 // 가로 스크롤 끝(sentinel, root=스크롤 컨테이너)에 닿으면 다음 페이지 로드.
@@ -235,8 +251,26 @@ export const ValidLessonsGrid = ({initialLessons, initialWorkshops = [], lessons
 
   const hasWorkshops = initialWorkshops.length > 0 || workshopsTotalPage > 0;
 
+  // 스크롤 중 hover 무력화 — 스크롤하며 커서가 카드들을 스치면 hover 전환(그림자/스케일)이
+  // 연쇄로 페인트를 유발해 프레임을 깎는다. 스크롤 동안만 pointer-events를 꺼서 차단하고
+  // 멈추면 150ms 뒤 복원 (OTT 그리드들이 쓰는 표준 기법). state 대신 classList로 리렌더 없이 토글.
+  const hoverGuardRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      hoverGuardRef.current?.classList.add('pointer-events-none');
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => hoverGuardRef.current?.classList.remove('pointer-events-none'), 150);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
   return (
-    <>
+    <div ref={hoverGuardRef}>
       {/* 워크샵은 최상단에서 강조 — 없으면 밴드 자체가 안 그려진다 */}
       {hasWorkshops && (
         <WorkshopSpotlight initial={initialWorkshops} totalPage={workshopsTotalPage} locale={locale}/>
@@ -267,6 +301,6 @@ export const ValidLessonsGrid = ({initialLessons, initialWorkshops = [], lessons
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
