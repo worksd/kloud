@@ -6,7 +6,7 @@ import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { getKioskLessonPoliciesAction } from "@/app/kiosk/kiosk.actions";
-import { weeklyDaysLabel } from "@/app/payment/PricePolicySection";
+import { weeklyDaysLabel } from "@/utils/weekly.days";
 import {
   formatLessonDate,
   formatLessonDuration,
@@ -163,7 +163,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
                 {t('kiosk_price_by_policy')}
               </span>
               {policies.map((p) => {
-                const daysLabel = weeklyDaysLabel(p, locale);
+                const daysLabel = weeklyDaysLabel(p.days, locale);
                 return (
                   <span key={p.id} className="flex items-baseline" style={{ gap: 'min(0.8vw, 10px)' }}>
                     <span className="text-[#6D7882]" style={{ fontSize: 'min(1.8vw, 20px)' }}>

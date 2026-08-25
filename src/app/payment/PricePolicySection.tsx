@@ -1,35 +1,14 @@
 'use client'
 
-import { DayOfWeek, LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
+import { LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-// 방식별 요일 표기 — '매주 월·수' 형태. 요일이 없는 방식은 표기하지 않는다.
-const DAY_LABEL: Record<Locale, Record<DayOfWeek, string>> = {
-  ko: { SUN: '일', MON: '월', TUE: '화', WED: '수', THU: '목', FRI: '금', SAT: '토' },
-  en: { SUN: 'Sun', MON: 'Mon', TUE: 'Tue', WED: 'Wed', THU: 'Thu', FRI: 'Fri', SAT: 'Sat' },
-  jp: { SUN: '日', MON: '月', TUE: '火', WED: '水', THU: '木', FRI: '金', SAT: '土' },
-  zh: { SUN: '日', MON: '一', TUE: '二', WED: '三', THU: '四', FRI: '五', SAT: '六' },
-};
-const WEEKLY_PREFIX: Record<Locale, (days: string) => string> = {
-  ko: (d) => `매주 ${d}`,
-  en: (d) => `Every ${d}`,
-  jp: (d) => `毎週${d}`,
-  zh: (d) => `每周${d}`,
-};
+// 방식별 요일 표기('매주 월·수')는 공용 유틸 사용 — 수업 상세/키오스크와 공유
+import { weeklyDaysLabel as weeklyDaysLabelUtil } from '@/utils/weekly.days';
 
-const DOW_ORDER: DayOfWeek[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-// 결제 응답은 'MON' 문자열, 수업 상세 응답은 숫자(0=일~6=토) — 둘 다 문자열 코드로 정규화
-const toDow = (d: DayOfWeek | number): DayOfWeek | undefined =>
-  typeof d === 'number' ? DOW_ORDER[d] : d;
-
-/** '매주 월·수' 표기 — 요일이 없는 방식은 null. 키오스크 상세 등에서도 재사용. */
-export const weeklyDaysLabel = (policy: Pick<LessonPricePolicyResponse, 'days'>, locale: Locale): string | null => {
-  const days = (policy.days ?? []).map(toDow).filter((d): d is DayOfWeek => d != null);
-  if (days.length === 0) return null;
-  const sorted = [...days].sort((a, b) => DOW_ORDER.indexOf(a) - DOW_ORDER.indexOf(b));
-  return WEEKLY_PREFIX[locale](sorted.map((d) => DAY_LABEL[locale][d]).join('·'));
-};
+const weeklyDaysLabel = (policy: Pick<LessonPricePolicyResponse, 'days'>, locale: Locale): string | null =>
+  weeklyDaysLabelUtil(policy.days, locale);
 
 /**
  * 수업 가격 정책 선택 섹션 — 한 수업을 '월 4회'/'월 8회' 등 여러 방식으로 살 수 있을 때 노출.

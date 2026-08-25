@@ -225,7 +225,8 @@ export const UnifiedPaymentInfo = ({
 
   const [cards, setCards] = useState<GetBillingResponse[]>(payment.cards ?? []);
   // 사용 가능한 패스 후보 — Discount/FreeCount/Unlimited 구분 없이 일단 잡는다.
-  const detectedInitialPass = availablePasses.find(p => {
+  // 단 가격 정책(정기, LGT) 수업은 패스권으로 살 수 없으므로(패스는 회차 단건 LT 전용) 자동 선택하지 않는다.
+  const detectedInitialPass = hasPolicies ? undefined : availablePasses.find(p => {
     const rule = getPrimaryRule(p);
     return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
   });
@@ -469,6 +470,8 @@ export const UnifiedPaymentInfo = ({
           <PassesSection
             locale={locale}
             passes={availablePasses}
+            // 가격 정책(정기, LGT) 결제는 패스권 사용 불가 — 숨기지 않고 사유와 함께 전체 비활성
+            disabledReason={hasPolicies ? getLocaleString({ locale, key: 'pass_blocked_for_price_policy' }) : undefined}
             selectedPass={selectedPass}
             onSelectPass={(pass) => {
               setSelectedPass(pass);

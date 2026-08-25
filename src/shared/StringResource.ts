@@ -1828,6 +1828,12 @@ export const StringResource = {
     jp: '/ {n}回',
     zh: '/ {n}次'
   },
+  pass_blocked_for_price_policy: {
+    ko: '수강 방식(정기) 결제에는 패스권을 사용할 수 없어요',
+    en: "Passes can't be used for subscription-style purchases",
+    jp: '受講プラン(定期)決済にはパスを使用できません',
+    zh: '课程方案（定期）付款不可使用通票'
+  },
   first_lesson_start_notice: {
     ko: '첫 수업 시작일은 {date}입니다',
     en: 'Your first class starts on {date}',
