@@ -19,10 +19,37 @@ import { optimizedImageSrc } from '@/utils/optimized.image';
 
 const artistOf = (l: ValidLessonResponse) => l.artists?.[0]?.nickName ?? l.artists?.[0]?.name;
 
+// 카드 썸네일 — 로드 전에는 shimmer 스켈레톤을 깔고, 로드되면 fade-in.
+// lazy pop-in(스크롤을 따라오다 늦게 '툭' 뜨는 체감)을 '로딩 중'으로 자연스럽게 바꿔준다.
+// eager=true(첫 화면 카드들)는 lazy 없이 즉시 로드해 pop-in 자체를 없앤다.
+// bfcache/디스크 캐시로 이미 완료된 이미지는 onLoad가 안 올 수 있어 ref에서 complete를 확인한다.
+const CardThumb = ({src, alt, eager, dark, className}: {
+  src: string; alt: string; eager?: boolean; dark?: boolean; className: string;
+}) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && (
+        <div className={`absolute inset-0 animate-pulse ${dark ? 'bg-[#2A2A2A]' : 'bg-[#E9ECEF]'}`}/>
+      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLoaded(true); }}
+        onLoad={() => setLoaded(true)}
+        className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+      />
+    </>
+  );
+};
+
 
 // 검색 결과(/search) 등 다른 PC 격자에서도 재사용
 // memo: 무한 스크롤로 페이지가 붙을 때 기존 카드 수백 개가 통째로 리렌더되는 것을 막는다 (l/locale 불변).
-export const LessonCard = React.memo(function LessonCard({l, locale}: { l: ValidLessonResponse; locale: Locale }) {
+export const LessonCard = React.memo(function LessonCard({l, locale, eager}: { l: ValidLessonResponse; locale: Locale; eager?: boolean }) {
   const soldOut = l.status === 'Ready';
   return (
     // content-visibility: 화면 밖 카드는 렌더/페인트를 통째로 스킵 (긴 그리드 스크롤 성능의 핵심).
@@ -33,13 +60,11 @@ export const LessonCard = React.memo(function LessonCard({l, locale}: { l: Valid
     >
       <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#F1F3F6] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)]">
         {l.thumbnailUrl && (
-          // 원본 대신 optimizer 리사이즈(카드 폭×DPR2 ≈ 640) + lazy — 원본 수 MB 디코드가 스크롤을 막던 주범
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={optimizedImageSrc(l.thumbnailUrl, 640)}
+          // 원본 대신 optimizer 리사이즈(카드 폭×DPR2 ≈ 640) — 원본 수 MB 디코드가 스크롤을 막던 주범
+          <CardThumb
+            src={optimizedImageSrc(l.thumbnailUrl, 640)!}
             alt={l.title}
-            loading="lazy"
-            decoding="async"
+            eager={eager}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"
           />
         )}
@@ -79,7 +104,7 @@ export const LessonCard = React.memo(function LessonCard({l, locale}: { l: Valid
 
 // 다크 밴드 위에 올라가는 워크샵 카드 — LessonCard와 같은 구성이되 폭 고정 + 밝은 텍스트.
 // memo: 페이지 append 시 기존 카드 리렌더 방지 (LessonCard와 동일).
-const WorkshopCard = React.memo(function WorkshopCard({l, locale}: { l: ValidLessonResponse; locale: Locale }) {
+const WorkshopCard = React.memo(function WorkshopCard({l, locale, eager}: { l: ValidLessonResponse; locale: Locale; eager?: boolean }) {
   const soldOut = l.status === 'Ready';
   return (
     <Link
@@ -88,12 +113,11 @@ const WorkshopCard = React.memo(function WorkshopCard({l, locale}: { l: ValidLes
     >
       <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#1F1F1F] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.7)]">
         {l.thumbnailUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={optimizedImageSrc(l.thumbnailUrl, 640)}
+          <CardThumb
+            src={optimizedImageSrc(l.thumbnailUrl, 640)!}
             alt={l.title}
-            loading="lazy"
-            decoding="async"
+            eager={eager}
+            dark
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.07]"
           />
         )}
@@ -196,7 +220,8 @@ const WorkshopSpotlight = ({initial, totalPage, locale}: {
 
       {/* 세로 격자보다 큰 카드(232px)를 가로로 — 상단 히어로 톤 */}
       <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-x pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {workshops.map((l) => <WorkshopCard key={l.id} l={l} locale={locale}/>)}
+        {/* 첫 화면에 걸리는 앞쪽 카드는 eager — lazy pop-in 없이 바로 뜬다 */}
+        {workshops.map((l, i) => <WorkshopCard key={l.id} l={l} locale={locale} eager={i < 4}/>)}
         <div ref={endRef} className="w-10 shrink-0 flex items-center justify-center">
           {isLoading && (
             <div className="w-5 h-5 border-2 border-[#3A3A3A] border-t-white rounded-full animate-spin"/>
@@ -291,7 +316,8 @@ export const ValidLessonsGrid = ({initialLessons, initialWorkshops = [], lessons
       ) : (
         <>
           <div className="grid grid-cols-6 gap-x-4 gap-y-10">
-            {lessons.map((l) => <LessonCard key={l.id} l={l} locale={locale}/>)}
+            {/* 첫 두 줄(≈10장)은 eager — 초기 뷰포트에서 스켈레톤 대신 이미지가 즉시 뜬다 */}
+            {lessons.map((l, i) => <LessonCard key={l.id} l={l} locale={locale} eager={i < 10}/>)}
           </div>
 
           <div ref={loadMoreRef} className="flex items-center justify-center py-8">
