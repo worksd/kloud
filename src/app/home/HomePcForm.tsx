@@ -190,10 +190,13 @@ export const HomePcForm = async ({home}: { home: ParsedHome }) => {
         </div>
       )}
 
-      {/* 주간 시간표 — 모바일 홈과 동일 컴포넌트(GET /studios/:id/timetable) 재사용 */}
+      {/* 주간 시간표 — 모바일 홈과 동일 컴포넌트(GET /studios/:id/timetable) 재사용.
+          리스트형 UI라 컨테이너 폭을 다 먹으면 늘어져 보여서, 스튜디오 상세 좌측 컬럼과 같은 ~720px로 제한 */}
       {studio && (
         <div className="mx-auto w-full max-w-6xl px-6 mt-12">
-          <TimeTableServerComponent studioId={studio.id} noMargin clickEvent="click_band_timetable" hqImages/>
+          <div className="max-w-[720px]">
+            <TimeTableServerComponent studioId={studio.id} noMargin clickEvent="click_band_timetable" hqImages/>
+          </div>
         </div>
       )}
 
