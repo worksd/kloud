@@ -398,6 +398,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
           onError={handleQrError}
           onBack={onBack}
           resultMessage={t('scan_qr_code')}
+          preferCamera="front"
+          initialFlip
         />
         <button
           onClick={enterManual}
