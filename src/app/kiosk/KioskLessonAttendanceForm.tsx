@@ -16,6 +16,7 @@ import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
 import QRScanner from '@/app/components/QRScanner';
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
+import {hasNativeQrScanner} from '@/app/kiosk/kiosk.native';
 
 type KioskLessonAttendanceFormProps = {
   studioId: number;
@@ -154,6 +155,8 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, variant = 'kiosk', phoneInputMode = 'phone'}: KioskLessonAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
+  // QR 입력 장치는 admin 여부가 아니라 기기(deviceName에 MAZIC 포함)로 결정 — MAZIC 본체는 네이티브 HID 스캐너, 그 외는 카메라.
+  const [nativeScanner] = useState(() => hasNativeQrScanner());
 
   const [mode, setMode] = useState<Mode>('qr');
   const [status, setStatus] = useState<Status>('idle');
@@ -233,13 +236,13 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     setErrorMsg(null);
     setLastRaw(null);
     setStatus('idle');
-    // 무인은 네이티브 HID 스캐너, admin은 브라우저 카메라(QRScanner)가 재마운트되며 스캔
-    if (!admin) (window as any).KloudEvent?.startQrScan?.('');
-  }, [admin]);
+    // MAZIC은 네이티브 HID 스캐너, 그 외는 브라우저 카메라(QRScanner)가 재마운트되며 스캔
+    if (nativeScanner) (window as any).KloudEvent?.startQrScan?.('');
+  }, [nativeScanner]);
 
-  // 무인 키오스크만 네이티브 startQrScan/onQrScanResult 사용. admin은 QRScanner(카메라)의 onSuccess로 처리.
+  // MAZIC 기기만 네이티브 startQrScan/onQrScanResult 사용. 그 외는 QRScanner(카메라)의 onSuccess로 처리.
   useEffect(() => {
-    if (admin) return;
+    if (!nativeScanner) return;
     const prev = (window as any).onQrScanResult;
     (window as any).onQrScanResult = (result: unknown) => {
       // 페이로드가 객체로 와도 QR 문자열만 뽑아 넘긴다.
@@ -255,7 +258,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     return () => {
       (window as any).onQrScanResult = prev;
     };
-  }, [handleScan, admin]);
+  }, [handleScan, nativeScanner]);
 
   // QRScanner(카메라) decode noise 무시, 실제 에러만 로깅
   const handleQrError = useCallback((errorMessage: string) => {
@@ -386,8 +389,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
 
   const displayLesson = ticket?.lesson ?? selectedLesson;
 
-  // admin(태블릿)은 HID 스캐너가 없으므로 QR 대기 화면에서 카메라(QRScanner)를 연다.
-  if (admin && status === 'idle') {
+  // HID 스캐너가 없는 기기(MAZIC 아님)는 QR 대기 화면에서 카메라(QRScanner)를 연다.
+  if (!nativeScanner && status === 'idle') {
     return (
       <div className="relative w-full h-screen bg-black overflow-hidden">
         <QRScanner
