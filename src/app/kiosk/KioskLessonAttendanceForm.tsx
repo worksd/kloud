@@ -17,6 +17,7 @@ import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
 import QRScanner from '@/app/components/QRScanner';
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
 import {KioskLessonAttendanceIcon} from '@/app/kiosk/kiosk.home.icons';
+import {formatLessonDate, formatLessonTimeRange} from '@/app/kiosk/kiosk.lesson';
 import {hasNativeQrScanner} from '@/app/kiosk/kiosk.native';
 
 type KioskLessonAttendanceFormProps = {
@@ -86,49 +87,8 @@ const extractQrText = (result: unknown): string | null => {
   return null;
 };
 
-const toAmPm = (time: string): string => {
-  const [h, m] = time.split(':').map(Number);
-  const period = h < 12 ? 'AM' : 'PM';
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
-};
-
-const formatLessonTime = (lesson: GetLessonResponse): string | null => {
-  if (lesson.startDate) {
-    const timePart = lesson.startDate.split(' ')[1];
-    if (timePart) {
-      const start = toAmPm(timePart);
-      if (lesson.duration) {
-        const [h, m] = timePart.split(':').map(Number);
-        const endMinutes = h * 60 + m + lesson.duration;
-        const endH = Math.floor(endMinutes / 60) % 24;
-        const endM = endMinutes % 60;
-        return `${start} - ${toAmPm(`${endH}:${String(endM).padStart(2, '0')}`)}`;
-      }
-      return start;
-    }
-  }
-  if (lesson.formattedDate) {
-    return `${toAmPm(lesson.formattedDate.startTime)} - ${toAmPm(lesson.formattedDate.endTime)}`;
-  }
-  return null;
-};
-
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const formatLessonDay = (lesson: GetLessonResponse): string | null => {
-  const datePart = lesson.startDate?.split(' ')[0] ?? (lesson.date ? lesson.date.replace(/\./g, '-').split(' ')[0] : undefined);
-  if (datePart) {
-    const [y, m, d] = datePart.split('-').map(Number);
-    if (y && m && d) {
-      const wd = WEEKDAYS[new Date(y, m - 1, d).getDay()];
-      return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${wd})`;
-    }
-  }
-  return lesson.date ?? null;
-};
 
 const normalizePhone = (s: string) => s.replace(/\D/g, '');
 
@@ -150,8 +110,8 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 };
 
 // 확인·완료 화면이 공유하는 수업 요약 카드. 썸네일 + 제목 + 일시 + 강사/룸.
-const LessonSummary = ({lesson, extra}: {lesson: GetLessonResponse; extra?: string | null}) => {
-  const when = [formatLessonDay(lesson), formatLessonTime(lesson)].filter(Boolean).join(' · ');
+const LessonSummary = ({lesson, locale, extra}: {lesson: GetLessonResponse; locale: Locale; extra?: string | null}) => {
+  const when = [formatLessonDate(lesson, locale), formatLessonTimeRange(lesson, locale)].filter(Boolean).join(' · ');
   const who = [lesson.artists?.[0]?.nickName, lesson.room?.name, extra].filter(Boolean).join(' · ');
   return (
     <div className="flex items-center gap-[20px] min-w-0">
@@ -548,8 +508,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
                       )}
                     </div>
                     <div className="flex flex-col gap-[4px] p-[14px]">
-                      {formatLessonTime(lesson) && (
-                        <p className="text-[#4E5968] text-[15px] font-bold truncate">{formatLessonTime(lesson)}</p>
+                      {formatLessonTimeRange(lesson, locale) && (
+                        <p className="text-[#4E5968] text-[15px] font-bold truncate">{formatLessonTimeRange(lesson, locale)}</p>
                       )}
                       <p className="text-black text-[19px] font-bold leading-snug line-clamp-1">{lesson.title ?? '-'}</p>
                       {(lesson.artists?.[0]?.nickName || lesson.room?.name) && (
@@ -608,7 +568,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
 
               {/* 수업 + 출석자 — 한 카드 안에서 구분선으로 나눔 */}
               <div className="w-full max-w-[600px] mt-[36px] rounded-[28px] bg-[#F7F8F9] px-[28px] py-[26px] flex flex-col gap-[20px] animate-[scaleIn_260ms_ease-out]">
-                <LessonSummary lesson={displayLesson} />
+                <LessonSummary lesson={displayLesson} locale={locale} />
                 {ticket?.user && (
                   <>
                     <div className="h-px bg-[#E8EAED]"/>
@@ -668,7 +628,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
               {/* 누가·어떤 수업에 출석됐는지 — 확인 화면과 같은 카드 */}
               {(ticket?.user || displayLesson) && (
                 <div className="w-full max-w-[600px] mt-[32px] rounded-[28px] bg-[#F7F8F9] px-[28px] py-[26px] flex flex-col gap-[20px]">
-                  {displayLesson && <LessonSummary lesson={displayLesson} extra={ticket?.ticketTypeLabel} />}
+                  {displayLesson && <LessonSummary lesson={displayLesson} locale={locale} extra={ticket?.ticketTypeLabel} />}
                   {ticket?.user && displayLesson && <div className="h-px bg-[#E8EAED]"/>}
                   {ticket?.user && <UserSummary user={ticket.user} />}
                 </div>
