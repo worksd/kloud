@@ -151,6 +151,14 @@ export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
   path: (e) => `/studios/${e.id}`,
 };
 
+/** /@{slug} 조회 — 응답이 { studio } 로 감싸 오거나 바로 올 수 있어 호출부에서 펴서 쓴다 (proxy.ts와 동일 처리). */
+export type GetStudioBySlugResponse = GetStudioResponse | { studio: GetStudioResponse };
+
+export const GetStudioBySlug: Endpoint<{ slug: string }, GetStudioBySlugResponse> = {
+  method: "get",
+  path: (e) => `/studios/by-slug/${encodeURIComponent(e.slug)}`,
+};
+
 export type GetStudioListResponse = {
   studios: GetStudioResponse[]
 }
