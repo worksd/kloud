@@ -149,11 +149,12 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
   };
 
   // 수강생 검색 — GET /students. 폰 뒷자리(숫자만)면 서버가 phone 검색, 이메일/이름이면 문자 검색으로 분기.
+  // 뒷 4자리 패드면 matchType 'PhoneSuffix'로 끝자리 일치만 (부분 일치는 다른 회원이 먼저 잡힘).
   const searchUser = async (value: string) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await searchStudentsAction(value);
+      const result = await searchStudentsAction(value, phoneInputMode === 'lastFour' ? 'PhoneSuffix' : undefined);
       const students = isGuinnessErrorCase(result) ? [] : (result.students ?? []).map(toAttendanceStudent);
       // 0명 → 없다고 안내(신규 가입 없음) / 1명 → 바로 진행 / 2명+ → 선택 목록
       if (students.length === 0) {

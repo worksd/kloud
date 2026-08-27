@@ -195,14 +195,14 @@ export const MemberKioskForm = ({studioId, phonePadType}: MemberKioskFormProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studioId, fail]);
 
-  // 번호(또는 이메일)로 수강생 검색 — GET /students. 뒷 4자리도 서버가 LIKE로 찾아준다.
+  // 번호(또는 이메일)로 수강생 검색 — GET /students. 뒷 4자리 패드면 matchType 'PhoneSuffix'로 끝자리 일치만.
   const searchMember = useCallback(async (query: string) => {
     const q = query.trim();
     if (!q || searching) return;
     setSearching(true);
     setInputError(null);
     try {
-      const res = await searchStudentsAction(q);
+      const res = await searchStudentsAction(q, phoneInputMode === 'lastFour' ? 'PhoneSuffix' : undefined);
       const members = isGuinnessErrorCase(res) ? [] : (res.students ?? []).map(toMember);
       if (members.length === 0) {
         setInputError(t('kiosk_no_member_found'));

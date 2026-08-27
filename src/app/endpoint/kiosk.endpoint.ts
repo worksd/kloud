@@ -325,7 +325,7 @@ export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKiosk
 
 /**
  * 전화번호 입력 패드 형태 — 'Short'면 뒷 4자리만, 'Default'면 전체 번호(기존).
- * 회원 검색 API가 LIKE 연산이라 4자리로도 조회된다. 모든 전화 입력 UI 분기가 이 값 하나만 본다.
+ * 'Short'일 때 회원 검색은 matchType 'PhoneSuffix'(끝자리 일치)로 보낸다. 모든 전화 입력 UI 분기가 이 값 하나만 본다.
  */
 export type KioskPhonePadType = 'Short' | 'Default';
 
