@@ -83,6 +83,15 @@ const endHHMM = (lesson: GetLessonResponse): string | null => {
   return null;
 };
 
+/** 수업 시작 시각을 0시 기준 분(minute)으로. 시각을 알 수 없으면 null. 같은 날 수업끼리 정렬/근접도 비교용. */
+export const lessonStartMinutes = (lesson: GetLessonResponse): number | null => {
+  const t = startHHMM(lesson);
+  if (!t) return null;
+  const [h, m] = t.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
+
 export const formatLessonStart = (lesson: GetLessonResponse, locale: Locale): string => {
   const t = startHHMM(lesson);
   return t ? toAmPm(t, locale) : '';
