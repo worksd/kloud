@@ -50,6 +50,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json(buildAasa(request.headers.get('host') ?? ''));
   }
 
+  // 제휴 신청 화면: form.rawgraphy.com/lessons/{code} → /forms/lessons/{code} 로 rewrite.
+  // 브라우저 주소는 form. 호스트 그대로 유지된다. 서버 액션 POST도 같은 경로로 들어와 자동으로 탄다.
+  const host = request.headers.get('host') ?? '';
+  if (host.startsWith('form.') && !url.pathname.startsWith('/forms')) {
+    url.pathname = `/forms${url.pathname}`;
+  }
+
   // vanity URL: /@{slug} → by-slug API로 스튜디오 id를 찾아 /studios/{id}로 rewrite.
   // redirect가 아니라 rewrite라서 브라우저 주소는 /@{slug} 그대로 유지된다.
   // (Next.js는 '@' 시작 폴더를 parallel route 슬롯으로 해석하므로 파일 라우트로는 못 잡는다)

@@ -25,15 +25,19 @@ interface QRScannerProps {
   lessonTitle?: string | null;
   lessonFetchStatus?: string;
   currentUrl?: string;
+  /** 시작 시 우선 선택할 카메라. 기본 'back'. 'front'면 전면(front/user/전면) 라벨을 먼저 찾는다. */
+  preferCamera?: 'back' | 'front';
+  /** 시작 시 좌우반전 여부. 전면 카메라를 거울처럼 보여줄 때 true. 기본 false. */
+  initialFlip?: boolean;
 }
 
-const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle', resultMessage, lessonId, lessonTitle, lessonFetchStatus, currentUrl }, ref) {
+const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(function QRScanner({ onSuccess, onError, onBack, isProcessing, resultState = 'idle', resultMessage, lessonId, lessonTitle, lessonFetchStatus, currentUrl, preferCamera = 'back', initialFlip = false }, ref) {
   const qrCodeRegionId = "qr-reader";
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const [scanning, setScanning] = useState(false);
   const [devices, setDevices] = useState<CameraInfo[]>([]);
   const [currentCameraIdx, setCurrentCameraIdx] = useState<number | null>(null);
-  const [flip, setFlip] = useState(false);
+  const [flip, setFlip] = useState(initialFlip);
   const [error, setError] = useState<string | null>(null);
 
   // 디버그 상태
@@ -312,12 +316,15 @@ const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(function QRScanner
 
   useLayoutEffect(() => {
     if (currentCameraIdx == null && devices.length > 0) {
-      // 후면 카메라 우선 선택 (back, rear, 후면, environment 등의 키워드 포함)
-      const backCameraIdx = devices.findIndex((device) => {
+      // preferCamera에 맞는 라벨을 우선 선택. 못 찾으면 첫 카메라.
+      const keywords = preferCamera === 'front'
+        ? ['front', 'user', '전면', 'facetime']
+        : ['back', 'rear', '후면', 'environment'];
+      const preferredIdx = devices.findIndex((device) => {
         const label = device.label.toLowerCase();
-        return label.includes('back') || label.includes('rear') || label.includes('후면') || label.includes('environment');
+        return keywords.some((k) => label.includes(k));
       });
-      setCurrentCameraIdx(backCameraIdx !== -1 ? backCameraIdx : 0);
+      setCurrentCameraIdx(preferredIdx !== -1 ? preferredIdx : 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devices]);

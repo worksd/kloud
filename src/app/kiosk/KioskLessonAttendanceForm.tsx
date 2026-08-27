@@ -16,6 +16,9 @@ import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
 import QRScanner from '@/app/components/QRScanner';
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
+import {KioskLessonAttendanceIcon} from '@/app/kiosk/kiosk.home.icons';
+import {formatLessonDate, formatLessonTimeRange} from '@/app/kiosk/kiosk.lesson';
+import {hasNativeQrScanner} from '@/app/kiosk/kiosk.native';
 
 type KioskLessonAttendanceFormProps = {
   studioId: number;
@@ -84,49 +87,8 @@ const extractQrText = (result: unknown): string | null => {
   return null;
 };
 
-const toAmPm = (time: string): string => {
-  const [h, m] = time.split(':').map(Number);
-  const period = h < 12 ? 'AM' : 'PM';
-  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${period} ${hour12}:${String(m).padStart(2, '0')}`;
-};
-
-const formatLessonTime = (lesson: GetLessonResponse): string | null => {
-  if (lesson.startDate) {
-    const timePart = lesson.startDate.split(' ')[1];
-    if (timePart) {
-      const start = toAmPm(timePart);
-      if (lesson.duration) {
-        const [h, m] = timePart.split(':').map(Number);
-        const endMinutes = h * 60 + m + lesson.duration;
-        const endH = Math.floor(endMinutes / 60) % 24;
-        const endM = endMinutes % 60;
-        return `${start} - ${toAmPm(`${endH}:${String(endM).padStart(2, '0')}`)}`;
-      }
-      return start;
-    }
-  }
-  if (lesson.formattedDate) {
-    return `${toAmPm(lesson.formattedDate.startTime)} - ${toAmPm(lesson.formattedDate.endTime)}`;
-  }
-  return null;
-};
-
 const formatApiDate = (d: Date): string =>
   `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const formatLessonDay = (lesson: GetLessonResponse): string | null => {
-  const datePart = lesson.startDate?.split(' ')[0] ?? (lesson.date ? lesson.date.replace(/\./g, '-').split(' ')[0] : undefined);
-  if (datePart) {
-    const [y, m, d] = datePart.split('-').map(Number);
-    if (y && m && d) {
-      const wd = WEEKDAYS[new Date(y, m - 1, d).getDay()];
-      return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${wd})`;
-    }
-  }
-  return lesson.date ?? null;
-};
 
 const normalizePhone = (s: string) => s.replace(/\D/g, '');
 
@@ -147,6 +109,58 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
   return t.user.name || t.user.nickName || t.user.phone || t.user.email || null;
 };
 
+// 확인·완료 화면이 공유하는 수업 요약 카드. 썸네일 + 제목 + 일시 + 강사/룸.
+const LessonSummary = ({lesson, locale, extra}: {lesson: GetLessonResponse; locale: Locale; extra?: string | null}) => {
+  const when = [formatLessonDate(lesson, locale), formatLessonTimeRange(lesson, locale)].filter(Boolean).join(' · ');
+  const who = [lesson.artists?.[0]?.nickName, lesson.room?.name, extra].filter(Boolean).join(' · ');
+  return (
+    <div className="flex items-center gap-[20px] min-w-0">
+      <div className="w-[104px] h-[104px] rounded-[20px] overflow-hidden bg-[#E8EAED] shrink-0">
+        {lesson.thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={kioskImageSrc(lesson.thumbnailUrl, 256)} alt="" className="w-full h-full object-cover"/>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <KioskLessonAttendanceIcon size={40} color="#B1B8BE"/>
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col gap-[6px] text-left">
+        <p className="text-[#1E2124] text-[26px] font-bold leading-[1.25] line-clamp-2">{lesson.title ?? '-'}</p>
+        {when && <p className="text-[#4E5968] text-[18px] font-medium truncate">{when}</p>}
+        {who && <p className="text-[#8B95A1] text-[16px] truncate">{who}</p>}
+      </div>
+    </div>
+  );
+};
+
+// 출석자 행 — 프로필 + 이름(닉네임) + 연락처.
+const UserSummary = ({user}: {user: NonNullable<TicketResponse['user']>}) => {
+  const contact = [user.phone, user.email].filter(Boolean).join(' · ');
+  const initial = (user.name || user.nickName || '?').trim().charAt(0);
+  return (
+    <div className="flex items-center gap-[16px] min-w-0">
+      <div className="w-[60px] h-[60px] rounded-full overflow-hidden bg-[#E8EAED] shrink-0 flex items-center justify-center">
+        {user.profileImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={kioskImageSrc(user.profileImageUrl, 160)} alt="" className="w-full h-full object-cover"/>
+        ) : (
+          <span className="text-[#8B95A1] text-[24px] font-bold">{initial}</span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0 text-left">
+        <p className="text-[#1E2124] text-[22px] font-bold truncate">
+          {user.name || user.nickName || '-'}
+          {user.name && user.nickName && (
+            <span className="text-[#8B95A1] text-[17px] font-medium">{` (${user.nickName})`}</span>
+          )}
+        </p>
+        {contact && <p className="text-[#8B95A1] text-[16px] truncate">{contact}</p>}
+      </div>
+    </div>
+  );
+};
+
 // 수업 출석 체크
 //  - QR 모드: 네이티브 HID 스캐너(startQrScan) → onQrScanResult → willUseTicketId/token 파싱 → 티켓 조회
 //  - 수동 모드: 수업 선택 → 전화/이메일 입력 → 해당 레슨 티켓에서 유저 매칭
@@ -154,6 +168,8 @@ const userDisplayName = (t: TicketResponse | null): string | null => {
 export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, variant = 'kiosk', phoneInputMode = 'phone'}: KioskLessonAttendanceFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({locale, key});
   const admin = variant === 'admin';
+  // QR 입력 장치는 admin 여부가 아니라 기기(deviceName에 MAZIC 포함)로 결정 — MAZIC 본체는 네이티브 HID 스캐너, 그 외는 카메라.
+  const [nativeScanner] = useState(() => hasNativeQrScanner());
 
   const [mode, setMode] = useState<Mode>('qr');
   const [status, setStatus] = useState<Status>('idle');
@@ -233,13 +249,13 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     setErrorMsg(null);
     setLastRaw(null);
     setStatus('idle');
-    // 무인은 네이티브 HID 스캐너, admin은 브라우저 카메라(QRScanner)가 재마운트되며 스캔
-    if (!admin) (window as any).KloudEvent?.startQrScan?.('');
-  }, [admin]);
+    // MAZIC은 네이티브 HID 스캐너, 그 외는 브라우저 카메라(QRScanner)가 재마운트되며 스캔
+    if (nativeScanner) (window as any).KloudEvent?.startQrScan?.('');
+  }, [nativeScanner]);
 
-  // 무인 키오스크만 네이티브 startQrScan/onQrScanResult 사용. admin은 QRScanner(카메라)의 onSuccess로 처리.
+  // MAZIC 기기만 네이티브 startQrScan/onQrScanResult 사용. 그 외는 QRScanner(카메라)의 onSuccess로 처리.
   useEffect(() => {
-    if (admin) return;
+    if (!nativeScanner) return;
     const prev = (window as any).onQrScanResult;
     (window as any).onQrScanResult = (result: unknown) => {
       // 페이로드가 객체로 와도 QR 문자열만 뽑아 넘긴다.
@@ -255,7 +271,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     return () => {
       (window as any).onQrScanResult = prev;
     };
-  }, [handleScan, admin]);
+  }, [handleScan, nativeScanner]);
 
   // QRScanner(카메라) decode noise 무시, 실제 에러만 로깅
   const handleQrError = useCallback((errorMessage: string) => {
@@ -386,8 +402,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
 
   const displayLesson = ticket?.lesson ?? selectedLesson;
 
-  // admin(태블릿)은 HID 스캐너가 없으므로 QR 대기 화면에서 카메라(QRScanner)를 연다.
-  if (admin && status === 'idle') {
+  // HID 스캐너가 없는 기기(MAZIC 아님)는 QR 대기 화면에서 카메라(QRScanner)를 연다.
+  if (!nativeScanner && status === 'idle') {
     return (
       <div className="relative w-full h-screen bg-black overflow-hidden">
         <QRScanner
@@ -395,6 +411,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
           onError={handleQrError}
           onBack={onBack}
           resultMessage={t('scan_qr_code')}
+          preferCamera="front"
+          initialFlip
         />
         <button
           onClick={enterManual}
@@ -490,8 +508,8 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
                       )}
                     </div>
                     <div className="flex flex-col gap-[4px] p-[14px]">
-                      {formatLessonTime(lesson) && (
-                        <p className="text-[#4E5968] text-[15px] font-bold truncate">{formatLessonTime(lesson)}</p>
+                      {formatLessonTimeRange(lesson, locale) && (
+                        <p className="text-[#4E5968] text-[15px] font-bold truncate">{formatLessonTimeRange(lesson, locale)}</p>
                       )}
                       <p className="text-black text-[19px] font-bold leading-snug line-clamp-1">{lesson.title ?? '-'}</p>
                       {(lesson.artists?.[0]?.nickName || lesson.room?.name) && (
@@ -541,56 +559,37 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
           {/* 확인 — 이 수업 맞나요? */}
           {status === 'confirm' && displayLesson && (
             <>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[8px] text-center">
+              <p className="text-[#1E2124] text-[36px] font-bold tracking-[-1px] text-center">
                 {t('kiosk_lesson_attendance_confirm_title')}
               </p>
-              <p className="text-gray-400 text-[20px] mb-[36px] text-center">
+              <p className="mt-[8px] text-[#8B95A1] text-[19px] text-center">
                 {t('kiosk_lesson_attendance_confirm_desc')}
               </p>
 
-              <div className="w-full max-w-[560px] bg-gray-50 rounded-[24px] p-[24px] flex items-center gap-[20px] mb-[24px]">
-                <div className="w-[96px] h-[96px] rounded-[16px] overflow-hidden bg-gray-200 shrink-0">
-                  {displayLesson.thumbnailUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={kioskImageSrc(displayLesson.thumbnailUrl, 256)} alt="" className="w-full h-full object-cover"/>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-[32px]">🕺</div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col gap-[8px]">
-                  <p className="text-black text-[26px] font-bold leading-tight truncate">{displayLesson.title ?? '-'}</p>
-                  {(formatLessonDay(displayLesson) || formatLessonTime(displayLesson)) && (
-                    <p className="text-gray-600 text-[18px]">
-                      {[formatLessonDay(displayLesson), formatLessonTime(displayLesson)].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-                  {(displayLesson.artists?.[0]?.nickName || displayLesson.room?.name) && (
-                    <p className="text-gray-400 text-[16px] truncate">
-                      {[displayLesson.artists?.[0]?.nickName, displayLesson.room?.name].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
-                </div>
+              {/* 수업 + 출석자 — 한 카드 안에서 구분선으로 나눔 */}
+              <div className="w-full max-w-[600px] mt-[36px] rounded-[28px] bg-[#F7F8F9] px-[28px] py-[26px] flex flex-col gap-[20px] animate-[scaleIn_260ms_ease-out]">
+                <LessonSummary lesson={displayLesson} locale={locale} />
+                {ticket?.user && (
+                  <>
+                    <div className="h-px bg-[#E8EAED]"/>
+                    <UserSummary user={ticket.user} />
+                  </>
+                )}
               </div>
 
-              {userDisplayName(ticket) && (
-                <div className="w-full max-w-[560px] flex items-center justify-center gap-[8px] mb-[36px]">
-                  <span className="text-gray-400 text-[18px]">{t('kiosk_label_name')}</span>
-                  <span className="text-black text-[22px] font-bold">{userDisplayName(ticket)}</span>
-                </div>
-              )}
-
-              <div className="w-full max-w-[560px] flex flex-col gap-[12px]">
-                <button
-                  onClick={handleConfirmAttendance}
-                  className="w-full h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-colors"
-                >
-                  {t('kiosk_lesson_attendance_confirm_btn')}
-                </button>
+              {/* 버튼 — 보조(다시)는 작게, 주(출석)는 크게 한 줄에 */}
+              <div className="w-full max-w-[600px] mt-[28px] flex gap-[12px]">
                 <button
                   onClick={handleRetry}
-                  className="w-full h-[72px] rounded-[16px] border-2 border-gray-200 text-black text-[22px] font-medium transition-colors"
+                  className="flex-[2] h-[76px] rounded-[18px] bg-[#F2F4F6] text-[#1E2124] text-[21px] font-bold transition-transform active:scale-[0.98]"
                 >
                   {mode === 'manual' ? t('kiosk_lesson_attendance_search') : t('kiosk_lesson_attendance_rescan')}
+                </button>
+                <button
+                  onClick={handleConfirmAttendance}
+                  className="flex-[3] h-[76px] rounded-[18px] bg-[#1E2124] text-white text-[22px] font-bold transition-transform active:scale-[0.98]"
+                >
+                  {t('kiosk_lesson_attendance_confirm_btn')}
                 </button>
               </div>
             </>
@@ -599,67 +598,46 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
           {/* 출석 처리 중 */}
           {status === 'submitting' && (
             <>
-              <div className="w-[60px] h-[60px] border-4 border-gray-200 border-t-black rounded-full animate-spin mb-[32px]"/>
-              <p className="text-black text-[28px] font-bold tracking-[-0.84px]">
+              <div className="w-[64px] h-[64px] border-4 border-[#E8E8EA] border-t-[#1E2124] rounded-full animate-spin"/>
+              <p className="mt-[32px] text-[#1E2124] text-[28px] font-bold tracking-[-0.84px]">
                 {t('kiosk_lesson_attendance_processing')}
               </p>
+              {displayLesson && (
+                <p className="mt-[8px] text-[#8B95A1] text-[18px] truncate max-w-[600px]">{displayLesson.title}</p>
+              )}
             </>
           )}
 
           {/* 완료 */}
           {status === 'complete' && (
             <>
-              <div className="w-[96px] h-[96px] rounded-full bg-black flex items-center justify-center mb-[32px]">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+              <div className="w-[104px] h-[104px] rounded-full bg-[#1E2124] flex items-center justify-center animate-[scaleIn_320ms_cubic-bezier(0.34,1.56,0.64,1)]">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                   <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <p className="text-black text-[36px] font-bold tracking-[-1px] mb-[8px] text-center">
+              <p className="mt-[28px] text-[#1E2124] text-[36px] font-bold tracking-[-1px] text-center">
                 {t('kiosk_lesson_attendance_complete')}
               </p>
-              {/* 누가·어떤 수업에 출석 처리됐는지 — 이름만이 아니라 프로필/닉네임/연락처/수업까지 */}
+              {userDisplayName(ticket) && (
+                <p className="mt-[8px] text-[#8B95A1] text-[19px] text-center">
+                  <span className="text-[#1E2124] font-bold">{userDisplayName(ticket)}</span>
+                </p>
+              )}
+
+              {/* 누가·어떤 수업에 출석됐는지 — 확인 화면과 같은 카드 */}
               {(ticket?.user || displayLesson) && (
-                <div className="w-full max-w-[560px] mt-[20px] mb-[16px] rounded-[18px] bg-[#F7F8F9] px-[22px] py-[20px] flex flex-col gap-[14px]">
-                  {ticket?.user && (
-                    <div className="flex items-center gap-[14px] min-w-0">
-                      <div className="w-[56px] h-[56px] rounded-full overflow-hidden bg-gray-200 shrink-0">
-                        {ticket.user.profileImageUrl && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={kioskImageSrc(ticket.user.profileImageUrl, 160)} alt="" className="w-full h-full object-cover"/>
-                        )}
-                      </div>
-                      <div className="min-w-0 text-left">
-                        <p className="text-black text-[22px] font-bold truncate">
-                          {ticket.user.name || ticket.user.nickName || '-'}
-                          {ticket.user.name && ticket.user.nickName && (
-                            <span className="text-[#8B95A1] text-[17px] font-medium">{` (${ticket.user.nickName})`}</span>
-                          )}
-                        </p>
-                        <p className="text-[#8B95A1] text-[16px] truncate">
-                          {[ticket.user.phone, ticket.user.email].filter(Boolean).join(' · ')}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {displayLesson && (
-                    <>
-                      <div className="h-px bg-[#E8EAED]"/>
-                      <div className="text-left min-w-0">
-                        <p className="text-black text-[19px] font-bold truncate">{displayLesson.title ?? '-'}</p>
-                        <p className="text-[#8B95A1] text-[16px] truncate">
-                          {[formatLessonDay(displayLesson), formatLessonTime(displayLesson), ticket?.ticketTypeLabel]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </p>
-                      </div>
-                    </>
-                  )}
+                <div className="w-full max-w-[600px] mt-[32px] rounded-[28px] bg-[#F7F8F9] px-[28px] py-[26px] flex flex-col gap-[20px]">
+                  {displayLesson && <LessonSummary lesson={displayLesson} locale={locale} extra={ticket?.ticketTypeLabel} />}
+                  {ticket?.user && displayLesson && <div className="h-px bg-[#E8EAED]"/>}
+                  {ticket?.user && <UserSummary user={ticket.user} />}
                 </div>
               )}
+
               {/* 완료 화면은 '확인' 하나만 — 누르면 홈으로 */}
               <button
                 onClick={onHome}
-                className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-transform active:scale-[0.98] mt-[16px]"
+                className="w-full max-w-[600px] h-[76px] rounded-[18px] bg-[#1E2124] text-white text-[22px] font-bold transition-transform active:scale-[0.98] mt-[28px]"
               >
                 {t('kiosk_confirm')}
               </button>
@@ -669,28 +647,35 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
           {/* 에러 */}
           {status === 'error' && (
             <>
-              <div className="w-[96px] h-[96px] rounded-full bg-red-50 flex items-center justify-center mb-[32px]">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 8v5M12 16.5v.5" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"/>
-                  <circle cx="12" cy="12" r="9" stroke="#EF4444" strokeWidth="2"/>
+              <div className="w-[104px] h-[104px] rounded-full bg-[#FDECEC] flex items-center justify-center animate-[scaleIn_260ms_ease-out]">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 8v5M12 16.5v.5" stroke="#E0533F" strokeWidth="2.5" strokeLinecap="round"/>
+                  <circle cx="12" cy="12" r="9" stroke="#E0533F" strokeWidth="2"/>
                 </svg>
               </div>
-              <p className="text-black text-[28px] font-bold tracking-[-0.84px] text-center">
+              <p className="mt-[28px] max-w-[600px] text-[#1E2124] text-[30px] font-bold tracking-[-0.9px] text-center leading-[1.3]">
                 {errorMsg ?? t('kiosk_lesson_attendance_load_failed')}
               </p>
               {/* 스캔 원본값 — 어떤 값이 들어와 실패했는지 현장에서 바로 확인 */}
               {lastRaw && (
-                <p className="mt-[12px] max-w-[560px] text-[#B1B8BE] text-[13px] text-center break-all line-clamp-3">
+                <p className="mt-[14px] max-w-[600px] text-[#B1B8BE] text-[13px] text-center break-all line-clamp-3">
                   {lastRaw}
                 </p>
               )}
-              <div className="h-[36px]" />
-              <button
-                onClick={handleRetry}
-                className="w-full max-w-[560px] h-[72px] rounded-[16px] bg-black text-white text-[22px] font-bold transition-colors"
-              >
-                {mode === 'manual' ? t('kiosk_lesson_attendance_search') : t('kiosk_lesson_attendance_rescan')}
-              </button>
+              <div className="w-full max-w-[600px] mt-[36px] flex gap-[12px]">
+                <button
+                  onClick={onHome}
+                  className="flex-[2] h-[76px] rounded-[18px] bg-[#F2F4F6] text-[#1E2124] text-[21px] font-bold transition-transform active:scale-[0.98]"
+                >
+                  {t('kiosk_go_home')}
+                </button>
+                <button
+                  onClick={handleRetry}
+                  className="flex-[3] h-[76px] rounded-[18px] bg-[#1E2124] text-white text-[22px] font-bold transition-transform active:scale-[0.98]"
+                >
+                  {mode === 'manual' ? t('kiosk_lesson_attendance_search') : t('kiosk_lesson_attendance_rescan')}
+                </button>
+              </div>
             </>
           )}
         </div>

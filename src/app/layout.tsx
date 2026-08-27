@@ -41,7 +41,8 @@ export default async function RootLayout({
   const h = await headers();
   const appVersion = h.get('x-guinness-version') ?? '';
   const entryPath = h.get('x-guinness-entry') ?? '';
-  const showWebChrome = appVersion === '' && !entryPath.startsWith('/kiosk');
+  // 제휴 신청 폼(/forms, form.rawgraphy.com)은 링크로 받은 외부인이 여는 독립 화면 — 웹 크롬 없이 그린다.
+  const showWebChrome = appVersion === '' && !entryPath.startsWith('/kiosk') && !entryPath.startsWith('/forms');
   const cookieStore = await cookies();
   const isLogin = !!cookieStore.get(accessTokenKey)?.value;
 

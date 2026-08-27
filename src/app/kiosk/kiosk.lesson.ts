@@ -6,7 +6,7 @@
 import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { toAmPmTime } from "@/utils/time.format";
+import { toAmPmTime, toAmPmTimeRange } from '@/utils/time.format';
 
 const STATUS_LABEL_KEY: Record<string, StringResourceKey> = {
   [LessonStatus.Pending]: 'kiosk_lesson_status_pending',
@@ -91,7 +91,7 @@ export const formatLessonStart = (lesson: GetLessonResponse, locale: Locale): st
 export const formatLessonTimeRange = (lesson: GetLessonResponse, locale: Locale): string => {
   const s = startHHMM(lesson);
   const e = endHHMM(lesson);
-  if (s && e) return `${toAmPm(s, locale)} - ${toAmPm(e, locale)}`;
+  if (s && e) return toAmPmTimeRange(s, e, locale);
   if (s) return toAmPm(s, locale);
   return '';
 };

@@ -17,3 +17,11 @@ export const sendReceiptToPrinter = (lines: PrinterLine[]): void => {
   if (!lines || lines.length === 0) return;
   window.KloudEvent?.requestSerialPrint?.(JSON.stringify({ lines }));
 };
+
+// 네이티브 HID QR 스캐너(startQrScan/onQrScanResult)가 달린 기기인지 — MAZIC 키오스크 본체만 해당.
+// 서버가 x-guinness-device-name 으로 쓰는 device.model 도 UA에서 파싱한 값이라, 클라이언트에선 UA 문자열로 동일하게 판별한다.
+// 그 외 기기(태블릿·PC·기타 안드로이드)는 출석 QR을 브라우저 카메라(QRScanner)로 읽는다.
+export const hasNativeQrScanner = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  return navigator.userAgent.toUpperCase().includes('MAZIC');
+};
