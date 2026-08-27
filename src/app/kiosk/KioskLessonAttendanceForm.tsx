@@ -92,8 +92,10 @@ const formatApiDate = (d: Date): string =>
 
 const normalizePhone = (s: string) => s.replace(/\D/g, '');
 
-// 입력값(전화 또는 이메일)으로 레슨 티켓 목록에서 동일 유저 찾기
-const matchTickets = (tickets: TicketResponse[], input: string): TicketResponse[] => {
+// 입력값(전화 또는 이메일)으로 레슨 티켓 목록에서 동일 유저 찾기.
+// 결제/체크인 플로우는 서버 LIKE 검색이라 뒷 4자리로도 조회되지만, 여기는 티켓 목록을 받아 로컬에서 거르므로
+// lastFour 모드면 완전일치 대신 뒷자리(endsWith)로 비교해야 한다. 매칭 뒤엔 티켓에 붙은 유저 정보(전체 번호)를 쓴다.
+const matchTickets = (tickets: TicketResponse[], input: string, mode: 'phone' | 'lastFour'): TicketResponse[] => {
   const q = input.trim().toLowerCase();
   if (!q) return [];
   if (q.includes('@')) {
@@ -101,6 +103,9 @@ const matchTickets = (tickets: TicketResponse[], input: string): TicketResponse[
   }
   const digits = normalizePhone(q);
   if (!digits) return [];
+  if (mode === 'lastFour') {
+    return tickets.filter((t) => normalizePhone(t.user?.phone ?? '').endsWith(digits));
+  }
   return tickets.filter((t) => normalizePhone(t.user?.phone ?? '') === digits);
 };
 
@@ -330,9 +335,15 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
     try {
       const tickets = await getLessonTicketsAction(selectedLesson.id);
       // Cancelled/CancelPending은 없는 것과 마찬가지 → 매칭에서 제외
-      const matches = matchTickets(tickets, q).filter((tk) => tk.status !== 'Cancelled' && tk.status !== 'CancelPending');
+      const matches = matchTickets(tickets, q, phoneInputMode).filter((tk) => tk.status !== 'Cancelled' && tk.status !== 'CancelPending');
       if (matches.length === 0) {
         setInputError(t('kiosk_lesson_attendance_no_match'));
+        return;
+      }
+      // 뒷 4자리는 한 수업 안에서 겹칠 수 있다 — 서로 다른 유저가 둘 이상 걸리면 남의 티켓을 출석 처리하지 않도록 막는다.
+      const distinctUsers = new Set(matches.map((tk) => tk.user?.id ?? tk.id));
+      if (distinctUsers.size > 1) {
+        setInputError(t('kiosk_lesson_attendance_multiple_match'));
         return;
       }
       // 아직 출석 안 한(Used 아님) 티켓 우선. 전부 Used면 이미 출석 처리된 것.
@@ -349,7 +360,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
       setSearching(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLesson, searching, locale]);
+  }, [selectedLesson, searching, locale, phoneInputMode]);
 
   // ── 공통: 출석 처리 ──
   const handleConfirmAttendance = useCallback(async () => {

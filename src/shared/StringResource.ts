@@ -3884,6 +3884,7 @@ export const StringResource = {
   kiosk_lesson_attendance_input_title: { ko: '전화번호 또는 이메일을 입력해주세요', en: 'Enter phone number or email', jp: '電話番号またはメールを入力してください', zh: '请输入电话号码或邮箱' },
   kiosk_lesson_attendance_input_placeholder: { ko: '전화번호 또는 이메일', en: 'Phone or email', jp: '電話番号またはメール', zh: '电话或邮箱' },
   kiosk_lesson_attendance_no_match: { ko: '해당 수업에서 학생을 찾지 못했어요', en: 'No matching student in this lesson', jp: 'このレッスンで該当する生徒が見つかりません', zh: '该课程中未找到匹配的学生' },
+  kiosk_lesson_attendance_multiple_match: { ko: '뒷 4자리가 같은 회원이 여러 명이에요. 데스크에 문의해주세요', en: 'Several students share these last 4 digits. Please ask the front desk', jp: '下4桁が同じ会員が複数います。フロントにお問い合わせください', zh: '有多位学员的尾号相同，请联系前台' },
   kiosk_lesson_attendance_already_done: { ko: '이미 출석 처리된 회원이에요', en: 'Already checked in', jp: 'すでに出席処理済みです', zh: '已经完成签到' },
   kiosk_lesson_attendance_search: { ko: '조회하기', en: 'Search', jp: '照会する', zh: '查询' },
   kiosk_admin_greeting: { ko: '무엇을 도와드릴까요?', en: 'How can we help?', jp: '何をお手伝いしましょうか？', zh: '需要什么帮助？' },
