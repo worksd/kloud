@@ -13,6 +13,7 @@ import {GetLessonResponse, BundleSummaryResponse} from "@/app/endpoint/lesson.en
 import {formatLessonDate, formatLessonStart} from "@/app/kiosk/kiosk.lesson";
 import {KioskLessonDetailModal} from "@/app/kiosk/KioskLessonDetailModal";
 import {KioskPhoneInputForm} from "@/app/kiosk/KioskPhoneInputForm";
+import { GetUserResponse, SearchMatchType } from '@/app/endpoint/user.endpoint';
 import {KioskMemberConfirmModal} from "@/app/kiosk/KioskMemberConfirmModal";
 import {KioskPaymentMethodForm} from "@/app/kiosk/KioskPaymentMethodForm";
 import {KioskPassSelectModal} from "@/app/kiosk/KioskPassSelectModal";
@@ -227,8 +228,20 @@ export const KioskForm = ({
   const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay' | 'kakaopay' | 'zeropay'>('card');
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   // 전화 입력 형태 — variant(admin/kiosk)나 플로우(구매/출석)와 무관하게 오직 phonePadType으로만 분기.
-  // 검색 API가 LIKE 연산이라 뒷 4자리로도 회원 조회가 된다.
+  // 뒷 4자리 모드의 회원 검색은 matchType 'PhoneSuffix'(끝자리 일치)로 — 부분 일치(LIKE %q%)는 다른 회원이 먼저 잡힌다.
   const phoneInputMode: 'phone' | 'lastFour' = phonePadType === 'Short' ? 'lastFour' : 'phone';
+  const searchMatchType: SearchMatchType | undefined = phoneInputMode === 'lastFour' ? 'PhoneSuffix' : undefined;
+
+  // 검색 결과 → 확인 모달. 2명 이상이면 모달이 선택 목록으로 뜨고(users), 고르면 단일 확인으로 바뀐다.
+  // 뒷 4자리는 같은 학원 안에서 겹칠 수 있어 첫 번째를 그냥 쓰면 남의 계정으로 결제될 수 있다.
+  const showSearchedUsers = (users: GetUserResponse[]) => {
+    const mapped: SearchedUser[] = users.map((u) => ({
+      id: u.id, name: u.name, nickName: u.nickName, email: u.email, phone: u.phone, profileImageUrl: u.profileImageUrl,
+    }));
+    setSearchedUsers(mapped.length > 1 ? mapped : []);
+    setSelectedUser(mapped[0]);
+    setCurrentScreen('member-confirm');
+  };
 
   // 출석 체크 진입 — 둘 다 가능하면 선택 화면, 하나만 가능하면 해당 출석으로 바로 이동.
   const enterAttendance = () => {
@@ -621,7 +634,7 @@ export const KioskForm = ({
     setErrorMessage(null);
 
     try {
-      const res = await searchUserAction(phoneNumber);
+      const res = await searchUserAction(phoneNumber, searchMatchType);
       if (isGuinnessErrorCase(res)) {
         setErrorMessage(res.message ?? '검색에 실패했습니다.');
         setCurrentScreen('phone');
@@ -639,15 +652,7 @@ export const KioskForm = ({
         setCurrentScreen('phone');
         return;
       }
-      // 첫 번째 매칭 유저 사용
-      const u = res.users[0];
-      setSelectedUser({
-        id: u.id,
-        name: u.name,
-        nickName: u.nickName,
-        email: u.email,
-      });
-      setCurrentScreen('member-confirm');
+      showSearchedUsers(res.users);
     } catch {
       setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
       setCurrentScreen('phone');
@@ -670,14 +675,7 @@ export const KioskForm = ({
         setCurrentScreen('phone');
         return;
       }
-      const u = res.users[0];
-      setSelectedUser({
-        id: u.id,
-        name: u.name,
-        nickName: u.nickName,
-        email: u.email,
-      });
-      setCurrentScreen('member-confirm');
+      showSearchedUsers(res.users);
     } catch {
       setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
       setCurrentScreen('phone');
@@ -1324,13 +1322,15 @@ export const KioskForm = ({
 
       {currentScreen === 'member-confirm' && selectedUser && (
         <KioskMemberConfirmModal
-          phone={phone}
+          phone={selectedUser.phone ?? phone}
           name={selectedUser.name}
           nickName={selectedUser.nickName}
           email={selectedUser.email}
           profileImageUrl={selectedUser.profileImageUrl}
           locale={locale}
-          onBack={() => setCurrentScreen('phone')}
+          users={searchedUsers}
+          onSelectUser={(u) => { setSelectedUser(u); setSearchedUsers([]); }}
+          onBack={() => { setSearchedUsers([]); setCurrentScreen('phone'); }}
           onConfirm={handleConfirmUser}
         />
       )}

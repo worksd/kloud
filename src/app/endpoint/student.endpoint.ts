@@ -1,4 +1,5 @@
 import { Endpoint } from "@/app/endpoint/index";
+import { SearchMatchType } from "@/app/endpoint/user.endpoint";
 
 export type CreateStudentParameter = {
   studioId: number;
@@ -109,6 +110,8 @@ export type FindStudentListParameter = {
   passPlanTag?: string;
   /** passPlanTag와 함께 사용. 'yyyy.MM.dd HH:mm' 기준으로 유효 패스 판정 (미지정=현재) */
   lessonDate?: string;
+  /** 'PhoneSuffix'면 숫자 검색어를 전화번호 뒷자리 일치로만 찾는다. 생략하면 'Keyword'(부분 일치). */
+  matchType?: SearchMatchType;
 }
 
 export type StudentTagResponse = {
@@ -153,5 +156,5 @@ export type StudentListResponse = {
 export const FindStudentList: Endpoint<FindStudentListParameter, StudentListResponse> = {
   method: 'get',
   path: '/students',
-  queryParams: ['query', 'page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'lessonDate'],
+  queryParams: ['query', 'page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'lessonDate', 'matchType'],
 }

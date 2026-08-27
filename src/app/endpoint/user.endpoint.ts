@@ -211,10 +211,21 @@ export const SearchUserByPhone: Endpoint<SearchUserByPhoneParameter, GetUserResp
   queryParams: ['phone', 'countryCode']
 }
 
+/**
+ * 회원/수강생 검색 매칭 방식 (BE e5031f5c, 2026-08-28).
+ *  - 'Keyword'(기본): 부분 일치. 숫자만이면 phone LIKE %q%, 문자 포함이면 name·nickName·email OR LIKE
+ *  - 'PhoneSuffix': 검색어가 숫자면 전화번호 뒷자리 일치만(phone LIKE %q). 숫자가 아니면 Keyword와 동일 처리
+ * 키오스크 뒷 4자리 패드(phonePadType='Short')에서는 반드시 PhoneSuffix — 부분 일치는 번호 가운데에 같은 4자리가 있는
+ * 다른 회원이 먼저 잡히는 사고가 있었다 (studio 21, 2026-08-27).
+ */
+export type SearchMatchType = 'Keyword' | 'PhoneSuffix';
+
 export type SearchUserParameter = {
   query: string;
   /** 강사 계정 전용 — 자기 소속 학원의 수강생을 찾을 때. 파트너는 생략(계정의 학원이 우선) */
   studioId?: number;
+  /** 생략하면 'Keyword'. */
+  matchType?: SearchMatchType;
 }
 
 export type UserListResponse = {
@@ -224,5 +235,5 @@ export type UserListResponse = {
 export const SearchUser: Endpoint<SearchUserParameter, UserListResponse> = {
   method: 'get',
   path: '/users/search',
-  queryParams: ['query', 'studioId']
+  queryParams: ['query', 'studioId', 'matchType']
 }
