@@ -330,13 +330,14 @@ export const CancelKioskPayment: Endpoint<CancelKioskPaymentRequest, CancelKiosk
 export type KioskPhonePadType = 'Short' | 'Default';
 
 // 키오스크 사용 형태 — 'kiosk'(무인 키오스크) | 'admin'(상담실 태블릿, 직원이 앞에 앉혀놓고 진행)
-export type KioskMode = 'kiosk' | 'admin';
+//                     | 'member'(회원 셀프 출석 — 홈 없이 번호부터 받고 오늘 수업 출석을 제안)
+export type KioskMode = 'kiosk' | 'admin' | 'member';
 
 export type KioskResponse = {
   id: number;
   name: string;
   status: KioskStatus;
-  /** 'kiosk'면 무인 키오스크 UI, 'admin'이면 태블릿 상담실 UI로 진입점이 갈린다. 미지정이면 'kiosk' 취급. */
+  /** 'kiosk'면 무인 키오스크 UI, 'admin'이면 태블릿 상담실 UI, 'member'면 회원 셀프 출석 UI로 진입점이 갈린다. 미지정이면 'kiosk' 취급. */
   mode?: KioskMode;
   lastSeenAt: string | null;
   imageUrl: string | null;

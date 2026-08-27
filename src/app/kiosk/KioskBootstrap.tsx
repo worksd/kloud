@@ -7,6 +7,7 @@ import { KioskEndpointModal } from '@/app/kiosk/KioskEndpointModal';
 import { KioskSelector } from '@/app/kiosk/KioskSelector';
 import { KioskForm } from '@/app/kiosk/KioskForm';
 import { AdminKioskForm } from '@/app/kiosk/AdminKioskForm';
+import { MemberKioskForm } from '@/app/kiosk/MemberKioskForm';
 import { KioskResponse } from '@/app/endpoint/kiosk.endpoint';
 import {
   clearKioskOperatorTokenAction,
@@ -26,8 +27,11 @@ type Props = {
   initialKioskId?: number;
   urlToken?: string;
   /** 이 부트스트랩이 놓인 라우트. 선택한 키오스크 mode와 다르면 해당 경로로 리다이렉트. */
-  route?: 'kiosk' | 'admin';
+  route?: KioskRoute;
 };
+
+type KioskRoute = 'kiosk' | 'admin' | 'member';
+const ROUTE_PATH: Record<KioskRoute, string> = { kiosk: '/kiosk', admin: '/kiosk/admin', member: '/kiosk/member' };
 
 export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, route = 'kiosk' }: Props) => {
   const router = useRouter();
@@ -141,12 +145,12 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
     setStage('ready');
   };
 
-  // 선택한 키오스크의 mode와 현재 라우트가 다르면 올바른 경로로 이동 (kiosk ↔ admin)
-  const desiredRoute: 'kiosk' | 'admin' = selected?.mode === 'admin' ? 'admin' : 'kiosk';
+  // 선택한 키오스크의 mode와 현재 라우트가 다르면 올바른 경로로 이동 (kiosk ↔ admin ↔ member)
+  const desiredRoute: KioskRoute = selected?.mode === 'admin' || selected?.mode === 'member' ? selected.mode : 'kiosk';
   useEffect(() => {
     if (stage !== 'ready' || !selected) return;
     if (desiredRoute !== route) {
-      router.replace(desiredRoute === 'admin' ? '/kiosk/admin' : '/kiosk');
+      router.replace(ROUTE_PATH[desiredRoute]);
     }
   }, [stage, selected, desiredRoute, route]);
 
@@ -209,8 +213,8 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
     );
   }
 
-  // 라우트에 맞는 폼 렌더 — /kiosk → KioskForm(무인), /kiosk/admin → AdminKioskForm(상담실 태블릿)
-  const FormComponent = route === 'admin' ? AdminKioskForm : KioskForm;
+  // 라우트에 맞는 폼 렌더 — /kiosk → KioskForm(무인), /kiosk/admin → AdminKioskForm(상담실 태블릿), /kiosk/member → MemberKioskForm(회원 셀프 출석)
+  const FormComponent = route === 'admin' ? AdminKioskForm : route === 'member' ? MemberKioskForm : KioskForm;
   return (
     <FormComponent
       studioId={studio?.id ?? 0}
