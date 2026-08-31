@@ -8,9 +8,6 @@ import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { clearCookies } from "@/app/profile/clear.token.action";
 import { accessTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
 
-export const searchUserByPhoneAction = async (phone: string, countryCode: string) => {
-  return await api.user.searchByPhone({ phone, countryCode });
-};
 
 // 뒷 4자리 패드에서 온 숫자면 matchType 'PhoneSuffix'로 끝자리 일치만 — 부분 일치는 다른 회원이 먼저 잡힐 수 있다.
 export const searchUserAction = async (query: string, matchType?: SearchMatchType) => {

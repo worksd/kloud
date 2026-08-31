@@ -200,16 +200,6 @@ export const CreateParentConnection: Endpoint<CreateParentConnectionParameter, S
   bodyParams: ['studentUserId', 'parentName', 'parentPhone']
 }
 
-export type SearchUserByPhoneParameter = {
-  phone: string;
-  countryCode: string;
-}
-
-export const SearchUserByPhone: Endpoint<SearchUserByPhoneParameter, GetUserResponse> = {
-  method: 'get',
-  path: '/users/search',
-  queryParams: ['phone', 'countryCode']
-}
 
 /**
  * 회원/수강생 검색 매칭 방식 (BE e5031f5c, 2026-08-28).
