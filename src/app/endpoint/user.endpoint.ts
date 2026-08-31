@@ -211,7 +211,8 @@ export const CreateParentConnection: Endpoint<CreateParentConnectionParameter, S
 export type SearchMatchType = 'Keyword' | 'PhoneSuffix';
 
 export type SearchUserParameter = {
-  query: string;
+  /** 검색 API 개편(BE 50613bf8, 2026-08-31)으로 파라미터가 query → keyword로 통일됨. 이름·닉네임·이메일·전화번호 OR LIKE. */
+  keyword: string;
   /** 강사 계정 전용 — 자기 소속 학원의 수강생을 찾을 때. 파트너는 생략(계정의 학원이 우선) */
   studioId?: number;
   /** 생략하면 'Keyword'. */
@@ -225,5 +226,5 @@ export type UserListResponse = {
 export const SearchUser: Endpoint<SearchUserParameter, UserListResponse> = {
   method: 'get',
   path: '/users/search',
-  queryParams: ['query', 'studioId', 'matchType']
+  queryParams: ['keyword', 'studioId', 'matchType']
 }

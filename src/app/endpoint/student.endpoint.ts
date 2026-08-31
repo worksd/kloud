@@ -88,17 +88,14 @@ export const GetStudentPasses: Endpoint<GetStudentPassesParameter, NewPassListRe
   queryParams: ['page', 'order'],
 }
 
-// GET /students?query= — 학원 내 수강생 목록 검색.
+// GET /students/search?keyword= — 학원 내 수강생 검색 (검색 API 개편, BE 50613bf8 2026-08-31).
 // user search(/users/search)와 다르다: 파트너 토큰의 소속 스튜디오 수강생만 대상.
-//
-// 검색 대상은 서버가 query 형태를 보고 분기한다:
-//  - 전부 숫자 ('01012345678', '0107')        → phone LIKE 만
-//  - 문자 포함 ('김서연', 'a@b.com')          → name · 학원지정이름 · nickName · phone · email OR LIKE
-// 모두 부분 일치(%query%)이고 문자 검색은 대소문자 무시. %, _, \ 는 리터럴로 이스케이프됨.
+// 이름 · 닉네임 · 전화번호 부분 일치(OR). 목록 필터(page·tags·onlyActive·order·passPlanTag·lessonDate)는 그대로 얹을 수 있고
+// keyword를 비우면 전체 목록. matchType('PhoneSuffix')은 이 라우트로 함께 이전됨 — 키오스크 뒷 4자리 조회가 사용.
 export type StudentListOrder = 'CreatedAtDesc' | 'AlphabeticalAsc';
 
 export type FindStudentListParameter = {
-  query?: string;
+  keyword?: string;
   /** 1부터. 생략하면 응답에 page/totalPage가 빠지고 totalCount만 옴. 페이지당 20건 */
   page?: number;
   /** 태그 필터 — 콤마 구분 ('a,b') */
@@ -155,6 +152,6 @@ export type StudentListResponse = {
 
 export const FindStudentList: Endpoint<FindStudentListParameter, StudentListResponse> = {
   method: 'get',
-  path: '/students',
-  queryParams: ['query', 'page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'lessonDate', 'matchType'],
+  path: '/students/search',
+  queryParams: ['keyword', 'page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'lessonDate', 'matchType'],
 }

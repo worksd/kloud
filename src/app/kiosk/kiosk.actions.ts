@@ -10,8 +10,8 @@ import { accessTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
 
 
 // 뒷 4자리 패드에서 온 숫자면 matchType 'PhoneSuffix'로 끝자리 일치만 — 부분 일치는 다른 회원이 먼저 잡힐 수 있다.
-export const searchUserAction = async (query: string, matchType?: SearchMatchType) => {
-  return await api.user.search({ query, matchType });
+export const searchUserAction = async (keyword: string, matchType?: SearchMatchType) => {
+  return await api.user.search({ keyword, matchType });
 };
 
 export const registerKioskUserAction = async (phone: string, countryCode: string, nickName: string, name?: string) => {
@@ -42,8 +42,8 @@ export const registerKioskUserAction = async (phone: string, countryCode: string
 // 스튜디오 출석의 수강생 검색 — user search(/users/search)가 아니라 GET /students.
 // 학원(파트너 토큰) 소속 수강생만 대상이고, 이름·닉네임·폰·이메일을 한 번에 커버한다.
 // 검색어가 숫자뿐이면 서버가 phone 전용 검색으로 동작한다. 뒷 4자리 패드면 matchType 'PhoneSuffix'로 끝자리 일치만.
-export const searchStudentsAction = async (query: string, matchType?: SearchMatchType) => {
-  return await api.student.list({ query, matchType });
+export const searchStudentsAction = async (keyword: string, matchType?: SearchMatchType) => {
+  return await api.student.list({ keyword, matchType });
 };
 
 export const createStudioAttendanceAction = async (targetUserId: number, status: AttendanceStatus) => {
