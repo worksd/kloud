@@ -6,6 +6,7 @@ import { getLocaleString } from "@/app/components/locale";
 import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { DiscountResponse, LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
+import { weeklyDaysLabel } from "@/utils/weekly.days";
 
 type KioskPaymentMethodFormProps = {
   itemType: 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
@@ -141,6 +142,8 @@ export const KioskPaymentMethodForm = ({
               const isSelected = policy.id === selectedPolicyId;
               const unusable = policy.usable === false;
               const label = policy.name || `${policy.lessonCount}${t('times_unit')}`;
+              // 요일이 있는 방식만 '매주 월·수'로 노출 — 없는 방식은 그 수업의 모든 회차 수강이라 미표기
+              const daysLabel = weeklyDaysLabel(policy.days, locale);
               return (
                 <button
                   key={policy.id}
@@ -156,6 +159,11 @@ export const KioskPaymentMethodForm = ({
                   <span className={`font-bold truncate max-w-full ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-black'}`} style={{ fontSize: 'min(2vw, 22px)' }}>
                     {label}
                   </span>
+                  {daysLabel && (
+                    <span className={`mt-[2px] truncate max-w-full ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`} style={{ fontSize: 'min(1.5vw, 17px)' }}>
+                      {daysLabel}
+                    </span>
+                  )}
                   <span className={`font-bold mt-[min(0.6vw,6px)] ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2.2vw, 24px)' }}>
                     {fmt(policy.price)}{t('won')}
                   </span>
