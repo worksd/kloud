@@ -4472,6 +4472,24 @@ export const StringResource = {
     jp: '受講券が正常にキャンセルされました',
     zh: '课程券已成功取消',
   },
+  lesson_admin_attend_ticket_button: {
+    ko: '출석하기',
+    en: 'Check in',
+    jp: '出席処理',
+    zh: '签到',
+  },
+  lesson_admin_attend_ticket_confirm_message: {
+    ko: '{name}님을 이 수업에 출석 처리할까요?',
+    en: 'Check {name} in to this lesson?',
+    jp: '{name}さんをこのレッスンに出席処理しますか？',
+    zh: '要将 {name} 签到此课程吗？',
+  },
+  lesson_admin_attend_ticket_success_message: {
+    ko: '출석 처리했어요',
+    en: 'Checked in',
+    jp: '出席処理しました',
+    zh: '已完成签到',
+  },
 
   // 공지사항 (AnnouncementCard / AnnouncementListClient)
   announcement_badge: {

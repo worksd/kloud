@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Trash2 } from 'lucide-react';
+import { Trash2, UserCheck } from 'lucide-react';
 import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { Locale, StringResourceKey } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 import { createDialog, DialogInfo } from '@/utils/dialog.factory';
 import { cancelTicketAction } from '@/app/lessons/[id]/action/cancel.ticket.action';
+import { markTicketUsedAction } from '@/app/lessons/[id]/action/mark.ticket.used.action';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
 import { LessonTags } from '@/app/components/LessonTags';
 
@@ -54,7 +55,7 @@ const isActionable = (status?: string) =>
 
 export function LessonStudentsListClient({
   tickets: initial,
-  lessonId: _lessonId,
+  lessonId,
   locale,
   adminType,
 }: {
@@ -64,8 +65,6 @@ export function LessonStudentsListClient({
   /** 'partner'만 수강권 취소 가능. 'artist'는 row 탭 비활성. */
   adminType: 'artist' | 'partner';
 }) {
-  void _lessonId; // 시그니처 호환용 (기능에는 미사용)
-
   const canCancel = adminType === 'partner';
 
   const [tickets, setTickets] = useState<TicketResponse[]>(initial);
@@ -82,10 +81,32 @@ export function LessonStudentsListClient({
     });
   };
 
-  // CancelTicket dialog confirm 수신. 기존 핸들러 체인 보존.
+  // CancelTicket/AttendTicket dialog confirm 수신. 기존 핸들러 체인 보존.
   useEffect(() => {
     const prev = window.onDialogConfirm;
     window.onDialogConfirm = async (data: DialogInfo) => {
+      // 출석 처리 — POST /tickets/:id/use. 성공 시 로컬 상태만 'Used'로 전환 (재fetch 없음).
+      if (data.id === 'AttendTicket' && data.customData) {
+        const ticketId = Number(data.customData);
+        if (!Number.isFinite(ticketId)) return;
+        markProcessing(ticketId, true);
+        try {
+          const res = await markTicketUsedAction(ticketId, lessonId);
+          if (isGuinnessErrorCase(res)) {
+            window.KloudEvent?.showToast?.(res.message ?? getLocaleString({ locale, key: 'kiosk_lesson_attendance_failed' }));
+            return;
+          }
+          setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, status: 'Used' } : t)));
+          const okMessage = getLocaleString({ locale, key: 'lesson_admin_attend_ticket_success_message' });
+          const successDialog = await createDialog({ id: 'Simple', message: okMessage });
+          if (successDialog && window.KloudEvent) {
+            window.KloudEvent.showDialog(JSON.stringify(successDialog));
+          }
+        } finally {
+          markProcessing(ticketId, false);
+        }
+        return;
+      }
       if (data.id === 'CancelTicket' && data.customData) {
         const ticketId = Number(data.customData);
         if (!Number.isFinite(ticketId)) return;
@@ -115,7 +136,7 @@ export function LessonStudentsListClient({
     return () => {
       window.onDialogConfirm = prev;
     };
-  }, []);
+  }, [lessonId, locale]);
 
   // sheet 열려있는 동안 body 스크롤 잠금
   useEffect(() => {
@@ -138,6 +159,22 @@ export function LessonStudentsListClient({
     if (!isActionable(ticket.status)) return;
     if (processing.has(ticket.id)) return;
     setSheetTicket(ticket);
+  };
+
+  // 출석하기 — 시트 닫고 확인 다이얼로그. confirm 수신은 위 onDialogConfirm의 'AttendTicket' 분기.
+  const onSheetAttend = async () => {
+    const t = sheetTicket;
+    if (!t) return;
+    closeSheet();
+    setTimeout(async () => {
+      const userName = formatUserName(t.user?.nickName, t.user?.name, t.user?.phone, t.user?.email);
+      const message = getLocaleString({ locale, key: 'lesson_admin_attend_ticket_confirm_message' })
+        .replace('{name}', userName);
+      const dialog = await createDialog({ id: 'AttendTicket', message, customData: String(t.id) });
+      if (dialog && window.KloudEvent) {
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      }
+    }, 220);
   };
 
   const onSheetCancel = async () => {
@@ -173,6 +210,7 @@ export function LessonStudentsListClient({
   }
 
   const cancelLabel = getLocaleString({ locale, key: 'lesson_admin_cancel_ticket_button' });
+  const attendLabel = getLocaleString({ locale, key: 'lesson_admin_attend_ticket_button' });
 
   return (
     <>
@@ -266,6 +304,17 @@ export function LessonStudentsListClient({
                 )}
               </div>
             </div>
+            {/* 출석하기 — 아직 출석 처리(Used) 전 티켓만. 시트에 오는 상태는 활성 티켓뿐이라 Used 여부만 본다. */}
+            {sheetTicket.status !== 'Used' && (
+              <button
+                type={'button'}
+                onClick={onSheetAttend}
+                className={'w-full flex items-center gap-3 px-6 py-4 active:bg-[#F7F8F9] transition-colors'}
+              >
+                <UserCheck size={20} className={'text-[#1E2124]'}/>
+                <span className={'text-[15px] font-semibold text-[#1E2124]'}>{attendLabel}</span>
+              </button>
+            )}
             <button
               type={'button'}
               onClick={onSheetCancel}
