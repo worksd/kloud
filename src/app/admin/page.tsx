@@ -1,4 +1,5 @@
 import React from 'react';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { api } from '@/app/api.client';
 import { UserType } from '@/entities/user/user.type';
@@ -11,6 +12,7 @@ import { CircleImage } from '@/app/components/CircleImage';
 import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { getLocale, translate } from '@/utils/translate';
+import { accessTokenKey } from '@/shared/cookies.key';
 import { AdminShortcuts, AdminSheetLesson } from '@/app/admin/AdminShortcuts';
 import { AdminModeNotice } from '@/app/admin/AdminModeNotice';
 import { formatLessonTimeRange } from '@/app/kiosk/kiosk.lesson';
@@ -67,6 +69,8 @@ export default async function AdminHomePage() {
   }));
 
   const adminName = ('id' in me ? (me.name || me.nickName) : undefined) ?? '';
+  // 키오스크 로그인 QR용 — 현재 관리자 토큰. 키오스크가 /kiosk?token=으로 열면 그대로 로그인된다.
+  const accessToken = (await cookies()).get(accessTokenKey)?.value ?? '';
 
   return (
     // ignoreSafeArea 풀스크린 — 상태바 영역은 safe-area 패딩으로 직접 확보 (env 미지원 웹뷰 폴백 44px)
@@ -99,7 +103,7 @@ export default async function AdminHomePage() {
       )}
 
       {/* 숏컷(출석 체크·결제 내역·수강생 등록) + 바텀시트들 */}
-      <AdminShortcuts lessons={sheetLessons} locale={locale}/>
+      <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken}/>
 
       {/* 오늘 수업 — row 탭 → 수업 상세(수강생 바텀시트에서 출석하기) */}
       <div id={'today'} className={'scroll-mt-4'}>
