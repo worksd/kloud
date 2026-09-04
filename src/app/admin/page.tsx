@@ -98,15 +98,8 @@ export default async function AdminHomePage() {
         </p>
       )}
 
-      {/* 숏컷 + 출석 체크 바텀시트 */}
-      <AdminShortcuts
-        lessons={sheetLessons}
-        labels={{
-          attendance: await translate('admin_home_shortcut_attendance'),
-          sheetTitle: await translate('admin_home_sheet_title'),
-          empty: await translate('kiosk_lesson_attendance_no_lessons'),
-        }}
-      />
+      {/* 숏컷(출석 체크·결제 내역·수강생 등록) + 바텀시트들 */}
+      <AdminShortcuts lessons={sheetLessons} locale={locale}/>
 
       {/* 오늘 수업 — row 탭 → 수업 상세(수강생 바텀시트에서 출석하기) */}
       <div id={'today'} className={'scroll-mt-4'}>

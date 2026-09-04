@@ -123,7 +123,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith('/community/') ||
     route.startsWith(KloudScreen.Kiosk) ||
     route.startsWith('/studioRooms/') ||
-    route.startsWith(KloudScreen.AdminHome) ||
+    // 관리자 홈만 풀스크린 — /admin/payments 등 하위 경로는 일반(네이티브 헤더) 페이지
+    (route === KloudScreen.AdminHome || route.startsWith(KloudScreen.AdminHome + '?')) ||
     route.includes('/profile/myPass/') ||
     // 공지사항 목록(/announcements 또는 /announcements?...)만 ignoreSafeArea.
     // 상세(/announcements/:id)는 일반 헤더 사용하도록 매칭에서 제외.

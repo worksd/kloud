@@ -139,7 +139,8 @@ export const GetRefundPreview: Endpoint<PaymentIdParameter, GetRefundPreviewResp
 export type RequestRefundRequest = {
   paymentId: string;
   reason: string;
-  requester: 'CUSTOMER';
+  /** CUSTOMER=회원 환불 신청, ADMIN=관리자(파트너) 취소 */
+  requester: 'CUSTOMER' | 'ADMIN';
 }
 
 export const RequestRefund: Endpoint<RequestRefundRequest, GetPaymentRecordResponse> = {
