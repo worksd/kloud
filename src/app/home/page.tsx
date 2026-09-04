@@ -31,6 +31,8 @@ export default async function Home({
   searchParams: Promise<{ os: string, appVersion?: string }>
 }) {
   const {os, appVersion} = await searchParams
+  // 관리자(Partner/Operator)의 /admin 랜딩은 스플래시가 담당 (GET /auth의 user.type 분기).
+  // 여기서 서버 리다이렉트하면 관리자 홈의 '일반 모드로 가기'(navigateMain → /home)와 무한 루프가 되므로 하지 않는다.
   const res = await getHomeAction()
   const hideDialogIds = await getHideDialogIdsAction()
   const locale = await getLocale()

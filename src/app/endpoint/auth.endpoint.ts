@@ -9,10 +9,12 @@ export enum SnsProvider {
 }
 
 export type GetAuthTokenParameter = object
+// GET /auth — 토큰 검사 겸 내 정보. type으로 Partner/Operator 분기 가능 (홈 진입 등).
 export type GetAuthTokenResponse = {
   id: number;
   email: string;
   status: UserStatus;
+  type?: UserType;
 }
 
 export type SnsLoginParameter = {
@@ -50,6 +52,7 @@ export type UserResponse = {
   id: number;
   email: string;
   status: UserStatus;
+  type?: UserType;
 }
 
 export type SendPhoneVerificationCodeParameter = {

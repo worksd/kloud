@@ -70,6 +70,8 @@ export const KloudScreen = {
   /** 내 스튜디오 (PC 웹) */
   MyStudio: '/myStudio',
   Search: (keyword: string) => `/search?q=${encodeURIComponent(keyword)}`,
+  // 관리자(Partner/Operator) 전용 랜딩 — 바텀 내비 없는 풀스크린으로 진입
+  AdminHome: '/admin',
 
   /** 연습실 */
   StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,

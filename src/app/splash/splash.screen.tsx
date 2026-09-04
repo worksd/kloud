@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { authToken } from "@/app/splash/auth.token.action";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { UserStatus } from "@/entities/user/user.status";
+import { UserType } from "@/entities/user/user.type";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -55,7 +56,14 @@ export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
         kloudNav.clearAndPush(KloudScreen.Onboard)
       }
       else if (status == UserStatus.Ready) {
-        await kloudNav.navigateMain({ route: resolveAppRoute(link) })
+        const appRoute = resolveAppRoute(link);
+        // 관리자(Partner/Operator)는 메인(바텀 탭) 대신 관리자 전용 화면으로.
+        // 딥링크(link)로 들어온 경우는 목적지가 명확하므로 기존 메인 플로우 유지.
+        if (!appRoute && (res.type === UserType.Partner || res.type === UserType.Operator)) {
+          kloudNav.clearAndPush(KloudScreen.AdminHome)
+          return;
+        }
+        await kloudNav.navigateMain({ route: appRoute })
       }
       else if (status == UserStatus.Deactivate) {
         kloudNav.clearAndPush(KloudScreen.LoginDeactivate)

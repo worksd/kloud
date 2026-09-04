@@ -4491,6 +4491,18 @@ export const StringResource = {
     zh: '已完成签到',
   },
 
+  // 관리자 홈 (/admin)
+  admin_home_title: { ko: '관리자 홈', en: 'Admin Home', jp: '管理者ホーム', zh: '管理员主页' },
+  admin_home_mode_notice: { ko: '관리자 모드입니다', en: 'You are in admin mode', jp: '管理者モードです', zh: '当前为管理员模式' },
+  admin_home_go_user_mode: { ko: '일반 모드로 가기', en: 'Switch to user mode', jp: '通常モードへ', zh: '切换到普通模式' },
+  admin_home_greeting: { ko: '반갑습니다, {name}님 👋', en: 'Welcome, {name} 👋', jp: 'ようこそ、{name}さん 👋', zh: '欢迎，{name} 👋' },
+  admin_home_sheet_title: { ko: '오늘 진행되는 수업', en: "Today's lessons", jp: '本日のレッスン', zh: '今日课程' },
+  admin_home_shortcut_attendance: { ko: '오늘 수업 출석 체크', en: "Today's check-in", jp: '本日の出席チェック', zh: '今日课程签到' },
+  admin_home_shortcut_timetable: { ko: '주간 시간표', en: 'Weekly timetable', jp: '週間時間割', zh: '每周课表' },
+  admin_home_shortcut_studio: { ko: '스튜디오 페이지', en: 'Studio page', jp: 'スタジオページ', zh: '工作室页面' },
+  admin_home_today_title: { ko: '오늘 수업', en: "Today's lessons", jp: '本日のレッスン', zh: '今日课程' },
+  admin_home_no_studio: { ko: '연결된 스튜디오가 없어요.\n계정 설정을 확인해주세요.', en: 'No studio linked to this account.', jp: '連携されたスタジオがありません。', zh: '此账号未关联工作室。' },
+
   // 공지사항 (AnnouncementCard / AnnouncementListClient)
   announcement_badge: {
     ko: '공지',
