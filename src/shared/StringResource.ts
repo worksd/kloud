@@ -4490,6 +4490,60 @@ export const StringResource = {
     jp: '出席処理しました',
     zh: '已完成签到',
   },
+  lesson_admin_cancel_lesson_button: {
+    ko: '수업 취소하기',
+    en: 'Cancel lesson',
+    jp: 'レッスンをキャンセル',
+    zh: '取消课程',
+  },
+  lesson_admin_cancel_lesson_warning: {
+    ko: '수강생 {count}명이 취소·환불되고 알림톡이 발송돼요. 되돌릴 수 없어요.',
+    en: '{count} student(s) will be cancelled and refunded, and notified. This cannot be undone.',
+    jp: '受講生{count}名がキャンセル・返金され、通知が送られます。元に戻せません。',
+    zh: '将取消并退款 {count} 名学员，并发送通知。此操作无法撤销。',
+  },
+  lesson_admin_cancel_lesson_kiosk_notice: {
+    ko: '키오스크 카드결제 건은 바로 취소되지 않고 환불 대기로 남아요. 환불은 키오스크에서 마무리해주세요.',
+    en: 'Kiosk card payments remain pending refund — complete the refund at the kiosk.',
+    jp: 'キオスクのカード決済は返金待ちとして残ります。返金はキオスクで完了してください。',
+    zh: '自助机刷卡的订单将保留为待退款状态，请在自助机上完成退款。',
+  },
+  lesson_admin_cancel_lesson_reason_label: {
+    ko: '취소 사유',
+    en: 'Cancellation reason',
+    jp: 'キャンセル理由',
+    zh: '取消原因',
+  },
+  lesson_admin_cancel_lesson_reason_placeholder: {
+    ko: '예: 강사 사정으로 휴강',
+    en: 'e.g. Instructor unavailable',
+    jp: '例：講師の都合により休講',
+    zh: '例：因老师原因停课',
+  },
+  lesson_admin_cancel_lesson_reason_notice: {
+    ko: '사유는 수강생 알림톡에 그대로 나가요',
+    en: 'The reason is sent to students as-is',
+    jp: '理由はそのまま受講生に通知されます',
+    zh: '原因将原样发送给学员',
+  },
+  lesson_admin_cancel_lesson_reason_required: {
+    ko: '취소 사유를 입력해주세요',
+    en: 'Please enter a reason',
+    jp: 'キャンセル理由を入力してください',
+    zh: '请输入取消原因',
+  },
+  lesson_admin_cancel_lesson_ended_error: {
+    ko: '이미 끝난 수업은 취소할 수 없어요',
+    en: 'A lesson that has already ended cannot be cancelled',
+    jp: 'すでに終了したレッスンはキャンセルできません',
+    zh: '已结束的课程无法取消',
+  },
+  lesson_admin_cancel_lesson_success_message: {
+    ko: '수업이 취소되었어요',
+    en: 'Lesson cancelled',
+    jp: 'レッスンがキャンセルされました',
+    zh: '课程已取消',
+  },
 
   // 관리자 홈 (/admin)
   admin_home_title: { ko: '관리자 홈', en: 'Admin Home', jp: '管理者ホーム', zh: '管理员主页' },

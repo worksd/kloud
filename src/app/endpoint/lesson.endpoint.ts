@@ -295,6 +295,22 @@ export const ListStudioLessonsByDate: Endpoint<GetStudioLessonsByDateParameter, 
     queryParams: ['studioId', 'date', 'startDate', 'endDate', 'isAdmin']
 }
 
+// 수업 회차 취소 — POST /lessons/:id/cancel (BE 가이드 2026-09-04).
+// 수강생 전원 취소·환불 + 알림톡 발송. reason은 수강생 알림톡에 그대로 노출된다.
+// 주의: 키오스크 카드결제 건은 Cancelled가 아닌 CancelPending(환불 대기)으로 남는다 — 키오스크에서 환불해야 완료.
+// 이미 끝난 수업은 LESSON_ALREADY_ENDED. (보강 이동 makeUp* 파라미터는 의도적으로 미지원 — 필요해지면 추가)
+export type CancelLessonParameter = {
+  id: number;
+  reason: string;
+}
+
+export const CancelLesson: Endpoint<CancelLessonParameter, GetLessonResponse> = {
+  method: 'post',
+  path: (e) => `/lessons/${e.id}/cancel`,
+  pathParams: ['id'],
+  bodyParams: ['reason'],
+}
+
 export const CheckCapacity: Endpoint<CheckTicketCapacityParameter, SimpleResponse> = {
     method: 'get',
     path: (e) => `/lessons/${e.lessonId}/capacity-check`
