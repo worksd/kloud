@@ -127,6 +127,11 @@ export abstract class EndpointClient {
     defaultHeaders["x-guinness-locale"] = (await cookies()).get(localeKey)?.value ?? "ko";
     // proxy.ts에서 세팅한 진입 경로 — API 호출이 발생한 페이지 pathname
     defaultHeaders["x-guinness-entry"] = nextHeaders.get("x-guinness-entry")?.valueOf() ?? "";
+    // 유저의 실제 IP — Vercel이 x-forwarded-for에 실어준다 (여러 hop이면 맨 앞이 클라이언트).
+    // 로컬 dev에선 ::1/127.0.0.1이 잡히고, 못 구하면 헤더 자체를 안 보낸다.
+    const forwardedFor = nextHeaders.get("x-forwarded-for");
+    const clientIp = forwardedFor?.split(",")[0]?.trim() || nextHeaders.get("x-real-ip") || "";
+    if (clientIp) defaultHeaders["x-guinness-ip"] = clientIp;
     return defaultHeaders;
   }
 
