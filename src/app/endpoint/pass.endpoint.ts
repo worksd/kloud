@@ -167,7 +167,8 @@ export type GetPassPlanResponse = {
   isPopular: boolean,
   usageLimit?: number,
   expireDateStamp?: string,
-  type: 'Count' | 'Unlimited',
+  /** Count=횟수제, Unlimited=무제한, Dedicated=전용반(특정 수업 등록형). ⚠️ Dedicated 값 문자열은 BE 확정 대기. */
+  type: 'Count' | 'Unlimited' | 'Dedicated',
   tier: PassPlanTier,
   tag?: string,
   canPreSale?: boolean,

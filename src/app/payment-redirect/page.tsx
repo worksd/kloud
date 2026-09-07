@@ -9,13 +9,14 @@ export default async function PaymentRedirectPage({searchParams}:
                                                         type: string,
                                                         paymentId: string,
                                                         id: number,
+                                                        lessonId?: string,
                                                         code?: string,
                                                         message?: string
                                                       }>
                                                     }
 ) {
 
-  const {paymentId, code, message} = await searchParams;
+  const {paymentId, lessonId, code, message} = await searchParams;
   const Message = ({ text }: { text: string }) => (
     <div className="w-full min-h-screen flex items-center justify-center px-6 text-center bg-white">
       <p className="text-[16px] text-[#4E5968] whitespace-pre-line leading-relaxed">{text}</p>
@@ -30,7 +31,10 @@ export default async function PaymentRedirectPage({searchParams}:
   }
   await new Promise(resolve => setTimeout(resolve, 4000)); // 이 코드 없으면 갱신안됨 (서버 반영 대기)
   const res = await getPaymentRecordDetail({paymentId: paymentId});
-  const route = 'paymentId' in res ? KloudScreen.PaymentRecordDetail(paymentId) : null
+  // 결제수단과 무관하게 영수증 대신 환영 화면(결제완료)으로 — lessonId는 있으면 감성 섹션용
+  const route = 'paymentId' in res
+    ? KloudScreen.PaymentComplete(paymentId, lessonId && /^\d+$/.test(lessonId) ? Number(lessonId) : undefined)
+    : null
   if (route) redirect(route)
   return <Message text={`잘못된 결제 ID입니다. (ID: ${paymentId})`} />
 }

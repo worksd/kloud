@@ -160,7 +160,8 @@ export default function PaymentButton({
       // 결제 성공 → lesson detail 캐시 무효화 (티켓 보유 반영된 fresh 응답 받도록)
       if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
       await new Promise((r) => setTimeout(r, delay));
-      const pushRoute = KloudScreen.PaymentRecordDetail(paymentId);
+      // 어떤 결제수단이든 영수증 대신 환영 화면(결제완료)으로 — lessonId는 있으면 감성 섹션용
+      const pushRoute = KloudScreen.PaymentComplete(paymentId, targetLessonId);
       const isWeb = !appVersion?.trim();
       if (isWeb) {
         const href = '/' + String(pushRoute).replace(/^\/+/, '');
@@ -218,7 +219,7 @@ export default function PaymentButton({
         })
         if ('paymentId' in res) {
           if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
-          const route = KloudScreen.PaymentRecordDetail(res.paymentId)
+          const route = KloudScreen.PaymentComplete(res.paymentId, targetLessonId)
           if (appVersion == '' && route) {
             router.replace(route)
           } else {
@@ -317,7 +318,7 @@ export default function PaymentButton({
           if (dialog) setWebDialogInfo(dialog);
           return;
         }
-        router.push(`/payment-redirect?paymentId=${paymentInfo.paymentId}`);
+        router.push(`/payment-redirect?paymentId=${paymentInfo.paymentId}${targetLessonId != null ? `&lessonId=${targetLessonId}` : ''}`);
         return;
       }
 
@@ -545,12 +546,13 @@ export default function PaymentButton({
         })
         if ('success' in res && res.success) {
           if (isLessonPurchase && targetLessonId != null) purgeLessonCache(targetLessonId);
-          // 웹은 결제 결과 검증 핸들러(/payment-redirect)로, 네이티브는 결제상세로.
+          // 웹은 결제 결과 검증 핸들러(/payment-redirect)로, 네이티브는 결제완료 화면으로.
           if (appVersion == '') {
-            router.push(`/payment-redirect?paymentId=${paymentId}`);
+            const lessonQuery = targetLessonId != null ? `&lessonId=${targetLessonId}` : '';
+            router.push(`/payment-redirect?paymentId=${paymentId}${lessonQuery}`);
           } else {
             await new Promise(resolve => setTimeout(resolve, 2000));
-            await kloudNav.navigateMain({ route: KloudScreen.PaymentRecordDetail(paymentId) });
+            await kloudNav.navigateMain({ route: KloudScreen.PaymentComplete(paymentId, targetLessonId) });
           }
         } else if (isGuinnessErrorCase(res)) {
           await showFail(res.message);

@@ -35,6 +35,8 @@ export type GetPaymentRecordResponse = {
   discounts?: DiscountResponse[];
   /** 번들(paymentId가 BD로 시작) 결제일 때 구성된 수강권 목록. 그 외 결제에선 빈 배열 또는 미포함. */
   tickets?: BundleTicketResponse[];
+  /** 패스권(LP) 결제일 때 플랜 요약 — type으로 전용반(Dedicated)/일반(Count·Unlimited)을 가른다. BE 추가 예정. */
+  passPlan?: { id?: number; name?: string; type?: 'Count' | 'Unlimited' | 'Dedicated' };
 }
 
 export type BundleTicketResponse = {
