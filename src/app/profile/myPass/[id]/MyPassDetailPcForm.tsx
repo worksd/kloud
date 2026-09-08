@@ -9,11 +9,15 @@ import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.s
 import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
 import { PassBenefitList } from "@/app/profile/myPass/[id]/PassBenefitList";
+import { PassQRCode } from "@/app/profile/myPass/[id]/PassQRCode";
+import { resolvePassQrValue } from "@/app/profile/myPass/[id]/pass.qr";
 
 export const MyPassDetailPcForm = async ({pass}: { pass: GetPassResponse }) => {
   const passPlan = pass.passPlan;
   const passRules = pass.passRules ?? [];
   const passFeatures = pass.passFeatures ?? [];
+  // QR — 기한이 남은 패스만 (모바일과 동일 규칙)
+  const qrValue = resolvePassQrValue(pass);
 
   return (
     <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
@@ -46,13 +50,21 @@ export const MyPassDetailPcForm = async ({pass}: { pass: GetPassResponse }) => {
                     </svg>
                   </div>
                 )}
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h1 className="text-[20px] font-bold text-black truncate">{passPlan?.name}</h1>
                     {passPlan?.tier === PassPlanTier.Premium && <PremiumTierIcon className="flex-shrink-0" />}
                   </div>
                   <span className="text-[13px] text-[#86898C]">{passPlan?.studio?.name}</span>
                 </div>
+                {/* QR — 조그맣게, 클릭하면 확대(fade in/out) */}
+                {qrValue && (
+                  <PassQRCode
+                    url={qrValue}
+                    hint={await translate('pass_qr_scan_hint')}
+                    closeLabel={await translate('confirm')}
+                  />
+                )}
               </div>
 
               {/* 이용기한 — 그래디언트 위라 살짝 반투명한 흰색으로 */}

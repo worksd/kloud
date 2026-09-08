@@ -126,11 +126,19 @@ const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, durati
     jp: (_v, _d, win) => win ? `${win}無制限で利用できます` : '無制限で利用できます',
     zh: (_v, _d, win) => win ? `${win}可以无限使用` : '可以无限使用',
   },
+  // 횟수제 — value가 없으면(횟수 제한 없음) '0회'가 아니라 횟수 없는 문구로
   FreeCount: {
-    ko: (v) => `${v ?? 0}회 수강할 수 있어요`,
-    en: (v) => `can be used ${v ?? 0} times`,
-    jp: (v) => `${v ?? 0}回受講できます`,
-    zh: (v) => `可以使用${v ?? 0}次`,
+    ko: (v) => v != null ? `${v}회 수강할 수 있어요` : '수강할 수 있어요',
+    en: (v) => v != null ? `can be used ${v} times` : 'can be attended',
+    jp: (v) => v != null ? `${v}回受講できます` : '受講できます',
+    zh: (v) => v != null ? `可以使用${v}次` : '可以上课',
+  },
+  // 수업 수강권 — BE benefitType 'Lesson'. value(횟수) 있으면 N회, 없으면 기간 내 제한 없이 수강.
+  Lesson: {
+    ko: (v) => v != null ? `${v}회 수강할 수 있어요` : '수강할 수 있어요',
+    en: (v) => v != null ? `can be attended ${v} times` : 'can be attended',
+    jp: (v) => v != null ? `${v}回受講できます` : '受講できます',
+    zh: (v) => v != null ? `可以上课${v}次` : '可以上课',
   },
   UnlimitedDay: {
     ko: (v, d) => `${d ?? 0}일 중 ${v ?? 0}일을 골라 원하는 수업을 수강할 수 있어요`,
@@ -197,7 +205,8 @@ const ALL_TARGET_DISCOUNT: Record<Locale, string> = {
 };
 
 export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale = 'ko', passName?: string): string => {
-  const isAllDiscount = rule.target.type === 'All' && rule.benefit.type === 'Discount';
+  // 전체 대상 할인/수강은 '수업을' 대신 '모든 수업을'로 — "모든 수업을 수강할 수 있어요 (단, 워크샵 제외)"
+  const isAllDiscount = rule.target.type === 'All' && (rule.benefit.type === 'Discount' || rule.benefit.type === 'Lesson');
   const targetFn = RULE_TARGET[rule.target.type] ?? RULE_TARGET['All'];
   const targetText = isAllDiscount
     ? ALL_TARGET_DISCOUNT[locale]

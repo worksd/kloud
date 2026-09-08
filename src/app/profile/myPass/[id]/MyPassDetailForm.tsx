@@ -8,11 +8,16 @@ import PremiumTierIcon from "../../../../../public/assets/ic_premium_pass_plan.s
 import { CircleImage } from "@/app/components/CircleImage";
 import React from "react";
 import { PassBenefitList } from "@/app/profile/myPass/[id]/PassBenefitList";
+import { PassQRCode } from "@/app/profile/myPass/[id]/PassQRCode";
+import { resolvePassQrValue } from "@/app/profile/myPass/[id]/pass.qr";
 
 export const MyPassDetailForm = async ({pass}: { pass: GetPassResponse }) => {
   const passPlan = pass.passPlan;
   const passRules = pass.passRules ?? [];
   const passFeatures = pass.passFeatures ?? [];
+
+  // QR 값 — 기한이 남은(Active + 종료일 미경과) 패스만. 규칙은 pass.qr.ts 참고
+  const qrValue = resolvePassQrValue(pass);
 
   return (
     <div
@@ -58,14 +63,14 @@ export const MyPassDetailForm = async ({pass}: { pass: GetPassResponse }) => {
             </div>
           </div>
 
-          {/* QR 코드 */}
-          {/* QR 코드 - 추후 재사용 예정
-          {pass.qrcodeUrl && pass.status === 'Active' && (
-            <div className="flex-shrink-0 rounded-xl overflow-hidden bg-white p-1.5 shadow-sm border border-[#E8E8E8]">
-              <PassQRCode url={pass.qrcodeUrl} />
-            </div>
+          {/* QR — 기한이 남은(Active + 종료일 미경과) 패스만. 조그맣게, 탭하면 확대(fade in/out) */}
+          {qrValue && (
+            <PassQRCode
+              url={qrValue}
+              hint={await translate('pass_qr_scan_hint')}
+              closeLabel={await translate('confirm')}
+            />
           )}
-          */}
         </div>
 
         {/* 이용기한 — 그래디언트 위라 살짝 반투명한 흰색으로 */}

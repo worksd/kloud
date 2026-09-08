@@ -28,7 +28,8 @@ const featureIcon = (key: string) => {
 const ruleBenefitIcon = (benefitType: string) => {
   switch (benefitType) {
     case 'Unlimited': return <UnlimitedIcon />;
-    case 'FreeCount': return <FreeUnlimitedIcon />;
+    case 'FreeCount':
+    case 'Lesson': return <FreeUnlimitedIcon />;
     case 'Discount': return <DiscountIcon />;
     case 'TimeHours': return <PassRoomIcon />;
     default: return <UnlimitedIcon />;
