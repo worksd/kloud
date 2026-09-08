@@ -8,6 +8,7 @@ import { kloudNav } from "@/app/lib/kloudNav";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { DdayText } from "@/app/components/DdayText";
+import { PassListRow } from "@/app/profile/myPass/PassListRow";
 
 export const PassColumnList = ({
                                  passItems,
@@ -19,14 +20,11 @@ export const PassColumnList = ({
   locale: Locale,
 }) => {
   if (passItems && passItems.length > 0) {
+    // 수강 내역과 같은 리스트 행 — 얇은 구분선. (카드형 ActivePassItem은 스튜디오 PassRowList 전용으로 유지)
     return (
-      <div className="flex flex-col gap-3 py-4">
+      <div className="flex flex-col divide-y divide-[#F2F4F6]">
         {passItems.map((item) => (
-          <ActivePassItem
-            key={item.id}
-            pass={item}
-            locale={locale}
-          />
+          <PassListRow key={item.id} pass={item} locale={locale}/>
         ))}
       </div>
     )
