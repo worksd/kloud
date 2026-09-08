@@ -229,7 +229,7 @@ export const PaymentRecordDetailForm = async ({paymentRecord, locale}: {
             <div className="flex items-center justify-between">
               <span className="text-[14px] font-medium text-black">{await translate('payment_method')}</span>
               <span className="text-[14px] font-medium text-[#191f28]">
-              <PaymentMethodLabel paymentMethod={paymentRecord.paymentMethodLabel}/>
+              <PaymentMethodLabel paymentMethod={paymentRecord.paymentMethodLabel} methodType={paymentRecord.methodType}/>
             </span>
             </div>
 

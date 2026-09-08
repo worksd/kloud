@@ -2,77 +2,47 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GetPaymentRecordResponse } from "@/app/endpoint/payment.record.endpoint";
-import { GetSubscriptionResponse } from "@/app/endpoint/subscription.endpoint";
 import { PaymentRecordItem } from "@/app/paymentRecords/PaymentRecordItem";
 import { getPaymentRecordsAction } from "@/app/paymentRecords/get.payment.records.action";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { KloudScreen } from "@/shared/kloud.screen";
+import { parsePaymentDate } from "@/app/paymentRecords/payment.date";
 import BackArrowIcon from "../../../public/assets/ic_back_arrow.svg";
 
 type Props = {
   initialRecords: GetPaymentRecordResponse[];
-  subscriptions: GetSubscriptionResponse[];
   locale: Locale;
   noRecordsMessage: string;
 };
 
 export const PaymentRecordTabClient = ({
   initialRecords,
-  subscriptions,
   locale,
   noRecordsMessage,
 }: Props) => {
-  const [activeTab, setActiveTab] = useState<'records' | 'upcoming'>('records');
-
   const handleBack = () => {
     (window as any).KloudEvent?.back();
   };
 
+  // '다가오는 결제' 탭은 제거 — 예약 결제는 프로필 > 예약 결제(/profile/mySubscription)에서 관리
   return (
     <div className="w-full h-screen bg-white flex flex-col box-border">
-      {/* Header: Back Arrow + Tabs */}
-      <div className="flex flex-row items-center gap-4 px-5 pt-4 pb-3 flex-shrink-0">
-        <button onClick={handleBack} className="flex items-center justify-start flex-shrink-0">
-          <BackArrowIcon className="w-6 h-6 text-black"/>
+      {/* Header: Back Arrow + Title */}
+      <div className="flex flex-row items-center gap-3 px-5 pt-4 pb-3 flex-shrink-0">
+        <button onClick={handleBack} className="flex items-center justify-start flex-shrink-0 -ml-1 p-1">
+          <BackArrowIcon className="w-6 h-6 text-[#191F28]"/>
         </button>
-        <button
-          onClick={() => setActiveTab('records')}
-          className={`transition-all duration-300 ${
-            activeTab === 'records'
-              ? 'text-[20px] text-black font-bold'
-              : 'text-[16px] text-gray-400 font-medium'
-          }`}
-        >
+        <span className="text-[20px] text-[#191F28] font-bold tracking-[-0.4px]">
           {getLocaleString({ locale, key: 'payment_records' })}
-        </button>
-        <button
-          onClick={() => setActiveTab('upcoming')}
-          className={`transition-all duration-300 ${
-            activeTab === 'upcoming'
-              ? 'text-[20px] text-black font-bold'
-              : 'text-[16px] text-gray-400 font-medium'
-          }`}
-        >
-          {getLocaleString({ locale, key: 'upcoming_payments' })}
-        </button>
+        </span>
       </div>
 
-      {/* Tab Content */}
       <div className="flex-1 overflow-auto">
-        {activeTab === 'records' ? (
-          <PaymentRecordListContent
-            initialRecords={initialRecords}
-            locale={locale}
-            noRecordsMessage={noRecordsMessage}
-          />
-        ) : (
-          <UpcomingPaymentsContent
-            subscriptions={subscriptions}
-            locale={locale}
-          />
-        )}
+        <PaymentRecordListContent
+          initialRecords={initialRecords}
+          locale={locale}
+          noRecordsMessage={noRecordsMessage}
+        />
       </div>
     </div>
   );
@@ -134,21 +104,40 @@ export const PaymentRecordListContent = ({
 
   if (records.length === 0) {
     return (
-      <div className="text-black items-center text-center mt-40 font-medium">
+      <div className="min-h-[400px] flex items-center justify-center p-4 text-[14px] text-[#8B95A1] text-center">
         {noRecordsMessage}
       </div>
     );
   }
 
+  // 날짜별 그룹 — 서버가 최신순으로 내려주므로 연속 구간을 같은 날짜로 묶는다. 헤더는 '오늘/어제/9월 8일 (화)'
+  const groups: { key: string; label: string; items: GetPaymentRecordResponse[] }[] = [];
+  for (const r of records) {
+    const parsed = parsePaymentDate(r.createdAt, locale);
+    const key = parsed?.dateKey ?? '-';
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.items.push(r);
+    else groups.push({ key, label: parsed?.dateLabel ?? (r.createdAt ?? ''), items: [r] });
+  }
+
   return (
     <>
       <div className="flex flex-col mb-8">
-        {records.map((paymentRecord) => (
-          <PaymentRecordItem
-            key={paymentRecord.paymentId}
-            paymentRecord={paymentRecord}
-            locale={locale}
-          />
+        {groups.map((g) => (
+          <section key={g.key}>
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-5 pt-4 pb-1.5">
+              <h3 className="text-[13px] font-bold text-[#8B95A1] tracking-[-0.2px]">{g.label}</h3>
+            </div>
+            <div className="flex flex-col">
+              {g.items.map((paymentRecord) => (
+                <PaymentRecordItem
+                  key={paymentRecord.paymentId}
+                  paymentRecord={paymentRecord}
+                  locale={locale}
+                />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
 
@@ -158,48 +147,5 @@ export const PaymentRecordListContent = ({
         )}
       </div>
     </>
-  );
-};
-
-// PC 웹(프로필 셸)에서도 재사용
-export const UpcomingPaymentsContent = ({
-  subscriptions,
-  locale,
-}: {
-  subscriptions: GetSubscriptionResponse[];
-  locale: Locale;
-}) => {
-  const activeSubscriptions = subscriptions.filter(sub => sub.status === 'Active');
-
-  if (activeSubscriptions.length === 0) {
-    return (
-      <div className="text-black items-center text-center mt-40 font-medium">
-        {getLocaleString({ locale, key: 'no_upcoming_payments' })}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3 px-4 pt-2">
-      {activeSubscriptions.map((sub) => (
-        <NavigateClickWrapper
-          key={sub.subscriptionId}
-          method={'push'}
-          route={KloudScreen.MySubscriptionDetail(sub.subscriptionId)}
-        >
-          <div className="rounded-2xl bg-[#F7F8F9] p-4 active:scale-[0.98] transition-all duration-150">
-            {sub.studio && (
-              <span className="text-[12px] text-[#86898C] font-medium">{sub.studio.name}</span>
-            )}
-            <h2 className="text-[16px] font-bold text-black mt-1">{sub.productName}</h2>
-            {sub.paymentScheduledAt && (
-              <span className="text-[13px] text-[#AEAEAE] font-medium mt-1.5 block">
-                {getLocaleString({ locale, key: 'payment_record_scheduled' })} {sub.paymentScheduledAt}
-              </span>
-            )}
-          </div>
-        </NavigateClickWrapper>
-      ))}
-    </div>
   );
 };

@@ -189,7 +189,7 @@ export const PaymentRecordDetailPcForm = async ({paymentRecord, locale}: {
               </Row>
             )}
             <Row label={await translate('payment_method')}>
-              <PaymentMethodLabel paymentMethod={paymentRecord.paymentMethodLabel}/>
+              <PaymentMethodLabel paymentMethod={paymentRecord.paymentMethodLabel} methodType={paymentRecord.methodType}/>
             </Row>
             {paymentRecord.methodType === 'credit' ? (
               <Row label={await translate('card_information')}>{formatCardNumber(paymentRecord.cardNumber)}</Row>
