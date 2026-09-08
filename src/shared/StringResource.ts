@@ -4572,7 +4572,7 @@ export const StringResource = {
   payment_complete_greeting_name_fallback: { ko: '회원', en: 'you', jp: '会員', zh: '会员' },
   payment_complete_together: { ko: '총 {count}명의 수강생과 함께해요', en: 'You’ll be dancing with {count} students', jp: '合計{count}名の受講生と一緒です', zh: '将与共 {count} 名学员一起上课' },
   payment_complete_prepare_title: { ko: '만나기 전에 준비하면 좋아요', en: 'Good to prepare before class', jp: '会う前に準備しておくと良いこと', zh: '上课前的准备' },
-  payment_complete_next_lessons_title: { ko: '{artist}님의 다음 수업', en: 'Next lessons by {artist}', jp: '{artist}さんの次のレッスン', zh: '{artist}的下一节课' },
+  payment_complete_next_lessons_title: { ko: '{artist}님의 다가오는 수업', en: 'Upcoming lessons by {artist}', jp: '{artist}さんの今後のレッスン', zh: '{artist}的即将开课' },
   payment_complete_videos_title: { ko: '{artist}님의 영상', en: 'Videos by {artist}', jp: '{artist}さんの動画', zh: '{artist}的视频' },
   payment_complete_videos_desc: { ko: '지난 수업 영상 보러 가기', en: 'Watch previous lesson videos', jp: '過去のレッスン動画を見る', zh: '观看往期课程视频' },
   payment_complete_bank_account: { ko: '입금 계좌', en: 'Bank account', jp: '振込口座', zh: '汇款账户' },

@@ -126,6 +126,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     // 관리자 홈만 풀스크린 — /admin/payments 등 하위 경로는 일반(네이티브 헤더) 페이지
     (route === KloudScreen.AdminHome || route.startsWith(KloudScreen.AdminHome + '?')) ||
     route.includes('/profile/myPass/') ||
+    // 결제 완료 환영 화면 — 썸네일이 상태바까지 풀블리드로 깔린다
+    route.startsWith('/payment-complete') ||
     // 공지사항 목록(/announcements 또는 /announcements?...)만 ignoreSafeArea.
     // 상세(/announcements/:id)는 일반 헤더 사용하도록 매칭에서 제외.
     (route === '/announcements' || route.startsWith('/announcements?'))
