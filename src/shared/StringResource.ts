@@ -918,6 +918,36 @@ export const StringResource = {
     jp: "予定されているレッスン",
     zh: "即将到来的课程"
   },
+  pass_qr_scan_hint: {
+    ko: "QR을 스캔해서 패스권을 사용해요",
+    en: "Scan this QR to use your pass",
+    jp: "QRをスキャンしてパスを使用",
+    zh: "扫描二维码使用通行证"
+  },
+  scheduled_payments: {
+    ko: "예약 결제",
+    en: "Scheduled payments",
+    jp: "予約決済",
+    zh: "预约支付"
+  },
+  no_scheduled_payments: {
+    ko: "예약된 결제가 없어요",
+    en: "No scheduled payments",
+    jp: "予約された決済はありません",
+    zh: "暂无预约支付"
+  },
+  start_scheduled: {
+    ko: "시작 예정",
+    en: "starts",
+    jp: "開始予定",
+    zh: "即将开始"
+  },
+  past_lessons: {
+    ko: "지난 수업",
+    en: "Past Lessons",
+    jp: "過去のレッスン",
+    zh: "过去的课程"
+  },
   upcoming_lesson: {
     ko: "다음 예정 수업",
     en: "Next Upcoming Lesson",
