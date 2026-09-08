@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import QRScanner from '@/app/components/QRScanner';
-import { useAction } from '@/app/qrs/use.action';
+import { toUsedAction } from '@/app/qrs/use.action';
+import { markPassUsedAction } from '@/app/qrs/mark.pass.used.action';
 import { GetLessonResponse, LessonStatus } from '@/app/endpoint/lesson.endpoint';
 import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
@@ -140,13 +141,20 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
   const lastScanTime = useRef<number>(0);
   const successTicketIds = useRef<Set<number>>(new Set([]));
 
-  const parseTicketParams = useCallback((urlStr: string): { ticketId: number; expiredAt?: string } | null => {
+  // QR 스캔값 파싱 — 수강권 QR(willUseTicketId) 또는 패스권 QR(willUsePassId). 둘 다 expiredAt 동반.
+  // 패스권 QR은 BE qrcodeUrl 규약(willUsePassId). 예전 표기 willTargetPassId도 허용.
+  type QrParams =
+    | { kind: 'ticket'; ticketId: number; expiredAt?: string }
+    | { kind: 'pass'; passId: number; expiredAt?: string };
+  const parseQrParams = useCallback((urlStr: string): QrParams | null => {
     try {
       const url = new URL(urlStr);
-      const id = url.searchParams.get('willUseTicketId');
-      const expiredAt = url.searchParams.get('expiredAt');
-      if (!id || !/^\d+$/.test(id)) return null;
-      return { ticketId: Number(id), expiredAt: expiredAt || undefined };
+      const expiredAt = url.searchParams.get('expiredAt') || undefined;
+      const ticketId = url.searchParams.get('willUseTicketId');
+      if (ticketId && /^\d+$/.test(ticketId)) return { kind: 'ticket', ticketId: Number(ticketId), expiredAt };
+      const passId = url.searchParams.get('willUsePassId') ?? url.searchParams.get('willTargetPassId');
+      if (passId && /^\d+$/.test(passId)) return { kind: 'pass', passId: Number(passId), expiredAt };
+      return null;
     } catch {
       return null;
     }
@@ -188,7 +196,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
         return;
       }
 
-      const params = parseTicketParams(decodedText);
+      const params = parseQrParams(decodedText);
       console.log('[QR] 파라미터 파싱:', params);
 
       if (!params) {
@@ -201,11 +209,23 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
         return;
       }
 
-      const { ticketId, expiredAt } = params;
+      // 패스권 QR은 어느 수업에 쓸지 알아야 하므로 수업 선택이 필수
+      if (params.kind === 'pass' && !lesson?.id) {
+        const dialog = await createDialog({
+          id: 'Simple',
+          title: '알림',
+          message: '패스권 QR은 수업을 먼저 선택한 뒤 스캔해주세요.',
+        });
+        if (dialog && window.KloudEvent) {
+          window.KloudEvent.showDialog(JSON.stringify(dialog));
+        }
+        lastScanTime.current = Date.now();
+        return;
+      }
 
-      // 이미 성공한 ticketId면 아무것도 하지 않고 return
-      if (successTicketIds.current.has(ticketId)) {
-        console.log('[QR] 이미 출석 완료된 티켓:', ticketId);
+      // 수강권 QR: 이미 성공한 ticketId면 아무것도 하지 않고 return (패스 QR은 발급된 티켓 id를 알기 전이라 판단 불가)
+      if (params.kind === 'ticket' && successTicketIds.current.has(params.ticketId)) {
+        console.log('[QR] 이미 출석 완료된 티켓:', params.ticketId);
         return;
       }
 
@@ -214,14 +234,43 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
       setLoading(true);
       setResultState('idle');
       setResultMessage('');
-      console.log('[QR] 로딩 시작, API 호출:', { ticketId, expiredAt, lessonId: lesson?.id });
+      console.log('[QR] 로딩 시작, API 호출:', { ...params, lessonId: lesson?.id });
 
       try {
-        const result = await useAction({
-          ticketId,
-          expiredAt,
-          lessonId: lesson?.id,
-        });
+        let ticketId: number;
+        let result: Awaited<ReturnType<typeof toUsedAction>>;
+
+        if (params.kind === 'pass') {
+          // 1단계: 패스권 사용 → 이 수업 티켓 발급 (POST /passes/:id/use)
+          const issued = await markPassUsedAction({ passId: params.passId, lessonId: lesson!.id });
+          console.log('[QR] 패스 사용 응답:', issued);
+          if ('message' in issued) {
+            const dialog = await createDialog({
+              id: 'Simple',
+              title: '알림',
+              message: issued.message || '패스권 사용에 실패했습니다.',
+            });
+            if (dialog && window.KloudEvent) {
+              window.KloudEvent.showDialog(JSON.stringify(dialog));
+            }
+            return;
+          }
+          ticketId = issued.id;
+          // 이미 출석까지 끝난 티켓이 돌아오면(중복 스캔) 그대로 성공 처리
+          if (issued.status === 'Used' || successTicketIds.current.has(ticketId)) {
+            result = issued;
+          } else {
+            // 2단계: 발급된 티켓으로 바로 출석 처리 (POST /tickets/:id/use)
+            result = await toUsedAction({ ticketId, lessonId: lesson!.id });
+          }
+        } else {
+          ticketId = params.ticketId;
+          result = await toUsedAction({
+            ticketId,
+            expiredAt: params.expiredAt,
+            lessonId: lesson?.id,
+          });
+        }
 
         console.log('[QR] API 응답:', result);
         console.log('[QR] result 타입:', typeof result);
@@ -242,9 +291,11 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
           // 성공 응답 - ticketId 저장
           successTicketIds.current.add(ticketId);
 
-          // 수강권 목록에서 해당 티켓 상태 업데이트
+          // 수강권 목록에서 해당 티켓 상태 업데이트 — 패스로 방금 발급된 티켓은 목록에 없으니 맨 위에 추가
           setStudentTickets(prev =>
-            prev.map(t => t.id === ticketId ? { ...t, status: 'Used' } : t)
+            prev.some(t => t.id === ticketId)
+              ? prev.map(t => t.id === ticketId ? { ...t, status: 'Used' } : t)
+              : [{ ...result, status: 'Used' }, ...prev]
           );
 
           const userName = formatUserName(result.user?.nickName, result.user?.name, result.user?.phone, result.user?.email);
@@ -301,7 +352,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
         }, 3000);
       }
     },
-    [parseTicketParams, lesson?.id, successDialog]
+    [parseQrParams, lesson?.id, successDialog]
   );
 
   const pendingTicketRef = useRef<TicketResponse | null>(null);
@@ -329,7 +380,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
   const processAttendance = useCallback(async (ticket: TicketResponse) => {
     setManualLoadingTicketId(ticket.id);
     try {
-      const result = await useAction({
+      const result = await toUsedAction({
         ticketId: ticket.id,
         lessonId: lesson?.id,
       });
