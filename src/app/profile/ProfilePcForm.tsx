@@ -4,7 +4,6 @@
 
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
-import PassPlanIcon from "../../../public/assets/ic_pass_plan.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
@@ -12,8 +11,8 @@ import { MyBookingCard } from "@/app/profile/MyBookingCard";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
-import { formatEndDate } from "@/app/profile/profile.format";
-import { DdayText } from "@/app/components/DdayText";
+import { formatEndDate, formatRelativeStart, ddayLabel } from "@/app/profile/profile.format";
+import { PassFlatIcon, ChevronRightIcon } from "@/app/profile/ActivityIcons";
 import {
   ProfilePcClient,
   ProfileContentCard,
@@ -27,6 +26,7 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
   initialTab?: ProfileTabKey,
 }) => {
   const upcoming = user.upcomingLesson;
+  const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
   const hasPasses = !!user.myPasses && user.myPasses.length > 0;
   const hasBookings = !!user.myBookings && user.myBookings.length > 0;
   const isEmpty = !upcoming && !hasPasses && !hasBookings;
@@ -39,7 +39,8 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
     myPass: await translate('my_pass'),
     paymentRecords: await translate('payment_records'),
     roomBookings: await translate('room_bookings'),
-    upcomingPayments: await translate('upcoming_payments'),
+    scheduledPayments: await translate('scheduled_payments'),
+    noScheduledPayments: await translate('no_scheduled_payments'),
     myActivePasses: await translate('my_active_passes'),
     myUsedPasses: await translate('my_used_passes'),
     roomBookingsUpcoming: await translate('room_bookings_upcoming'),
@@ -80,9 +81,10 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
                 {/* 메타(배지·제목·스튜디오)는 왼쪽 아래 정렬 */}
                 <div className="absolute inset-0 flex flex-col justify-end px-6 pb-6">
                   <div className="flex items-center gap-2 mb-2">
-                    {upcoming.dday && (
+                    {/* 상대 시간('3시간 후'·'내일'·'3일 후') 우선, 7일 넘으면 dday — 모바일과 동일 */}
+                    {(relativeStart ?? upcoming.dday) && (
                       <span className="text-[12px] font-extrabold text-black bg-white px-2 py-0.5 rounded-full">
-                        {upcoming.dday}
+                        {relativeStart ?? upcoming.dday}
                       </span>
                     )}
                     {upcoming.genre && upcoming.genre !== 'Default' && (
@@ -120,60 +122,37 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
         </ProfileContentCard>
       )}
 
-      {/* 보유 패스권 — 격자 없이 풀폭 리스트. 활성 패스는 다크 + 브랜드 빛 + D-day 배지 */}
+      {/* 보유 패스권 — 모바일과 동일한 밝은 카드 행. 썸네일(없으면 플랫 패스 아이콘) + 이름/종료일 + D-day 칩 */}
       {hasPasses && (
         <ProfileContentCard title={await translate('my_pass')}>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             {user.myPasses!.map((pass) => {
               const isActive = pass.status === 'Active';
+              const dday = isActive ? ddayLabel(typeof pass.endDate === 'string' ? pass.endDate : undefined) : null;
+              const period = pass.endDate && typeof pass.endDate === 'string'
+                ? formatEndDate(pass.endDate, locale)
+                : pass.passPlan?.expireDateStamp;
               return (
                 <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
-                  <div
-                    className={`relative overflow-hidden rounded-2xl p-4 pr-5 flex items-center gap-4 cursor-pointer transition-all duration-150 ${
-                      isActive ? 'hover:opacity-95' : 'bg-[#F4F6F8] hover:bg-[#EFF1F4]'
-                    }`}
-                    style={isActive ? { background: 'linear-gradient(120deg, #17191C 0%, #2A2F35 100%)' } : undefined}
-                  >
-                    {/* 활성 패스에만 은은한 브랜드 빛 */}
-                    {isActive && (
-                      <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 w-[200px] h-[200px] rounded-full bg-[#5B5FF6]/30 blur-3xl"/>
-                    )}
-
+                  <div className={`flex items-center gap-4 rounded-[20px] px-4 py-3.5 cursor-pointer bg-[#F9FAFB] hover:bg-[#F2F4F6] transition-colors ${isActive ? '' : 'opacity-60'}`}>
                     {pass.passPlan?.imageUrl ? (
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
+                      <div className={`relative w-14 h-14 rounded-[14px] overflow-hidden shrink-0 ${isActive ? '' : 'grayscale'}`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={pass.passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className={`relative w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                        isActive ? 'bg-white/10' : 'bg-[#E8EAED]'
-                      }`}>
-                        <PassPlanIcon className={`w-6 h-6 ${isActive ? 'opacity-60 invert' : 'opacity-30'}`} />
-                      </div>
-                    )}
-
-                    <div className="relative flex flex-col gap-1 min-w-0 flex-1">
-                      <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#8A949E]'}`}>
-                        {pass.passPlan?.name}
+                      <span className="w-14 h-14 rounded-[14px] bg-white flex items-center justify-center shrink-0">
+                        <PassFlatIcon size={30}/>
                       </span>
-                      {(pass.endDate || pass.passPlan?.expireDateStamp) && (
-                        <span className={`text-[12px] truncate ${isActive ? 'text-white/50' : 'text-[#B4BAC0]'}`}>
-                          {pass.endDate && typeof pass.endDate === 'string'
-                            ? `~ ${formatEndDate(pass.endDate, locale)}`
-                            : pass.passPlan?.expireDateStamp}
-                        </span>
-                      )}
+                    )}
+                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                      <span className="text-[15px] font-semibold text-[#191F28] truncate tracking-[-0.3px]">{pass.passPlan?.name}</span>
+                      {period && <span className="text-[12.5px] text-[#8B95A1] truncate tracking-[-0.2px]">{period}</span>}
                     </div>
-
-                    {isActive && typeof pass.endDate === 'string' && (
-                      <span className="relative text-[11px] bg-white px-2.5 py-1 rounded-full font-paperlogy shrink-0">
-                        <DdayText input={pass.endDate}/>
-                      </span>
+                    {dday && (
+                      <span className="shrink-0 px-2 py-[3px] rounded-[6px] bg-[#191F28] text-white text-[11px] font-bold font-paperlogy tracking-wide">{dday}</span>
                     )}
-
-                    <svg viewBox="0 0 24 24" fill="none" className="relative w-4 h-4 shrink-0">
-                      <path d="M9 6l6 6-6 6" stroke={isActive ? 'rgba(255,255,255,0.35)' : '#C4C9CF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <ChevronRightIcon className="text-[#D1D6DB] shrink-0 -ml-1"/>
                   </div>
                 </NavigateClickWrapper>
               );

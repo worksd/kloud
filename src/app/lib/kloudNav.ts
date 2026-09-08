@@ -179,7 +179,7 @@ const applyTitle = async (route: string) => {
   } else if (route.startsWith(KloudScreen.LoginIntro(''))) {
     return ''
   } else if (route.startsWith(KloudScreen.MySubscription)) {
-    return await translate('my_subscription')
+    return await translate('scheduled_payments')
   } else if (route.startsWith('/paymentRecords')) {
     if (route.includes('/refund')) {
       return await translate('do_refund')

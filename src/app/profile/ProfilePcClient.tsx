@@ -9,7 +9,8 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import EditIcon from "../../../public/assets/ic_edit.svg";
+import { TicketFlatIcon, PassFlatIcon, ReceiptFlatIcon, ScheduledPaymentFlatIcon, RoomBookingFlatIcon, PencilFlatIcon } from "@/app/profile/ActivityIcons";
+import { SubscriptionRow } from "@/app/profile/mySubscription/SubscriptionRow";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { has, formatPhone } from "@/app/profile/profile.format";
@@ -24,11 +25,11 @@ import { getSubscriptionList } from "@/app/profile/mySubscription/action/get.sub
 import { getMyPassListAction } from "@/app/profile/myPass/action/get.my.pass.list.action";
 import { getRoomBookingsAction } from "@/app/roomBookings/get.room.bookings.action";
 import { TicketListContent } from "@/app/tickets/TicketTabClient";
-import { PaymentRecordListContent, UpcomingPaymentsContent } from "@/app/paymentRecords/PaymentRecordTabClient";
+import { PaymentRecordListContent } from "@/app/paymentRecords/PaymentRecordTabClient";
 import { PassColumnList } from "@/app/profile/myPass/PassColumnList";
 import { BookingCard, bookingDateKey, bookingNowKey } from "@/app/roomBookings/BookingCard";
 
-export type ProfileTabKey = 'home' | 'tickets' | 'pass' | 'payments' | 'bookings';
+export type ProfileTabKey = 'home' | 'tickets' | 'pass' | 'payments' | 'subscriptions' | 'bookings';
 
 export type ProfilePcTranslations = {
   editProfile: string;
@@ -38,7 +39,8 @@ export type ProfilePcTranslations = {
   myPass: string;
   paymentRecords: string;
   roomBookings: string;
-  upcomingPayments: string;
+  scheduledPayments: string;
+  noScheduledPayments: string;
   myActivePasses: string;
   myUsedPasses: string;
   roomBookingsUpcoming: string;
@@ -94,38 +96,51 @@ const TicketsPanel = ({locale, t}: { locale: Locale, t: ProfilePcTranslations })
 
 const PaymentsPanel = ({locale, t}: { locale: Locale, t: ProfilePcTranslations }) => {
   const [records, setRecords] = useState<GetPaymentRecordResponse[] | null>(null);
-  const [subscriptions, setSubscriptions] = useState<GetSubscriptionResponse[]>([]);
+
   useEffect(() => {
-    Promise.all([getPaymentRecordsAction({page: 1}), getSubscriptionList()]).then(([paymentRes, subRes]) => {
-      setSubscriptions('subscriptions' in subRes ? subRes.subscriptions : []);
-      setRecords('paymentRecords' in paymentRes ? paymentRes.paymentRecords : []);
-    });
+    getPaymentRecordsAction({page: 1}).then((res) => setRecords('paymentRecords' in res ? res.paymentRecords : []));
   }, []);
 
   if (records == null) {
     return <ProfileContentCard title={t.paymentRecords}><Spinner/></ProfileContentCard>;
   }
-
-  const hasUpcoming = subscriptions.some((sub) => sub.status === 'Active');
   return (
-    <>
-      {hasUpcoming && (
-        <ProfileContentCard title={t.upcomingPayments}>
-          <UpcomingPaymentsContent subscriptions={subscriptions} locale={locale}/>
-        </ProfileContentCard>
+    <ProfileContentCard title={t.paymentRecords}>
+      {records.length === 0 ? (
+        <EmptyMessage>{t.noRecordsMessage}</EmptyMessage>
+      ) : (
+        <PaymentRecordListContent
+          initialRecords={records}
+          locale={locale}
+          noRecordsMessage={t.noRecordsMessage}
+        />
       )}
-      <ProfileContentCard title={t.paymentRecords}>
-        {records.length === 0 ? (
-          <EmptyMessage>{t.noRecordsMessage}</EmptyMessage>
-        ) : (
-          <PaymentRecordListContent
-            initialRecords={records}
-            locale={locale}
-            noRecordsMessage={t.noRecordsMessage}
-          />
-        )}
-      </ProfileContentCard>
-    </>
+    </ProfileContentCard>
+  );
+};
+
+// 예약 결제(정기결제) — 모바일 /profile/mySubscription과 동일: 진행 중 → 그 외 순 한 목록
+const SubscriptionsPanel = ({locale, t}: { locale: Locale, t: ProfilePcTranslations }) => {
+  const [subscriptions, setSubscriptions] = useState<GetSubscriptionResponse[] | null>(null);
+
+  useEffect(() => {
+    getSubscriptionList().then((res) => setSubscriptions('subscriptions' in res ? res.subscriptions : []));
+  }, []);
+
+  if (subscriptions == null) {
+    return <ProfileContentCard title={t.scheduledPayments}><Spinner/></ProfileContentCard>;
+  }
+  const sorted = [...subscriptions].sort((a, b) => Number(b.status === 'Active') - Number(a.status === 'Active'));
+  return (
+    <ProfileContentCard title={t.scheduledPayments}>
+      {sorted.length === 0 ? (
+        <EmptyMessage>{t.noScheduledPayments}</EmptyMessage>
+      ) : (
+        <div className="flex flex-col divide-y divide-[#F2F4F6]">
+          {sorted.map((sub) => <SubscriptionRow key={sub.subscriptionId} sub={sub} locale={locale}/>)}
+        </div>
+      )}
+    </ProfileContentCard>
   );
 };
 
@@ -259,12 +274,14 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
       <div className={tab === key ? 'flex flex-col gap-4' : 'hidden'}>{node}</div>
     );
 
-  const tabs: { key: ProfileTabKey; label: string; count?: number }[] = [
+  // 탭 — 모바일 '내 활동'과 같은 플랫 아이콘. 홈은 아이콘 없이
+  const tabs: { key: ProfileTabKey; label: string; count?: number; icon?: React.ReactNode }[] = [
     { key: 'home', label: t.homeTab },
-    { key: 'tickets', label: t.myTickets, count: user.ticketCount ?? 0 },
-    { key: 'pass', label: t.myPass, count: user.passCount ?? 0 },
-    { key: 'payments', label: t.paymentRecords, count: user.paymentRecordCount ?? 0 },
-    { key: 'bookings', label: t.roomBookings, count: user.bookingCount ?? 0 },
+    { key: 'tickets', label: t.myTickets, count: user.ticketCount ?? 0, icon: <TicketFlatIcon size={18}/> },
+    { key: 'pass', label: t.myPass, count: user.passCount ?? 0, icon: <PassFlatIcon size={18}/> },
+    { key: 'payments', label: t.paymentRecords, count: user.paymentRecordCount ?? 0, icon: <ReceiptFlatIcon size={18}/> },
+    { key: 'subscriptions', label: t.scheduledPayments, icon: <ScheduledPaymentFlatIcon size={18}/> },
+    { key: 'bookings', label: t.roomBookings, count: user.bookingCount ?? 0, icon: <RoomBookingFlatIcon size={18}/> },
   ];
 
   return (
@@ -302,7 +319,7 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
             <div className="mt-2.5 flex items-center gap-2">
               <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
                 <button className="h-9 px-4 rounded-full bg-[#f1f3f6] hover:bg-[#e6e8eb] text-[13px] font-semibold text-black flex items-center gap-1.5 transition-colors">
-                  <EditIcon viewBox="0 0 24 24" className="w-4 h-4"/>
+                  <PencilFlatIcon size={16}/>
                   {t.editProfile}
                 </button>
               </NavigateClickWrapper>
@@ -313,16 +330,17 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
         {/* ── 탭 바 — 활성 탭 밑줄 (유튜브 채널 탭 방식) ── */}
         <div className="mt-9 border-b border-[#f0f1f3]">
           <div className="flex gap-1">
-            {tabs.map(({key, label, count}) => {
+            {tabs.map(({key, label, count, icon}) => {
               const active = tab === key;
               return (
                 <button
                   key={key}
                   onClick={() => openTab(key)}
-                  className={`relative px-4 py-3 text-[15px] transition-colors ${
+                  className={`relative px-4 py-3 text-[15px] transition-all flex items-center gap-1.5 ${
                     active ? 'text-black font-bold' : 'text-[#8A949E] font-medium hover:text-black'
                   }`}
                 >
+                  {icon && <span className={`shrink-0 transition-opacity ${active ? 'opacity-100' : 'opacity-60'}`}>{icon}</span>}
                   {label}
                   {count != null && count > 0 && (
                     <span className={`ml-1.5 text-[12px] font-paperlogy ${active ? 'text-[#6d7882]' : 'text-[#B0B8BF]'}`}>{count}</span>
@@ -340,6 +358,7 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
           {panel('tickets', <TicketsPanel locale={locale} t={t}/>)}
           {panel('pass', <PassPanel locale={locale} t={t}/>)}
           {panel('payments', <PaymentsPanel locale={locale} t={t}/>)}
+          {panel('subscriptions', <SubscriptionsPanel locale={locale} t={t}/>)}
           {panel('bookings', <BookingsPanel t={t}/>)}
         </div>
       </div>
