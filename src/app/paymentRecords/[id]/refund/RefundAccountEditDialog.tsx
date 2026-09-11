@@ -44,6 +44,17 @@ export const RefundAccountEditDialog = ({
     setSelectedBankCode(pickBankKey(initialBank ?? ''));
   }, [initialBank, initialNumber, initialDepositor, open]);
 
+  // 저장 실패 안내 — 서버 메시지 우선, 없으면 공용 문구
+  const showErrorDialog = async (message?: string) => {
+    const dialog = await createDialog({
+      id: 'Simple',
+      message: message || getLocaleString({locale, key: 'unknown_error_message'}),
+    });
+    if (window.KloudEvent && dialog) {
+      window.KloudEvent.showDialog(JSON.stringify(dialog));
+    }
+  };
+
   const handleSubmit = async () => {
     const bank = refundAccountBank.trim();
     const depositor = refundAccountDepositor.trim();
@@ -57,19 +68,25 @@ export const RefundAccountEditDialog = ({
       return;
     }
 
-    const res = await updateUserAction({
-      refundAccountBank: bank,
-      refundAccountNumber: number.replace(/-/g, ""),
-      refundDepositor: depositor,
-    });
+    try {
+      const res = await updateUserAction({
+        refundAccountBank: bank,
+        refundAccountNumber: number.replace(/-/g, ""),
+        refundDepositor: depositor,
+      });
 
-    if (res.success) {
-      onUpdate({ bank, number, depositor });
-      const dialog = await createDialog({id: "RefundAccountUpdateSuccess"});
-      if (window.KloudEvent && dialog) {
-        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      if (res.success) {
+        onUpdate({ bank, number, depositor });
+        const dialog = await createDialog({id: "RefundAccountUpdateSuccess"});
+        if (window.KloudEvent && dialog) {
+          window.KloudEvent.showDialog(JSON.stringify(dialog));
+        }
+        onClose();
+      } else {
+        await showErrorDialog(res.errorMessage);
       }
-      onClose();
+    } catch {
+      await showErrorDialog();
     }
   };
 

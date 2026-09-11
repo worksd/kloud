@@ -19,6 +19,15 @@ const reasons: StringResourceKey[] = [
   "guitar",
 ];
 
+// 탈퇴 실패 안내 — 서버 메시지 우선, 없으면 공용 문구 (effect 의존성에 안 잡히게 컴포넌트 밖에 둠)
+const showErrorDialog = async (locale: Locale, message?: string) => {
+  const dialog = await createDialog({
+    id: 'Simple',
+    message: message || getLocaleString({locale, key: 'unknown_error_message'}),
+  })
+  window.KloudEvent?.showDialog(JSON.stringify(dialog));
+}
+
 export default function SignOutForm({locale}: { locale: Locale }) {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [otherReason, setOtherReason] = useState("");
@@ -42,9 +51,15 @@ export default function SignOutForm({locale}: { locale: Locale }) {
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.route && data.id == 'SignOut') {
-        const res = await deleteUserAction({
-          reason: selectedReason ?? ''
-        });
+        let res: Awaited<ReturnType<typeof deleteUserAction>>;
+        try {
+          res = await deleteUserAction({
+            reason: selectedReason ?? ''
+          });
+        } catch {
+          await showErrorDialog(locale);
+          return;
+        }
         if ('success' in res && res.success) {
           await unregisterDeviceAction()
           await clearCookies();
@@ -53,10 +68,12 @@ export default function SignOutForm({locale}: { locale: Locale }) {
           window.KloudEvent?.clearToken()
           window.KloudEvent?.showToast('성공적으로 회원탈퇴하였습니다.')
           kloudNav.clearAndPush(data.route)
+        } else {
+          await showErrorDialog(locale, 'message' in res ? res.message : undefined);
         }
       }
     }
-  }, [selectedReason])
+  }, [selectedReason, locale])
 
   return (
     <div className="flex flex-col p-6 bg-white rounded-lg max-w-md mx-auto">

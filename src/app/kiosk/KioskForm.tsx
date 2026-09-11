@@ -546,6 +546,7 @@ export const KioskForm = ({
     // KIS는 이미 매입 완료 — 서버 complete가 실패해도 클라가 가진 이 정보로 재시도해서 반드시 기록되게 한다.
     const runCompleteWithRetry = async () => {
       const MAX = 3;
+      let lastErrorMessage: string | undefined; // 마지막 도메인 에러 메시지 — 재시도 모두 실패 시 토스트에 함께 노출
       for (let attempt = 1; attempt <= MAX; attempt++) {
         try {
           const res = await completeKioskPaymentAction(completeArgs);
@@ -562,6 +563,7 @@ export const KioskForm = ({
             return;
           }
           // 도메인 에러(res.ok=false) — 마지막 시도까지 재시도 후 로컬 큐로 보관
+          if (isGuinnessErrorCase(res) && parsed.message) lastErrorMessage = parsed.message;
         } catch {
           if (cancelled) return;
         }
@@ -570,7 +572,9 @@ export const KioskForm = ({
       if (cancelled) return;
       // 재시도 모두 실패 — KIS 정보 로컬 보관(다음 진입/키오스크 로드 시 자동 재시도) + 안내
       savePendingCompletion(completeArgs);
-      setToastMessage('결제 기록 저장에 실패했어요. 잠시 후 자동으로 다시 시도돼요');
+      setToastMessage(lastErrorMessage
+        ? `${lastErrorMessage} — 잠시 후 자동으로 다시 시도돼요`
+        : '결제 기록 저장에 실패했어요. 잠시 후 자동으로 다시 시도돼요');
       if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
     runCompleteWithRetry();
@@ -584,14 +588,17 @@ export const KioskForm = ({
     const pending = loadPendingCompletions();
     if (pending.length === 0) return;
     (async () => {
+      let firstErrorMessage: string | undefined; // 도메인 에러 메시지는 한 번만 토스트로 안내
       for (const args of pending) {
         try {
           const res = await completeKioskPaymentAction(args);
           const parsed = parsePaymentResult(res);
           if (parsed.ok) removePendingCompletion(args.paymentId);
-          // 실패면 큐에 유지 — 다음 기회에 재시도
+          // 실패면 큐에 유지 — 다음 기회에 재시도. 서버 메시지가 있으면 운영자가 알 수 있게 안내
+          else if (isGuinnessErrorCase(res) && parsed.message && !firstErrorMessage) firstErrorMessage = parsed.message;
         } catch { /* 유지 */ }
       }
+      if (firstErrorMessage) setToastMessage(firstErrorMessage);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -694,7 +701,7 @@ export const KioskForm = ({
     try {
       const reg = await registerKioskUserAction(p, cc, suggestedName, name);
       if (isGuinnessErrorCase(reg)) {
-        setErrorMessage('가입에 실패했습니다.\n다시 시도해주세요.');
+        setErrorMessage(reg.message || '가입에 실패했습니다.\n다시 시도해주세요.');
         setCurrentScreen('phone');
         return;
       }

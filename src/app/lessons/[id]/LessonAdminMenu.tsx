@@ -65,7 +65,7 @@ export function LessonAdminMenu({ lessonId, locale, adminType, studioId }: Props
         setCancelError(
           res.code === 'LESSON_ALREADY_ENDED'
             ? getLocaleString({ locale, key: 'lesson_admin_cancel_lesson_ended_error' })
-            : (res.message || getLocaleString({ locale, key: 'lesson_admin_cancel_lesson_button' })),
+            : (res.message || getLocaleString({ locale, key: 'unknown_error_message' })),
         );
         return;
       }
@@ -73,7 +73,7 @@ export function LessonAdminMenu({ lessonId, locale, adminType, studioId }: Props
       // 상태(Cancelled)·수강권 목록 반영 — 서버 컴포넌트 페이지라 리로드가 가장 확실
       window.location.reload();
     } catch {
-      setCancelError(getLocaleString({ locale, key: 'lesson_admin_cancel_lesson_button' }));
+      setCancelError(getLocaleString({ locale, key: 'unknown_error_message' }));
     } finally {
       cancellingRef.current = false;
       setCancelling(false);

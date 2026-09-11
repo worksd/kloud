@@ -175,7 +175,8 @@ export const WebLoginDialog = ({
       await loginSuccessAction({ accessToken: res.accessToken, userId: res.user.id });
       onLoginSuccess(res.user.status);
     } else {
-      setError('인증 코드가 일치하지 않아요');
+      // 서버 메시지 우선, 없으면 기본 불일치 문구
+      setError(('message' in res && res.message) ? res.message : '인증 코드가 일치하지 않아요');
     }
   };
 

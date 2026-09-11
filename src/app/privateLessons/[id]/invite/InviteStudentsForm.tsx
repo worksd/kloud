@@ -113,12 +113,19 @@ export const InviteStudentsForm = ({lessonId, studioId, lesson, locale}: {
     if (!s || !s.confirm || s.submitting) return;
     setSheet({ ...s, submitting: true, error: null });
 
-    const res = s.confirm.method === 'pass'
-      ? await registerWithPassAction({ passId: s.selectedPassId!, lessonId, studioId })
-      : await registerOnsiteAction({ lessonId, targetUserId: s.student.id, studioId });
+    let res;
+    try {
+      res = s.confirm.method === 'pass'
+        ? await registerWithPassAction({ passId: s.selectedPassId!, lessonId, studioId })
+        : await registerOnsiteAction({ lessonId, targetUserId: s.student.id, studioId });
+    } catch {
+      // 네트워크/파싱 예외 — submitting이 영원히 남지 않게 인라인 에러로 풀어준다
+      setSheet((prev) => prev && { ...prev, submitting: false, confirm: null, error: getLocaleString({ locale, key: 'unknown_error_message' }) });
+      return;
+    }
 
     if (isGuinnessErrorCase(res)) {
-      setSheet((prev) => prev && { ...prev, submitting: false, confirm: null, error: res.message });
+      setSheet((prev) => prev && { ...prev, submitting: false, confirm: null, error: res.message || getLocaleString({ locale, key: 'unknown_error_message' }) });
       return;
     }
 

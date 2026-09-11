@@ -62,21 +62,29 @@ export default function MySubscriptionCancelForm({subscription, locale}: { subsc
 
   const handleCancelSubscription = async () => {
     if (!selectedReason) return;
-    const res = await cancelSubscriptionAction({
-      subscriptionId: subscription.subscriptionId,
-      reason: selectedReason,
-    });
+    try {
+      const res = await cancelSubscriptionAction({
+        subscriptionId: subscription.subscriptionId,
+        reason: selectedReason,
+      });
 
-    const dialog = await createDialog({
-      id: 'Simple',
-      title: await translate(
-        'subscriptionId' in res
-          ? 'cancel_subscription_complete_message'
-          : 'cancel_subscription_fail_message'
-      ),
-    });
+      const success = 'subscriptionId' in res;
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: await translate(success ? 'cancel_subscription_complete_message' : 'cancel_subscription_fail_message'),
+        // 실패 시 서버 메시지가 있으면 본문으로 노출
+        message: !success && 'message' in res && res.message ? res.message : undefined,
+      });
 
-    window.KloudEvent?.showDialog(JSON.stringify(dialog));
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    } catch {
+      // 네트워크/파싱 예외 — 일반 실패 문구
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: await translate('cancel_subscription_fail_message'),
+      });
+      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    }
   };
 
   useEffect(() => {

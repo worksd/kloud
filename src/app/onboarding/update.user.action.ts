@@ -6,6 +6,7 @@ import { userIdKey } from "@/shared/cookies.key";
 import { UserType } from "@/entities/user/user.type";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { COUNTRIES } from "@/app/certification/COUNTRIES";
+import { translate } from "@/utils/translate";
 
 export const updateUserAction = async ({
                                          name,
@@ -70,9 +71,11 @@ export const updateUserAction = async ({
       }
     }
   } catch (e) {
+    // 네트워크/파싱 실패 — 호출부가 뭔가 띄울 수 있게 공용 문구 함께 반환
     return {
       success: false,
-      errorCode: ExceptionResponseCode.UNKNOWN_ERROR
+      errorCode: ExceptionResponseCode.UNKNOWN_ERROR,
+      errorMessage: await translate('unknown_error_message'),
     }
   }
 }

@@ -246,7 +246,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
       cancelKioskPaymentAction({ paymentId: targetId, targetUserId: target.user.id, kioskId: kioskIdRef.current })
         .then((res) => {
           if (isGuinnessErrorCase(res)) {
-            setCancelResult({ kind: 'fail' });
+            setCancelResult({ kind: 'fail', message: res.message || undefined });
             return;
           }
           setPayments((prev) => prev.map((p) => p.paymentId === targetId ? { ...p, status: 'Cancelled' } : p));
@@ -312,7 +312,7 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
     cancelKioskPaymentAction({ paymentId: record.paymentId, targetUserId: record.user.id, kioskId })
       .then((res) => {
         if (isGuinnessErrorCase(res)) {
-          setCancelResult({ kind: 'fail' });
+          setCancelResult({ kind: 'fail', message: res.message || undefined });
           return;
         }
         setPayments((prev) => prev.map((p) => p.paymentId === record.paymentId ? { ...p, status: 'Cancelled' } : p));

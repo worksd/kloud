@@ -4,6 +4,7 @@ import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { BankSelectBottomSheet } from "@/app/components/BankSheet";
 import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
+import { translate } from "@/utils/translate";
 
 export const RefundAccountEditForm = ({
                                         initialAccountNumber,
@@ -50,6 +51,15 @@ export const RefundAccountEditForm = ({
     refundAccountNumber.trim().length > 0 &&
     refundAccountDepositor.trim().length > 0;
 
+  // 저장 실패 안내 — 서버 메시지 우선, 없으면 공용 문구
+  const showErrorDialog = async (message?: string) => {
+    const dialog = await createDialog({
+      id: "Simple",
+      message: message || await translate('unknown_error_message'),
+    });
+    window.KloudEvent.showDialog(JSON.stringify(dialog));
+  };
+
   const handleClickSubmit = async () => {
     if (!canSubmit) {
       const dialog = await createDialog({ id: "EmptyAccountInformation" });
@@ -57,15 +67,21 @@ export const RefundAccountEditForm = ({
       return;
     }
 
-    const res = await updateUserAction({
-      refundAccountBank: refundAccountBank.trim(),
-      refundAccountNumber: refundAccountNumber.trim().replace(/-/g, ""), // 하이픈 제거
-      refundDepositor: refundAccountDepositor.trim(),
-    });
+    try {
+      const res = await updateUserAction({
+        refundAccountBank: refundAccountBank.trim(),
+        refundAccountNumber: refundAccountNumber.trim().replace(/-/g, ""), // 하이픈 제거
+        refundDepositor: refundAccountDepositor.trim(),
+      });
 
-    if (res.success) {
-      const dialog = await createDialog({ id: "RefundAccountUpdateSuccess" });
-      window.KloudEvent.showDialog(JSON.stringify(dialog));
+      if (res.success) {
+        const dialog = await createDialog({ id: "RefundAccountUpdateSuccess" });
+        window.KloudEvent.showDialog(JSON.stringify(dialog));
+      } else {
+        await showErrorDialog(res.errorMessage);
+      }
+    } catch {
+      await showErrorDialog();
     }
   };
 

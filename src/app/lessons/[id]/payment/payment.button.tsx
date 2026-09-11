@@ -229,6 +229,10 @@ export default function PaymentButton({
           const dialog = await createDialog({id: 'Simple', message: res.message})
           window.KloudEvent?.showDialog(JSON.stringify(dialog));
         }
+      } catch {
+        // 네트워크/파싱 예외 — 서버 메시지가 없으니 일반 결제 실패 문구로
+        const dialog = await createDialog({id: 'PaymentFail'})
+        window.KloudEvent?.showDialog(JSON.stringify(dialog));
       } finally {
         setIsSubmitting(false);
       }
@@ -427,6 +431,12 @@ export default function PaymentButton({
   }, [])
 
   const onConfirmDialog = async (data: DialogInfo) => {
+    // 결제 실패 다이얼로그 — message 없으면 일반 결제 실패 문구(payment_fail_message)로 폴백
+    const showFail = async (message?: string) => {
+      const dialog = await createDialog({id: 'PaymentFail', message})
+      if (appVersion == '' && dialog) setWebDialogInfo(dialog);
+      else window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    };
     try {
       setIsSubmitting(true);
       if (data.id == 'AccountTransfer') {
@@ -515,16 +525,12 @@ export default function PaymentButton({
             await kloudNav.navigateMain({ route });
           }
         } else if (isGuinnessErrorCase(res)) {
-          const dialog = await createDialog({id: 'PaymentFail', message: res.message})
-          if (appVersion == '' && dialog) setWebDialogInfo(dialog);
-          else window.KloudEvent?.showDialog(JSON.stringify(dialog));
+          await showFail(res.message);
+        } else {
+          // 성공도 GuinnessErrorCase도 아닌 응답 — 조용히 넘기지 않고 일반 실패 문구
+          await showFail();
         }
       } else if (data.id == 'RequestBillingKeyPayment') {
-        const showFail = async (message?: string) => {
-          const dialog = await createDialog({id: 'PaymentFail', message})
-          if (appVersion == '' && dialog) setWebDialogInfo(dialog);
-          else window.KloudEvent?.showDialog(JSON.stringify(dialog));
-        };
         const res = await billingKeyPaymentAction({
           item: type.apiValue,
           itemId: id,
@@ -556,10 +562,14 @@ export default function PaymentButton({
           }
         } else if (isGuinnessErrorCase(res)) {
           await showFail(res.message);
+        } else {
+          // { success: false } 등 GuinnessErrorCase가 아닌 실패 응답
+          await showFail();
         }
       }
-    } catch (e) {
-      setIsSubmitting(false)
+    } catch {
+      // 네트워크/파싱 예외 — 서버 메시지가 없으니 일반 결제 실패 문구로
+      await showFail();
     } finally {
       setIsSubmitting(false)
     }

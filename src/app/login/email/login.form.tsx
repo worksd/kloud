@@ -84,7 +84,7 @@ export const LoginForm = (props: LoginFormProps) => {
           window: window,
         })
       }
-    } else if (res.errorCode) {
+    } else if (res.errorCode || res.errorMessage) {
       if (props.appVersion === '') {
         // 웹: 네이티브 다이얼로그 대신 인라인 에러
         setLoginError(res.errorMessage || '로그인에 실패했어요');

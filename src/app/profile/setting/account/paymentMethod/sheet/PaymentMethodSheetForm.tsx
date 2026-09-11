@@ -39,25 +39,30 @@ export const PaymentMethodSheetForm = ({
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {
-    const res = await addBillingAction(form)
-    if ('billingKey' in res) {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
-      onSuccessAction()
-      onCloseAction()
-    } else if ('pgMessage' in res){
+    // 등록 실패 다이얼로그 — 서버/PG 메시지 없으면 일반 실패 문구로 폴백
+    const showFail = async (message?: string) => {
       const dialog = await createDialog({
         id: 'Simple',
         title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-        message: res.pgMessage
+        message: message || getLocaleString({locale, key: 'billing_register_fail'}),
       })
       window.KloudEvent.showDialog(JSON.stringify(dialog))
-    } else if ('message' in res) {
-      const dialog = await createDialog({
-        id: 'Simple',
-        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-        message: res.message
-      })
-      window.KloudEvent.showDialog(JSON.stringify(dialog))
+    }
+    try {
+      const res = await addBillingAction(form)
+      if ('billingKey' in res) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
+        onSuccessAction()
+        onCloseAction()
+      } else if ('pgMessage' in res){
+        await showFail(res.pgMessage)
+      } else if ('message' in res) {
+        await showFail(res.message)
+      } else {
+        await showFail()
+      }
+    } catch {
+      await showFail()
     }
   }
 

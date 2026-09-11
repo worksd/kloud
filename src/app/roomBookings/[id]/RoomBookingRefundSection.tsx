@@ -53,10 +53,14 @@ export const RoomBookingRefundSection = ({ bookingId, cancellable, paymentId, lo
             window.KloudEvent?.showDialog(JSON.stringify(ok));
             router.refresh();
           } else {
-            const msg = ('message' in res) ? (res as { message?: string }).message ?? '' : '';
+            // 서버 메시지 없으면 빈 다이얼로그 대신 일반 에러 문구
+            const msg = (('message' in res) ? (res as { message?: string }).message : '') || t('unknown_error_message');
             const err = await createDialog({ id: 'Simple', message: msg });
             window.KloudEvent?.showDialog(JSON.stringify(err));
           }
+        } catch {
+          const err = await createDialog({ id: 'Simple', message: t('unknown_error_message') });
+          window.KloudEvent?.showDialog(JSON.stringify(err));
         } finally {
           setCancelling(false);
         }
