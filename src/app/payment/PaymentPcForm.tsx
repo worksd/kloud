@@ -11,6 +11,7 @@ import TicketIcon from "../../../public/assets/ic_ticket.svg";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 import { LessonTags } from "@/app/components/LessonTags";
+import { PassDaysChip } from "@/app/components/PassDaysChip";
 import { DeferredImage } from "@/app/components/DeferredImage";
 import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
@@ -202,9 +203,13 @@ export default async function PaymentPcForm({
                     <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
                   </div>
                   <p className="text-[17px] font-bold text-black">{title}</p>
-                  {payment.passPlan.expireDateStamp && (
-                    <p className="text-[12px] text-[#86898C] font-medium">{payment.passPlan.expireDateStamp}</p>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {payment.passPlan.expireDateStamp && (
+                      <p className="text-[12px] text-[#86898C] font-medium">{payment.passPlan.expireDateStamp}</p>
+                    )}
+                    {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
+                    <PassDaysChip days={payment.passPlan.days} locale={locale}/>
+                  </div>
                   <PassPlanBenefits passPlan={payment.passPlan} locale={locale} />
                 </div>
               </>

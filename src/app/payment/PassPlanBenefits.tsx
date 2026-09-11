@@ -31,8 +31,10 @@ const featureKeyToType: Record<string, PassBenefitType> = {
   practiceRoom: 'room',
 };
 
-const ruleBenefitToType = (benefitType?: string): PassBenefitType => {
+// BE 혜택 타입 → 아이콘 타입. 'Lesson'은 value(회차)가 있으면 횟수제, 없으면 무제한. FreeCount/Unlimited는 옛 이름(호환)
+const ruleBenefitToType = (benefitType?: string, value?: number | null): PassBenefitType => {
   switch (benefitType) {
+    case 'Lesson': return value != null ? 'free_count' : 'unlimited';
     case 'Unlimited': return 'unlimited';
     case 'FreeCount': return 'free_count';
     case 'Discount': return 'discount';
@@ -47,7 +49,7 @@ const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse, locale: Locale = '
   if (passPlan.rules) {
     for (const rule of passPlan.rules) {
       benefits.push({
-        type: ruleBenefitToType(rule.benefit?.type),
+        type: ruleBenefitToType(rule.benefit?.type, rule.benefit?.value),
         title: formatRuleDescription({
           target: rule.target ?? { type: 'All' },
           benefit: rule.benefit ?? { type: 'Unlimited' },
@@ -67,25 +69,8 @@ const buildBenefitsFromPlan = (passPlan: GetPassPlanResponse, locale: Locale = '
     }
   }
 
+  // 규칙이 하나도 없을 때의 폴백 — 회차/무제한은 이용규칙이 정하므로(레거시 usageLimit·type은 읽지 않음) 부가기능만 채운다
   if (benefits.length === 0) {
-    if (passPlan.type === 'Unlimited') {
-      benefits.push({
-        type: 'unlimited',
-        title: formatRuleDescription({
-          target: { type: passPlan.tag ? 'Exclusive' : 'All' },
-          benefit: { type: 'Unlimited' },
-        }, locale, passPlan.tag ?? passPlan.name),
-      });
-    }
-    if (passPlan.type === 'Count' && passPlan.usageLimit) {
-      benefits.push({
-        type: 'free_count',
-        title: formatRuleDescription({
-          target: { type: 'All' },
-          benefit: { type: 'FreeCount', value: passPlan.usageLimit },
-        }, locale),
-      });
-    }
     if (passPlan.canPreSale) {
       benefits.push({ type: 'presale', title: formatFeatureDescription('canPrePurchase', locale) });
     }

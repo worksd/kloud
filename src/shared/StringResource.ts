@@ -918,6 +918,12 @@ export const StringResource = {
     jp: "予定されているレッスン",
     zh: "即将到来的课程"
   },
+  pass_days_label: {
+    ko: "다니는 요일",
+    en: "Class days",
+    jp: "通う曜日",
+    zh: "上课日"
+  },
   pass_qr_scan_hint: {
     ko: "QR을 스캔해서 패스권을 사용해요",
     en: "Scan this QR to use your pass",

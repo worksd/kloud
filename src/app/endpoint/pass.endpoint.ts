@@ -177,6 +177,14 @@ export type GetPassPlanResponse = {
   rules?: PassPlanRule[],
   features?: PassPlanFeature[],
   benefits?: PassBenefit[],
+  /** 이용기간 — Days/Months + 값. 표시는 BE가 만든 expireDateStamp를 쓰고, 이 값은 참고용 */
+  durationUnit?: 'Days' | 'Months',
+  durationValue?: number,
+  /** 정기결제로 살 수 있는지 — 정규반이거나 무제한이면 true. 결제 화면은 GET /payment의 canSubscribe를 본다 */
+  canSubscribe?: boolean,
+  /** 다니는 요일(0=일 ~ 6=토). 비어 있으면 요일을 가리지 않는다. 일반 패스권은 항상 빈 배열 */
+  days?: number[],
+  description?: string | null,
 }
 
 export type GetPassPlansResponse = {
@@ -219,6 +227,8 @@ export type GetPassResponse = {
   usable: boolean
   reason?: string
   qrcodeUrl?: string
+  /** 이 패스로 다니는 요일(0=일 ~ 6=토). 살 때의 상품 요일이 박힌 값. 비어 있으면 요일을 가리지 않는다 */
+  days?: number[]
 }
 
 export type GetPassesResponse = {

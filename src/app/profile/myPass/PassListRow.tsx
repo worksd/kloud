@@ -7,6 +7,7 @@ import { kloudNav } from "@/app/lib/kloudNav";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import PremiumTierIcon from "../../../../public/assets/ic_premium_pass_plan.svg";
+import { PassDaysChip } from "@/app/components/PassDaysChip";
 
 // 상태 칩 문구 — 기존 PassItem이 쓰던 키 재사용
 const STATUS_KEY: Record<PassStatus, StringResourceKey> = {
@@ -104,9 +105,13 @@ export const PassListRow = ({ pass, locale }: { pass: GetPassResponse; locale: L
           </p>
           {isPremium && !isInactive && <PremiumTierIcon className={'w-4 h-4 shrink-0'}/>}
         </div>
-        {subline && (
-          <p className={`text-[13px] truncate tracking-[-0.2px] ${isInactive ? 'text-[#B0B8C1]' : 'text-[#4E5968]'}`}>{subline}</p>
-        )}
+        <div className="flex items-center gap-1.5 min-w-0">
+          {subline && (
+            <p className={`text-[13px] truncate tracking-[-0.2px] ${isInactive ? 'text-[#B0B8C1]' : 'text-[#4E5968]'}`}>{subline}</p>
+          )}
+          {/* 다니는 요일 — 요일이 정해진 패스만 */}
+          <PassDaysChip days={pass.days} locale={locale} className={isInactive ? 'opacity-60' : ''}/>
+        </div>
       </div>
 
       {/* 상태 칩 */}

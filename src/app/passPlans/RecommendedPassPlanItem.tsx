@@ -1,4 +1,5 @@
 'use client'
+import { PassDaysChip } from "@/app/components/PassDaysChip";
 
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { getLocaleString } from "@/app/components/locale";
@@ -54,6 +55,8 @@ export const RecommendedPassPlanItem = ({item, isSelected, onClickAction, locale
               {description}
             </div>
           )}
+          {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
+          <PassDaysChip days={item.days} locale={locale} tone={isSelected ? 'dark' : 'light'} className="self-start mt-1.5"/>
         </div>
 
         <div className={`text-[20px] font-extrabold tracking-tight whitespace-nowrap ml-4

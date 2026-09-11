@@ -11,11 +11,15 @@ import React from "react";
 import { PassBenefitList } from "@/app/profile/myPass/[id]/PassBenefitList";
 import { PassQRCode } from "@/app/profile/myPass/[id]/PassQRCode";
 import { resolvePassQrValue } from "@/app/profile/myPass/[id]/pass.qr";
+import { PassDaysChip } from "@/app/components/PassDaysChip";
+import { formatPassDays } from "@/utils/pass.days";
+import { getLocale } from "@/utils/translate";
 
 export const MyPassDetailPcForm = async ({pass}: { pass: GetPassResponse }) => {
   const passPlan = pass.passPlan;
   const passRules = pass.passRules ?? [];
   const passFeatures = pass.passFeatures ?? [];
+  const locale = await getLocale();
   // QR — 기한이 남은 패스만 (모바일과 동일 규칙)
   const qrValue = resolvePassQrValue(pass);
 
@@ -68,11 +72,18 @@ export const MyPassDetailPcForm = async ({pass}: { pass: GetPassResponse }) => {
               </div>
 
               {/* 이용기한 — 그래디언트 위라 살짝 반투명한 흰색으로 */}
-              <div className="mt-4 px-4 py-3.5 rounded-xl bg-white/70">
+              <div className="mt-4 px-4 py-3.5 rounded-xl bg-white/70 flex flex-col gap-2.5">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-[13px] text-[#86898C]">{await translate('pass_period')}</span>
                   <span className="text-[15px] font-bold text-black">{pass.startDate} ~ {pass.endDate}</span>
                 </div>
+                {/* 다니는 요일 — 요일이 정해진 패스만 */}
+                {formatPassDays(pass.days) && (
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[13px] text-[#86898C]">{await translate('pass_days_label')}</span>
+                    <PassDaysChip days={pass.days} locale={locale}/>
+                  </div>
+                )}
               </div>
             </div>
           </div>

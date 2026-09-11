@@ -25,11 +25,12 @@ const featureIcon = (key: string) => {
   }
 };
 
-const ruleBenefitIcon = (benefitType: string) => {
+// 'Lesson'은 회차(benefitValue)가 있으면 횟수제 아이콘, 없으면 무제한 아이콘
+const ruleBenefitIcon = (benefitType: string, benefitValue?: number | null) => {
   switch (benefitType) {
+    case 'Lesson': return benefitValue != null ? <FreeUnlimitedIcon /> : <UnlimitedIcon />;
     case 'Unlimited': return <UnlimitedIcon />;
-    case 'FreeCount':
-    case 'Lesson': return <FreeUnlimitedIcon />;
+    case 'FreeCount': return <FreeUnlimitedIcon />;
     case 'Discount': return <DiscountIcon />;
     case 'TimeHours': return <PassRoomIcon />;
     default: return <UnlimitedIcon />;
@@ -76,7 +77,7 @@ export const PassBenefitList = async ({pass}: { pass: GetPassResponse }) => {
             <div key={rule.id} className={`pt-5 first:pt-0 ${isExpired ? 'opacity-40' : ''}`}>
               <div className="flex items-start gap-3 mb-2.5">
                 <div className="flex-shrink-0">
-                  {ruleBenefitIcon(rule.benefitType)}
+                  {ruleBenefitIcon(rule.benefitType, rule.benefitValue)}
                 </div>
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <span className="text-[14px] font-semibold text-black">{formatRuleDescription({

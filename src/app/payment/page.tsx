@@ -13,6 +13,7 @@ import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWra
 import { PaymentProfileButton } from "@/app/payment/PaymentProfileButton";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
+import { PassDaysChip } from "@/app/components/PassDaysChip";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
@@ -374,9 +375,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
             </div>
             <p className="text-[20px] font-bold text-black mb-1">{title}</p>
-            {res.passPlan.expireDateStamp && (
-              <p className="text-[13px] text-[#86898C] font-medium mb-4">{res.passPlan.expireDateStamp}</p>
-            )}
+            <div className="flex items-center gap-2 mb-4">
+              {res.passPlan.expireDateStamp && (
+                <p className="text-[13px] text-[#86898C] font-medium">{res.passPlan.expireDateStamp}</p>
+              )}
+              {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
+              <PassDaysChip days={res.passPlan.days} locale={await getLocale()}/>
+            </div>
 
             {/* 이용 혜택 */}
             <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />

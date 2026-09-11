@@ -133,6 +133,13 @@ const RULE_BENEFIT: Record<string, Record<Locale, (value?: number | null, durati
     jp: (v) => v != null ? `${v}回受講できます` : '受講できます',
     zh: (v) => v != null ? `可以使用${v}次` : '可以上课',
   },
+  // 연습실 대상에 'Lesson' 타입이 올 때 — '수강' 대신 '이용'. value 있으면 N회, 없으면 무제한
+  LessonRoom: {
+    ko: (v) => v != null ? `${v}회 이용할 수 있어요` : '무제한으로 이용할 수 있어요',
+    en: (v) => v != null ? `can be used ${v} times` : 'can be used unlimited',
+    jp: (v) => v != null ? `${v}回利用できます` : '無制限で利用できます',
+    zh: (v) => v != null ? `可以使用${v}次` : '可以无限使用',
+  },
   // 수업 수강권 — BE benefitType 'Lesson'. value(횟수) 있으면 N회, 없으면 기간 내 제한 없이 수강.
   Lesson: {
     ko: (v) => v != null ? `${v}회 수강할 수 있어요` : '수강할 수 있어요',
@@ -212,7 +219,9 @@ export const formatRuleDescription = (rule: RuleDescriptionInput, locale: Locale
     ? ALL_TARGET_DISCOUNT[locale]
     : targetFn[locale](rule.target.label, passName);
 
-  const benefitFn = RULE_BENEFIT[rule.benefit.type] ?? RULE_BENEFIT['FreeCount'];
+  // 연습실 대상의 'Lesson'은 문구를 '이용'으로 갈아탄다 (BE가 Unlimited도 Lesson으로 통일해 내려줄 수 있음)
+  const benefitKey = rule.benefit.type === 'Lesson' && rule.target.type === 'PracticeRoom' ? 'LessonRoom' : rule.benefit.type;
+  const benefitFn = RULE_BENEFIT[benefitKey] ?? RULE_BENEFIT['FreeCount'];
   const benefitText = benefitFn[locale](rule.benefit.value, rule.duration, timeWindow(rule.benefit.startTime, rule.benefit.endTime, locale));
 
   // UnlimitedDay 문구는 자체에 "원하는 수업을"이 포함된 완결 문장이라 target prefix를 붙이지 않는다.
