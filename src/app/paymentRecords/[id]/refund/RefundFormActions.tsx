@@ -31,19 +31,26 @@ export const RefundFormActions = ({ locale, paymentId, methodType }: RefundFormA
         // 환불 성공 - 결제내역 상세페이지로 이동
         await kloudNav.navigateMain({ route: KloudScreen.PaymentRecordDetail(paymentId) });
       } else {
-        // PG가 거부한 케이스(예: '부분취소 불가능 거래')는 pgMessage 그대로 노출.
-        // 그 외엔 일반 PaymentFail 다이얼로그.
-        const pgMessage = (res as { pgMessage?: string }).pgMessage;
-        const dialog = pgMessage
-          ? await createDialog({ id: 'Simple', message: pgMessage })
-          : await createDialog({ id: 'PaymentFail' });
+        // 서버 에러 문구(code+message — 예: KIOSK_PAYMENT_CANCEL_NOT_ALLOWED '키오스크에서 결제한 건은…')를 그대로 노출.
+        // 없으면 PG 거부 문구(pgMessage — 예: '부분취소 불가능 거래'), 그것도 없으면 일반 환불 실패 안내.
+        const { message, pgMessage } = res as { message?: string; pgMessage?: string };
+        const serverMessage = message?.trim() || pgMessage?.trim();
+        const dialog = await createDialog({
+          id: 'Simple',
+          title: getLocaleString({ locale, key: 'refund_fail' }),
+          message: serverMessage || getLocaleString({ locale, key: 'refund_fail_message' }),
+        });
         if (window.KloudEvent && dialog) {
           window.KloudEvent.showDialog(JSON.stringify(dialog));
         }
       }
     } catch (error) {
       console.error('Refund error:', error);
-      const dialog = await createDialog({ id: 'PaymentFail' });
+      const dialog = await createDialog({
+        id: 'Simple',
+        title: getLocaleString({ locale, key: 'refund_fail' }),
+        message: getLocaleString({ locale, key: 'refund_fail_message' }),
+      });
       if (window.KloudEvent && dialog) {
         window.KloudEvent.showDialog(JSON.stringify(dialog));
       }

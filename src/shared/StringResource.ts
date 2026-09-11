@@ -3072,6 +3072,18 @@ export const StringResource = {
     jp: '返金理由を選択してください',
     zh: '请选择退款原因'
   },
+  refund_fail: {
+    ko: '환불 실패',
+    en: 'Refund failed',
+    jp: '返金失敗',
+    zh: '退款失败'
+  },
+  refund_fail_message: {
+    ko: '환불 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+    en: 'Refund failed. Please try again later.',
+    jp: '返金処理に失敗しました。しばらくしてからもう一度お試しください。',
+    zh: '退款处理失败，请稍后重试。'
+  },
   do_refund: {
     ko: '환불하기',
     en: 'Refund',
