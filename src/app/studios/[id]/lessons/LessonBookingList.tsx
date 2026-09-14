@@ -97,7 +97,10 @@ export function LessonBookingList({
   useEffect(() => {
     const handler = (e: Event) => {
       const id = (e as CustomEvent<{ lessonId: number }>).detail?.lessonId;
-      if (typeof id === 'number') openSheet(id);
+      if (typeof id !== 'number') return;
+      // 발신 측(시간표)이 '시트가 떴는지' 판별하는 신호 — 안 하면 상세 이동으로 폴백한다.
+      e.preventDefault();
+      openSheet(id);
     };
     window.addEventListener(openLessonSheetEvent(studioId), handler);
     return () => window.removeEventListener(openLessonSheetEvent(studioId), handler);

@@ -33,6 +33,7 @@ const EmptyWeek = ({ title, sub }: { title: string; sub: string }) => (
   </div>
 );
 import { getTimeTableAction } from "@/app/studios/timetable/get.time.table.action";
+import { openLessonSheetEvent } from "@/app/studios/[id]/lessons/LessonBookingList";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { AnalyticsEvent, trackEvent } from "@/app/lib/analytics";
 import { getLocaleString } from "@/app/components/locale";
@@ -161,10 +162,15 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
   const openLesson = (lessonId: number) => {
     if (clickEvent) trackEvent(clickEvent, { lessonId, studioId });
     if (useSheet) {
-      window.dispatchEvent(new CustomEvent(`studio-${studioId}-open-lesson-sheet`, { detail: { lessonId } }));
-    } else {
-      kloudNav.push(KloudScreen.LessonDetail(lessonId));
+      // 시트 리스너(LessonBookingList)는 진행중인 수업이 있을 때만 마운트된다.
+      // 리스너가 없으면 탭이 먹통이 되므로, cancelable 이벤트로 '처리됨'을 확인하고
+      // 아무도 받지 않았을 때는 수업 상세 이동으로 폴백한다.
+      const handled = !window.dispatchEvent(
+        new CustomEvent(openLessonSheetEvent(studioId), { detail: { lessonId }, cancelable: true })
+      );
+      if (handled) return;
     }
+    kloudNav.push(KloudScreen.LessonDetail(lessonId));
   };
 
   const [baseDate, setBaseDate] = useState<Date>(new Date(timeTable.baseDate));
