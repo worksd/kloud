@@ -131,13 +131,9 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           </section>
         )}
 
-        {/* 시간표 — 진행중인 수업이 있을 때만 */}
-        {hasLessons && (
-          <>
-            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
-            <TimeTableServerComponent studioId={studio.id} useSheet noMargin/>
-          </>
-        )}
+        {/* 시간표 — 진행중인 수업(lessons) 유무와 무관하게 노출.
+            타임테이블 조회가 실패하면 컴포넌트가 구분선까지 통째로 비운다 (topDivider) */}
+        <TimeTableServerComponent studioId={studio.id} useSheet noMargin topDivider/>
 
         {/* 진행중인 수업 — 탭 시 바텀시트로 정보 + 바로 결제 */}
         {hasLessons && (
