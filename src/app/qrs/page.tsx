@@ -24,14 +24,13 @@ export default async function QRPage({ searchParams }: Props) {
     }
   }
 
-  if (!lesson) {
-    try {
-      const me = await getMeAction();
-      if ('id' in me && me.studio?.id) {
-        studioId = me.studio.id;
-      }
-    } catch { /* not an operator/partner */ }
-  }
+  // lessonId 로 들어온 경우에도 studioId 는 항상 채운다 — 스캔 화면에서 다른 수업으로 바꿀 수 있어야 한다.
+  try {
+    const me = await getMeAction();
+    if ('id' in me && me.studio?.id) {
+      studioId = me.studio.id;
+    }
+  } catch { /* not an operator/partner */ }
 
   return <QRPageContent lesson={lesson} studioId={studioId} />;
 }
