@@ -19,6 +19,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
 import { PracticeHallSection } from "@/app/studios/[id]/practice/PracticeHallSection";
 import { StudioPassList } from "@/app/studios/[id]/practice/StudioPassList";
+import { StudioRegularClassList } from "@/app/studios/[id]/StudioRegularClassList";
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
@@ -62,6 +63,7 @@ export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVers
     };
   });
   const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
+  const regularClasses = studio.regularClasses ?? [];
 
   return (
     <div className="w-full min-h-screen bg-white pt-10 pb-32">
@@ -203,6 +205,14 @@ export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVers
                   </NavigateClickWrapper>
                 </div>
               )}
+            </section>
+          )}
+
+          {/* 정규반 — 모바일과 동일 카드, PC는 2열. 탭하면 그 반의 패스권 목록으로 */}
+          {regularClasses.length > 0 && (
+            <section>
+              <h2 className="text-[20px] text-black font-bold mb-3">{await translate('studio_regular_classes')}</h2>
+              <StudioRegularClassList classes={regularClasses} studioId={studio.id} layout="grid" />
             </section>
           )}
 

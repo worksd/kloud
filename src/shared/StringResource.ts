@@ -4915,6 +4915,7 @@ export const StringResource = {
   pr_done_next2: { ko: '허가되면 구성원 신청 링크가 알림톡으로 와요. 링크를 단체에 공유하면 구성원들이 각자 신청하고, 인원이 모이면 대표가 한 번에 결제해요.', en: "Once approved, you'll get a member application link via KakaoTalk. Share it with your group — everyone applies individually, and a representative pays the total once the group is set.", jp: '承認されるとメンバー応募リンクがカカオトークで届きます。団体に共有すると各自が応募し、人数が揃ったら代表者がまとめて決済します。', zh: '批准后您将通过KakaoTalk收到成员报名链接。分享给团体后各自报名，人数集齐后由代表统一支付。' },
   pr_the_studio: { ko: '스튜디오', en: 'The studio', jp: 'スタジオ', zh: '工作室' },
   pr_studio_notfound_title: { ko: '스튜디오를 찾을 수 없어요', en: "We couldn't find this studio", jp: 'スタジオが見つかりません', zh: '找不到该工作室' },
+  studio_regular_classes: { ko: '정규반', en: 'Regular classes', jp: 'レギュラークラス', zh: '常规班' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
 }
 

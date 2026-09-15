@@ -15,6 +15,8 @@ import { PassDaysChip } from "@/app/components/PassDaysChip";
 import { DeferredImage } from "@/app/components/DeferredImage";
 import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
+import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
+import { RegularClassPlanSelector } from "@/app/payment/RegularClassPlanSelector";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
@@ -39,6 +41,9 @@ export default async function PaymentPcForm({
   weeklyLabel,
   preStartTime,
   preEndTime,
+  regularClassPlans = [],
+  regularClassId = 0,
+  regularStudioId = 0,
 }: {
   payment: GetPaymentResponse;
   paymentItem: PaymentPageType;
@@ -59,6 +64,10 @@ export default async function PaymentPcForm({
   /** 연습실 예약 시간대 (page.tsx searchParams 그대로) */
   preStartTime?: string;
   preEndTime?: string;
+  /** 정규반 결제 — 그 반의 패스권 목록(선택지). 비어 있으면 일반 pass-plan 결제 */
+  regularClassPlans?: GetPassPlanResponse[];
+  regularClassId?: number;
+  regularStudioId?: number;
 }) {
   return (
     <div className="w-full min-h-screen bg-white pt-12 pb-32">
@@ -212,6 +221,18 @@ export default async function PaymentPcForm({
                   </div>
                   <PassPlanBenefits passPlan={payment.passPlan} locale={locale} />
                 </div>
+                {/* 정규반 — 그 반의 패스권 선택(가격정책). 섹션 자체 px-6 을 -mx-5 로 상쇄해 카드(p-5) 라인에 맞춘다 */}
+                {regularClassPlans.length > 0 && (
+                  <div className="-mx-5">
+                    <RegularClassPlanSelector
+                      locale={locale}
+                      plans={regularClassPlans}
+                      selectedPlanId={itemId}
+                      studioId={regularStudioId}
+                      regularClassId={regularClassId}
+                    />
+                  </div>
+                )}
               </>
             )}
 

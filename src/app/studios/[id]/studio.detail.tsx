@@ -18,6 +18,7 @@ import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.acti
 import { PracticeHallSection } from "@/app/studios/[id]/practice/PracticeHallSection";
 import { PracticeNoticeList } from "@/app/studios/[id]/practice/PracticeNoticeList";
 import { StudioPassList } from "@/app/studios/[id]/practice/StudioPassList";
+import { StudioRegularClassList } from "@/app/studios/[id]/StudioRegularClassList";
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
@@ -63,6 +64,8 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
     };
   });
   const hasPasses = passes.length > 0;
+  // 정규반 — 판매중 상위 4건. 강사(artist)가 null이어도 카드는 노출
+  const regularClasses = studio.regularClasses ?? [];
   // 건물 편의시설 — enabled만 (홀 자체 시설은 홀 정보 시트에서 별도 표시)
   const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
   // 웹 주소 도메인 — GUINNESS_API_SERVER에 'prod'가 있으면 운영, 아니면 스테이징
@@ -174,6 +177,17 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
             <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
             <section className="pt-6">
               <PracticeHallSection studioId={studio.id} practiceRooms={studio.practiceRooms} locale={locale} />
+            </section>
+          </>
+        )}
+
+        {/* 정규반 — 탭하면 그 반의 패스권 목록으로 */}
+        {regularClasses.length > 0 && (
+          <>
+            <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
+            <section className="px-4 pt-6">
+              <h2 className="text-[20px] font-bold text-black mb-3">{await translate('studio_regular_classes')}</h2>
+              <StudioRegularClassList classes={regularClasses} studioId={studio.id} />
             </section>
           </>
         )}

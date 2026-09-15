@@ -1,8 +1,8 @@
 'use server'
 import { api } from "@/app/api.client";
 
-export const getPassPlanListAction = async ({studioId, status}: {studioId: number; status?: string}) => {
-  return await api.pass.listPlans({studioId, status})
+export const getPassPlanListAction = async ({studioId, status, regularClassId}: {studioId: number; status?: string; regularClassId?: number}) => {
+  return await api.pass.listPlans({studioId, status, regularClassId})
 }
 
 /**

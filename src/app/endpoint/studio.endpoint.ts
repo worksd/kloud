@@ -42,6 +42,26 @@ export type CommunityPracticeRoomResponse = {
   availableHours?: number[];
 }
 
+/** GET /studios/:id 의 regularClasses[].artist — 파트너 정규반 목록(GET /regular-classes)과 같은 모양 */
+export type StudioRegularClassArtistResponse = {
+  id: number;
+  /** 본명. 안 적혀 있으면 null이 아니라 빈 문자열 → 표시 이름은 `nickName || name` 으로 고른다 */
+  name: string;
+  nickName?: string | null;
+  profileImageUrl?: string | null;
+}
+
+/** GET /studios/:id 의 regularClasses[] — 판매중 정규반 노출 차례 상위 4건. 탭하면 pass-plans?regularClassId= 로 */
+export type StudioRegularClassResponse = {
+  id: number;
+  name: string;
+  imageUrl?: string | null;
+  description?: string | null;
+  tag?: string | null;
+  /** 담당 강사. 안 정했거나 삭제됐으면 null — 카드는 그대로 두고 강사 줄만 숨김/미정 처리 */
+  artist?: StudioRegularClassArtistResponse | null;
+}
+
 export type GetStudioResponse = {
     id: number;
     name: string;
@@ -80,6 +100,8 @@ export type GetStudioResponse = {
     // 건물 시설 토글 목록 [{amenity, label, enabled}] — enabled=false도 포함되니 소비 측에서 필터.
     amenities?: AmenityResponse[];
     passPlans?: GetPassPlanResponse[];
+    // 판매중 정규반 상위 4건 (강사 포함). 없으면 키째로 없거나 빈 배열
+    regularClasses?: StudioRegularClassResponse[];
     // 연습실 전용 스튜디오의 방 요약 (홀 스펙/시설). 슬롯은 availability에서.
     practiceRooms?: CommunityPracticeRoomResponse[];
 };

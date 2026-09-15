@@ -18,6 +18,8 @@ export type GetPassPlanListRequest = {
   studioId: number
   /** 'active'(Ready+Private) 등 상태 필터. 생략 시 전부. */
   status?: string
+  /** 정규반 id — 스튜디오 상세 정규반 카드에서 진입 시 그 반의 패스권만 */
+  regularClassId?: number
 }
 
 /**
@@ -260,7 +262,7 @@ export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse
   method: "get",
   path: (e) => `/studios/${e.studioId}/pass-plans`,
   pathParams: ['studioId'],
-  queryParams: ['status']
+  queryParams: ['status', 'regularClassId']
 };
 
 // GET /passPlans?studioId={id}&withAll=true — 키오스크 관리자모드 전용.

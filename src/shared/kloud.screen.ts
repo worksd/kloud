@@ -38,11 +38,15 @@ export const KloudScreen = {
   Payment: (type: 'lesson' | 'pass-plan' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
   /** 이용권(패스) 결제 — item 방식 */
   PassPlanPayment: (id: number) => `/payment?item=pass-plan&id=${id}`,
+  /** 정규반 결제 — 그 반의 패스권 중 하나를 바로 결제. passPlanId 없으면 결제 페이지가 추천/첫 패스권을 고른다 */
+  RegularClassPayment: (studioId: number, regularClassId: number, passPlanId?: number) =>
+    `/payment?item=pass-plan&studioId=${studioId}&regularClassId=${regularClassId}${passPlanId ? `&id=${passPlanId}` : ''}`,
   /** 연습실 결제 — item 방식 + 예약 시간대(startTime/endTime, 'YYYY-MM-DDTHH:mm') */
   PracticeRoomPayment: (roomId: number, startTime: string, endTime: string) =>
     `/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`,
   BundlePayment: (id: number) => `/bundle/${id}/payment`,
-  PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
+  PurchasePass: (studioId: number, regularClassId?: number) =>
+    `/passPlans?studioId=${studioId}${regularClassId ? `&regularClassId=${regularClassId}` : ''}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
   MySubscription: '/profile/mySubscription',

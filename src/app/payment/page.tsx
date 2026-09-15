@@ -19,6 +19,9 @@ import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentError
 import { DeferredImage } from "@/app/components/DeferredImage";
 import PaymentPcForm from "@/app/payment/PaymentPcForm";
 import { TrackView } from "@/app/components/TrackView";
+import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
+import { RegularClassPlanSelector } from "@/app/payment/RegularClassPlanSelector";
+import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
@@ -47,8 +50,12 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
     type?: PaymentPageType
     item?: PaymentPageType
-    id: string
+    /** 정규반 진입(regularClassId)에서는 생략 가능 — 추천/첫 패스권으로 채운다 */
+    id?: string
     os?: string
+    /** 정규반 결제 — 그 반의 패스권 목록을 고르는 선택지로 노출 */
+    regularClassId?: string
+    studioId?: string
     appVersion?: string
     targetUserId?: string
     date?: string
@@ -59,8 +66,24 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const params = await searchParams;
   const { type, item, id, os, appVersion = '', targetUserId, date, startTime, endTime } = params;
   const paymentItem = item ?? type ?? 'lesson';
-  const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
+
+  // 정규반 결제 — 스튜디오 상세 정규반 카드에서 바로 진입. 그 반의 패스권 목록을 받아
+  // 선택지(가격정책처럼)로 보여주고, id 가 없으면 추천 → 인기 → 첫 번째 순으로 기본 선택한다.
+  const regularClassId = Number(params.regularClassId);
+  const regularStudioId = Number(params.studioId);
+  let regularClassPlans: GetPassPlanResponse[] = [];
+  if (paymentItem === 'pass-plan' && regularClassId > 0 && regularStudioId > 0) {
+    const plansRes = await getPassPlanListAction({ studioId: regularStudioId, regularClassId });
+    if ('passPlans' in plansRes) regularClassPlans = plansRes.passPlans ?? [];
+  }
+  const defaultRegularPlan = regularClassPlans.find((p) => p.isRecommended)
+    ?? regularClassPlans.find((p) => p.isPopular)
+    ?? regularClassPlans[0];
+  const itemId = id ? parseInt(id) : (defaultRegularPlan?.id ?? NaN);
+  if (Number.isNaN(itemId)) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
+  }
 
   // 연습실 결제는 장소·시간대(startTime/endTime)가 이미 선택된 상태로만 진입 가능.
   if (paymentItem === 'practice-room' && (!startTime || !endTime)) {
@@ -200,6 +223,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             weeklyLabel={weeklyLabel}
             preStartTime={startTime}
             preEndTime={endTime}
+            regularClassPlans={regularClassPlans}
+            regularClassId={regularClassId}
+            regularStudioId={regularStudioId}
           />
         </div>
       )}
@@ -386,6 +412,17 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             {/* 이용 혜택 */}
             <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />
           </div>
+        )}
+
+        {/* 정규반 — 그 반의 패스권 선택(가격정책). 2개 이상일 때만 노출 */}
+        {paymentItem === 'pass-plan' && regularClassPlans.length > 0 && (
+          <RegularClassPlanSelector
+            locale={locale}
+            plans={regularClassPlans}
+            selectedPlanId={itemId}
+            studioId={regularStudioId}
+            regularClassId={regularClassId}
+          />
         )}
 
         {paymentItem === 'practice-room' ? (
