@@ -30,13 +30,13 @@ let entries: KisDebugEntry[] = [];
 let seq = 0;
 let env: KisDebugEnv | null = null;
 let envPromise: Promise<KisDebugEnv> | null = null;
-let context: { kioskId?: number; kioskName?: string } = {};
+let context: { kioskId?: number; kioskName?: string; studioId?: number; studioName?: string } = {};
 const listeners = new Set<() => void>();
 
 const notify = () => { listeners.forEach((fn) => fn()); };
 
-/** 어느 키오스크에서 온 응답인지 Discord 리포트에 실어 보내기 위한 컨텍스트 */
-export const setKisDebugContext = (next: { kioskId?: number; kioskName?: string }) => {
+/** 어느 학원·키오스크에서 온 응답인지 Discord 리포트에 실어 보내기 위한 컨텍스트 */
+export const setKisDebugContext = (next: { kioskId?: number; kioskName?: string; studioId?: number; studioName?: string }) => {
   context = { ...context, ...next };
 };
 
@@ -91,6 +91,8 @@ export const recordKisResponse = (kind: string, payload: unknown, note?: string)
         payload: safe,
         kioskId: context.kioskId,
         kioskName: context.kioskName,
+        studioId: context.studioId,
+        studioName: context.studioName,
       });
     })
     .catch(() => {});

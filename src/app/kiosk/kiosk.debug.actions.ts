@@ -32,6 +32,9 @@ export type KisDebugReport = {
   payload: Record<string, unknown>;
   kioskId?: number;
   kioskName?: string;
+  /** 어느 학원 키오스크인지 — 같은 이름의 태블릿이 여러 학원에 있어 이름만으론 못 가른다 */
+  studioId?: number;
+  studioName?: string;
 };
 
 // Discord embed 제한: description 4096, field value 1024
@@ -98,6 +101,7 @@ export const reportKisResponseAction = async (report: KisDebugReport): Promise<v
 
   const fields: { name: string; value: string; inline: boolean }[] = [
     { name: '채널', value: `\`${report.kind}\``, inline: true },
+    { name: '스튜디오', value: `\`${report.studioName ?? '-'}${report.studioId ? ` (#${report.studioId})` : ''}\``, inline: true },
     { name: '키오스크', value: `\`${report.kioskName ?? '-'}${report.kioskId ? ` (#${report.kioskId})` : ''}\``, inline: true },
   ];
   if (report.note) fields.push({ name: '대상', value: `\`${report.note}\``, inline: false });

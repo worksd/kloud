@@ -393,9 +393,9 @@ export const KioskForm = ({
 
   // KIS 응답 디버그 채널 준비 — 환경(staging/prod) 1회 조회 + 리포트에 실을 키오스크 컨텍스트 등록
   useEffect(() => {
-    setKisDebugContext({ kioskId, kioskName });
+    setKisDebugContext({ kioskId, kioskName, studioId, studioName });
     initKisDebug();
-  }, [kioskId, kioskName]);
+  }, [kioskId, kioskName, studioId, studioName]);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
