@@ -90,6 +90,8 @@ export const KloudScreen = {
   Studios: '/studios',
   StudioDetail: (id: number) => `/studios/${id}`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
+  /** 스튜디오 정규반 전체 목록 — 상세의 '더보기' */
+  StudioRegularClasses: (id: number) => `/studios/${id}/regularClasses`,
   StudioSettingSheet: '/studios/setting/sheet',
   StudioSetting: '/profile/setting/studio',
 

@@ -212,7 +212,7 @@ export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVers
           {regularClasses.length > 0 && (
             <section>
               <h2 className="text-[20px] text-black font-bold mb-3">{await translate('studio_regular_classes')}</h2>
-              <StudioRegularClassList classes={regularClasses} studioId={studio.id} layout="grid" />
+              <StudioRegularClassList classes={regularClasses} studioId={studio.id} studioImageUrl={studio.profileImageUrl} locale={locale} layout="grid" />
             </section>
           )}
 

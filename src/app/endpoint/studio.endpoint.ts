@@ -168,6 +168,26 @@ export type GetTimeTableLessonResponse = {
   startDate?: string;
 }
 
+/**
+ * GET /regular-classes?studioId= — 스튜디오 판매중 정규반 전체 목록 (상세의 regularClasses 는 상위 4건만).
+ * 항목 모양은 GET /studios/:id regularClasses[] 와 동일(artist 포함). 응답 래퍼 키·페이지 파라미터는 BE 확정 대기.
+ */
+export type ListRegularClassesParameter = {
+  studioId: number;
+  page?: number;
+}
+
+export type ListRegularClassesResponse = {
+  regularClasses: StudioRegularClassResponse[];
+  totalPage?: number | null;
+}
+
+export const ListRegularClasses: Endpoint<ListRegularClassesParameter, ListRegularClassesResponse> = {
+  method: 'get',
+  path: '/regular-classes',
+  queryParams: ['studioId', 'page'],
+}
+
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
   method: "get",
   path: (e) => `/studios/${e.id}`,

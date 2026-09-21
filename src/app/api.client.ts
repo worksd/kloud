@@ -51,6 +51,7 @@ export class ApiClient extends EndpointClient {
     me: this.endpointBuilder(API.Studio.Me),
     my: this.endpointBuilder(API.Studio.My),
     timeTable: this.endpointBuilder(API.Studio.TimeTable),
+    listRegularClasses: this.endpointBuilder(API.Studio.ListRegularClasses),
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
     listAttendances: this.endpointBuilder(API.Studio.ListStudioAttendances),
   }

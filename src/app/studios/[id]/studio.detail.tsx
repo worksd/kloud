@@ -183,7 +183,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
             <div className="w-full h-2 bg-[#f7f8f9] mt-6"/>
             <section className="px-4 pt-6">
               <h2 className="text-[20px] font-bold text-black mb-3">{await translate('studio_regular_classes')}</h2>
-              <StudioRegularClassList classes={regularClasses} studioId={studio.id} />
+              <StudioRegularClassList classes={regularClasses} studioId={studio.id} studioImageUrl={studio.profileImageUrl} locale={locale} />
             </section>
           </>
         )}
