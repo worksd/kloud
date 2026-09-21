@@ -160,7 +160,7 @@ export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVers
           {/* 타임테이블 — TimeTable 내부 px-4는 -mx-4로 상쇄해 다른 섹션과 좌측 라인을 맞추고,
               내부 헤더 mt-6은 -mt-6으로 상쇄해 컬럼 gap-10 리듬을 유지한다 (noMargin: 내부 my-4 제거) */}
           <section className="-mx-4 -mt-6">
-            <TimeTableServerComponent studioId={studio.id} noMargin/>
+            <TimeTableServerComponent studioId={studio.id} noMargin hqImages/>
           </section>
 
           {/* 진행중인 수업 — PC 자체 3-column 그리드 (모바일 LessonBookingList는 바텀시트 흐름이라 PC에선 상세 이동) */}
