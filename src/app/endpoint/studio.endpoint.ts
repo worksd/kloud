@@ -188,6 +188,21 @@ export const ListRegularClasses: Endpoint<ListRegularClassesParameter, ListRegul
   queryParams: ['studioId', 'page'],
 }
 
+/**
+ * GET /regular-classes/:id — 정규반 상세. 앱 결제는 여기 passPlans[] 중 하나(가격정책)를 item=pass-plan 으로 산다
+ * (정규반 등록 결제 연동 가이드 2026-09-21). passPlans[].status 가 'Pending' 이면 판매중단 — 어느 경로로도 못 사니 선택지에서 뺀다.
+ */
+export type RegularClassDetailResponse = StudioRegularClassResponse & {
+  passPlans?: GetPassPlanResponse[];
+  /** 미납 유예 허용 여부 — 앱에선 표시만 */
+  unpaidEnabled?: boolean;
+}
+
+export const GetRegularClass: Endpoint<IdParameter, RegularClassDetailResponse> = {
+  method: 'get',
+  path: (e) => `/regular-classes/${e.id}`,
+}
+
 export const GetStudio: Endpoint<IdParameter, GetStudioResponse> = {
   method: "get",
   path: (e) => `/studios/${e.id}`,

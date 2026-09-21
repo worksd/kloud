@@ -4917,6 +4917,7 @@ export const StringResource = {
   pr_studio_notfound_title: { ko: '스튜디오를 찾을 수 없어요', en: "We couldn't find this studio", jp: 'スタジオが見つかりません', zh: '找不到该工作室' },
   studio_regular_classes: { ko: '정규반', en: 'Regular classes', jp: 'レギュラークラス', zh: '常规班' },
   regular_class_view_all: { ko: '정규반 전체보기', en: 'View all classes', jp: 'クラスをすべて見る', zh: '查看全部常规班' },
+  pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
   regular_class_empty: { ko: '판매중인 정규반이 없어요', en: 'No regular classes on sale', jp: '販売中のクラスがありません', zh: '暂无在售常规班' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
 }

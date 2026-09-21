@@ -216,6 +216,9 @@ export default async function PaymentPcForm({
                     {payment.passPlan.expireDateStamp && (
                       <p className="text-[12px] text-[#86898C] font-medium">{payment.passPlan.expireDateStamp}</p>
                     )}
+                    {payment.startDate && (
+                      <p className="text-[12px] text-[#4E5968] font-medium">{(await translate('pass_starts_on')).replace('{date}', payment.startDate)}</p>
+                    )}
                     {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
                     <PassDaysChip days={payment.passPlan.days} locale={locale}/>
                   </div>

@@ -19,7 +19,7 @@ import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentError
 import { DeferredImage } from "@/app/components/DeferredImage";
 import PaymentPcForm from "@/app/payment/PaymentPcForm";
 import { TrackView } from "@/app/components/TrackView";
-import { getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
+import { getRegularClassDetail } from "@/app/studios/[id]/regularClasses/get.regular.class.list.action";
 import { RegularClassPlanSelector } from "@/app/payment/RegularClassPlanSelector";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 
@@ -68,14 +68,15 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const paymentItem = item ?? type ?? 'lesson';
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
 
-  // 정규반 결제 — 스튜디오 상세 정규반 카드에서 바로 진입. 그 반의 패스권 목록을 받아
-  // 선택지(가격정책처럼)로 보여주고, id 가 없으면 추천 → 인기 → 첫 번째 순으로 기본 선택한다.
+  // 정규반 결제 — 스튜디오 상세 정규반 카드에서 바로 진입. 정규반 상세(GET /regular-classes/:id)의 passPlans[](가격정책)를
+  // 선택지로 보여주고, id 가 없으면 추천 → 인기 → 첫 번째 순으로 기본 선택한다. 결제 자체는 item=pass-plan + 가격정책 id.
+  // 판매중단(status 'Pending')은 어느 경로로도 못 사므로(PASS_PLAN_NOT_READY) 선택지에서 뺀다.
   const regularClassId = Number(params.regularClassId);
   const regularStudioId = Number(params.studioId);
   let regularClassPlans: GetPassPlanResponse[] = [];
-  if (paymentItem === 'pass-plan' && regularClassId > 0 && regularStudioId > 0) {
-    const plansRes = await getPassPlanListAction({ studioId: regularStudioId, regularClassId });
-    if ('passPlans' in plansRes) regularClassPlans = plansRes.passPlans ?? [];
+  if (paymentItem === 'pass-plan' && regularClassId > 0) {
+    const classRes = await getRegularClassDetail(regularClassId);
+    if ('id' in classRes) regularClassPlans = (classRes.passPlans ?? []).filter((p) => p.status !== 'Pending');
   }
   const defaultRegularPlan = regularClassPlans.find((p) => p.isRecommended)
     ?? regularClassPlans.find((p) => p.isPopular)
@@ -404,6 +405,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             <div className="flex items-center gap-2 mb-4">
               {res.passPlan.expireDateStamp && (
                 <p className="text-[13px] text-[#86898C] font-medium">{res.passPlan.expireDateStamp}</p>
+              )}
+              {/* 시작일 — 같은 반에 남은 패스가 있으면 그 만료 다음 날부터. 서버가 이 날로 발급한다 */}
+              {res.startDate && (
+                <p className="text-[13px] text-[#4E5968] font-medium">{(await translate('pass_starts_on')).replace('{date}', res.startDate)}</p>
               )}
               {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
               <PassDaysChip days={res.passPlan.days} locale={await getLocale()}/>

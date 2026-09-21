@@ -110,6 +110,8 @@ export type GetPaymentResponse = {
   /** 결제 페이지 진입 직후 강제 이동시킬 라우트. BE가 지정하면 결제 폼 대신 navigateMain. */
   redirectUrl?: string;
   price?: number;
+  /** pass-plan: 지금 사면 새 패스가 시작하는 날 'yyyy.MM.dd' — 같은 정규반에 남은 패스가 있으면 그 만료 다음 날. 앱은 시작일을 보내지 않고 서버가 이 값으로 발급한다 */
+  startDate?: string;
   /**
    * 수업 가격 정책 — 정기로 파는 수업일 때 내려온다. 스펙상 위치는 lesson 하위이고 여기는 구버전 응답 폴백.
    * 존재하면 결제 화면에서 방식 선택 UI를 노출하고, 선택한 정책의 paymentId로 결제한다.
