@@ -10,6 +10,7 @@ import { TicketResponse } from '@/app/endpoint/ticket.endpoint';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { createDialog, DialogInfo } from '@/utils/dialog.factory';
 import { getLessonsByDate } from '@/app/kiosk/get.lessons.by.date.action';
+import { getLessonsByRange } from '@/app/qrs/get.lessons.by.range.action';
 import { getLessonTicketsAction } from '@/app/qrs/get.lesson.tickets.action';
 import { Thumbnail } from '@/app/components/Thumbnail';
 
@@ -64,6 +65,16 @@ const formatDateForAPI = (date: Date): string => {
 const getTodayKST = (): Date => {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+};
+
+/** 달력 칸/수업을 같은 문자열로 맞추기 위한 키. startDate 는 'yyyy-MM-dd HH:mm' 또는 'yyyy.MM.dd HH:mm' 로 온다. */
+const dayKeyOf = (year: number, month: number, day: number): string =>
+  `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+const lessonDayKey = (lesson: GetLessonResponse): string | null => {
+  const datePart = (lesson.startDate ?? lesson.date ?? '').split(' ')[0];
+  if (!datePart) return null;
+  return datePart.replace(/\./g, '-');
 };
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -458,28 +469,65 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
   const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
   const [calendarYear, setCalendarYear] = useState(today.getFullYear());
   const [dialogLessons, setDialogLessons] = useState<GetLessonResponse[]>([]);
+  const [dialogLessonsLoading, setDialogLessonsLoading] = useState(false);
+  // 달력에 점을 찍을 '수업 있는 날' 키(yyyy-MM-dd) 모음.
+  const [lessonDays, setLessonDays] = useState<Set<string>>(new Set());
 
   const dialogDateString = useMemo(() => formatDateForAPI(dialogDate), [dialogDate]);
+  const calendarDays = useMemo(() => getCalendarDays(calendarYear, calendarMonth), [calendarYear, calendarMonth]);
 
   useEffect(() => {
     if (!showLessonDialog || !studioId) return;
+    let cancelled = false;
+    // 날짜가 바뀌는 즉시 이전 날짜 목록을 비운다 — 안 그러면 로딩 중 남의 날 수업이 보인다.
+    setDialogLessons([]);
+    setDialogLessonsLoading(true);
     const fetchLessons = async () => {
       try {
         const response = await getLessonsByDate(studioId, dialogDateString);
-        if ('lessons' in response) {
-          setDialogLessons(response.lessons);
-        } else {
-          setDialogLessons([]);
-        }
+        if (cancelled) return;
+        setDialogLessons('lessons' in response ? response.lessons : []);
       } catch {
-        setDialogLessons([]);
+        if (!cancelled) setDialogLessons([]);
+      } finally {
+        if (!cancelled) setDialogLessonsLoading(false);
       }
     };
     fetchLessons();
+    return () => { cancelled = true; };
   }, [dialogDateString, studioId, showLessonDialog]);
 
-  const filteredDialogLessons = dialogLessons.filter((l) => l.status !== LessonStatus.Cancelled && l.price != null);
-  const calendarDays = getCalendarDays(calendarYear, calendarMonth);
+  // 달력에 보이는 6주(42칸) 전체를 한 번에 조회해 수업 있는 날을 표시한다.
+  useEffect(() => {
+    if (!showLessonDialog || !studioId) return;
+    const first = calendarDays[0];
+    const last = calendarDays[calendarDays.length - 1];
+    if (!first || !last) return;
+    const startDate = formatDateForAPI(new Date(first.year, first.month, first.day));
+    const endDate = formatDateForAPI(new Date(last.year, last.month, last.day));
+    let cancelled = false;
+    const fetchRange = async () => {
+      try {
+        const response = await getLessonsByRange(studioId, startDate, endDate);
+        if (cancelled) return;
+        const lessons = 'lessons' in response ? response.lessons : [];
+        const keys = new Set<string>();
+        lessons
+          .filter((l) => l.status !== LessonStatus.Cancelled)
+          .forEach((l) => {
+            const key = lessonDayKey(l);
+            if (key) keys.add(key);
+          });
+        setLessonDays(keys);
+      } catch {
+        if (!cancelled) setLessonDays(new Set());
+      }
+    };
+    fetchRange();
+    return () => { cancelled = true; };
+  }, [calendarDays, studioId, showLessonDialog]);
+
+  const filteredDialogLessons = dialogLessons.filter((l) => l.status !== LessonStatus.Cancelled);
   const todayDay = today.getDate();
   const todayMonth = today.getMonth();
   const todayYear = today.getFullYear();
@@ -560,7 +608,57 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                 </div>
               )}
             </div>
+
+            {/* 다이얼로그는 한 번 닫으면 다시 열 길이 없었다 — 다른 수업 출석을 받으려면 필요하다. */}
+            {studioId && (
+              <button
+                onClick={() => setShowLessonDialog(true)}
+                style={{
+                  flexShrink: 0,
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  background: 'none',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: '#fff',
+                }}
+              >
+                수업 변경
+              </button>
+            )}
           </div>
+        </div>
+      )}
+
+      {/* 수업을 안 고른 채 다이얼로그를 닫으면 다시 열 길이 없다 — 선택 버튼을 남겨둔다. */}
+      {!lesson && studioId && !showLessonDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 100,
+            left: 12,
+            right: 12,
+            zIndex: 10002,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <button
+            onClick={() => setShowLessonDialog(true)}
+            style={{
+              padding: '10px 16px',
+              borderRadius: 12,
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              backgroundColor: 'rgba(30, 30, 30, 0.9)',
+              backdropFilter: 'blur(10px)',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#fff',
+            }}
+          >
+            수업 선택
+          </button>
         </div>
       )}
 
@@ -825,6 +923,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                     dateInfo.year === todayYear;
                   const isSunday = idx % 7 === 0;
                   const isSaturday = idx % 7 === 6;
+                  const hasLesson = lessonDays.has(dayKeyOf(dateInfo.year, dateInfo.month, dateInfo.day));
 
                   let color = '#000';
                   if (!dateInfo.isCurrentMonth) color = '#D1D5DB';
@@ -833,7 +932,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                   if (isSelected) color = '#fff';
 
                   return (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1px 0' }}>
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1px 0' }}>
                       <button
                         onClick={() => setDialogDate(new Date(dateInfo.year, dateInfo.month, dateInfo.day, 0, 0, 0, 0))}
                         style={{
@@ -847,6 +946,15 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                       >
                         {dateInfo.day}
                       </button>
+                      {/* 수업 있는 날 표시 — 없으면 같은 높이의 빈 칸으로 줄 높이를 유지한다. */}
+                      <div
+                        style={{
+                          width: 4, height: 4, borderRadius: '50%', marginTop: 1,
+                          backgroundColor: hasLesson
+                            ? (isSelected ? '#000' : dateInfo.isCurrentMonth ? '#000' : '#D1D5DB')
+                            : 'transparent',
+                        }}
+                      />
                     </div>
                   );
                 })}
@@ -859,7 +967,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
                 {dialogDate.getMonth() + 1}월 {dialogDate.getDate()}일 ({WEEKDAY_LABELS[dialogDate.getDay()]})
               </span>
               <span style={{ fontSize: 12, color: '#9CA3AF' }}>
-                {filteredDialogLessons.length}개 수업
+                {dialogLessonsLoading ? '' : `${filteredDialogLessons.length}개 수업`}
               </span>
             </div>
 
@@ -867,7 +975,9 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 32px', minHeight: 0 }}>
               {filteredDialogLessons.length === 0 ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0' }}>
-                  <span style={{ fontSize: 13, color: '#9CA3AF' }}>수업이 없습니다</span>
+                  <span style={{ fontSize: 13, color: '#9CA3AF' }}>
+                    {dialogLessonsLoading ? '불러오는 중...' : '수업이 없습니다'}
+                  </span>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

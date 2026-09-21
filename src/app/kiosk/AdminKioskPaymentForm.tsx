@@ -6,6 +6,7 @@ import {getLocaleString} from '@/app/components/locale';
 import {kioskImageSrc} from '@/app/kiosk/kiosk.image';
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
 import {LessonPricePolicyResponse} from '@/app/endpoint/payment.endpoint';
+import {weeklyDaysLabel} from '@/utils/weekly.days';
 
 type AdminKioskPaymentItem = {
   title: string;
@@ -91,6 +92,8 @@ export const AdminKioskPaymentForm = ({item, locale, loading, pricePolicies = []
                 {pricePolicies.map((policy) => {
                   const isSelected = policy.id === selectedPolicyId;
                   const label = policy.name || `${policy.lessonCount}${t('times_unit')}`;
+                  // admin 정책 목록은 수업 상세(숫자 요일) 응답 — weeklyDaysLabel이 문자열/숫자 모두 정규화한다
+                  const daysLabel = weeklyDaysLabel(policy.days, locale);
                   return (
                     <button
                       key={policy.id}
@@ -101,6 +104,9 @@ export const AdminKioskPaymentForm = ({item, locale, loading, pricePolicies = []
                         ${isSelected ? 'border-[#1E2124] bg-[#1E2124]' : 'border-[#E6E8EA] bg-white'}`}
                     >
                       <span className={`font-bold text-[18px] truncate max-w-full ${isSelected ? 'text-white' : 'text-black'}`}>{label}</span>
+                      {daysLabel && (
+                        <span className={`mt-[2px] text-[14px] truncate max-w-full ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>{daysLabel}</span>
+                      )}
                       <span className={`font-bold text-[20px] mt-[4px] ${isSelected ? 'text-white' : 'text-[#1E2124]'}`}>
                         {policy.price.toLocaleString('ko-KR')}{t('won')}
                       </span>
