@@ -1,30 +1,22 @@
 'use client'
 
 import React from "react";
-import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { PassDaysChip } from "@/app/components/PassDaysChip";
-import { KloudScreen } from "@/shared/kloud.screen";
+import { useRegularClassPayment } from "@/app/payment/RegularClassPaymentContext";
 
 /**
  * 정규반 결제 — 그 반의 패스권(가격정책) 선택 섹션. 수업 가격정책(PricePolicySection)과 같은 룩.
- *
- * 패스권마다 결제 견적(paymentId·할인·구독 가능 여부)이 GET /payment 로 따로 나오므로,
- * 옵션을 고르면 같은 결제 페이지를 고른 패스권 id 로 다시 연다 (location.replace — 앱 웹뷰에서 화면이 쌓이지 않게).
- * appVersion 은 proxy 가 UA 로 다시 붙이므로 URL 에서 빠져도 된다.
+ * 옵션을 고르면 컨텍스트의 선택만 바뀌고, 미리 받아 둔 그 패스권의 견적으로 헤더·결제 폼이 갈아끼워진다.
  */
-export const RegularClassPlanSelector = ({ locale, plans, selectedPlanId, studioId, regularClassId }: {
-  locale: Locale,
-  plans: GetPassPlanResponse[],
-  selectedPlanId: number,
-  studioId: number,
-  regularClassId: number,
-}) => {
+export const RegularClassPlanSelector = ({ locale }: { locale: Locale }) => {
+  const ctx = useRegularClassPayment();
   const fmt = (n: number) => new Intl.NumberFormat("ko-KR").format(n);
   const won = getLocaleString({ locale, key: 'won' });
 
-  if (plans.length < 2) return null;
+  if (!ctx || ctx.plans.length < 2) return null;
+  const { plans, selectedPlanId, select } = ctx;
 
   return (
     <div className="flex flex-col gap-y-2 px-6 my-3">
@@ -39,10 +31,7 @@ export const RegularClassPlanSelector = ({ locale, plans, selectedPlanId, studio
             <button
               key={plan.id}
               type="button"
-              onClick={() => {
-                if (isSelected || typeof window === 'undefined') return;
-                window.location.replace(KloudScreen.RegularClassPayment(studioId, regularClassId, plan.id));
-              }}
+              onClick={() => select(plan.id)}
               aria-pressed={isSelected}
               className={`relative w-full text-left rounded-2xl px-5 py-4 transition-all duration-200 select-none
                 ${isSelected

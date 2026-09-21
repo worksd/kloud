@@ -17,6 +17,9 @@ import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 import { RegularClassPlanSelector } from "@/app/payment/RegularClassPlanSelector";
+import { RegularClassPaymentProvider } from "@/app/payment/RegularClassPaymentContext";
+import { RegularClassPassPlanHeader } from "@/app/payment/RegularClassPassPlanHeader";
+import { RegularClassPaymentForm } from "@/app/payment/RegularClassPaymentForm";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
@@ -42,8 +45,8 @@ export default async function PaymentPcForm({
   preStartTime,
   preEndTime,
   regularClassPlans = [],
-  regularClassId = 0,
-  regularStudioId = 0,
+  regularPayments = {},
+  startsOnLabel = '',
 }: {
   payment: GetPaymentResponse;
   paymentItem: PaymentPageType;
@@ -64,12 +67,14 @@ export default async function PaymentPcForm({
   /** 연습실 예약 시간대 (page.tsx searchParams 그대로) */
   preStartTime?: string;
   preEndTime?: string;
-  /** 정규반 결제 — 그 반의 패스권 목록(선택지). 비어 있으면 일반 pass-plan 결제 */
+  /** 정규반 결제 — 그 반의 패스권 목록(선택지)과 패스권별 미리 받은 견적. 비어 있으면 일반 pass-plan 결제 */
   regularClassPlans?: GetPassPlanResponse[];
-  regularClassId?: number;
-  regularStudioId?: number;
+  regularPayments?: Record<number, GetPaymentResponse>;
+  startsOnLabel?: string;
 }) {
+  const isRegularClass = regularClassPlans.length > 0;
   return (
+    <RegularClassPaymentProvider plans={regularClassPlans} payments={regularPayments} initialPlanId={itemId}>
     <div className="w-full min-h-screen bg-white pt-12 pb-32">
       <div className="mx-auto w-full max-w-5xl px-8 grid grid-cols-[minmax(0,1fr)_360px] gap-x-12">
 
@@ -89,6 +94,17 @@ export default async function PaymentPcForm({
               isProxyPayment={isProxyPayment}
               preStartTime={preStartTime}
               preEndTime={preEndTime}
+              buttonSlotId={PC_PAYMENT_BUTTON_SLOT_ID}
+            />
+          ) : isRegularClass ? (
+            <RegularClassPaymentForm
+              url={apiUrl}
+              appVersion={appVersion}
+              os={os}
+              beforeDepositor={beforeDepositor}
+              locale={locale}
+              actualPayerUserId={actualPayerUserId}
+              isProxyPayment={isProxyPayment}
               buttonSlotId={PC_PAYMENT_BUTTON_SLOT_ID}
             />
           ) : (
@@ -197,8 +213,8 @@ export default async function PaymentPcForm({
               </>
             )}
 
-            {/* pass-plan — PC에서는 작은 정사각 썸네일 */}
-            {paymentItem === 'pass-plan' && payment.passPlan && (
+            {/* pass-plan — PC에서는 작은 정사각 썸네일 (정규반은 아래 클라이언트 헤더) */}
+            {paymentItem === 'pass-plan' && payment.passPlan && !isRegularClass && (
               <>
                 {payment.passPlan.imageUrl && (
                   <div className="w-full aspect-[1/1] max-w-[260px] mx-auto rounded-xl overflow-hidden bg-[#F1F3F6]">
@@ -224,18 +240,16 @@ export default async function PaymentPcForm({
                   </div>
                   <PassPlanBenefits passPlan={payment.passPlan} locale={locale} />
                 </div>
-                {/* 정규반 — 그 반의 패스권 선택(가격정책). 섹션 자체 px-6 을 -mx-5 로 상쇄해 카드(p-5) 라인에 맞춘다 */}
-                {regularClassPlans.length > 0 && (
-                  <div className="-mx-5">
-                    <RegularClassPlanSelector
-                      locale={locale}
-                      plans={regularClassPlans}
-                      selectedPlanId={itemId}
-                      studioId={regularStudioId}
-                      regularClassId={regularClassId}
-                    />
-                  </div>
-                )}
+              </>
+            )}
+
+            {/* 정규반 — 선택된 패스권 헤더 + 패스권 선택(가격정책). 선택 섹션 px-6 을 -mx-5 로 상쇄해 카드(p-5) 라인에 맞춘다 */}
+            {isRegularClass && (
+              <>
+                <RegularClassPassPlanHeader locale={locale} startsOnLabel={startsOnLabel} variant="pc" />
+                <div className="-mx-5">
+                  <RegularClassPlanSelector locale={locale} />
+                </div>
               </>
             )}
 
@@ -317,5 +331,6 @@ export default async function PaymentPcForm({
 
       </div>
     </div>
+    </RegularClassPaymentProvider>
   );
 }

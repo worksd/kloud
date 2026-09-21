@@ -21,6 +21,9 @@ import PaymentPcForm from "@/app/payment/PaymentPcForm";
 import { TrackView } from "@/app/components/TrackView";
 import { getRegularClassDetail } from "@/app/studios/[id]/regularClasses/get.regular.class.list.action";
 import { RegularClassPlanSelector } from "@/app/payment/RegularClassPlanSelector";
+import { RegularClassPaymentProvider } from "@/app/payment/RegularClassPaymentContext";
+import { RegularClassPassPlanHeader } from "@/app/payment/RegularClassPassPlanHeader";
+import { RegularClassPaymentForm } from "@/app/payment/RegularClassPaymentForm";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
 
 type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
@@ -53,7 +56,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     /** 정규반 진입(regularClassId)에서는 생략 가능 — 추천/첫 패스권으로 채운다 */
     id?: string
     os?: string
-    /** 정규반 결제 — 그 반의 패스권 목록을 고르는 선택지로 노출 */
+    /** 정규반 결제 — 그 반의 패스권 목록을 고르는 선택지로 노출. studioId 는 라우트에 같이 오지만 여기선 안 쓴다 */
     regularClassId?: string
     studioId?: string
     appVersion?: string
@@ -72,7 +75,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   // 선택지로 보여주고, id 가 없으면 추천 → 인기 → 첫 번째 순으로 기본 선택한다. 결제 자체는 item=pass-plan + 가격정책 id.
   // 판매중단(status 'Pending')은 어느 경로로도 못 사므로(PASS_PLAN_NOT_READY) 선택지에서 뺀다.
   const regularClassId = Number(params.regularClassId);
-  const regularStudioId = Number(params.studioId);
   let regularClassPlans: GetPassPlanResponse[] = [];
   if (paymentItem === 'pass-plan' && regularClassId > 0) {
     const classRes = await getRegularClassDetail(regularClassId);
@@ -129,6 +131,24 @@ export default async function UnifiedPaymentPage({ searchParams }: {
 
   // 대리 결제 여부 확인 (비회원은 user 없음 → false)
   const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
+
+  // 정규반 — 나머지 패스권의 견적도 지금 한 번에 받아 둔다(병렬). 옵션 전환은 클라이언트 상태만 바꾼다.
+  // 견적이 실패한 패스권은 선택지에서 뺀다(그 패스권으로는 결제 id 를 못 받으니 보여줘도 못 산다).
+  const regularPayments: Record<number, typeof res> = {};
+  if (regularClassPlans.length > 0) {
+    regularPayments[itemId] = res;
+    const others = regularClassPlans.filter((p) => p.id !== itemId);
+    const quotes = await Promise.all(others.map((p) =>
+      getPaymentAction({ item: 'pass-plan', id: p.id, targetUserId: parsedTargetUserId }).catch(() => null)
+    ));
+    others.forEach((p, i) => {
+      const q = quotes[i];
+      if (q && !isGuinnessErrorCase(q) && !('redirectUrl' in q && q.redirectUrl) && q.passPlan) regularPayments[p.id] = q;
+    });
+  }
+  const regularPlansAvailable = regularClassPlans.filter((p) => !!regularPayments[p.id]);
+  const isRegularClass = regularPlansAvailable.length > 0;
+  const startsOnLabel = await translate('pass_starts_on');
 
   // 가격 정책 수업도 진입은 일반 lesson 결제와 동일 — 방식 선택은 결제 화면(UnifiedPaymentInfo)에서 한다.
   // (2026-08-08: pricePolicyId를 미리 골라 보내던 lesson-group 진입 경로는 제거됨)
@@ -224,12 +244,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             weeklyLabel={weeklyLabel}
             preStartTime={startTime}
             preEndTime={endTime}
-            regularClassPlans={regularClassPlans}
-            regularClassId={regularClassId}
-            regularStudioId={regularStudioId}
+            regularClassPlans={regularPlansAvailable}
+            regularPayments={regularPayments}
+            startsOnLabel={startsOnLabel}
           />
         </div>
       )}
+      <RegularClassPaymentProvider plans={regularPlansAvailable} payments={regularPayments} initialPlanId={itemId}>
       <div className={isWeb ? 'flex flex-col lg:hidden' : 'flex flex-col'}>
         {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
         {appVersion === '' && 'user' in res && res.user && (
@@ -385,8 +406,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
-        {/* pass-plan */}
-        {paymentItem === 'pass-plan' && res.passPlan && (
+        {/* pass-plan (정규반은 아래 클라이언트 헤더가 선택된 패스권으로 그린다) */}
+        {paymentItem === 'pass-plan' && res.passPlan && !isRegularClass && (
           <div className="px-5 pt-4 pb-3">
             {/* 이미지 */}
             {res.passPlan.imageUrl && (
@@ -419,15 +440,12 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
-        {/* 정규반 — 그 반의 패스권 선택(가격정책). 2개 이상일 때만 노출 */}
-        {paymentItem === 'pass-plan' && regularClassPlans.length > 0 && (
-          <RegularClassPlanSelector
-            locale={locale}
-            plans={regularClassPlans}
-            selectedPlanId={itemId}
-            studioId={regularStudioId}
-            regularClassId={regularClassId}
-          />
+        {/* 정규반 — 선택된 패스권 헤더 + 패스권 선택(가격정책, 2개 이상일 때만). 전환은 재로딩 없이 상태만 */}
+        {isRegularClass && (
+          <>
+            <RegularClassPassPlanHeader locale={locale} startsOnLabel={startsOnLabel} variant="mobile" />
+            <RegularClassPlanSelector locale={locale} />
+          </>
         )}
 
         {paymentItem === 'practice-room' ? (
@@ -451,20 +469,33 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               <div className="w-full h-2 bg-[#F7F8F9]" />
             </div>
 
-            <UnifiedPaymentInfo
-              type={paymentItem}
-              url={process.env.GUINNESS_API_SERVER ?? ''}
-              appVersion={appVersion}
-              os={os}
-              payment={res}
-              beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-              locale={await getLocale()}
-              actualPayerUserId={actualPayerUserId}
-              isProxyPayment={isProxyPayment}
-            />
+            {isRegularClass ? (
+              <RegularClassPaymentForm
+                url={process.env.GUINNESS_API_SERVER ?? ''}
+                appVersion={appVersion}
+                os={os}
+                beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+                locale={locale}
+                actualPayerUserId={actualPayerUserId}
+                isProxyPayment={isProxyPayment}
+              />
+            ) : (
+              <UnifiedPaymentInfo
+                type={paymentItem}
+                url={process.env.GUINNESS_API_SERVER ?? ''}
+                appVersion={appVersion}
+                os={os}
+                payment={res}
+                beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+                locale={await getLocale()}
+                actualPayerUserId={actualPayerUserId}
+                isProxyPayment={isProxyPayment}
+              />
+            )}
           </>
         )}
       </div>
+      </RegularClassPaymentProvider>
     </div>
   );
 }
