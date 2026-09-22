@@ -191,8 +191,8 @@ export const getKioskPaymentAction = async (params: { kioskId: number; targetUse
 };
 
 // admin(상담실) 카드결제용 — 결제 상세 없이 paymentId만 경량 발급. GET /kiosks/admin/payment
-export const getKioskAdminPaymentAction = async (item: string, itemId: number) => {
-  return await api.kiosk.getAdminPayment({ item, itemId });
+export const getKioskAdminPaymentAction = async (targetUserId: number, item: string, itemId: number) => {
+  return await api.kiosk.getAdminPayment({ targetUserId, item, itemId });
 };
 
 // admin(상담실) 현장결제(현금) — paymentId 없이 수동 결제기록 생성. methodType='admin'. POST /paymentRecords/manual

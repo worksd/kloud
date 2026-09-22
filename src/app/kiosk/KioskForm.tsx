@@ -988,7 +988,7 @@ export const KioskForm = ({
     let paymentId = selectedKioskPolicy?.paymentId;
     if (!paymentId) {
       // 결제하기 시점에 서버에서 paymentId 발급
-      const res = await getKioskAdminPaymentAction(item, itemId);
+      const res = await getKioskAdminPaymentAction(selectedUser.id, item, itemId);
       paymentId = (res as { paymentId?: string })?.paymentId;
       if (!paymentId) {
         setIsPaying(false);

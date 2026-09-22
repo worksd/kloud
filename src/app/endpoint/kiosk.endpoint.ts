@@ -18,6 +18,7 @@ export const GetKioskPayment: Endpoint<GetKioskPaymentRequest, GetPaymentRespons
 
 // GET /kiosks/admin/payment — 관리자 모드: 결제 상세 없이 paymentId만 발급받는 경량 엔드포인트
 export type GetKioskAdminPaymentRequest = {
+  targetUserId: number;   // BE 필수 검증 — 정수, 1 이상
   item: string;   // 'lesson' | 'pass-plan'
   itemId: number;
 };
@@ -29,7 +30,7 @@ export type GetKioskAdminPaymentResponse = {
 export const GetKioskAdminPayment: Endpoint<GetKioskAdminPaymentRequest, GetKioskAdminPaymentResponse> = {
   method: 'get',
   path: '/kiosks/admin/payment',
-  queryParams: ['item', 'itemId'],
+  queryParams: ['targetUserId', 'item', 'itemId'],
 };
 
 export type KioskPaymentType = 'card' | 'cash';
