@@ -85,26 +85,29 @@ export const getRelativeWeekPrefix = (baseDate: Date, refDate: Date, locale: Loc
   return getMonthWeekLabel(baseDate, locale);
 };
 
-// 수업 시각 → 상대 날짜 + 시각. 오늘/내일/모레 · 이번 주/다음 주 요일 · 그 외 날짜.
-export const formatRelativeLessonDate = (lesson: LessonWhen, locale: Locale): string => {
-  const d = parseLessonWallClock(lesson);
-  if (!d) return '';
+// 날짜 → 상대 날짜 라벨(시각 없음). 오늘/내일 · 이번 주/다음 주 요일 · 그 외 날짜.
+// 수업 카드 시각(formatRelativeLessonDate)과 정규반 첫 수업 안내가 같은 규칙을 쓴다.
+export const formatRelativeDay = (d: Date, locale: Locale): string => {
   const now = new Date();
   const dayDiff = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
   const weekDiff = Math.round((mondayOf(d).getTime() - mondayOf(now).getTime()) / (7 * 86400000));
   const wd = REL_WEEKDAYS[locale][d.getDay()];
-  const time = fmtTime(d, locale);
+  if (dayDiff === 0) return { ko: '오늘', en: 'Today', jp: '今日', zh: '今天' }[locale];
+  if (dayDiff === 1) return { ko: '내일', en: 'Tomorrow', jp: '明日', zh: '明天' }[locale];
+  if (dayDiff >= 2 && weekDiff === 0) return { ko: `이번주 ${wd}요일`, en: `This ${wd}`, jp: `今週${wd}曜`, zh: `本周${wd}` }[locale];
+  if (weekDiff === 1) return { ko: `다음주 ${wd}요일`, en: `Next ${wd}`, jp: `来週${wd}曜`, zh: `下周${wd}` }[locale];
+  return locale === 'ko'
+    ? `${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`
+    : new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', day: 'numeric', weekday: 'short' }).format(d);
+};
 
-  let dayLabel: string;
-  if (dayDiff === 0) dayLabel = { ko: '오늘', en: 'Today', jp: '今日', zh: '今天' }[locale];
-  else if (dayDiff === 1) dayLabel = { ko: '내일', en: 'Tomorrow', jp: '明日', zh: '明天' }[locale];
-  else if (dayDiff >= 2 && weekDiff === 0) dayLabel = { ko: `이번주 ${wd}요일`, en: `This ${wd}`, jp: `今週${wd}曜`, zh: `本周${wd}` }[locale];
-  else if (weekDiff === 1) dayLabel = { ko: `다음주 ${wd}요일`, en: `Next ${wd}`, jp: `来週${wd}曜`, zh: `下周${wd}` }[locale];
-  else {
-    const md = locale === 'ko'
-      ? `${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`
-      : new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', day: 'numeric', weekday: 'short' }).format(d);
-    return `${md} ${time}`;
-  }
-  return `${dayLabel} ${time}`;
+/** 오늘로부터 며칠 뒤인지 (기기 로컬 날짜 기준) */
+export const dayDiffFromToday = (d: Date): number =>
+  Math.round((startOfDay(d).getTime() - startOfDay(new Date()).getTime()) / 86400000);
+
+// 수업 시각 → 상대 날짜 + 시각. 오늘/내일/모레 · 이번 주/다음 주 요일 · 그 외 날짜.
+export const formatRelativeLessonDate = (lesson: LessonWhen, locale: Locale): string => {
+  const d = parseLessonWallClock(lesson);
+  if (!d) return '';
+  return `${formatRelativeDay(d, locale)} ${fmtTime(d, locale)}`;
 };

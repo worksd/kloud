@@ -38,9 +38,8 @@ export const KloudScreen = {
   Payment: (type: 'lesson' | 'pass-plan' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
   /** 이용권(패스) 결제 — item 방식 */
   PassPlanPayment: (id: number) => `/payment?item=pass-plan&id=${id}`,
-  /** 정규반 결제 — 그 반의 패스권 중 하나를 바로 결제. passPlanId 없으면 결제 페이지가 추천/첫 패스권을 고른다 */
-  RegularClassPayment: (studioId: number, regularClassId: number, passPlanId?: number) =>
-    `/payment?item=pass-plan&studioId=${studioId}&regularClassId=${regularClassId}${passPlanId ? `&id=${passPlanId}` : ''}`,
+  /** 정규반 결제 — item=regular-class, id=정규반 id 로 결제 페이지에 들어간다. 결제 API 에도 item=regular-class 그대로 전달 */
+  RegularClassPayment: (regularClassId: number) => `/payment?item=regular-class&id=${regularClassId}`,
   /** 연습실 결제 — item 방식 + 예약 시간대(startTime/endTime, 'YYYY-MM-DDTHH:mm') */
   PracticeRoomPayment: (roomId: number, startTime: string, endTime: string) =>
     `/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`,

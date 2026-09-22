@@ -16,8 +16,10 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { firstLessonDate } from "@/utils/weekly.days";
+import { dayDiffFromToday, formatRelativeDay } from "@/utils/lesson.relative.date";
 
-type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
+type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
@@ -26,6 +28,8 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
     case 'lesson-group':
       return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
     case 'pass-plan':
+    // 정규반은 고른 가격정책(pass-plan)을 산다 — paymentId 도 'LP…'
+    case 'regular-class':
       return { value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan' };
     case 'practice-room':
       return { value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room' };
@@ -35,7 +39,7 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
 }
 
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  if (type === 'pass-plan') return 'pass_plan_price';
+  if (type === 'pass-plan' || type === 'regular-class') return 'pass_plan_price';
   if (type === 'bundle') return 'promotion_price';
   if (type === 'practice-room') return 'practice_room_price';
   return 'lesson_price';
@@ -49,6 +53,9 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
       return payment.lesson?.id ?? 0;
     case 'pass-plan':
       return payment.passPlan?.id ?? 0;
+    // 정책 선택 전 기본값 — 정책이 선택되면 호출부가 정책(=가격정책) id 로 대체한다
+    case 'regular-class':
+      return payment.regularClass?.id ?? 0;
     case 'practice-room':
       return payment.studioRoom?.id ?? 0;
     case 'bundle':
@@ -63,6 +70,8 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
       return payment.lesson?.title ?? '';
     case 'pass-plan':
       return payment.passPlan?.name ?? '';
+    case 'regular-class':
+      return payment.regularClass?.name ?? '';
     case 'practice-room':
       return payment.studioRoom?.name ?? '';
     case 'bundle':
@@ -79,6 +88,8 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
       return payment.lesson?.price ?? 0;
     case 'pass-plan':
       return payment.passPlan?.price ?? 0;
+    case 'regular-class':
+      return 0;
     case 'practice-room':
       return payment.price ?? payment.studioRoom?.unitPrice ?? 0;
     case 'bundle':
@@ -92,6 +103,8 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
       return payment.lesson?.studio;
     case 'pass-plan':
       return payment.passPlan?.studio;
+    case 'regular-class':
+      return payment.regularClass?.studio;
     case 'practice-room':
       return null;
     case 'bundle':
@@ -102,10 +115,10 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
 }
 
 const needsMountCheck = (type: UnifiedPaymentType) =>
-  type === 'pass-plan';
+  type === 'pass-plan' || type === 'regular-class';
 
 const defaultMethod = (type: UnifiedPaymentType): PaymentMethodType | undefined =>
-  type === 'pass-plan' ? 'credit' : undefined;
+  type === 'pass-plan' || type === 'regular-class' ? 'credit' : undefined;
 
 export const UnifiedPaymentInfo = ({
   payment,
@@ -258,7 +271,7 @@ export const UnifiedPaymentInfo = ({
   const [buttonSlot, setButtonSlot] = useState<HTMLElement | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(
-    (type === 'pass-plan' || type === 'practice-room' || !initialPass || !initialPassIsDiscount)
+    (type === 'pass-plan' || type === 'regular-class' || type === 'practice-room' || !initialPass || !initialPassIsDiscount)
       ? undefined
       : buildDiscountFromPass(initialPass)
   );
@@ -291,7 +304,8 @@ export const UnifiedPaymentInfo = ({
   if (needsMountCheck(type) && !mounted) return null;
 
   const studio = getStudio(payment, type);
-  const noPass = type === 'pass-plan' || type === 'practice-room';
+  // 정규반도 패스권(가격정책)을 사는 결제라 보유 패스로는 못 산다
+  const noPass = type === 'pass-plan' || type === 'regular-class' || type === 'practice-room';
   // 가격정책이 있으면 선택된 옵션의 가격이 상품가가 된다.
   const itemPrice = hasPolicies ? (selectedPolicy?.price ?? 0) : getItemPrice(payment, type);
 
@@ -384,9 +398,36 @@ export const UnifiedPaymentInfo = ({
             policies={pricePolicies}
             selectedPolicyId={selectedPolicyId}
             onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
+            // 정규반 옵션은 횟수 차이일 수도, 요일(월요반/수요반) 차이일 수도 있어 중립 문구
+            titleKey={type === 'regular-class' ? 'select_enroll_option' : undefined}
+            hideDescription={type === 'regular-class'}
           />
           {/* 첫 수업 시작일 안내 — 결제 화면에 띄운 회차(firstLessonId로 전송되는 그 회차)부터 계약이 잡힌다.
               date는 서버가 로케일 적용해 내려주는 표시 문자열 그대로. */}
+          {/* 정규반 — 첫 수업 시작 안내(상대 날짜): 서버 startDate(패스 시작일, 남은 패스가 있으면 그 만료 다음 날)부터
+              고른 방식의 요일 중 가장 가까운 날. FE 추정이라 휴강·공휴일은 반영 안 됨. 요일 없는 방식은 시작일 그대로.
+              상대 날짜는 수업 카드와 같은 formatRelativeDay(기기 로컬). 결제 폼은 마운트 후에만 그리므로(needsMountCheck) 하이드레이션 불일치 없음 */}
+          {type === 'regular-class' && payment.startDate && (
+            <div className="mx-6 mt-3 flex items-center gap-2.5 rounded-xl bg-[#EEF2FF] border border-[#E0E7FF] px-4 py-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#4F51D8]">
+                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+                <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              <span className="text-[13px] font-semibold text-[#3F3FA8]">
+                {(() => {
+                  // 오늘 → '오늘부터 바로 시작합니다' / 내일 → '내일(9.23)부터 바로 시작합니다' / 그 뒤 → '이번주 목요일(9.24)부터 시작합니다'
+                  const first = firstLessonDate(payment.startDate, selectedPolicy?.days);
+                  if (!first) return getLocaleString({ locale, key: 'pass_starts_on' }).replace('{date}', payment.startDate ?? '');
+                  const diff = dayDiffFromToday(first);
+                  if (diff <= 0) return getLocaleString({ locale, key: 'regular_class_starts_today' });
+                  const md = `${first.getMonth() + 1}.${first.getDate()}`;
+                  return getLocaleString({ locale, key: diff === 1 ? 'regular_class_starts_tomorrow' : 'regular_class_starts_on' })
+                    .replace('{day}', formatRelativeDay(first, locale))
+                    .replace('{date}', md);
+                })()}
+              </span>
+            </div>
+          )}
           {payment.lesson?.date && (
             <div className="mx-6 mt-3 flex items-center gap-2.5 rounded-xl bg-[#EEF2FF] border border-[#E0E7FF] px-4 py-3">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#4F51D8]">
@@ -549,7 +590,7 @@ export const UnifiedPaymentInfo = ({
             <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
               • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
             </div>
-            {type === 'pass-plan' && (
+            {(type === 'pass-plan' || type === 'regular-class') && (
               <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
                 • {getLocaleString({locale, key: 'pass_plan_point_refund_notice'})}
               </div>
@@ -590,7 +631,8 @@ export const UnifiedPaymentInfo = ({
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
           selectedDiscounts={noPass ? undefined : activeDiscounts}
-          type={selectedPolicy ? getPaymentType('lesson-group') : getPaymentType(type)}
+          // 정책 결제 — 수업은 lesson-group(LGT), 정규반은 가격정책 pass-plan(LP). id 는 둘 다 정책 id
+          type={selectedPolicy ? getPaymentType(type === 'regular-class' ? 'regular-class' : 'lesson-group') : getPaymentType(type)}
           id={selectedPolicy ? selectedPolicy.id : getItemId(payment, type)}
           lessonId={payment.lesson?.id}
           price={priceAvailable ? totalPrice : null}

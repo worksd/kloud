@@ -1,7 +1,7 @@
 'use client'
 
 import { LessonPricePolicyResponse } from "@/app/endpoint/payment.endpoint";
-import { Locale } from "@/shared/StringResource";
+import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
 // 방식별 요일 표기('매주 월·수')는 공용 유틸 사용 — 수업 상세/키오스크와 공유
@@ -24,8 +24,14 @@ export const PricePolicySection = ({
   policies,
   selectedPolicyId,
   onSelectPolicy,
+  titleKey = 'select_lesson_count',
+  hideDescription = false,
 }: {
   locale: Locale,
+  /** 섹션 제목 — 기본 '수강 횟수 선택'. 정규반처럼 옵션이 요일(월요반/수요반)일 수도 있으면 중립 문구를 넘긴다 */
+  titleKey?: StringResourceKey,
+  /** 옵션별 설명 줄 숨김 — 정규반은 반 설명을 별도 안내사항 섹션으로 보여주므로 옵션엔 안 그린다 */
+  hideDescription?: boolean,
   policies: LessonPricePolicyResponse[],
   selectedPolicyId?: number,
   onSelectPolicy: (policy: LessonPricePolicyResponse) => void,
@@ -41,7 +47,7 @@ export const PricePolicySection = ({
   return (
     <div className="flex flex-col gap-y-2 px-6 my-3">
       <div className="text-[15px] font-bold text-black">
-        {getLocaleString({ locale, key: 'select_lesson_count' })}
+        {getLocaleString({ locale, key: titleKey })}
       </div>
 
       <div className="flex flex-col gap-2.5">
@@ -86,7 +92,7 @@ export const PricePolicySection = ({
                         {daysLabel}
                       </span>
                     )}
-                    {policy.description && (
+                    {!hideDescription && policy.description && (
                       <span className={`text-[12px] font-medium truncate ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>
                         {policy.description}
                       </span>

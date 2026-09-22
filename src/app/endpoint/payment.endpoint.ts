@@ -5,6 +5,7 @@ import { GetLessonResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
+import type { GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetPaymentRequest = {
   itemId: number
@@ -132,6 +133,14 @@ export type GetPaymentResponse = {
   cards?: GetBillingResponse[];
   lesson?: GetLessonResponse;
   passPlan?: GetPassPlanResponse;
+  /**
+   * 정규반 결제(item=regular-class, itemId=정규반 id). 사는 방식은 루트 pricePolicies[] 로 오고,
+   * 각 정책의 id 는 가격정책(pass-plan) id, paymentId 는 'LP…' — 선택한 정책을 pass-plan 으로 결제한다.
+   */
+  regularClass?: StudioRegularClassResponse & {
+    unpaidEnabled?: boolean;
+    studio?: GetStudioResponse;
+  };
   /**
    * 번들(묶음) 결제 — LessonPaymentResponse 패턴처럼 nested 객체로 내려옴.
    * SimplePaymentResponse 공통 필드(user/methods/price/...)는 root에, 번들 전용은 이 안에.

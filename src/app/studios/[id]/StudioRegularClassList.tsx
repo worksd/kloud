@@ -12,7 +12,7 @@ const MAX_VISIBLE = 4;
 
 /**
  * 스튜디오 상세 — 정규반 카드 목록 (판매중 상위 4건, BE가 잘라서 내려줌).
- * 탭하면 바로 결제 페이지로 — 그 반의 패스권(가격정책)을 결제 화면 안에서 고른다.
+ * 탭하면 바로 결제 페이지로 — /payment?item=regular-class&id=정규반 id.
  *
  * 카드 = 썸네일 + 제목 + 설명.
  *  - 썸네일: 강사(artist)가 있으면 강사 프로필, 없으면 학원 로고. artist 는 null 이 정상 데이터(강사 미정/삭제).
@@ -46,7 +46,7 @@ export function StudioRegularClassList({ classes, studioId, studioImageUrl, loca
         return (
           <button
             key={c.id}
-            onClick={() => kloudNav.push(KloudScreen.RegularClassPayment(studioId, c.id))}
+            onClick={() => kloudNav.push(KloudScreen.RegularClassPayment(c.id))}
             className="w-full text-left rounded-2xl border border-[#EEF0F2] p-3 flex items-center gap-3 cursor-pointer transition-colors active:bg-[#FAFBFC] hover:bg-[#FAFBFC]"
           >
             {/* 썸네일 — 강사 프로필, 없으면 학원 로고, 그것도 없으면 회색 박스 */}

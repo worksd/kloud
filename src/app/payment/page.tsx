@@ -19,14 +19,10 @@ import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentError
 import { DeferredImage } from "@/app/components/DeferredImage";
 import PaymentPcForm from "@/app/payment/PaymentPcForm";
 import { TrackView } from "@/app/components/TrackView";
-import { getRegularClassDetail } from "@/app/studios/[id]/regularClasses/get.regular.class.list.action";
-import { RegularClassPlanSelector } from "@/app/payment/RegularClassPlanSelector";
-import { RegularClassPaymentProvider } from "@/app/payment/RegularClassPaymentContext";
-import { RegularClassPassPlanHeader } from "@/app/payment/RegularClassPassPlanHeader";
-import { RegularClassPaymentForm } from "@/app/payment/RegularClassPaymentForm";
-import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
+import { RegularClassHeader, RegularClassArtistSection, RegularClassNoticeCard } from "@/app/payment/RegularClassHeader";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
+// regular-class: 정규반 결제 — id 는 정규반 id. 결제 API 에도 item=regular-class 로 그대로 보낸다
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -53,12 +49,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   searchParams: Promise<{
     type?: PaymentPageType
     item?: PaymentPageType
-    /** 정규반 진입(regularClassId)에서는 생략 가능 — 추천/첫 패스권으로 채운다 */
-    id?: string
+    id: string
     os?: string
-    /** 정규반 결제 — 그 반의 패스권 목록을 고르는 선택지로 노출. studioId 는 라우트에 같이 오지만 여기선 안 쓴다 */
-    regularClassId?: string
-    studioId?: string
     appVersion?: string
     targetUserId?: string
     date?: string
@@ -69,24 +61,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const params = await searchParams;
   const { type, item, id, os, appVersion = '', targetUserId, date, startTime, endTime } = params;
   const paymentItem = item ?? type ?? 'lesson';
+  const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
-
-  // 정규반 결제 — 스튜디오 상세 정규반 카드에서 바로 진입. 정규반 상세(GET /regular-classes/:id)의 passPlans[](가격정책)를
-  // 선택지로 보여주고, id 가 없으면 추천 → 인기 → 첫 번째 순으로 기본 선택한다. 결제 자체는 item=pass-plan + 가격정책 id.
-  // 판매중단(status 'Pending')은 어느 경로로도 못 사므로(PASS_PLAN_NOT_READY) 선택지에서 뺀다.
-  const regularClassId = Number(params.regularClassId);
-  let regularClassPlans: GetPassPlanResponse[] = [];
-  if (paymentItem === 'pass-plan' && regularClassId > 0) {
-    const classRes = await getRegularClassDetail(regularClassId);
-    if ('id' in classRes) regularClassPlans = (classRes.passPlans ?? []).filter((p) => p.status !== 'Pending');
-  }
-  const defaultRegularPlan = regularClassPlans.find((p) => p.isRecommended)
-    ?? regularClassPlans.find((p) => p.isPopular)
-    ?? regularClassPlans[0];
-  const itemId = id ? parseInt(id) : (defaultRegularPlan?.id ?? NaN);
-  if (Number.isNaN(itemId)) {
-    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
-  }
 
   // 연습실 결제는 장소·시간대(startTime/endTime)가 이미 선택된 상태로만 진입 가능.
   if (paymentItem === 'practice-room' && (!startTime || !endTime)) {
@@ -132,24 +108,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   // 대리 결제 여부 확인 (비회원은 user 없음 → false)
   const isProxyPayment = !!(actualPayerUserId && res.user && res.user.id !== actualPayerUserId);
 
-  // 정규반 — 나머지 패스권의 견적도 지금 한 번에 받아 둔다(병렬). 옵션 전환은 클라이언트 상태만 바꾼다.
-  // 견적이 실패한 패스권은 선택지에서 뺀다(그 패스권으로는 결제 id 를 못 받으니 보여줘도 못 산다).
-  const regularPayments: Record<number, typeof res> = {};
-  if (regularClassPlans.length > 0) {
-    regularPayments[itemId] = res;
-    const others = regularClassPlans.filter((p) => p.id !== itemId);
-    const quotes = await Promise.all(others.map((p) =>
-      getPaymentAction({ item: 'pass-plan', id: p.id, targetUserId: parsedTargetUserId }).catch(() => null)
-    ));
-    others.forEach((p, i) => {
-      const q = quotes[i];
-      if (q && !isGuinnessErrorCase(q) && !('redirectUrl' in q && q.redirectUrl) && q.passPlan) regularPayments[p.id] = q;
-    });
-  }
-  const regularPlansAvailable = regularClassPlans.filter((p) => !!regularPayments[p.id]);
-  const isRegularClass = regularPlansAvailable.length > 0;
-  const startsOnLabel = await translate('pass_starts_on');
-
   // 가격 정책 수업도 진입은 일반 lesson 결제와 동일 — 방식 선택은 결제 화면(UnifiedPaymentInfo)에서 한다.
   // (2026-08-08: pricePolicyId를 미리 골라 보내던 lesson-group 진입 경로는 제거됨)
   const isLessonLike = paymentItem === 'lesson';
@@ -157,6 +115,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   // 타입별로 데이터가 없는 경우 체크
   if (isLessonLike && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
+  }
+  if (paymentItem === 'regular-class' && !res.regularClass) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
@@ -180,6 +141,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.passPlan?.name,
           studioName: res.passPlan?.studio?.name,
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
+        };
+      case 'regular-class':
+        // 썸네일 — 강사 프로필, 없으면 학원 로고 (스튜디오 상세 정규반 카드와 동일)
+        return {
+          thumbnailUrl: res.regularClass?.artist?.profileImageUrl || res.regularClass?.studio?.profileImageUrl,
+          title: res.regularClass?.name,
+          studioName: res.regularClass?.studio?.name,
+          studioImageUrl: res.regularClass?.studio?.profileImageUrl,
         };
       case 'bundle':
         // 번들 응답엔 studio 정보가 따로 안 옴 — title만 표기, studio는 비움.
@@ -244,13 +213,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             weeklyLabel={weeklyLabel}
             preStartTime={startTime}
             preEndTime={endTime}
-            regularClassPlans={regularPlansAvailable}
-            regularPayments={regularPayments}
-            startsOnLabel={startsOnLabel}
           />
         </div>
       )}
-      <RegularClassPaymentProvider plans={regularPlansAvailable} payments={regularPayments} initialPlanId={itemId}>
       <div className={isWeb ? 'flex flex-col lg:hidden' : 'flex flex-col'}>
         {/* 웹(웹뷰) 우측 상단 프로필 — 로그인 상태면 사진 + 로그아웃 */}
         {appVersion === '' && 'user' in res && res.user && (
@@ -406,8 +371,38 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
-        {/* pass-plan (정규반은 아래 클라이언트 헤더가 선택된 패스권으로 그린다) */}
-        {paymentItem === 'pass-plan' && res.passPlan && !isRegularClass && (
+        {/* regular-class — 학원(로고+이름) → 반 이름, 담당 강사 섹션(있을 때만). 사는 방식(가격정책)은 아래 결제 폼에서 고른다 */}
+        {paymentItem === 'regular-class' && res.regularClass && (
+          <>
+            <RegularClassHeader regularClass={res.regularClass} variant="mobile" />
+            {res.regularClass.artist && (res.regularClass.artist.nickName || res.regularClass.artist.name) && (
+              <>
+                <div className="py-1">
+                  <div className="w-full h-2 bg-[#F7F8F9]" />
+                </div>
+                <RegularClassArtistSection regularClass={res.regularClass} title={await translate('regular_class_artist')} variant="mobile" />
+              </>
+            )}
+          </>
+        )}
+
+        {/* 정규반 안내사항 — 설명은 잘라내지 않고 라운드 카드로 전부(줄바꿈 유지) */}
+        {paymentItem === 'regular-class' && res.regularClass?.description && (
+          <>
+            <div className="py-1">
+              <div className="w-full h-2 bg-[#F7F8F9]" />
+            </div>
+            <section className="px-5 pt-4 pb-5">
+              <RegularClassNoticeCard
+                title={(await translate('regular_class_notice')).replace('{name}', res.regularClass.name)}
+                description={res.regularClass.description}
+              />
+            </section>
+          </>
+        )}
+
+        {/* pass-plan */}
+        {paymentItem === 'pass-plan' && res.passPlan && (
           <div className="px-5 pt-4 pb-3">
             {/* 이미지 */}
             {res.passPlan.imageUrl && (
@@ -427,10 +422,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               {res.passPlan.expireDateStamp && (
                 <p className="text-[13px] text-[#86898C] font-medium">{res.passPlan.expireDateStamp}</p>
               )}
-              {/* 시작일 — 같은 반에 남은 패스가 있으면 그 만료 다음 날부터. 서버가 이 날로 발급한다 */}
-              {res.startDate && (
-                <p className="text-[13px] text-[#4E5968] font-medium">{(await translate('pass_starts_on')).replace('{date}', res.startDate)}</p>
-              )}
               {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
               <PassDaysChip days={res.passPlan.days} locale={await getLocale()}/>
             </div>
@@ -438,14 +429,6 @@ export default async function UnifiedPaymentPage({ searchParams }: {
             {/* 이용 혜택 */}
             <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />
           </div>
-        )}
-
-        {/* 정규반 — 선택된 패스권 헤더 + 패스권 선택(가격정책, 2개 이상일 때만). 전환은 재로딩 없이 상태만 */}
-        {isRegularClass && (
-          <>
-            <RegularClassPassPlanHeader locale={locale} startsOnLabel={startsOnLabel} variant="mobile" />
-            <RegularClassPlanSelector locale={locale} />
-          </>
         )}
 
         {paymentItem === 'practice-room' ? (
@@ -469,33 +452,20 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               <div className="w-full h-2 bg-[#F7F8F9]" />
             </div>
 
-            {isRegularClass ? (
-              <RegularClassPaymentForm
-                url={process.env.GUINNESS_API_SERVER ?? ''}
-                appVersion={appVersion}
-                os={os}
-                beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-                locale={locale}
-                actualPayerUserId={actualPayerUserId}
-                isProxyPayment={isProxyPayment}
-              />
-            ) : (
-              <UnifiedPaymentInfo
-                type={paymentItem}
-                url={process.env.GUINNESS_API_SERVER ?? ''}
-                appVersion={appVersion}
-                os={os}
-                payment={res}
-                beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
-                locale={await getLocale()}
-                actualPayerUserId={actualPayerUserId}
-                isProxyPayment={isProxyPayment}
-              />
-            )}
+            <UnifiedPaymentInfo
+              type={paymentItem}
+              url={process.env.GUINNESS_API_SERVER ?? ''}
+              appVersion={appVersion}
+              os={os}
+              payment={res}
+              beforeDepositor={(await cookies()).get(depositorKey)?.value ?? ''}
+              locale={await getLocale()}
+              actualPayerUserId={actualPayerUserId}
+              isProxyPayment={isProxyPayment}
+            />
           </>
         )}
       </div>
-      </RegularClassPaymentProvider>
     </div>
   );
 }
