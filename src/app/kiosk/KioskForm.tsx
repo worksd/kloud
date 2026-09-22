@@ -514,8 +514,13 @@ export const KioskForm = ({
     const data = paymentResult.data;
     const str = (k: string): string | undefined =>
       typeof data[k] === 'string' && data[k] ? (data[k] as string) : undefined;
-    const num = (k: string): number | undefined =>
-      typeof data[k] === 'number' ? (data[k] as number) : undefined;
+    // KIS는 모든 out* 필드를 문자열로 준다 (outTotAmt: "30000"). 숫자 타입만 인정하면 항상 undefined가 되어
+    // 승인액이 아니라 상품 정가가 기록됐다 — admin 금액 수정 결제가 정가로 남고 취소 시 '승인금액 불일치'.
+    const num = (k: string): number | undefined => {
+      const raw = data[k];
+      const n = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() ? Number(raw) : NaN;
+      return Number.isFinite(n) && n > 0 ? n : undefined;
+    };
 
     // KIS가 echo한 outCustomerUuid를 진짜 매입된 paymentId로 사용 — paymentInfo.paymentId가 그 사이 다른 값으로 바뀐 케이스 대비
     // (이전에는 paymentInfo.paymentId만 사용해 KIS 매입은 됐는데 서버는 다른 paymentId로 complete 시도 → KIOSK_PAYMENT_NOT_PENDING 발생)
@@ -527,6 +532,7 @@ export const KioskForm = ({
     const authDate = rawAuthDate ? rawAuthDate.slice(0, 8) : '';
 
     // KIS 승인액(outTotAmt)을 항상 우선 — 서버엔 실제 매입 금액으로 기록(폼 표시가 0이어도 승인액으로).
+    // 승인액을 못 읽으면 admin 편집 금액 → 정가 순으로 폴백 (정가 폴백은 admin 수정분을 뭉갠다).
     const completeArgs: CompleteArgs = {
       paymentId: completePaymentId,
       targetUserId: selectedUser.id,
@@ -534,7 +540,7 @@ export const KioskForm = ({
       authNo: str('outAuthNo') ?? '',
       authDate,
       vanKey: str('outVanKey') ?? '',
-      totalAmount: num('outTotAmt') ?? finalAmount,
+      totalAmount: num('outTotAmt') ?? adminPaidAmount ?? finalAmount,
       cardBrand: str('outIssuerName'),
       cardNumber: str('outCardNo'),
       vanResponse: data,
