@@ -13,8 +13,14 @@ import { AdminNoHorizontalScroll } from '@/app/admin/AdminNoHorizontalScroll';
  * 관리자 경로는 전부 ignoreSafeArea(풀스크린)라 네이티브 헤더가 없다.
  * 상태바 영역은 여기서 safe-area 패딩으로 직접 잡는다.
  */
-export function AdminDetailHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+export function AdminDetailHeader({ title, subtitle, onBack }: {
+  title: string;
+  subtitle?: string;
+  /** 단계형 화면에서 이전 단계로 — 없으면 화면을 닫는다(네이티브 back / router.back) */
+  onBack?: () => void;
+}) {
   const router = useRouter();
+  const leave = () => (window.KloudEvent ? kloudNav.back() : router.back());
 
   return (
     <div
@@ -26,7 +32,7 @@ export function AdminDetailHeader({ title, subtitle }: { title: string; subtitle
         <button
           type={'button'}
           aria-label={'뒤로가기'}
-          onClick={() => (window.KloudEvent ? kloudNav.back() : router.back())}
+          onClick={onBack ?? leave}
           className={'w-10 h-10 rounded-full flex items-center justify-center text-[#191F28] active:bg-[#EDEFF2] transition-colors'}
         >
           <ChevronLeft size={24} strokeWidth={1.8}/>
