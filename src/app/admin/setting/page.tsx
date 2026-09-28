@@ -1,17 +1,17 @@
 import React from 'react';
 import { requireAdmin } from '@/app/admin/admin.guard';
-import { AdminMockNotice, AdminPageHeader } from '@/app/admin/AdminMockNotice';
+import { AdminPageHeader } from '@/app/admin/AdminPageHeader';
 import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { DialogClickWrapper } from '@/utils/DialogClickWrapper';
 import { UserModeSwitch } from '@/app/admin/UserModeSwitch';
 import { CircleImage } from '@/app/components/CircleImage';
 import { KloudScreen } from '@/shared/kloud.screen';
+import { CalendarClock, DoorOpen } from 'lucide-react';
 import {
-  StudioSettingFlatIcon, AccountFlatIcon, NotificationFlatIcon, CouponFlatIcon,
-  BusinessInfoFlatIcon, PolicyFlatIcon, QrScannerFlatIcon, VersionFlatIcon,
+  StudioSettingFlatIcon, NotificationFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, VersionFlatIcon,
 } from '@/app/profile/setting/SettingIcons';
 
-// 관리자 탭 '설정' — 학원 카드 + 섹션별 메뉴. 라우트가 있는 항목만 실제 이동하고, 나머지는 목(mock) 자리.
+// 관리자 탭 '설정' — 학원 카드 + 섹션별 메뉴. 학원 항목은 PATCH /studios 로 저장하는 하위 화면(원장 계정만).
 type Row = { label: string; desc?: string; icon: React.ReactNode; route?: string; value?: string };
 
 const SettingRow = ({ row }: { row: Row }) => {
@@ -38,23 +38,19 @@ const SettingRow = ({ row }: { row: Row }) => {
     : <div>{content}</div>;
 };
 
-export default async function AdminSettingPage() {
-  const { studioName, studioId, studioImageUrl, adminName } = await requireAdmin();
+export default async function AdminSettingPage({ searchParams }: {
+  searchParams: Promise<{ appVersion?: string }>;
+}) {
+  const [{ studioName, studioId, studioImageUrl, adminName }, { appVersion }] = await Promise.all([requireAdmin(), searchParams]);
 
   const sections: { title: string; rows: Row[] }[] = [
     {
-      title: '학원 운영',
+      title: '학원',
       rows: [
-        { label: '학원 정보', desc: '이름·주소·연락처·소개', icon: <StudioSettingFlatIcon size={24}/>, route: KloudScreen.StudioSetting },
-        { label: '수업·패스권 관리', desc: '목 화면', icon: <CouponFlatIcon size={24}/> },
-        { label: '키오스크', desc: '목 화면', icon: <QrScannerFlatIcon size={24}/> },
-      ],
-    },
-    {
-      title: '정산',
-      rows: [
-        { label: '사업자 정보', icon: <BusinessInfoFlatIcon size={24}/>, route: KloudScreen.BusinessInfo },
-        { label: '정산 계좌', desc: '목 화면', icon: <AccountFlatIcon size={24}/> },
+        { label: '학원 정보', desc: '이름·연락처·주소·SNS·편의시설', icon: <StudioSettingFlatIcon size={24}/>, route: KloudScreen.AdminSettingProfile },
+        { label: '수업·결제 설정', desc: '공개·예약 시점, 수강권 규칙, 결제수단', icon: <CalendarClock size={22} strokeWidth={1.6} color={'#1F1F1F'}/>, route: KloudScreen.AdminSettingLesson },
+        { label: '연습실 설정', desc: '환불 기준, 이용안내 알림톡', icon: <DoorOpen size={22} strokeWidth={1.6} color={'#1F1F1F'}/>, route: KloudScreen.AdminSettingRoom },
+        { label: '사업자·계좌', desc: '사업자 정보, 입금·정산 계좌', icon: <BusinessInfoFlatIcon size={24}/>, route: KloudScreen.AdminSettingBusiness },
       ],
     },
     {
@@ -62,7 +58,8 @@ export default async function AdminSettingPage() {
       rows: [
         { label: '알림 설정', icon: <NotificationFlatIcon size={24}/>, route: KloudScreen.NotificationSetting },
         { label: '약관 및 정책', icon: <PolicyFlatIcon size={24}/>, route: KloudScreen.Policy },
-        { label: '앱 버전', icon: <VersionFlatIcon size={24}/>, value: '최신' },
+        // proxy가 앱 UA에서 뽑아 query로 넘겨주는 버전 — 웹 접속이면 비어 있다
+        { label: '앱 버전', icon: <VersionFlatIcon size={24}/>, value: appVersion || '웹' },
       ],
     },
   ];
@@ -70,7 +67,6 @@ export default async function AdminSettingPage() {
   return (
     <div className="w-full min-h-screen overflow-x-clip bg-[#F7F8FA] pb-32">
       <AdminPageHeader title="설정" studioName={studioName} />
-      <AdminMockNotice />
 
       {/* 학원 카드 — 탭하면 학원 상세로 */}
       {studioId != null && (

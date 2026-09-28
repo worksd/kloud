@@ -55,6 +55,12 @@ export class ApiClient extends EndpointClient {
     getRegularClass: this.endpointBuilder(API.Studio.GetRegularClass),
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
     listAttendances: this.endpointBuilder(API.Studio.ListStudioAttendances),
+    // 내 스튜디오 설정 (PARTNER 헤더) — 관리자 설정 탭
+    getMyProfile: this.endpointBuilder(API.Studio.GetMyStudioProfile),
+    getMyBusiness: this.endpointBuilder(API.Studio.GetMyStudioBusiness),
+    getMyLessonSettings: this.endpointBuilder(API.Studio.GetMyStudioLessonSettings),
+    getMyRoomSettings: this.endpointBuilder(API.Studio.GetMyStudioRoomSettings),
+    update: this.endpointBuilder(API.Studio.UpdateStudio),
   }
 
   readonly announcement = {
@@ -184,6 +190,7 @@ export class ApiClient extends EndpointClient {
     getByUser: this.endpointBuilder(API.Student.GetStudentByUser),
     getPasses: this.endpointBuilder(API.Student.GetStudentPasses),
     list: this.endpointBuilder(API.Student.FindStudentList),
+    listAll: this.endpointBuilder(API.Student.FindStudents),
   }
 
   readonly studioRoom = {

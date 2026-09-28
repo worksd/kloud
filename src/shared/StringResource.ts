@@ -4637,6 +4637,7 @@ export const StringResource = {
   admin_home_today_title: { ko: '오늘 수업', en: "Today's lessons", jp: '本日のレッスン', zh: '今日课程' },
   admin_home_shortcut_payments: { ko: '결제 내역', en: 'Payments', jp: '決済履歴', zh: '支付记录' },
   admin_home_shortcut_register: { ko: '수강생 등록', en: 'Add student', jp: '受講生登録', zh: '添加学员' },
+  admin_home_shortcut_onsite: { ko: '현장결제', en: 'On-site payment', jp: '現場決済', zh: '现场支付' },
   admin_home_shortcut_kiosk_login: { ko: '키오스크 로그인', en: 'Kiosk login', jp: 'キオスクログイン', zh: '自助机登录' },
   admin_kiosk_login_title: { ko: '키오스크 로그인', en: 'Kiosk login', jp: 'キオスクログイン', zh: '自助机登录' },
   admin_kiosk_login_desc: { ko: '키오스크 로그인 화면에서\n이 QR을 스캔해주세요', en: 'Scan this QR on the kiosk\nlogin screen', jp: 'キオスクのログイン画面で\nこのQRをスキャンしてください', zh: '请在自助机登录界面\n扫描此二维码' },

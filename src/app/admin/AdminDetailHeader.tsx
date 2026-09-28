@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { ADMIN_HEADER_TOP_PAD } from '@/app/admin/admin.layout';
+import { AdminNoHorizontalScroll } from '@/app/admin/AdminNoHorizontalScroll';
 
 /**
  * 관리자 상세 화면 헤더 — 뒤로가기 + 제목.
@@ -20,6 +21,7 @@ export function AdminDetailHeader({ title, subtitle }: { title: string; subtitle
       className={'sticky top-0 z-20 bg-[#F7F8FA]/95 backdrop-blur-sm border-b border-[#EDEFF2] px-2 pb-2.5'}
       style={{ paddingTop: ADMIN_HEADER_TOP_PAD }}
     >
+      <AdminNoHorizontalScroll/>
       <div className={'flex items-center gap-1'}>
         <button
           type={'button'}

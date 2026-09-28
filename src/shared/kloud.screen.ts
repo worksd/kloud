@@ -77,6 +77,11 @@ export const KloudScreen = {
   AdminHome: '/admin',
   /** 관리자 전용 결제 상세 — 수강생용(/paymentRecords/:id)과 별도 화면 */
   AdminPaymentDetail: (paymentId: string) => `/admin/payments/${paymentId}`,
+  /** 관리자 설정 하위 — 각 화면이 PATCH /studios 로 그 화면 필드만 저장 */
+  AdminSettingProfile: '/admin/setting/profile',
+  AdminSettingBusiness: '/admin/setting/business',
+  AdminSettingLesson: '/admin/setting/lesson',
+  AdminSettingRoom: '/admin/setting/room',
   /** 수업 결제 완료 환영 화면 — lessonId가 있으면 감성 섹션(준비물·다음 수업 등)까지 그린다 */
   PaymentComplete: (paymentId: string, lessonId?: number) =>
     `/payment-complete?paymentId=${encodeURIComponent(paymentId)}${lessonId != null ? `&lessonId=${lessonId}` : ''}`,

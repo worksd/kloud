@@ -103,9 +103,11 @@ export type FindStudentListParameter = {
   /** 활성 수강생만 (최근 3개월 내 결제) */
   onlyActive?: boolean;
   order?: StudentListOrder;
-  /** 해당 tag 패스플랜의 유효 패스권 보유자만 */
+  /** 해당 tag 패스플랜의 유효 패스권 보유자만 (구 방식) */
   passPlanTag?: string;
-  /** passPlanTag와 함께 사용. 'yyyy.MM.dd HH:mm' 기준으로 유효 패스 판정 (미지정=현재) */
+  /** 가격정책 id 콤마 구분('120,121'). 그중 하나로 유효한 패스를 가진 수강생만 */
+  passPlanIds?: string;
+  /** passPlanIds(passPlanTag)와 함께 사용. 'yyyy.MM.dd HH:mm' 기준으로 유효 패스 판정 (미지정=현재) */
   lessonDate?: string;
   /** 'PhoneSuffix'면 숫자 검색어를 전화번호 뒷자리 일치로만 찾는다. 생략하면 'Keyword'(부분 일치). */
   matchType?: SearchMatchType;
@@ -145,13 +147,23 @@ export type StudentListItemResponse = {
 export type StudentListResponse = {
   students: StudentListItemResponse[];
   totalCount: number;
-  /** page 쿼리를 준 경우에만 내려옴 */
-  page?: number;
+  /** page 쿼리를 준 경우에만 내려옴. 쿼리 값을 그대로 돌려줘 문자열("1")로 온다 */
+  page?: number | string;
   totalPage?: number;
 }
 
 export const FindStudentList: Endpoint<FindStudentListParameter, StudentListResponse> = {
   method: 'get',
   path: '/students/search',
-  queryParams: ['keyword', 'page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'lessonDate', 'matchType'],
+  queryParams: ['keyword', 'page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'passPlanIds', 'lessonDate', 'matchType'],
+}
+
+// GET /students — 검색어 없는 목록. 응답 모양은 /students/search와 같다 (students 가이드 2026-09-28).
+// onlyActive는 값이 아니라 키 유무로 판정되므로(false도 참) 끌 때는 undefined로 빼야 한다.
+export type FindStudentsParameter = Omit<FindStudentListParameter, 'keyword' | 'matchType'>;
+
+export const FindStudents: Endpoint<FindStudentsParameter, StudentListResponse> = {
+  method: 'get',
+  path: '/students',
+  queryParams: ['page', 'tags', 'onlyActive', 'order', 'passPlanTag', 'passPlanIds', 'lessonDate'],
 }

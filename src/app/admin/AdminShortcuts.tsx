@@ -1,19 +1,18 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { QrCode, UserRoundCheck, UserRoundPlus } from 'lucide-react';
+import { Banknote, QrCode, UserRoundCheck } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
-import { generateRandomNickname } from '@/utils/random.nickname';
-import { registerKioskUserAction } from '@/app/kiosk/kiosk.actions';
-import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
+import { AdminOnsitePaymentDialog } from '@/app/admin/AdminOnsitePaymentDialog';
 
 // 관리자 홈 숏컷 줄 — 출석 체크(오늘 수업 → 수업별 출석 QR 화면, 중앙 다이얼로그),
-// 수강생 등록(이름+전화번호 다이얼로그. 닉네임은 키오스크처럼 랜덤), 키오스크 로그인(QR 다이얼로그).
+// 현장결제(수강생 검색 → 상품 → 금액, POST /paymentRecords/manual admin), 키오스크 로그인(QR 다이얼로그).
+// 수강생 등록은 '수강생' 탭으로 옮겼다.
 // 결제 내역은 '매출' 탭으로 옮겨서 여기서 뺐다.
 // 키오스크 로그인 QR 형식: `${origin}/kiosk?token=<관리자 accessToken>` — KioskBootstrap이
 // urlToken을 저장하고 그대로 로그인하는 기존 플로우라, 키오스크에서 이 URL을 열거나 스캔하면 끝.
@@ -26,6 +25,8 @@ export type AdminSheetLesson = {
   timeLabel?: string;
   /** 예: '강사 · 룸' */
   subLabel?: string;
+  /** 현장결제 기본 금액 — 정책 수업이면 선택한 정책 가격으로 대체 */
+  price?: number;
 };
 
 // 바텀 탭 아이콘과 같은 언어 — 24px 그리드, stroke 1.5, 단색 #1F1F1F, 중성 타일.
@@ -49,11 +50,13 @@ const Shortcut = ({ icon, label, onClick }: {
   </button>
 );
 
-export function AdminShortcuts({ lessons, locale, kioskToken }: {
+export function AdminShortcuts({ lessons, locale, kioskToken, studioId }: {
   lessons: AdminSheetLesson[];
   locale: Locale;
   /** 키오스크 로그인 QR에 실을 관리자 accessToken */
   kioskToken?: string;
+  /** 현장결제 패스권 목록 조회용 */
+  studioId: number;
 }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
@@ -76,14 +79,8 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
     setTimeout(() => { setQrOpen(false); setQrClosing(false); }, 200);
   };
 
-  // 수강생 등록 — 바텀시트가 아니라 중앙 다이얼로그(키오스크 QR 다이얼로그와 같은 연출)
-  const [regOpen, setRegOpen] = useState(false);
-  const [regClosing, setRegClosing] = useState(false);
-  const [regName, setRegName] = useState('');
-  const [regPhone, setRegPhone] = useState('');
-  const [regError, setRegError] = useState<string | null>(null);
-  const [registering, setRegistering] = useState(false);
-  const registeringRef = useRef(false);
+  // 현장결제 다이얼로그
+  const [onsiteOpen, setOnsiteOpen] = useState(false);
 
   const openAttendance = () => setAttOpen(true);
   const closeAttendance = () => {
@@ -92,54 +89,10 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
     setTimeout(() => { setAttOpen(false); setAttClosing(false); }, 200);
   };
 
-  const openRegister = () => {
-    setRegName('');
-    setRegPhone('');
-    setRegError(null);
-    setRegOpen(true);
-  };
-
-  // 등록 중에는 닫히지 않게 — 중복 요청/미완료 상태 방지
-  const closeRegister = () => {
-    if (registeringRef.current || regClosing) return;
-    setRegClosing(true);
-    setTimeout(() => { setRegOpen(false); setRegClosing(false); }, 200);
-  };
-
   const onLesson = (id: number) => {
     closeAttendance();
     kloudNav.push(KloudScreen.QRScanWithLesson(id));
   };
-
-  const submitRegister = async () => {
-    if (registeringRef.current) return;
-    const name = regName.trim();
-    const phone = regPhone.replace(/\D/g, '');
-    if (!name) { setRegError(t('admin_register_name_required')); return; }
-    if (phone.length < 10 || phone.length > 11) { setRegError(t('admin_register_phone_invalid')); return; }
-    registeringRef.current = true;
-    setRegistering(true);
-    setRegError(null);
-    try {
-      // 키오스크 신규 가입과 동일 — phone-login(isAdmin)으로 유저 생성 후 랜덤 닉네임 + 입력한 이름 저장
-      const res = await registerKioskUserAction(phone, '82', generateRandomNickname(), name);
-      if (isGuinnessErrorCase(res)) {
-        setRegError(res.message || t('admin_register_failed'));
-        return;
-      }
-      window.KloudEvent?.showToast?.(t('admin_register_success'));
-      registeringRef.current = false;
-      setRegClosing(true);
-      setTimeout(() => { setRegOpen(false); setRegClosing(false); }, 200);
-    } catch {
-      setRegError(t('admin_register_failed'));
-    } finally {
-      registeringRef.current = false;
-      setRegistering(false);
-    }
-  };
-
-  const inputCls = 'mt-1.5 w-full rounded-[12px] border border-[#E5E7EB] px-3.5 py-3 text-[15px] text-black placeholder-[#B1B8BE] outline-none focus:border-[#1E2124] disabled:opacity-60';
 
   return (
     <>
@@ -150,9 +103,9 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
           onClick={openAttendance}
         />
         <Shortcut
-          icon={<UserRoundPlus size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
-          label={t('admin_home_shortcut_register')}
-          onClick={openRegister}
+          icon={<Banknote size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
+          label={t('admin_home_shortcut_onsite')}
+          onClick={() => setOnsiteOpen(true)}
         />
         <Shortcut
           icon={<QrCode size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
@@ -255,62 +208,7 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
         </div>
       )}
 
-      {/* 수강생 등록 — 이름 + 전화번호, 닉네임은 랜덤 생성 */}
-      {regOpen && (
-        <div
-          className={`fixed inset-0 z-[70] flex items-center justify-center px-8 ${
-            regClosing ? 'animate-[fadeOut_200ms_ease-out_forwards]' : 'animate-[fadeIn_200ms_ease-out]'
-          }`}
-          onClick={closeRegister}
-        >
-          <div className={'absolute inset-0 bg-black/40'}/>
-          <div
-            className={'relative w-full max-w-[380px] bg-white rounded-[24px] p-6 animate-[scaleIn_260ms_ease-out]'}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className={'text-[17px] font-bold text-black mb-4'}>{t('admin_register_title')}</p>
-            <p className={'text-[13px] font-semibold text-black'}>{t('admin_register_name_label')}</p>
-            <input
-              type={'text'}
-              value={regName}
-              onChange={(e) => { setRegName(e.target.value); setRegError(null); }}
-              placeholder={t('admin_register_name_placeholder')}
-              disabled={registering}
-              className={inputCls}
-            />
-            <p className={'mt-4 text-[13px] font-semibold text-black'}>{t('admin_register_phone_label')}</p>
-            <input
-              type={'tel'}
-              inputMode={'numeric'}
-              value={regPhone}
-              onChange={(e) => { setRegPhone(e.target.value.replace(/[^\d]/g, '')); setRegError(null); }}
-              placeholder={'01012345678'}
-              maxLength={11}
-              disabled={registering}
-              className={inputCls}
-            />
-            {regError && <p className={'mt-2 text-[13px] text-[#E55B5B] font-medium'}>{regError}</p>}
-            <div className={'mt-5 flex gap-2.5'}>
-              <button
-                type={'button'}
-                onClick={closeRegister}
-                disabled={registering}
-                className={'flex-1 h-[50px] rounded-[14px] bg-[#F2F4F6] text-[15px] font-semibold text-[#1E2124] active:scale-[0.98] transition-transform disabled:opacity-60'}
-              >
-                {t('cancel')}
-              </button>
-              <button
-                type={'button'}
-                onClick={submitRegister}
-                disabled={registering}
-                className={'flex-[1.4] h-[50px] rounded-[14px] bg-[#1E2124] text-[15px] font-bold text-white active:scale-[0.98] transition-transform disabled:opacity-60'}
-              >
-                {registering ? `${t('admin_register_submit')}…` : t('admin_register_submit')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminOnsitePaymentDialog open={onsiteOpen} studioId={studioId} lessons={lessons} onClose={() => setOnsiteOpen(false)}/>
     </>
   );
 }

@@ -13,6 +13,7 @@ import { accessTokenKey } from '@/shared/cookies.key';
 import { AdminShortcuts, AdminSheetLesson } from '@/app/admin/AdminShortcuts';
 import { formatLessonTimeRange } from '@/app/kiosk/kiosk.lesson';
 import { ADMIN_CONTENT_TOP_PAD, ADMIN_HEADER_TOP_PAD } from '@/app/admin/admin.layout';
+import { AdminNoHorizontalScroll } from '@/app/admin/AdminNoHorizontalScroll';
 
 // Vercel 서버는 UTC — '오늘'은 KST 기준으로 계산해야 새벽에 어제 수업이 뜨지 않는다.
 const todayKst = (): string => {
@@ -46,13 +47,14 @@ export async function AdminHomeForm() {
   const res = await getLessonsByDate(studio.id, todayKst());
   const lessons = 'lessons' in res ? res.lessons.filter((l) => l.status !== LessonStatus.Cancelled) : [];
 
-  // 출석 체크 다이얼로그용 — 썸네일 + 제목 + 시간/강사·룸 라벨을 서버에서 미리 포맷
+  // 출석 체크·현장결제 다이얼로그용 — 썸네일 + 제목 + 시간/강사·룸 라벨을 서버에서 미리 포맷
   const sheetLessons: AdminSheetLesson[] = lessons.map((l) => ({
     id: l.id,
     title: l.title ?? '-',
     thumbnailUrl: l.thumbnailUrl,
     timeLabel: formatLessonTimeRange(l, locale) || undefined,
     subLabel: [l.artists?.[0]?.nickName, l.room?.name].filter(Boolean).join(' · ') || undefined,
+    price: l.price,
   }));
 
   const adminName = ('id' in me ? (me.name || me.nickName) : undefined) ?? '';
@@ -61,8 +63,9 @@ export async function AdminHomeForm() {
 
   return (
     // ignoreSafeArea 풀스크린 — 상태바 영역은 safe-area 패딩으로 직접 확보 (env 미지원 웹뷰 폴백 44px)
-    // 가로 스크롤 차단은 overflow-x-clip — hidden은 스크롤 컨테이너를 만들어 아래 sticky 헤더가 고정되지 않는다
+    // 가로 스크롤 차단은 AdminNoHorizontalScroll(html overflow-x) — 루트에 overflow-x-hidden을 주면 sticky 헤더가 고정되지 않는다
     <div className={'w-full min-h-screen overflow-x-clip bg-[#F7F8FA] flex flex-col pb-32'}>
+      <AdminNoHorizontalScroll/>
       {/* 고정 헤더 — 다른 관리자 탭(AdminPageHeader)과 같은 구조. 스튜디오 칩만 상단에 붙고 본문만 스크롤된다. */}
       <div
         className={'sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#EDEFF2] px-5 pb-3'}
@@ -87,9 +90,9 @@ export async function AdminHomeForm() {
         </p>
       )}
 
-      {/* 숏컷(출석 체크·수강생 등록·키오스크 로그인) — 흰 카드. 결제 내역은 '매출' 탭으로 옮겼다 */}
+      {/* 숏컷(출석 체크·현장결제·키오스크 로그인) — 흰 카드. 결제 내역은 '매출' 탭, 수강생 등록은 '수강생' 탭으로 옮겼다 */}
       <section className={'mx-4 mt-3 rounded-2xl bg-white border border-[#EEF0F2] px-1 py-3'}>
-        <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken}/>
+        <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken} studioId={studio.id}/>
       </section>
 
       {/* 주간 시간표 */}

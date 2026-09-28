@@ -1,6 +1,6 @@
 import React from 'react';
 import { requireAdmin } from '@/app/admin/admin.guard';
-import { AdminPageHeader } from '@/app/admin/AdminMockNotice';
+import { AdminPageHeader } from '@/app/admin/AdminPageHeader';
 import { getRecentSalesAction } from '@/app/admin/sales/recent.sales.action';
 import { SalesSection } from '@/app/admin/sales/SalesSection';
 import { AdminPaymentsSheetContent } from '@/app/admin/AdminPaymentsSheet';

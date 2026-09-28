@@ -298,3 +298,170 @@ export const ListStudioAttendances: Endpoint<ListStudioAttendancesParameter, Stu
   path: '/studio-attendances',
   queryParams: ['targetUserId', 'startDate', 'endDate'],
 }
+
+// ─── 내 스튜디오 설정 (스튜디오 설정 수정 가이드 2026-09-28) ─────────────────────────
+// PATCH /studios 와 GET /studios/me/* 는 x-guinness-client: PARTNER 가 아니면 STUDIO_PARTNER_NOT_MATCH(401).
+// kloud 프록시는 OS 이름/Web/KIOSK 만 세팅하므로 이 엔드포인트들만 헤더를 덮어쓴다.
+const PARTNER_HEADERS = { 'x-guinness-client': 'PARTNER' } as const;
+
+export type TicketAutoUse = 'None' | 'SameDayOnSite';
+export type StudioAmenity = 'Parking' | 'Wifi' | 'AirConditioner' | 'FittingRoom' | 'WaterDispenser' | 'Elevator' | 'Tripod' | 'Restroom';
+
+export type StudioPaymentMethodResponse = {
+  id: number;
+  isEnabled: boolean;
+  /** 결제수단 상세 — 표시명 키가 BE 확정 전이라 여러 후보를 받는다 */
+  paymentMethod?: { id?: number; name?: string; label?: string; title?: string; type?: string; methodType?: string } & Record<string, unknown>;
+}
+
+/**
+ * PATCH /studios 요청. 담은 키만 바뀐다.
+ * - 일반 필드는 null 로 지울 수 없다(무시됨). 문자열은 '' 로 비운다.
+ * - daysBeforeOpen↔lessonOpenTime, daysBeforeSale↔lessonSaleTime 은 짝으로(둘 다 생략/둘 다 null/둘 다 값).
+ * - studioPaymentMethodIds 는 부분 수정이 아니라 전체 덮어쓰기 — 건드리지 않을 땐 키를 빼야 한다.
+ * - amenities 는 보낸 항목만 upsert.
+ */
+export type UpdateStudioRequest = {
+  name?: string;
+  profileImageUrl?: string;
+  coverImageUrl?: string;
+  phone?: string;
+  address?: string;
+  roadAddress?: string;
+  instagramAddress?: string;
+  youtubeUrl?: string;
+  tiktokUrl?: string;
+  xUrl?: string;
+  slug?: string;
+  businessName?: string;
+  businessRegistrationNumber?: string;
+  representative?: string;
+  taxType?: string;
+  businessRegistrationCopyUrl?: string;
+  eCommerceRegNumber?: string;
+  educationOfficeRegNumber?: string;
+  bank?: string;
+  bankCode?: string;
+  accountNumber?: string;
+  depositor?: string;
+  payoutBank?: string;
+  payoutBankCode?: string;
+  payoutAccountNumber?: string;
+  payoutDepositor?: string;
+  daysBeforeOpen?: number | null;
+  lessonOpenTime?: string | null;
+  daysBeforeSale?: number | null;
+  lessonSaleTime?: string | null;
+  lessonCloseTime?: string | null;
+  hoursAfterAutoCancelAccountTransfer?: number;
+  ticketAutoUse?: TicketAutoUse;
+  lessonPostponeLimit?: number;
+  lessonUnpaidEnabled?: boolean;
+  timeTableType?: string;
+  studioPaymentMethodIds?: number[];
+  roomRefundDays?: number;
+  roomUsageInfo?: string;
+  roomCaution?: string;
+  roomNoticeHours?: number;
+  kioskImageUrl?: string;
+  representativeBillingKey?: string;
+  amenities?: { amenity: StudioAmenity; enabled: boolean }[];
+}
+
+/** PATCH /studios 응답(BusinessStudioResponse). GET /studios/me/* 도 이 부분집합으로 온다고 보고 전부 optional. */
+export type BusinessStudioResponse = {
+  id: number;
+  name?: string;
+  slug?: string | null;
+  profileImageUrl?: string | null;
+  coverImageUrl?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  roadAddress?: string | null;
+  naverPlaceId?: string | null;
+  instagramAddress?: string | null;
+  youtubeUrl?: string | null;
+  tiktokUrl?: string | null;
+  xUrl?: string | null;
+  businessName?: string | null;
+  businessRegistrationNumber?: string | null;
+  representative?: string | null;
+  taxType?: string | null;
+  businessRegistrationCopyUrl?: string | null;
+  eCommerceRegNumber?: string | null;
+  educationOfficeRegNumber?: string | null;
+  bank?: string | null;
+  bankCode?: string | null;
+  accountNumber?: string | null;
+  depositor?: string | null;
+  payoutBank?: string | null;
+  payoutBankCode?: string | null;
+  payoutAccountNumber?: string | null;
+  payoutDepositor?: string | null;
+  isBankAccountVerified?: boolean;
+  daysBeforeOpen?: number | null;
+  lessonOpenTime?: string | null;
+  daysBeforeSale?: number | null;
+  lessonSaleTime?: string | null;
+  lessonCloseTime?: string | null;
+  hoursAfterAutoCancelAccountTransfer?: number | null;
+  ticketAutoUse?: TicketAutoUse | null;
+  lessonPostponeLimit?: number | null;
+  lessonUnpaidEnabled?: boolean | null;
+  timeTableType?: string | null;
+  roomRefundDays?: number | null;
+  roomUsageInfo?: string | null;
+  roomCaution?: string | null;
+  roomNoticeHours?: number | null;
+  kioskImageUrl?: string | null;
+  isPracticeOnly?: boolean;
+  /** studioPaymentMethodIds 를 보낸 PATCH 응답과 GET /studios/me/lesson-settings 에만 */
+  studioPaymentMethods?: StudioPaymentMethodResponse[];
+  amenities?: AmenityResponse[];
+}
+
+/** 응답이 { studio } 로 감싸 올 수도 있어 호출부에서 편다 */
+export type MyStudioSettingsResponse = BusinessStudioResponse | { studio: BusinessStudioResponse };
+
+export const GetMyStudioProfile: Endpoint<object, MyStudioSettingsResponse> = {
+  method: 'get',
+  path: '/studios/me/profile',
+  headers: PARTNER_HEADERS,
+}
+
+export const GetMyStudioBusiness: Endpoint<object, MyStudioSettingsResponse> = {
+  method: 'get',
+  path: '/studios/me/business',
+  headers: PARTNER_HEADERS,
+}
+
+export const GetMyStudioLessonSettings: Endpoint<object, MyStudioSettingsResponse> = {
+  method: 'get',
+  path: '/studios/me/lesson-settings',
+  headers: PARTNER_HEADERS,
+}
+
+export const GetMyStudioRoomSettings: Endpoint<object, MyStudioSettingsResponse> = {
+  method: 'get',
+  path: '/studios/me/room-settings',
+  headers: PARTNER_HEADERS,
+}
+
+export const UpdateStudio: Endpoint<UpdateStudioRequest, BusinessStudioResponse> = {
+  method: 'patch',
+  path: '/studios',
+  headers: PARTNER_HEADERS,
+  bodyParams: [
+    'name', 'profileImageUrl', 'coverImageUrl', 'phone', 'address', 'roadAddress',
+    'instagramAddress', 'youtubeUrl', 'tiktokUrl', 'xUrl', 'slug',
+    'businessName', 'businessRegistrationNumber', 'representative', 'taxType', 'businessRegistrationCopyUrl',
+    'eCommerceRegNumber', 'educationOfficeRegNumber',
+    'bank', 'bankCode', 'accountNumber', 'depositor',
+    'payoutBank', 'payoutBankCode', 'payoutAccountNumber', 'payoutDepositor',
+    'daysBeforeOpen', 'lessonOpenTime', 'daysBeforeSale', 'lessonSaleTime', 'lessonCloseTime',
+    'hoursAfterAutoCancelAccountTransfer', 'ticketAutoUse', 'lessonPostponeLimit', 'lessonUnpaidEnabled',
+    'timeTableType', 'studioPaymentMethodIds',
+    'roomRefundDays', 'roomUsageInfo', 'roomCaution', 'roomNoticeHours',
+    'kioskImageUrl', 'representativeBillingKey', 'amenities',
+  ],
+}
