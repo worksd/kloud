@@ -8,7 +8,7 @@ import { CircleImage } from '@/app/components/CircleImage';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { CalendarClock, DoorOpen } from 'lucide-react';
 import {
-  StudioSettingFlatIcon, NotificationFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, VersionFlatIcon,
+  StudioSettingFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, VersionFlatIcon,
 } from '@/app/profile/setting/SettingIcons';
 
 // 관리자 탭 '설정' — 학원 카드 + 섹션별 메뉴. 학원 항목은 PATCH /studios 로 저장하는 하위 화면(원장 계정만).
@@ -56,7 +56,6 @@ export default async function AdminSettingPage({ searchParams }: {
     {
       title: '앱',
       rows: [
-        { label: '알림 설정', icon: <NotificationFlatIcon size={24}/>, route: KloudScreen.NotificationSetting },
         { label: '약관 및 정책', icon: <PolicyFlatIcon size={24}/>, route: KloudScreen.Policy },
         // proxy가 앱 UA에서 뽑아 query로 넘겨주는 버전 — 웹 접속이면 비어 있다
         { label: '앱 버전', icon: <VersionFlatIcon size={24}/>, value: appVersion || '웹' },
