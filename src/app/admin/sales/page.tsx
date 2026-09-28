@@ -14,7 +14,7 @@ export default async function AdminSalesPage() {
   const [sales, locale] = await Promise.all([getRecentSalesAction(7), getLocale()]);
 
   return (
-    <div className="w-full min-h-screen overflow-x-hidden bg-[#F7F8FA] pb-28">
+    <div className="w-full min-h-screen overflow-x-clip bg-[#F7F8FA] pb-28">
       <AdminPageHeader title="매출" studioName={studioName} />
 
       <SalesSection initial={sales} />

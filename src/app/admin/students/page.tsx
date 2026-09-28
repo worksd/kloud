@@ -15,7 +15,7 @@ export default async function AdminStudentsPage() {
   const sum = MOCK_STUDENT_SUMMARY;
 
   return (
-    <div className="w-full min-h-screen overflow-x-hidden bg-[#F7F8FA] pb-28">
+    <div className="w-full min-h-screen overflow-x-clip bg-[#F7F8FA] pb-28">
       <AdminPageHeader title="수강생" studioName={studioName} />
       <AdminMockNotice />
 

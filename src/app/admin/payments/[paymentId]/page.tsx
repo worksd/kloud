@@ -29,7 +29,7 @@ export default async function AdminPaymentDetailPage({ params }: { params: Promi
 
   if (!('paymentId' in record)) {
     return (
-      <div className={'w-full min-h-screen overflow-x-hidden bg-[#F7F8FA]'}>
+      <div className={'w-full min-h-screen overflow-x-clip bg-[#F7F8FA]'}>
         <AdminDetailHeader title={'결제 상세'} subtitle={studioName}/>
         <p className={'px-8 text-center text-[15px] text-[#6B7280]'} style={{ paddingTop: ADMIN_CONTENT_TOP_PAD }}>
           결제 정보를 불러오지 못했어요
@@ -43,7 +43,7 @@ export default async function AdminPaymentDetailPage({ params }: { params: Promi
   const originalAmount = record.amount + discountTotal;
 
   return (
-    <div className={'w-full min-h-screen overflow-x-hidden bg-[#F7F8FA] pb-10'}>
+    <div className={'w-full min-h-screen overflow-x-clip bg-[#F7F8FA] pb-10'}>
       <AdminDetailHeader title={'결제 상세'} subtitle={studioName}/>
 
       {/* 상품 + 금액 + 상태 */}
