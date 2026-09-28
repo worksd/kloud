@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { CreditCard, MonitorSmartphone, UserCheck, UserPlus } from 'lucide-react';
+import { QrCode, UserRoundCheck, UserRoundPlus } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
@@ -11,11 +11,11 @@ import { getLocaleString } from '@/app/components/locale';
 import { generateRandomNickname } from '@/utils/random.nickname';
 import { registerKioskUserAction } from '@/app/kiosk/kiosk.actions';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
-import { AdminPaymentsSheetContent } from '@/app/admin/AdminPaymentsSheet';
 import { BottomSheet, BottomSheetHandle } from '@/app/components/BottomSheet';
 
-// 관리자 홈 숏컷 줄 — 출석 체크(오늘 수업 → 수업별 출석 QR 화면), 결제 내역(목록+결제 취소),
-// 수강생 등록(이름+전화번호, 닉네임은 키오스크처럼 랜덤), 키오스크 로그인(QR 다이얼로그).
+// 관리자 홈 숏컷 줄 — 출석 체크(오늘 수업 → 수업별 출석 QR 화면, 바텀시트),
+// 수강생 등록(이름+전화번호 다이얼로그. 닉네임은 키오스크처럼 랜덤), 키오스크 로그인(QR 다이얼로그).
+// 결제 내역은 '매출' 탭으로 옮겨서 여기서 뺐다.
 // 키오스크 로그인 QR 형식: `${origin}/kiosk?token=<관리자 accessToken>` — KioskBootstrap이
 // urlToken을 저장하고 그대로 로그인하는 기존 플로우라, 키오스크에서 이 URL을 열거나 스캔하면 끝.
 
@@ -29,25 +29,24 @@ export type AdminSheetLesson = {
   subLabel?: string;
 };
 
-const Shortcut = ({ icon, iconBg, label, onClick }: {
+// 바텀 탭 아이콘과 같은 언어 — 24px 그리드, stroke 1.5, 단색 #1F1F1F, 중성 타일.
+// 알록달록한 파스텔 타일은 탭바·관리자 화면 톤과 겉돌아서 뺐다.
+const ICON_INK = '#1F1F1F';
+
+const Shortcut = ({ icon, label, onClick }: {
   icon: React.ReactNode;
-  /** 아이콘 뒤 원 배경색 */
-  iconBg: string;
   label: string;
   onClick: () => void;
 }) => (
   <button
     type={'button'}
     onClick={onClick}
-    className={'flex-1 min-w-0 flex flex-col items-center gap-2.5 rounded-[16px] bg-[#F7F8F9] py-4 px-2 active:bg-[#F1F3F6] transition-colors'}
+    className={'flex-1 min-w-0 flex flex-col items-center gap-2.5 rounded-[16px] py-3 px-1.5 active:opacity-70 transition-opacity'}
   >
-    <span
-      className={'w-[44px] h-[44px] rounded-full flex items-center justify-center'}
-      style={{ backgroundColor: iconBg }}
-    >
+    <span className={'w-[50px] h-[50px] rounded-[17px] bg-[#F4F5F7] flex items-center justify-center'}>
       {icon}
     </span>
-    <span className={'text-[13px] font-semibold text-[#1E2124] text-center leading-tight'}>{label}</span>
+    <span className={'text-[12.5px] font-semibold text-[#4E5968] text-center leading-tight'}>{label}</span>
   </button>
 );
 
@@ -59,7 +58,7 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
 }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
-  const [openSheet, setOpenSheet] = useState<'attendance' | 'register' | 'payments' | null>(null);
+  const [openSheet, setOpenSheet] = useState<'attendance' | null>(null);
   const sheetRef = useRef<BottomSheetHandle>(null);
 
   // 키오스크 로그인 QR 다이얼로그 — 열릴 때 fadeIn+scaleIn, 닫힐 때 fadeOut
@@ -77,7 +76,9 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
     setTimeout(() => { setQrOpen(false); setQrClosing(false); }, 200);
   };
 
-  // 수강생 등록 폼
+  // 수강생 등록 — 바텀시트가 아니라 중앙 다이얼로그(키오스크 QR 다이얼로그와 같은 연출)
+  const [regOpen, setRegOpen] = useState(false);
+  const [regClosing, setRegClosing] = useState(false);
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regError, setRegError] = useState<string | null>(null);
@@ -90,7 +91,14 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
     setRegName('');
     setRegPhone('');
     setRegError(null);
-    setOpenSheet('register');
+    setRegOpen(true);
+  };
+
+  // 등록 중에는 닫히지 않게 — 중복 요청/미완료 상태 방지
+  const closeRegister = () => {
+    if (registeringRef.current || regClosing) return;
+    setRegClosing(true);
+    setTimeout(() => { setRegOpen(false); setRegClosing(false); }, 200);
   };
 
   const onLesson = (id: number) => {
@@ -115,7 +123,9 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
         return;
       }
       window.KloudEvent?.showToast?.(t('admin_register_success'));
-      sheetRef.current?.close();
+      registeringRef.current = false;
+      setRegClosing(true);
+      setTimeout(() => { setRegOpen(false); setRegClosing(false); }, 200);
     } catch {
       setRegError(t('admin_register_failed'));
     } finally {
@@ -128,28 +138,19 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
 
   return (
     <>
-      <div className={'flex gap-2.5 px-5 pb-2'}>
+      <div className={'flex gap-1 px-2'}>
         <Shortcut
-          icon={<UserCheck size={22} strokeWidth={2.2} className={'text-[#2E7D32]'}/>}
-          iconBg={'#E8F5E9'}
+          icon={<UserRoundCheck size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
           label={t('admin_home_shortcut_attendance')}
           onClick={() => setOpenSheet('attendance')}
         />
         <Shortcut
-          icon={<CreditCard size={22} strokeWidth={2.2} className={'text-[#1A5CE5]'}/>}
-          iconBg={'#E8F0FE'}
-          label={t('admin_home_shortcut_payments')}
-          onClick={() => setOpenSheet('payments')}
-        />
-        <Shortcut
-          icon={<UserPlus size={22} strokeWidth={2.2} className={'text-[#7C3AED]'}/>}
-          iconBg={'#F1E9FE'}
+          icon={<UserRoundPlus size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
           label={t('admin_home_shortcut_register')}
           onClick={openRegister}
         />
         <Shortcut
-          icon={<MonitorSmartphone size={22} strokeWidth={2.2} className={'text-[#B4540A]'}/>}
-          iconBg={'#FDEEDC'}
+          icon={<QrCode size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
           label={t('admin_home_shortcut_kiosk_login')}
           onClick={openKioskQr}
         />
@@ -228,17 +229,20 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
         </BottomSheet>
       )}
 
-      {/* 결제 내역 — 목록 + 결제 취소 (열릴 때 fetch) */}
-      {openSheet === 'payments' && (
-        <BottomSheet ref={sheetRef} title={t('admin_payments_title')} onClose={closeSheet}>
-          <AdminPaymentsSheetContent locale={locale}/>
-        </BottomSheet>
-      )}
-
       {/* 수강생 등록 — 이름 + 전화번호, 닉네임은 랜덤 생성 */}
-      {openSheet === 'register' && (
-        <BottomSheet ref={sheetRef} title={t('admin_register_title')} onClose={closeSheet} locked={registering}>
-          <div className={'px-6'}>
+      {regOpen && (
+        <div
+          className={`fixed inset-0 z-[70] flex items-center justify-center px-8 ${
+            regClosing ? 'animate-[fadeOut_200ms_ease-out_forwards]' : 'animate-[fadeIn_200ms_ease-out]'
+          }`}
+          onClick={closeRegister}
+        >
+          <div className={'absolute inset-0 bg-black/40'}/>
+          <div
+            className={'relative w-full max-w-[380px] bg-white rounded-[24px] p-6 animate-[scaleIn_260ms_ease-out]'}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className={'text-[17px] font-bold text-black mb-4'}>{t('admin_register_title')}</p>
             <p className={'text-[13px] font-semibold text-black'}>{t('admin_register_name_label')}</p>
             <input
               type={'text'}
@@ -260,16 +264,26 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
               className={inputCls}
             />
             {regError && <p className={'mt-2 text-[13px] text-[#E55B5B] font-medium'}>{regError}</p>}
-            <button
-              type={'button'}
-              onClick={submitRegister}
-              disabled={registering}
-              className={'mt-5 w-full h-[52px] rounded-[14px] bg-[#1E2124] text-[16px] font-bold text-white active:scale-[0.98] transition-transform disabled:opacity-60'}
-            >
-              {registering ? `${t('admin_register_submit')}…` : t('admin_register_submit')}
-            </button>
+            <div className={'mt-5 flex gap-2.5'}>
+              <button
+                type={'button'}
+                onClick={closeRegister}
+                disabled={registering}
+                className={'flex-1 h-[50px] rounded-[14px] bg-[#F2F4F6] text-[15px] font-semibold text-[#1E2124] active:scale-[0.98] transition-transform disabled:opacity-60'}
+              >
+                {t('cancel')}
+              </button>
+              <button
+                type={'button'}
+                onClick={submitRegister}
+                disabled={registering}
+                className={'flex-[1.4] h-[50px] rounded-[14px] bg-[#1E2124] text-[15px] font-bold text-white active:scale-[0.98] transition-transform disabled:opacity-60'}
+              >
+                {registering ? `${t('admin_register_submit')}…` : t('admin_register_submit')}
+              </button>
+            </div>
           </div>
-        </BottomSheet>
+        </div>
       )}
     </>
   );
