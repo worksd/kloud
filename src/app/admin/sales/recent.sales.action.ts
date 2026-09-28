@@ -2,32 +2,12 @@
 
 import { api } from '@/app/api.client';
 import { PaymentRecordStatus } from '@/app/endpoint/payment.record.endpoint';
-
-export type DailySales = {
-  /** 'YYYY-MM-DD' (KST) */
-  key: string;
-  /** 요일 한 글자 */
-  weekday: string;
-  /** 일(day) 숫자 */
-  day: number;
-  amount: number;
-  count: number;
-  isToday: boolean;
-};
-
-export type RecentSales = {
-  days: DailySales[];
-  total: number;
-  count: number;
-  /** 집계 구간 라벨 — 'M/D ~ M/D' */
-  range: string;
-  /** 페이지 상한에 걸려 더 오래된 기록을 못 봤을 수 있음 */
-  truncated: boolean;
-};
+import { DailySales, RecentSales } from '@/app/admin/sales/sales.range';
 
 // /paymentRecords 는 날짜 필터가 없어 최신 페이지부터 훑는다.
 // 구간을 벗어난 기록이 나오면 즉시 중단하고, 그래도 안 끝나면 상한에서 끊는다.
-const MAX_PAGES = 6;
+// 기간이 길수록 훑을 페이지도 늘려야 해서 7일당 6페이지, 최대 24페이지로 잡는다.
+const pageLimitFor = (days: number) => Math.min(24, Math.max(6, Math.ceil(days / 7) * 6));
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -64,10 +44,11 @@ export const getRecentSalesAction = async (days = 7): Promise<RecentSales> => {
   frame.forEach((d) => buckets.set(keyOf(d), { amount: 0, count: 0 }));
 
   const oldestKey = keyOf(frame[0]);
+  const maxPages = pageLimitFor(days);
   let truncated = false;
 
   try {
-    for (let page = 1; page <= MAX_PAGES; page++) {
+    for (let page = 1; page <= maxPages; page++) {
       const res = await api.paymentRecord.list({ page });
       if (!('paymentRecords' in res)) break;
       const list = res.paymentRecords;
@@ -85,7 +66,7 @@ export const getRecentSalesAction = async (days = 7): Promise<RecentSales> => {
         bucket.count += 1;
       }
       if (passedWindow) break;
-      if (page === MAX_PAGES) truncated = true;
+      if (page === maxPages) truncated = true;
     }
   } catch {
     // 집계 실패 — 빈 그래프로 렌더하고 결제내역 리스트는 클라이언트에서 따로 불러온다
@@ -109,6 +90,7 @@ export const getRecentSalesAction = async (days = 7): Promise<RecentSales> => {
   const last = frame[frame.length - 1];
 
   return {
+    rangeDays: days,
     days: daysOut,
     total: daysOut.reduce((sum, d) => sum + d.amount, 0),
     count: daysOut.reduce((sum, d) => sum + d.count, 0),

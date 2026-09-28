@@ -1,7 +1,7 @@
 import React from 'react';
-import { RecentSales } from '@/app/admin/sales/recent.sales.action';
+import { RecentSales } from '@/app/admin/sales/sales.range';
 
-// 매출 탭의 유일한 그래프 — 최근 7일 일별 매출 세로 막대.
+// 매출 탭의 유일한 그래프 — 기간별 일별 매출 세로 막대.
 // 단일 시리즈라 범례 없음(제목이 시리즈를 지칭). 값 라벨은 최고액 막대에만 붙인다.
 const BAR_COLOR = '#4B58D8';   // 흰 카드 대비 3:1 이상 (팔레트 검증 통과)
 const EMPTY_BAR = '#EDEFF5';   // 매출 0원인 날의 자리 표시
@@ -22,10 +22,16 @@ export function SalesBarChart({ data }: { data: RecentSales }) {
   const max = Math.max(...data.days.map((d) => d.amount));
   const peakKey = max > 0 ? data.days.find((d) => d.amount === max)?.key : undefined;
 
+  // 30일치를 다 적으면 축이 뭉개진다 — 기간이 길면 요일을 빼고 날짜도 띄엄띄엄.
+  const dense = data.days.length > 14;
+  const labelStep = dense ? 5 : 1;
+  const barGap = dense ? 'gap-px' : 'gap-0.5';
+  const barWidth = dense ? 'w-[72%]' : 'w-[62%]';
+
   return (
     <section className={'mx-4 mt-3 rounded-2xl bg-white border border-[#EEF0F2] p-5'}>
       <div className={'flex items-baseline justify-between gap-2'}>
-        <h2 className={'text-[15px] font-bold text-[#191F28]'}>최근 7일 매출</h2>
+        <h2 className={'text-[15px] font-bold text-[#191F28]'}>최근 {data.rangeDays}일 매출</h2>
         <span className={'text-[12px] font-semibold text-[#8B95A1] shrink-0'}>{data.range}</span>
       </div>
 
@@ -37,7 +43,7 @@ export function SalesBarChart({ data }: { data: RecentSales }) {
       </p>
 
       {/* 막대 영역 — 값 라벨 자리를 위로 비워둔다 */}
-      <div className={'mt-5 flex items-end gap-0.5'} style={{ height: PLOT_HEIGHT + 18 }}>
+      <div className={`mt-5 flex items-end ${barGap}`} style={{ height: PLOT_HEIGHT + 18 }}>
         {data.days.map((d) => {
           const ratio = max > 0 ? d.amount / max : 0;
           const height = d.amount > 0 ? Math.max(MIN_BAR, Math.round(ratio * PLOT_HEIGHT)) : 2;
@@ -49,7 +55,7 @@ export function SalesBarChart({ data }: { data: RecentSales }) {
                 </span>
               )}
               <div
-                className={'w-[62%] rounded-t-[4px]'}
+                className={`${barWidth} rounded-t-[4px]`}
                 style={{ height, backgroundColor: d.amount > 0 ? BAR_COLOR : EMPTY_BAR }}
               />
             </div>
@@ -58,17 +64,26 @@ export function SalesBarChart({ data }: { data: RecentSales }) {
       </div>
 
       {/* 축 — 막대와 같은 트랙 폭으로 요일/일자 */}
-      <div className={'mt-2 pt-2 border-t border-[#F1F3F6] flex items-start gap-0.5'}>
-        {data.days.map((d) => (
-          <div key={d.key} className={'flex-1 min-w-0 text-center'}>
-            <p className={`text-[11px] font-semibold leading-tight ${d.isToday ? 'text-[#4B58D8]' : 'text-[#8B95A1]'}`}>
-              {d.weekday}
-            </p>
-            <p className={`text-[11px] leading-tight ${d.isToday ? 'font-bold text-[#4B58D8]' : 'text-[#B0B8C1]'}`}>
-              {d.day}
-            </p>
-          </div>
-        ))}
+      <div className={`mt-2 pt-2 border-t border-[#F1F3F6] flex items-start ${barGap}`}>
+        {data.days.map((d, i) => {
+          // 띄엄띄엄 찍을 땐 오늘(마지막)은 항상 보이게 끝에서부터 센다
+          const fromEnd = data.days.length - 1 - i;
+          const show = fromEnd % labelStep === 0;
+          return (
+            <div key={d.key} className={'flex-1 min-w-0 text-center'}>
+              {!dense && (
+                <p className={`text-[11px] font-semibold leading-tight ${d.isToday ? 'text-[#4B58D8]' : 'text-[#8B95A1]'}`}>
+                  {d.weekday}
+                </p>
+              )}
+              {show && (
+                <p className={`text-[11px] leading-tight ${d.isToday ? 'font-bold text-[#4B58D8]' : 'text-[#B0B8C1]'}`}>
+                  {d.day}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {data.total === 0 && (
