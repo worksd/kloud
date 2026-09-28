@@ -1,39 +1,72 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { GetPaymentRecordResponse, PaymentRecordStatus } from '@/app/endpoint/payment.record.endpoint';
+import { CalendarDays, ChevronRight, X } from 'lucide-react';
+import { GetPaymentRecordResponse } from '@/app/endpoint/payment.record.endpoint';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 import { getPaymentRecordsAction } from '@/app/paymentRecords/get.payment.records.action';
-import { cancelPaymentAction } from '@/app/admin/cancel.payment.action';
-import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
 import { PaymentMethodIcon } from '@/app/components/PaymentMethodIcon';
+import { Squircle } from '@/app/components/Squircle';
+import { paymentIssueBadge } from '@/app/admin/payment.status';
+import { kloudNav } from '@/app/lib/kloudNav';
+import { KloudScreen } from '@/shared/kloud.screen';
 
-// 관리자 홈의 결제 내역 바텀시트 — 파트너 토큰의 GET /paymentRecords(스튜디오 결제) + 결제 취소.
-// 키오스크 카드결제 취소는 CancelPending(환불 대기)으로 남을 수 있어 응답 status를 그대로 반영한다.
+// 관리자 결제 내역 — 파트너 토큰의 GET /paymentRecords(스튜디오 결제).
+// 행을 탭하면 관리자 결제 상세(/admin/payments/:paymentId)로 이동한다. 취소 등 개별 처리는 상세에서.
 
-const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
-  [PaymentRecordStatus.Completed]: { label: '결제 완료', cls: 'bg-[#E8F5E9] text-[#2E7D32]' },
-  [PaymentRecordStatus.Settled]: { label: '정산 완료', cls: 'bg-[#E8F0FE] text-[#1A5CE5]' },
-  [PaymentRecordStatus.Pending]: { label: '대기', cls: 'bg-[#FFF4E5] text-[#A05A00]' },
-  [PaymentRecordStatus.CancelPending]: { label: '환불 대기', cls: 'bg-[#FFF4E5] text-[#A05A00]' },
-  [PaymentRecordStatus.Cancelled]: { label: '취소됨', cls: 'bg-[#F3F4F6] text-[#6B7280]' },
-  [PaymentRecordStatus.Failed]: { label: '실패', cls: 'bg-[#FEECEC] text-[#E55B5B]' },
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * createdAt은 KST 벽시계 문자열('2026.09.22 17:59')이다.
+ * new Date()로 파싱하면 기기/서버 타임존에 따라 날짜가 밀릴 수 있어 문자열에서 직접 뽑는다.
+ */
+const dateKeyOf = (createdAt?: string): string => {
+  const m = createdAt?.match(/(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+  return m ? `${m[1]}-${pad(Number(m[2]))}-${pad(Number(m[3]))}` : '';
 };
 
-const formatDate = (iso?: string) => {
-  if (!iso) return '';
-  const d = new Date(iso.replace(/\./g, '-').replace(' ', 'T'));
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+/** 행에는 시간만 — 날짜는 그룹 구분선이 들고 있다. '오후 5:52' 형식 */
+const formatTime = (createdAt?: string): string => {
+  const m = createdAt?.match(/(\d{1,2}):(\d{2})/);
+  if (!m) return '';
+  // 이미 12시간제(오전/오후)로 내려오는 경우가 있어 그대로 살린다 — 24시간제로 오해해 변환하면 시각이 틀어진다
+  const given = createdAt?.includes('오전') ? '오전' : createdAt?.includes('오후') ? '오후' : undefined;
+  const h24 = Number(m[1]);
+  if (given) return `${given} ${h24}:${m[2]}`;
+  const meridiem = h24 < 12 ? '오전' : '오후';
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${meridiem} ${h12}:${m[2]}`;
+};
+
+/** UTC+9로 옮겨 getUTC*로 읽으면 기기 타임존과 무관하게 KST 날짜가 된다 */
+const kstKey = (offsetDays = 0): string => {
+  const now = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + offsetDays));
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+};
+
+/** 카톡 날짜 구분선 문구 — 오늘/어제는 말로, 그 외는 'M월 D일 (요일)' */
+const dateLabelOf = (key: string): string => {
+  if (key === kstKey(0)) return '오늘';
+  if (key === kstKey(-1)) return '어제';
+  const [y, m, d] = key.split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  return `${m}월 ${d}일 (${weekday})`;
 };
 
 /**
  * @param inline 페이지 본문에 그대로 박아 쓸 때 true — 자체 스크롤 컨테이너를 쓰지 않고
  *               페이지 스크롤에 맡긴다(관리자 '매출' 탭). 기본값은 바텀시트용 레이아웃.
  */
-export function AdminPaymentsSheetContent({ locale, inline = false }: { locale: Locale; inline?: boolean }) {
+export function AdminPaymentsSheetContent({ locale, inline = false, title }: {
+  locale: Locale;
+  inline?: boolean;
+  /** 주면 제목 + 날짜 필터 줄을 컴포넌트가 직접 그린다 */
+  title?: string;
+}) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   const [records, setRecords] = useState<GetPaymentRecordResponse[]>([]);
@@ -41,20 +74,17 @@ export function AdminPaymentsSheetContent({ locale, inline = false }: { locale: 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  /** 특정 일자만 보기 — GET /paymentRecords?date=yyyy-MM-dd. 빈 문자열이면 전체 */
+  const [date, setDate] = useState('');
 
-  // 취소 확인 다이얼로그 — 열릴 때 fadeIn+scaleIn, 닫을 때 fadeOut 후 언마운트
-  const [target, setTarget] = useState<GetPaymentRecordResponse | null>(null);
-  const [dialogClosing, setDialogClosing] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const cancellingRef = useRef(false);
-  const [cancelError, setCancelError] = useState<string | null>(null);
-
-  // 시트가 열리면 첫 페이지 로드
+  // 첫 로드 + 날짜 필터가 바뀔 때마다 1페이지부터 다시
   useEffect(() => {
     let alive = true;
+    setLoading(true);
+    setPage(1);
     (async () => {
       try {
-        const res = await getPaymentRecordsAction({ page: 1 });
+        const res = await getPaymentRecordsAction({ page: 1, date: date || undefined });
         if (!alive) return;
         const list = 'paymentRecords' in res ? res.paymentRecords : [];
         setRecords(list);
@@ -64,13 +94,13 @@ export function AdminPaymentsSheetContent({ locale, inline = false }: { locale: 
       }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [date]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const res = await getPaymentRecordsAction({ page: page + 1 });
+      const res = await getPaymentRecordsAction({ page: page + 1, date: date || undefined });
       const next = 'paymentRecords' in res ? res.paymentRecords : [];
       if (next.length === 0) { setHasMore(false); return; }
       setRecords((prev) => [...prev, ...next]);
@@ -80,149 +110,140 @@ export function AdminPaymentsSheetContent({ locale, inline = false }: { locale: 
     }
   };
 
-  const closeDialog = () => {
-    if (cancellingRef.current || dialogClosing) return;
-    setDialogClosing(true);
-    setTimeout(() => { setTarget(null); setDialogClosing(false); }, 200);
-  };
+  // 관리자 전용 결제 상세 — 수강생용 화면이 아니라 학원 관점(결제자·수단·상태 + 관리자 취소)
+  const openDetail = (paymentId: string) => kloudNav.push(KloudScreen.AdminPaymentDetail(paymentId));
 
-  const submitCancel = async () => {
-    if (!target || cancellingRef.current) return;
-    cancellingRef.current = true;
-    setCancelling(true);
-    setCancelError(null);
-    try {
-      const res = await cancelPaymentAction(target.paymentId);
-      if (isGuinnessErrorCase(res)) {
-        setCancelError(res.message || t('admin_payments_cancel_failed'));
-        return;
-      }
-      // 응답 status 그대로 반영 — 키오스크 카드결제는 CancelPending으로 남는다
-      setRecords((prev) => prev.map((r) => (r.paymentId === target.paymentId ? { ...r, ...res } : r)));
-      window.KloudEvent?.showToast?.(
-        res.status === PaymentRecordStatus.CancelPending
-          ? t('admin_payments_cancel_pending_notice')
-          : t('admin_payments_cancel_success'),
-      );
-      setDialogClosing(true);
-      setTimeout(() => { setTarget(null); setDialogClosing(false); }, 200);
-    } catch {
-      setCancelError(t('admin_payments_cancel_failed'));
-    } finally {
-      cancellingRef.current = false;
-      setCancelling(false);
-    }
-  };
-
-  const cancellable = (r: GetPaymentRecordResponse) =>
-    r.status === PaymentRecordStatus.Completed || r.status === PaymentRecordStatus.Settled;
+  // 제목 줄 + 날짜 필터 — 달력 아이콘은 네이티브 날짜 선택기를 띄우는 투명 input을 덮어씌운다
+  const header = title ? (
+    <div className={'px-5 pb-1 flex items-center justify-between gap-2'}>
+      <h2 className={'text-[15px] font-bold text-[#191F28]'}>{title}</h2>
+      <div className={'flex items-center gap-1.5 shrink-0'}>
+        {date && (
+          <button
+            type={'button'}
+            onClick={() => setDate('')}
+            className={'inline-flex items-center gap-1 rounded-full bg-[#191F28] pl-2.5 pr-1.5 py-1 text-[11.5px] font-bold text-white font-paperlogy active:opacity-80 transition-opacity'}
+          >
+            {dateLabelOf(date)}
+            <X size={13} strokeWidth={2.2}/>
+          </button>
+        )}
+        <label
+          className={'relative w-9 h-9 rounded-full flex items-center justify-center text-[#4E5968] active:bg-[#F2F4F6] transition-colors cursor-pointer'}
+          aria-label={'날짜 선택'}
+        >
+          <CalendarDays size={19} strokeWidth={1.8}/>
+          <input
+            type={'date'}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className={'absolute inset-0 w-full h-full opacity-0 cursor-pointer'}
+          />
+        </label>
+      </div>
+    </div>
+  ) : null;
 
   if (loading) {
     return (
-      <div className={'py-14 flex items-center justify-center'}>
-        <div className={'w-8 h-8 border-[3px] border-gray-200 border-t-black rounded-full animate-spin'}/>
-      </div>
+      <>
+        {header}
+        <div className={'py-14 flex items-center justify-center'}>
+          <div className={'w-8 h-8 border-[3px] border-gray-200 border-t-black rounded-full animate-spin'}/>
+        </div>
+      </>
     );
   }
 
   if (records.length === 0) {
-    return <p className={'px-6 py-12 text-center text-[14px] text-[#8B95A1]'}>{t('admin_payments_empty')}</p>;
+    return (
+      <>
+        {header}
+        <p className={'px-6 py-12 text-center text-[14px] text-[#8B95A1]'}>
+          {date ? '이 날짜에는 결제 내역이 없어요' : t('admin_payments_empty')}
+        </p>
+      </>
+    );
   }
 
   return (
     <>
-      <div className={inline ? 'px-5' : 'flex-1 min-h-0 overflow-y-auto px-5'}>
-        <ul className={'flex flex-col divide-y divide-[#F1F3F6]'}>
-          {records.map((r) => {
-            const badge = STATUS_STYLE[r.status] ?? { label: String(r.status ?? ''), cls: 'bg-[#F3F4F6] text-[#6B7280]' };
-            return (
-              <li key={r.paymentId} className={'flex items-center gap-3 py-3'}>
-                <div className={'w-[42px] h-[42px] rounded-[10px] overflow-hidden bg-[#F1F3F6] shrink-0 relative'}>
+    {header}
+    <div className={inline ? 'px-5' : 'flex-1 min-h-0 overflow-y-auto px-5'}>
+      <ul className={'flex flex-col'}>
+        {records.map((r, i) => {
+          const issue = paymentIssueBadge(r.status);
+          const key = dateKeyOf(r.createdAt);
+          // 날짜가 바뀌는 첫 건 위에 구분선을 깐다 (같은 날짜끼리는 행 사이 얇은 선만)
+          const isFirstOfDay = key !== '' && key !== dateKeyOf(records[i - 1]?.createdAt);
+          return (
+            <React.Fragment key={r.paymentId}>
+              {isFirstOfDay && (
+                <li className={'flex justify-center py-3'}>
+                  <span className={'rounded-full bg-[#191F28] px-2.5 py-1 text-[11.5px] font-bold text-white font-paperlogy'}>
+                    {dateLabelOf(key)}
+                  </span>
+                </li>
+              )}
+              <li className={isFirstOfDay ? '' : 'border-t border-[#F1F3F6]'}>
+              <button
+                type={'button'}
+                onClick={() => openDetail(r.paymentId)}
+                className={'w-full flex items-center gap-3 py-3 text-left active:bg-[#FAFBFC] transition-colors'}
+              >
+                <Squircle size={44} className={'bg-[#F1F3F6]'}>
                   {r.productImageUrl && (
-                    <Image src={r.productImageUrl} alt={''} fill sizes={'42px'} className={'object-cover'}/>
+                    <Image src={r.productImageUrl} alt={''} fill sizes={'44px'} className={'object-cover'}/>
                   )}
-                </div>
+                </Squircle>
                 <div className={'flex-1 min-w-0'}>
                   <p className={'text-[14px] font-semibold text-black truncate'}>{r.productName}</p>
-                  <div className={'mt-0.5 flex items-center gap-1 min-w-0 text-[12px] text-[#8B95A1]'}>
+                  {/* 결제자·결제수단·시간은 잘리지 않게 줄바꿈시킨다 (truncate하면 수단이 먼저 잘려나갔다) */}
+                  <div className={'mt-0.5 flex items-start gap-1 min-w-0 text-[12px] text-[#8B95A1]'}>
                     {/* 카드사·간편결제 로고 (농협카드/카카오페이 등) — 없으면 결제 방식별 플랫 아이콘 */}
                     {r.paymentMethodLabel && (
-                      <PaymentMethodIcon methodType={r.methodType} label={r.paymentMethodLabel} size={20}/>
+                      <span className={'shrink-0 mt-[1px]'}>
+                        <PaymentMethodIcon methodType={r.methodType} label={r.paymentMethodLabel} size={20}/>
+                      </span>
                     )}
-                    <span className={'truncate'}>
-                      {[r.depositor, r.paymentMethodLabel, formatDate(r.createdAt)].filter(Boolean).join(' · ')}
+                    <span className={'flex-1 min-w-0 leading-snug break-words'}>
+                      {/* 결제수단(계좌이체·키오스크·카드…)이 먼저 읽히게 진한 글씨로 앞에 둔다 */}
+                      {r.paymentMethodLabel && (
+                        <span className={'font-semibold text-[#4E5968]'}>{r.paymentMethodLabel}</span>
+                      )}
+                      {[r.depositor, formatTime(r.createdAt)].filter(Boolean).map((v) => (
+                        <span key={v}>{' · '}{v}</span>
+                      ))}
                     </span>
                   </div>
-                  <div className={'mt-1 flex items-center gap-1.5'}>
-                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>
-                    <span className={'text-[13px] font-bold text-black'}>{r.amount.toLocaleString()}원</span>
-                  </div>
                 </div>
-                {cancellable(r) && (
-                  <button
-                    type={'button'}
-                    onClick={() => { setCancelError(null); setTarget(r); }}
-                    className={'shrink-0 rounded-[10px] border border-[#E5E7EB] px-3 py-2 text-[12px] font-semibold text-[#E55B5B] active:bg-[#FEECEC] transition-colors'}
-                  >
-                    {t('admin_payments_cancel')}
-                  </button>
-                )}
+                {/* 금액 + 상태 칩 — 취소·대기 등 확인이 필요한 건에만 라벨이 붙는다 */}
+                <div className={'shrink-0 flex flex-col items-end gap-1'}>
+                  <span className={'text-[14px] font-bold text-black'}>{r.amount.toLocaleString()}원</span>
+                  {issue && (
+                    <span className={`px-1.5 py-[1px] rounded-full text-[10.5px] font-semibold whitespace-nowrap ${issue.cls}`}>
+                      {issue.label}
+                    </span>
+                  )}
+                </div>
+                <ChevronRight size={18} className={'shrink-0 text-[#B1B8BE]'}/>
+              </button>
               </li>
-            );
-          })}
-        </ul>
-        {hasMore && (
-          <button
-            type={'button'}
-            onClick={loadMore}
-            disabled={loadingMore}
-            className={'my-3 w-full h-[44px] rounded-[12px] bg-[#F2F4F6] text-[14px] font-semibold text-[#1E2124] active:bg-[#E8EAED] transition-colors disabled:opacity-60'}
-          >
-            {loadingMore ? '…' : t('admin_payments_load_more')}
-          </button>
-        )}
-      </div>
-
-      {/* 취소 확인 다이얼로그 */}
-      {target && (
-        <div
-          className={`fixed inset-0 z-[70] flex items-center justify-center px-8 ${
-            dialogClosing ? 'animate-[fadeOut_200ms_ease-out_forwards]' : 'animate-[fadeIn_200ms_ease-out]'
-          }`}
-          onClick={closeDialog}
+            </React.Fragment>
+          );
+        })}
+      </ul>
+      {hasMore && (
+        <button
+          type={'button'}
+          onClick={loadMore}
+          disabled={loadingMore}
+          className={'my-3 w-full h-[44px] rounded-[12px] bg-[#F2F4F6] text-[14px] font-semibold text-[#1E2124] active:bg-[#E8EAED] transition-colors disabled:opacity-60'}
         >
-          <div className={'absolute inset-0 bg-black/40'}/>
-          <div
-            className={'relative w-full max-w-[420px] bg-white rounded-[20px] p-6 animate-[scaleIn_260ms_ease-out]'}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className={'text-[17px] font-bold text-black'}>{t('admin_payments_cancel')}</p>
-            <p className={'mt-2 text-[14px] leading-relaxed text-[#4E5968]'}>
-              {t('admin_payments_cancel_confirm').replace('{name}', target.productName)}
-            </p>
-            <p className={'mt-1 text-[12px] leading-relaxed text-[#8B95A1]'}>{t('admin_payments_cancel_kiosk_notice')}</p>
-            {cancelError && <p className={'mt-2 text-[13px] text-[#E55B5B] font-medium'}>{cancelError}</p>}
-            <div className={'mt-5 flex gap-2.5'}>
-              <button
-                type={'button'}
-                onClick={closeDialog}
-                disabled={cancelling}
-                className={'flex-1 h-[46px] rounded-[12px] bg-[#F2F4F6] text-[14px] font-semibold text-[#1E2124] active:scale-[0.98] transition-transform disabled:opacity-60'}
-              >
-                {t('cancel')}
-              </button>
-              <button
-                type={'button'}
-                onClick={submitCancel}
-                disabled={cancelling}
-                className={'flex-[1.4] h-[46px] rounded-[12px] bg-[#E55B5B] text-[14px] font-semibold text-white active:scale-[0.98] transition-transform disabled:opacity-60'}
-              >
-                {cancelling ? `${t('admin_payments_cancel')}…` : t('admin_payments_cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
+          {loadingMore ? '…' : t('admin_payments_load_more')}
+        </button>
       )}
+    </div>
     </>
   );
 }

@@ -88,12 +88,14 @@ export type CreateManualPaymentRecordRequest = {
 
 export type GetPaymentRecordsParameter = {
   page?: number;
+  /** KST 기준 특정 일자만 조회. 'yyyy-MM-dd' — 서버가 ^\d{4}-\d{2}-\d{2}$ 로 검증한다 */
+  date?: string;
 }
 
 export const GetPaymentRecords: Endpoint<GetPaymentRecordsParameter, GetPaymentRecordListResponse> = {
   method: "get",
   path: `/paymentRecords`,
-  queryParams: ['page'],
+  queryParams: ['page', 'date'],
 };
 
 export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentRecordResponse> = {
