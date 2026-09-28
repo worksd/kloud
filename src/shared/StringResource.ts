@@ -4782,6 +4782,10 @@ export const StringResource = {
   bottom_menu_schedule: { ko: '일정', en: 'schedule', jp: 'スケジュール', zh: '日程' },
   bottom_menu_practice: { ko: '연습실', en: 'Practice', jp: '練習室', zh: '练习室' },
   bottom_menu_profile: { ko: '마이페이지', en: 'my', jp: 'マイ', zh: '我的' },
+  bottom_menu_admin_home: { ko: '홈', en: 'home', jp: 'ホーム', zh: '首页' },
+  bottom_menu_admin_payment: { ko: '매출', en: 'Sales', jp: '売上', zh: '营收' },
+  bottom_menu_admin_user: { ko: '수강생', en: 'Students', jp: '受講生', zh: '学员' },
+  bottom_menu_admin_setting: { ko: '설정', en: 'Settings', jp: '設定', zh: '设置' },
 
   // 제휴 신청 화면 (form.rawgraphy.com, /forms)
   pf_recruiting: { ko: '모집 중', en: 'Now recruiting', jp: '募集中', zh: '招募中' },

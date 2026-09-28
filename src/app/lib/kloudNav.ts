@@ -78,7 +78,7 @@ export const kloudNav = {
     }));
   },
 
-  async navigateMain({route}: { route?: string }) {
+  async navigateMain({route, admin = false}: { route?: string, admin?: boolean }) {
     // 웹(네이티브 아님) 폴백 — '메인 재부팅' 개념이 없으므로 목적지(없으면 홈)로 브라우저 이동.
     // replace: 우회 목적(결제 에러 redirectUrl 등)이라 back으로 중간 페이지에 되돌아가지 않게.
     // 이 폴백이 없으면 웹에서 navigateMain을 타는 모든 흐름(PushAndBackRedirect 등)이 빈 화면 dead-end가 된다.
@@ -86,7 +86,10 @@ export const kloudNav = {
       if (typeof window !== 'undefined') window.location.replace(route && route.length > 0 ? route : '/');
       return;
     }
-    const bottomMenuList = await getBottomMenuList();
+    // 관리자면 관리자 탭 구성으로 메인을 띄운다 (홈=관리자 홈, 매출·수강생·설정)
+    const bottomMenuList = await getBottomMenuList(admin);
+    // route 필드는 값이 비어도 반드시 실어 보낸다 — 통째로 빼면 네이티브가 메인 자체를 못 띄우고
+    // 화면 전체가 흰 화면이 된다(확인됨). 관리자 첫 탭 흰 화면 이슈는 네이티브 쪽 처리 필요.
     const bootInfo = JSON.stringify({
       bottomMenuList,
       route: JSON.stringify({
@@ -123,8 +126,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith('/community/') ||
     route.startsWith(KloudScreen.Kiosk) ||
     route.startsWith('/studioRooms/') ||
-    // 관리자 홈만 풀스크린 — /admin/payments 등 하위 경로는 일반(네이티브 헤더) 페이지
-    (route === KloudScreen.AdminHome || route.startsWith(KloudScreen.AdminHome + '?')) ||
+    // 관리자 화면은 전부 풀스크린 — 각 화면이 safe-area 패딩으로 상태바 영역을 직접 잡는다
+    route.startsWith(KloudScreen.AdminHome) ||
     route.includes('/profile/myPass/') ||
     // 결제 완료 환영 화면 — 썸네일이 상태바까지 풀블리드로 깔린다
     route.startsWith('/payment-complete') ||
