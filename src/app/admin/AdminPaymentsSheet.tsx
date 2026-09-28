@@ -48,6 +48,21 @@ const kstKey = (offsetDays = 0): string => {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 };
 
+/**
+ * <input type="date"> 값을 'yyyy-MM-dd'로 정규화.
+ * 삼성 WebView(키오스크 SM-X230 등)는 스펙과 달리 '2026.06.23'처럼 로케일 구분자로 내려줘
+ * 서버 검증(^\d{4}-\d{2}-\d{2}$)에 400이 났다. valueAsDate가 있으면 그걸 우선 쓰고, 없으면 문자열에서 뽑는다.
+ */
+const normalizeDateInput = (el: HTMLInputElement): string => {
+  const v = el.valueAsDate;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    // valueAsDate는 UTC 자정 기준 — getUTC*로 읽어야 날짜가 안 밀린다
+    return `${v.getUTCFullYear()}-${pad(v.getUTCMonth() + 1)}-${pad(v.getUTCDate())}`;
+  }
+  const m = el.value.match(/(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})/);
+  return m ? `${m[1]}-${pad(Number(m[2]))}-${pad(Number(m[3]))}` : '';
+};
+
 /** 카톡 날짜 구분선 문구 — 오늘/어제는 말로, 그 외는 'M월 D일 (요일)' */
 const dateLabelOf = (key: string): string => {
   if (key === kstKey(0)) return '오늘';
@@ -136,7 +151,7 @@ export function AdminPaymentsSheetContent({ locale, inline = false, title }: {
           <input
             type={'date'}
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => setDate(normalizeDateInput(e.target))}
             className={'absolute inset-0 w-full h-full opacity-0 cursor-pointer'}
           />
         </label>
