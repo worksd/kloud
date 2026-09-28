@@ -4,7 +4,6 @@ import { api } from '@/app/api.client';
 import { LessonStatus } from '@/app/endpoint/lesson.endpoint';
 import { getLessonsByDate } from '@/app/kiosk/get.lessons.by.date.action';
 import { TimeTableServerComponent } from '@/app/home/TimeTableServerComponent';
-import { TodayTimetable, TimetableLesson } from '@/app/home/TodayTimetable';
 import { ChevronRight } from 'lucide-react';
 import { CircleImage } from '@/app/components/CircleImage';
 import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
@@ -46,17 +45,8 @@ export async function AdminHomeForm() {
   const locale = await getLocale();
   const res = await getLessonsByDate(studio.id, todayKst());
   const lessons = 'lessons' in res ? res.lessons.filter((l) => l.status !== LessonStatus.Cancelled) : [];
-  const todayLessons: TimetableLesson[] = lessons.map((l) => ({
-    id: l.id,
-    title: l.title ?? '-',
-    thumbnailUrl: l.thumbnailUrl,
-    startDate: l.startDate,
-    duration: l.duration,
-    roomName: l.room?.name,
-    artists: l.artists?.map((a) => ({ nickName: a.nickName, name: a.name })),
-  }));
 
-  // 출석 체크 바텀시트용 — 썸네일 + 제목 + 시간/강사·룸 라벨을 서버에서 미리 포맷
+  // 출석 체크 다이얼로그용 — 썸네일 + 제목 + 시간/강사·룸 라벨을 서버에서 미리 포맷
   const sheetLessons: AdminSheetLesson[] = lessons.map((l) => ({
     id: l.id,
     title: l.title ?? '-',
@@ -99,25 +89,6 @@ export async function AdminHomeForm() {
       {/* 숏컷(출석 체크·수강생 등록·키오스크 로그인) — 흰 카드. 결제 내역은 '매출' 탭으로 옮겼다 */}
       <section className={'mx-4 mt-3 rounded-2xl bg-white border border-[#EEF0F2] px-1 py-3'}>
         <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken}/>
-      </section>
-
-      {/* 오늘 수업 — row 탭 → 수업 상세(수강생 바텀시트에서 출석하기) */}
-      <section id={'today'} className={'mx-4 mt-3 scroll-mt-4 rounded-2xl bg-white border border-[#EEF0F2] overflow-hidden pb-4'}>
-        {todayLessons.length > 0 ? (
-          <TodayTimetable
-            title={await translate('admin_home_today_title')}
-            lessons={todayLessons}
-            endedLabel={await translate('finish')}
-            ongoingLabel={await translate('in_progress')}
-          />
-        ) : (
-          <>
-            <h2 className={'text-[15px] font-bold text-[#191F28] px-5 pt-4'}>{await translate('admin_home_today_title')}</h2>
-            <p className={'px-5 py-10 text-center text-[14px] text-[#8B95A1]'}>
-              {await translate('kiosk_lesson_attendance_no_lessons')}
-            </p>
-          </>
-        )}
       </section>
 
       {/* 주간 시간표 */}
