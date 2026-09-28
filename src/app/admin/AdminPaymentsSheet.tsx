@@ -8,6 +8,7 @@ import { getLocaleString } from '@/app/components/locale';
 import { getPaymentRecordsAction } from '@/app/paymentRecords/get.payment.records.action';
 import { cancelPaymentAction } from '@/app/admin/cancel.payment.action';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
+import { PaymentMethodIcon } from '@/app/components/PaymentMethodIcon';
 
 // 관리자 홈의 결제 내역 바텀시트 — 파트너 토큰의 GET /paymentRecords(스튜디오 결제) + 결제 취소.
 // 키오스크 카드결제 취소는 CancelPending(환불 대기)으로 남을 수 있어 응답 status를 그대로 반영한다.
@@ -28,7 +29,11 @@ const formatDate = (iso?: string) => {
   return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-export function AdminPaymentsSheetContent({ locale }: { locale: Locale }) {
+/**
+ * @param inline 페이지 본문에 그대로 박아 쓸 때 true — 자체 스크롤 컨테이너를 쓰지 않고
+ *               페이지 스크롤에 맡긴다(관리자 '매출' 탭). 기본값은 바텀시트용 레이아웃.
+ */
+export function AdminPaymentsSheetContent({ locale, inline = false }: { locale: Locale; inline?: boolean }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   const [records, setRecords] = useState<GetPaymentRecordResponse[]>([]);
@@ -126,7 +131,7 @@ export function AdminPaymentsSheetContent({ locale }: { locale: Locale }) {
 
   return (
     <>
-      <div className={'flex-1 min-h-0 overflow-y-auto px-5'}>
+      <div className={inline ? 'px-5' : 'flex-1 min-h-0 overflow-y-auto px-5'}>
         <ul className={'flex flex-col divide-y divide-[#F1F3F6]'}>
           {records.map((r) => {
             const badge = STATUS_STYLE[r.status] ?? { label: String(r.status ?? ''), cls: 'bg-[#F3F4F6] text-[#6B7280]' };
@@ -139,9 +144,15 @@ export function AdminPaymentsSheetContent({ locale }: { locale: Locale }) {
                 </div>
                 <div className={'flex-1 min-w-0'}>
                   <p className={'text-[14px] font-semibold text-black truncate'}>{r.productName}</p>
-                  <p className={'mt-0.5 text-[12px] text-[#8B95A1] truncate'}>
-                    {[r.depositor, r.paymentMethodLabel, formatDate(r.createdAt)].filter(Boolean).join(' · ')}
-                  </p>
+                  <div className={'mt-0.5 flex items-center gap-1 min-w-0 text-[12px] text-[#8B95A1]'}>
+                    {/* 카드사·간편결제 로고 (농협카드/카카오페이 등) — 없으면 결제 방식별 플랫 아이콘 */}
+                    {r.paymentMethodLabel && (
+                      <PaymentMethodIcon methodType={r.methodType} label={r.paymentMethodLabel} size={20}/>
+                    )}
+                    <span className={'truncate'}>
+                      {[r.depositor, r.paymentMethodLabel, formatDate(r.createdAt)].filter(Boolean).join(' · ')}
+                    </span>
+                  </div>
                   <div className={'mt-1 flex items-center gap-1.5'}>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>
                     <span className={'text-[13px] font-bold text-black'}>{r.amount.toLocaleString()}원</span>
