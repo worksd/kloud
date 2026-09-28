@@ -22,6 +22,7 @@ const GoogleLoginButton = ({title, isRecentLogin, recentLoginText}: GoogleLoginB
       }
       await LoginAuthNavigation({
         status: res.status,
+        type: res.type,
         window: window,
         message: res.errorMessage,
       })

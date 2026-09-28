@@ -22,6 +22,7 @@ const emailLoginAction = async ({email, password}: { email: string, password: st
       return {
         success: true,
         status: res.user.status,
+        type: res.user.type,
       };
     } else {
       return {

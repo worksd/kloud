@@ -81,6 +81,7 @@ export const LoginForm = (props: LoginFormProps) => {
       } else {
         await LoginAuthNavigation({
           status: res.status,
+          type: res.type,
           window: window,
         })
       }

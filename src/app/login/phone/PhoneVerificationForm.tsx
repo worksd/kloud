@@ -139,7 +139,7 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb
             // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에 반영되게 (이메일 로그인과 동일). 항상 기본 경로로.
             window.location.replace('/');
           } else {
-            await LoginAuthNavigation({status: res.user.status, window})
+            await LoginAuthNavigation({status: res.user.status, type: res.user.type, window})
           }
         } else {
           // 서버 메시지 우선, 없으면 기본 불일치 문구
