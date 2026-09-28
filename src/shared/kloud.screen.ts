@@ -75,6 +75,8 @@ export const KloudScreen = {
   Search: (keyword: string) => `/search?q=${encodeURIComponent(keyword)}`,
   // 관리자(Partner/Operator) 전용 랜딩 — 바텀 내비 없는 풀스크린으로 진입
   AdminHome: '/admin',
+  /** 관리자 전용 결제 상세 — 수강생용(/paymentRecords/:id)과 별도 화면 */
+  AdminPaymentDetail: (paymentId: string) => `/admin/payments/${paymentId}`,
   /** 수업 결제 완료 환영 화면 — lessonId가 있으면 감성 섹션(준비물·다음 수업 등)까지 그린다 */
   PaymentComplete: (paymentId: string, lessonId?: number) =>
     `/payment-complete?paymentId=${encodeURIComponent(paymentId)}${lessonId != null ? `&lessonId=${lessonId}` : ''}`,
