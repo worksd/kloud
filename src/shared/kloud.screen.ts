@@ -77,6 +77,8 @@ export const KloudScreen = {
   AdminHome: '/admin',
   /** 관리자 전용 결제 상세 — 수강생용(/paymentRecords/:id)과 별도 화면 */
   AdminPaymentDetail: (paymentId: string) => `/admin/payments/${paymentId}`,
+  /** 관리자 현장결제 — 수강생 찾기 → 상품 → 수단·금액, POST /paymentRecords/manual */
+  AdminOnsitePayment: '/admin/onsite-payment',
   /** 관리자 설정 하위 — 각 화면이 PATCH /studios 로 그 화면 필드만 저장 */
   AdminSettingProfile: '/admin/setting/profile',
   AdminSettingBusiness: '/admin/setting/business',

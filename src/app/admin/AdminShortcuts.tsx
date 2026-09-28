@@ -8,10 +8,9 @@ import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
-import { AdminOnsitePaymentDialog } from '@/app/admin/AdminOnsitePaymentDialog';
 
 // 관리자 홈 숏컷 줄 — 출석 체크(오늘 수업 → 수업별 출석 QR 화면, 중앙 다이얼로그),
-// 현장결제(수강생 검색 → 상품 → 금액, POST /paymentRecords/manual admin), 키오스크 로그인(QR 다이얼로그).
+// 현장결제(/admin/onsite-payment 페이지로 push), 키오스크 로그인(QR 다이얼로그).
 // 수강생 등록은 '수강생' 탭으로 옮겼다.
 // 결제 내역은 '매출' 탭으로 옮겨서 여기서 뺐다.
 // 키오스크 로그인 QR 형식: `${origin}/kiosk?token=<관리자 accessToken>` — KioskBootstrap이
@@ -50,13 +49,11 @@ const Shortcut = ({ icon, label, onClick }: {
   </button>
 );
 
-export function AdminShortcuts({ lessons, locale, kioskToken, studioId }: {
+export function AdminShortcuts({ lessons, locale, kioskToken }: {
   lessons: AdminSheetLesson[];
   locale: Locale;
   /** 키오스크 로그인 QR에 실을 관리자 accessToken */
   kioskToken?: string;
-  /** 현장결제 패스권 목록 조회용 */
-  studioId: number;
 }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
@@ -78,9 +75,6 @@ export function AdminShortcuts({ lessons, locale, kioskToken, studioId }: {
     setQrClosing(true);
     setTimeout(() => { setQrOpen(false); setQrClosing(false); }, 200);
   };
-
-  // 현장결제 다이얼로그
-  const [onsiteOpen, setOnsiteOpen] = useState(false);
 
   const openAttendance = () => setAttOpen(true);
   const closeAttendance = () => {
@@ -105,7 +99,7 @@ export function AdminShortcuts({ lessons, locale, kioskToken, studioId }: {
         <Shortcut
           icon={<Banknote size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
           label={t('admin_home_shortcut_onsite')}
-          onClick={() => setOnsiteOpen(true)}
+          onClick={() => kloudNav.push(KloudScreen.AdminOnsitePayment)}
         />
         <Shortcut
           icon={<QrCode size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
@@ -207,8 +201,6 @@ export function AdminShortcuts({ lessons, locale, kioskToken, studioId }: {
           </div>
         </div>
       )}
-
-      <AdminOnsitePaymentDialog open={onsiteOpen} studioId={studioId} lessons={lessons} onClose={() => setOnsiteOpen(false)}/>
     </>
   );
 }

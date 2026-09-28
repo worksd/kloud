@@ -1,8 +1,6 @@
 import React from 'react';
 import { cookies } from 'next/headers';
 import { api } from '@/app/api.client';
-import { LessonStatus } from '@/app/endpoint/lesson.endpoint';
-import { getLessonsByDate } from '@/app/kiosk/get.lessons.by.date.action';
 import { TimeTableServerComponent } from '@/app/home/TimeTableServerComponent';
 import { ChevronRight } from 'lucide-react';
 import { CircleImage } from '@/app/components/CircleImage';
@@ -10,17 +8,10 @@ import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { getLocale, translate } from '@/utils/translate';
 import { accessTokenKey } from '@/shared/cookies.key';
-import { AdminShortcuts, AdminSheetLesson } from '@/app/admin/AdminShortcuts';
-import { formatLessonTimeRange } from '@/app/kiosk/kiosk.lesson';
+import { AdminShortcuts } from '@/app/admin/AdminShortcuts';
+import { getTodayAdminLessons } from '@/app/admin/admin.today.lessons';
 import { ADMIN_CONTENT_TOP_PAD, ADMIN_HEADER_TOP_PAD } from '@/app/admin/admin.layout';
 import { AdminNoHorizontalScroll } from '@/app/admin/AdminNoHorizontalScroll';
-
-// Vercel 서버는 UTC — '오늘'은 KST 기준으로 계산해야 새벽에 어제 수업이 뜨지 않는다.
-const todayKst = (): string => {
-  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${kst.getUTCFullYear()}.${pad(kst.getUTCMonth() + 1)}.${pad(kst.getUTCDate())}`;
-};
 
 /**
  * 관리자(Partner/Operator) 홈 본문.
@@ -44,18 +35,8 @@ export async function AdminHomeForm() {
   }
 
   const locale = await getLocale();
-  const res = await getLessonsByDate(studio.id, todayKst());
-  const lessons = 'lessons' in res ? res.lessons.filter((l) => l.status !== LessonStatus.Cancelled) : [];
-
-  // 출석 체크·현장결제 다이얼로그용 — 썸네일 + 제목 + 시간/강사·룸 라벨을 서버에서 미리 포맷
-  const sheetLessons: AdminSheetLesson[] = lessons.map((l) => ({
-    id: l.id,
-    title: l.title ?? '-',
-    thumbnailUrl: l.thumbnailUrl,
-    timeLabel: formatLessonTimeRange(l, locale) || undefined,
-    subLabel: [l.artists?.[0]?.nickName, l.room?.name].filter(Boolean).join(' · ') || undefined,
-    price: l.price,
-  }));
+  // 출석 체크 다이얼로그용 오늘 수업 — 현장결제 페이지와 같은 로더
+  const sheetLessons = await getTodayAdminLessons(studio.id, locale);
 
   const adminName = ('id' in me ? (me.name || me.nickName) : undefined) ?? '';
   // 키오스크 로그인 QR용 — 현재 관리자 토큰. 키오스크가 /kiosk?token=으로 열면 그대로 로그인된다.
@@ -92,7 +73,7 @@ export async function AdminHomeForm() {
 
       {/* 숏컷(출석 체크·현장결제·키오스크 로그인) — 흰 카드. 결제 내역은 '매출' 탭, 수강생 등록은 '수강생' 탭으로 옮겼다 */}
       <section className={'mx-4 mt-3 rounded-2xl bg-white border border-[#EEF0F2] px-1 py-3'}>
-        <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken} studioId={studio.id}/>
+        <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken}/>
       </section>
 
       {/* 주간 시간표 */}
