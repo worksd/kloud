@@ -4,6 +4,9 @@ import React from "react";
 import { BANK_ICONS, pickBankKey } from "@/app/components/Bank";
 import { PaymentMethodType } from "@/app/endpoint/payment.endpoint";
 import { PassFlatIcon, ScheduledPaymentFlatIcon } from "@/app/profile/ActivityIcons";
+import IconKakaoPay from "../../../public/assets/ic_kakao_pay.svg";
+import IconNaverPay from "../../../public/assets/ic_naver_pay.svg";
+import IconTossPay from "../../../public/assets/ic_toss_payments.svg";
 
 type IconProps = { size?: number; className?: string };
 const base = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none' as const });
@@ -89,6 +92,16 @@ const guessMethodType = (label: string): PaymentMethodType | undefined => {
   return undefined;
 };
 
+/**
+ * 간편결제 브랜드 로고 — 은행/카드사 매칭보다 먼저 확인한다.
+ * pickBankKey는 '카카오페이'를 '카카오'로 잡아 카카오뱅크 로고를 돌려주기 때문.
+ */
+const PAY_BRAND_LOGOS = [
+  { test: /카카오\s*페이|kakao\s*pay/i, Logo: IconKakaoPay },
+  { test: /네이버\s*페이|naver\s*pay/i, Logo: IconNaverPay },
+  { test: /토스\s*페이|toss\s*pay/i, Logo: IconTossPay },
+] as const;
+
 export const PaymentMethodIcon = ({ methodType, label, size = 20, className }: {
   methodType?: PaymentMethodType | null;
   label?: string | null;
@@ -96,13 +109,19 @@ export const PaymentMethodIcon = ({ methodType, label, size = 20, className }: {
   className?: string;
 }) => {
   const name = label ?? '';
-  // 1) 카드사/은행 로고
+  // 1) 간편결제 브랜드 로고 (카카오페이·네이버페이·토스페이)
+  const brand = PAY_BRAND_LOGOS.find((b) => b.test.test(name));
+  if (brand) {
+    const Logo = brand.Logo;
+    return <Logo style={{ width: size, height: 'auto', flexShrink: 0 }} className={className}/>;
+  }
+  // 2) 카드사/은행 로고
   const bankKey = pickBankKey(name);
   if (bankKey) {
     const Logo = BANK_ICONS[bankKey];
     return <Logo style={{ width: size, height: 'auto', flexShrink: 0 }} className={className}/>;
   }
-  // 2) 결제 방식별 플랫 아이콘
+  // 3) 결제 방식별 플랫 아이콘
   const type = methodType ?? guessMethodType(name);
   switch (type) {
     case 'account_transfer': return <BankTransferFlatIcon size={size} className={className}/>;
