@@ -68,7 +68,7 @@ export default async function AdminSettingPage() {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-[#F7F8FA] pb-32">
+    <div className="w-full min-h-screen overflow-x-hidden bg-[#F7F8FA] pb-32">
       <AdminPageHeader title="설정" studioName={studioName} />
       <AdminMockNotice />
 

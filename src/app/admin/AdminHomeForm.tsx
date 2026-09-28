@@ -37,7 +37,7 @@ export async function AdminHomeForm() {
 
   if (!studio?.id) {
     return (
-      <div className={'w-full min-h-screen bg-white flex items-center justify-center px-8'} style={{ paddingTop: ADMIN_CONTENT_TOP_PAD }}>
+      <div className={'w-full min-h-screen overflow-x-hidden bg-white flex items-center justify-center px-8'} style={{ paddingTop: ADMIN_CONTENT_TOP_PAD }}>
         <p className={'text-[15px] text-[#6B7280] text-center whitespace-pre-line'}>{await translate('admin_home_no_studio')}</p>
       </div>
     );
@@ -71,7 +71,7 @@ export async function AdminHomeForm() {
 
   return (
     // ignoreSafeArea 풀스크린 — 상태바 영역은 safe-area 패딩으로 직접 확보 (env 미지원 웹뷰 폴백 44px)
-    <div className={'w-full min-h-screen bg-[#F7F8FA] flex flex-col pb-32'}>
+    <div className={'w-full min-h-screen overflow-x-hidden bg-[#F7F8FA] flex flex-col pb-32'}>
       {/* 고정 헤더 — 다른 관리자 탭(AdminPageHeader)과 같은 구조. 스튜디오 칩만 상단에 붙고 본문만 스크롤된다. */}
       <div
         className={'sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#EDEFF2] px-5 pb-3'}
