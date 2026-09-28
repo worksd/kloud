@@ -3,7 +3,10 @@
 
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
-import { TicketFlatIcon, PassFlatIcon, ReceiptFlatIcon, ScheduledPaymentFlatIcon, RoomBookingFlatIcon, ChevronRightIcon, PencilFlatIcon, GearFlatIcon } from "@/app/profile/ActivityIcons";
+// 헤더 아이콘은 리디자인 전 선 아이콘이 더 나아 되돌린 것 (본문 '내 활동'은 플랫 아이콘 유지)
+import EditIcon from "../../../public/assets/ic_edit.svg";
+import SettingIcon from "../../../public/assets/ic_setting.svg";
+import { TicketFlatIcon, PassFlatIcon, ReceiptFlatIcon, ScheduledPaymentFlatIcon, RoomBookingFlatIcon, ChevronRightIcon } from "@/app/profile/ActivityIcons";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
@@ -24,10 +27,11 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
       <div className="flex-shrink-0 bg-white">
         <div className="flex justify-end items-center gap-3 px-5 py-3">
           <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-            <PencilFlatIcon size={24} className="active:opacity-50 transition-opacity duration-150"/>
+            <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
           </NavigateClickWrapper>
           <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-            <GearFlatIcon size={24} className="active:opacity-50 transition-opacity duration-150"/>
+            {/* 설정 — 리디자인 전 아이콘(ic_setting.svg) */}
+            <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
           </NavigateClickWrapper>
         </div>
 

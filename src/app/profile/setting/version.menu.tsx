@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { kloudNav } from "@/app/lib/kloudNav";
 
-export const VersionMenu = ({title, version}: { title: string, version: string }) => {
+export const VersionMenu = ({title, version, icon}: { title: string, version: string, icon?: React.ReactNode }) => {
 
   const clickCountRef = useRef(0);
 
@@ -21,10 +21,18 @@ export const VersionMenu = ({title, version}: { title: string, version: string }
   return (
     <div className={"flex flex-col"}>
       <div
-        className="flex justify-between items-center bg-white px-6 py-4 cursor-pointer border-gray-200 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
+        className="flex justify-between items-center bg-white px-6 py-3 cursor-pointer border-gray-200 hover:bg-gray-50 active:scale-[0.98] active:bg-gray-100 transition-all duration-150"
         onClick={() => clickVersionMenu()}
       >
-        <div className="text-gray-800">{title}</div>
+        <div className="flex items-center gap-3.5 min-w-0">
+          {/* 아이콘 감싸는 라운드 스퀘어 — MenuItem·ActivityRow와 같은 규격 */}
+          {icon && (
+            <span className="w-[42px] h-[42px] rounded-[14px] bg-[#F7F8FA] flex items-center justify-center shrink-0">
+              {icon}
+            </span>
+          )}
+          <span className="text-gray-800 truncate">{title}</span>
+        </div>
         <div className="text-gray-400">{version}</div>
       </div>
     </div>
