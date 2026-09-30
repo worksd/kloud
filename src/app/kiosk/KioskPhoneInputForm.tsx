@@ -13,6 +13,8 @@ type KioskPhoneInputFormProps = {
   onBack: () => void;
   onNext: (phone: string, countryCode: string) => void;
   onSearchByEmail: (email: string) => void;
+  /** 이름으로 검색(igin 포팅) — 숫자패드 아래 밑줄 버튼. 패드 형태·variant와 무관하게 항상 노출. 없으면 버튼을 그리지 않는다 */
+  onSearchByName?: () => void;
   onHome: () => void;
   loading?: boolean;
   errorMessage?: string | null;
@@ -48,7 +50,7 @@ const phonePlaceholder = (dial: string) => formatPhone(PLACEHOLDER_DIGITS[dial] 
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', '←'];
 
-export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, loading, errorMessage, onDismissError, variant = 'kiosk', mode = 'phone' }: KioskPhoneInputFormProps) => {
+export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onSearchByName, onHome, loading, errorMessage, onDismissError, variant = 'kiosk', mode = 'phone' }: KioskPhoneInputFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
   const lastFour = mode === 'lastFour';
@@ -246,6 +248,19 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
           )}
         </button>
       </div>
+      {/* 이름으로 검색 — 키패드 아래(이메일 링크와 위치가 다르다), 뒷 4자리 모드에서도 노출 */}
+      {onSearchByName && (
+        <div className="shrink-0 flex justify-center pb-[min(1.6vw,18px)]">
+          <button
+            type="button"
+            onClick={onSearchByName}
+            className="text-[#6D7882] font-medium underline underline-offset-[6px] active:opacity-60 transition-opacity"
+            style={{ fontSize: 'min(1.6vw, 18px)' }}
+          >
+            {t('kiosk_search_by_name')}
+          </button>
+        </div>
+      )}
       </>
       )}
 
@@ -315,6 +330,15 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
                 <span className="text-white text-[22px] font-bold">{t('kiosk_next')}</span>
               )}
             </button>
+            {onSearchByName && (
+              <button
+                type="button"
+                onClick={onSearchByName}
+                className="mt-[16px] self-start text-[#6D7882] font-medium underline underline-offset-[6px] text-[17px] active:opacity-60 transition-opacity"
+              >
+                {t('kiosk_search_by_name')}
+              </button>
+            )}
           </div>
 
           {/* 우측 — 숫자 키패드 */}

@@ -377,3 +377,205 @@ export const GetKioskDetail: Endpoint<GetKioskDetailRequest, KioskDetailResponse
   method: 'get',
   path: (e) => `/kiosks/${e.kioskId}`,
 };
+
+// ════════════════════ 다중결제(바스켓) — /kiosks/payment-groups (igin 포팅) ════════════════════
+// 여러 수업을 한 번의 카드 승인으로 결제. 상품마다 payment_record가 따로 생기고 paymentGroupId로 묶인다.
+//  ① preview  금액 계산 + paymentGroupId 발급(서버가 발급, 클라 생성 금지, 호출마다 새 id → 마지막 값 사용)
+//  ② create   결제건 N개 생성 — 현금/무료는 즉시 Completed, 카드는 Pending → 단말 승인(inCustomerUuid=paymentGroupId)
+//  ③ complete 승인 반영 + 일괄 발급 (멱등)
+//  DELETE     단말 매입 전 이탈 시 Pending 폐기
+export type PaymentGroupItemRequest = {
+  /** 담을 수 있는 건 lesson · pass-plan 뿐. 정기수업/연습실/번들은 단건 결제 */
+  item: 'lesson' | 'pass-plan';
+  itemId: number;
+  /** item당 최대 1개 */
+  discounts?: PaymentDiscount[];
+};
+
+export type PreviewPaymentGroupRequest = {
+  kioskId: number;
+  targetUserId: number;
+  items: PaymentGroupItemRequest[];
+};
+
+/** preview 응답 항목 — purchasable=false는 에러가 아니라 사유 코드로 온다. 화면에서 걸러야 create가 막히지 않는다 */
+export type PaymentGroupPreviewItem = {
+  item: string;
+  itemId: number;
+  productName?: string;
+  price: number;
+  discountAmount: number;
+  amount: number;
+  purchasable: boolean;
+  /** SOLD_OUT · ALREADY_REGISTERED · INVALID_STATUS · PRICE_UNAVAILABLE */
+  reason?: string | null;
+};
+
+export type PreviewPaymentGroupResponse = {
+  paymentGroupId: string;
+  totalAmount: number;
+  items: PaymentGroupPreviewItem[];
+};
+
+export const PreviewKioskPaymentGroup: Endpoint<PreviewPaymentGroupRequest, PreviewPaymentGroupResponse> = {
+  method: 'post',
+  path: '/kiosks/payment-groups/preview',
+  bodyParams: ['kioskId', 'targetUserId', 'items'],
+};
+
+export type CreatePaymentGroupRequest = {
+  kioskId: number;
+  targetUserId: number;
+  /** preview에서 받은 값 그대로 */
+  paymentGroupId: string;
+  type: 'card' | 'cash';
+  items: PaymentGroupItemRequest[];
+};
+
+/** create/complete 응답의 발급물 항목. 카드는 complete 응답에, 현금/무료는 create 응답에 채워진다 */
+export type PaymentGroupIssuedItem = {
+  item?: string;
+  itemId?: number;
+  paymentId: string;
+  amount: number;
+  productName?: string;
+  qrCodeUrl?: string | null;
+  rank?: string | null;
+  ticket?: KioskTicketSummary | null;
+};
+
+export type PaymentGroupResponse = {
+  paymentGroupId: string;
+  /** 카드: Pending / 현금·무료: Completed */
+  status: string;
+  /** ★ 단말에 매입 요청할 금액 (preview 금액이 아니라 이 값) */
+  totalAmount: number;
+  /** 현금이라도 합산 0원이면 'free' */
+  paymentType?: string;
+  receiptType?: string;
+  items: PaymentGroupIssuedItem[];
+};
+
+export const CreateKioskPaymentGroup: Endpoint<CreatePaymentGroupRequest, PaymentGroupResponse> = {
+  method: 'post',
+  path: '/kiosks/payment-groups',
+  bodyParams: ['kioskId', 'targetUserId', 'paymentGroupId', 'type', 'items'],
+};
+
+export type CompletePaymentGroupRequest = {
+  paymentGroupId: string;
+  targetUserId: number;
+  kioskId: number;
+  authNo: string;
+  authDate: string;
+  vanKey: string;
+  /** 단말 매입가 그대로 — 그룹 합계와 다르면 KIOSK_PAYMENT_AMOUNT_MISMATCH */
+  totalAmount: number;
+  cardBrand?: string;
+  cardNumber?: string;
+  /** KIS raw — 객체로 보낸다(문자열이면 400) */
+  vanResponse?: Record<string, unknown>;
+};
+
+export const CompleteKioskPaymentGroup: Endpoint<CompletePaymentGroupRequest, PaymentGroupResponse> = {
+  method: 'post',
+  path: (e) => `/kiosks/payment-groups/${e.paymentGroupId}/complete`,
+  bodyParams: ['targetUserId', 'kioskId', 'authNo', 'authDate', 'vanKey', 'totalAmount', 'cardBrand', 'cardNumber', 'vanResponse'],
+};
+
+export type DiscardPaymentGroupRequest = {
+  paymentGroupId: string;
+  kioskId: number;
+  /** 폐기 사유 진단용 — { status: 'fail' | 'canceled', kis: <KIS raw> } 객체 */
+  reason?: Record<string, unknown>;
+};
+
+export const DiscardKioskPaymentGroup: Endpoint<DiscardPaymentGroupRequest, DiscardKioskPaymentResponse> = {
+  method: 'delete',
+  path: (e) => `/kiosks/payment-groups/${e.paymentGroupId}`,
+  bodyParams: ['kioskId', 'reason'],
+};
+
+// ════════════════════ member 모드 요약 — GET /kiosks/students/summary (igin 포팅) ════════════════════
+export type KioskStudentSummaryRequest = {
+  kioskId: number;
+  targetUserId: number;
+};
+
+export type KioskSummaryTicket = {
+  ticketId?: number;
+  /** 표시·출석은 lessonId ?? id */
+  lessonId?: number;
+  id?: number;
+  title?: string;
+  /** 'HH:mm' */
+  startTime?: string;
+  duration?: number;
+  artistName?: string;
+  roomName?: string;
+  thumbnailUrl?: string;
+  posterUrl?: string;
+  imageUrl?: string;
+  isAttended?: boolean;
+  /** 'HH:mm' */
+  attendedAt?: string | null;
+};
+
+export type KioskSummaryUnpaid = {
+  paymentId: string;
+  productName?: string;
+  amount: number;
+  /** 'yyyy-MM-dd HH:mm' */
+  issuedAt?: string;
+};
+
+export type KioskSummaryPass = {
+  passId?: number;
+  id?: number;
+  name?: string;
+  tag?: string | null;
+  /** 'yyyy-MM-dd' */
+  startDate?: string;
+  endDate?: string;
+};
+
+export type KioskStudentSummaryResponse = {
+  studentName?: string | null;
+  studentId?: number;
+  /** refundAccount* 필드가 함께 오지만 화면에 절대 그리지 않는다 */
+  user?: { id: number; name?: string; nickName?: string; phone?: string; profileImageUrl?: string };
+  todayTickets?: KioskSummaryTicket[];
+  unpaidPayments?: KioskSummaryUnpaid[];
+  activePasses?: KioskSummaryPass[];
+};
+
+export const GetKioskStudentSummary: Endpoint<KioskStudentSummaryRequest, KioskStudentSummaryResponse> = {
+  method: 'get',
+  path: '/kiosks/students/summary',
+  queryParams: ['kioskId', 'targetUserId'],
+};
+
+// POST /kiosks/attendances — member 모드 출석. body는 전부 정수. 한 번에 1건씩 보낸다
+export type KioskAttendanceRequest = {
+  kioskId: number;
+  targetUserId: number;
+  lessonIds: number[];
+};
+
+export type KioskAttendanceResult = {
+  lessonId: number;
+  ok: boolean;
+  /** 'ALREADY_ATTENDED' 등 */
+  reason?: string;
+  ticket?: KioskTicketSummary | null;
+};
+
+export type KioskAttendanceResponse = {
+  results: KioskAttendanceResult[];
+};
+
+export const CreateKioskAttendance: Endpoint<KioskAttendanceRequest, KioskAttendanceResponse> = {
+  method: 'post',
+  path: '/kiosks/attendances',
+  bodyParams: ['kioskId', 'targetUserId', 'lessonIds'],
+};

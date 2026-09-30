@@ -450,6 +450,15 @@ export type KioskReceiptDiscount = {
   targetLabel?: string;
 };
 
+/** 다중결제(바스켓) 발급물 — 수업마다 QR/입장번호가 따로 나온다. footer 뒤에 항목별 블록으로 인쇄 */
+export type ReceiptIssuedItem = {
+  name: string;
+  rank?: string | null;
+  qrText?: string | null;
+  /** ticket.status==='Used' — QR 대신 출석 완료 안내 */
+  attended?: boolean;
+};
+
 export type BuildKioskReceiptInput = {
   paymentMethod: KioskPaymentMethod;
   studio: ReceiptStudio;
@@ -470,6 +479,31 @@ export type BuildKioskReceiptInput = {
   qrText?: string;
   /** 자동 사용처리로 출석까지 끝난 건 — QR 자리에 '출석 완료' 안내를 대신 인쇄 */
   attended?: boolean;
+  /**
+   * 다중결제 발급물(2건 이상일 때). 본문의 rank/qr는 비우고 footer 뒤에 항목마다
+   * '='구분선 + 품목명(굵게) + 입장번호 + QR(또는 출석 완료 안내)을 반복 인쇄한다 (igin receipt_builder와 동일 순서).
+   */
+  issuedItems?: ReceiptIssuedItem[];
+};
+
+// 다중결제 항목별 발급물 블록 — footer 뒤에 붙는다
+const issuedItemLines = (items: ReceiptIssuedItem[] | undefined): PrinterLine[] => {
+  if (!items || items.length === 0) return [];
+  const lines: PrinterLine[] = [];
+  for (const it of items) {
+    lines.push({ blank: 1 });
+    lines.push({ align: 'C', text: HIGHLIGHT_SEP });
+    lines.push({ align: 'C', bold: true, text: it.name });
+    if (it.rank) lines.push({ align: 'C', bold: true, text: `입장 ${it.rank}` });
+    if (it.attended) {
+      lines.push({ align: 'C', bold: true, text: '*** 출석 완료 ***' });
+      lines.push({ align: 'C', text: 'QR 체크인 없이 바로 입장하세요' });
+    } else if (it.qrText) {
+      lines.push({ blank: 1 });
+      lines.push({ align: 'C', qr: it.qrText, size: 6 });
+    }
+  }
+  return lines;
 };
 
 const pickStr = (data: Record<string, unknown>, key: string): string | undefined => {
@@ -596,23 +630,26 @@ function parseTimestamp(s: string): Date | undefined {
 }
 
 export const buildKioskReceipt = (input: BuildKioskReceiptInput): PrinterLine[] => {
-  const { paymentMethod, studio, transaction, user, items, itemType, artists, lessonDateTime, rank, discount, cardData = {}, qrText, attended } = input;
-  switch (paymentMethod) {
-    case 'card':
-      return buildCardPaymentReceipt({
-        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
-        passDiscount: discount?.amount ?? 0,
-        card: cardInfoFromKisData(cardData),
-      });
-    case 'pass':
-      return buildPassPaymentReceipt({
-        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
-        passName: discount?.description || discount?.targetLabel,
-      });
-    case 'cash':
-      return buildCashRequestReceipt({
-        studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
-        passDiscount: discount?.amount ?? 0,
-      });
-  }
+  const { paymentMethod, studio, transaction, user, items, itemType, artists, lessonDateTime, rank, discount, cardData = {}, qrText, attended, issuedItems } = input;
+  const base = ((): PrinterLine[] => {
+    switch (paymentMethod) {
+      case 'card':
+        return buildCardPaymentReceipt({
+          studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
+          passDiscount: discount?.amount ?? 0,
+          card: cardInfoFromKisData(cardData),
+        });
+      case 'pass':
+        return buildPassPaymentReceipt({
+          studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
+          passName: discount?.description || discount?.targetLabel,
+        });
+      case 'cash':
+        return buildCashRequestReceipt({
+          studio, transaction, user, items, itemType, artists, lessonDateTime, rank, qrText, attended,
+          passDiscount: discount?.amount ?? 0,
+        });
+    }
+  })();
+  return [...base, ...issuedItemLines(issuedItems)];
 };
