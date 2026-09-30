@@ -130,7 +130,7 @@ export default async function PaymentCompletePage({ searchParams }: {
 
   return (
     <div className={'w-full min-h-screen bg-white text-[#191F28] flex flex-col pb-40'}>
-      {/* 히어로 — 풀블리드 위에 '신청 완료!' + 인사. 체크 아이콘 없음 */}
+      {/* 히어로 — 풀블리드 위에 '신청 완료!' + 인사. 체크 아이콘 없음. heroVideoUrl(학원 유튜브 클립 mp4)이 오면 무음 자동재생, 없으면 썸네일 */}
       <FullBleedHero
         videoUrl={data?.product.heroVideoUrl}
         posterUrl={lesson?.thumbnailUrl ?? data?.product.imageUrl}

@@ -247,7 +247,10 @@ export type PaymentCompleteResponse = {
   product: {
     name: string;
     imageUrl?: string | null;
-    /** 지금은 항상 null (소스 없음) */
+    /**
+     * 히어로 배경용 짧은 무음 클립(mp4). 학원 유튜브 영상 테이블의 clipUrl — 강사가 정해진 상품(수업 LT·정규반 dedicated)에서만 온다.
+     * 클립 생성 배치가 아직 없어 당분간 null이 대부분. null이면 imageUrl만 깐다.
+     */
     heroVideoUrl?: string | null;
     amount: number;
     methodType?: PaymentMethodType;

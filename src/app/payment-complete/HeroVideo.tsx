@@ -14,7 +14,7 @@ export const HeroVideo = ({ src, posterUrl }: { src?: string | null; posterUrl?:
   };
 
   if (!src) {
-    // 서버가 heroVideoUrl을 아직 안 주는 동안(항상 null)은 썸네일만
+    // 클립(heroVideoUrl)이 없는 상품·아직 클립이 안 만들어진 영상은 썸네일만
     return posterUrl ? (
       // eslint-disable-next-line @next/next/no-img-element
       <img src={posterUrl} alt={''} className={'absolute inset-0 w-full h-full object-cover'}/>
