@@ -124,6 +124,7 @@ export class ApiClient extends EndpointClient {
     getRefundPreview: this.endpointBuilder(API.PaymentRecord.GetRefundPreview),
     requestRefund: this.endpointBuilder(API.PaymentRecord.RequestRefund),
     createManual: this.endpointBuilder(API.PaymentRecord.CreateManualPaymentRecord),
+    getComplete: this.endpointBuilder(API.PaymentRecord.GetPaymentComplete),
     createKiosk: this.endpointBuilder(API.PaymentRecord.CreateKioskPendingPayment),
   }
 
