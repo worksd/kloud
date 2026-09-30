@@ -258,7 +258,13 @@ export default async function PaymentCompletePage({ searchParams }: {
                 <span className={'text-[13px] font-bold text-[#B0B8C1] tabular-nums pt-[2px] shrink-0 w-[18px]'}>{String(i + 1).padStart(2, '0')}</span>
                 <div className={'flex-1 min-w-0'}>
                   <p className={'text-[15.5px] font-bold text-[#191F28] leading-snug tracking-[-0.3px]'}>{g.title}</p>
-                  {g.content && <p className={'mt-1 text-[14px] leading-relaxed text-[#4E5968] line-clamp-3 whitespace-pre-line tracking-[-0.2px]'}>{g.content}</p>}
+                  {/* content는 HTML — 티켓 상세(TicketForm)와 같은 guideline-content 스타일로 렌더 */}
+                  {g.content && (
+                    <div
+                      className={'mt-1 text-[14px] leading-relaxed text-[#4E5968] tracking-[-0.2px] guideline-content'}
+                      dangerouslySetInnerHTML={{ __html: g.content }}
+                    />
+                  )}
                 </div>
               </div>
             ))}
