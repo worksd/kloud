@@ -1,5 +1,6 @@
 'use client';
 
+import { showToast } from '@/app/components/toast.host';
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PaymentRecordStatus } from '@/app/endpoint/payment.record.endpoint';
@@ -36,7 +37,7 @@ export function AdminPaymentCancelButton({ paymentId, productName }: { paymentId
         setError(res.message || '결제 취소에 실패했어요');
         return;
       }
-      window.KloudEvent?.showToast?.(
+      showToast(
         res.status === PaymentRecordStatus.CancelPending
           ? '환불 요청이 접수됐어요. 처리까지 시간이 걸릴 수 있어요'
           : '결제가 취소됐어요',

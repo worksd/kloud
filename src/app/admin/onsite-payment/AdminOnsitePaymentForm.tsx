@@ -1,5 +1,6 @@
 'use client';
 
+import { showToast, TOAST_LINGER_MS } from '@/app/components/toast.host';
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { CalendarDays, Search, UserPlus } from 'lucide-react';
@@ -293,9 +294,9 @@ export function AdminOnsitePaymentForm({ studioId, lessons, today }: {
         setConfirmOpen(false);
         return;
       }
-      window.KloudEvent?.showToast?.('현장결제를 기록했어요');
-      // 기록이 끝나면 홈으로 — paying 플래그는 화면이 닫히는 동안 중복 탭을 막기 위해 그대로 둔다
-      kloudNav.back();
+      showToast('현장결제를 기록했어요');
+      // 토스트가 보일 시간을 둔 뒤 홈으로 — paying 플래그는 화면이 닫히는 동안 중복 탭을 막기 위해 그대로 둔다
+      setTimeout(() => kloudNav.back(), TOAST_LINGER_MS);
       return;
     } catch {
       setError('요청에 실패했어요');

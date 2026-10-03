@@ -1,14 +1,16 @@
 'use client';
 
+import { showToast } from '@/app/components/toast.host';
 import React, { useEffect, useRef, useState } from 'react';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
-import { generateRandomNickname } from '@/utils/random.nickname';
-import { registerKioskUserAction } from '@/app/kiosk/kiosk.actions';
+import { registerStudentAction } from '@/app/admin/students/students.action';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
+import { formatPhone } from '@/app/forms/form.ui';
 
 /**
- * 수강생 등록 다이얼로그 — 이름 + 전화번호, 닉네임은 키오스크처럼 랜덤 생성.
+ * 수강생 등록 다이얼로그 — 이름 + 전화번호로 POST /students (토큰 소속 학원에 수강생 추가).
+ * 번호로 계정을 찾거나 만들며, 이미 수강생이면 기존 수강생이 그대로 온다(멱등). 기존 계정의 이름은 바꾸지 않는다.
  * 관리자 홈 숏컷과 수강생 탭이 같이 쓴다. 열릴 때 fadeIn+scaleIn, 닫힐 때 fadeOut.
  * 등록 중에는 닫히지 않는다(중복 요청/미완료 상태 방지).
  */
@@ -44,24 +46,27 @@ export function AdminRegisterStudentDialog({ open, locale, onClose, onRegistered
     const nm = name.trim();
     const ph = phone.replace(/\D/g, '');
     if (!nm) { setError(t('admin_register_name_required')); return; }
-    if (ph.length < 10 || ph.length > 11) { setError(t('admin_register_phone_invalid')); return; }
+    // 한국(82) 번호는 서버 규칙상 11자리
+    if (ph.length !== 11) { setError(t('admin_register_phone_invalid')); return; }
     registeringRef.current = true;
     setRegistering(true);
     setError(null);
     try {
-      // 키오스크 신규 가입과 동일 — phone-login(isAdmin)으로 유저 생성 후 랜덤 닉네임 + 입력한 이름 저장
-      const res = await registerKioskUserAction(ph, '82', generateRandomNickname(), nm);
+      const res = await registerStudentAction({ phone: ph, countryCode: '82', name: nm });
       if (isGuinnessErrorCase(res)) {
-        setError(res.message || t('admin_register_failed'));
+        // 액션이 모든 실패를 {code, message}로 정규화해 준다 — 서버 사유를 그대로 보여준다
+        setError(res.message ? `${res.message} (${res.code})` : `${t('admin_register_failed')} (${res.code})`);
         return;
       }
-      window.KloudEvent?.showToast?.(t('admin_register_success'));
+      showToast(t('admin_register_success'));
       registeringRef.current = false;
       onRegistered?.();
       setClosing(true);
       setTimeout(() => { setClosing(false); onClose(); }, 200);
-    } catch {
-      setError(t('admin_register_failed'));
+    } catch (e) {
+      // 여기까지 오는 건 서버 액션 호출 자체의 실패(네트워크·Next 액션 오류) — 사유를 붙인다
+      const reason = e instanceof Error ? e.message : String(e);
+      setError(`${t('admin_register_failed')} (${reason})`);
     } finally {
       registeringRef.current = false;
       setRegistering(false);
@@ -98,10 +103,10 @@ export function AdminRegisterStudentDialog({ open, locale, onClose, onRegistered
         <input
           type={'tel'}
           inputMode={'numeric'}
-          value={phone}
-          onChange={(e) => { setPhone(e.target.value.replace(/[^\d]/g, '')); setError(null); }}
-          placeholder={'01012345678'}
-          maxLength={11}
+          value={formatPhone(phone)}
+          onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 11)); setError(null); }}
+          placeholder={'010-1234-5678'}
+          maxLength={13}
           disabled={registering}
           className={inputCls}
         />

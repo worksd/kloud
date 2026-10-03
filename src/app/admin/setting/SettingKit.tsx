@@ -1,5 +1,6 @@
 'use client';
 
+import { showToast } from '@/app/components/toast.host';
 import React, { useState } from 'react';
 import { AdminDetailHeader } from '@/app/admin/AdminDetailHeader';
 import { UpdateStudioRequest } from '@/app/endpoint/studio.endpoint';
@@ -167,7 +168,7 @@ export function useSave() {
     try {
       const res = await updateStudioAction(body);
       if (!res.ok) { setError(res.message); return; }
-      window.KloudEvent?.showToast?.('저장했어요');
+      showToast('저장했어요');
       onOk?.();
     } finally {
       setSaving(false);

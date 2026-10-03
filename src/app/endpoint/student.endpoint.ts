@@ -1,20 +1,44 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { SearchMatchType } from "@/app/endpoint/user.endpoint";
 
+/**
+ * POST /students — 원장·직원이 결제 없이 자기 학원 수강생 명단에 올린다 (BE 79115f15, 가이드 2026-10-04).
+ * 학원은 토큰 소속으로 정해지며 본문에 studioId는 없다.
+ * - 계정이 있는 사람: targetUserId (있으면 phone·countryCode·name은 무시)
+ * - 전화번호로: phone(숫자만 보며 하이픈은 서버가 지움) + countryCode(기본 '82') + name(새 계정일 때만 계정 이름으로 저장)
+ * 멱등 — 이미 그 학원 수강생이면 기존 수강생을 그대로 돌려준다.
+ * @deprecated studioId — 구 온보딩 자기 등록 경로. 서버는 더 이상 보지 않는다.
+ */
 export type CreateStudentParameter = {
-  studioId: number;
+  targetUserId?: number;
+  phone?: string;
+  countryCode?: string;
+  name?: string;
+  studioId?: number;
 }
 
 export type StudentResponse = {
   id: number;
   userId: number;
-  studioId: number;
+  studioId?: number;
 }
 
-export const CreateStudent: Endpoint<CreateStudentParameter, StudentResponse> = {
+/** 등록 응답 — 사람 정보만 채워지고 집계(passCount 등)·tags는 없다. 필요하면 id로 GET /students/:id */
+export type RegisterStudentResponse = StudentResponse & {
+  name?: string;
+  userName?: string;
+  nickName?: string;
+  phone?: string;
+  countryCode?: string;
+  status?: string;
+  /** yyyy.MM.dd — 이 학원 수강생이 된 날. 기존 수강생이면 처음 등록된 날 */
+  registeredAt?: string;
+}
+
+export const CreateStudent: Endpoint<CreateStudentParameter, RegisterStudentResponse> = {
   method: 'post',
   path: '/students',
-  bodyParams: ['studioId'],
+  bodyParams: ['targetUserId', 'phone', 'countryCode', 'name', 'studioId'],
 }
 
 export type GetStudentByUserParameter = {
