@@ -140,14 +140,6 @@ export class ApiClient extends EndpointClient {
     listPayments: this.endpointBuilder(API.Kiosk.ListKioskPayments),
     cancelPayment: this.endpointBuilder(API.Kiosk.CancelKioskPayment),
     getPaymentRecordDetail: this.endpointBuilder(API.Kiosk.GetKioskPaymentRecordDetail),
-    // 다중결제(바스켓)
-    previewPaymentGroup: this.endpointBuilder(API.Kiosk.PreviewKioskPaymentGroup),
-    createPaymentGroup: this.endpointBuilder(API.Kiosk.CreateKioskPaymentGroup),
-    completePaymentGroup: this.endpointBuilder(API.Kiosk.CompleteKioskPaymentGroup),
-    discardPaymentGroup: this.endpointBuilder(API.Kiosk.DiscardKioskPaymentGroup),
-    // member 모드 요약·출석
-    getStudentSummary: this.endpointBuilder(API.Kiosk.GetKioskStudentSummary),
-    createAttendance: this.endpointBuilder(API.Kiosk.CreateKioskAttendance),
   }
 
   readonly billing = {

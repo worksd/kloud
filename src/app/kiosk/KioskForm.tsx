@@ -9,8 +9,6 @@ import {AdminKioskPaymentForm} from "@/app/kiosk/AdminKioskPaymentForm";
 import {AdminKioskPaymentSuccess} from "@/app/kiosk/AdminKioskPaymentSuccess";
 import {KioskPrinterDebugOverlay} from "@/app/kiosk/KioskPrinterDebugOverlay";
 import {KioskLessonListForm} from "@/app/kiosk/KioskLessonListForm";
-import {KioskCartPaymentForm} from "@/app/kiosk/KioskCartPaymentForm";
-import {KioskNameSearchDialog} from "@/app/kiosk/KioskNameSearchDialog";
 import {GetLessonResponse, BundleSummaryResponse} from "@/app/endpoint/lesson.endpoint";
 import {formatLessonDate, formatLessonStart} from "@/app/kiosk/kiosk.lesson";
 import {KioskLessonDetailModal} from "@/app/kiosk/KioskLessonDetailModal";
@@ -24,9 +22,9 @@ import {KioskAttendanceSelectForm} from "@/app/kiosk/KioskAttendanceSelectForm";
 import {KioskLessonAttendanceForm} from "@/app/kiosk/KioskLessonAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction, searchStudentsAction, previewKioskPaymentGroupAction, createKioskPaymentGroupAction, completeKioskPaymentGroupAction, discardKioskPaymentGroupAction, recordKioskLessonViewAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
-import {KioskPhonePadType, KioskTicketSummary, PreviewPaymentGroupResponse, PaymentGroupIssuedItem, PaymentGroupResponse} from "@/app/endpoint/kiosk.endpoint";
+import {KioskPhonePadType, KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
 import {LessonPricePolicyResponse} from "@/app/endpoint/payment.endpoint";
 import {GetPassResponse, PassRuleResponse} from "@/app/endpoint/pass.endpoint";
 import {KioskNewUserDialog} from "@/app/kiosk/KioskNewUserDialog";
@@ -37,7 +35,7 @@ import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
-import {buildKioskReceipt, ReceiptIssuedItem} from "@/app/kiosk/kiosk.receipt";
+import {buildKioskReceipt} from "@/app/kiosk/kiosk.receipt";
 import {sendReceiptToPrinter} from "@/app/kiosk/kiosk.native";
 import {initKisDebug, recordKisResponse, setKisDebugContext} from "@/app/kiosk/kiosk.kis.debug";
 import {KisDebugOverlay} from "@/app/kiosk/KisDebugOverlay";
@@ -109,17 +107,6 @@ const parsePaymentResult = (res: unknown): ParsedPaymentResult => {
     message: r.message,
   };
 };
-
-// 다중결제(그룹) 응답 판정 — paymentGroupId가 있고 code+message 에러 형태가 아니면 성공 (igin parsePaymentGroupResult)
-const parseGroupResult = (res: unknown): { ok: boolean; group?: PaymentGroupResponse; code?: string; message?: string } => {
-  const r = res as { paymentGroupId?: string; code?: string; message?: string };
-  const isErr = typeof r.code === 'string' && typeof r.message === 'string' && !r.paymentGroupId;
-  const ok = typeof r.paymentGroupId === 'string' && r.paymentGroupId.length > 0 && !isErr;
-  return { ok, group: ok ? (res as PaymentGroupResponse) : undefined, code: r.code, message: r.message };
-};
-
-// KIS-ANDAGT 미설치/채널 오류 — 결제 불가 단말 (igin 판정과 동일)
-const isTerminalUnavailableCode = (code: unknown) => code === 'E000' || code === 'E001';
 
 export type KioskFormProps = {
   studioId: number;
@@ -239,25 +226,6 @@ export const KioskForm = ({
   // 설정돼 있으면 lesson 선택 후 phone/member-confirm/payment-method 단계 모두 스킵하고 패스권을 즉시 사용
   const [autoUsePassPlanId, setAutoUsePassPlanId] = useState<number | null>(null);
   const [cardPayingVariant, setCardPayingVariant] = useState<'card' | 'applepay' | 'kakaopay' | 'zeropay'>('card');
-
-  // ── 장바구니 다중결제 (igin 포팅) ──
-  // 담은 수업. 1개면 단건 경로로 보내고(카드 묶음은 전액취소 API가 없음), 2개 이상이면 cartMode로 그룹 결제.
-  const [cart, setCart] = useState<GetLessonResponse[]>([]);
-  const [cartMode, setCartMode] = useState(false);
-  const [cartPreview, setCartPreview] = useState<PreviewPaymentGroupResponse | null>(null);
-  const [cartPreviewLoading, setCartPreviewLoading] = useState(false);
-  const [cartPreviewError, setCartPreviewError] = useState<string | null>(null);
-  const cartPreviewSeq = useRef(0);
-  // 그룹 결제 성공 화면 — QR/rank는 화면에 안 보이고 영수증에만 항목별로 찍힌다
-  const [cartSuccess, setCartSuccess] = useState<{ titles: string[]; completeFailed: boolean } | null>(null);
-  // 진행 중인 그룹 카드결제 컨텍스트 — create 응답의 totalAmount(단말 매입가)와 preview 항목(영수증 품목)
-  const activeGroupRef = useRef<{ paymentGroupId: string; createTotal: number; preview: PreviewPaymentGroupResponse } | null>(null);
-  // 결제 실패 다이얼로그(서버 메시지 등, KIS 응답이 아닌 경우) / 결제 불가 단말 다이얼로그
-  const [failDialogMessage, setFailDialogMessage] = useState<string | null>(null);
-  const [terminalUnavailableOpen, setTerminalUnavailableOpen] = useState(false);
-  // 이름으로 수강생 검색 다이얼로그
-  const [nameSearchOpen, setNameSearchOpen] = useState(false);
-  const [nameSearchError, setNameSearchError] = useState<string | null>(null);
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   // 전화 입력 형태 — variant(admin/kiosk)나 플로우(구매/출석)와 무관하게 오직 phonePadType으로만 분기.
   // 뒷 4자리 모드의 회원 검색은 matchType 'PhoneSuffix'(끝자리 일치)로 — 부분 일치(LIKE %q%)는 다른 회원이 먼저 잡힌다.
@@ -306,18 +274,10 @@ export const KioskForm = ({
     setReceiptPaymentIdOverride(null);
     setAutoUsePassPlanId(null);
     setAdminPaidAmount(null);
-    setCart([]);
-    setCartMode(false);
-    setCartPreview(null);
-    setCartPreviewError(null);
-    setCartSuccess(null);
-    setFailDialogMessage(null);
-    setNameSearchOpen(false);
     lastFetchedKeyRef.current = null;
     completedPaymentIdsRef.current.clear();
     activePaymentIdRef.current = null;
     discardContextRef.current = null;
-    activeGroupRef.current = null;
   }, []);
 
   // 홈 외 화면에서 2분간 사용자 인터랙션이 없으면 자동으로 홈 복귀.
@@ -344,7 +304,7 @@ export const KioskForm = ({
 
   // URL ?step= 으로 직접 진입했지만 필요한 state가 없으면 안전한 단계로 폴백
   useEffect(() => {
-    const hasItem = !!selectedLesson || !!selectedPassPlan || !!roomBooking || !!selectedBundle || (cartMode && cart.length > 0);
+    const hasItem = !!selectedLesson || !!selectedPassPlan || !!roomBooking || !!selectedBundle;
     const hasUser = !!selectedUser;
     if (currentScreen === 'lesson-detail' && !selectedLesson) {
       setCurrentScreen('lesson-list');
@@ -363,7 +323,7 @@ export const KioskForm = ({
       && (!hasItem || !hasUser)) {
       setCurrentScreen(hasItem ? 'phone' : 'lesson-list');
     }
-  }, [currentScreen, selectedLesson, selectedPassPlan, roomBooking, selectedUser, cartMode, cart.length]);
+  }, [currentScreen, selectedLesson, selectedPassPlan, roomBooking, selectedUser]);
 
   // payment-method 화면 진입 시:
   //  1) GET /kiosks/payment — price/discounts/methods/paymentId
@@ -379,12 +339,11 @@ export const KioskForm = ({
   //         값이 없으면 이미 완료/폐기된 세션에 뒤늦게 온 '유령' 단말 응답으로 본다.
   const activePaymentIdRef = useRef<string | null>(null);
   // 유령 응답에서 폐기 DELETE를 쏠 때 쓰는 컨텍스트(paymentId/kioskId). 스테일 클로저 회피용으로 단말 호출 직전 갱신.
-  const discardContextRef = useRef<{ paymentId: string; kioskId: number; group?: boolean } | null>(null);
+  const discardContextRef = useRef<{ paymentId: string; kioskId: number } | null>(null);
 
   useEffect(() => {
     // admin-payment는 경량 GET /kiosks/admin/payment로 결제 시점에 paymentId를 따로 받으므로 여기서 heavy fetch 안 함
     if (currentScreen !== 'payment-method' || !selectedUser || !kioskId) return;
-    if (cartMode) return; // 카트는 아래 preview 효과가 담당
     if (!selectedLesson && !selectedPassPlan && !roomBooking && !selectedBundle) return;
     const item = selectedLesson ? 'lesson' : selectedPassPlan ? 'pass-plan' : roomBooking ? 'practice-room' : 'bundle';
     const itemId = selectedLesson?.id ?? selectedPassPlan?.id ?? roomBooking?.studioRoomId ?? selectedBundle?.id;
@@ -430,46 +389,7 @@ export const KioskForm = ({
       .catch(() => {
         // kiosk 상세 실패는 영수증 footer 없이 진행 — 토스트도 띄우지 않음 (결제 본 흐름엔 영향 없음)
       });
-  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, roomBooking, kioskId, locale, paymentInfoRefreshKey, cartMode]);
-
-  // 카트 preview — POST /kiosks/payment-groups/preview. 결제수단 화면 진입·항목 제거·create 실패 때 다시 부른다.
-  // 호출마다 새 paymentGroupId가 나오므로 마지막 응답만 반영(시퀀스). 담기/빼기(목록 화면)에서는 부르지 않는다.
-  const refreshCartPreview = useCallback(async (items: GetLessonResponse[], targetUserId: number) => {
-    const seq = ++cartPreviewSeq.current;
-    setCartPreview(null);
-    setCartPreviewError(null);
-    if (items.length === 0) { setCartPreviewLoading(false); return; }
-    setCartPreviewLoading(true);
-    try {
-      const res = await previewKioskPaymentGroupAction({
-        kioskId, targetUserId, items: items.map((l) => ({ item: 'lesson' as const, itemId: l.id })),
-      });
-      if (cartPreviewSeq.current !== seq) return;
-      const parsed = parseGroupResult(res);
-      if (!parsed.ok) { setCartPreviewError(parsed.message || t('kiosk_payment_info_load_failed')); return; }
-      setCartPreview(res as PreviewPaymentGroupResponse);
-    } catch {
-      if (cartPreviewSeq.current !== seq) return;
-      setCartPreviewError(t('kiosk_server_error'));
-    } finally {
-      if (cartPreviewSeq.current === seq) setCartPreviewLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kioskId, locale]);
-
-  useEffect(() => {
-    if (currentScreen !== 'payment-method' || !cartMode || !selectedUser || !kioskId) return;
-    refreshCartPreview(cart, selectedUser.id);
-    // 영수증 footer도 단건과 같이 kiosk 상세에서
-    getKioskDetailAction(kioskId)
-      .then((res) => {
-        const r = res as { receiptFooter?: string; code?: string };
-        if (!r.code && r.receiptFooter !== undefined) setKioskReceiptFooter(r.receiptFooter ?? null);
-      })
-      .catch(() => {});
-    // cart 변경은 onRemove에서 직접 refresh — 여기선 화면 진입/회원 확정만 트리거
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentScreen, cartMode, selectedUser, kioskId]);
+  }, [currentScreen, selectedUser, selectedLesson, selectedPassPlan, roomBooking, kioskId, locale, paymentInfoRefreshKey]);
 
   // KIS 응답 디버그 채널 준비 — 환경(staging/prod) 1회 조회 + 리포트에 실을 키오스크 컨텍스트 등록
   useEffect(() => {
@@ -505,9 +425,8 @@ export const KioskForm = ({
         if (!result?.success) {
           const ctx = discardContextRef.current;
           if (ctx) {
-            const status = result?.canceled ? 'canceled' : 'fail';
-            if (ctx.group) discardKioskPaymentGroupAction(ctx.paymentId, ctx.kioskId, { status, kis: data }).catch(() => {});
-            else discardKioskPaymentAction(ctx.paymentId, ctx.kioskId, JSON.stringify({ status, kis: data })).catch(() => {});
+            const reason = JSON.stringify({ status: result?.canceled ? 'canceled' : 'fail', kis: data });
+            discardKioskPaymentAction(ctx.paymentId, ctx.kioskId, reason).catch(() => {});
           }
         }
         return;
@@ -516,18 +435,6 @@ export const KioskForm = ({
       activePaymentIdRef.current = null;
 
       setIsPaying(false);
-      // 결제 불가 단말(KIS-ANDAGT 미설치/채널 오류) — Pending 폐기 후 전용 다이얼로그. 홈으로 보내지 않고 결제 화면에 머문다 (igin C2)
-      if (isTerminalUnavailableCode(result?.outReplyCode)) {
-        const ctx = discardContextRef.current;
-        const echo = typeof data.outCustomerUuid === 'string' && data.outCustomerUuid ? (data.outCustomerUuid as string) : ctx?.paymentId;
-        if (ctx && echo) {
-          if (ctx.group) discardKioskPaymentGroupAction(echo, ctx.kioskId, { status: 'fail', kis: data }).catch(() => {});
-          else discardKioskPaymentAction(echo, ctx.kioskId, JSON.stringify({ status: 'fail', kis: data })).catch(() => {});
-        }
-        setPaymentMethod(null);
-        setTerminalUnavailableOpen(true);
-        return;
-      }
       if (result?.canceled) {
         // 사용자 ESC — Pending 폐기는 paymentResult.status='canceled' 핸들러에서 처리
         setPaymentResult({ status: 'canceled', data });
@@ -601,47 +508,7 @@ export const KioskForm = ({
     }
 
     if (paymentMethod !== 'card') return;
-    if (!selectedUser || !kioskId) return;
-
-    // ── 그룹(카트) 카드결제: POST /kiosks/payment-groups/:id/complete (3회 재시도, 멱등). 실패해도 돈은 결제됐으므로
-    //    성공 화면에 completeFailed 안내를 띄우고 영수증은 인쇄하지 않는다 (igin 포팅). 오프라인 큐는 그룹엔 없음.
-    if (cartMode && activeGroupRef.current) {
-      const g = activeGroupRef.current;
-      const gd = paymentResult.data;
-      const gs = (k: string): string | undefined => (typeof gd[k] === 'string' && gd[k] ? (gd[k] as string) : undefined);
-      const gn = (k: string): number | undefined => (typeof gd[k] === 'number' ? (gd[k] as number) : undefined);
-      const groupId = gs('outCustomerUuid') ?? g.paymentGroupId;
-      const rawAuth = gs('outAuthDate');
-      const body = {
-        paymentGroupId: groupId,
-        targetUserId: selectedUser.id,
-        kioskId,
-        authNo: gs('outAuthNo') ?? '',
-        authDate: rawAuth ? rawAuth.slice(0, 8) : '',
-        vanKey: gs('outVanKey') ?? '',
-        totalAmount: gn('outTotAmt') ?? g.createTotal,
-        cardBrand: gs('outIssuerName'),
-        cardNumber: gs('outCardNo'),
-        vanResponse: gd,
-      };
-      (async () => {
-        let last: ReturnType<typeof parseGroupResult> = { ok: false };
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          try {
-            last = parseGroupResult(await completeKioskPaymentGroupAction(body));
-            if (cancelled) return;
-            if (last.ok) break;
-          } catch { if (cancelled) return; }
-          if (attempt < 3) await new Promise((r) => setTimeout(r, 800 * attempt));
-        }
-        if (cancelled) return;
-        completedPaymentIdsRef.current.add(groupId);
-        completedPaymentIdsRef.current.add(g.paymentGroupId);
-        finishCartSuccess('card', g.preview, last.group?.items ?? [], !last.ok, gd);
-      })();
-      return () => { cancelled = true; if (homeTimer) clearTimeout(homeTimer); };
-    }
-    if (!paymentItem) return;
+    if (!selectedUser || !kioskId || !paymentItem) return;
 
     // 카드: KIS 응답에서 매입 정보 추출 → /complete 호출
     const data = paymentResult.data;
@@ -745,13 +612,6 @@ export const KioskForm = ({
 
     const data = paymentResult.data;
     const outCustomerUuid = typeof data?.outCustomerUuid === 'string' ? data.outCustomerUuid : undefined;
-    // 그룹(카트) — DELETE /kiosks/payment-groups/:id, reason은 객체. 취소면 조용히 결제 화면으로(같은 id로 다시 create 가능)
-    if (cartMode && activeGroupRef.current) {
-      const gid = outCustomerUuid || activeGroupRef.current.paymentGroupId;
-      discardKioskPaymentGroupAction(gid, kioskId, { status: paymentResult.status, kis: paymentResult.data ?? null }).catch(() => {});
-      if (paymentResult.status === 'canceled') setPaymentResult(null);
-      return;
-    }
     const discardPaymentId = outCustomerUuid || paymentInfo?.paymentId;
     if (!discardPaymentId) return;
 
@@ -771,27 +631,7 @@ export const KioskForm = ({
       // 사용자가 단말에서 ESC — 결제 방법 화면으로 조용히 복귀
       setPaymentResult(null);
     }
-  }, [paymentResult, paymentMethod, paymentInfo, kioskId, cartMode]);
-
-  // 이름으로 수강생 검색 — GET /students/search?keyword= (matchType 없음). 0명이면 다이얼로그를 열어둔 채 안내,
-  // 1명/N명이면 기존 회원 확인 모달을 재사용한다. student.id가 아니라 userId를 결제 대상으로 쓴다 (igin B).
-  const handleNameSearch = useCallback(async (name: string): Promise<boolean> => {
-    setNameSearchError(null);
-    try {
-      const res = await searchStudentsAction(name);
-      if (isGuinnessErrorCase(res)) { setNameSearchError(res.message || t('kiosk_server_error')); return false; }
-      const users: GetUserResponse[] = (res.students ?? [])
-        .filter((st) => typeof st.userId === 'number')
-        .map((st) => ({ id: st.userId, name: st.name, nickName: st.nickName, phone: st.phone, email: st.email, profileImageUrl: st.profileImageUrl } as GetUserResponse));
-      if (users.length === 0) { setNameSearchError(t('kiosk_no_name_match')); return false; }
-      showSearchedUsers(users);
-      return true;
-    } catch {
-      setNameSearchError(t('kiosk_server_error'));
-      return false;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale]);
+  }, [paymentResult, paymentMethod, paymentInfo, kioskId]);
 
   // 전화번호 입력 → /users/search?query=phone 으로 검색 (운영자 토큰 사용)
   const handlePhoneNext = async (phoneNumber: string, countryCode: string = '82') => {
@@ -1078,161 +918,6 @@ export const KioskForm = ({
     setPaymentTicketStatus(parsed.ticket?.status ?? null);
   }, []);
 
-  // ── 장바구니 다중결제 핸들러 (igin cartPay / startGroupCardPayment 포팅) ──
-  // 담기/빼기 토글 — 담길 때만 조회 트래킹. preview는 결제 화면에서만 부른다.
-  const toggleCart = useCallback((lesson: GetLessonResponse) => {
-    setCart((prev) => {
-      const has = prev.some((l) => l.id === lesson.id);
-      if (!has) recordKioskLessonViewAction(lesson.id);
-      return has ? prev.filter((l) => l.id !== lesson.id) : [...prev, lesson];
-    });
-  }, []);
-  const removeFromCart = useCallback((lesson: GetLessonResponse) => {
-    setCart((prev) => prev.filter((l) => l.id !== lesson.id));
-  }, []);
-  // 카트 바 '결제하기' — 1개면 단건 경로(기존 흐름 그대로), 2개 이상이면 cartMode로 phone부터
-  const startCartCheckout = useCallback(() => {
-    if (cart.length === 0) return;
-    if (cart.length === 1) {
-      setSelectedLesson(cart[0]);
-      setSelectedPassPlan(null); setSelectedBundle(null); setRoomBooking(null);
-      setCartMode(false);
-      setCurrentScreen('phone');
-      return;
-    }
-    setSelectedLesson(null); setSelectedPassPlan(null); setSelectedBundle(null); setRoomBooking(null);
-    setCartMode(true);
-    setCurrentScreen('phone');
-  }, [cart]);
-  // 결제 화면에서 X — preview 재조회. 비면 목록으로. (1개 남아도 cartMode 유지 = 1개짜리 그룹, igin과 동일)
-  const removeFromCartAtPayment = useCallback((lesson: GetLessonResponse) => {
-    const next = cart.filter((l) => l.id !== lesson.id);
-    setCart(next);
-    if (next.length === 0) { setCartMode(false); setCurrentScreen('lesson-list'); return; }
-    if (selectedUser) refreshCartPreview(next, selectedUser.id);
-  }, [cart, selectedUser, refreshCartPreview]);
-
-  // 그룹 성공 마무리 — 영수증(단건 양식 + footer 뒤 항목별 QR 블록) 인쇄 → 성공 화면 → 5초 자동 홈(admin 제외)
-  const finishCartSuccess = useCallback((
-    method: 'card' | 'cash',
-    preview: PreviewPaymentGroupResponse,
-    issued: PaymentGroupIssuedItem[],
-    completeFailed: boolean,
-    cardData?: Record<string, unknown>,
-  ) => {
-    const titles = cart.map((l) => l.title ?? '');
-    if (!completeFailed) {
-      const single = issued.length === 1 ? issued[0] : undefined;
-      const nameOf = (it: PaymentGroupIssuedItem) =>
-        it.productName ?? preview.items.find((p) => String(p.itemId) === String(it.itemId))?.productName ?? cart.find((l) => l.id === it.itemId)?.title ?? '';
-      const issuedItems: ReceiptIssuedItem[] | undefined = issued.length >= 2
-        ? issued.map((it) => ({ name: nameOf(it), rank: it.rank ?? null, qrText: it.qrCodeUrl ?? null, attended: it.ticket?.status === 'Used' }))
-        : undefined;
-      const lines = buildKioskReceipt({
-        paymentMethod: method,
-        studio: {
-          name: studioName, address: studioAddress, businessNumber: studioBusinessNumber,
-          representative: studioRepresentative, phone: studioPhone,
-          receiptFooter: kioskReceiptFooter ?? studioReceiptFooter,
-        },
-        transaction: { kioskName, paymentId: preview.paymentGroupId },
-        user: selectedUser ? { name: selectedUser.name, nickName: selectedUser.nickName, phone: phone || selectedUser.phone } : undefined,
-        itemType: 'lesson',
-        items: preview.items.map((it) => ({ name: it.productName ?? '', price: it.amount })),
-        cardData,
-        rank: single?.rank ?? undefined,
-        qrText: single?.qrCodeUrl ?? undefined,
-        attended: single?.ticket?.status === 'Used',
-        issuedItems,
-      });
-      sendReceiptToPrinter(lines);
-    }
-    setCart([]);
-    setCartPreview(null);
-    activeGroupRef.current = null;
-    setIsPaying(false);
-    setPaymentResult(null); // 단건 성공 오버레이가 같이 뜨지 않도록 — 그룹은 cartSuccess 화면이 담당
-    setCartSuccess({ titles, completeFailed });
-  }, [cart, studioName, studioAddress, studioBusinessNumber, studioRepresentative, studioPhone, kioskReceiptFooter, studioReceiptFooter, kioskName, selectedUser, phone]);
-
-  // 그룹 성공 화면 5초 자동 홈 (admin 제외)
-  useEffect(() => {
-    if (!cartSuccess || variant === 'admin') return;
-    const timer = setTimeout(() => { goHome(); }, 5000);
-    return () => clearTimeout(timer);
-  }, [cartSuccess, variant, goHome]);
-
-  // cartPay — 공통 검증 후 카드/현금 분기. 0원 그룹은 카드를 눌러도 현금(무료) 경로.
-  const handleCartPay = useCallback(async (method: 'card' | 'applepay' | 'cash') => {
-    if (cart.length === 0 || !cartPreview || isPaying || !selectedUser || !kioskId) return;
-    if (cartPreview.items.some((it) => it.purchasable === false)) { setFailDialogMessage(t('kiosk_cart_remove_blocked')); return; }
-    const isCard = method !== 'cash' && cartPreview.totalAmount > 0;
-    const items = cart.map((l) => ({ item: 'lesson' as const, itemId: l.id }));
-    const groupId = cartPreview.paymentGroupId;
-
-    if (!isCard) {
-      // 현금/무료 — create 한 번으로 발급까지 끝. Pending이 오면 실패로 본다
-      setPaymentMethod('cash');
-      setIsPaying(true);
-      try {
-        const res = await createKioskPaymentGroupAction({ kioskId, targetUserId: selectedUser.id, paymentGroupId: groupId, type: 'cash', items });
-        const parsed = parseGroupResult(res);
-        if (!parsed.ok || parsed.group?.status === 'Pending') {
-          setIsPaying(false); setPaymentMethod(null);
-          setFailDialogMessage(parsed.message || t('kiosk_pay_failed_title'));
-          refreshCartPreview(cart, selectedUser.id);
-          return;
-        }
-        finishCartSuccess('cash', cartPreview, parsed.group?.items ?? [], false);
-      } catch {
-        setIsPaying(false); setPaymentMethod(null);
-        setFailDialogMessage(t('kiosk_pay_failed_title'));
-      }
-      return;
-    }
-
-    // 카드 — Fix A(이미 complete된 그룹 id) → create → Fix B → KIS D1(inCustomerUuid=paymentGroupId)
-    if (completedPaymentIdsRef.current.has(groupId)) { setFailDialogMessage(t('kiosk_cart_already_completed')); return; }
-    if (typeof window.KloudEvent?.requestKisPayment !== 'function') {
-      // 채널 자체가 없음 — 결제 불가 단말. Pending은 아직 없으니 폐기 없이 안내만
-      setTerminalUnavailableOpen(true);
-      return;
-    }
-    setCardPayingVariant(method === 'applepay' ? 'applepay' : 'card');
-    setIsPaying(true);
-    setPaymentResult(null);
-    setPaymentMethod('card');
-    try {
-      const res = await createKioskPaymentGroupAction({ kioskId, targetUserId: selectedUser.id, paymentGroupId: groupId, type: 'card', items });
-      const parsed = parseGroupResult(res);
-      if (!parsed.ok) {
-        setIsPaying(false); setPaymentMethod(null);
-        setFailDialogMessage(parsed.message || t('kiosk_pay_failed_title'));
-        refreshCartPreview(cart, selectedUser.id);
-        return;
-      }
-      const amount = parsed.group?.totalAmount;
-      if (!amount || amount <= 0) {
-        setIsPaying(false); setPaymentMethod(null);
-        setFailDialogMessage(t('kiosk_cart_amount_unknown'));
-        return;
-      }
-      activeGroupRef.current = { paymentGroupId: groupId, createTotal: amount, preview: cartPreview };
-      activePaymentIdRef.current = groupId;
-      discardContextRef.current = { paymentId: groupId, kioskId, group: true };
-      window.KloudEvent?.requestKisPayment?.(JSON.stringify({
-        inTranCode: 'D1',
-        inTotAmt: `${amount}`,
-        inInstallment: '00',
-        inCustomerUuid: groupId,
-      }));
-    } catch {
-      setIsPaying(false); setPaymentMethod(null);
-      setFailDialogMessage(t('kiosk_pay_failed_title'));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cart, cartPreview, isPaying, selectedUser, kioskId, refreshCartPreview, finishCartSuccess, locale]);
-
   // 카드 결제 (Apple Pay 포함):
   //  ⓪ requestKisPayment 인터페이스 존재 확인 (네이티브 미설치 환경에선 진행 자체 차단 — Pending도 안 만듦)
   //  ① POST /kiosks/payments — Pending 생성 → 응답의 amount를 단말 매입 금액으로 사용
@@ -1248,9 +933,9 @@ export const KioskForm = ({
     // (결제 성공 직후 홈 전환 전 버튼 재탭으로 같은 paymentId로 2차 create가 나가는 사고 방지)
     if (completedPaymentIdsRef.current.has(effectivePaymentId)) return;
 
-    // KIS 단말 호출 인터페이스가 없으면 Pending 생성/단말 호출 모두 진행 X (orphan Pending 방지) — 결제 불가 단말 다이얼로그
+    // KIS 단말 호출 인터페이스가 없으면 Pending 생성/단말 호출 모두 진행 X (orphan Pending 방지)
     if (typeof window.KloudEvent?.requestKisPayment !== 'function') {
-      setTerminalUnavailableOpen(true);
+      setToastMessage('카드결제를 진행할 수 없습니다');
       return;
     }
 
@@ -1609,8 +1294,6 @@ export const KioskForm = ({
           locale={locale}
           variant={variant}
           onSelectLesson={(lesson) => { setSelectedLesson(lesson); setSelectedPassPlan(null); setSelectedBundle(null); setCurrentScreen('lesson-detail'); }}
-          // 무인만 카트(탭=담기, 길게=상세). admin은 탭=선택 그대로
-          cart={variant !== 'admin' ? { items: cart, onToggle: toggleCart, onRemove: removeFromCart, onCheckout: startCartCheckout } : undefined}
           onSelectPassPlan={(plan) => { setSelectedPassPlan(plan); setSelectedLesson(null); setSelectedBundle(null); setCurrentScreen('phone'); }}
           onSelectBundle={(bundle) => { setSelectedBundle(bundle); setSelectedLesson(null); setSelectedPassPlan(null); setCurrentScreen('phone'); }}
           onBack={goHome}
@@ -1624,8 +1307,7 @@ export const KioskForm = ({
           variant={variant}
           onClose={() => setCurrentScreen('lesson-list')}
           // 패스권 자동 사용 모드 + selectedUser 이미 있음 → phone 스킵하고 payment-method로 직행 (auto-use effect가 처리)
-          // 상세의 '신청하기'는 단건 — 카트를 그 수업 하나로 바꾸고 진행 (igin과 동일)
-          onPayment={() => { setCart(selectedLesson ? [selectedLesson] : []); setCartMode(false); setCurrentScreen(autoUsePassPlanId && selectedUser ? 'payment-method' : 'phone'); }}
+          onPayment={() => setCurrentScreen(autoUsePassPlanId && selectedUser ? 'payment-method' : 'phone')}
         />
       )}
 
@@ -1638,7 +1320,6 @@ export const KioskForm = ({
           onBack={() => setCurrentScreen(roomBooking ? 'room-reservation' : 'lesson-list')}
           onNext={handlePhoneNext}
           onSearchByEmail={handleEmailSearch}
-          onSearchByName={() => { setNameSearchError(null); setNameSearchOpen(true); }}
           onHome={goHome}
           loading={currentScreen === 'searching'}
           errorMessage={errorMessage}
@@ -1707,25 +1388,8 @@ export const KioskForm = ({
         </div>
       )}
 
-      {/* 카트(그룹) 결제수단 — 수업 목록 + preview 합계 + 카드/Apple Pay/현금 */}
-      {currentScreen === 'payment-method' && cartMode && selectedUser && !cartSuccess && (
-        <KioskCartPaymentForm
-          items={cart}
-          preview={cartPreview}
-          loading={cartPreviewLoading}
-          errorMessage={cartPreviewError}
-          locale={locale}
-          onRemove={removeFromCartAtPayment}
-          onBack={() => setCurrentScreen('phone')}
-          onHome={goHome}
-          onSelectCard={() => handleCartPay('card')}
-          onSelectApplePay={() => handleCartPay('applepay')}
-          onSelectCash={() => handleCartPay('cash')}
-        />
-      )}
-
       {/* payment-method / pass-select 공유 — modal 떠도 폼 인스턴스 유지 */}
-      {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && !cartMode && paymentItem && selectedUser && !paymentInfoError && (
+      {(currentScreen === 'payment-method' || currentScreen === 'pass-select') && paymentItem && selectedUser && !paymentInfoError && (
         <KioskPaymentMethodForm
           itemType={selectedLesson ? 'lesson' : roomBooking ? 'practice-room' : selectedPassPlan ? 'pass-plan' : 'bundle'}
           lessonTitle={paymentItem.title}
@@ -1782,7 +1446,7 @@ export const KioskForm = ({
       )}
 
       {/* admin(상담실) 결제 완료 — 전용 화면 (무인 성공 오버레이와 별개) */}
-      {paymentResult?.status === 'success' && variant === 'admin' && !cartMode && (
+      {paymentResult?.status === 'success' && variant === 'admin' && (
         <AdminKioskPaymentSuccess
           title={paymentItem?.title ?? ''}
           thumbnailUrl={paymentItem?.thumbnailUrl}
@@ -1796,7 +1460,7 @@ export const KioskForm = ({
         />
       )}
 
-      {paymentResult?.status === 'success' && variant !== 'admin' && !cartMode && (
+      {paymentResult?.status === 'success' && variant !== 'admin' && (
         <div className="fixed inset-0 z-30 bg-white flex flex-col">
           {/* 상단 바 placeholder (back/lang/home은 굳이 X) */}
           <div className="flex-1 flex flex-col items-center justify-start px-[5.6%] pt-[min(20vw,200px)]">
@@ -1938,108 +1602,6 @@ export const KioskForm = ({
             </button>
           </div>
         </div>
-      )}
-
-      {/* 그룹(카트) 결제 성공 — 제목 목록만. QR/입장번호는 영수증에 항목별로 인쇄됐다 */}
-      {cartSuccess && (
-        <div className="fixed inset-0 z-30 bg-white flex flex-col">
-          <div className="flex-1 flex flex-col items-center justify-start px-[5.6%] pt-[min(20vw,200px)]">
-            <div className="rounded-full bg-[#3CC0AF] flex items-center justify-center" style={{ width: 'min(8vw,84px)', height: 'min(8vw,84px)' }}>
-              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
-                <path d="M5 12.5L10 17.5L19 8" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <p className="text-black font-bold text-center mt-[min(2.6vw,28px)]" style={{ fontSize: 'min(3.7vw,40px)' }}>{t('kiosk_payment_done')}</p>
-            <p className="text-[#6D7882] text-center mt-[min(0.8vw,8px)]" style={{ fontSize: 'min(2vw,22px)' }}>
-              {t('kiosk_cart_paid_desc').replace('{count}', String(cartSuccess.titles.length))}
-            </p>
-            {cartSuccess.completeFailed && (
-              <p className="text-[#C8860A] font-medium text-center mt-[min(1.2vw,14px)] whitespace-pre-line" style={{ fontSize: 'min(1.9vw,21px)' }}>
-                {t('kiosk_complete_failed_note')}
-              </p>
-            )}
-            <div className="w-full max-w-[720px] mt-[min(3.7vw,40px)] bg-white border border-[#E6E8EA] rounded-[16px] px-[min(3vw,32px)] py-[min(1.2vw,14px)] flex flex-col">
-              {cartSuccess.titles.map((title, i) => (
-                <div key={i} className="flex items-center gap-[12px] py-[min(1.2vw,12px)]">
-                  <span className="shrink-0 rounded-full bg-[#3CC0AF] flex items-center justify-center" style={{ width: 'min(2.6vw,28px)', height: 'min(2.6vw,28px)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" style={{ width: '55%', height: '55%' }}>
-                      <path d="M5 12.5L10 17.5L19 8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
-                  <span className="text-black font-bold truncate text-left" style={{ fontSize: 'min(2.2vw,24px)' }}>{title}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="shrink-0 px-[5.6%] pb-[min(4vw,44px)]">
-            <button
-              onClick={goHome}
-              className="w-full h-[min(7vh,72px)] rounded-[16px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
-            >
-              <span className="text-white font-bold" style={{ fontSize: 'min(2.4vw,26px)' }}>{t('kiosk_home_btn')}</span>
-            </button>
-            {variant !== 'admin' && (
-              <p className="text-[#86898C] text-center mt-[min(1.4vw,16px)]" style={{ fontSize: 'min(1.6vw,18px)' }}>{t('kiosk_auto_home_soon')}</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 결제 실패 다이얼로그 (서버 메시지·검증 실패 등 KIS 응답이 아닌 경우) */}
-      {failDialogMessage && (
-        <div className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
-          <div className="bg-white rounded-[32px] w-full max-w-[640px] p-[min(3.7vw,40px)] flex flex-col items-center animate-[scaleIn_180ms_ease-out]">
-            <div className="rounded-full bg-[#FFE9E9] flex items-center justify-center" style={{ width: 'min(8vw,84px)', height: 'min(8vw,84px)' }}>
-              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
-                <path d="M12 3L22 21H2L12 3Z" stroke="#E55B5B" strokeWidth="2" strokeLinejoin="round"/>
-                <path d="M12 10V14M12 17V18" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <p className="text-[#1E2124] font-bold text-center mt-[min(2.4vw,26px)]" style={{ fontSize: 'min(3.4vw, 36px)' }}>{t('kiosk_pay_failed_title')}</p>
-            <p className="text-[#1E2124] text-center mt-[min(1.6vw,18px)] whitespace-pre-line" style={{ fontSize: 'min(2.2vw, 24px)' }}>{failDialogMessage}</p>
-            <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(2vw, 22px)' }}>{t('kiosk_try_again_later')}</p>
-            <button
-              onClick={() => setFailDialogMessage(null)}
-              className="mt-[min(3vw,32px)] w-full h-[min(9vw,100px)] rounded-[20px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
-            >
-              <span className="text-white font-bold" style={{ fontSize: 'min(3vw, 32px)' }}>{t('kiosk_confirm')}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 결제 불가 단말 — 딤 탭으로 닫히지 않고 자동으로도 안 닫힌다. 확인하면 결제 화면에 그대로 머문다 (igin C2) */}
-      {terminalUnavailableOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
-          <div className="bg-white rounded-[32px] w-full max-w-[640px] p-[min(3.7vw,40px)] flex flex-col items-center animate-[scaleIn_180ms_ease-out]">
-            <div className="rounded-full bg-[#FFE9E9] flex items-center justify-center" style={{ width: 'min(8vw,84px)', height: 'min(8vw,84px)' }}>
-              <svg viewBox="0 0 24 24" fill="none" style={{ width: '50%', height: '50%' }}>
-                <circle cx="12" cy="12" r="10" stroke="#E55B5B" strokeWidth="2"/>
-                <path d="M12 7V13" stroke="#E55B5B" strokeWidth="2.4" strokeLinecap="round"/>
-                <circle cx="12" cy="17" r="1.2" fill="#E55B5B"/>
-              </svg>
-            </div>
-            <p className="text-[#1E2124] font-bold text-center mt-[min(2.4vw,26px)]" style={{ fontSize: 'min(3.4vw, 36px)' }}>{t('kiosk_payment_error_title')}</p>
-            <p className="text-[#1E2124] text-center mt-[min(1.6vw,18px)] whitespace-pre-line" style={{ fontSize: 'min(2.2vw, 24px)' }}>{t('kiosk_terminal_unavailable')}</p>
-            <button
-              onClick={() => setTerminalUnavailableOpen(false)}
-              className="mt-[min(3vw,32px)] w-full h-[min(9vw,100px)] rounded-[20px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
-            >
-              <span className="text-white font-bold" style={{ fontSize: 'min(3vw, 32px)' }}>{t('confirm')}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 이름으로 수강생 검색 */}
-      {nameSearchOpen && (
-        <KioskNameSearchDialog
-          locale={locale}
-          variant={variant}
-          errorMessage={nameSearchError}
-          onSearch={handleNameSearch}
-          onClose={() => { setNameSearchOpen(false); setNameSearchError(null); }}
-        />
       )}
 
       {toastMessage && (

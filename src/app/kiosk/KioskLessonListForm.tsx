@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse, LessonStatus, BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
@@ -12,8 +12,7 @@ import { getBundlesAction } from "@/app/kiosk/get.bundles.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
 import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
-import { formatLessonDate, formatLessonDuration, formatLessonStart, formatLessonTimeRange, isLessonPayable, lessonBlockLabel, lessonStatusLabel } from "@/app/kiosk/kiosk.lesson";
-import { Toast } from "@/app/components/Toast";
+import { formatLessonDuration, formatLessonStart, formatLessonTimeRange, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
 import { formatFeatureDescription, formatRuleDescription } from "@/utils/pass.description";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 import { LessonTypeLabel } from "@/app/components/LessonLabel";
@@ -47,23 +46,11 @@ const bundleSalesPeriod = (b: BundleSummaryResponse): string | null => {
   return null;
 };
 
-/**
- * 장바구니(카트) — igin 다중결제 포팅. 무인 키오스크만 쓴다(admin은 탭=선택 그대로).
- * 넘기면 포스터 탭이 담기/빼기 토글로 바뀌고 상세는 길게 눌러야 열린다. 카트 바가 그리드 위에 겹쳐 뜬다.
- */
-export type KioskLessonCart = {
-  items: GetLessonResponse[];
-  onToggle: (lesson: GetLessonResponse) => void;
-  onRemove: (lesson: GetLessonResponse) => void;
-  onCheckout: () => void;
-};
-
 type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
   locale: Locale;
   onSelectLesson: (lesson: GetLessonResponse) => void;
-  cart?: KioskLessonCart;
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
   onSelectBundle?: (bundle: BundleSummaryResponse) => void;
   onBack: () => void;
@@ -73,50 +60,9 @@ type KioskLessonListFormProps = {
 
 type KioskTab = 'promotion' | 'lessons' | 'pass-plans';
 
-export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, cart, onSelectPassPlan, onSelectBundle, onBack, variant = 'kiosk' }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onSelectBundle, onBack, variant = 'kiosk' }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
-  const cartEnabled = !!cart && !admin;
-  const cartIds = new Set((cart?.items ?? []).map((l) => l.id));
-  const [toast, setToast] = useState<string | null>(null);
-  // 담기 애니메이션 목표(카트 바의 수량 배지)와 오버레이 컨테이너
-  const cartBadgeRef = useRef<HTMLDivElement | null>(null);
-  const bodyRef = useRef<HTMLDivElement | null>(null);
-  // 포스터 → 카트 배지로 날아가는 썸네일. 500ms easeInCubic, 크기 1→0.45, 75% 이후 페이드아웃 (igin 포팅)
-  const flyToCart = useCallback((fromEl: HTMLElement, thumbnailUrl?: string) => {
-    if (typeof window === 'undefined') return;
-    const from = fromEl.getBoundingClientRect();
-    const badge = cartBadgeRef.current?.getBoundingClientRect();
-    const sx = from.left + from.width / 2;
-    const sy = from.top + from.height / 2;
-    // 배지가 아직 없으면(첫 담기) 카트 바가 뜰 자리 근처로
-    const tx = badge ? badge.left + badge.width / 2 : window.innerWidth * 0.3;
-    const ty = badge ? badge.top + badge.height / 2 : window.innerHeight - 88;
-    const SIZE = 56;
-    const el = document.createElement('div');
-    el.style.cssText = `position:fixed;left:${sx - SIZE / 2}px;top:${sy - SIZE / 2}px;width:${SIZE}px;height:${SIZE}px;border-radius:50%;overflow:hidden;background:#E8E8EA;z-index:60;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.25)`;
-    if (thumbnailUrl) {
-      const img = document.createElement('img');
-      img.src = kioskImageSrc(thumbnailUrl, 200) ?? thumbnailUrl;
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover';
-      el.appendChild(img);
-    }
-    document.body.appendChild(el);
-    const anim = el.animate(
-      [
-        { transform: 'translate(0,0) scale(1)', opacity: 1, offset: 0 },
-        { transform: `translate(${(tx - sx) * 0.75}px,${(ty - sy) * 0.75}px) scale(${1 - 0.55 * 0.75})`, opacity: 1, offset: 0.75 },
-        { transform: `translate(${tx - sx}px,${ty - sy}px) scale(0.45)`, opacity: 0, offset: 1 },
-      ],
-      { duration: 500, easing: 'cubic-bezier(0.32, 0, 0.67, 0)', fill: 'forwards' },
-    );
-    anim.onfinish = () => el.remove();
-    anim.oncancel = () => el.remove();
-  }, []);
-  // 결제 불가 포스터 탭 — Completed면 '종료된 수업', 그 외는 상태 라벨 토스트
-  const onBlockedTap = (lesson: GetLessonResponse) => {
-    setToast(lesson.status === LessonStatus.Completed ? t('kiosk_lesson_ended_toast') : (lessonStatusLabel(lesson.status, locale) || lessonBlockLabel(lesson, locale)));
-  };
   const [tab, setTab] = useState<KioskTab>('lessons');
   // 프로모션(번들) — 무인은 onSale=true, admin은 전부. 비어있으면 탭 자체를 숨긴다.
   const [bundles, setBundles] = useState<BundleSummaryResponse[]>([]);
@@ -279,15 +225,11 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
 
       {/* 본문 — 탭이 상단으로 올라가서 컨텐츠가 화면 전체 폭을 쓴다.
           탭이 바뀌면 remount(key)해서 fade. 날짜 전환 fade는 수업 목록 블록이 자체적으로 처리한다. */}
-      <div ref={bodyRef} className="relative flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <div
           key={tab}
           className="flex-1 overflow-y-auto animate-[fadeIn_220ms_ease-out]"
-          style={{
-            padding: 'min(2.2vh, 24px) min(2.4vw, 32px)',
-            // 카트 바가 그리드 위에 겹치므로 담긴 만큼 하단 여백을 준다 (igin: 150 + n*144)
-            paddingBottom: cartEnabled && tab === 'lessons' && cartIds.size > 0 ? `${150 + cartIds.size * 144}px` : undefined,
-          }}
+          style={{ padding: 'min(2.2vh, 24px) min(2.4vw, 32px)' }}
         >
           {/* 프로모션(번들) — 한 줄에 하나씩 */}
           {tab === 'promotion' && (
@@ -392,24 +334,34 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
                   {lessons.map((lesson) => {
                     const payable = isLessonPayable(lesson);
                     const statusText = lessonBlockLabel(lesson, locale);
-                    const inCart = cartEnabled && cartIds.has(lesson.id);
                     return (
-                      <KioskLessonPoster
+                      <div
                         key={lesson.id}
-                        lesson={lesson}
-                        locale={locale}
-                        payable={payable}
-                        statusText={statusText}
-                        inCart={inCart}
-                        // 카트 모드: 탭=담기/빼기, 길게=상세. 카트 없음: 탭=상세(기존)
-                        onTap={(el) => {
-                          if (!payable) { if (cartEnabled) onBlockedTap(lesson); return; }
-                          if (!cartEnabled) { onSelectLesson(lesson); return; }
-                          if (!inCart) flyToCart(el, lesson.thumbnailUrl);
-                          cart!.onToggle(lesson);
-                        }}
-                        onLongPress={cartEnabled && payable ? () => onSelectLesson(lesson) : undefined}
-                      />
+                        onClick={payable ? () => onSelectLesson(lesson) : undefined}
+                        className={`relative aspect-[3/5] overflow-hidden bg-[#E8E8EA] transition-transform rounded-[20px] ${
+                          payable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-not-allowed'
+                        }`}
+                      >
+                        {lesson.thumbnailUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={kioskImageSrc(lesson.thumbnailUrl, 400)} alt="" className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
+                        {showLessonTypeTag(lesson.type) && (
+                          <div className="absolute top-[8px] left-[8px]">
+                            <LessonTypeLabel type={lesson.type!} locale={locale} />
+                          </div>
+                        )}
+                        {!payable && statusText && (
+                          <div className="absolute rounded-full bg-black/70 top-[8px] right-[8px] px-[10px] py-[3px]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
+                            <span className="text-white font-bold">{statusText}</span>
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
+                          <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
+                          <p className="text-[#D5D5D5] mt-[3px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -470,29 +422,7 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
             </div>
           )}
         </div>
-
-        {/* 카트 바 — 그리드 위에 겹쳐 뜬다. 비면 아래로 미끄러져 나가며 사라지고 터치를 받지 않는다 (igin 포팅) */}
-        {cartEnabled && tab === 'lessons' && (
-          <KioskCartBar
-            items={cart!.items}
-            locale={locale}
-            badgeRef={cartBadgeRef}
-            onRemove={cart!.onRemove}
-            onCheckout={cart!.onCheckout}
-          />
-        )}
       </div>
-
-      {toast && (
-        <Toast
-          key={toast}
-          message={<span className="text-white font-medium" style={{ fontSize: 'min(2.2vw, 24px)' }}>{toast}</span>}
-          onDone={() => setToast(null)}
-          className="px-[min(3vw,32px)] py-[min(1.8vw,20px)] rounded-[16px] bg-black/85"
-          wrapperClassName="fixed left-1/2 -translate-x-1/2 z-40"
-          wrapperStyle={{ bottom: 'min(7.4vw, 80px)' }}
-        />
-      )}
 
       {passPlanDetail && (
         <KioskPassPlanDetailModal
@@ -619,166 +549,3 @@ const DateArrowButton = ({ hidden, onClick, direction }: { hidden: boolean; onCl
   </button>
 );
 
-
-
-// 무인 포스터 카드 — 카트 모드에서는 탭=담기/빼기, 500ms 길게 누르면 상세. 담기면 진한 보더 + 12% 덮개 + 우상단 체크 배지.
-const LONG_PRESS_MS = 500;
-const KioskLessonPoster = ({ lesson, locale, payable, statusText, inCart, onTap, onLongPress }: {
-  lesson: GetLessonResponse;
-  locale: Locale;
-  payable: boolean;
-  statusText: string;
-  inCart: boolean;
-  onTap: (el: HTMLElement) => void;
-  onLongPress?: () => void;
-}) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const firedRef = useRef(false);
-  const movedRef = useRef(false);
-  const startRef = useRef<{ x: number; y: number } | null>(null);
-  const clear = () => { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } };
-  const onPointerDown = (e: React.PointerEvent) => {
-    firedRef.current = false;
-    movedRef.current = false;
-    startRef.current = { x: e.clientX, y: e.clientY };
-    if (!onLongPress) return;
-    clear();
-    timerRef.current = setTimeout(() => { firedRef.current = true; onLongPress(); }, LONG_PRESS_MS);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    const st = startRef.current;
-    // 10px 넘게 움직이면 스크롤로 본다 — 길게 누르기 취소 + 손 뗄 때 탭으로 치지 않음
-    if (st && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 10) { movedRef.current = true; clear(); }
-  };
-  const onPointerUp = () => {
-    clear();
-    if (!firedRef.current && !movedRef.current && ref.current) onTap(ref.current);
-    startRef.current = null;
-  };
-  return (
-    <div
-      ref={ref}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={clear}
-      onPointerLeave={clear}
-      onContextMenu={(e) => e.preventDefault()}
-      className={`relative aspect-[3/5] overflow-hidden bg-[#E8E8EA] transition-transform rounded-[20px] select-none ${
-        payable ? 'cursor-pointer active:scale-[0.97]' : 'cursor-not-allowed'
-      }`}
-      style={{ touchAction: 'pan-y', boxShadow: inCart ? 'inset 0 0 0 3.5px #1E2124' : undefined }}
-    >
-      {lesson.thumbnailUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={kioskImageSrc(lesson.thumbnailUrl, 400)} alt="" draggable={false} className={`absolute inset-0 w-full h-full object-cover ${payable ? '' : 'grayscale opacity-60'}`} />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/75" />
-      {inCart && <div className="absolute inset-0 bg-black/[0.12] rounded-[20px]" />}
-      {showLessonTypeTag(lesson.type) && (
-        <div className="absolute top-[8px] left-[8px]">
-          <LessonTypeLabel type={lesson.type!} locale={locale} />
-        </div>
-      )}
-      {!payable && statusText && (
-        <div className="absolute rounded-full bg-black/70 top-[8px] right-[8px] px-[10px] py-[3px]" style={{ fontSize: 'min(1.2vh, 13px)' }}>
-          <span className="text-white font-bold">{statusText}</span>
-        </div>
-      )}
-      {inCart && (
-        <div className="absolute top-[8px] right-[8px] w-[34px] h-[34px] rounded-full bg-[#1E2124] flex items-center justify-center animate-[scaleIn_280ms_cubic-bezier(0.34,1.56,0.64,1)]">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12.5L10 17.5L19 8" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-      )}
-      <div className="absolute bottom-0 left-0 right-0" style={{ padding: '8% 8% 8%' }}>
-        <p className="text-white font-bold leading-snug line-clamp-2" style={{ fontSize: 'min(1.6vh, 18px)' }}>{lesson.title ?? ''}</p>
-        <p className="text-[#D5D5D5] mt-[3px]" style={{ fontSize: 'min(1.3vh, 14px)' }}>{formatLessonStart(lesson, locale)}</p>
-      </div>
-    </div>
-  );
-};
-
-// 카트 바 — 담은 수업 세로 목록 + 하단 행(수량 배지 · 합계 · 결제하기). 진한 배경, 큰 라운드, 그림자.
-// 비면 280ms 동안 아래로 미끄러져 나가며 사라진다(마운트는 유지해 애니메이션이 보이게).
-const KioskCartBar = ({ items, locale, badgeRef, onRemove, onCheckout }: {
-  items: GetLessonResponse[];
-  locale: Locale;
-  badgeRef: React.MutableRefObject<HTMLDivElement | null>;
-  onRemove: (lesson: GetLessonResponse) => void;
-  onCheckout: () => void;
-}) => {
-  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
-  const count = items.length;
-  const total = items.reduce((s, l) => s + (l.price ?? 0), 0);
-  const visible = count > 0;
-  return (
-    <div
-      className="absolute left-[5.6%] right-[5.6%] bottom-[10px] z-30 rounded-[28px] bg-[#1E2124] text-white flex flex-col transition-all duration-[280ms] ease-out"
-      style={{
-        padding: 'min(1.6vh, 18px)',
-        gap: 'min(1.2vh, 12px)',
-        boxShadow: '0 14px 40px rgba(0,0,0,0.35)',
-        transform: visible ? 'translateY(0)' : 'translateY(120%)',
-        opacity: visible ? 1 : 0,
-        pointerEvents: visible ? 'auto' : 'none',
-      }}
-    >
-      {/* 담은 항목 — 등장 시 0.7→1 bounce */}
-      <div className="flex flex-col overflow-y-auto" style={{ gap: 'min(1vh, 10px)', maxHeight: '38vh' }}>
-        {items.map((l) => (
-          <div key={l.id} className="flex items-center gap-[14px] animate-[scaleIn_280ms_cubic-bezier(0.34,1.56,0.64,1)]">
-            <div className="w-[104px] h-[132px] rounded-[14px] overflow-hidden bg-white/10 shrink-0">
-              {l.thumbnailUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={kioskImageSrc(l.thumbnailUrl, 300)} alt="" className="w-full h-full object-cover" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0 flex flex-col gap-[4px]">
-              <p className="text-white text-[18px] font-bold leading-snug line-clamp-2">{l.title ?? ''}</p>
-              <p className="text-white/70 text-[15px] truncate">
-                {[formatLessonDate(l, locale), formatLessonStart(l, locale)].filter(Boolean).join(' · ')}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => onRemove(l)}
-              aria-label="remove"
-              className="shrink-0 w-[38px] h-[38px] rounded-full bg-white/15 flex items-center justify-center active:scale-[0.92] transition-transform"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M6 6L18 18M6 18L18 6" stroke="white" strokeWidth="2.6" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* 하단 행 */}
-      <div className="flex items-center gap-[12px]">
-        <div
-          ref={badgeRef}
-          key={count}
-          className="w-[40px] h-[40px] rounded-full bg-white text-[#1E2124] font-bold text-[18px] flex items-center justify-center shrink-0 animate-[scaleIn_200ms_ease-out]"
-        >
-          {count}
-        </div>
-        <span className="text-white text-[16px] font-bold">{t('kiosk_cart_count').replace('{count}', String(count))}</span>
-        {total > 0 && (
-          <span className="text-white/70 text-[16px]">{new Intl.NumberFormat('ko-KR').format(total)}{t('won')}</span>
-        )}
-        <div className="flex-1" />
-        <button
-          type="button"
-          onClick={onCheckout}
-          className="rounded-[16px] bg-white text-[#1E2124] font-bold text-[22px] active:scale-[0.97] transition-transform"
-          style={{ padding: '14px 44px' }}
-        >
-          {t('kiosk_cart_pay_cta')}
-        </button>
-      </div>
-    </div>
-  );
-};
