@@ -84,6 +84,7 @@ export const KloudScreen = {
   AdminSettingBusiness: '/admin/setting/business',
   AdminSettingLesson: '/admin/setting/lesson',
   AdminSettingRoom: '/admin/setting/room',
+  AdminSettingPayment: '/admin/setting/payment',
   /** 수업 결제 완료 환영 화면 — lessonId가 있으면 감성 섹션(준비물·다음 수업 등)까지 그린다 */
   PaymentComplete: (paymentId: string, lessonId?: number) =>
     `/payment-complete?paymentId=${encodeURIComponent(paymentId)}${lessonId != null ? `&lessonId=${lessonId}` : ''}`,

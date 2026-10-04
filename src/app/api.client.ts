@@ -60,6 +60,7 @@ export class ApiClient extends EndpointClient {
     getMyBusiness: this.endpointBuilder(API.Studio.GetMyStudioBusiness),
     getMyLessonSettings: this.endpointBuilder(API.Studio.GetMyStudioLessonSettings),
     getMyRoomSettings: this.endpointBuilder(API.Studio.GetMyStudioRoomSettings),
+    getMySubscription: this.endpointBuilder(API.Studio.GetMyStudioSubscription),
     update: this.endpointBuilder(API.Studio.UpdateStudio),
   }
 

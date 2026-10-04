@@ -447,6 +447,56 @@ export const GetMyStudioRoomSettings: Endpoint<object, MyStudioSettingsResponse>
   headers: PARTNER_HEADERS,
 }
 
+// ─── 이용권(요금제) — 설정>결제 연동 가이드 2026-10-04 ──────────────────────────────
+/** 이 API 가 실제로 주는 status 는 Active · Ended 둘뿐 (Scheduled/Cancelled/레거시는 안 온다) */
+export type StudioSubscriptionStatus = 'Active' | 'Ended' | 'Scheduled' | 'Cancelled' | 'Trial' | 'Unpaid' | 'None';
+/** 플랜 이름. Lite=Basic=EarlyBirdBasic(1) < Premium(2) < Enterprise(3). 모르는 값은 planDisplayName 을 우선 쓴다 */
+export type StudioPlanType = 'Lite' | 'Basic' | 'EarlyBirdBasic' | 'Premium' | 'Enterprise' | 'PracticeRoom' | 'None';
+export type StudioBillingCycle = 'MONTHLY' | 'ANNUAL';
+
+export type StudioScheduledPlan = {
+  /** yyyy-MM-dd | null — 다음 구독 시작일 */
+  date: string | null;
+  type: StudioPlanType;
+  planDisplayName: string | null;
+  billingCycle: StudioBillingCycle | null;
+};
+
+export type StudioSubscription = {
+  id: number;
+  status: StudioSubscriptionStatus;
+  type: StudioPlanType;
+  planDisplayName: string | null;
+  /** 체험 중(isTrial)에는 null */
+  billingCycle: StudioBillingCycle | null;
+  studioPlanId: number;
+  /** yyyy-MM-dd(KST 달력일) | null */
+  startDate: string | null;
+  /** yyyy-MM-dd | null — 이용 마지막 날(포함) */
+  endDate: string | null;
+  isTrial: boolean;
+  /** yyyy-MM-dd | null. Ended 면 null. 예약 행이 있으면 '예약 구간 끝+1' 이라 실제 다음 결제일(다음 달 1일)과 다를 수 있다 */
+  nextPaymentDate: string | null;
+  /** Active 면 항상 있다(변경 없으면 현재 플랜 그대로). 변경 예약 판정은 존재 여부가 아니라 type/billingCycle/date 비교로 */
+  scheduledPlan: StudioScheduledPlan | null;
+  /** 미결제 항목 합계. 아직 결제일이 안 된 이번 달 항목까지 합산되므로 '진짜 미납' 판정엔 쓰지 않는다 */
+  failedPayment: { amount: number; billingMonth: string | null } | null;
+};
+
+export type StudioSubscriptionResponse = {
+  id: number;
+  name: string;
+  representativeBillingKey: string | null;
+  /** null: 가입 전 / 해지 후 endDate 경과 / 연속 미납 정지 */
+  subscription: StudioSubscription | null;
+};
+
+export const GetMyStudioSubscription: Endpoint<object, StudioSubscriptionResponse> = {
+  method: 'get',
+  path: '/studios/me/subscription',
+  headers: PARTNER_HEADERS,
+}
+
 export const UpdateStudio: Endpoint<UpdateStudioRequest, BusinessStudioResponse> = {
   method: 'patch',
   path: '/studios',

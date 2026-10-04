@@ -6,7 +6,7 @@ import { DialogClickWrapper } from '@/utils/DialogClickWrapper';
 import { UserModeSwitch } from '@/app/admin/UserModeSwitch';
 import { CircleImage } from '@/app/components/CircleImage';
 import { KloudScreen } from '@/shared/kloud.screen';
-import { CalendarClock, DoorOpen } from 'lucide-react';
+import { CalendarClock, CreditCard, DoorOpen } from 'lucide-react';
 import {
   StudioSettingFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, VersionFlatIcon,
 } from '@/app/profile/setting/SettingIcons';
@@ -51,6 +51,7 @@ export default async function AdminSettingPage({ searchParams }: {
         { label: '수업·결제 설정', desc: '공개·예약 시점, 수강권 규칙, 결제수단', icon: <CalendarClock size={22} strokeWidth={1.6} color={'#1F1F1F'}/>, route: KloudScreen.AdminSettingLesson },
         { label: '연습실 설정', desc: '환불 기준, 이용안내 알림톡', icon: <DoorOpen size={22} strokeWidth={1.6} color={'#1F1F1F'}/>, route: KloudScreen.AdminSettingRoom },
         { label: '사업자·계좌', desc: '사업자 정보, 입금·정산 계좌', icon: <BusinessInfoFlatIcon size={24}/>, route: KloudScreen.AdminSettingBusiness },
+        { label: '요금제·결제수단', desc: '현재 요금제, 카드 등록·대표 카드', icon: <CreditCard size={22} strokeWidth={1.6} color={'#1F1F1F'}/>, route: KloudScreen.AdminSettingPayment },
       ],
     },
     {
