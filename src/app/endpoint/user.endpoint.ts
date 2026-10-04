@@ -2,8 +2,8 @@ import { UserStatus } from "@/entities/user/user.status";
 import { Endpoint, SimpleResponse } from "@/app/endpoint/index";
 import { UserType } from "@/entities/user/user.type";
 import { GetLessonResponse, LessonListResponse } from "@/app/endpoint/lesson.endpoint";
-import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
-import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
+import { GetPassResponse, PassStatus } from "@/app/endpoint/pass.endpoint";
 
 export type GetUserParameter = {
   id: number
@@ -88,6 +88,28 @@ export type MyPassResponse = {
   };
 }
 
+/**
+ * GET /users/me 의 myRegularClasses[] — 정규반 가격정책으로 산 상품(pass) 1장이 한 줄.
+ * 같은 반이라도 미납 유예분 + 다음 주기 선발급분이 함께 있으면 두 줄. 일반 패스권(myPasses)과는 갈라서 온다.
+ * 탭하면 패스 상세(GET /passes/:id)로 — 정규반 상품도 상세 조회는 막지 않는다.
+ */
+export type MyRegularClassResponse = {
+  /** 상품(pass) id — 반 id 가 아니다. 패스 상세 이동에 쓴다 */
+  id: number;
+  /** Active 외에 Unpaid(미납 유예)도 온다 — 미납 유예분은 쓸 수 있는 상태라 흐리게 그리지 않는다 */
+  status: PassStatus | 'Unpaid';
+  /** 'yyyy-MM-dd'. 안 정해져 있으면 키 생략 */
+  startDate?: string;
+  /** 'yyyy-MM-dd' */
+  endDate: string;
+  /** 다니는 요일(0=일 ~ 6=토). 요일을 가리지 않으면 키 생략 */
+  days?: number[];
+  /** 정규반. 반이 지워져 못 읽으면 null — 이름은 passPlan.name 으로 폴백 */
+  regularClass: StudioRegularClassResponse | null;
+  passPlan?: MyPassResponse['passPlan'];
+  studio?: { id: number; name: string; profileImageUrl?: string | null; address?: string };
+}
+
 export type GetMeResponse = {
   id: number
   email: string
@@ -106,6 +128,13 @@ export type GetMeResponse = {
   bookingCount?: number   // 대관 예약 수 (GET /users/me)
   myBookings?: MyBookingResponse[]
   myPasses?: MyPassResponse[]
+  /** 내 정규반 — 정규반 상품은 myPasses 에 안 실리고 여기로 따로 온다 */
+  myRegularClasses?: MyRegularClassResponse[]
+  /**
+   * 지금 다니는 정규반 수 — myRegularClasses 를 반(regularClass.id)으로 묶어 센 값.
+   * 같은 반의 미납 유예분 + 다음 주기 선발급분은 두 줄이지만 한 반이라 length 로 세면 부풀린다 (연동 가이드 2026-10-04)
+   */
+  regularClassCount?: number
   /** 연결된 소셜 계정 — Default 유저만 채워짐 (provider: 'Google'|'Kakao'|'Apple') */
   socialLinks?: { provider: string }[]
   /** 강사로 소속된 학원 목록. 강사가 아니면 빈 배열 — 개인수업 개설 진입 시그널 */

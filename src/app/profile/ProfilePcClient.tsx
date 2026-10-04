@@ -65,9 +65,15 @@ const Spinner = () => (
   </div>
 );
 
-export const ProfileContentCard = ({title, children}: { title?: string; children: React.ReactNode }) => (
+export const ProfileContentCard = ({title, count, children}: { title?: string; count?: number; children: React.ReactNode }) => (
   <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
-    {title && <h2 className="text-[16px] font-bold text-black mb-5">{title}</h2>}
+    {title && (
+      <div className="flex items-baseline gap-2 mb-5">
+        <h2 className="text-[16px] font-bold text-black">{title}</h2>
+        {/* 제목 옆 개수 — 있을 때만 (내 정규반 반 수 등) */}
+        {count != null && count > 0 && <span className="text-[13px] font-semibold text-[#B0B8C1] font-paperlogy">{count}</span>}
+      </div>
+    )}
     {children}
   </section>
 );

@@ -11,6 +11,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
+import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { UserType } from "@/entities/user/user.type";
@@ -156,6 +157,24 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
               </div>
             </div>
           </NavigateClickWrapper>
+        </section>
+      )}
+
+      {/* 내 정규반 — 정규반 상품(myRegularClasses). 일반 패스권과 갈라 와서 따로 섹션. 보유 패스권과 같은 카드 행 */}
+      {user.myRegularClasses && user.myRegularClasses.length > 0 && (
+        <section className="px-4 mb-6">
+          <div className="flex items-baseline gap-2 mb-3 px-1">
+            <span className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px]">{await translate('my_regular_classes')}</span>
+            {/* 반 수는 regularClassCount — 미납 유예분과 선발급분이 겹치면 줄 수(length)가 반 수보다 많다 */}
+            {(user.regularClassCount ?? 0) > 0 && (
+              <span className="text-[13px] font-semibold text-[#B0B8C1] font-paperlogy">{user.regularClassCount}</span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {user.myRegularClasses.map((item) => (
+              <MyRegularClassCard key={item.id} item={item} locale={locale}/>
+            ))}
+          </div>
         </section>
       )}
 

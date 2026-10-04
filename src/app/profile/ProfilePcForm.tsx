@@ -8,6 +8,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
+import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
@@ -27,9 +28,10 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
 }) => {
   const upcoming = user.upcomingLesson;
   const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
+  const hasRegularClasses = !!user.myRegularClasses && user.myRegularClasses.length > 0;
   const hasPasses = !!user.myPasses && user.myPasses.length > 0;
   const hasBookings = !!user.myBookings && user.myBookings.length > 0;
-  const isEmpty = !upcoming && !hasPasses && !hasBookings;
+  const isEmpty = !upcoming && !hasRegularClasses && !hasPasses && !hasBookings;
 
   const t: ProfilePcTranslations = {
     editProfile: await translate('edit_profile'),
@@ -119,6 +121,17 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
               </div>
             </div>
           </NavigateClickWrapper>
+        </ProfileContentCard>
+      )}
+
+      {/* 내 정규반 — 모바일과 동일. 정규반 상품은 myPasses 와 갈라 와서 따로 카드 */}
+      {hasRegularClasses && (
+        <ProfileContentCard title={await translate('my_regular_classes')} count={user.regularClassCount}>
+          <div className="flex flex-col gap-2.5">
+            {user.myRegularClasses!.map((item) => (
+              <MyRegularClassCard key={item.id} item={item} locale={locale} variant="pc"/>
+            ))}
+          </div>
         </ProfileContentCard>
       )}
 

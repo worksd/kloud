@@ -4924,6 +4924,8 @@ export const StringResource = {
   pr_done_next2: { ko: '허가되면 구성원 신청 링크가 알림톡으로 와요. 링크를 단체에 공유하면 구성원들이 각자 신청하고, 인원이 모이면 대표가 한 번에 결제해요.', en: "Once approved, you'll get a member application link via KakaoTalk. Share it with your group — everyone applies individually, and a representative pays the total once the group is set.", jp: '承認されるとメンバー応募リンクがカカオトークで届きます。団体に共有すると各自が応募し、人数が揃ったら代表者がまとめて決済します。', zh: '批准后您将通过KakaoTalk收到成员报名链接。分享给团体后各自报名，人数集齐后由代表统一支付。' },
   pr_the_studio: { ko: '스튜디오', en: 'The studio', jp: 'スタジオ', zh: '工作室' },
   pr_studio_notfound_title: { ko: '스튜디오를 찾을 수 없어요', en: "We couldn't find this studio", jp: 'スタジオが見つかりません', zh: '找不到该工作室' },
+  pass_status_unpaid: { ko: '미납', en: 'Unpaid', jp: '未納', zh: '未缴' },
+  my_regular_classes: { ko: '내 정규반', en: 'My regular classes', jp: 'マイレギュラークラス', zh: '我的常规班' },
   studio_regular_classes: { ko: '정규반', en: 'Regular classes', jp: 'レギュラークラス', zh: '常规班' },
   regular_class_view_all: { ko: '정규반 전체보기', en: 'View all classes', jp: 'クラスをすべて見る', zh: '查看全部常规班' },
   select_enroll_option: { ko: '수강 방식 선택', en: 'Choose an option', jp: '受講プランを選択', zh: '选择上课方式' },
