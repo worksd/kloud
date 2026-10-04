@@ -3,7 +3,6 @@ import { requireAdmin } from '@/app/admin/admin.guard';
 import { AdminPageHeader } from '@/app/admin/AdminPageHeader';
 import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { DialogClickWrapper } from '@/utils/DialogClickWrapper';
-import { UserModeSwitch } from '@/app/admin/UserModeSwitch';
 import { CircleImage } from '@/app/components/CircleImage';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { CalendarClock, CreditCard, DoorOpen } from 'lucide-react';
@@ -93,11 +92,8 @@ export default async function AdminSettingPage({ searchParams }: {
         </section>
       ))}
 
-      {/* 모드 전환 · 로그아웃 — 나머지 메뉴와 분리 */}
+      {/* 로그아웃 — 나머지 메뉴와 분리. ('일반 모드로 가기'는 제거 — 관리자 계정은 관리자 화면만 쓴다) */}
       <section className="mt-4 mx-4 rounded-2xl bg-white border border-[#EEF0F2] overflow-hidden divide-y divide-[#F1F3F6]">
-        {/* 첫 탭이 관리자·일반 공용('/home')이라 단순 이동으로는 관리자 폼이 또 뜬다 —
-            userMode 쿠키를 켜고 일반 탭 구성으로 메인을 재부팅한다 */}
-        <UserModeSwitch label="일반 모드로 가기" description="수강생이 보는 화면으로 전환해요"/>
         <DialogClickWrapper id="Logout">
           <div className="px-4 py-3.5 active:bg-[#FAFBFC] transition-colors">
             <p className="text-[15px] font-semibold text-[#E5484D]">로그아웃</p>

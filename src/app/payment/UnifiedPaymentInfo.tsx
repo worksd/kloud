@@ -155,10 +155,16 @@ export const UnifiedPaymentInfo = ({
     kakao_pay: getLocaleString({ locale, key: 'kakao_pay' }),
     toss_pay: getLocaleString({ locale, key: 'toss_pay' }),
   };
+  // 패스권 전용 — 수업인데 서버가 price를 null로 주고 가격정책도 없으면 금액이 정해지지 않은 수업이다.
+  // 이때는 카드·해외카드·내 결제수단·계좌이체·간편결제 전부 막고 패스권(회차 차감)으로만 결제한다.
+  // (methods에 뭐가 와도 무시. 할인 패스는 깎을 금액이 없어 쓸 수 없다)
+  const rawPricePolicies = payment.lesson?.pricePolicies ?? payment.pricePolicies ?? [];
+  const passOnly = type === 'lesson' && payment.price == null && rawPricePolicies.filter(p => p.status !== 'Cancelled').length === 0;
+
   // 'pass'는 결제수단 영역이 아니라 별도 PassesSection으로 렌더 — 결제수단 옵션에서 제외.
   // 단 methods에 'pass'가 있다는 사실은 "패스 결제 활성" 신호로 PassesSection 노출 가드에 사용.
-  const passMethodEnabled = payment.methods.some(m => m.type === 'pass');
-  const paymentMethods: GetPaymentMethodResponse[] = payment.methods
+  const passMethodEnabled = passOnly || payment.methods.some(m => m.type === 'pass');
+  const paymentMethods: GetPaymentMethodResponse[] = (passOnly ? [] : payment.methods)
     .filter(m => m.type !== 'pass')
     .flatMap(m => {
       if (m.type === 'easy_pay' && m.providers && m.providers.length > 0) {
@@ -170,7 +176,7 @@ export const UnifiedPaymentInfo = ({
   // canSubscribe=true면 정기결제 스페셜 섹션을 따로 노출한다.
   // 결제수단 목록은 BE가 주는 대로 전부(billing 포함) 그대로 — 일반 billing 선택은 단건 결제,
   // 정기결제 섹션 선택(subscribeSelected)일 때만 구독 생성(POST /subscription)으로 간다.
-  const canSubscribe = payment.canSubscribe === true;
+  const canSubscribe = payment.canSubscribe === true && !passOnly;
 
   // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
   // 비회원(연습실 게스트)은 user가 없으므로 옵셔널 체이닝.
@@ -241,6 +247,7 @@ export const UnifiedPaymentInfo = ({
   // 단 가격 정책(정기, LGT) 수업은 패스권으로 살 수 없으므로(패스는 회차 단건 LT 전용) 자동 선택하지 않는다.
   const detectedInitialPass = hasPolicies ? undefined : availablePasses.find(p => {
     const rule = getPrimaryRule(p);
+    if (passOnly && getPassDiscountRule(p)) return false; // 패스 전용에선 할인 패스는 못 쓴다
     return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
   });
   const detectedIsDiscount = !!(detectedInitialPass && getPassDiscountRule(detectedInitialPass));
@@ -249,8 +256,9 @@ export const UnifiedPaymentInfo = ({
   //   - 그 외(FreeCount/Unlimited) 룰 → 결제수단을 'pass'로 진입해야 하므로 passMethodEnabled가 true일 때만 허용.
   //     methods에 pass가 없는데 use-pass 류 패스만 보이는 부정합 케이스는 자동 method 선택을 보류해
   //     결제 버튼이 disabled 되도록 유도(사용자에게 명시 선택 강제).
-  const fallbackMethod: PaymentMethodType | undefined =
-    defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined);
+  const fallbackMethod: PaymentMethodType | undefined = passOnly
+    ? undefined
+    : (defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined));
   const useTypePassWithoutPassMethod =
     !passMethodEnabled && !!detectedInitialPass && !detectedIsDiscount;
   const initialPass: GetPassResponse | undefined = useTypePassWithoutPassMethod
@@ -276,7 +284,9 @@ export const UnifiedPaymentInfo = ({
       : buildDiscountFromPass(initialPass)
   );
 
+  const [passOnlyNotice, setPassOnlyNotice] = useState<string | undefined>(undefined);
   const handleSelectMethod = (method: PaymentMethodType) => {
+    if (passOnly && method !== 'pass') return; // 패스 전용 — 일반 결제수단은 선택 불가
     setSelectedMethod(method);
     // 현재 선택된 패스가 FreeCount/Unlimited(=use pass 흐름)면 일반 결제수단과 모순 → 해제.
     // Discount 패스는 일반 결제수단과 같이 쓰는 정상 케이스 → 유지.
@@ -508,6 +518,12 @@ export const UnifiedPaymentInfo = ({
           methods에 'pass'가 활성이면 무조건 섹션 노출(passes 비어 있어도 안내 메시지 표시). */}
       {passMethodEnabled && (
         <>
+          {passOnly && (
+            <div className="mx-6 mb-3 rounded-[12px] bg-[#F7F8FA] px-3.5 py-3">
+              <p className="text-[13px] leading-relaxed text-[#4E5968] whitespace-pre-line">{getLocaleString({ locale, key: 'payment_pass_only_notice' })}</p>
+              {passOnlyNotice && <p className="mt-1 text-[12.5px] text-[#E55B5B] font-medium">{passOnlyNotice}</p>}
+            </div>
+          )}
           <PassesSection
             locale={locale}
             passes={availablePasses}
@@ -515,6 +531,12 @@ export const UnifiedPaymentInfo = ({
             disabledReason={hasPolicies ? getLocaleString({ locale, key: 'pass_blocked_for_price_policy' }) : undefined}
             selectedPass={selectedPass}
             onSelectPass={(pass) => {
+              // 패스 전용 — 할인 패스는 깎을 금액이 없어 선택 불가. 선택을 무시하고 사유만 보여준다
+              if (passOnly && pass && getPassDiscountRule(pass)) {
+                setPassOnlyNotice(getLocaleString({ locale, key: 'payment_pass_only_discount_blocked' }));
+                return;
+              }
+              setPassOnlyNotice(undefined);
               setSelectedPass(pass);
               setSelectedCoupon(undefined);
               if (!pass) {
@@ -537,8 +559,8 @@ export const UnifiedPaymentInfo = ({
         </>
       )}
 
-      {/* 할인 섹션 */}
-      {!noPass && !priceNotAvailable && (
+      {/* 할인 섹션 — 패스 전용(금액 없음)이면 쿠폰·할인은 의미가 없어 숨긴다 */}
+      {!noPass && !priceNotAvailable && !passOnly && (
         <>
           <DiscountSection
             locale={locale}
@@ -612,6 +634,8 @@ export const UnifiedPaymentInfo = ({
         const needMethod = type === 'practice-room' || totalPrice > 0;
         const disabledReason = selectedPolicy?.usable === false
           ? (selectedPolicy.reason ?? getLocaleString({locale, key: 'payment_disabled_policy_unusable'}))
+          : (passOnly && (selectedMethod !== 'pass' || !selectedPass))
+          ? getLocaleString({locale, key: 'payment_disabled_pass_only'})
           : priceNotAvailable
           ? getLocaleString({locale, key: 'payment_disabled_price_unavailable'})
           : (type === 'practice-room' && !practiceRoomInfo)
@@ -641,6 +665,8 @@ export const UnifiedPaymentInfo = ({
           depositor={depositor}
           disabled={
             selectedPolicy?.usable === false ||
+            // 패스 전용 — 패스권을 고르기 전엔 결제 불가 (PortOne에 totalAmount 0 이 넘어가던 경로 차단)
+            (passOnly && (selectedMethod !== 'pass' || !selectedPass)) ||
             priceNotAvailable ||
             (type === 'practice-room' && !practiceRoomInfo) ||
             // 연습실은 서버가 총액을 나중에 계산해 totalPrice가 0일 수 있음 → 결제수단은 항상 필수

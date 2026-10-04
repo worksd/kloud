@@ -408,6 +408,9 @@ export const StringResource = {
     jp: 'お支払い方法を選択してください',
     zh: '请选择支付方式'
   },
+  payment_pass_only_notice: { ko: '이 수업은 패스권으로만 결제할 수 있어요.\n보유한 패스권을 선택해주세요.', en: 'This class can only be paid with a pass.\nSelect one of your passes.', jp: 'このクラスはパスでのみ決済できます。\nお持ちのパスを選択してください。', zh: '此课程仅可使用通行证支付。\n请选择您持有的通行证。' },
+  payment_pass_only_discount_blocked: { ko: '할인 패스권은 이 수업에 쓸 수 없어요. 회차 차감 패스권을 선택해주세요.', en: "Discount passes can't be used for this class. Choose a session-based pass.", jp: '割引パスはこのクラスには使えません。回数パスを選択してください。', zh: '折扣通行证不适用于此课程，请选择次数通行证。' },
+  payment_disabled_pass_only: { ko: '패스권을 선택해주세요', en: 'Select a pass', jp: 'パスを選択してください', zh: '请选择通行证' },
   payment_disabled_no_pass: {
     ko: '사용할 패스를 선택해주세요',
     en: 'Select a pass to use',
