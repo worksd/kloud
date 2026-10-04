@@ -23,8 +23,11 @@ const PLAN_FALLBACK: Record<string, string> = {
 const planName = (type?: string | null, display?: string | null) => display || (type ? PLAN_FALLBACK[type] ?? type : '-');
 /** yyyy-MM-dd → yyyy.MM.dd */
 const dot = (d?: string | null) => (d ? d.replace(/-/g, '.') : '-');
-/** PortOne 마스킹 번호('53890382****548*') → '5389 0382 **** 548*' */
-const groupCard = (n?: string) => (n ? n.replace(/(.{4})(?=.)/g, '$1 ') : '카드번호 없음');
+/** PortOne 마스킹 번호('53890382****548*') → '5389 0382 **** 548*'. 하이픈·공백이 섞여 와도 숫자와 *만 남겨 4자리씩 끊는다 */
+const groupCard = (n?: string) => {
+  const core = (n ?? '').replace(/[^0-9*]/g, '');
+  return core ? core.replace(/(.{4})(?=.)/g, '$1 ') : '카드번호 없음';
+};
 /** 'yyyy-MM-dd HH:mm' → 'yyyy.MM.dd' */
 const dateOnly = (s?: string) => (s ? s.slice(0, 10).replace(/-/g, '.') : '');
 
@@ -35,22 +38,35 @@ const hasPlanChange = (sub: StudioSubscription) => {
   return sp.type !== sub.type || sp.billingCycle !== sub.billingCycle || sp.date !== sub.nextPaymentDate;
 };
 
-function Badge({ children, tone = 'gray' }: { children: React.ReactNode; tone?: 'gray' | 'dark' | 'red' | 'blue' }) {
-  const cls = {
-    gray: 'bg-[#F2F4F6] text-[#6B7684]',
-    dark: 'bg-[#1E2124] text-white',
-    red: 'bg-[#FDECEC] text-[#E55B5B]',
-    blue: 'bg-[#EAF2FF] text-[#1E5BD6]',
-  }[tone];
-  return <span className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11.5px] font-bold ${cls}`}>{children}</span>;
+/** 상태 배지 — 연한 배경 + 색 점 + 글자. 상태 색: 이용 중(초록) / 체험 중(파랑) / 해지 예정(빨강) / 대표(검정) */
+type BadgeTone = 'green' | 'blue' | 'red' | 'dark' | 'gray';
+function Badge({ children, tone = 'gray', dot = false }: { children: React.ReactNode; tone?: BadgeTone; dot?: boolean }) {
+  const cls: Record<BadgeTone, { wrap: string; dot: string }> = {
+    green: { wrap: 'bg-[#E9F8F0] text-[#1B8A4C]', dot: 'bg-[#2EBD6B]' },
+    blue: { wrap: 'bg-[#EAF2FF] text-[#1E5BD6]', dot: 'bg-[#3B82F6]' },
+    red: { wrap: 'bg-[#FDECEC] text-[#D64545]', dot: 'bg-[#E55B5B]' },
+    dark: { wrap: 'bg-[#1E2124] text-white', dot: 'bg-white' },
+    gray: { wrap: 'bg-[#F2F4F6] text-[#6B7684]', dot: 'bg-[#9AA3AD]' },
+  };
+  return (
+    <span className={`inline-flex items-center gap-1.5 h-[24px] px-2.5 rounded-full text-[12px] font-bold leading-none ${cls[tone].wrap}`}>
+      {dot && <span className={`w-[6px] h-[6px] rounded-full ${cls[tone].dot}`}/>}
+      {children}
+    </span>
+  );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+/** 키·값 목록 — 연한 배경 박스 안에 줄마다 같은 패딩. 구분선은 박스 안에서만 얇게 */
+function InfoList({ rows }: { rows: { label: string; value: React.ReactNode }[] }) {
   return (
-    <div className={'flex items-start justify-between gap-4 py-2 border-t border-[#F4F5F7] first:border-t-0 first:pt-0'}>
-      <span className={'shrink-0 text-[13px] text-[#8B95A1]'}>{label}</span>
-      <span className={'text-[13.5px] font-semibold text-[#191F28] text-right'}>{value}</span>
-    </div>
+    <dl className={'rounded-[14px] bg-[#F7F8FA] px-4 divide-y divide-[#EBEDF0]'}>
+      {rows.map((r) => (
+        <div key={r.label} className={'flex items-center justify-between gap-4 py-3'}>
+          <dt className={'shrink-0 text-[13px] text-[#8B95A1]'}>{r.label}</dt>
+          <dd className={'text-[13.5px] font-semibold text-[#191F28] text-right tabular-nums'}>{r.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -94,16 +110,19 @@ function PlanSection({ data }: { data: StudioSubscriptionResponse | null }) {
             {sub.isTrial ? '무료 체험' : sub.billingCycle ? `${CYCLE_LABEL[sub.billingCycle] ?? sub.billingCycle} 결제` : '-'}
           </p>
         </div>
-        <div className={'shrink-0 flex flex-col items-end gap-1'}>
-          {sub.isTrial && <Badge tone={'blue'}>체험 중</Badge>}
-          {ended ? <Badge tone={'red'}>해지 예정</Badge> : <Badge tone={'dark'}>이용 중</Badge>}
+        <div className={'shrink-0 flex flex-col items-end gap-1.5'}>
+          {ended
+            ? <Badge tone={'red'} dot>해지 예정</Badge>
+            : sub.isTrial
+              ? <Badge tone={'blue'} dot>체험 중</Badge>
+              : <Badge tone={'green'} dot>이용 중</Badge>}
         </div>
       </div>
 
-      <div>
-        <Row label={'이용 기간'} value={`${dot(sub.startDate)} ~ ${dot(sub.endDate)}`}/>
-        {!ended && <Row label={'다음 결제일'} value={dot(sub.nextPaymentDate)}/>}
-      </div>
+      <InfoList rows={[
+        { label: '이용 기간', value: `${dot(sub.startDate)} ~ ${dot(sub.endDate)}` },
+        ...(!ended ? [{ label: '다음 결제일', value: dot(sub.nextPaymentDate) }] : []),
+      ]}/>
 
       {sub.isTrial && sp && (
         <Notice tone={'blue'}>
@@ -168,25 +187,42 @@ function AddCardForm({ onDone, onCancel }: { onDone: (billingKey: string) => Pro
           placeholder={'1234 5678 9012 3456'} disabled={submitting} className={`${inputCls} mt-1.5 tracking-[1px]`}
         />
       </label>
-      <div className={'grid grid-cols-3 gap-2'}>
-        <label className={'block'}>
+      <div className={'grid grid-cols-2 gap-2.5'}>
+        <div>
           <span className={'block text-[12.5px] font-semibold text-[#4E5968]'}>유효기간</span>
-          <div className={'mt-1.5 flex items-center gap-1.5'}>
-            <input type={'text'} inputMode={'numeric'} maxLength={2} value={month} onChange={(e) => setMonth(e.target.value.replace(/\D/g, '').slice(0, 2))} placeholder={'MM'} disabled={submitting} className={small}/>
-            <span className={'text-[#B1B8BE]'}>/</span>
-            <input type={'text'} inputMode={'numeric'} maxLength={2} value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 2))} placeholder={'YY'} disabled={submitting} className={small}/>
+          <div className={'mt-1.5 flex items-center rounded-[12px] border border-[#E5E7EB] bg-white focus-within:border-[#1E2124]'}>
+            <input
+              type={'text'} inputMode={'numeric'} autoComplete={'cc-exp-month'} maxLength={2}
+              value={month} onChange={(e) => setMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
+              placeholder={'MM'} disabled={submitting} aria-label={'유효기간 월'}
+              className={'w-0 flex-1 min-w-0 bg-transparent py-3 pl-3.5 text-[15px] text-black placeholder-[#B1B8BE] outline-none text-center disabled:opacity-60'}
+            />
+            <span className={'shrink-0 text-[15px] text-[#B1B8BE]'}>/</span>
+            <input
+              type={'text'} inputMode={'numeric'} autoComplete={'cc-exp-year'} maxLength={2}
+              value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 2))}
+              placeholder={'YY'} disabled={submitting} aria-label={'유효기간 연도'}
+              className={'w-0 flex-1 min-w-0 bg-transparent py-3 pr-3.5 text-[15px] text-black placeholder-[#B1B8BE] outline-none text-center disabled:opacity-60'}
+            />
           </div>
-        </label>
+        </div>
         <label className={'block'}>
           <span className={'block text-[12.5px] font-semibold text-[#4E5968]'}>비밀번호 앞 2자리</span>
-          <input type={'password'} inputMode={'numeric'} maxLength={2} value={password} onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 2))} placeholder={'••'} disabled={submitting} className={`${small} mt-1.5`}/>
-        </label>
-        <label className={'block'}>
-          <span className={'block text-[12.5px] font-semibold text-[#4E5968]'}>생년월일·사업자번호</span>
-          <input type={'text'} inputMode={'numeric'} maxLength={10} value={birth} onChange={(e) => setBirth(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder={'YYMMDD'} disabled={submitting} className={`${small} mt-1.5`}/>
+          <input
+            type={'password'} inputMode={'numeric'} maxLength={2}
+            value={password} onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            placeholder={'••'} disabled={submitting} className={`${small} mt-1.5`}
+          />
         </label>
       </div>
-      <p className={'text-[11.5px] text-[#8B95A1] leading-relaxed'}>개인카드는 생년월일 6자리, 법인카드는 사업자등록번호 10자리를 입력해요. 카드 정보는 서버에 저장되지 않고 결제대행사(PortOne)에만 등록돼요.</p>
+      <label className={'block'}>
+        <span className={'block text-[12.5px] font-semibold text-[#4E5968]'}>생년월일 6자리 또는 사업자등록번호 10자리</span>
+        <input
+          type={'text'} inputMode={'numeric'} maxLength={10}
+          value={birth} onChange={(e) => setBirth(e.target.value.replace(/\D/g, '').slice(0, 10))}
+          placeholder={'YYMMDD'} disabled={submitting} className={`${inputCls} mt-1.5`}
+        />
+      </label>
       {error && <p className={'text-[13px] text-[#E55B5B] font-medium whitespace-pre-line'}>{error}</p>}
       <div className={'flex gap-2'}>
         <button type={'button'} onClick={onCancel} disabled={submitting} className={'flex-1 h-[46px] rounded-[12px] bg-white border border-[#E5E7EB] text-[14px] font-semibold text-[#4E5968] active:scale-[0.98] transition-transform disabled:opacity-50'}>취소</button>
