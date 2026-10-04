@@ -449,7 +449,8 @@ export const UnifiedPaymentInfo = ({
               </span>
             </div>
           )}
-          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
+          {/* 패스 전용이면 바로 아래 안내 박스가 이어지므로 구분선 없이 여백만 */}
+          {!passOnly && <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />}
         </>
       )}
 
@@ -519,7 +520,7 @@ export const UnifiedPaymentInfo = ({
       {passMethodEnabled && (
         <>
           {passOnly && (
-            <div className="mx-6 mb-3 rounded-[12px] bg-[#F7F8FA] px-3.5 py-3">
+            <div className="mx-6 mt-7 mb-3 rounded-[12px] bg-[#F7F8FA] px-3.5 py-3">
               <p className="text-[13px] leading-relaxed text-[#4E5968] whitespace-pre-line">{getLocaleString({ locale, key: 'payment_pass_only_notice' })}</p>
               {passOnlyNotice && <p className="mt-1 text-[12.5px] text-[#E55B5B] font-medium">{passOnlyNotice}</p>}
             </div>
