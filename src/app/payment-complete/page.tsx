@@ -121,7 +121,6 @@ export default async function PaymentCompletePage({ searchParams }: {
   const totalDiscount = record?.discounts?.reduce((sum, d) => sum + d.amount, 0) ?? 0;
 
   const classmates = data?.classmates ?? { totalCount: 0, samples: [] };
-  const guidelines = data?.guidelines ?? [];
   const upcomingLessons = data?.upcomingLessons ?? [];
   const videos = data?.videos ?? [];
   const classmateDescTpl = await translate('payment_complete_classmate_desc');
@@ -247,29 +246,6 @@ export default async function PaymentCompletePage({ searchParams }: {
             </div>
           )}
         </div>
-      )}
-
-      {/* 만나기 전에 준비하면 좋아요 — 스튜디오 가이드라인. 번호 + 제목/설명, 얇은 구분선 리스트 */}
-      {guidelines.length > 0 && (
-        <Section title={await translate('payment_complete_prepare_title')}>
-          <div className={'flex flex-col divide-y divide-[#F2F4F6]'}>
-            {guidelines.map((g, i) => (
-              <div key={g.id} className={'flex items-start gap-4 py-4 first:pt-1 last:pb-0'}>
-                <span className={'text-[13px] font-bold text-[#B0B8C1] tabular-nums pt-[2px] shrink-0 w-[18px]'}>{String(i + 1).padStart(2, '0')}</span>
-                <div className={'flex-1 min-w-0'}>
-                  <p className={'text-[15.5px] font-bold text-[#191F28] leading-snug tracking-[-0.3px]'}>{g.title}</p>
-                  {/* content는 HTML — 티켓 상세(TicketForm)와 같은 guideline-content 스타일로 렌더 */}
-                  {g.content && (
-                    <div
-                      className={'mt-1 text-[14px] leading-relaxed text-[#4E5968] tracking-[-0.2px] guideline-content'}
-                      dangerouslySetInnerHTML={{ __html: g.content }}
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
       )}
 
       {/* 이 강사님의 다가오는 수업 — 서버가 지금 이후·이번 수업 제외·가까운 순 5개로 준다. 탭 이동 없음 */}
