@@ -1,5 +1,4 @@
 import React from 'react';
-import { cookies } from 'next/headers';
 import { api } from '@/app/api.client';
 import { TimeTableServerComponent } from '@/app/home/TimeTableServerComponent';
 import { ChevronRight } from 'lucide-react';
@@ -7,7 +6,6 @@ import { CircleImage } from '@/app/components/CircleImage';
 import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { getLocale, translate } from '@/utils/translate';
-import { accessTokenKey } from '@/shared/cookies.key';
 import { AdminShortcuts } from '@/app/admin/AdminShortcuts';
 import { getTodayAdminLessons } from '@/app/admin/admin.today.lessons';
 import { ADMIN_CONTENT_TOP_PAD, ADMIN_HEADER_TOP_PAD } from '@/app/admin/admin.layout';
@@ -39,8 +37,6 @@ export async function AdminHomeForm() {
   const sheetLessons = await getTodayAdminLessons(studio.id, locale);
 
   const adminName = ('id' in me ? (me.name || me.nickName) : undefined) ?? '';
-  // 키오스크 로그인 QR용 — 현재 관리자 토큰. 키오스크가 /kiosk?token=으로 열면 그대로 로그인된다.
-  const accessToken = (await cookies()).get(accessTokenKey)?.value ?? '';
 
   return (
     // ignoreSafeArea 풀스크린 — 상태바 영역은 safe-area 패딩으로 직접 확보 (env 미지원 웹뷰 폴백 44px)
@@ -73,7 +69,7 @@ export async function AdminHomeForm() {
 
       {/* 숏컷(출석 체크·현장결제·키오스크 로그인) — 흰 카드. 결제 내역은 '매출' 탭, 수강생 등록은 '수강생' 탭으로 옮겼다 */}
       <section className={'mx-4 mt-3 rounded-2xl bg-white border border-[#EEF0F2] px-1 py-3'}>
-        <AdminShortcuts lessons={sheetLessons} locale={locale} kioskToken={accessToken}/>
+        <AdminShortcuts lessons={sheetLessons} locale={locale}/>
       </section>
 
       {/* 주간 시간표 */}

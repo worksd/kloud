@@ -2,7 +2,7 @@ import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
 import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
-import { localeKey, userIdKey } from "@/shared/cookies.key";
+import { localeKey, userIdKey, kioskCustomerTokenKey } from "@/shared/cookies.key";
 import * as util from "node:util";
 import { revalidateTag } from "next/cache";
 
@@ -117,6 +117,11 @@ export abstract class EndpointClient {
     const accessToken = (await cookies()).get("accessToken");
     if (accessToken?.value) {
       defaultHeaders["Authorization"] = `Bearer ${accessToken.value}`;
+    }
+    // 키오스크 QR 로그인 손님 토큰 — 이중 인증 규약(@KioskAuth): Authorization(운영자)은 그대로 두고 손님 토큰은 별도 헤더로
+    const kioskCustomerToken = (await cookies()).get(kioskCustomerTokenKey);
+    if (kioskCustomerToken?.value) {
+      defaultHeaders["x-guinness-kiosk-authorization"] = `Bearer ${kioskCustomerToken.value}`;
     }
     const nextHeaders = await headers();
     const version = nextHeaders.get("x-guinness-version")?.valueOf();

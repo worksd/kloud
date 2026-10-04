@@ -4644,8 +4644,6 @@ export const StringResource = {
   admin_home_shortcut_onsite: { ko: '현장결제', en: 'On-site payment', jp: '現場決済', zh: '现场支付' },
   admin_home_shortcut_kiosk_login: { ko: '키오스크 로그인', en: 'Kiosk login', jp: 'キオスクログイン', zh: '自助机登录' },
   admin_kiosk_login_title: { ko: '키오스크 로그인', en: 'Kiosk login', jp: 'キオスクログイン', zh: '自助机登录' },
-  admin_kiosk_login_desc: { ko: '키오스크 로그인 화면에서\n이 QR을 스캔해주세요', en: 'Scan this QR on the kiosk\nlogin screen', jp: 'キオスクのログイン画面で\nこのQRをスキャンしてください', zh: '请在自助机登录界面\n扫描此二维码' },
-  admin_kiosk_login_caution: { ko: '이 QR에는 로그인 정보가 담겨 있어요. 외부에 공유하지 마세요.', en: 'This QR contains login credentials. Do not share it.', jp: 'このQRにはログイン情報が含まれています。共有しないでください。', zh: '此二维码包含登录信息，请勿外传。' },
   admin_register_title: { ko: '수강생 등록', en: 'Add student', jp: '受講生登録', zh: '添加学员' },
   admin_register_name_label: { ko: '이름', en: 'Name', jp: '名前', zh: '姓名' },
   admin_register_name_placeholder: { ko: '수강생 이름', en: 'Student name', jp: '受講生の名前', zh: '学员姓名' },
@@ -4935,6 +4933,26 @@ export const StringResource = {
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
   regular_class_empty: { ko: '판매중인 정규반이 없어요', en: 'No regular classes on sale', jp: '販売中のクラスがありません', zh: '暂无在售常规班' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
+
+  // 키오스크 QR 로그인(SSE) — 키오스크 패널
+  kiosk_qr_login_title: { ko: '앱으로 QR 로그인', en: 'Log in with the app', jp: 'アプリでQRログイン', zh: '用App扫码登录' },
+  kiosk_qr_login_desc: { ko: '휴대폰 카메라로 QR을 찍으면\n번호 입력 없이 바로 로그인돼요', en: 'Scan the QR with your phone camera\nto log in without typing your number', jp: 'スマホのカメラでQRを読み取ると\n番号入力なしでログインできます', zh: '用手机相机扫描二维码\n无需输入号码即可登录' },
+  kiosk_qr_login_ready: { ko: '스캔 대기 중', en: 'Ready to scan', jp: 'スキャン待機中', zh: '等待扫描' },
+  kiosk_qr_login_connecting: { ko: '준비 중…', en: 'Preparing…', jp: '準備中…', zh: '准备中…' },
+  kiosk_qr_login_reconnecting: { ko: 'QR을 새로 만드는 중…', en: 'Refreshing QR…', jp: 'QRを更新中…', zh: '正在刷新二维码…' },
+  // 키오스크 QR 로그인 — 앱 승인 화면(/kiosk-login)
+  kiosk_login_approve_loading: { ko: '키오스크에 로그인하는 중…', en: 'Logging in to the kiosk…', jp: 'キオスクにログイン中…', zh: '正在登录自助机…' },
+  kiosk_login_approve_done: { ko: '{kiosk}에\n로그인했어요', en: 'Logged in to\n{kiosk}', jp: '{kiosk}に\nログインしました', zh: '已登录\n{kiosk}' },
+  kiosk_login_approve_done_desc: { ko: '키오스크 화면에서 이어서 진행해주세요', en: 'Continue on the kiosk screen', jp: 'キオスクの画面で続けてください', zh: '请在自助机屏幕上继续' },
+  kiosk_login_approve_not_student: { ko: '아직 이 학원의 수강생이 아니에요.\n키오스크에서 등록을 이어가주세요', en: "You're not a student of this studio yet.\nContinue registration on the kiosk", jp: 'まだこのスタジオの受講生ではありません。\nキオスクで登録を続けてください', zh: '您还不是该机构的学员。\n请在自助机上继续注册' },
+  kiosk_login_approve_retry_hint: { ko: '키오스크 화면이 바뀌지 않으면 QR을 다시 찍어주세요', en: "If the kiosk screen doesn't change, scan the QR again", jp: 'キオスクの画面が変わらない場合はQRを再度読み取ってください', zh: '若自助机屏幕没有变化，请重新扫描二维码' },
+  kiosk_login_approve_need_login: { ko: '로그인이 필요해요', en: 'Please log in', jp: 'ログインが必要です', zh: '需要登录' },
+  kiosk_login_approve_need_login_desc: { ko: '앱에 로그인한 뒤 키오스크 QR을 다시 찍어주세요', en: 'Log in to the app, then scan the kiosk QR again', jp: 'アプリにログインしてからキオスクのQRを再度読み取ってください', zh: '请先登录App，再重新扫描自助机二维码' },
+  kiosk_login_approve_failed: { ko: '키오스크 로그인에 실패했어요', en: 'Kiosk login failed', jp: 'キオスクのログインに失敗しました', zh: '自助机登录失败' },
+  kiosk_login_approve_invalid: { ko: 'QR 정보가 올바르지 않아요', en: 'The QR information is invalid', jp: 'QRの情報が正しくありません', zh: '二维码信息无效' },
+  kiosk_login_scan_hint: { ko: '키오스크 전화번호 입력 화면에 있는\nQR을 네모 안에 맞춰주세요', en: 'Align the QR on the kiosk phone-entry screen\ninside the frame', jp: 'キオスクの電話番号入力画面にある\nQRを枠内に合わせてください', zh: '请将自助机电话输入界面上的\n二维码对准框内' },
+  kiosk_login_scan_not_kiosk_qr: { ko: '키오스크 로그인 QR이 아니에요', en: 'This is not a kiosk login QR', jp: 'キオスクログイン用のQRではありません', zh: '这不是自助机登录二维码' },
+  kiosk_login_scan_again: { ko: '다시 스캔', en: 'Scan again', jp: '再スキャン', zh: '重新扫描' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

@@ -3,18 +3,17 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Banknote, QrCode, UserRoundCheck } from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 
 // 관리자 홈 숏컷 줄 — 출석 체크(오늘 수업 → 수업별 출석 QR 화면, 중앙 다이얼로그),
-// 현장결제(/admin/onsite-payment 페이지로 push), 키오스크 로그인(QR 다이얼로그).
+// 현장결제(/admin/onsite-payment 페이지로 push), 키오스크 로그인(카메라로 키오스크 QR 스캔 → /kiosk-login).
 // 수강생 등록은 '수강생' 탭으로 옮겼다.
 // 결제 내역은 '매출' 탭으로 옮겨서 여기서 뺐다.
-// 키오스크 로그인 QR 형식: `${origin}/kiosk?token=<관리자 accessToken>` — KioskBootstrap이
-// urlToken을 저장하고 그대로 로그인하는 기존 플로우라, 키오스크에서 이 URL을 열거나 스캔하면 끝.
+// 키오스크 로그인은 QR 로그인(SSE) 가이드(2026-10-04) 방향 — 키오스크가 QR을 띄우고 이 폰이 찍어 승인한다.
+// 예전의 '관리자 토큰을 QR로 띄워 키오스크가 읽는' 방식은 폐기.
 
 export type AdminSheetLesson = {
   id: number;
@@ -49,32 +48,15 @@ const Shortcut = ({ icon, label, onClick }: {
   </button>
 );
 
-export function AdminShortcuts({ lessons, locale, kioskToken }: {
+export function AdminShortcuts({ lessons, locale }: {
   lessons: AdminSheetLesson[];
   locale: Locale;
-  /** 키오스크 로그인 QR에 실을 관리자 accessToken */
-  kioskToken?: string;
 }) {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
 
   // 출석 체크 — 오늘 수업 목록 다이얼로그 (수강생 등록·키오스크 QR과 같은 연출)
   const [attOpen, setAttOpen] = useState(false);
   const [attClosing, setAttClosing] = useState(false);
-
-  // 키오스크 로그인 QR 다이얼로그 — 열릴 때 fadeIn+scaleIn, 닫힐 때 fadeOut
-  const [qrOpen, setQrOpen] = useState(false);
-  const [qrClosing, setQrClosing] = useState(false);
-  const [qrUrl, setQrUrl] = useState('');
-  const openKioskQr = () => {
-    if (!kioskToken) return;
-    setQrUrl(`${window.location.origin}/kiosk?token=${encodeURIComponent(kioskToken)}`);
-    setQrOpen(true);
-  };
-  const closeKioskQr = () => {
-    if (qrClosing) return;
-    setQrClosing(true);
-    setTimeout(() => { setQrOpen(false); setQrClosing(false); }, 200);
-  };
 
   const openAttendance = () => setAttOpen(true);
   const closeAttendance = () => {
@@ -104,41 +86,9 @@ export function AdminShortcuts({ lessons, locale, kioskToken }: {
         <Shortcut
           icon={<QrCode size={24} strokeWidth={1.5} style={{ color: ICON_INK }}/>}
           label={t('admin_home_shortcut_kiosk_login')}
-          onClick={openKioskQr}
+          onClick={() => kloudNav.push(KloudScreen.KioskLogin)}
         />
       </div>
-
-      {/* 키오스크 로그인 QR — 키오스크 카메라/스캐너로 스캔 */}
-      {qrOpen && (
-        <div
-          className={`fixed inset-0 z-[70] flex items-center justify-center px-8 ${
-            qrClosing ? 'animate-[fadeOut_200ms_ease-out_forwards]' : 'animate-[fadeIn_200ms_ease-out]'
-          }`}
-          onClick={closeKioskQr}
-        >
-          <div className={'absolute inset-0 bg-black/40'}/>
-          <div
-            className={'relative w-full max-w-[360px] bg-white rounded-[24px] p-6 flex flex-col items-center animate-[scaleIn_260ms_ease-out]'}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className={'text-[17px] font-bold text-black'}>{t('admin_kiosk_login_title')}</p>
-            <p className={'mt-1.5 text-[13px] leading-relaxed text-[#8B95A1] text-center whitespace-pre-line'}>
-              {t('admin_kiosk_login_desc')}
-            </p>
-            <div className={'mt-5 p-4 rounded-[16px] border border-[#F1F3F6] bg-white'}>
-              <QRCodeCanvas value={qrUrl} size={220}/>
-            </div>
-            <p className={'mt-3 text-[11px] text-[#B1B8BE] text-center'}>{t('admin_kiosk_login_caution')}</p>
-            <button
-              type={'button'}
-              onClick={closeKioskQr}
-              className={'mt-4 w-full h-[48px] rounded-[12px] bg-[#1E2124] text-[15px] font-bold text-white active:scale-[0.98] transition-transform'}
-            >
-              {t('kiosk_confirm')}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* 출석 체크 — 오늘 수업 목록, 탭하면 그 수업의 출석 QR 화면 */}
       {attOpen && (

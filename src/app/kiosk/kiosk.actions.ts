@@ -6,7 +6,7 @@ import { AttendanceStatus } from "@/app/endpoint/studio.endpoint";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { clearCookies } from "@/app/profile/clear.token.action";
-import { accessTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
+import { accessTokenKey, kioskCustomerTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
 
 
 // 뒷 4자리 패드에서 온 숫자면 matchType 'PhoneSuffix'로 끝자리 일치만 — 부분 일치는 다른 회원이 먼저 잡힐 수 있다.
@@ -245,4 +245,28 @@ export const cancelKioskPaymentAction = async (params: { paymentId: string; targ
 // 영수증 재발급용 — GET /kiosks/:id/paymentRecords/:paymentId. 인증 없음.
 export const getKioskPaymentRecordDetailAction = async (params: { kioskId: number; paymentId: string }) => {
   return await api.kiosk.getPaymentRecordDetail(params);
+};
+
+// ── 키오스크 QR 로그인(SSE) ───────────────────────────────────────────────────────
+// SSE 스트림은 브라우저 EventSource가 API 서버에 직접 붙는다(헤더 불필요).
+// GUINNESS_API_SERVER는 NEXT_PUBLIC_이 아니라 클라 번들에 없으므로 서버 액션으로 내려준다.
+export const getKioskApiServerAction = async (): Promise<string> => {
+  return (process.env.GUINNESS_API_SERVER ?? '').replace(/\/$/, '');
+};
+
+// 'kiosk.login' 이벤트로 받은 손님 토큰(12시간)을 쿠키에 — 이후 요청의 x-guinness-kiosk-authorization 헤더가 된다.
+// 공용 기기라 수명은 토큰과 같은 12시간으로 두고, 손님 화면이 끝나면 clearKioskCustomerTokenAction으로 바로 지운다.
+export const saveKioskCustomerTokenAction = async (token: string) => {
+  const cookieStore = await cookies();
+  cookieStore.set(kioskCustomerTokenKey, token, {
+    maxAge: 60 * 60 * 12,
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+  });
+};
+
+export const clearKioskCustomerTokenAction = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete(kioskCustomerTokenKey);
 };

@@ -116,6 +116,8 @@ export const KloudScreen = {
 
   /** QR 스캔 */
   QRScan: '/qrs',
+  /** 키오스크 QR 로그인 — 파라미터 없이 열면 카메라 스캔, kioskId·code가 있으면 바로 승인 */
+  KioskLogin: '/kiosk-login',
   QRScanWithLesson: (lessonId: number) => `/qrs?lessonId=${lessonId}`,
 } as const;
 

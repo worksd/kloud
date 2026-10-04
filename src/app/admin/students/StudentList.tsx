@@ -8,7 +8,7 @@ import { AdminRegisterStudentDialog } from '@/app/admin/AdminRegisterStudentDial
 import { StudentListItemResponse, StudentListOrder } from '@/app/endpoint/student.endpoint';
 import { getStudentsAction, StudentsPage } from '@/app/admin/students/students.action';
 
-// 관리자 수강생 탭 — 수강생 추가 + 검색 + 정렬/활성 필터 + 20명씩 더보기. 행을 누르면 상세 다이얼로그.
+// 관리자 수강생 탭 — 수강생 추가 + 검색 + 정렬 세그먼트/활성 수강생 스위치 + 20명씩 더보기. 행을 누르면 상세 다이얼로그.
 // 첫 페이지는 서버에서 렌더해 내려오고, 조건이 바뀌면 서버 액션으로 1페이지부터 다시 받는다.
 
 const ORDERS: { value: StudentListOrder; label: string }[] = [
@@ -183,11 +183,6 @@ export function StudentList({ initial, locale }: { initial: StudentsPage; locale
     }
   };
 
-  const chip = (on: boolean) =>
-    `h-[34px] px-3.5 rounded-full text-[13px] font-semibold transition-colors ${
-      on ? 'bg-[#1F1F1F] text-white' : 'bg-white text-[#4E5968] border border-[#EEF0F2] active:bg-[#F4F5F7]'
-    }`;
-
   return (
     <>
       {/* 수강생 추가 */}
@@ -220,15 +215,38 @@ export function StudentList({ initial, locale }: { initial: StudentsPage; locale
         )}
       </div>
 
-      {/* 정렬 + 활성 필터 */}
-      <div className={'mx-4 mt-2.5 flex gap-1.5'}>
-        {ORDERS.map((o) => (
-          <button key={o.value} type={'button'} onClick={() => setOrder(o.value)} aria-pressed={order === o.value} className={chip(order === o.value)}>
-            {o.label}
-          </button>
-        ))}
-        <button type={'button'} onClick={() => setOnlyActive((v) => !v)} aria-pressed={onlyActive} className={chip(onlyActive)}>
-          활성만
+      {/* 정렬(세그먼트, 둘 중 하나) + 활성 수강생만(스위치, 켜고 끄기) — 성격이 달라 모양도 다르게 */}
+      <div className={'mx-4 mt-2.5 flex items-center justify-between gap-3'}>
+        <div role={'radiogroup'} aria-label={'정렬'} className={'flex p-[3px] rounded-full bg-[#EEF0F2]'}>
+          {ORDERS.map((o) => {
+            const on = order === o.value;
+            return (
+              <button
+                key={o.value}
+                type={'button'}
+                role={'radio'}
+                aria-checked={on}
+                onClick={() => setOrder(o.value)}
+                className={`h-[30px] px-3.5 rounded-full text-[13px] font-semibold transition-all ${
+                  on ? 'bg-white text-[#191F28] shadow-[0_1px_3px_rgba(0,0,0,0.08)]' : 'text-[#8B95A1] active:text-[#4E5968]'
+                }`}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type={'button'}
+          role={'switch'}
+          aria-checked={onlyActive}
+          onClick={() => setOnlyActive((v) => !v)}
+          className={'flex items-center gap-2 shrink-0'}
+        >
+          <span className={`text-[13px] font-semibold transition-colors ${onlyActive ? 'text-[#191F28]' : 'text-[#8B95A1]'}`}>활성 수강생만</span>
+          <span className={`relative w-[40px] h-[24px] rounded-full transition-colors ${onlyActive ? 'bg-[#1E2124]' : 'bg-[#D1D6DB]'}`}>
+            <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow transition-all ${onlyActive ? 'left-[19px]' : 'left-[3px]'}`}/>
+          </span>
         </button>
       </div>
 

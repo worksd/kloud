@@ -19,6 +19,8 @@ type KioskPhoneInputFormProps = {
   onDismissError?: () => void;
   /** 'admin'(상담실 태블릿)이면 좌우 2단 레이아웃으로 렌더. 기본 'kiosk'는 세로 전체화면 키패드. */
   variant?: 'kiosk' | 'admin';
+  /** 앱 QR 로그인 패널(KioskQrLogin) — 전화 입력 대신 앱으로 로그인하는 길. 없으면 미노출 */
+  qrLogin?: React.ReactNode;
   /** 'lastFour'면 전체번호 대신 뒷번호 4자리만 입력(4칸 패드). 스튜디오 출석 체크용. */
   mode?: 'phone' | 'lastFour';
 };
@@ -48,7 +50,7 @@ const phonePlaceholder = (dial: string) => formatPhone(PLACEHOLDER_DIGITS[dial] 
 
 const NUMPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '010', '0', '←'];
 
-export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, loading, errorMessage, onDismissError, variant = 'kiosk', mode = 'phone' }: KioskPhoneInputFormProps) => {
+export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, onHome, loading, errorMessage, onDismissError, variant = 'kiosk', mode = 'phone', qrLogin }: KioskPhoneInputFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
   const lastFour = mode === 'lastFour';
@@ -154,6 +156,13 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
           </button>
         )}
       </div>
+
+      {/* 앱 QR 로그인 — 키패드 위, 카드와 같은 폭 */}
+      {qrLogin && (
+        <div className="shrink-0 flex justify-center px-[5.6%] pb-[min(1vw,12px)]">
+          <div className="w-full" style={{ maxWidth: 'min(58vw, 600px)' }}>{qrLogin}</div>
+        </div>
+      )}
 
       {/* 뒷 4자리 패드 — 키패드 카드와 분리된 별도 섹션 */}
       {lastFour && (
@@ -264,6 +273,9 @@ export const KioskPhoneInputForm = ({ locale, onBack, onNext, onSearchByEmail, o
                 {t('kiosk_search_by_email')}
               </button>
             )}
+
+            {/* 앱 QR 로그인 */}
+            {qrLogin && <div className="mt-[24px]">{qrLogin}</div>}
 
             {/* 전화번호 입력 (뒷 4자리 모드는 4칸 패드) */}
             <div className="mt-[28px]">

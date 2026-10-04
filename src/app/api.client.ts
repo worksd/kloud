@@ -140,6 +140,8 @@ export class ApiClient extends EndpointClient {
     listPayments: this.endpointBuilder(API.Kiosk.ListKioskPayments),
     cancelPayment: this.endpointBuilder(API.Kiosk.CancelKioskPayment),
     getPaymentRecordDetail: this.endpointBuilder(API.Kiosk.GetKioskPaymentRecordDetail),
+    // QR 로그인 승인(모바일 앱 쪽) — 키오스크 쪽 SSE는 브라우저 EventSource로 직접 연다(KioskQrLogin)
+    login: this.endpointBuilder(API.Kiosk.KioskLogin),
   }
 
   readonly billing = {
