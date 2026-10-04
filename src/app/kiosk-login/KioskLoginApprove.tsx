@@ -6,39 +6,47 @@ import QRScanner from '@/app/components/QRScanner';
 import { getLocaleString } from '@/app/components/locale';
 import { Locale } from '@/shared/StringResource';
 import { KioskLoginResponse } from '@/app/endpoint/kiosk.endpoint';
+import { KioskOperatorLoginResponse } from '@/app/endpoint/auth.endpoint';
 import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
-import { approveKioskLoginAction } from '@/app/kiosk-login/kiosk.login.action';
+import { approveKioskLoginAction, approveKioskOperatorLoginAction } from '@/app/kiosk-login/kiosk.login.action';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
 
 /**
- * 키오스크 QR 로그인 — 앱(폰) 쪽 화면. 두 진입이 있다.
- *  - 딥링크: 기본 카메라로 키오스크 QR을 찍어 `/kiosk-login?kioskId=&code=`로 들어옴 → 바로 승인
- *  - 앱 내: 관리자 홈 '키오스크 로그인' 숏컷 등에서 파라미터 없이 push → 카메라 스캐너를 열고, 찍히면 승인
- * 승인은 POST /kiosks/:id/login 한 번. 토큰은 키오스크 스트림으로만 가므로 여기서는 결과만 보여준다.
- * 키오스크 화면이 안 바뀌면(QR 5분 만료 등) 서버도 알 수 없어 200이 온다 — 다시 찍으라고 안내한다.
+ * 키오스크 QR 로그인 — 앱(폰) 쪽 화면. QR은 두 종류다.
+ *  - 운영자(기기) 로그인: 키오스크 로그인 화면의 `guinness://kiosk-operator-login?code=…` → POST /auth/kiosk-login { code }
+ *    (학원 관계자 계정만). 관리자 홈 '키오스크 로그인' 숏컷이 주로 이걸 찍는다.
+ *  - 손님 로그인: 운영 중인 키오스크 전화 입력 화면의 `…/kiosk-login?kioskId=&code=` → POST /kiosks/:id/login { code }
+ * 진입은 딥링크(파라미터 있음 → 바로 승인)와 앱 내 스캔(파라미터 없음 → 카메라) 둘 다.
+ * 승인 성공 시 토큰은 키오스크 스트림으로만 가므로 여기서는 결과만 보여준다. 키오스크 화면이 안 바뀌면(QR 5분 만료 등)
+ * 서버도 알 수 없어 200이 온다 — 다시 찍으라고 안내한다.
  */
-type Target = { kioskId: number; code: string };
+type Target = { kind: 'customer'; kioskId: number; code: string } | { kind: 'operator'; code: string };
+type Done = { kind: 'customer'; res: KioskLoginResponse } | { kind: 'operator'; res: KioskOperatorLoginResponse };
 type State =
   | { kind: 'scan' }
   | { kind: 'needLogin' }
   | { kind: 'loading'; target: Target }
-  | { kind: 'done'; res: KioskLoginResponse }
+  | { kind: 'done'; done: Done }
   | { kind: 'error'; code: string; message: string; fromScan: boolean };
 
 const CODE_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
-/** QR 값에서 kioskId·code 추출 — 전체 URL(https://…/kiosk-login?…), 스킴(rawgraphy://kiosk-login?…), 쿼리문자열만 온 경우 모두 허용 */
+/**
+ * QR 값에서 대상 추출 — 전체 URL(https://…/kiosk-login?…), 스킴(guinness://kiosk-operator-login?code=…, rawgraphy://…), 쿼리문자열만 온 경우 모두 허용.
+ * kioskId가 있으면 손님 로그인, 없고 code만 있으면 운영자 로그인.
+ */
 export const parseKioskLoginQr = (raw: string): Target | null => {
   const text = raw.trim();
-  let query = text;
   const q = text.indexOf('?');
-  if (q >= 0) query = text.slice(q + 1);
-  const params = new URLSearchParams(query);
-  const kioskId = Number(params.get('kioskId'));
+  const params = new URLSearchParams(q >= 0 ? text.slice(q + 1) : text);
   const code = params.get('code') ?? '';
-  if (!Number.isInteger(kioskId) || kioskId <= 0 || !CODE_RE.test(code)) return null;
-  return { kioskId, code };
+  if (!CODE_RE.test(code)) return null;
+  const kioskIdRaw = params.get('kioskId');
+  if (kioskIdRaw === null) return { kind: 'operator', code };
+  const kioskId = Number(kioskIdRaw);
+  if (!Number.isInteger(kioskId) || kioskId <= 0) return null;
+  return { kind: 'customer', kioskId, code };
 };
 
 export const KioskLoginApprove = ({ kioskId, code, locale, isLoggedIn }: {
@@ -48,7 +56,11 @@ export const KioskLoginApprove = ({ kioskId, code, locale, isLoggedIn }: {
   isLoggedIn: boolean;
 }) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
-  const initialTarget = useMemo<Target | null>(() => (kioskId && code && CODE_RE.test(code) ? { kioskId, code } : null), [kioskId, code]);
+  const initialTarget = useMemo<Target | null>(() => {
+    if (!code || !CODE_RE.test(code)) return null;
+    if (kioskId === null) return { kind: 'operator', code };
+    return kioskId > 0 ? { kind: 'customer', kioskId, code } : null;
+  }, [kioskId, code]);
   const hasParams = kioskId !== null || code !== null;
   const [state, setState] = useState<State>(() => {
     if (!isLoggedIn) return { kind: 'needLogin' };
@@ -62,18 +74,32 @@ export const KioskLoginApprove = ({ kioskId, code, locale, isLoggedIn }: {
 
   useEffect(() => {
     if (state.kind !== 'loading') return;
-    const key = `${state.target.kioskId}:${state.target.code}`;
+    const target = state.target;
+    const key = target.kind === 'customer' ? `c:${target.kioskId}:${target.code}` : `o:${target.code}`;
     if (inflightRef.current === key) return;
     inflightRef.current = key;
-    approveKioskLoginAction(state.target).then((res) => {
-      if (isGuinnessErrorCase(res)) setState({ kind: 'error', code: res.code, message: res.message, fromScan: !initialTarget });
-      else setState({ kind: 'done', res });
-    });
+    const fromScan = !initialTarget;
+    if (target.kind === 'customer') {
+      approveKioskLoginAction({ kioskId: target.kioskId, code: target.code }).then((res) => {
+        if (isGuinnessErrorCase(res)) setState({ kind: 'error', code: res.code, message: res.message, fromScan });
+        else setState({ kind: 'done', done: { kind: 'customer', res } });
+      });
+    } else {
+      approveKioskOperatorLoginAction({ code: target.code }).then((res) => {
+        if (isGuinnessErrorCase(res)) setState({ kind: 'error', code: res.code, message: res.message, fromScan });
+        else setState({ kind: 'done', done: { kind: 'operator', res } });
+      });
+    }
   }, [state, initialTarget]);
 
   const onScanned = useCallback((decoded: string) => {
     const target = parseKioskLoginQr(decoded);
-    if (!target) { setScanError(t('kiosk_login_scan_not_kiosk_qr')); return; }
+    if (!target) {
+      // 뭘 읽었는지 보여줘야 현장에서 원인을 바로 안다 (옛 토큰 QR, 티켓 QR, 다른 서비스 QR 등)
+      const peek = decoded.trim().replace(/\s+/g, ' ');
+      setScanError(`${t('kiosk_login_scan_not_kiosk_qr')}\n${peek.length > 70 ? `${peek.slice(0, 70)}…` : peek}`);
+      return;
+    }
     setScanError(null);
     setState({ kind: 'loading', target });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,10 +148,14 @@ export const KioskLoginApprove = ({ kioskId, code, locale, isLoggedIn }: {
           <>
             <CheckCircle2 size={56} className="mx-auto text-[#1E2124]"/>
             <p className="mt-5 text-[19px] font-bold text-black whitespace-pre-line">
-              {t('kiosk_login_approve_done').replace('{kiosk}', state.res.kioskName)}
+              {state.done.kind === 'operator'
+                ? t('kiosk_login_approve_operator_done').replace('{studio}', state.done.res.studioName)
+                : t('kiosk_login_approve_done').replace('{kiosk}', state.done.res.kioskName)}
             </p>
             <p className="mt-2 text-[14px] text-[#6D7882] whitespace-pre-line">
-              {state.res.studentId === null ? t('kiosk_login_approve_not_student') : t('kiosk_login_approve_done_desc')}
+              {state.done.kind === 'operator'
+                ? t('kiosk_login_approve_operator_done_desc')
+                : state.done.res.studentId === null ? t('kiosk_login_approve_not_student') : t('kiosk_login_approve_done_desc')}
             </p>
             <p className="mt-4 text-[12.5px] text-[#9AA3AD] whitespace-pre-line">{t('kiosk_login_approve_retry_hint')}</p>
             <button type="button" onClick={initialTarget ? goHome : goBack} className={primaryBtn}>{t('kiosk_confirm')}</button>

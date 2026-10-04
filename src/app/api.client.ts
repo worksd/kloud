@@ -12,6 +12,8 @@ export class ApiClient extends EndpointClient {
     signUp: this.endpointBuilder(API.Auth.PostSignUpEmail),
     socialLogin: this.endpointBuilder(API.Auth.PostSocialLogin),
     socialLink: this.endpointBuilder(API.Auth.PostSocialLink),
+    // 키오스크 운영자 QR 로그인 승인(파트너 앱) — 키오스크 쪽 SSE는 KioskOperatorQrLogin이 EventSource로 직접 연다
+    kioskOperatorLogin: this.endpointBuilder(API.Auth.KioskOperatorLogin),
     sendEmailVerification: this.endpointBuilder(API.Auth.SendVerificationEmail),
     sendPhoneVerification: this.endpointBuilder(API.Auth.SendPhoneVerification),
     checkPhoneVerification: this.endpointBuilder(API.Auth.CheckPhoneVerification),

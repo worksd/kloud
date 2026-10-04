@@ -4950,9 +4950,11 @@ export const StringResource = {
   kiosk_login_approve_need_login_desc: { ko: '앱에 로그인한 뒤 키오스크 QR을 다시 찍어주세요', en: 'Log in to the app, then scan the kiosk QR again', jp: 'アプリにログインしてからキオスクのQRを再度読み取ってください', zh: '请先登录App，再重新扫描自助机二维码' },
   kiosk_login_approve_failed: { ko: '키오스크 로그인에 실패했어요', en: 'Kiosk login failed', jp: 'キオスクのログインに失敗しました', zh: '自助机登录失败' },
   kiosk_login_approve_invalid: { ko: 'QR 정보가 올바르지 않아요', en: 'The QR information is invalid', jp: 'QRの情報が正しくありません', zh: '二维码信息无效' },
-  kiosk_login_scan_hint: { ko: '키오스크 전화번호 입력 화면에 있는\nQR을 네모 안에 맞춰주세요', en: 'Align the QR on the kiosk phone-entry screen\ninside the frame', jp: 'キオスクの電話番号入力画面にある\nQRを枠内に合わせてください', zh: '请将自助机电话输入界面上的\n二维码对准框内' },
+  kiosk_login_scan_hint: { ko: '키오스크 로그인 화면의 QR을\n네모 안에 맞춰주세요', en: 'Align the QR on the kiosk login screen\ninside the frame', jp: 'キオスクのログイン画面にあるQRを\n枠内に合わせてください', zh: '请将自助机登录界面上的二维码\n对准框内' },
   kiosk_login_scan_not_kiosk_qr: { ko: '키오스크 로그인 QR이 아니에요', en: 'This is not a kiosk login QR', jp: 'キオスクログイン用のQRではありません', zh: '这不是自助机登录二维码' },
   kiosk_login_scan_again: { ko: '다시 스캔', en: 'Scan again', jp: '再スキャン', zh: '重新扫描' },
+  kiosk_login_approve_operator_done: { ko: '{studio} 키오스크에\n로그인했어요', en: 'Logged in to the\n{studio} kiosk', jp: '{studio}のキオスクに\nログインしました', zh: '已登录\n{studio}的自助机' },
+  kiosk_login_approve_operator_done_desc: { ko: '키오스크 화면이 곧 바뀌어요. 바뀌지 않으면 QR을 다시 찍어주세요', en: "The kiosk screen will change shortly. If it doesn't, scan the QR again", jp: 'キオスクの画面がまもなく切り替わります。切り替わらない場合はQRを再度読み取ってください', zh: '自助机屏幕即将切换。若未切换，请重新扫描二维码' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

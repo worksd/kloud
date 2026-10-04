@@ -8,9 +8,11 @@ type Props = {
   onCancel: () => void;
   /** '이메일로 로그인' 제목 5연속 탭 시 호출 — 서버(엔드포인트) 변경 진입. 홈 로고 5탭과 같은 규칙. */
   onAdminMode?: () => void;
+  /** 운영자 QR 로그인 패널(KioskOperatorQrLogin) — 이메일 폼 위에 놓인다 */
+  qrLogin?: React.ReactNode;
 };
 
-export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel, onAdminMode }: Props) => {
+export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel, onAdminMode, qrLogin }: Props) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,11 +70,23 @@ export const KioskOperatorEmailLogin = ({ onLoggedIn, onCancel, onAdminMode }: P
           className="text-[#1E2124] font-bold cursor-pointer select-none"
           style={{ fontSize: 'min(2.4vh, 26px)' }}
         >
-          이메일로 로그인
+          키오스크 로그인
         </p>
         <p className="text-[#86898C] mt-[6px]" style={{ fontSize: 'min(1.4vh, 14px)' }}>
-          파트너 계정 이메일과 비밀번호로 로그인하세요
+          {qrLogin ? '관리자 앱으로 QR을 찍거나, 파트너 계정 이메일로 로그인하세요' : '파트너 계정 이메일과 비밀번호로 로그인하세요'}
         </p>
+
+        {/* 운영자 QR 로그인 — 있으면 이메일 폼 위에, 그 아래 '또는' 구분선 */}
+        {qrLogin && (
+          <>
+            <div className="mt-[16px]">{qrLogin}</div>
+            <div className="mt-[16px] flex items-center gap-[10px]">
+              <span className="flex-1 h-px bg-[#EEF0F2]"/>
+              <span className="text-[#9AA3AD] shrink-0" style={{ fontSize: 'min(1.3vh, 13px)' }}>또는 이메일로 로그인</span>
+              <span className="flex-1 h-px bg-[#EEF0F2]"/>
+            </div>
+          </>
+        )}
 
         {/* 현재 접속 중인 웹 엔드포인트 — 어느 서버에 붙어 있는지 확인용 */}
         {endpoint && (
