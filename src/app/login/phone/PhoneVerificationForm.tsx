@@ -93,6 +93,20 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb
     }
   }
 
+  // 인증 실패 안내 — 웹은 인라인 에러, 앱은 네이티브 다이얼로그
+  const showCodeError = async (message: string) => {
+    if (isWeb) {
+      setWebError(message);
+    } else {
+      const resendDialog = await createDialog({
+        id: 'Simple',
+        message,
+        title: await translate('certification')
+      })
+      window.KloudEvent.showDialog(JSON.stringify(resendDialog))
+    }
+  }
+
   const handleOnClick = async () => {
     if (!smsSent) {
       if (!isFromLogin) {
@@ -125,19 +139,12 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb
             // 웹: 풀 리로드로 방금 세팅된 세션 쿠키가 상단바 포함 서버 컴포넌트에 반영되게 (이메일 로그인과 동일). 항상 기본 경로로.
             window.location.replace('/');
           } else {
-            await LoginAuthNavigation({status: res.user.status, window})
+            await LoginAuthNavigation({status: res.user.status, type: res.user.type, window})
           }
         } else {
-          if (isWeb) {
-            setWebError(await translate('certification_code_mismatch'));
-          } else {
-            const resendDialog = await createDialog({
-              id: 'Simple',
-              message: await translate('certification_code_mismatch'),
-              title: await translate('certification')
-            })
-            window.KloudEvent.showDialog(JSON.stringify(resendDialog))
-          }
+          // 서버 메시지 우선, 없으면 기본 불일치 문구
+          const serverMessage = 'message' in res ? res.message : undefined
+          await showCodeError(serverMessage || await translate('certification_code_mismatch'))
         }
       } else {
         const res = await updateUserAction({phone, countryCode, code})
@@ -147,6 +154,9 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb
             message: await translate('certification_success_message'),
           })
           window.KloudEvent.showDialog(JSON.stringify(completeDialog))
+        } else {
+          // 서버 메시지 우선, 없으면 기본 불일치 문구
+          await showCodeError(res.errorMessage || await translate('certification_code_mismatch'))
         }
       }
     }

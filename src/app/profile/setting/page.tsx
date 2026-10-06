@@ -6,6 +6,10 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { QRScannerMenu } from "@/app/profile/setting/QRScannerMenu";
+import {
+  StudioSettingFlatIcon, AccountFlatIcon, LanguageFlatIcon, NotificationFlatIcon, CouponFlatIcon,
+  VersionFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, InquiryFlatIcon, LogoutFlatIcon,
+} from "@/app/profile/setting/SettingIcons";
 
 export default async function AccountSetting({
                                                searchParams
@@ -18,39 +22,40 @@ export default async function AccountSetting({
   const menuList = (
     <>
       <NavigateClickWrapper method={'push'} route={KloudScreen.StudioSetting}>
-        <MenuItem label="studio_setting"/>
+        <MenuItem label="studio_setting" icon={<StudioSettingFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.MyAccount}>
-        <MenuItem label="my_account"/>
+        <MenuItem label="my_account" icon={<AccountFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
-        <MenuItem label="language_setting"/>
+        <MenuItem label="language_setting" icon={<LanguageFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.NotificationSetting}>
-        <MenuItem label="notification_setting"/>
+        <MenuItem label="notification_setting" icon={<NotificationFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.CouponRegister}>
-        <MenuItem label="coupon_register"/>
+        <MenuItem label="coupon_register" icon={<CouponFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
       <VersionMenu
         title={await translate('app_version')}
-        version={appVersion}/>
+        version={appVersion}
+        icon={<VersionFlatIcon size={24}/>}/>
       <NavigateClickWrapper method={'push'} route={KloudScreen.BusinessInfo}>
-        <MenuItem label={'business_info'}/>
+        <MenuItem label={'business_info'} icon={<BusinessInfoFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
 
       <NavigateClickWrapper method={'push'} route={KloudScreen.Policy}>
-        <MenuItem label="terms_and_policy"/>
+        <MenuItem label="terms_and_policy" icon={<PolicyFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
 
       {os === 'Android' &&
         <NavigateClickWrapper method={'push'} route={KloudScreen.Inquiry}>
-          <MenuItem label="inquiry"/>
+          <MenuItem label="inquiry" icon={<InquiryFlatIcon size={24}/>}/>
         </NavigateClickWrapper>
       }
 
       <DialogClickWrapper id={"Logout"}>
-        <MenuItem label="log_out"/>
+        <MenuItem label="log_out" icon={<LogoutFlatIcon size={24}/>}/>
       </DialogClickWrapper>
 
       <QRScannerMenu/>

@@ -11,11 +11,13 @@ import TicketIcon from "../../../public/assets/ic_ticket.svg";
 import { PassPlanBenefits } from "@/app/payment/PassPlanBenefits";
 import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWrapper";
 import { LessonTags } from "@/app/components/LessonTags";
+import { PassDaysChip } from "@/app/components/PassDaysChip";
 import { DeferredImage } from "@/app/components/DeferredImage";
 import { GetPaymentResponse } from "@/app/endpoint/payment.endpoint";
 import { Locale } from "@/shared/StringResource";
+import { RegularClassHeader, RegularClassArtistSection, RegularClassNoticeCard } from "@/app/payment/RegularClassHeader";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
 // 좌측 폼(UnifiedPaymentInfo)의 결제 버튼이 이 슬롯으로 portal된다 — 화면 하단 고정 대신 카드 아래 배치.
 const PC_PAYMENT_BUTTON_SLOT_ID = 'pc-payment-button-slot';
@@ -65,6 +67,15 @@ export default async function PaymentPcForm({
 
         {/* 좌측: 결제 폼 (UnifiedPaymentInfo) */}
         <div className="col-start-1 row-start-1">
+          {/* 정규반 안내사항 — 우측 요약 카드는 짧게 두고, 설명은 결제 폼 위에 라운드 카드로 전부(줄바꿈 유지) */}
+          {paymentItem === 'regular-class' && payment.regularClass?.description && (
+            <section className="px-6 pb-6">
+              <RegularClassNoticeCard
+                title={(await translate('regular_class_notice')).replace('{name}', payment.regularClass.name)}
+                description={payment.regularClass.description}
+              />
+            </section>
+          )}
           {paymentItem === 'practice-room' ? (
             <PracticeRoomPaymentWrapper
               payment={payment}
@@ -202,11 +213,27 @@ export default async function PaymentPcForm({
                     <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
                   </div>
                   <p className="text-[17px] font-bold text-black">{title}</p>
-                  {payment.passPlan.expireDateStamp && (
-                    <p className="text-[12px] text-[#86898C] font-medium">{payment.passPlan.expireDateStamp}</p>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {payment.passPlan.expireDateStamp && (
+                      <p className="text-[12px] text-[#86898C] font-medium">{payment.passPlan.expireDateStamp}</p>
+                    )}
+                    {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
+                    <PassDaysChip days={payment.passPlan.days} locale={locale}/>
+                  </div>
                   <PassPlanBenefits passPlan={payment.passPlan} locale={locale} />
                 </div>
+              </>
+            )}
+
+            {/* regular-class — 학원(로고+이름) → 반 이름, 담당 강사(있을 때만). 가격정책은 좌측 결제 폼에서 고른다 */}
+            {paymentItem === 'regular-class' && payment.regularClass && (
+              <>
+                <RegularClassHeader regularClass={payment.regularClass} variant="pc" />
+                {payment.regularClass.artist && (payment.regularClass.artist.nickName || payment.regularClass.artist.name) && (
+                  <div className="pt-4 border-t border-[#F0F0F0]">
+                    <RegularClassArtistSection regularClass={payment.regularClass} title={await translate('regular_class_artist')} variant="pc" />
+                  </div>
+                )}
               </>
             )}
 

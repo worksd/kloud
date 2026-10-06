@@ -5,8 +5,8 @@ import { getLocale, translate } from "@/utils/translate";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
-export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId?: string, appVersion?: string }> }) {
-  const {studioId: rawStudioId, appVersion = ''} = await searchParams;
+export default async function PassPage({searchParams}: { searchParams: Promise<{ studioId?: string, regularClassId?: string, appVersion?: string }> }) {
+  const {studioId: rawStudioId, regularClassId: rawRegularClassId, appVersion = ''} = await searchParams;
   // studioId 없이 진입(크롤러/직접 URL)하면 GET /studios/undefined가 나가던 문제 — 웹만 홈으로 보낸다.
   // 앱 웹뷰(x-guinness-version 있음)는 네이티브가 항상 studioId를 넘기므로 기존대로 에러 다이얼로그에 맡긴다.
   const studioId = Number(rawStudioId);
@@ -14,8 +14,10 @@ export default async function PassPage({searchParams}: { searchParams: Promise<{
     const isWeb = ((await headers()).get('x-guinness-version') ?? '') === '';
     if (isWeb) redirect('/');
   }
+  // 스튜디오 상세 정규반 카드에서 진입하면 그 반의 패스권만 (GET /studios/:id/pass-plans?regularClassId=)
+  const regularClassId = Number(rawRegularClassId);
   const studioRes = await getStudioDetail(studioId);
-  const res = await getPassPlanListAction({studioId});
+  const res = await getPassPlanListAction({studioId, regularClassId: regularClassId > 0 ? regularClassId : undefined});
 
   if ('passPlans' in res && 'id' in studioRes) {
     return (

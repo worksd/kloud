@@ -16,8 +16,10 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { firstLessonDate } from "@/utils/weekly.days";
+import { dayDiffFromToday, formatRelativeDay } from "@/utils/lesson.relative.date";
 
-type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
+type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
 const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   switch (type) {
@@ -26,6 +28,8 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
     case 'lesson-group':
       return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
     case 'pass-plan':
+    // 정규반은 고른 가격정책(pass-plan)을 산다 — paymentId 도 'LP…'
+    case 'regular-class':
       return { value: 'passPlan', prefix: 'LP', apiValue: 'pass-plan' };
     case 'practice-room':
       return { value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room' };
@@ -35,7 +39,7 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
 }
 
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  if (type === 'pass-plan') return 'pass_plan_price';
+  if (type === 'pass-plan' || type === 'regular-class') return 'pass_plan_price';
   if (type === 'bundle') return 'promotion_price';
   if (type === 'practice-room') return 'practice_room_price';
   return 'lesson_price';
@@ -49,6 +53,9 @@ const getItemId = (payment: GetPaymentResponse, type: UnifiedPaymentType): numbe
       return payment.lesson?.id ?? 0;
     case 'pass-plan':
       return payment.passPlan?.id ?? 0;
+    // 정책 선택 전 기본값 — 정책이 선택되면 호출부가 정책(=가격정책) id 로 대체한다
+    case 'regular-class':
+      return payment.regularClass?.id ?? 0;
     case 'practice-room':
       return payment.studioRoom?.id ?? 0;
     case 'bundle':
@@ -63,6 +70,8 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
       return payment.lesson?.title ?? '';
     case 'pass-plan':
       return payment.passPlan?.name ?? '';
+    case 'regular-class':
+      return payment.regularClass?.name ?? '';
     case 'practice-room':
       return payment.studioRoom?.name ?? '';
     case 'bundle':
@@ -79,6 +88,8 @@ const getItemPrice = (payment: GetPaymentResponse, type: UnifiedPaymentType): nu
       return payment.lesson?.price ?? 0;
     case 'pass-plan':
       return payment.passPlan?.price ?? 0;
+    case 'regular-class':
+      return 0;
     case 'practice-room':
       return payment.price ?? payment.studioRoom?.unitPrice ?? 0;
     case 'bundle':
@@ -92,6 +103,8 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
       return payment.lesson?.studio;
     case 'pass-plan':
       return payment.passPlan?.studio;
+    case 'regular-class':
+      return payment.regularClass?.studio;
     case 'practice-room':
       return null;
     case 'bundle':
@@ -102,10 +115,10 @@ const getStudio = (payment: GetPaymentResponse, type: UnifiedPaymentType) => {
 }
 
 const needsMountCheck = (type: UnifiedPaymentType) =>
-  type === 'pass-plan';
+  type === 'pass-plan' || type === 'regular-class';
 
 const defaultMethod = (type: UnifiedPaymentType): PaymentMethodType | undefined =>
-  type === 'pass-plan' ? 'credit' : undefined;
+  type === 'pass-plan' || type === 'regular-class' ? 'credit' : undefined;
 
 export const UnifiedPaymentInfo = ({
   payment,
@@ -142,10 +155,16 @@ export const UnifiedPaymentInfo = ({
     kakao_pay: getLocaleString({ locale, key: 'kakao_pay' }),
     toss_pay: getLocaleString({ locale, key: 'toss_pay' }),
   };
+  // 패스권 전용 — 수업인데 서버가 price를 null로 주고 가격정책도 없으면 금액이 정해지지 않은 수업이다.
+  // 이때는 카드·해외카드·내 결제수단·계좌이체·간편결제 전부 막고 패스권(회차 차감)으로만 결제한다.
+  // (methods에 뭐가 와도 무시. 할인 패스는 깎을 금액이 없어 쓸 수 없다)
+  const rawPricePolicies = payment.lesson?.pricePolicies ?? payment.pricePolicies ?? [];
+  const passOnly = type === 'lesson' && payment.price == null && rawPricePolicies.filter(p => p.status !== 'Cancelled').length === 0;
+
   // 'pass'는 결제수단 영역이 아니라 별도 PassesSection으로 렌더 — 결제수단 옵션에서 제외.
   // 단 methods에 'pass'가 있다는 사실은 "패스 결제 활성" 신호로 PassesSection 노출 가드에 사용.
-  const passMethodEnabled = payment.methods.some(m => m.type === 'pass');
-  const paymentMethods: GetPaymentMethodResponse[] = payment.methods
+  const passMethodEnabled = passOnly || payment.methods.some(m => m.type === 'pass');
+  const paymentMethods: GetPaymentMethodResponse[] = (passOnly ? [] : payment.methods)
     .filter(m => m.type !== 'pass')
     .flatMap(m => {
       if (m.type === 'easy_pay' && m.providers && m.providers.length > 0) {
@@ -157,7 +176,7 @@ export const UnifiedPaymentInfo = ({
   // canSubscribe=true면 정기결제 스페셜 섹션을 따로 노출한다.
   // 결제수단 목록은 BE가 주는 대로 전부(billing 포함) 그대로 — 일반 billing 선택은 단건 결제,
   // 정기결제 섹션 선택(subscribeSelected)일 때만 구독 생성(POST /subscription)으로 간다.
-  const canSubscribe = payment.canSubscribe === true;
+  const canSubscribe = payment.canSubscribe === true && !passOnly;
 
   // BE 응답이 user와 같은 레벨로 분리됨 — 마이그레이션 호환 위해 둘 다 시도.
   // 비회원(연습실 게스트)은 user가 없으므로 옵셔널 체이닝.
@@ -228,6 +247,7 @@ export const UnifiedPaymentInfo = ({
   // 단 가격 정책(정기, LGT) 수업은 패스권으로 살 수 없으므로(패스는 회차 단건 LT 전용) 자동 선택하지 않는다.
   const detectedInitialPass = hasPolicies ? undefined : availablePasses.find(p => {
     const rule = getPrimaryRule(p);
+    if (passOnly && getPassDiscountRule(p)) return false; // 패스 전용에선 할인 패스는 못 쓴다
     return !!rule?.usable || (p.passFeatures ?? []).some(f => f.usable);
   });
   const detectedIsDiscount = !!(detectedInitialPass && getPassDiscountRule(detectedInitialPass));
@@ -236,8 +256,9 @@ export const UnifiedPaymentInfo = ({
   //   - 그 외(FreeCount/Unlimited) 룰 → 결제수단을 'pass'로 진입해야 하므로 passMethodEnabled가 true일 때만 허용.
   //     methods에 pass가 없는데 use-pass 류 패스만 보이는 부정합 케이스는 자동 method 선택을 보류해
   //     결제 버튼이 disabled 되도록 유도(사용자에게 명시 선택 강제).
-  const fallbackMethod: PaymentMethodType | undefined =
-    defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined);
+  const fallbackMethod: PaymentMethodType | undefined = passOnly
+    ? undefined
+    : (defaultMethod(type) ?? (paymentMethods.length > 0 ? paymentMethods[0].type : undefined));
   const useTypePassWithoutPassMethod =
     !passMethodEnabled && !!detectedInitialPass && !detectedIsDiscount;
   const initialPass: GetPassResponse | undefined = useTypePassWithoutPassMethod
@@ -258,12 +279,14 @@ export const UnifiedPaymentInfo = ({
   const [buttonSlot, setButtonSlot] = useState<HTMLElement | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | undefined>(undefined);
   const [selectedDiscount, setSelectedDiscount] = useState<DiscountResponse | undefined>(
-    (type === 'pass-plan' || type === 'practice-room' || !initialPass || !initialPassIsDiscount)
+    (type === 'pass-plan' || type === 'regular-class' || type === 'practice-room' || !initialPass || !initialPassIsDiscount)
       ? undefined
       : buildDiscountFromPass(initialPass)
   );
 
+  const [passOnlyNotice, setPassOnlyNotice] = useState<string | undefined>(undefined);
   const handleSelectMethod = (method: PaymentMethodType) => {
+    if (passOnly && method !== 'pass') return; // 패스 전용 — 일반 결제수단은 선택 불가
     setSelectedMethod(method);
     // 현재 선택된 패스가 FreeCount/Unlimited(=use pass 흐름)면 일반 결제수단과 모순 → 해제.
     // Discount 패스는 일반 결제수단과 같이 쓰는 정상 케이스 → 유지.
@@ -291,7 +314,8 @@ export const UnifiedPaymentInfo = ({
   if (needsMountCheck(type) && !mounted) return null;
 
   const studio = getStudio(payment, type);
-  const noPass = type === 'pass-plan' || type === 'practice-room';
+  // 정규반도 패스권(가격정책)을 사는 결제라 보유 패스로는 못 산다
+  const noPass = type === 'pass-plan' || type === 'regular-class' || type === 'practice-room';
   // 가격정책이 있으면 선택된 옵션의 가격이 상품가가 된다.
   const itemPrice = hasPolicies ? (selectedPolicy?.price ?? 0) : getItemPrice(payment, type);
 
@@ -384,9 +408,36 @@ export const UnifiedPaymentInfo = ({
             policies={pricePolicies}
             selectedPolicyId={selectedPolicyId}
             onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
+            // 정규반 옵션은 횟수 차이일 수도, 요일(월요반/수요반) 차이일 수도 있어 중립 문구
+            titleKey={type === 'regular-class' ? 'select_enroll_option' : undefined}
+            hideDescription={type === 'regular-class'}
           />
           {/* 첫 수업 시작일 안내 — 결제 화면에 띄운 회차(firstLessonId로 전송되는 그 회차)부터 계약이 잡힌다.
               date는 서버가 로케일 적용해 내려주는 표시 문자열 그대로. */}
+          {/* 정규반 — 첫 수업 시작 안내(상대 날짜): 서버 startDate(패스 시작일, 남은 패스가 있으면 그 만료 다음 날)부터
+              고른 방식의 요일 중 가장 가까운 날. FE 추정이라 휴강·공휴일은 반영 안 됨. 요일 없는 방식은 시작일 그대로.
+              상대 날짜는 수업 카드와 같은 formatRelativeDay(기기 로컬). 결제 폼은 마운트 후에만 그리므로(needsMountCheck) 하이드레이션 불일치 없음 */}
+          {type === 'regular-class' && payment.startDate && (
+            <div className="mx-6 mt-3 flex items-center gap-2.5 rounded-xl bg-[#EEF2FF] border border-[#E0E7FF] px-4 py-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#4F51D8]">
+                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+                <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              <span className="text-[13px] font-semibold text-[#3F3FA8]">
+                {(() => {
+                  // 오늘 → '오늘부터 바로 시작합니다' / 내일 → '내일(9.23)부터 바로 시작합니다' / 그 뒤 → '이번주 목요일(9.24)부터 시작합니다'
+                  const first = firstLessonDate(payment.startDate, selectedPolicy?.days);
+                  if (!first) return getLocaleString({ locale, key: 'pass_starts_on' }).replace('{date}', payment.startDate ?? '');
+                  const diff = dayDiffFromToday(first);
+                  if (diff <= 0) return getLocaleString({ locale, key: 'regular_class_starts_today' });
+                  const md = `${first.getMonth() + 1}.${first.getDate()}`;
+                  return getLocaleString({ locale, key: diff === 1 ? 'regular_class_starts_tomorrow' : 'regular_class_starts_on' })
+                    .replace('{day}', formatRelativeDay(first, locale))
+                    .replace('{date}', md);
+                })()}
+              </span>
+            </div>
+          )}
           {payment.lesson?.date && (
             <div className="mx-6 mt-3 flex items-center gap-2.5 rounded-xl bg-[#EEF2FF] border border-[#E0E7FF] px-4 py-3">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#4F51D8]">
@@ -398,7 +449,8 @@ export const UnifiedPaymentInfo = ({
               </span>
             </div>
           )}
-          <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />
+          {/* 패스 전용이면 바로 아래 안내 박스가 이어지므로 구분선 없이 여백만 */}
+          {!passOnly && <div className="my-5 mx-6 h-px bg-[#F0F0F0]" />}
         </>
       )}
 
@@ -467,6 +519,12 @@ export const UnifiedPaymentInfo = ({
           methods에 'pass'가 활성이면 무조건 섹션 노출(passes 비어 있어도 안내 메시지 표시). */}
       {passMethodEnabled && (
         <>
+          {passOnly && (
+            <div className="mx-6 mt-7 mb-3 rounded-[12px] bg-[#F7F8FA] px-3.5 py-3">
+              <p className="text-[13px] leading-relaxed text-[#4E5968] whitespace-pre-line">{getLocaleString({ locale, key: 'payment_pass_only_notice' })}</p>
+              {passOnlyNotice && <p className="mt-1 text-[12.5px] text-[#E55B5B] font-medium">{passOnlyNotice}</p>}
+            </div>
+          )}
           <PassesSection
             locale={locale}
             passes={availablePasses}
@@ -474,6 +532,12 @@ export const UnifiedPaymentInfo = ({
             disabledReason={hasPolicies ? getLocaleString({ locale, key: 'pass_blocked_for_price_policy' }) : undefined}
             selectedPass={selectedPass}
             onSelectPass={(pass) => {
+              // 패스 전용 — 할인 패스는 깎을 금액이 없어 선택 불가. 선택을 무시하고 사유만 보여준다
+              if (passOnly && pass && getPassDiscountRule(pass)) {
+                setPassOnlyNotice(getLocaleString({ locale, key: 'payment_pass_only_discount_blocked' }));
+                return;
+              }
+              setPassOnlyNotice(undefined);
               setSelectedPass(pass);
               setSelectedCoupon(undefined);
               if (!pass) {
@@ -496,8 +560,8 @@ export const UnifiedPaymentInfo = ({
         </>
       )}
 
-      {/* 할인 섹션 */}
-      {!noPass && !priceNotAvailable && (
+      {/* 할인 섹션 — 패스 전용(금액 없음)이면 쿠폰·할인은 의미가 없어 숨긴다 */}
+      {!noPass && !priceNotAvailable && !passOnly && (
         <>
           <DiscountSection
             locale={locale}
@@ -549,7 +613,7 @@ export const UnifiedPaymentInfo = ({
             <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
               • {getLocaleString({locale, key: 'apple_pay_domestic_only'})}
             </div>
-            {type === 'pass-plan' && (
+            {(type === 'pass-plan' || type === 'regular-class') && (
               <div className="text-[12px] text-[#B0B3B8] font-medium leading-relaxed">
                 • {getLocaleString({locale, key: 'pass_plan_point_refund_notice'})}
               </div>
@@ -571,6 +635,8 @@ export const UnifiedPaymentInfo = ({
         const needMethod = type === 'practice-room' || totalPrice > 0;
         const disabledReason = selectedPolicy?.usable === false
           ? (selectedPolicy.reason ?? getLocaleString({locale, key: 'payment_disabled_policy_unusable'}))
+          : (passOnly && (selectedMethod !== 'pass' || !selectedPass))
+          ? getLocaleString({locale, key: 'payment_disabled_pass_only'})
           : priceNotAvailable
           ? getLocaleString({locale, key: 'payment_disabled_price_unavailable'})
           : (type === 'practice-room' && !practiceRoomInfo)
@@ -590,7 +656,8 @@ export const UnifiedPaymentInfo = ({
           selectedBilling={selectedBillingCard}
           selectedPass={selectedPass}
           selectedDiscounts={noPass ? undefined : activeDiscounts}
-          type={selectedPolicy ? getPaymentType('lesson-group') : getPaymentType(type)}
+          // 정책 결제 — 수업은 lesson-group(LGT), 정규반은 가격정책 pass-plan(LP). id 는 둘 다 정책 id
+          type={selectedPolicy ? getPaymentType(type === 'regular-class' ? 'regular-class' : 'lesson-group') : getPaymentType(type)}
           id={selectedPolicy ? selectedPolicy.id : getItemId(payment, type)}
           lessonId={payment.lesson?.id}
           price={priceAvailable ? totalPrice : null}
@@ -599,6 +666,8 @@ export const UnifiedPaymentInfo = ({
           depositor={depositor}
           disabled={
             selectedPolicy?.usable === false ||
+            // 패스 전용 — 패스권을 고르기 전엔 결제 불가 (PortOne에 totalAmount 0 이 넘어가던 경로 차단)
+            (passOnly && (selectedMethod !== 'pass' || !selectedPass)) ||
             priceNotAvailable ||
             (type === 'practice-room' && !practiceRoomInfo) ||
             // 연습실은 서버가 총액을 나중에 계산해 totalPrice가 0일 수 있음 → 결제수단은 항상 필수

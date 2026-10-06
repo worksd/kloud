@@ -2,7 +2,7 @@ import { GuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { pick } from "@/app/pick";
 import { cookies, headers } from "next/headers";
 import { Endpoint } from "./endpoint";
-import { localeKey, userIdKey } from "@/shared/cookies.key";
+import { localeKey, userIdKey, kioskCustomerTokenKey } from "@/shared/cookies.key";
 import * as util from "node:util";
 import { revalidateTag } from "next/cache";
 
@@ -118,6 +118,11 @@ export abstract class EndpointClient {
     if (accessToken?.value) {
       defaultHeaders["Authorization"] = `Bearer ${accessToken.value}`;
     }
+    // 키오스크 QR 로그인 손님 토큰 — 이중 인증 규약(@KioskAuth): Authorization(운영자)은 그대로 두고 손님 토큰은 별도 헤더로
+    const kioskCustomerToken = (await cookies()).get(kioskCustomerTokenKey);
+    if (kioskCustomerToken?.value) {
+      defaultHeaders["x-guinness-kiosk-authorization"] = `Bearer ${kioskCustomerToken.value}`;
+    }
     const nextHeaders = await headers();
     const version = nextHeaders.get("x-guinness-version")?.valueOf();
     defaultHeaders["x-guinness-client"] = nextHeaders.get("x-guinness-client")?.valueOf() ?? "";
@@ -127,6 +132,11 @@ export abstract class EndpointClient {
     defaultHeaders["x-guinness-locale"] = (await cookies()).get(localeKey)?.value ?? "ko";
     // proxy.ts에서 세팅한 진입 경로 — API 호출이 발생한 페이지 pathname
     defaultHeaders["x-guinness-entry"] = nextHeaders.get("x-guinness-entry")?.valueOf() ?? "";
+    // 유저의 실제 IP — Vercel이 x-forwarded-for에 실어준다 (여러 hop이면 맨 앞이 클라이언트).
+    // 로컬 dev에선 ::1/127.0.0.1이 잡히고, 못 구하면 헤더 자체를 안 보낸다.
+    const forwardedFor = nextHeaders.get("x-forwarded-for");
+    const clientIp = forwardedFor?.split(",")[0]?.trim() || nextHeaders.get("x-real-ip") || "";
+    if (clientIp) defaultHeaders["x-guinness-ip"] = clientIp;
     return defaultHeaders;
   }
 

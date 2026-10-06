@@ -38,13 +38,18 @@ export const KloudScreen = {
   Payment: (type: 'lesson' | 'pass-plan' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
   /** 이용권(패스) 결제 — item 방식 */
   PassPlanPayment: (id: number) => `/payment?item=pass-plan&id=${id}`,
+  /** 정규반 결제 — item=regular-class, id=정규반 id 로 결제 페이지에 들어간다. 결제 API 에도 item=regular-class 그대로 전달 */
+  RegularClassPayment: (regularClassId: number) => `/payment?item=regular-class&id=${regularClassId}`,
   /** 연습실 결제 — item 방식 + 예약 시간대(startTime/endTime, 'YYYY-MM-DDTHH:mm') */
   PracticeRoomPayment: (roomId: number, startTime: string, endTime: string) =>
     `/payment?item=practice-room&id=${roomId}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`,
   BundlePayment: (id: number) => `/bundle/${id}/payment`,
-  PurchasePass: (studioId: number) => `/passPlans?studioId=${studioId}`,
+  PurchasePass: (studioId: number, regularClassId?: number) =>
+    `/passPlans?studioId=${studioId}${regularClassId ? `&regularClassId=${regularClassId}` : ''}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
+  /** 내 정규반 상세 — id 는 정규반 상품(pass) id. 혜택 대신 수업 목록을 보여준다 */
+  MyRegularClassDetail: (passId: number) => `/profile/myRegularClass/${passId}`,
   MySubscription: '/profile/mySubscription',
   MySubscriptionDetail: (id: string) => `/profile/mySubscription/${id}`,
   MySubscriptionCancel: (id: string) => `/profile/mySubscription/${id}/cancel`,
@@ -70,6 +75,21 @@ export const KloudScreen = {
   /** 내 스튜디오 (PC 웹) */
   MyStudio: '/myStudio',
   Search: (keyword: string) => `/search?q=${encodeURIComponent(keyword)}`,
+  // 관리자(Partner/Operator) 전용 랜딩 — 바텀 내비 없는 풀스크린으로 진입
+  AdminHome: '/admin',
+  /** 관리자 전용 결제 상세 — 수강생용(/paymentRecords/:id)과 별도 화면 */
+  AdminPaymentDetail: (paymentId: string) => `/admin/payments/${paymentId}`,
+  /** 관리자 현장결제 — 수강생 찾기 → 상품 → 수단·금액, POST /paymentRecords/manual */
+  AdminOnsitePayment: '/admin/onsite-payment',
+  /** 관리자 설정 하위 — 각 화면이 PATCH /studios 로 그 화면 필드만 저장 */
+  AdminSettingProfile: '/admin/setting/profile',
+  AdminSettingBusiness: '/admin/setting/business',
+  AdminSettingLesson: '/admin/setting/lesson',
+  AdminSettingRoom: '/admin/setting/room',
+  AdminSettingPayment: '/admin/setting/payment',
+  /** 수업 결제 완료 환영 화면 — lessonId가 있으면 감성 섹션(준비물·다음 수업 등)까지 그린다 */
+  PaymentComplete: (paymentId: string, lessonId?: number) =>
+    `/payment-complete?paymentId=${encodeURIComponent(paymentId)}${lessonId != null ? `&lessonId=${lessonId}` : ''}`,
 
   /** 연습실 */
   StudioRoomDetail: (id: number, date?: string) => date ? `/studioRooms/${id}?date=${date}` : `/studioRooms/${id}`,
@@ -81,6 +101,8 @@ export const KloudScreen = {
   Studios: '/studios',
   StudioDetail: (id: number) => `/studios/${id}`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
+  /** 스튜디오 정규반 전체 목록 — 상세의 '더보기' */
+  StudioRegularClasses: (id: number) => `/studios/${id}/regularClasses`,
   StudioSettingSheet: '/studios/setting/sheet',
   StudioSetting: '/profile/setting/studio',
 
@@ -97,6 +119,8 @@ export const KloudScreen = {
 
   /** QR 스캔 */
   QRScan: '/qrs',
+  /** 키오스크 QR 로그인 — 파라미터 없이 열면 카메라 스캔, kioskId·code가 있으면 바로 승인 */
+  KioskLogin: '/kiosk-login',
   QRScanWithLesson: (lessonId: number) => `/qrs?lessonId=${lessonId}`,
 } as const;
 

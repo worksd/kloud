@@ -25,7 +25,7 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { translate } from "@/utils/translate";
 import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
-import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
+import { ExceptionResponseCode, isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -173,8 +173,18 @@ export const OnboardingForm = ({
       if (selectedStudioId) {
         setIsLoading(true);
         try {
-          await createStudentAction({ studioId: selectedStudioId });
+          const res = await createStudentAction({ studioId: selectedStudioId });
+          // BE 에러는 throw가 아니라 {code, message}로 내려옴 — 안내만 하고 단계는 유지
+          if (isGuinnessErrorCase(res)) {
+            const message = res.message || await translate('unknown_error_message');
+            await notify(message, {id: 'Simple', message});
+            return;
+          }
           await saveStudioIdAction({ studioId: selectedStudioId });
+        } catch {
+          const message = await translate('unknown_error_message');
+          await notify(message, {id: 'Simple', message});
+          return;
         } finally {
           setIsLoading(false);
         }

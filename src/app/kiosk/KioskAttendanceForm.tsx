@@ -184,7 +184,7 @@ export const KioskAttendanceForm = ({studioName, studioImageUrl, onBack, onHome,
     try {
       const res = await createStudioAttendanceAction(user.userId, nextStatus);
       if (isGuinnessErrorCase(res)) {
-        setError(t('kiosk_attendance_failed').replace('{0}', label));
+        setError(res.message || t('kiosk_attendance_failed').replace('{0}', label));
       } else {
         // 완료 다이얼로그 — 확인/바깥 탭으로 닫으면 홈으로 복귀하므로 목록 갱신은 하지 않는다.
         // 시각은 서버 응답 createdAt 우선, 파싱 실패 시 단말 현재 시각.

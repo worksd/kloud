@@ -4,6 +4,7 @@ import React, { useState, useTransition } from 'react';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
 import { updateNotificationSettingsAction } from '@/app/profile/setting/notification/notification.settings.actions';
+import { isGuinnessErrorCase } from '@/app/guinnessErrorCase';
 
 type ToggleKey = 'announcement' | 'event';
 
@@ -47,6 +48,12 @@ export const NotificationSettingForm = ({
     startTransition(async () => {
       try {
         const res = await updateNotificationSettingsAction({ [key]: nextOn });
+        // BE 에러는 throw가 아니라 {code, message}로 내려옴 — 롤백 + 서버 메시지(없으면 공용 문구) 토스트
+        if (isGuinnessErrorCase(res)) {
+          setValues(prev);
+          showToast(res.message || t('unknown_error_message'));
+          return;
+        }
         // 응답이 부분만 내려와도 안전하게 머지 — boolean 필드만 신뢰
         const r = res as { announcement?: unknown; event?: unknown };
         setValues((cur) => ({
@@ -60,6 +67,7 @@ export const NotificationSettingForm = ({
         showToast(template.replace('{label}', label));
       } catch {
         setValues(prev); // 롤백
+        showToast(t('unknown_error_message'));
       }
     });
   };

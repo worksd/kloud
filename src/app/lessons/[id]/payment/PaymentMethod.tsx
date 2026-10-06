@@ -166,43 +166,65 @@ export const PaymentMethodComponent = ({
   const handleAddCard = async () => {
     if (!newCardForm) return;
     setAddingCard(true);
-    const billingRes = await addBillingAction(newCardForm);
-    if ('billingKey' in billingRes && billingRes.billingKey) {
-      setShowInlineCardForm(false);
-      setNewCardForm(null);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      window.location.reload();
-    } else if ('pgMessage' in billingRes) {
+    // 등록 실패 다이얼로그 — 서버/PG 메시지 없으면 일반 실패 문구로 폴백
+    const showFail = async (message?: string) => {
       const { createDialog } = await import("@/utils/dialog.factory");
       const dialog = await createDialog({
         id: 'Simple',
         title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-        message: billingRes.pgMessage ?? ''
+        message: message || getLocaleString({locale, key: 'billing_register_fail'}),
       });
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
-    } else if ('message' in billingRes) {
-      const { createDialog } = await import("@/utils/dialog.factory");
-      const dialog = await createDialog({
-        id: 'Simple',
-        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-        message: (billingRes as { message: string }).message
-      });
-      window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    };
+    try {
+      const billingRes = await addBillingAction(newCardForm);
+      if ('billingKey' in billingRes && billingRes.billingKey) {
+        setShowInlineCardForm(false);
+        setNewCardForm(null);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        window.location.reload();
+      } else if ('pgMessage' in billingRes) {
+        await showFail(billingRes.pgMessage);
+      } else if ('message' in billingRes) {
+        await showFail((billingRes as { message: string }).message);
+      } else {
+        await showFail();
+      }
+    } catch {
+      await showFail();
+    } finally {
+      setAddingCard(false);
     }
-    setAddingCard(false);
+  };
+
+  // 환불계좌 저장 실패 안내 — 서버 메시지 우선, 없으면 공용 문구
+  const showRefundErrorDialog = async (message?: string) => {
+    const { createDialog } = await import("@/utils/dialog.factory");
+    const dialog = await createDialog({
+      id: 'Simple',
+      message: message || getLocaleString({locale, key: 'unknown_error_message'})
+    });
+    window.KloudEvent?.showDialog(JSON.stringify(dialog));
   };
 
   const handleSaveRefund = async () => {
     if (!refundBank || !refundNumber || !refundHolder) return;
     setSavingRefund(true);
-    const res = await updateUserAction({
-      refundAccountBank: refundBank,
-      refundAccountNumber: refundNumber.replace(/-/g, ''),
-      refundDepositor: refundHolder,
-    });
-    setSavingRefund(false);
-    if (res.success) {
-      setEditingRefund(false);
+    try {
+      const res = await updateUserAction({
+        refundAccountBank: refundBank,
+        refundAccountNumber: refundNumber.replace(/-/g, ''),
+        refundDepositor: refundHolder,
+      });
+      if (res.success) {
+        setEditingRefund(false);
+      } else {
+        await showRefundErrorDialog(res.errorMessage);
+      }
+    } catch {
+      await showRefundErrorDialog();
+    } finally {
+      setSavingRefund(false);
     }
   };
 

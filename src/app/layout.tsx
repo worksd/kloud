@@ -6,6 +6,7 @@ import { headers, cookies } from "next/headers";
 import { accessTokenKey } from "@/shared/cookies.key";
 import { DialogInfo } from "@/utils/dialog.factory";
 import { GlobalErrorHandler } from "@/app/components/GlobalErrorHandler";
+import { ToastHost } from "@/app/components/toast.host";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { WebShell } from "@/app/components/WebShell";
@@ -51,6 +52,8 @@ export default async function RootLayout({
     <html lang="en" className={`${paperFont.variable}`}>
     <body style={{backgroundColor: "white", color: "white"}}>
     <GlobalErrorHandler />
+    {/* 전역 토스트 — showToast() 호출부가 어디든 여기서 그린다 */}
+    <ToastHost />
     {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 크롬 — 상단바 + 유튜브식 LNB(레일/드로어).
         푸터(회사 정보)는 LNB 왼쪽 아래에 산다 (WebLnb의 LnbFooter). */}
     {showWebChrome ? (

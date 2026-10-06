@@ -33,6 +33,7 @@ const KakaoLoginButton = ({title, appVersion, isRecentLogin, recentLoginText}: K
       }
       await LoginAuthNavigation({
         status: res.status,
+        type: res.type,
         window: window,
         message: res.errorMessage,
       })

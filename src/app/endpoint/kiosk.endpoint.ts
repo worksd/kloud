@@ -378,3 +378,50 @@ export const GetKioskDetail: Endpoint<GetKioskDetailRequest, KioskDetailResponse
   method: 'get',
   path: (e) => `/kiosks/${e.kioskId}`,
 };
+
+// ── 키오스크 QR 로그인(SSE) — 가이드 2026-10-04 ─────────────────────────────────────
+// 키오스크가 code를 만들어 QR로 띄우고 GET /kiosks/:id/login/stream?code= (SSE)를 열어 둔다.
+// 손님이 앱 카메라로 QR을 찍으면 앱이 자기 토큰으로 POST /kiosks/:id/login { code }를 부르고,
+// 서버가 손님의 고객 토큰(12시간)과 신원을 스트림에 'kiosk.login' 이벤트로 던진다.
+
+/** SSE 'kiosk.login' 이벤트 본문 */
+export type KioskLoginEvent = {
+  kioskId: number;
+  /** 지금 띄워 둔 QR의 코드와 같은지 확인하고 쓴다 — 다르면 옛 스트림에서 늦게 온 것 */
+  code: string;
+  /** 고객 Access Token(12시간). 이후 키오스크 요청의 x-guinness-kiosk-authorization에 싣는다 */
+  accessToken: string;
+  user: {
+    id: number;
+    /** 이름 → 닉네임 → '' */
+    name: string;
+    nickName?: string;
+    profileImageUrl?: string | null;
+    phone?: string;
+  };
+  /** 이 학원 수강생이면 id, 아니면 null(등록 화면으로) */
+  studentId: number | null;
+};
+
+/** 모바일 앱 — QR에서 읽은 kioskId·code로 승인. 누구인지는 Authorization의 앱 토큰으로만 정해진다 */
+export type KioskLoginRequest = {
+  kioskId: number;
+  /** 16~64자 [A-Za-z0-9_-] */
+  code: string;
+};
+
+/** 토큰은 응답에 없다 — 키오스크 스트림으로만 간다 */
+export type KioskLoginResponse = {
+  kioskId: number;
+  kioskName: string;
+  studioId: number;
+  /** null이면 이 학원 수강생이 아니다(등록은 막지 않는다) */
+  studentId: number | null;
+};
+
+export const KioskLogin: Endpoint<KioskLoginRequest, KioskLoginResponse> = {
+  method: 'post',
+  path: (e) => `/kiosks/${e.kioskId}/login`,
+  pathParams: ['kioskId'],
+  bodyParams: ['code'],
+};

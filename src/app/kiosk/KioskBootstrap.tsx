@@ -18,6 +18,8 @@ import {
 } from '@/app/kiosk/kiosk.actions';
 import { getMeAction } from '@/app/kiosk/get.me.action';
 import { handleKioskTokenExpired } from '@/app/kiosk/kiosk.error';
+import { KioskOperatorQrLogin } from '@/app/kiosk/KioskOperatorQrLogin';
+import type { KioskOperatorLoginEvent } from '@/app/endpoint/auth.endpoint';
 import { sendKioskTokenToNative } from '@/app/kiosk/kiosk.native';
 
 type Stage = 'scan' | 'loading' | 'selector' | 'ready' | 'error';
@@ -129,6 +131,16 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 운영자 QR 로그인(SSE 'kiosk.operator-login') — 이메일 로그인과 같은 자리에 토큰 저장 후 같은 부트스트랩
+  const handleQrLoggedIn = async (ev: KioskOperatorLoginEvent) => {
+    if (!ev.accessToken) return;
+    setErrorMessage(null);
+    setStage('loading');
+    await saveKioskOperatorTokenAction(ev.accessToken);
+    sendKioskTokenToNative(ev.accessToken);
+    window.location.reload();
+  };
+
   // 이메일 로그인 성공 — 토큰은 emailLoginAction이 쿠키에 저장. 페이지 리로드 전 네이티브에도 전달
   const handleEmailLoggedIn = async () => {
     setErrorMessage(null);
@@ -155,7 +167,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
   }, [stage, selected, desiredRoute, route]);
 
   if (stage === 'scan') {
-    // QR 로그인 제거 — 운영자 이메일 로그인 UI를 직접 노출.
+    // 운영자 로그인 — QR(파트너 앱 스캔, SSE) + 이메일 폼을 한 카드에.
     // 'onCancel'은 호출되어도 닫을 화면이 없으므로 noop으로 둠.
     return (
       <>
@@ -163,6 +175,7 @@ export const KioskBootstrap = ({ hasInitialToken, initialKioskId, urlToken, rout
           onLoggedIn={handleEmailLoggedIn}
           onCancel={() => {}}
           onAdminMode={() => setEndpointOpen(true)}
+          qrLogin={<KioskOperatorQrLogin onLoggedIn={handleQrLoggedIn}/>}
         />
 
         {errorMessage && (

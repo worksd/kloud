@@ -22,7 +22,9 @@ import {KioskAttendanceSelectForm} from "@/app/kiosk/KioskAttendanceSelectForm";
 import {KioskLessonAttendanceForm} from "@/app/kiosk/KioskLessonAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction} from "@/app/kiosk/kiosk.actions";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction, saveKioskCustomerTokenAction, clearKioskCustomerTokenAction} from "@/app/kiosk/kiosk.actions";
+import {KioskQrLogin} from "@/app/kiosk/KioskQrLogin";
+import type {KioskLoginEvent} from "@/app/endpoint/kiosk.endpoint";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {KioskPhonePadType, KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
 import {LessonPricePolicyResponse} from "@/app/endpoint/payment.endpoint";
@@ -253,6 +255,8 @@ export const KioskForm = ({
   // 홈 진입 시 손님 세션 상태만 정리 (운영자 토큰은 유지)
   const goHome = useCallback(async () => {
     setCurrentScreen('home');
+    // QR 로그인 손님 토큰은 공용 기기에 남기지 않는다 — 홈으로 돌아갈 때 즉시 폐기
+    void clearKioskCustomerTokenAction();
     setSelectedLesson(null);
     setSelectedPassPlan(null);
     setRoomBooking(null);
@@ -393,9 +397,9 @@ export const KioskForm = ({
 
   // KIS 응답 디버그 채널 준비 — 환경(staging/prod) 1회 조회 + 리포트에 실을 키오스크 컨텍스트 등록
   useEffect(() => {
-    setKisDebugContext({ kioskId, kioskName });
+    setKisDebugContext({ kioskId, kioskName, studioId, studioName });
     initKisDebug();
-  }, [kioskId, kioskName]);
+  }, [kioskId, kioskName, studioId, studioName]);
 
   // KIS 결제 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
@@ -552,6 +556,7 @@ export const KioskForm = ({
     // KIS는 이미 매입 완료 — 서버 complete가 실패해도 클라가 가진 이 정보로 재시도해서 반드시 기록되게 한다.
     const runCompleteWithRetry = async () => {
       const MAX = 3;
+      let lastErrorMessage: string | undefined; // 마지막 도메인 에러 메시지 — 재시도 모두 실패 시 토스트에 함께 노출
       for (let attempt = 1; attempt <= MAX; attempt++) {
         try {
           const res = await completeKioskPaymentAction(completeArgs);
@@ -568,6 +573,7 @@ export const KioskForm = ({
             return;
           }
           // 도메인 에러(res.ok=false) — 마지막 시도까지 재시도 후 로컬 큐로 보관
+          if (isGuinnessErrorCase(res) && parsed.message) lastErrorMessage = parsed.message;
         } catch {
           if (cancelled) return;
         }
@@ -576,7 +582,9 @@ export const KioskForm = ({
       if (cancelled) return;
       // 재시도 모두 실패 — KIS 정보 로컬 보관(다음 진입/키오스크 로드 시 자동 재시도) + 안내
       savePendingCompletion(completeArgs);
-      setToastMessage('결제 기록 저장에 실패했어요. 잠시 후 자동으로 다시 시도돼요');
+      setToastMessage(lastErrorMessage
+        ? `${lastErrorMessage} — 잠시 후 자동으로 다시 시도돼요`
+        : '결제 기록 저장에 실패했어요. 잠시 후 자동으로 다시 시도돼요');
       if (variant !== 'admin') homeTimer = setTimeout(() => { setPaymentResult(null); goHome(); }, 5000);
     };
     runCompleteWithRetry();
@@ -590,14 +598,17 @@ export const KioskForm = ({
     const pending = loadPendingCompletions();
     if (pending.length === 0) return;
     (async () => {
+      let firstErrorMessage: string | undefined; // 도메인 에러 메시지는 한 번만 토스트로 안내
       for (const args of pending) {
         try {
           const res = await completeKioskPaymentAction(args);
           const parsed = parsePaymentResult(res);
           if (parsed.ok) removePendingCompletion(args.paymentId);
-          // 실패면 큐에 유지 — 다음 기회에 재시도
+          // 실패면 큐에 유지 — 다음 기회에 재시도. 서버 메시지가 있으면 운영자가 알 수 있게 안내
+          else if (isGuinnessErrorCase(res) && parsed.message && !firstErrorMessage) firstErrorMessage = parsed.message;
         } catch { /* 유지 */ }
       }
+      if (firstErrorMessage) setToastMessage(firstErrorMessage);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -700,7 +711,7 @@ export const KioskForm = ({
     try {
       const reg = await registerKioskUserAction(p, cc, suggestedName, name);
       if (isGuinnessErrorCase(reg)) {
-        setErrorMessage('가입에 실패했습니다.\n다시 시도해주세요.');
+        setErrorMessage(reg.message || '가입에 실패했습니다.\n다시 시도해주세요.');
         setCurrentScreen('phone');
         return;
       }
@@ -714,6 +725,28 @@ export const KioskForm = ({
       setErrorMessage('요청에 실패했습니다.\n다시 시도해주세요.');
       setCurrentScreen('phone');
     }
+  };
+
+  // 앱 QR 로그인(SSE 'kiosk.login') — 손님 토큰을 쿠키(x-guinness-kiosk-authorization)에 저장하고
+  // 번호 검색과 같은 자리(member-confirm)로 보낸다. studentId가 null이어도 결제 흐름이 수강생 등록을 겸하므로 막지 않는다.
+  const handleQrLogin = async (ev: KioskLoginEvent) => {
+    try {
+      await saveKioskCustomerTokenAction(ev.accessToken);
+    } catch {
+      // 쿠키 저장 실패해도 targetUserId 기반 흐름은 그대로 동작한다
+    }
+    setSearchedUsers([]);
+    setSelectedUser({
+      id: ev.user.id,
+      name: ev.user.name || undefined,
+      nickName: ev.user.nickName,
+      phone: ev.user.phone,
+      profileImageUrl: ev.user.profileImageUrl ?? undefined,
+      accessToken: ev.accessToken,
+    });
+    if (ev.user.phone) setPhone(ev.user.phone);
+    setErrorMessage(null);
+    setCurrentScreen('member-confirm');
   };
 
   // 유저 확인 → 결제 수단 선택으로 이동 (운영자 토큰 유지, 손님 정보는 selectedUser 상태로만 들고 감)
@@ -1323,6 +1356,9 @@ export const KioskForm = ({
           loading={currentScreen === 'searching'}
           errorMessage={errorMessage}
           onDismissError={() => setErrorMessage(null)}
+          qrLogin={currentScreen === 'phone' && kioskId > 0 ? (
+            <KioskQrLogin kioskId={kioskId} locale={locale} variant={variant} onLogin={handleQrLogin}/>
+          ) : undefined}
         />
       )}
 

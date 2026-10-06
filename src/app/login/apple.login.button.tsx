@@ -23,6 +23,7 @@ const AppleLoginButton = ({title, isRecentLogin, recentLoginText}: AppleLoginBut
         saveRecentLoginMethod('apple');
         await LoginAuthNavigation({
           status: res.status,
+          type: res.type,
           window: window,
           message: res.errorMessage,
         })

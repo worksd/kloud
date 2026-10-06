@@ -74,10 +74,14 @@ export const RoomBookingDialog = ({
               window.KloudEvent?.showDialog(JSON.stringify(successDialog));
             }, 150);
           } else {
-            const msg = ('message' in res) ? (res as any).message : '';
+            // 서버 메시지 없으면 빈 다이얼로그 대신 일반 에러 문구
+            const msg = (('message' in res) ? (res as { message?: string }).message : '') || getLocaleString({ locale, key: 'unknown_error_message' });
             const errDialog = await createDialog({ id: 'Simple', message: msg });
             window.KloudEvent?.showDialog(JSON.stringify(errDialog));
           }
+        } catch {
+          const errDialog = await createDialog({ id: 'Simple', message: getLocaleString({ locale, key: 'unknown_error_message' }) });
+          window.KloudEvent?.showDialog(JSON.stringify(errDialog));
         } finally {
           setCancelling(false);
         }

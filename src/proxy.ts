@@ -167,6 +167,10 @@ async function resolveVanityStudioId(request: NextRequest): Promise<number | nul
       'x-guinness-locale': cookie.get(localeKey)?.value ?? 'ko',
       'x-guinness-entry': request.nextUrl.pathname,
     };
+    // endpoint.client와 동일 — 유저 IP를 x-guinness-ip로 전달
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const clientIp = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '';
+    if (clientIp) apiHeaders['x-guinness-ip'] = clientIp;
     if (accessToken) apiHeaders['Authorization'] = `Bearer ${accessToken}`;
 
     const res = await fetch(

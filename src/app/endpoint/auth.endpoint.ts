@@ -9,10 +9,12 @@ export enum SnsProvider {
 }
 
 export type GetAuthTokenParameter = object
+// GET /auth — 토큰 검사 겸 내 정보. type으로 Partner/Operator 분기 가능 (홈 진입 등).
 export type GetAuthTokenResponse = {
   id: number;
   email: string;
   status: UserStatus;
+  type?: UserType;
 }
 
 export type SnsLoginParameter = {
@@ -50,6 +52,7 @@ export type UserResponse = {
   id: number;
   email: string;
   status: UserStatus;
+  type?: UserType;
 }
 
 export type SendPhoneVerificationCodeParameter = {
@@ -149,3 +152,38 @@ export type SendPhoneVerificationResponse = {
   ttl: number;
   resendAvailableAt?: string;
 }
+// ── 키오스크 운영자(기기) QR 로그인 — BE bbf78c8b ──────────────────────────────────────
+// 키오스크 로그인 화면이 code를 만들어 QR(guinness://kiosk-operator-login?code=…)로 띄우고 GET /auth/kiosk-login/stream?code= (SSE)를 연다.
+// 파트너 앱이 QR을 찍어 POST /auth/kiosk-login { code }를 부르면 'kiosk.operator-login' 이벤트에 운영자 토큰(360일)이 실려 온다.
+
+/** SSE 'kiosk.operator-login' 이벤트 본문 (ping에는 code만 든다) */
+export type KioskOperatorLoginEvent = {
+  code: string;
+  /** 운영자 Access Token(360일) — POST /auth/sign-in 결과와 같은 자리에 저장 */
+  accessToken?: string;
+  user?: { id: number; name: string; email: string | null };
+  studio?: { id: number; name: string };
+};
+
+export type KioskOperatorLoginRequest = {
+  /** 16~64자 [A-Za-z0-9_-] */
+  code: string;
+};
+
+/** 토큰은 응답에 없다 — 키오스크 스트림으로만 간다 */
+export type KioskOperatorLoginResponse = {
+  studioId: number;
+  studioName: string;
+};
+
+/**
+ * 파트너 앱 승인. 학원 관계자(Partner·Operator) 계정만 — 일반 계정은 KIOSK_LOGIN_FORBIDDEN,
+ * x-guinness-client가 PARTNER가 아니면 ACCESS_DENIED(운영자 토큰은 결제 취소·관리자 기능까지 열어서).
+ * Operator는 학원에 OPERATOR 피쳐가 있어야 한다(STUDIO_FEATURE_NOT_AVAILABLE).
+ */
+export const KioskOperatorLogin: Endpoint<KioskOperatorLoginRequest, KioskOperatorLoginResponse> = {
+  method: 'post',
+  path: '/auth/kiosk-login',
+  headers: { 'x-guinness-client': 'PARTNER' },
+  bodyParams: ['code'],
+};

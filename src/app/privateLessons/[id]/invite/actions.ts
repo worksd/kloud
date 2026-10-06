@@ -6,7 +6,7 @@ import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 // 수강생 검색 — 강사 경로라 studioId(소속 학원)를 함께 보낸다. 실패는 빈 목록.
 export const searchStudentsAction = async ({ query, studioId }: { query: string; studioId: number }): Promise<GetUserResponse[]> => {
   try {
-    const res = await api.user.search({ query, studioId });
+    const res = await api.user.search({ keyword: query, studioId });
     if ('users' in res) return res.users ?? [];
     return [];
   } catch {

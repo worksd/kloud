@@ -8,7 +8,7 @@ import { ProfileForm } from "@/app/profile/ProfileForm";
 import { ProfilePcForm } from "@/app/profile/ProfilePcForm";
 import { ProfileTabKey } from "@/app/profile/ProfilePcClient";
 
-const PC_TABS: ProfileTabKey[] = ['home', 'tickets', 'pass', 'payments', 'bookings'];
+const PC_TABS: ProfileTabKey[] = ['home', 'tickets', 'pass', 'payments', 'subscriptions', 'bookings'];
 
 export default async function ProfilePage({searchParams}: {
   searchParams: Promise<{ os?: string, appVersion?: string, tab?: string }>

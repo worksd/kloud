@@ -5,13 +5,14 @@ import {KloudScreen} from "@/shared/kloud.screen";
 import {MenuItem} from "@/app/profile/setting.menu.item";
 import React from "react";
 import {UserType} from "@/entities/user/user.type";
+import {QrScannerFlatIcon} from "@/app/profile/setting/SettingIcons";
 
 export const QRScannerMenu = async () => {
   const res = await getUserAction();
   if (res && 'id' in res && (res.type == UserType.Operator || res.type == UserType.Partner)) {
     return (
       <NavigateClickWrapper method={'push'} route={KloudScreen.QRScan}>
-        <MenuItem label="qr_scanner"/>
+        <MenuItem label="qr_scanner" icon={<QrScannerFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
     );
   } else {

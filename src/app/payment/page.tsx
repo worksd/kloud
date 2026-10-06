@@ -13,13 +13,16 @@ import { PracticeRoomPaymentWrapper } from "@/app/payment/PracticeRoomPaymentWra
 import { PaymentProfileButton } from "@/app/payment/PaymentProfileButton";
 import { PushAndBackRedirect } from "@/app/components/PushAndBackRedirect";
 import { LessonTags } from "@/app/components/LessonTags";
+import { PassDaysChip } from "@/app/components/PassDaysChip";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { PaymentErrorView, PaymentErrorLesson } from "@/app/payment/PaymentErrorView";
 import { DeferredImage } from "@/app/components/DeferredImage";
 import PaymentPcForm from "@/app/payment/PaymentPcForm";
 import { TrackView } from "@/app/components/TrackView";
+import { RegularClassHeader, RegularClassArtistSection, RegularClassNoticeCard } from "@/app/payment/RegularClassHeader";
 
-type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
+// regular-class: 정규반 결제 — id 는 정규반 id. 결제 API 에도 item=regular-class 로 그대로 보낸다
+type PaymentPageType = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
 // 번들 판매기간 표시용. "2026.06.16 05:52" 를 날짜/시간으로 분해.
 // 같은 날이면 "2026.06.16 05:52 ~ 07:00"처럼 날짜 한 번 + 시간범위로, 다른 날이면 "2026.06.16 ~ 2026.06.18"로 압축.
@@ -113,6 +116,9 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   if (isLessonLike && !res.lesson) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
+  if (paymentItem === 'regular-class' && !res.regularClass) {
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
+  }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
   }
@@ -135,6 +141,14 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           title: res.passPlan?.name,
           studioName: res.passPlan?.studio?.name,
           studioImageUrl: res.passPlan?.studio?.profileImageUrl,
+        };
+      case 'regular-class':
+        // 썸네일 — 강사 프로필, 없으면 학원 로고 (스튜디오 상세 정규반 카드와 동일)
+        return {
+          thumbnailUrl: res.regularClass?.artist?.profileImageUrl || res.regularClass?.studio?.profileImageUrl,
+          title: res.regularClass?.name,
+          studioName: res.regularClass?.studio?.name,
+          studioImageUrl: res.regularClass?.studio?.profileImageUrl,
         };
       case 'bundle':
         // 번들 응답엔 studio 정보가 따로 안 옴 — title만 표기, studio는 비움.
@@ -357,6 +371,36 @@ export default async function UnifiedPaymentPage({ searchParams }: {
           </div>
         )}
 
+        {/* regular-class — 학원(로고+이름) → 반 이름, 담당 강사 섹션(있을 때만). 사는 방식(가격정책)은 아래 결제 폼에서 고른다 */}
+        {paymentItem === 'regular-class' && res.regularClass && (
+          <>
+            <RegularClassHeader regularClass={res.regularClass} variant="mobile" />
+            {res.regularClass.artist && (res.regularClass.artist.nickName || res.regularClass.artist.name) && (
+              <>
+                <div className="py-1">
+                  <div className="w-full h-2 bg-[#F7F8F9]" />
+                </div>
+                <RegularClassArtistSection regularClass={res.regularClass} title={await translate('regular_class_artist')} variant="mobile" />
+              </>
+            )}
+          </>
+        )}
+
+        {/* 정규반 안내사항 — 설명은 잘라내지 않고 라운드 카드로 전부(줄바꿈 유지) */}
+        {paymentItem === 'regular-class' && res.regularClass?.description && (
+          <>
+            <div className="py-1">
+              <div className="w-full h-2 bg-[#F7F8F9]" />
+            </div>
+            <section className="px-5 pt-4 pb-5">
+              <RegularClassNoticeCard
+                title={(await translate('regular_class_notice')).replace('{name}', res.regularClass.name)}
+                description={res.regularClass.description}
+              />
+            </section>
+          </>
+        )}
+
         {/* pass-plan */}
         {paymentItem === 'pass-plan' && res.passPlan && (
           <div className="px-5 pt-4 pb-3">
@@ -374,9 +418,13 @@ export default async function UnifiedPaymentPage({ searchParams }: {
               <span className="text-[13px] font-medium text-[#86898C]">{studioName}</span>
             </div>
             <p className="text-[20px] font-bold text-black mb-1">{title}</p>
-            {res.passPlan.expireDateStamp && (
-              <p className="text-[13px] text-[#86898C] font-medium mb-4">{res.passPlan.expireDateStamp}</p>
-            )}
+            <div className="flex items-center gap-2 mb-4">
+              {res.passPlan.expireDateStamp && (
+                <p className="text-[13px] text-[#86898C] font-medium">{res.passPlan.expireDateStamp}</p>
+              )}
+              {/* 다니는 요일 — 요일이 정해진 정규반 상품만 */}
+              <PassDaysChip days={res.passPlan.days} locale={await getLocale()}/>
+            </div>
 
             {/* 이용 혜택 */}
             <PassPlanBenefits passPlan={res.passPlan} locale={await getLocale()} />

@@ -408,6 +408,9 @@ export const StringResource = {
     jp: 'お支払い方法を選択してください',
     zh: '请选择支付方式'
   },
+  payment_pass_only_notice: { ko: '이 수업은 패스권으로만 결제할 수 있어요.\n보유한 패스권을 선택해주세요.', en: 'This class can only be paid with a pass.\nSelect one of your passes.', jp: 'このクラスはパスでのみ決済できます。\nお持ちのパスを選択してください。', zh: '此课程仅可使用通行证支付。\n请选择您持有的通行证。' },
+  payment_pass_only_discount_blocked: { ko: '할인 패스권은 이 수업에 쓸 수 없어요. 회차 차감 패스권을 선택해주세요.', en: "Discount passes can't be used for this class. Choose a session-based pass.", jp: '割引パスはこのクラスには使えません。回数パスを選択してください。', zh: '折扣通行证不适用于此课程，请选择次数通行证。' },
+  payment_disabled_pass_only: { ko: '패스권을 선택해주세요', en: 'Select a pass', jp: 'パスを選択してください', zh: '请选择通行证' },
   payment_disabled_no_pass: {
     ko: '사용할 패스를 선택해주세요',
     en: 'Select a pass to use',
@@ -917,6 +920,42 @@ export const StringResource = {
     en: "Upcoming Lessons",
     jp: "予定されているレッスン",
     zh: "即将到来的课程"
+  },
+  pass_days_label: {
+    ko: "다니는 요일",
+    en: "Class days",
+    jp: "通う曜日",
+    zh: "上课日"
+  },
+  pass_qr_scan_hint: {
+    ko: "QR을 스캔해서 패스권을 사용해요",
+    en: "Scan this QR to use your pass",
+    jp: "QRをスキャンしてパスを使用",
+    zh: "扫描二维码使用通行证"
+  },
+  scheduled_payments: {
+    ko: "예약 결제",
+    en: "Scheduled payments",
+    jp: "予約決済",
+    zh: "预约支付"
+  },
+  no_scheduled_payments: {
+    ko: "예약된 결제가 없어요",
+    en: "No scheduled payments",
+    jp: "予約された決済はありません",
+    zh: "暂无预约支付"
+  },
+  start_scheduled: {
+    ko: "시작 예정",
+    en: "starts",
+    jp: "開始予定",
+    zh: "即将开始"
+  },
+  past_lessons: {
+    ko: "지난 수업",
+    en: "Past Lessons",
+    jp: "過去のレッスン",
+    zh: "过去的课程"
   },
   upcoming_lesson: {
     ko: "다음 예정 수업",
@@ -3042,6 +3081,18 @@ export const StringResource = {
     jp: '返金理由を選択してください',
     zh: '请选择退款原因'
   },
+  refund_fail: {
+    ko: '환불 실패',
+    en: 'Refund failed',
+    jp: '返金失敗',
+    zh: '退款失败'
+  },
+  refund_fail_message: {
+    ko: '환불 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+    en: 'Refund failed. Please try again later.',
+    jp: '返金処理に失敗しました。しばらくしてからもう一度お試しください。',
+    zh: '退款处理失败，请稍后重试。'
+  },
   do_refund: {
     ko: '환불하기',
     en: 'Refund',
@@ -4472,6 +4523,148 @@ export const StringResource = {
     jp: '受講券が正常にキャンセルされました',
     zh: '课程券已成功取消',
   },
+  lesson_admin_attend_ticket_button: {
+    ko: '출석하기',
+    en: 'Check in',
+    jp: '出席処理',
+    zh: '签到',
+  },
+  lesson_admin_attend_ticket_confirm_message: {
+    ko: '{name}님을 이 수업에 출석 처리할까요?',
+    en: 'Check {name} in to this lesson?',
+    jp: '{name}さんをこのレッスンに出席処理しますか？',
+    zh: '要将 {name} 签到此课程吗？',
+  },
+  lesson_admin_attend_ticket_success_message: {
+    ko: '출석 처리했어요',
+    en: 'Checked in',
+    jp: '出席処理しました',
+    zh: '已完成签到',
+  },
+  lesson_admin_cancel_lesson_button: {
+    ko: '수업 취소하기',
+    en: 'Cancel lesson',
+    jp: 'レッスンをキャンセル',
+    zh: '取消课程',
+  },
+  lesson_admin_cancel_lesson_warning: {
+    ko: '수강생 {count}명이 취소·환불되고 알림톡이 발송돼요. 되돌릴 수 없어요.',
+    en: '{count} student(s) will be cancelled and refunded, and notified. This cannot be undone.',
+    jp: '受講生{count}名がキャンセル・返金され、通知が送られます。元に戻せません。',
+    zh: '将取消并退款 {count} 名学员，并发送通知。此操作无法撤销。',
+  },
+  lesson_admin_cancel_lesson_kiosk_notice: {
+    ko: '키오스크 카드결제 건은 바로 취소되지 않고 환불 대기로 남아요. 환불은 키오스크에서 마무리해주세요.',
+    en: 'Kiosk card payments remain pending refund — complete the refund at the kiosk.',
+    jp: 'キオスクのカード決済は返金待ちとして残ります。返金はキオスクで完了してください。',
+    zh: '自助机刷卡的订单将保留为待退款状态，请在自助机上完成退款。',
+  },
+  lesson_admin_cancel_lesson_reason_label: {
+    ko: '취소 사유',
+    en: 'Cancellation reason',
+    jp: 'キャンセル理由',
+    zh: '取消原因',
+  },
+  lesson_admin_cancel_lesson_reason_placeholder: {
+    ko: '예: 강사 사정으로 휴강',
+    en: 'e.g. Instructor unavailable',
+    jp: '例：講師の都合により休講',
+    zh: '例：因老师原因停课',
+  },
+  lesson_admin_cancel_lesson_reason_notice: {
+    ko: '사유는 수강생 알림톡에 그대로 나가요',
+    en: 'The reason is sent to students as-is',
+    jp: '理由はそのまま受講生に通知されます',
+    zh: '原因将原样发送给学员',
+  },
+  lesson_admin_cancel_lesson_reason_required: {
+    ko: '취소 사유를 입력해주세요',
+    en: 'Please enter a reason',
+    jp: 'キャンセル理由を入力してください',
+    zh: '请输入取消原因',
+  },
+  lesson_admin_cancel_lesson_ended_error: {
+    ko: '이미 끝난 수업은 취소할 수 없어요',
+    en: 'A lesson that has already ended cannot be cancelled',
+    jp: 'すでに終了したレッスンはキャンセルできません',
+    zh: '已结束的课程无法取消',
+  },
+  lesson_admin_cancel_lesson_success_message: {
+    ko: '수업이 취소되었어요',
+    en: 'Lesson cancelled',
+    jp: 'レッスンがキャンセルされました',
+    zh: '课程已取消',
+  },
+
+  // 관리자 홈 (/admin)
+  admin_home_title: { ko: '관리자 홈', en: 'Admin Home', jp: '管理者ホーム', zh: '管理员主页' },
+  // 결제 완료 환영 화면 (/payment-complete)
+  // 문구 매트릭스: 상품(수업 LT / 패스권 LP / 그 외) × 상태(확정 / 입금 대기).
+  // '상품 구매'가 아니라 '수업을 신청하고 온보딩되는' 느낌이 목표 — 결제/주문 같은 단어 대신 신청·발급.
+  payment_complete_title: { ko: '결제 완료!', en: 'Payment complete!', jp: '決済完了！', zh: '支付完成！' },
+  payment_complete_lesson_title: { ko: '{lesson} 신청 완료!', en: '{lesson} booked!', jp: '{lesson} 申請完了！', zh: '{lesson} 申请完成！' },
+  payment_complete_lesson_fallback: { ko: '수업', en: 'Lesson', jp: 'レッスン', zh: '课程' },
+  payment_complete_pass_title: { ko: '패스권 발급 완료!', en: 'Pass issued!', jp: 'パス発給完了！', zh: '通行证已发放！' },
+  payment_complete_dedicated_title: { ko: '{plan} 등록 완료!', en: '{plan} registration complete!', jp: '{plan} 登録完了！', zh: '{plan} 报名完成！' },
+  payment_complete_dedicated_fallback: { ko: '전용반', en: 'Class', jp: '専用クラス', zh: '专属班' },
+  payment_complete_greeting: { ko: '수업에서 만나요, {name}님', en: 'See you in class, {name}', jp: 'レッスンでお会いしましょう、{name}さん', zh: '课堂上见，{name}' },
+  payment_complete_pass_greeting: { ko: '패스권으로 수업을 신청해보세요, {name}님', en: 'Book a lesson with your pass, {name}', jp: 'パスでレッスンを申請してみてください、{name}さん', zh: '用通行证报名课程吧，{name}' },
+  payment_complete_generic_greeting: { ko: '이용 준비가 끝났어요, {name}님', en: 'Everything is ready, {name}', jp: 'ご利用の準備が整いました、{name}さん', zh: '已为您准备就绪，{name}' },
+  payment_complete_pending_lesson_title: { ko: '{lesson} 신청 완료!', en: '{lesson} requested!', jp: '{lesson} 申請完了！', zh: '{lesson} 申请完成！' },
+  payment_complete_pending_pass_title: { ko: '패스권 신청 완료!', en: 'Pass requested!', jp: 'パス申請完了！', zh: '通行证申请完成！' },
+  payment_complete_pending_dedicated_title: { ko: '{plan} 신청 완료!', en: '{plan} requested!', jp: '{plan} 申請完了！', zh: '{plan} 申请完成！' },
+  payment_complete_pending_dedicated_greeting: { ko: '{name}님, 입금이 확인되면\n등록이 확정돼요', en: 'Your registration is confirmed once\nthe transfer arrives, {name}', jp: '{name}さん、入金確認後に\n登録が確定します', zh: '{name}，确认到账后\n报名即确定' },
+  payment_complete_pending_title: { ko: '신청 완료!', en: 'Request received!', jp: '申請完了！', zh: '申请完成！' },
+  payment_complete_pending_lesson_greeting: { ko: '{name}님, 입금이 확인되면\n수업이 확정돼요', en: 'Your lesson is confirmed once\nthe transfer arrives, {name}', jp: '{name}さん、入金確認後に\nレッスンが確定します', zh: '{name}，确认到账后\n课程即确定' },
+  payment_complete_pending_pass_greeting: { ko: '{name}님, 입금이 확인되면\n패스권이 발급돼요', en: 'Your pass is issued once\nthe transfer arrives, {name}', jp: '{name}さん、入金確認後に\nパスが発給されます', zh: '{name}，确认到账后\n即发放通行证' },
+  payment_complete_pending_greeting: { ko: '{name}님, 입금이 확인되면 확정돼요', en: 'Confirmed once the transfer arrives, {name}', jp: '{name}さん、入金確認後に確定します', zh: '{name}，确认到账后即确定' },
+  payment_complete_pending_notice: { ko: '계좌이체는 입금 확인 후 예약이 확정돼요.\n입금이 확인되면 알림으로 알려드릴게요.', en: 'Bank transfers are confirmed after the deposit arrives.\nWe’ll notify you once it’s confirmed.', jp: '口座振込は入金確認後に予約が確定します。\n確認でき次第お知らせします。', zh: '银行转账将在确认到账后完成预约确认。\n确认后我们会通知您。' },
+  payment_complete_greeting_studio_fallback: { ko: '스튜디오', en: 'The studio', jp: 'スタジオ', zh: '工作室' },
+  payment_complete_greeting_name_fallback: { ko: '회원', en: 'you', jp: '会員', zh: '会员' },
+  payment_complete_together: { ko: '총 {count}명의 수강생과 함께해요', en: 'You’ll be dancing with {count} students', jp: '合計{count}名の受講生と一緒です', zh: '将与共 {count} 名学员一起上课' },
+  payment_complete_next_lessons_title: { ko: '{artist}님의 다가오는 수업', en: 'Upcoming lessons by {artist}', jp: '{artist}さんの今後のレッスン', zh: '{artist}的即将开课' },
+  payment_complete_videos_title: { ko: '{artist}님의 영상', en: 'Videos by {artist}', jp: '{artist}さんの動画', zh: '{artist}的视频' },
+  payment_complete_videos_desc: { ko: '지난 수업 영상 보러 가기', en: 'Watch previous lesson videos', jp: '過去のレッスン動画を見る', zh: '观看往期课程视频' },
+  payment_complete_bank_account: { ko: '입금 계좌', en: 'Bank account', jp: '振込口座', zh: '汇款账户' },
+  payment_complete_bank_holder: { ko: '예금주', en: 'Account holder', jp: '口座名義', zh: '户名' },
+  payment_complete_bank_amount: { ko: '입금 금액', en: 'Amount', jp: '振込金額', zh: '汇款金额' },
+  payment_complete_view_receipt: { ko: '결제 내역 보기', en: 'View receipt', jp: '決済内訳を見る', zh: '查看支付明细' },
+  payment_complete_bank_ask_studio: { ko: '입금 계좌는 스튜디오에 문의해주세요', en: 'Please ask the studio for the bank account', jp: '振込先はスタジオにお問い合わせください', zh: '请向工作室咨询汇款账户' },
+  payment_complete_classmate_desc: { ko: '{lesson}에서 함께했어요', en: 'Took {lesson} with you', jp: '{lesson}で一緒でした', zh: '曾一起上过{lesson}' },
+  payment_complete_classmate_count: { ko: '{count}번의 수업을 같이 들었어요', en: 'Took {count} lessons with you', jp: '{count}回のレッスンを一緒に受けました', zh: '一起上过{count}节课' },
+  payment_complete_video_watch: { ko: '영상 보기', en: 'Watch', jp: '動画を見る', zh: '观看视频' },
+  admin_home_mode_notice: { ko: '관리자 모드입니다', en: 'You are in admin mode', jp: '管理者モードです', zh: '当前为管理员模式' },
+  admin_home_go_user_mode: { ko: '일반 모드로 가기', en: 'Switch to user mode', jp: '通常モードへ', zh: '切换到普通模式' },
+  admin_home_greeting: { ko: '반갑습니다, {name}님 👋', en: 'Welcome, {name} 👋', jp: 'ようこそ、{name}さん 👋', zh: '欢迎，{name} 👋' },
+  admin_home_sheet_title: { ko: '오늘 진행되는 수업', en: "Today's lessons", jp: '本日のレッスン', zh: '今日课程' },
+  admin_home_shortcut_attendance: { ko: '출석 체크', en: 'Check-in', jp: '出席チェック', zh: '签到' },
+  admin_home_shortcut_timetable: { ko: '주간 시간표', en: 'Weekly timetable', jp: '週間時間割', zh: '每周课表' },
+  admin_home_shortcut_studio: { ko: '스튜디오 페이지', en: 'Studio page', jp: 'スタジオページ', zh: '工作室页面' },
+  admin_home_today_title: { ko: '오늘 수업', en: "Today's lessons", jp: '本日のレッスン', zh: '今日课程' },
+  admin_home_shortcut_payments: { ko: '결제 내역', en: 'Payments', jp: '決済履歴', zh: '支付记录' },
+  admin_home_shortcut_register: { ko: '수강생 등록', en: 'Add student', jp: '受講生登録', zh: '添加学员' },
+  admin_home_shortcut_onsite: { ko: '현장결제', en: 'On-site payment', jp: '現場決済', zh: '现场支付' },
+  admin_home_shortcut_kiosk_login: { ko: '키오스크 로그인', en: 'Kiosk login', jp: 'キオスクログイン', zh: '自助机登录' },
+  admin_kiosk_login_title: { ko: '키오스크 로그인', en: 'Kiosk login', jp: 'キオスクログイン', zh: '自助机登录' },
+  admin_register_title: { ko: '수강생 등록', en: 'Add student', jp: '受講生登録', zh: '添加学员' },
+  admin_register_name_label: { ko: '이름', en: 'Name', jp: '名前', zh: '姓名' },
+  admin_register_name_placeholder: { ko: '수강생 이름', en: 'Student name', jp: '受講生の名前', zh: '学员姓名' },
+  admin_register_phone_label: { ko: '전화번호', en: 'Phone number', jp: '電話番号', zh: '电话号码' },
+  admin_register_name_required: { ko: '이름을 입력해주세요', en: 'Please enter a name', jp: '名前を入力してください', zh: '请输入姓名' },
+  admin_register_phone_invalid: { ko: '전화번호를 확인해주세요', en: 'Please check the phone number', jp: '電話番号をご確認ください', zh: '请检查电话号码' },
+  admin_register_submit: { ko: '등록하기', en: 'Register', jp: '登録する', zh: '注册' },
+  admin_register_success: { ko: '수강생을 등록했어요', en: 'Student registered', jp: '受講生を登録しました', zh: '已添加学员' },
+  admin_register_failed: { ko: '등록에 실패했어요. 다시 시도해주세요.', en: 'Registration failed. Please try again.', jp: '登録に失敗しました。', zh: '注册失败，请重试。' },
+  admin_payments_title: { ko: '결제 내역', en: 'Payments', jp: '決済履歴', zh: '支付记录' },
+  admin_payments_empty: { ko: '결제 내역이 없어요', en: 'No payments yet', jp: '決済履歴がありません', zh: '暂无支付记录' },
+  admin_payments_load_more: { ko: '더 보기', en: 'Load more', jp: 'もっと見る', zh: '加载更多' },
+  admin_payments_cancel: { ko: '결제 취소', en: 'Cancel payment', jp: '決済キャンセル', zh: '取消支付' },
+  admin_payments_cancel_confirm: { ko: "'{name}' 결제를 취소할까요? 환불이 진행되며 되돌릴 수 없어요.", en: "Cancel the payment for '{name}'? The refund cannot be undone.", jp: "'{name}'の決済をキャンセルしますか？返金は元に戻せません。", zh: "要取消'{name}'的支付吗？退款后无法撤销。" },
+  admin_payments_cancel_kiosk_notice: { ko: '키오스크 카드결제 건은 환불 대기로 남아요. 환불은 키오스크에서 마무리해주세요.', en: 'Kiosk card payments remain pending refund — complete it at the kiosk.', jp: 'キオスクのカード決済は返金待ちとして残ります。', zh: '自助机刷卡订单将保留为待退款状态。' },
+  admin_payments_cancel_failed: { ko: '결제 취소에 실패했어요', en: 'Failed to cancel the payment', jp: '決済のキャンセルに失敗しました', zh: '取消支付失败' },
+  admin_payments_cancel_success: { ko: '결제를 취소했어요', en: 'Payment cancelled', jp: '決済をキャンセルしました', zh: '已取消支付' },
+  admin_payments_cancel_pending_notice: { ko: '환불 대기로 전환됐어요. 키오스크에서 환불을 마무리해주세요.', en: 'Now pending refund — complete it at the kiosk.', jp: '返金待ちになりました。キオスクで返金を完了してください。', zh: '已转为待退款，请在自助机上完成退款。' },
+  admin_home_no_studio: { ko: '연결된 스튜디오가 없어요.\n계정 설정을 확인해주세요.', en: 'No studio linked to this account.', jp: '連携されたスタジオがありません。', zh: '此账号未关联工作室。' },
 
   // 공지사항 (AnnouncementCard / AnnouncementListClient)
   announcement_badge: {
@@ -4594,6 +4787,10 @@ export const StringResource = {
   bottom_menu_schedule: { ko: '일정', en: 'schedule', jp: 'スケジュール', zh: '日程' },
   bottom_menu_practice: { ko: '연습실', en: 'Practice', jp: '練習室', zh: '练习室' },
   bottom_menu_profile: { ko: '마이페이지', en: 'my', jp: 'マイ', zh: '我的' },
+  bottom_menu_admin_home: { ko: '홈', en: 'home', jp: 'ホーム', zh: '首页' },
+  bottom_menu_admin_payment: { ko: '매출', en: 'Sales', jp: '売上', zh: '营收' },
+  bottom_menu_admin_user: { ko: '수강생', en: 'Students', jp: '受講生', zh: '学员' },
+  bottom_menu_admin_setting: { ko: '설정', en: 'Settings', jp: '設定', zh: '设置' },
 
   // 제휴 신청 화면 (form.rawgraphy.com, /forms)
   pf_recruiting: { ko: '모집 중', en: 'Now recruiting', jp: '募集中', zh: '招募中' },
@@ -4727,7 +4924,48 @@ export const StringResource = {
   pr_done_next2: { ko: '허가되면 구성원 신청 링크가 알림톡으로 와요. 링크를 단체에 공유하면 구성원들이 각자 신청하고, 인원이 모이면 대표가 한 번에 결제해요.', en: "Once approved, you'll get a member application link via KakaoTalk. Share it with your group — everyone applies individually, and a representative pays the total once the group is set.", jp: '承認されるとメンバー応募リンクがカカオトークで届きます。団体に共有すると各自が応募し、人数が揃ったら代表者がまとめて決済します。', zh: '批准后您将通过KakaoTalk收到成员报名链接。分享给团体后各自报名，人数集齐后由代表统一支付。' },
   pr_the_studio: { ko: '스튜디오', en: 'The studio', jp: 'スタジオ', zh: '工作室' },
   pr_studio_notfound_title: { ko: '스튜디오를 찾을 수 없어요', en: "We couldn't find this studio", jp: 'スタジオが見つかりません', zh: '找不到该工作室' },
+  pass_status_unpaid: { ko: '미납', en: 'Unpaid', jp: '未納', zh: '未缴' },
+  regular_class_since: { ko: '{date}부터 수강 중', en: 'Since {date}', jp: '{date}から受講中', zh: '{date}起上课' },
+  every_week_days: { ko: '매주 {days}', en: 'Every {days}', jp: '毎週{days}', zh: '每{days}' },
+  regular_class_lessons: { ko: '수업 목록', en: 'Lessons', jp: 'レッスン一覧', zh: '课程列表' },
+  regular_class_no_lessons: { ko: '아직 등록된 수업이 없어요', en: 'No lessons scheduled yet', jp: 'まだ登録されたレッスンがありません', zh: '暂无已安排的课程' },
+  attendance_upcoming: { ko: '예정', en: 'Upcoming', jp: '予定', zh: '待上课' },
+  attendance_attended: { ko: '출석', en: 'Attended', jp: '出席', zh: '已出席' },
+  regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
+  my_regular_classes: { ko: '내 정규반', en: 'My regular classes', jp: 'マイレギュラークラス', zh: '我的常规班' },
+  studio_regular_classes: { ko: '정규반', en: 'Regular classes', jp: 'レギュラークラス', zh: '常规班' },
+  regular_class_view_all: { ko: '정규반 전체보기', en: 'View all classes', jp: 'クラスをすべて見る', zh: '查看全部常规班' },
+  select_enroll_option: { ko: '수강 방식 선택', en: 'Choose an option', jp: '受講プランを選択', zh: '选择上课方式' },
+  regular_class_artist: { ko: '담당 강사', en: 'Instructor', jp: '担当講師', zh: '授课讲师' },
+  regular_class_starts_today: { ko: '오늘부터 바로 시작합니다', en: 'Starts today', jp: '今日からすぐ始まります', zh: '今天即可开始' },
+  regular_class_starts_tomorrow: { ko: '내일({date})부터 바로 시작합니다', en: 'Starts tomorrow ({date})', jp: '明日({date})から始まります', zh: '明天({date})开始' },
+  regular_class_starts_on: { ko: '{day}({date})부터 시작합니다', en: 'Starts {day} ({date})', jp: '{day}({date})から始まります', zh: '{day}({date})开始' },
+  regular_class_notice: { ko: '{name} 안내사항', en: '{name} notice', jp: '{name} ご案内', zh: '{name} 须知' },
+  pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
+  regular_class_empty: { ko: '판매중인 정규반이 없어요', en: 'No regular classes on sale', jp: '販売中のクラスがありません', zh: '暂无在售常规班' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
+
+  // 키오스크 QR 로그인(SSE) — 키오스크 패널
+  kiosk_qr_login_title: { ko: '앱으로 QR 로그인', en: 'Log in with the app', jp: 'アプリでQRログイン', zh: '用App扫码登录' },
+  kiosk_qr_login_desc: { ko: '휴대폰 카메라로 QR을 찍으면\n번호 입력 없이 바로 로그인돼요', en: 'Scan the QR with your phone camera\nto log in without typing your number', jp: 'スマホのカメラでQRを読み取ると\n番号入力なしでログインできます', zh: '用手机相机扫描二维码\n无需输入号码即可登录' },
+  kiosk_qr_login_ready: { ko: '스캔 대기 중', en: 'Ready to scan', jp: 'スキャン待機中', zh: '等待扫描' },
+  kiosk_qr_login_connecting: { ko: '준비 중…', en: 'Preparing…', jp: '準備中…', zh: '准备中…' },
+  kiosk_qr_login_reconnecting: { ko: 'QR을 새로 만드는 중…', en: 'Refreshing QR…', jp: 'QRを更新中…', zh: '正在刷新二维码…' },
+  // 키오스크 QR 로그인 — 앱 승인 화면(/kiosk-login)
+  kiosk_login_approve_loading: { ko: '키오스크에 로그인하는 중…', en: 'Logging in to the kiosk…', jp: 'キオスクにログイン中…', zh: '正在登录自助机…' },
+  kiosk_login_approve_done: { ko: '{kiosk}에\n로그인했어요', en: 'Logged in to\n{kiosk}', jp: '{kiosk}に\nログインしました', zh: '已登录\n{kiosk}' },
+  kiosk_login_approve_done_desc: { ko: '키오스크 화면에서 이어서 진행해주세요', en: 'Continue on the kiosk screen', jp: 'キオスクの画面で続けてください', zh: '请在自助机屏幕上继续' },
+  kiosk_login_approve_not_student: { ko: '아직 이 학원의 수강생이 아니에요.\n키오스크에서 등록을 이어가주세요', en: "You're not a student of this studio yet.\nContinue registration on the kiosk", jp: 'まだこのスタジオの受講生ではありません。\nキオスクで登録を続けてください', zh: '您还不是该机构的学员。\n请在自助机上继续注册' },
+  kiosk_login_approve_retry_hint: { ko: '키오스크 화면이 바뀌지 않으면 QR을 다시 찍어주세요', en: "If the kiosk screen doesn't change, scan the QR again", jp: 'キオスクの画面が変わらない場合はQRを再度読み取ってください', zh: '若自助机屏幕没有变化，请重新扫描二维码' },
+  kiosk_login_approve_need_login: { ko: '로그인이 필요해요', en: 'Please log in', jp: 'ログインが必要です', zh: '需要登录' },
+  kiosk_login_approve_need_login_desc: { ko: '앱에 로그인한 뒤 키오스크 QR을 다시 찍어주세요', en: 'Log in to the app, then scan the kiosk QR again', jp: 'アプリにログインしてからキオスクのQRを再度読み取ってください', zh: '请先登录App，再重新扫描自助机二维码' },
+  kiosk_login_approve_failed: { ko: '키오스크 로그인에 실패했어요', en: 'Kiosk login failed', jp: 'キオスクのログインに失敗しました', zh: '自助机登录失败' },
+  kiosk_login_approve_invalid: { ko: 'QR 정보가 올바르지 않아요', en: 'The QR information is invalid', jp: 'QRの情報が正しくありません', zh: '二维码信息无效' },
+  kiosk_login_scan_hint: { ko: '키오스크 로그인 화면의 QR을\n네모 안에 맞춰주세요', en: 'Align the QR on the kiosk login screen\ninside the frame', jp: 'キオスクのログイン画面にあるQRを\n枠内に合わせてください', zh: '请将自助机登录界面上的二维码\n对准框内' },
+  kiosk_login_scan_not_kiosk_qr: { ko: '키오스크 로그인 QR이 아니에요', en: 'This is not a kiosk login QR', jp: 'キオスクログイン用のQRではありません', zh: '这不是自助机登录二维码' },
+  kiosk_login_scan_again: { ko: '다시 스캔', en: 'Scan again', jp: '再スキャン', zh: '重新扫描' },
+  kiosk_login_approve_operator_done: { ko: '{studio} 키오스크에\n로그인했어요', en: 'Logged in to the\n{studio} kiosk', jp: '{studio}のキオスクに\nログインしました', zh: '已登录\n{studio}的自助机' },
+  kiosk_login_approve_operator_done_desc: { ko: '키오스크 화면이 곧 바뀌어요. 바뀌지 않으면 QR을 다시 찍어주세요', en: "The kiosk screen will change shortly. If it doesn't, scan the QR again", jp: 'キオスクの画面がまもなく切り替わります。切り替わらない場合はQRを再度読み取ってください', zh: '自助机屏幕即将切换。若未切换，请重新扫描二维码' },
 }
 
 export type StringResourceKey = keyof typeof StringResource;

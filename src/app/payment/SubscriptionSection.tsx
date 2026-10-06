@@ -48,29 +48,35 @@ export const SubscriptionSection = ({
   const handleAddCard = async () => {
     if (!newCardForm || addingCard) return;
     setAddingCard(true);
-    const res = await addBillingAction(newCardForm);
-    if ('billingKey' in res && res.billingKey) {
-      setShowCardForm(false);
-      setNewCardForm(null);
-      // 풀 리로드 대신 목록 재조회 — 새 카드를 바로 선택 상태로
-      const list = await getBillingListAction();
-      if ('billings' in list) {
-        onCardsChangeAction(list.billings);
-        const added = list.billings.find((c) => c.billingKey === res.billingKey);
-        if (added) selectBillingCard(added);
-      }
-    } else {
-      const message = 'pgMessage' in res
-        ? res.pgMessage ?? ''
-        : (res as { message?: string }).message ?? '';
+    // 등록 실패 다이얼로그 — 서버/PG 메시지 없으면 일반 실패 문구로 폴백
+    const showFail = async (message?: string) => {
       const dialog = await createDialog({
         id: 'Simple',
         title: getLocaleString({ locale, key: 'billing_register_fail_title' }),
-        message,
+        message: message || getLocaleString({ locale, key: 'billing_register_fail' }),
       });
       window.KloudEvent?.showDialog(JSON.stringify(dialog));
+    };
+    try {
+      const res = await addBillingAction(newCardForm);
+      if ('billingKey' in res && res.billingKey) {
+        setShowCardForm(false);
+        setNewCardForm(null);
+        // 풀 리로드 대신 목록 재조회 — 새 카드를 바로 선택 상태로
+        const list = await getBillingListAction();
+        if ('billings' in list) {
+          onCardsChangeAction(list.billings);
+          const added = list.billings.find((c) => c.billingKey === res.billingKey);
+          if (added) selectBillingCard(added);
+        }
+      } else {
+        await showFail('pgMessage' in res ? res.pgMessage : (res as { message?: string }).message);
+      }
+    } catch {
+      await showFail();
+    } finally {
+      setAddingCard(false);
     }
-    setAddingCard(false);
   };
 
   const benefits: Parameters<typeof getLocaleString>[0]['key'][] = [

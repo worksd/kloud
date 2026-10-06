@@ -6,15 +6,12 @@ import { AttendanceStatus } from "@/app/endpoint/studio.endpoint";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { loginSuccessAction } from "@/app/login/action/login.success.action";
 import { clearCookies } from "@/app/profile/clear.token.action";
-import { accessTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
+import { accessTokenKey, kioskCustomerTokenKey, kioskSelectedIdKey } from "@/shared/cookies.key";
 
-export const searchUserByPhoneAction = async (phone: string, countryCode: string) => {
-  return await api.user.searchByPhone({ phone, countryCode });
-};
 
 // 뒷 4자리 패드에서 온 숫자면 matchType 'PhoneSuffix'로 끝자리 일치만 — 부분 일치는 다른 회원이 먼저 잡힐 수 있다.
-export const searchUserAction = async (query: string, matchType?: SearchMatchType) => {
-  return await api.user.search({ query, matchType });
+export const searchUserAction = async (keyword: string, matchType?: SearchMatchType) => {
+  return await api.user.search({ keyword, matchType });
 };
 
 export const registerKioskUserAction = async (phone: string, countryCode: string, nickName: string, name?: string) => {
@@ -45,8 +42,8 @@ export const registerKioskUserAction = async (phone: string, countryCode: string
 // 스튜디오 출석의 수강생 검색 — user search(/users/search)가 아니라 GET /students.
 // 학원(파트너 토큰) 소속 수강생만 대상이고, 이름·닉네임·폰·이메일을 한 번에 커버한다.
 // 검색어가 숫자뿐이면 서버가 phone 전용 검색으로 동작한다. 뒷 4자리 패드면 matchType 'PhoneSuffix'로 끝자리 일치만.
-export const searchStudentsAction = async (query: string, matchType?: SearchMatchType) => {
-  return await api.student.list({ query, matchType });
+export const searchStudentsAction = async (keyword: string, matchType?: SearchMatchType) => {
+  return await api.student.list({ keyword, matchType });
 };
 
 export const createStudioAttendanceAction = async (targetUserId: number, status: AttendanceStatus) => {
@@ -248,4 +245,28 @@ export const cancelKioskPaymentAction = async (params: { paymentId: string; targ
 // 영수증 재발급용 — GET /kiosks/:id/paymentRecords/:paymentId. 인증 없음.
 export const getKioskPaymentRecordDetailAction = async (params: { kioskId: number; paymentId: string }) => {
   return await api.kiosk.getPaymentRecordDetail(params);
+};
+
+// ── 키오스크 QR 로그인(SSE) ───────────────────────────────────────────────────────
+// SSE 스트림은 브라우저 EventSource가 API 서버에 직접 붙는다(헤더 불필요).
+// GUINNESS_API_SERVER는 NEXT_PUBLIC_이 아니라 클라 번들에 없으므로 서버 액션으로 내려준다.
+export const getKioskApiServerAction = async (): Promise<string> => {
+  return (process.env.GUINNESS_API_SERVER ?? '').replace(/\/$/, '');
+};
+
+// 'kiosk.login' 이벤트로 받은 손님 토큰(12시간)을 쿠키에 — 이후 요청의 x-guinness-kiosk-authorization 헤더가 된다.
+// 공용 기기라 수명은 토큰과 같은 12시간으로 두고, 손님 화면이 끝나면 clearKioskCustomerTokenAction으로 바로 지운다.
+export const saveKioskCustomerTokenAction = async (token: string) => {
+  const cookieStore = await cookies();
+  cookieStore.set(kioskCustomerTokenKey, token, {
+    maxAge: 60 * 60 * 12,
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+  });
+};
+
+export const clearKioskCustomerTokenAction = async () => {
+  const cookieStore = await cookies();
+  cookieStore.delete(kioskCustomerTokenKey);
 };

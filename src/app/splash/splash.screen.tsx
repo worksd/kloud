@@ -7,6 +7,7 @@ import { UserStatus } from "@/entities/user/user.status";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { getStoreLink } from "@/app/components/MobileWebViewTopBar";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { enterAfterAuth } from "@/app/lib/enterAfterAuth";
 import { resolveRedirectTarget } from "@/app/redirect/resolve";
 
 const extractPath = (raw?: string): string | undefined => {
@@ -55,7 +56,8 @@ export const SplashScreen = ({os, link}: { os: string, link?: string }) => {
         kloudNav.clearAndPush(KloudScreen.Onboard)
       }
       else if (status == UserStatus.Ready) {
-        await kloudNav.navigateMain({ route: resolveAppRoute(link) })
+        // 관리자(Partner/Operator) → 관리자 홈, 그 외/딥링크 → 메인. 로그인·회원가입과 같은 분기(enterAfterAuth)
+        await enterAfterAuth({ type: res.type, route: resolveAppRoute(link) })
       }
       else if (status == UserStatus.Deactivate) {
         kloudNav.clearAndPush(KloudScreen.LoginDeactivate)

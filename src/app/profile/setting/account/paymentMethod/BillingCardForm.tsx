@@ -31,19 +31,29 @@ export const BillingCardForm = ({cards, locale, birth, pcCard = false}: {
     window.onDialogConfirm = async (data: DialogInfo) => {
       if (data.id == 'DeleteBillingCard') {
         setIsDeleting(true);
-        const res = await deleteBillingAction({billingKey: data.customData ?? ''})
-        if ('deletedAt' in res) {
-          await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
-          await loadCards()
-        } else if (isGuinnessErrorCase(res)) {
+        // 실패 다이얼로그 — 서버 메시지 없으면 일반 에러 문구로 폴백
+        const showFail = async (message?: string) => {
           const dialog = await createDialog({
             id: 'Simple',
-            title: res.message
+            message: message || getLocaleString({locale, key: 'unknown_error_message'}),
           })
           window.KloudEvent.showDialog(JSON.stringify(dialog));
         }
-        setIsDeleting(false);
-
+        try {
+          const res = await deleteBillingAction({billingKey: data.customData ?? ''})
+          if ('deletedAt' in res) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 이 코드 없으면 갱신안됨
+            await loadCards()
+          } else if (isGuinnessErrorCase(res)) {
+            await showFail(res.message)
+          } else {
+            await showFail()
+          }
+        } catch {
+          await showFail()
+        } finally {
+          setIsDeleting(false);
+        }
       }
     }
   }, []);

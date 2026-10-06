@@ -1,71 +1,38 @@
 import { getSubscriptionList } from "@/app/profile/mySubscription/action/get.subscription.list.action";
-import { GetSubscriptionResponse } from "@/app/endpoint/subscription.endpoint";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { KloudScreen } from "@/shared/kloud.screen";
-import { SimpleHeader } from "@/app/components/headers/SimpleHeader";
-import { translate } from "@/utils/translate";
+import { getLocale, translate } from "@/utils/translate";
+import { SubscriptionRow } from "@/app/profile/mySubscription/SubscriptionRow";
 
+// 예약 결제(정기결제) 목록 — 프로필 > 내 활동 > 예약 결제. 네이티브 헤더(타이틀 '예약 결제')를 쓰므로 자체 헤더 없음.
+// 진행 중 → 그 외(취소·실패) 순으로 한 목록에.
 export default async function MySubscriptionPage() {
   const res = await getSubscriptionList();
+  const locale = await getLocale();
 
-  // subscriptions 키가 아예 없을 경우 (API 실패 등)
   if (!('subscriptions' in res)) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        정기결제 정보를 불러올 수 없습니다.
+      <div className="min-h-[400px] flex items-center justify-center p-6 text-[14px] text-[#8B95A1] text-center">
+        {await translate('no_scheduled_payments')}
       </div>
     );
   }
 
-  const subscriptions = res.subscriptions;
+  const subscriptions = [...res.subscriptions].sort((a, b) => Number(b.status === 'Active') - Number(a.status === 'Active'));
 
-  // 정기결제 목록이 비어 있을 경우
   if (subscriptions.length === 0) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        현재 활성화된 정기결제가 없습니다.
+      <div className="min-h-[400px] flex items-center justify-center p-6 text-[14px] text-[#8B95A1] text-center">
+        {await translate('no_scheduled_payments')}
       </div>
     );
   }
 
-  // 정기결제 목록이 있을 경우
   return (
-    <div className="p-6 space-y-4 text-black">
-      {subscriptions.map((sub) => (
-        <SubscriptionCard key={sub.subscriptionId} subscription={sub}/>
-      ))}
-    </div>
-  );
-}
-
-const SubscriptionCard = async ({subscription}: { subscription: GetSubscriptionResponse }) => {
-  const {subscriptionId, productName, status, studio} = subscription;
-
-  const statusColor = {
-    Active: "bg-green-100 text-green-800",
-    Cancelled: "bg-gray-100 text-gray-600",
-    Failed: "bg-red-100 text-red-800",
-  }[status];
-
-  return (
-    <NavigateClickWrapper method={'push'} route={KloudScreen.MySubscriptionDetail(subscriptionId)}>
-      <div className="border rounded-xl p-4 shadow-sm hover:shadow-md transition bg-white">
-        <div className="flex flex-col justify-between items-start mb-2 text-black">
-            <span className={`text-xs px-2 mb-2 py-1 rounded-full ${statusColor}`}>
-                        {status == 'Active' ? await translate('active') :
-                          status == 'Cancelled' ? await translate('cancelled') :
-                            status == 'Failed' ? await translate('failed') : ''
-                        }
-          </span>
-          <h2 className="text-lg font-medium">{productName}</h2>
-        </div>
-        {studio && (
-          <p className="text-sm text-gray-600 mb-1">
-            <span className="font-medium">{studio.name}</span>
-          </p>
-        )}
-        <p className="text-xs text-gray-400">ID: {subscriptionId}</p>
+    <div className="min-h-screen bg-white pt-2 pb-8">
+      <div className="flex flex-col divide-y divide-[#F2F4F6]">
+        {subscriptions.map((sub) => (
+          <SubscriptionRow key={sub.subscriptionId} sub={sub} locale={locale}/>
+        ))}
       </div>
-    </NavigateClickWrapper>
+    </div>
   );
 }

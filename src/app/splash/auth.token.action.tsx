@@ -5,7 +5,8 @@ export async function authToken() {
   const res = await api.auth.token({})
   if ('id' in res) {
     return {
-      status: res.status
+      status: res.status,
+      type: res.type,
     }
   } else {
     return {

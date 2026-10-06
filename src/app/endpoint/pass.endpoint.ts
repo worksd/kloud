@@ -18,6 +18,8 @@ export type GetPassPlanListRequest = {
   studioId: number
   /** 'active'(Ready+Private) 등 상태 필터. 생략 시 전부. */
   status?: string
+  /** 정규반 id — 스튜디오 상세 정규반 카드에서 진입 시 그 반의 패스권만 */
+  regularClassId?: number
 }
 
 /**
@@ -56,17 +58,23 @@ export type RuleTicket = {
   status: 'Used' | 'Upcoming' | 'Cancelled';
 }
 
+/** 패스 룰로 발급된 내 수강권 1건 (BE MyTicketResponse). 정규반 상세의 수업 목록이 이걸 그대로 쓴다 */
 export type PassRuleTicket = {
   id: number;
   status: string;
-  paymentId: string;
+  /** 미납 유예(Unpaid) 수강권은 결제건이 없어 null */
+  paymentId: string | null;
   createdAt: string;
+  /** 출석 처리 시각. 출석 안 했으면 null */
+  attendedAt?: string | null;
   lesson?: {
     id: number;
     title: string;
+    /** 'yyyy.MM.dd HH:mm' KST */
     startDate?: string;
     endDate?: string;
     thumbnailUrl?: string;
+    room?: { id: number; name: string } | null;
   };
 }
 
@@ -167,7 +175,8 @@ export type GetPassPlanResponse = {
   isPopular: boolean,
   usageLimit?: number,
   expireDateStamp?: string,
-  type: 'Count' | 'Unlimited',
+  /** Count=횟수제, Unlimited=무제한, Dedicated=전용반(특정 수업 등록형). ⚠️ Dedicated 값 문자열은 BE 확정 대기. */
+  type: 'Count' | 'Unlimited' | 'Dedicated',
   tier: PassPlanTier,
   tag?: string,
   canPreSale?: boolean,
@@ -176,6 +185,18 @@ export type GetPassPlanResponse = {
   rules?: PassPlanRule[],
   features?: PassPlanFeature[],
   benefits?: PassBenefit[],
+  /** 이용기간 — Days/Months + 값. 표시는 BE가 만든 expireDateStamp를 쓰고, 이 값은 참고용 */
+  durationUnit?: 'Days' | 'Months',
+  durationValue?: number,
+  /** 정기결제로 살 수 있는지 — 정규반이거나 무제한이면 true. 결제 화면은 GET /payment의 canSubscribe를 본다 */
+  canSubscribe?: boolean,
+  /** 다니는 요일(0=일 ~ 6=토). 비어 있으면 요일을 가리지 않는다. 일반 패스권은 항상 빈 배열 */
+  days?: number[],
+  description?: string | null,
+  /** 상품 종류 — General=일반 패스권, Class=정규반 가격정책. 패스 상세(GET /passes/:id)의 passPlan 에 온다 */
+  category?: 'General' | 'Class',
+  /** 소속 정규반 — category=Class 면 채워지고 일반 패스권은 null */
+  regularClass?: { id: number; name: string; unpaidEnabled?: boolean } | null,
 }
 
 export type GetPassPlansResponse = {
@@ -218,6 +239,8 @@ export type GetPassResponse = {
   usable: boolean
   reason?: string
   qrcodeUrl?: string
+  /** 이 패스로 다니는 요일(0=일 ~ 6=토). 살 때의 상품 요일이 박힌 값. 비어 있으면 요일을 가리지 않는다 */
+  days?: number[]
 }
 
 export type GetPassesResponse = {
@@ -249,7 +272,7 @@ export const GetPassPlans: Endpoint<GetPassPlanListRequest, GetPassPlansResponse
   method: "get",
   path: (e) => `/studios/${e.studioId}/pass-plans`,
   pathParams: ['studioId'],
-  queryParams: ['status']
+  queryParams: ['status', 'regularClassId']
 };
 
 // GET /passPlans?studioId={id}&withAll=true — 키오스크 관리자모드 전용.

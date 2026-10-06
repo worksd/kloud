@@ -12,6 +12,8 @@ export class ApiClient extends EndpointClient {
     signUp: this.endpointBuilder(API.Auth.PostSignUpEmail),
     socialLogin: this.endpointBuilder(API.Auth.PostSocialLogin),
     socialLink: this.endpointBuilder(API.Auth.PostSocialLink),
+    // 키오스크 운영자 QR 로그인 승인(파트너 앱) — 키오스크 쪽 SSE는 KioskOperatorQrLogin이 EventSource로 직접 연다
+    kioskOperatorLogin: this.endpointBuilder(API.Auth.KioskOperatorLogin),
     sendEmailVerification: this.endpointBuilder(API.Auth.SendVerificationEmail),
     sendPhoneVerification: this.endpointBuilder(API.Auth.SendPhoneVerification),
     checkPhoneVerification: this.endpointBuilder(API.Auth.CheckPhoneVerification),
@@ -24,13 +26,13 @@ export class ApiClient extends EndpointClient {
     delete: this.endpointBuilder(API.User.DeleteUser),
     checkDuplicate: this.endpointBuilder(API.User.CheckDuplicate),
     connectParent: this.endpointBuilder(API.User.CreateParentConnection),
-    searchByPhone: this.endpointBuilder(API.User.SearchUserByPhone),
     search: this.endpointBuilder(API.User.SearchUser),
   }
 
   readonly lesson = {
     get: this.endpointBuilder(API.Lesson.GetLesson),
     createPrivate: this.endpointBuilder(API.Lesson.CreatePrivateLesson),
+    cancel: this.endpointBuilder(API.Lesson.CancelLesson),
     listOngoingLessons: this.endpointBuilder(API.Lesson.ListOngoingLessons),
     listValidLessons: this.endpointBuilder(API.Lesson.ListValidLessons),
     listByDate: this.endpointBuilder(API.Lesson.ListStudioLessonsByDate),
@@ -51,8 +53,17 @@ export class ApiClient extends EndpointClient {
     me: this.endpointBuilder(API.Studio.Me),
     my: this.endpointBuilder(API.Studio.My),
     timeTable: this.endpointBuilder(API.Studio.TimeTable),
+    listRegularClasses: this.endpointBuilder(API.Studio.ListRegularClasses),
+    getRegularClass: this.endpointBuilder(API.Studio.GetRegularClass),
     createAttendance: this.endpointBuilder(API.Studio.CreateStudioAttendance),
     listAttendances: this.endpointBuilder(API.Studio.ListStudioAttendances),
+    // 내 스튜디오 설정 (PARTNER 헤더) — 관리자 설정 탭
+    getMyProfile: this.endpointBuilder(API.Studio.GetMyStudioProfile),
+    getMyBusiness: this.endpointBuilder(API.Studio.GetMyStudioBusiness),
+    getMyLessonSettings: this.endpointBuilder(API.Studio.GetMyStudioLessonSettings),
+    getMyRoomSettings: this.endpointBuilder(API.Studio.GetMyStudioRoomSettings),
+    getMySubscription: this.endpointBuilder(API.Studio.GetMyStudioSubscription),
+    update: this.endpointBuilder(API.Studio.UpdateStudio),
   }
 
   readonly announcement = {
@@ -116,6 +127,7 @@ export class ApiClient extends EndpointClient {
     getRefundPreview: this.endpointBuilder(API.PaymentRecord.GetRefundPreview),
     requestRefund: this.endpointBuilder(API.PaymentRecord.RequestRefund),
     createManual: this.endpointBuilder(API.PaymentRecord.CreateManualPaymentRecord),
+    getComplete: this.endpointBuilder(API.PaymentRecord.GetPaymentComplete),
     createKiosk: this.endpointBuilder(API.PaymentRecord.CreateKioskPendingPayment),
   }
 
@@ -131,6 +143,8 @@ export class ApiClient extends EndpointClient {
     listPayments: this.endpointBuilder(API.Kiosk.ListKioskPayments),
     cancelPayment: this.endpointBuilder(API.Kiosk.CancelKioskPayment),
     getPaymentRecordDetail: this.endpointBuilder(API.Kiosk.GetKioskPaymentRecordDetail),
+    // QR 로그인 승인(모바일 앱 쪽) — 키오스크 쪽 SSE는 브라우저 EventSource로 직접 연다(KioskQrLogin)
+    login: this.endpointBuilder(API.Kiosk.KioskLogin),
   }
 
   readonly billing = {
@@ -182,6 +196,7 @@ export class ApiClient extends EndpointClient {
     getByUser: this.endpointBuilder(API.Student.GetStudentByUser),
     getPasses: this.endpointBuilder(API.Student.GetStudentPasses),
     list: this.endpointBuilder(API.Student.FindStudentList),
+    listAll: this.endpointBuilder(API.Student.FindStudents),
   }
 
   readonly studioRoom = {

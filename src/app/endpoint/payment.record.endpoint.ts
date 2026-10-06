@@ -35,6 +35,8 @@ export type GetPaymentRecordResponse = {
   discounts?: DiscountResponse[];
   /** 번들(paymentId가 BD로 시작) 결제일 때 구성된 수강권 목록. 그 외 결제에선 빈 배열 또는 미포함. */
   tickets?: BundleTicketResponse[];
+  /** 패스권(LP) 결제일 때 플랜 요약 — type으로 전용반(Dedicated)/일반(Count·Unlimited)을 가른다. BE 추가 예정. */
+  passPlan?: { id?: number; name?: string; type?: 'Count' | 'Unlimited' | 'Dedicated' };
 }
 
 export type BundleTicketResponse = {
@@ -86,12 +88,14 @@ export type CreateManualPaymentRecordRequest = {
 
 export type GetPaymentRecordsParameter = {
   page?: number;
+  /** KST 기준 특정 일자만 조회. 'yyyy-MM-dd' — 서버가 ^\d{4}-\d{2}-\d{2}$ 로 검증한다 */
+  date?: string;
 }
 
 export const GetPaymentRecords: Endpoint<GetPaymentRecordsParameter, GetPaymentRecordListResponse> = {
   method: "get",
   path: `/paymentRecords`,
-  queryParams: ['page'],
+  queryParams: ['page', 'date'],
 };
 
 export const GetPaymentRecordDetail: Endpoint<PaymentIdParameter, GetPaymentRecordResponse> = {
@@ -139,7 +143,8 @@ export const GetRefundPreview: Endpoint<PaymentIdParameter, GetRefundPreviewResp
 export type RequestRefundRequest = {
   paymentId: string;
   reason: string;
-  requester: 'CUSTOMER';
+  /** CUSTOMER=회원 환불 신청, ADMIN=관리자(파트너) 취소 */
+  requester: 'CUSTOMER' | 'ADMIN';
 }
 
 export const RequestRefund: Endpoint<RequestRefundRequest, GetPaymentRecordResponse> = {
@@ -191,3 +196,92 @@ export enum PaymentRecordStatus {
   Failed = 'Failed',
   CancelPending = 'CancelPending',
 }
+
+// ════════ 결제 완료 화면 집계 — GET /paymentRecords/:paymentId/complete (docs/payment-complete-api-요청.md) ════════
+// 응답 하나로 /payment-complete 전체를 그린다. 부분 실패는 해당 필드만 null/[] — 키는 항상 있다.
+export type PaymentCompleteKind = 'lesson' | 'dedicated' | 'pass' | 'practice-room' | 'bundle' | 'etc';
+
+export type PaymentCompleteLesson = {
+  id: number;
+  title: string;
+  thumbnailUrl?: string | null;
+  /** raw yyyy.MM.dd HH:mm (KST) */
+  startDate?: string | null;
+  /** 로케일 문구 — 그대로 찍는다 */
+  date?: string | null;
+  timeRange?: string | null;
+  level?: string | null;
+  type?: string | null;
+  genre?: string | null;
+  tags?: string[];
+  room?: { id: number; name: string } | null;
+  studio?: { id: number; name: string; profileImageUrl?: string | null } | null;
+  artist?: { id: number; name?: string | null; nickName?: string | null; profileImageUrl?: string | null; youtubeAddress?: string | null } | null;
+  currentStudentCount?: number;
+  limit?: number | null;
+};
+
+export type PaymentCompleteClassmate = {
+  userId: number;
+  nickName: string;
+  profileImageUrl?: string | null;
+  sharedLessonCount: number;
+  lastSharedLessonTitle?: string | null;
+  lastSharedAt?: string | null;
+};
+
+export type PaymentCompleteVideo = {
+  videoId: string;
+  title: string;
+  thumbnailUrl?: string | null;
+  url: string;
+  viewCountLabel?: string | null;
+  publishedAtLabel?: string | null;
+};
+
+export type PaymentCompleteResponse = {
+  paymentId: string;
+  status: PaymentRecordStatus | string;
+  kind: PaymentCompleteKind;
+  greetingName?: string | null;
+  product: {
+    name: string;
+    imageUrl?: string | null;
+    /**
+     * 히어로 배경용 짧은 무음 클립(mp4). 학원 유튜브 영상 테이블의 clipUrl — 강사가 정해진 상품(수업 LT·정규반 dedicated)에서만 온다.
+     * 클립 생성 배치가 아직 없어 당분간 null이 대부분. null이면 imageUrl만 깐다.
+     */
+    heroVideoUrl?: string | null;
+    amount: number;
+    methodType?: PaymentMethodType;
+    paymentMethodLabel?: string;
+  };
+  lesson?: PaymentCompleteLesson | null;
+  /** Pending + 계좌이체일 때만. null이면 학원이 계좌를 안 적어둔 것 → 문의 안내 */
+  bankAccount?: { bank?: string | null; accountNumber?: string | null; depositor?: string | null; amount: number; expiresAt?: string | null } | null;
+  classmates: { totalCount: number; samples: PaymentCompleteClassmate[] };
+  guidelines: { id: number; title: string; content?: string | null }[];
+  upcomingLessons: { id: number; title: string; thumbnailUrl?: string | null; startDate?: string | null; date: string }[];
+  videos: PaymentCompleteVideo[];
+  paymentInfo?: {
+    paymentId: string;
+    createdAt?: string;
+    paymentMethodLabel?: string;
+    cardNumber?: string | null;
+    depositor?: string | null;
+    amount: number;
+    discounts: { key: string; amount: number }[];
+  } | null;
+};
+
+export type GetPaymentCompleteParameter = {
+  paymentId: string;
+  /** 정기수업 계약(LGT)·정규반 패스권에서만 쓰는 수업 힌트 */
+  lessonId?: number;
+};
+
+export const GetPaymentComplete: Endpoint<GetPaymentCompleteParameter, PaymentCompleteResponse> = {
+  method: 'get',
+  path: (e) => `/paymentRecords/${e.paymentId}/complete`,
+  queryParams: ['lessonId'],
+};

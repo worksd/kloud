@@ -24,6 +24,10 @@ import {TrackView} from "@/app/components/TrackView";
 import {HomePcForm} from "@/app/home/HomePcForm";
 import {PcRedirect} from "@/app/components/PcRedirect";
 import {parseHomeBands} from "@/app/home/home.bands";
+import {api} from "@/app/api.client";
+import {UserType} from "@/entities/user/user.type";
+import {AdminHomeForm} from "@/app/admin/AdminHomeForm";
+import {userModeKey} from "@/shared/cookies.key";
 
 export default async function Home({
                                      searchParams
@@ -31,7 +35,18 @@ export default async function Home({
   searchParams: Promise<{ os: string, appVersion?: string }>
 }) {
   const {os, appVersion} = await searchParams
-  const res = await getHomeAction()
+  // 바텀 탭 첫 탭은 관리자도 이 '/home'을 쓴다(앱 부팅 시 '/admin'을 주면 흰 화면). 그래서 여기서
+  // 관리자(Partner/Operator)면 관리자 폼으로 갈아끼운다 — 리다이렉트가 아니라 렌더 분기라 루프가 없다.
+  // '일반 모드로 가기'(userMode 쿠키)를 누른 동안에는 일반 홈을 그대로 보여준다.
+  // GET /auth 는 일반 홈 조회와 병렬로 태워 일반 유저 경로에 지연을 더하지 않는다.
+  const userMode = (await cookies()).get(userModeKey)?.value === 'true';
+  const [auth, res] = await Promise.all([
+    userMode ? Promise.resolve(undefined) : api.auth.token({}),
+    getHomeAction(),
+  ]);
+  if (auth && 'id' in auth && (auth.type === UserType.Partner || auth.type === UserType.Operator)) {
+    return <AdminHomeForm/>;
+  }
   const hideDialogIds = await getHideDialogIdsAction()
   const locale = await getLocale()
   const cookieStore = await cookies();

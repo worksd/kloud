@@ -22,6 +22,7 @@ export const signUpAction = async ({ email, password } : {email: string, passwor
       return {
         success: true,
         status: res.user.status,
+        type: res.user.type,
       };
     } else {
       return {

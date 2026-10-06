@@ -7,12 +7,29 @@ import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { UserStatus } from "@/entities/user/user.status";
 import { kloudNav } from "@/app/lib/kloudNav";
+import { createDialog } from "@/utils/dialog.factory";
+import { translate } from "@/utils/translate";
 
 export const LoginDeactivateScreen = ({user}: {user: GetUserResponse}) => {
+  // 복구 실패 안내 — 서버 메시지 우선, 없으면 공용 문구
+  const showErrorDialog = async (message?: string) => {
+    const dialog = await createDialog({
+      id: 'Simple',
+      message: message || await translate('unknown_error_message'),
+    })
+    window.KloudEvent?.showDialog(JSON.stringify(dialog))
+  }
+
   const handleActivate = async () => {
-    const res = await updateUserAction({})
-    if (res.success && res.user?.status == UserStatus.Ready) {
-      await kloudNav.navigateMain({})
+    try {
+      const res = await updateUserAction({})
+      if (res.success && res.user?.status == UserStatus.Ready) {
+        await kloudNav.navigateMain({})
+      } else {
+        await showErrorDialog(res.errorMessage)
+      }
+    } catch {
+      await showErrorDialog()
     }
   }
   return (

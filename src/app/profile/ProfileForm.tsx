@@ -3,23 +3,24 @@
 
 import { KloudScreen } from "@/shared/kloud.screen";
 import React from "react";
-import SettingIcon from "../../../public/assets/ic_setting.svg";
+// 헤더 아이콘은 리디자인 전 선 아이콘이 더 나아 되돌린 것 (본문 '내 활동'은 플랫 아이콘 유지)
 import EditIcon from "../../../public/assets/ic_edit.svg";
-import TicketIcon from "../../../public/assets/ic_ticket.svg";
-import PassPlanIcon from "../../../public/assets/ic_pass_plan.svg";
-import ReceiptIcon from "../../../public/assets/ic_receipt.svg";
+import SettingIcon from "../../../public/assets/ic_setting.svg";
+import { TicketFlatIcon, PassFlatIcon, ReceiptFlatIcon, ScheduledPaymentFlatIcon, RoomBookingFlatIcon, ChevronRightIcon } from "@/app/profile/ActivityIcons";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
+import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { UserType } from "@/entities/user/user.type";
 import { Locale } from "@/shared/StringResource";
-import { has, formatEndDate, formatPhone } from "@/app/profile/profile.format";
+import { has, formatEndDate, formatPhone, formatRelativeStart, ddayLabel } from "@/app/profile/profile.format";
 
 export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale: Locale }) => {
   const upcoming = user.upcomingLesson;
+  const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
 
   return (
     <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
@@ -30,6 +31,7 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
             <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
           </NavigateClickWrapper>
           <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
+            {/* 설정 — 리디자인 전 아이콘(ic_setting.svg) */}
             <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
           </NavigateClickWrapper>
         </div>
@@ -101,7 +103,7 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
       {/* 다음 예정 수업 */}
       {upcoming && (
         <section className="px-4 mb-6">
-          <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('upcoming_lesson')}</div>
+          <div className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-3 px-1">{await translate('upcoming_lesson')}</div>
           <NavigateClickWrapper method={'push'} route={KloudScreen.LessonDetail(upcoming.id)}>
             <div className="rounded-2xl overflow-hidden bg-black active:scale-[0.98] transition-all duration-150">
               <div className="relative w-full aspect-[2.5/1]">
@@ -117,9 +119,10 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
 
                 <div className="absolute inset-0 flex flex-col justify-center px-5">
                   <div className="flex items-center gap-2 mb-2">
-                    {upcoming.dday && (
+                    {/* 상대 시간('3시간 후'·'내일'·'3일 후') 우선, 7일 넘으면 dday */}
+                    {(relativeStart ?? upcoming.dday) && (
                       <span className="text-[12px] font-extrabold text-black bg-white px-2 py-0.5 rounded-full">
-                        {upcoming.dday}
+                        {relativeStart ?? upcoming.dday}
                       </span>
                     )}
                     {upcoming.genre && upcoming.genre !== 'Default' && (
@@ -157,42 +160,62 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
         </section>
       )}
 
-      {/* 보유 패스권 */}
+      {/* 내 정규반 — 정규반 상품(myRegularClasses). 일반 패스권과 갈라 와서 따로 섹션. 보유 패스권과 같은 카드 행 */}
+      {user.myRegularClasses && user.myRegularClasses.length > 0 && (
+        <section className="px-4 mb-6">
+          <div className="flex items-baseline gap-2 mb-3 px-1">
+            <span className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px]">{await translate('my_regular_classes')}</span>
+            {/* 반 수는 regularClassCount — 미납 유예분과 선발급분이 겹치면 줄 수(length)가 반 수보다 많다 */}
+            {(user.regularClassCount ?? 0) > 0 && (
+              <span className="text-[13px] font-semibold text-[#B0B8C1] font-paperlogy">{user.regularClassCount}</span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {user.myRegularClasses.map((item) => (
+              <MyRegularClassCard key={item.id} item={item} locale={locale}/>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 보유 패스권 — 밝은 카드 행. 썸네일(없으면 보라 틴트 아이콘) + 이름/종료일 + D-day 칩 */}
       {user.myPasses && user.myPasses.length > 0 && (
         <section className="px-4">
-          <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_pass')}</div>
+          <div className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-3 px-1">{await translate('my_pass')}</div>
           <div className="flex flex-col gap-2.5">
             {user.myPasses.map((pass) => {
               const isActive = pass.status === 'Active';
+              const dday = isActive ? ddayLabel(typeof pass.endDate === 'string' ? pass.endDate : undefined) : null;
+              const period = pass.endDate && typeof pass.endDate === 'string'
+                ? formatEndDate(pass.endDate, locale)
+                : pass.passPlan?.expireDateStamp;
               return (
                 <NavigateClickWrapper key={pass.id} method="push" route={KloudScreen.MyPassDetail(pass.id)}>
-                  <div className={`w-full h-[72px] rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-150 flex items-center ${
-                    isActive ? 'bg-[#1E2124]' : 'bg-[#F1F3F6]'
-                  }`}>
+                  <div className={`flex items-center gap-3.5 rounded-[20px] px-4 py-3.5 active:scale-[0.985] transition-all duration-150 ${isActive ? 'bg-[#F9FAFB]' : 'bg-[#F9FAFB] opacity-60'}`}>
                     {pass.passPlan?.imageUrl ? (
-                      <div className="w-[72px] h-[72px] flex-shrink-0">
+                      <div className={`relative w-[52px] h-[52px] rounded-[14px] overflow-hidden shrink-0 ${isActive ? '' : 'grayscale'}`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={pass.passPlan.imageUrl} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className={`w-[72px] h-[72px] flex-shrink-0 flex items-center justify-center ${
-                        isActive ? 'bg-white/5' : 'bg-[#E8E8EA]'
-                      }`}>
-                        <PassPlanIcon className="w-6 h-6 opacity-30" />
-                      </div>
+                      <span className="w-[52px] h-[52px] rounded-[14px] bg-white flex items-center justify-center shrink-0">
+                        <PassFlatIcon size={28}/>
+                      </span>
                     )}
-                    <div className="px-4 flex flex-col min-w-0 flex-1">
-                      <span className={`text-[15px] font-bold truncate ${isActive ? 'text-white' : 'text-[#999]'}`}>
+                    <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+                      <span className="text-[15px] font-semibold text-[#191F28] truncate tracking-[-0.3px]">
                         {pass.passPlan?.name}
                       </span>
-                      {(pass.endDate || pass.passPlan?.expireDateStamp) && (
-                        <span className={`text-[11px] mt-1 truncate ${isActive ? 'text-white/40' : 'text-[#BBB]'}`}>
-                          {pass.endDate && typeof pass.endDate === 'string'
-                            ? `~ ${formatEndDate(pass.endDate, locale)}`
-                            : pass.passPlan?.expireDateStamp}
-                        </span>
+                      {period && (
+                        <span className="text-[12.5px] text-[#8B95A1] truncate tracking-[-0.2px]">{period}</span>
                       )}
                     </div>
+                    {dday && (
+                      <span className="shrink-0 px-2 py-[3px] rounded-[6px] bg-[#191F28] text-white text-[11px] font-bold font-paperlogy tracking-wide">
+                        {dday}
+                      </span>
+                    )}
+                    <ChevronRightIcon className="text-[#D1D6DB] shrink-0 -ml-1"/>
                   </div>
                 </NavigateClickWrapper>
               );
@@ -204,7 +227,7 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
       {/* 홀 예약 내역 */}
       {user.myBookings && user.myBookings.length > 0 && (
         <section className="px-4 mt-6">
-          <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('room_booking_history')}</div>
+          <div className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-3 px-1">{await translate('room_booking_history')}</div>
           <div className="flex flex-col gap-2.5">
             {user.myBookings.map((booking) => (
               <MyBookingCard key={booking.id} booking={booking} />
@@ -213,46 +236,17 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
         </section>
       )}
 
-      {/* 내 활동 */}
-      <section className="px-4 mt-6">
-        <div className="text-[13px] font-bold text-[#999] mb-3 px-1">{await translate('my_activity')}</div>
-        <div className="grid grid-cols-3 gap-3">
-          <NavigateClickWrapper method={'push'} route={KloudScreen.Tickets}>
-            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-              <TicketIcon className="w-[24px] h-[24px]"/>
-              <span className="text-[12px] font-medium text-[#999] font-paperlogy text-center break-keep leading-tight">{await translate('my_tickets')}</span>
-              <span className="text-[13px] font-bold text-black font-paperlogy">{user.ticketCount ?? 0}</span>
-            </div>
-          </NavigateClickWrapper>
-
-          <NavigateClickWrapper method={'push'} route={KloudScreen.MyPass}>
-            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-              <PassPlanIcon className="w-[24px] h-[24px]"/>
-              <span className="text-[12px] font-medium text-[#999] font-paperlogy text-center break-keep leading-tight">{await translate('my_pass')}</span>
-              <span className="text-[13px] font-bold text-black font-paperlogy">{user.passCount ?? 0}</span>
-            </div>
-          </NavigateClickWrapper>
-
-          <NavigateClickWrapper method={'push'} route={KloudScreen.PaymentRecords}>
-            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-              <ReceiptIcon className="w-[24px] h-[24px]"/>
-              <span className="text-[12px] font-medium text-[#999] font-paperlogy text-center break-keep leading-tight">{await translate('payment_records')}</span>
-              <span className="text-[13px] font-bold text-black font-paperlogy">{user.paymentRecordCount ?? 0}</span>
-            </div>
-          </NavigateClickWrapper>
-
+      {/* 내 활동 — 세로 목록. 옅은 라운드 스퀘어 안 플랫 컬러 아이콘 + 라벨, 오른쪽 개수 + 화살표. 카드/구분선 없이 여백으로 */}
+      <section className="px-4 mt-8">
+        <div className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-1 px-1">{await translate('my_activity')}</div>
+        <div className="flex flex-col">
+          <ActivityRow route={KloudScreen.Tickets} icon={<TicketFlatIcon size={24}/>} label={await translate('my_tickets')} count={user.ticketCount ?? 0}/>
+          <ActivityRow route={KloudScreen.MyPass} icon={<PassFlatIcon size={24}/>} label={await translate('my_pass')} count={user.passCount ?? 0}/>
+          <ActivityRow route={KloudScreen.PaymentRecords} icon={<ReceiptFlatIcon size={24}/>} label={await translate('payment_records')} count={user.paymentRecordCount ?? 0}/>
+          {/* 예약 결제(정기결제) 관리 — 결제내역의 '다가오는 결제' 탭을 대신한다 */}
+          <ActivityRow route={KloudScreen.MySubscription} icon={<ScheduledPaymentFlatIcon size={24}/>} label={await translate('scheduled_payments')}/>
           {(user.bookingCount ?? 0) > 0 && (
-            <NavigateClickWrapper method={'push'} route={KloudScreen.RoomBookings}>
-              <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#F7F8F9] active:scale-[0.96] active:bg-[#EFEFEF] transition-all duration-150">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" stroke="#191f28" strokeWidth="1.6"/>
-                  <path d="M3 9.5H21" stroke="#191f28" strokeWidth="1.6"/>
-                  <path d="M8 3V6M16 3V6" stroke="#191f28" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
-                <span className="text-[12px] font-medium text-[#999] font-paperlogy text-center break-keep leading-tight">{await translate('room_bookings')}</span>
-                <span className="text-[13px] font-bold text-black font-paperlogy">{user.bookingCount ?? 0}</span>
-              </div>
-            </NavigateClickWrapper>
+            <ActivityRow route={KloudScreen.RoomBookings} icon={<RoomBookingFlatIcon size={24}/>} label={await translate('room_bookings')} count={user.bookingCount ?? 0}/>
           )}
         </div>
       </section>
@@ -260,3 +254,19 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
     </div>
   );
 };
+
+// 내 활동 행 — 옅은 라운드 스퀘어 위 플랫 컬러 아이콘 + 라벨, 오른쪽 개수(있을 때) + 화살표
+const ActivityRow = ({ route, icon, label, count }: { route: string; icon: React.ReactNode; label: string; count?: number }) => (
+  <NavigateClickWrapper method={'push'} route={route}>
+    <div className="flex items-center gap-3.5 px-1 py-3.5 rounded-[14px] active:bg-[#F9FAFB] transition-colors">
+      <span className="w-[42px] h-[42px] rounded-[14px] bg-[#F7F8FA] flex items-center justify-center shrink-0">
+        {icon}
+      </span>
+      <span className="flex-1 text-[15.5px] font-semibold text-[#191F28] tracking-[-0.3px]">{label}</span>
+      {count != null && (
+        <span className="text-[15px] font-bold text-[#8B95A1] font-paperlogy">{count}</span>
+      )}
+      <ChevronRightIcon className="text-[#D1D6DB] shrink-0"/>
+    </div>
+  </NavigateClickWrapper>
+);

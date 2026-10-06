@@ -3,7 +3,6 @@ import HidePasswordIcon from "../../../../../../public/assets/hide-password.svg"
 import ShowPasswordIcon from "../../../../../../public/assets/show-password.svg";
 import React, { useEffect, useState } from "react";
 import { CommonSubmitButton } from "@/app/components/buttons";
-import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../../../../public/assets/check.svg";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
@@ -54,21 +53,29 @@ export const ResetPasswordForm = ({locale, pcCard = false} : {
       const res = await checkPassword({password: oldPassword})
       if ('success' in res) {
         setPage('new')
-      } else if (res.code === ExceptionResponseCode.USER_PASSWORD_NOT_MATCH) {
-        setOldPasswordErrorMessage(res.message ?? '');
+      } else {
+        // 비밀번호 불일치 외 에러도 서버 메시지 그대로 인라인 노출, 없으면 공용 문구
+        setOldPasswordErrorMessage(res.message || getLocaleString({locale, key: 'unknown_error_message'}));
       }
     } else if (page == 'new') {
       setIsSubmitting(true);
-      const res = await updateUserAction({
-        password: newPassword,
-      })
-      setIsSubmitting(false);
-      if (res.success) {
-        const dialog = await createDialog({id: 'Simple', message: await translate('password_reset_complete')})
+      try {
+        const res = await updateUserAction({
+          password: newPassword,
+        })
+        if (res.success) {
+          const dialog = await createDialog({id: 'Simple', message: await translate('password_reset_complete')})
+          window.KloudEvent.showDialog(JSON.stringify(dialog))
+        } else {
+          // 서버 메시지 우선, 없으면 공용 문구
+          const dialog = await createDialog({id: 'Simple', message: res.errorMessage || getLocaleString({locale, key: 'unknown_error_message'})})
+          window.KloudEvent.showDialog(JSON.stringify(dialog))
+        }
+      } catch {
+        const dialog = await createDialog({id: 'Simple', message: getLocaleString({locale, key: 'unknown_error_message'})})
         window.KloudEvent.showDialog(JSON.stringify(dialog))
-      } else {
-        const dialog = await createDialog({id: 'Simple', message: '알 수 없는 에러가 발생했습니다'})
-        window.KloudEvent.showDialog(JSON.stringify(dialog))
+      } finally {
+        setIsSubmitting(false);
       }
     }
   }

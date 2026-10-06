@@ -30,3 +30,23 @@ export const weeklyDaysLabel = (
   const sorted = [...normalized].sort((a, b) => DOW_ORDER.indexOf(a) - DOW_ORDER.indexOf(b));
   return WEEKLY_PREFIX[locale](sorted.map((d) => DAY_LABEL[locale][d]).join('·'));
 };
+
+/**
+ * 첫 수업 날짜 — 시작일(yyyy.MM.dd) 당일 포함, 다니는 요일 중 가장 가까운 날(로컬 자정 Date).
+ * FE 추정값이다: 휴강·공휴일은 반영하지 못한다. 요일이 없으면 시작일 그대로, 시작일을 못 읽으면 null.
+ */
+export const firstLessonDate = (
+  startDate: string | undefined | null,
+  days: (DayOfWeekCode | number)[] | undefined | null,
+): Date | null => {
+  const m = startDate?.match(/^(\d{4})[.\-](\d{1,2})[.\-](\d{1,2})/);
+  if (!m) return null;
+  const base = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const dows = new Set((days ?? []).map(toDow).filter((d): d is DayOfWeekCode => d != null).map((d) => DOW_ORDER.indexOf(d)));
+  if (dows.size === 0) return base;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
+    if (dows.has(d.getDay())) return d;
+  }
+  return base;
+};
