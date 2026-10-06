@@ -58,17 +58,23 @@ export type RuleTicket = {
   status: 'Used' | 'Upcoming' | 'Cancelled';
 }
 
+/** 패스 룰로 발급된 내 수강권 1건 (BE MyTicketResponse). 정규반 상세의 수업 목록이 이걸 그대로 쓴다 */
 export type PassRuleTicket = {
   id: number;
   status: string;
-  paymentId: string;
+  /** 미납 유예(Unpaid) 수강권은 결제건이 없어 null */
+  paymentId: string | null;
   createdAt: string;
+  /** 출석 처리 시각. 출석 안 했으면 null */
+  attendedAt?: string | null;
   lesson?: {
     id: number;
     title: string;
+    /** 'yyyy.MM.dd HH:mm' KST */
     startDate?: string;
     endDate?: string;
     thumbnailUrl?: string;
+    room?: { id: number; name: string } | null;
   };
 }
 

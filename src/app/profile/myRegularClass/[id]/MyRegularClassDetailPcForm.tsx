@@ -4,15 +4,11 @@ import React from "react";
 import { translate } from "@/utils/translate";
 import { Locale } from "@/shared/StringResource";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
-import { MyRegularClassLessonsResponse } from "@/app/endpoint/studio.endpoint";
 import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/RegularClassHeaderInfo";
 import { RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
+import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
 
-export const MyRegularClassDetailPcForm = async ({ pass, lessons, locale }: {
-  pass: GetPassResponse;
-  lessons: MyRegularClassLessonsResponse;
-  locale: Locale;
-}) => (
+export const MyRegularClassDetailPcForm = async ({ pass, locale }: { pass: GetPassResponse; locale: Locale }) => (
   <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
     <div className="mx-auto w-full max-w-[680px] px-8 flex flex-col gap-4">
       <header className="rounded-2xl border border-[#f0f1f3] p-6" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
@@ -27,7 +23,7 @@ export const MyRegularClassDetailPcForm = async ({ pass, lessons, locale }: {
 
       <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
         <h2 className="text-[16px] font-bold text-black mb-5">{await translate('regular_class_lessons')}</h2>
-        <RegularClassLessonList lessons={lessons.lessons} locale={locale} isMock={lessons.isMock}/>
+        <RegularClassLessonList tickets={collectRegularClassTickets(pass)} locale={locale}/>
       </section>
     </div>
   </div>
