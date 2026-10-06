@@ -187,6 +187,10 @@ export type GetPassPlanResponse = {
   /** 다니는 요일(0=일 ~ 6=토). 비어 있으면 요일을 가리지 않는다. 일반 패스권은 항상 빈 배열 */
   days?: number[],
   description?: string | null,
+  /** 상품 종류 — General=일반 패스권, Class=정규반 가격정책. 패스 상세(GET /passes/:id)의 passPlan 에 온다 */
+  category?: 'General' | 'Class',
+  /** 소속 정규반 — category=Class 면 채워지고 일반 패스권은 null */
+  regularClass?: { id: number; name: string; unpaidEnabled?: boolean } | null,
 }
 
 export type GetPassPlansResponse = {

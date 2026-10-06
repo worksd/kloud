@@ -129,6 +129,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     // 관리자 화면은 전부 풀스크린 — 각 화면이 safe-area 패딩으로 상태바 영역을 직접 잡는다
     route.startsWith(KloudScreen.AdminHome) ||
     route.includes('/profile/myPass/') ||
+    route.includes('/profile/myRegularClass/') ||
     // 결제 완료 환영 화면 — 썸네일이 상태바까지 풀블리드로 깔린다
     route.startsWith('/payment-complete') ||
     // 공지사항 목록(/announcements 또는 /announcements?...)만 ignoreSafeArea.
@@ -209,7 +210,7 @@ const applyTitle = async (route: string) => {
     (route.includes('/bundle/') && route.includes('/payment'))
   ) {
     return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
-  } else if (route.includes('/profile/myPass/')) {
+  } else if (route.includes('/profile/myPass/') || route.includes('/profile/myRegularClass/')) {
     return '';
   }
   else return undefined

@@ -48,6 +48,8 @@ export const KloudScreen = {
     `/passPlans?studioId=${studioId}${regularClassId ? `&regularClassId=${regularClassId}` : ''}`,
   MyPass: '/profile/myPass',
   MyPassDetail: (id: number) => `/profile/myPass/${id}`,
+  /** 내 정규반 상세 — id 는 정규반 상품(pass) id. 혜택 대신 수업 목록을 보여준다 */
+  MyRegularClassDetail: (passId: number) => `/profile/myRegularClass/${passId}`,
   MySubscription: '/profile/mySubscription',
   MySubscriptionDetail: (id: string) => `/profile/mySubscription/${id}`,
   MySubscriptionCancel: (id: string) => `/profile/mySubscription/${id}/cancel`,

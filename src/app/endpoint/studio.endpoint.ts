@@ -198,6 +198,32 @@ export type RegularClassDetailResponse = StudioRegularClassResponse & {
   unpaidEnabled?: boolean;
 }
 
+/**
+ * 내 정규반 상세의 수업(회차) 목록 — ⚠️ BE 미확정. 아래는 FE 가 제안하는 모양이고 지금은 mock 으로 그린다
+ * (get.my.regular.class.lessons.action.ts). 확정되면 엔드포인트와 함께 이 타입을 맞춘다.
+ * 한 줄 = 내가 다니는 정규반의 회차(lesson) 하나 + 그 회차의 내 출석 상태.
+ */
+export type MyRegularClassLessonResponse = {
+  id: number;
+  title: string;
+  /** 'yyyy.MM.dd HH:mm' KST */
+  startDate: string;
+  endDate?: string;
+  thumbnailUrl?: string | null;
+  room?: { id: number; name: string } | null;
+  artist?: StudioRegularClassArtistResponse | null;
+  /** 내 출석 — Upcoming=예정, Attended=출석, Absent=결석, Cancelled=휴강/취소 */
+  attendance: 'Upcoming' | 'Attended' | 'Absent' | 'Cancelled';
+  /** 이 회차에 발급된 내 수강권. 아직 발급 전이면 없음 */
+  ticketId?: number;
+}
+
+export type MyRegularClassLessonsResponse = {
+  lessons: MyRegularClassLessonResponse[];
+  /** true 면 FE mock — 화면에 Mock 표시를 띄운다. 실제 API 는 이 키를 안 내린다 */
+  isMock?: boolean;
+}
+
 export const GetRegularClass: Endpoint<IdParameter, RegularClassDetailResponse> = {
   method: 'get',
   path: (e) => `/regular-classes/${e.id}`,
