@@ -234,7 +234,8 @@ export type CreateBillingKeyPaymentRequest = {
   startDate?: string;
   endDate?: string;
   /**
-   * 정기수업 시작 회차 id — item='lesson-group'일 때만 서버가 읽는다(그 외 무시).
+   * 시작 회차 id — 가격정책 결제가 pass-plan 으로 바뀌면서(2026-10-07) 서버가 읽지 않는다. 보내도 오류 없이 무시됨.
+   * (아래는 옛 lesson-group 시절 동작 설명)
    * 결제 화면에 띄운 회차(lesson.id)를 넣으면 그 회차부터 계약 회차 수만큼 잡힌다.
    * 안 보내면 오늘 기준 앞으로 열릴 첫 회차부터. 잘못된 값은 에러 없이 조용히 무시되므로
    * 검증은 발급된 수강권의 첫 회차 날짜로 할 것. 보내면 미납 유예 검사

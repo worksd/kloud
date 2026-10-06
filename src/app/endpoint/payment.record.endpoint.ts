@@ -63,7 +63,8 @@ export type RequestDiscountParameter = {
 }
 
 export type ManualPaymentMethodType = 'credit' | 'pass' | 'account_transfer' | 'admin' | 'free' | 'billing';
-export type ManualPaymentItem = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle';
+// 수업 가격정책 결제도 'pass-plan'(정책 id) — 'lesson-group' 은 서버가 2026-10-07 부터 받지 않는다
+export type ManualPaymentItem = 'lesson' | 'pass-plan' | 'practice-room' | 'bundle';
 
 export type CreateManualPaymentRecordRequest = {
   methodType: ManualPaymentMethodType;

@@ -3,12 +3,12 @@
 import { api } from "@/app/api.client";
 
 // 정기결제(구독) 생성 — POST /subscription. canSubscribe=true 상품을 billing으로 결제할 때 이 경로를 탄다.
-// firstLessonId: 정기수업 시작 회차 지정 — 결제 화면에 띄운 회차부터 잡는다 (lesson-group만 유효)
-export const createSubscriptionAction = async ({ item, itemId, billingKey, firstLessonId }: {
-  item: string;
-  itemId: number;
+// 상품은 paymentId(결제번호)로 정해진다. item·itemId 는 서버가 받지 않는다(2026-10-07 — 없으면 PAYMENT_ID_REQUIRED 로 거절되던 버그 수정).
+// firstLessonId: 시작 회차 지정(선택) — 서버가 읽지 않으면 무시된다
+export const createSubscriptionAction = async ({ billingKey, paymentId, firstLessonId }: {
   billingKey: string;
+  paymentId: string;
   firstLessonId?: number;
 }) => {
-  return await api.subscription.create({ item, itemId, billingKey, firstLessonId });
+  return await api.subscription.create({ billingKey, paymentId, firstLessonId });
 };

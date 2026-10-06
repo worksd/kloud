@@ -11,7 +11,7 @@ export const billingKeyPaymentAction = async ({item, itemId, billingKey, payment
   discounts?: PaymentDiscount[]
   startDate?: string
   endDate?: string
-  /** 정기수업 시작 회차 id — item='lesson-group'일 때만 서버가 읽는다 */
+  /** 시작 회차 id — 가격정책(pass-plan) 결제에선 서버가 무시한다(시작은 패스 startDate 로만 정함). 보내도 오류는 없음 */
   firstLessonId?: number
 }) => {
   return await api.payment.billingKey({item, itemId, billingKey, paymentId, targetUserId, discounts, startDate, endDate, firstLessonId})

@@ -23,7 +23,8 @@ import type { AdminSheetLesson } from '@/app/admin/AdminShortcuts';
  * 헤더 뒤로가기는 첫 단계에서만 화면을 닫고, 그 뒤로는 이전 단계로 간다.
  *
  * 가이드(docs 현장결제 연동)의 규칙:
- * - 가격 정책 수업은 item 'lesson-group' + 정책 id (수업 id 그대로 보내면 회차 1장 결제).
+ * - 가격 정책 수업은 item 'pass-plan' + 정책 id (수업 id 그대로 보내면 회차 1장 결제).
+ *   가격정책은 정규반 패스권이라 서버가 pass-plan 으로 받는다. 'lesson-group' 은 2026-10-07 부터 거절(400/404).
  * - 수단은 항상 admin(현장결제, Completed). 금액이 0이면 서버가 free로 바꿔 저장한다.
  * - 대상: targetUserId(회원) 또는 phone+name(비회원 → 서버가 계정 생성).
  * - 패스권 startDate는 'yyyy.MM.dd'. 비우면 서버 기본(정규반은 남은 패스 만료 다음 날, 아니면 오늘).
@@ -275,7 +276,7 @@ export function AdminOnsitePaymentForm({ studioId, lessons, today }: {
     setPaying(true);
     setError(null);
     try {
-      const item: ManualPaymentItem = picked.kind === 'pass-plan' ? 'pass-plan' : picked.policy ? 'lesson-group' : 'lesson';
+      const item: ManualPaymentItem = picked.kind === 'pass-plan' ? 'pass-plan' : picked.policy ? 'pass-plan' : 'lesson';
       const itemId = picked.kind === 'pass-plan' ? picked.plan.id : (picked.policy?.id ?? picked.lesson.id);
       const body: CreateManualPaymentRecordRequest = {
         methodType: 'admin',

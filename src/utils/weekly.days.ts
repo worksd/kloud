@@ -50,3 +50,16 @@ export const firstLessonDate = (
   }
   return base;
 };
+
+/**
+ * 서버가 내려준 수업 표시 문자열('2026.10.07(수) 오후 5:00')의 날짜·요일 부분만 date 로 바꾼다. 시각 등 뒷부분은 그대로.
+ * 결제 화면에서 고른 요일(가격정책 days)에 맞는 첫 수업일을 보여줄 때 쓴다. 앞부분이 날짜 형식이 아니면 원문 그대로.
+ */
+export const replaceDateInLabel = (label: string, date: Date, locale: Locale): string => {
+  const m = label.match(/^(\d{4})[.\-](\d{1,2})[.\-](\d{1,2})(\([^)]*\))?/);
+  if (!m) return label;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dow = DAY_LABEL[locale][DOW_ORDER[date.getDay()]];
+  const head = `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}` + (m[4] ? `(${dow})` : '');
+  return head + label.slice(m[0].length);
+};

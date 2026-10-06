@@ -16,7 +16,7 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { firstLessonDate } from "@/utils/weekly.days";
+import { firstLessonDate, replaceDateInLabel } from "@/utils/weekly.days";
 import { dayDiffFromToday, formatRelativeDay } from "@/utils/lesson.relative.date";
 
 type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
@@ -26,7 +26,8 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
     case 'lesson':
       return { value: 'lesson', prefix: 'LT', apiValue: 'lesson' };
     case 'lesson-group':
-      return { value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group' };
+      // 수업 가격정책 = 정규반 패스권. 서버 item 은 'pass-plan'(lesson-group 은 2026-10-07 부터 거절). 판정용 value 만 lessonGroup 유지
+      return { value: 'lessonGroup', prefix: 'LP', apiValue: 'pass-plan' };
     case 'pass-plan':
     // 정규반은 고른 가격정책(pass-plan)을 산다 — paymentId 도 'LP…'
     case 'regular-class':
@@ -230,6 +231,8 @@ export const UnifiedPaymentInfo = ({
     return fromApi.filter(p => p.status !== 'Cancelled');
   }, [payment.lesson?.pricePolicies, payment.pricePolicies]);
   const hasPolicies = pricePolicies.length > 0;
+  // 방식이 요일로 갈리는지(월/수/금 등) — 섹션 제목·첫 수업일 안내 분기에 쓴다
+  const policiesHaveDays = pricePolicies.some(p => (p.days?.length ?? 0) > 0);
   // 기본 선택 — 구매 가능한(usable !== false) 방식 중 isRecommended 우선, 없으면 첫 번째.
   // 전부 불가면 첫 번째를 선택해 사유를 보여주고 결제 버튼은 disabled로 막는다.
   const defaultPolicyId = hasPolicies
@@ -408,8 +411,9 @@ export const UnifiedPaymentInfo = ({
             policies={pricePolicies}
             selectedPolicyId={selectedPolicyId}
             onSelectPolicy={(policy) => setSelectedPolicyId(policy.id)}
-            // 정규반 옵션은 횟수 차이일 수도, 요일(월요반/수요반) 차이일 수도 있어 중립 문구
-            titleKey={type === 'regular-class' ? 'select_enroll_option' : undefined}
+            // 정규반 옵션은 횟수 차이일 수도, 요일(월요반/수요반) 차이일 수도 있어 중립 문구.
+            // 수업 가격정책도 요일(월/수/금)로 갈리면 '수강 횟수 선택'은 안 맞으므로 같은 중립 문구
+            titleKey={type === 'regular-class' || policiesHaveDays ? 'select_enroll_option' : undefined}
             hideDescription={type === 'regular-class'}
           />
           {/* 첫 수업 시작일 안내 — 결제 화면에 띄운 회차(firstLessonId로 전송되는 그 회차)부터 계약이 잡힌다.
@@ -438,6 +442,9 @@ export const UnifiedPaymentInfo = ({
               </span>
             </div>
           )}
+          {/* 수업 가격정책 — 고른 방식에 요일(days)이 있으면 결제 화면에 띄운 회차(lesson.date)부터 그 요일 중 가장 가까운 날을 첫 수업으로 보여준다.
+              (월·수·금 수업에서 '금'만 골랐는데 수요일 회차가 시작일로 나오던 문제) 서버 표시 문자열의 날짜·요일만 바꾸고 시각은 그대로 둔다.
+              FE 추정이라 휴강·공휴일은 반영 안 됨. 요일 없는 방식은 서버 문자열 그대로. */}
           {payment.lesson?.date && (
             <div className="mx-6 mt-3 flex items-center gap-2.5 rounded-xl bg-[#EEF2FF] border border-[#E0E7FF] px-4 py-3">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#4F51D8]">
@@ -445,7 +452,11 @@ export const UnifiedPaymentInfo = ({
                 <path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
               </svg>
               <span className="text-[13px] font-semibold text-[#3F3FA8]">
-                {getLocaleString({ locale, key: 'first_lesson_start_notice' }).replace('{date}', payment.lesson.date)}
+                {(() => {
+                  const first = selectedPolicy?.days?.length ? firstLessonDate(payment.lesson!.date, selectedPolicy.days) : null;
+                  const dateLabel = first ? replaceDateInLabel(payment.lesson!.date!, first, locale) : payment.lesson!.date!;
+                  return getLocaleString({ locale, key: 'first_lesson_start_notice' }).replace('{date}', dateLabel);
+                })()}
               </span>
             </div>
           )}

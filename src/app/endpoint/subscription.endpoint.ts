@@ -17,11 +17,13 @@ export type ListSubscriptionResponse = {
   subscriptions: GetSubscriptionResponse[]
 }
 
+// POST /subscription — 무엇을 정기결제로 걸지는 paymentId 가 정한다(item·itemId 는 서버가 받지 않음).
+// paymentId 가 없으면 PAYMENT_ID_REQUIRED, 앞머리가 상품 대응표에 없으면 INVALID_PARAMETER.
 export type CreateSubscriptionParameter = {
-  item: string,
-  itemId: number
   billingKey: string
-  /** 정기수업 시작 회차 id — item='lesson-group'일 때만 서버가 읽는다. payment.endpoint의 firstLessonId 주석 참고 */
+  /** 결제번호 — 가격정책이면 pricePolicies[].paymentId(LP…), 아니면 결제 화면 응답 최상위 paymentId */
+  paymentId: string
+  /** 시작 회차 id(선택) — 서버가 읽지 않으면 무시된다 */
   firstLessonId?: number
 }
 
@@ -54,7 +56,7 @@ export const Get: Endpoint<{ subscriptionId: string }, GetSubscriptionResponse> 
 export const Create: Endpoint<CreateSubscriptionParameter, CreateSubscriptionResponse> = {
   method: 'post',
   path: '/subscription',
-  bodyParams: ['item', 'itemId', 'billingKey', 'firstLessonId'],
+  bodyParams: ['billingKey', 'paymentId', 'firstLessonId'],
 }
 
 export const Cancel: Endpoint<CancelSubscriptionParameter, SimpleSubscriptionResponse> = {

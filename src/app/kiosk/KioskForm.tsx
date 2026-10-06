@@ -1067,9 +1067,9 @@ export const KioskForm = ({
     setAdminPaidAmount(Math.round(customAmount));
     setPaymentMethod('onsite'); // 'cash' 아님 — 성공 화면에서 '결제 완료' 멘트로 분기
     try {
-      // 가격 정책 수업이면 계약 단위로 결제 — item을 'lesson-group', itemId를 고른 정책 id로 보낸다.
-      // (수업 id 그대로 보내면 회차 1장 결제가 되어 방식 선택이 무시된다)
-      const effItem = selectedKioskPolicy ? 'lesson-group' : item;
+      // 가격 정책 수업이면 계약 단위로 결제 — item을 'pass-plan'(가격정책 = 정규반 패스권), itemId를 고른 정책 id로 보낸다.
+      // (수업 id 그대로 보내면 회차 1장 결제가 되어 방식 선택이 무시된다. 'lesson-group' 은 2026-10-07 부터 서버가 거절)
+      const effItem = selectedKioskPolicy ? 'pass-plan' : item;
       const effItemId = selectedKioskPolicy ? selectedKioskPolicy.id : itemId;
       const res = await createAdminManualPaymentAction({ item: effItem, itemId: effItemId, targetUserId: selectedUser.id, amount: Math.round(customAmount) });
       const parsed = parsePaymentResult(res);

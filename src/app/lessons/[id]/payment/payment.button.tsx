@@ -41,9 +41,11 @@ export const PaymentTypes = [
   {value: 'practiceRoom', prefix: 'PR', apiValue: 'practice-room'},
   // 번들(묶음) 결제 — paymentId prefix `BD`로 BE가 라우팅. 결제 API는 lesson/passPlan과 동일.
   {value: 'bundle', prefix: 'BD', apiValue: 'bundle'},
-  // 수업 가격 정책(정기) 결제 — paymentId prefix `LGT`. itemId는 lesson이 아니라 가격 정책 id다.
-  // 수업 결제 화면에서 정책을 고르면 lesson 결제가 이 타입으로 바뀐다.
-  {value: 'lessonGroup', prefix: 'LGT', apiValue: 'lesson-group'},
+  // 수업 가격 정책 결제 — 정규반 가격정책(패스권)을 사는 것이라 서버 item 은 'pass-plan', paymentId prefix 는 `LP`.
+  // itemId는 lesson이 아니라 가격 정책 id다. 수업 결제 화면에서 정책을 고르면 lesson 결제가 이 타입으로 바뀐다.
+  // (2026-10-07: 서버가 'lesson-group' 을 더 이상 받지 않음 — 옛 판매 방식 id 로 읽어 400/404)
+  // value 는 lessonGroup 그대로 둔다 — 정원 확인·수업 캐시 무효화·완료 화면 분기가 "수업 구매" 판정에 걸려 있어서다.
+  {value: 'lessonGroup', prefix: 'LP', apiValue: 'pass-plan'},
 ] as const;
 
 export type PaymentType = (typeof PaymentTypes)[number];
@@ -507,11 +509,11 @@ export default function PaymentButton({
         }
       } else if (data.id == 'RequestSubscription') {
         // 정기결제(구독) 생성 — 단건 결제가 아니라 매달 자동결제를 건다
+        // 상품은 paymentId(가격정책이면 LP… 결제번호)가 정한다 — item/itemId 는 서버가 받지 않는다
         const res = await createSubscriptionAction({
-          item: type.apiValue,
-          itemId: id,
           billingKey: data.customData ?? '',
-          // 정기수업 시작 회차 — 결제 화면에 띄운 회차부터. lesson-group 외에는 서버가 무시
+          paymentId,
+          // 시작 회차 — 결제 화면에 띄운 회차부터(선택, 서버가 무시할 수 있음)
           ...(type.value === 'lessonGroup' && targetLessonId != null ? { firstLessonId: targetLessonId } : {}),
         });
         if ('subscription' in res && res.subscription?.subscriptionId) {
@@ -645,7 +647,8 @@ export default function PaymentButton({
       {guestSheetOpen && (
         <GuestInfoBottomSheet
           locale={locale}
-          itemType={type.apiValue}
+          // 가격정책(lessonGroup) 은 apiValue 가 pass-plan 이지만 사용자 입장에선 수업 신청 — 문구는 lesson 으로
+          itemType={type.value === 'lessonGroup' ? 'lesson' : type.apiValue}
           onClose={() => setGuestSheetOpen(false)}
           onAuthenticated={(info) => {
             // 폰 인증 로그인 성공(토큰 쿠키 저장 완료) → 그 payer로 바로 결제 재개
