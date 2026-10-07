@@ -282,6 +282,7 @@ export const KioskForm = ({
     completedPaymentIdsRef.current.clear();
     activePaymentIdRef.current = null;
     discardContextRef.current = null;
+    discardedPaymentIdsRef.current.clear();
   }, []);
 
   // 홈 외 화면에서 2분간 사용자 인터랙션이 없으면 자동으로 홈 복귀.
@@ -344,6 +345,28 @@ export const KioskForm = ({
   const activePaymentIdRef = useRef<string | null>(null);
   // 유령 응답에서 폐기 DELETE를 쏠 때 쓰는 컨텍스트(paymentId/kioskId). 스테일 클로저 회피용으로 단말 호출 직전 갱신.
   const discardContextRef = useRef<{ paymentId: string; kioskId: number } | null>(null);
+  // 폐기 DELETE를 이미 보낸 paymentId 집합. 같은 건에 두 번 보내면 BE가 KIOSK_PAYMENT_NOT_PENDING(400)으로
+  // 거부하고 에러 알림만 쌓인다 — 단말이 사용자 취소(77UC)를 여러 번 되쏘는 경우가 실제로 있다.
+  const discardedPaymentIdsRef = useRef<Set<string>>(new Set());
+
+  // 단말 호출 직전 활성 시도 등록 — card/admin 금액결제/QR 3곳 공용.
+  // 같은 paymentId로 재시도하는 경우(취소 후 다시 카드 탭)를 위해 '폐기 보냄' 표시는 풀어준다.
+  const beginCardAttempt = useCallback((paymentId: string, kioskIdForAttempt: number) => {
+    activePaymentIdRef.current = paymentId;
+    discardContextRef.current = { paymentId, kioskId: kioskIdForAttempt };
+    discardedPaymentIdsRef.current.delete(paymentId);
+  }, []);
+
+  // Pending 폐기 요청 — 한 paymentId당 한 번만, 그리고 이미 complete로 확정된 건에는 보내지 않는다.
+  // (그 두 경우 모두 BE가 NOT_PENDING으로 거부하므로 보내봐야 에러 알림만 난다.)
+  // 응답은 참조하지 않는 fire-and-forget — 폐기 실패는 관리자가 paymentRecords에서 수동 처리.
+  const requestDiscard = useCallback((paymentId: string, kioskIdForDiscard: number, reason: string) => {
+    if (completedPaymentIdsRef.current.has(paymentId)) return;
+    if (discardedPaymentIdsRef.current.has(paymentId)) return;
+    discardedPaymentIdsRef.current.add(paymentId);
+    if (discardContextRef.current?.paymentId === paymentId) discardContextRef.current = null;
+    discardKioskPaymentAction(paymentId, kioskIdForDiscard, reason).catch(() => {});
+  }, []);
 
   useEffect(() => {
     // admin-payment는 경량 GET /kiosks/admin/payment로 결제 시점에 paymentId를 따로 받으므로 여기서 heavy fetch 안 함
@@ -425,18 +448,22 @@ export const KioskForm = ({
       //         이 핸들러는 마운트 시 1회만 등록되어 state 클로저가 스테일하므로 활성 여부는 반드시 ref로 판단.
       //         유령 실패/취소는 폐기 DELETE만 fire-and-forget로 쏘고(응답 미참조), paymentResult는 건드리지 않아
       //         진행 중인 성공 화면/영수증 등 UI를 그대로 유지한다(오탐 실패 다이얼로그 방지).
+      //         폐기는 requestDiscard가 paymentId당 1회로 묶는다 — 컨텍스트가 남아 있어도 두 번째부터는 안 나간다.
       if (!activePaymentIdRef.current) {
         if (!result?.success) {
           const ctx = discardContextRef.current;
           if (ctx) {
             const reason = JSON.stringify({ status: result?.canceled ? 'canceled' : 'fail', kis: data });
-            discardKioskPaymentAction(ctx.paymentId, ctx.kioskId, reason).catch(() => {});
+            requestDiscard(ctx.paymentId, ctx.kioskId, reason);
           }
         }
         return;
       }
       // 이 결과로 활성 시도를 소비 — 같은 시도에 대한 중복/후속 유령 응답을 차단.
       activePaymentIdRef.current = null;
+      // 단말 승인(success)이면 이 건은 complete로만 간다 — 폐기 컨텍스트를 비워 뒤늦은 취소 응답이
+      // 이미 Completed인 건에 DELETE를 쏘지 않게 한다. (complete가 실패해도 로컬 큐로 재시도하지 폐기하지 않는다)
+      if (result?.success) discardContextRef.current = null;
 
       setIsPaying(false);
       if (result?.canceled) {
@@ -450,7 +477,8 @@ export const KioskForm = ({
     return () => {
       delete (window as KisWindow).onKisPaymentResult;
     };
-  }, []);
+    // requestDiscard는 ref만 쓰는 안정 콜백 — 의존성에 넣어도 재등록은 일어나지 않는다.
+  }, [requestDiscard]);
 
   // 시리얼 프린터 응답 콜백을 마운트 시 한 번만 등록
   useEffect(() => {
@@ -632,16 +660,14 @@ export const KioskForm = ({
       kis: paymentResult.data ?? null,
     });
 
-    discardKioskPaymentAction(discardPaymentId, kioskId, reason).catch(() => {
-      // 폐기 실패는 사용자에게 노출 안 함 — 관리자가 paymentRecords에서 수동 폐기 가능
-      console.warn('Pending 폐기 실패');
-    });
+    // 이 effect는 paymentInfo 갱신 등으로 같은 fail 상태에서 다시 돌 수 있다 — requestDiscard가 중복을 막는다.
+    requestDiscard(discardPaymentId, kioskId, reason);
 
     if (paymentResult.status === 'canceled') {
       // 사용자가 단말에서 ESC — 결제 방법 화면으로 조용히 복귀
       setPaymentResult(null);
     }
-  }, [paymentResult, paymentMethod, paymentInfo, kioskId]);
+  }, [paymentResult, paymentMethod, paymentInfo, kioskId, requestDiscard]);
 
   // 전화번호 입력 → /users/search?query=phone 으로 검색 (운영자 토큰 사용)
   const handlePhoneNext = async (phoneNumber: string, countryCode: string = '82') => {
@@ -987,8 +1013,7 @@ export const KioskForm = ({
 
     // Fix B — 단말 호출 직전 활성 시도 + 폐기 컨텍스트 등록. 이 이후 도착하는 D1 결과만 유효 처리되고,
     //         완료/폐기 뒤 유령 응답은 discardContext로 폐기 DELETE만 쏘고 UI는 유지된다.
-    activePaymentIdRef.current = parsed.paymentId!;
-    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
+    beginCardAttempt(parsed.paymentId!, kioskId);
 
     // KIS 단말 호출 — 1초 대기 제거. Pending 응답 직후 곧장 송출.
     // inCustomerUuid에 우리 paymentId를 박아두면 KIS 단말에 조회 키로 저장돼서 추후 ST(상태 조회)를 같은 paymentId로 할 수 있음.
@@ -998,7 +1023,7 @@ export const KioskForm = ({
       inInstallment: '00',
       inCustomerUuid: parsed.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, effectivePaymentId, kioskId, runStartPayment, roomBooking, selectedKioskPolicy]);
+  }, [paymentItem, isPaying, selectedUser, effectivePaymentId, kioskId, runStartPayment, roomBooking, selectedKioskPolicy, beginCardAttempt]);
 
   // admin(상담실) 카드결제 — 직원이 편집한 금액(customAmount)을 단말 매입 금액으로 사용.
   //  ① POST /kiosks/payments — Pending 생성(paymentId 확보)  ② requestKisPayment(D1)에 편집 금액 송출
@@ -1042,8 +1067,7 @@ export const KioskForm = ({
     const parsed = await runStartPayment('card', { targetUserId: selectedUser.id, kioskId, paymentId, amount: Math.round(customAmount) });
     if (!parsed) return; // 실패 처리(isPaying/토스트)는 runStartPayment가 완료
 
-    activePaymentIdRef.current = parsed.paymentId!;
-    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
+    beginCardAttempt(parsed.paymentId!, kioskId);
 
     window.KloudEvent?.requestKisPayment?.(JSON.stringify({
       inTranCode: 'D1',
@@ -1051,7 +1075,7 @@ export const KioskForm = ({
       inInstallment: '00',
       inCustomerUuid: parsed.paymentId,
     }));
-  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId, runStartPayment, selectedKioskPolicy]);
+  }, [paymentItem, isPaying, selectedUser, selectedLesson, selectedPassPlan, kioskId, runStartPayment, selectedKioskPolicy, beginCardAttempt]);
 
   // admin 현장결제 — 카드단말 흐름 아님. 확인 다이얼로그(폼)에서 확인 시 호출되어
   // POST /paymentRecords/manual (methodType='admin', 편집 amount)로 즉시 기록 → '결제 완료' 성공 화면.
@@ -1111,8 +1135,7 @@ export const KioskForm = ({
     if (!parsed) return; // 실패 처리는 runStartPayment가 완료
 
     // Fix B — QR도 onKisPaymentResult(카드 D1과 동일 채널)로 결과가 오므로 활성 시도/폐기 컨텍스트 등록.
-    activePaymentIdRef.current = parsed.paymentId!;
-    discardContextRef.current = { paymentId: parsed.paymentId!, kioskId };
+    beginCardAttempt(parsed.paymentId!, kioskId);
 
     // 네이티브 KIS 간편결제 — 웹은 금액/식별자만. 스캔·KIS 전송은 네이티브가 처리.
     // 결과는 onKisPaymentResult로 수신 (카드 D1과 동일 채널).
@@ -1122,7 +1145,7 @@ export const KioskForm = ({
       inCustomerUuid: parsed.paymentId,
       inTestMode: true,
     }));
-  }, [paymentItem, isPaying, selectedUser, effectivePaymentId, kioskId, runStartPayment]);
+  }, [paymentItem, isPaying, selectedUser, effectivePaymentId, kioskId, runStartPayment, beginCardAttempt]);
 
   // 현금 결제: POST /kiosks/payments(type='cash') 한 방에 즉시 Completed + qrCodeUrl 수령
   const handleCashPayment = useCallback(async () => {
