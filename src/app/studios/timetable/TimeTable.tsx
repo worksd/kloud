@@ -398,7 +398,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                   <div
                     key={`${cell.row}-${cell.column}`}
                     onClick={() => openLesson(cell.lesson!.id)}
-                    className="overflow-hidden rounded-[8px] border shadow-sm active:scale-[0.97] transition-all duration-150 aspect-[1/1.76] cursor-pointer"
+                    className="overflow-hidden rounded-[8px] border shadow-sm active:scale-[0.97] transition-transform duration-150 aspect-[1/1.76] cursor-pointer"
                     style={{ gridColumnStart: j + 1, gridRowStart: k + 2, zIndex: 1 }}
                   >
                     <div className="relative w-full h-full flex flex-col">
@@ -411,11 +411,11 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                       )}
                       {/* 썸네일 위 진행 시간 배지 */}
                       {timeLabel && (
-                        <div className="absolute top-1 left-1 px-1 py-0.5 rounded-[4px] bg-black/60 backdrop-blur-sm text-white text-[6.5px] font-bold font-paperlogy leading-none">
+                        <div className="absolute top-1 left-1 px-1 py-0.5 rounded-[4px] bg-black/65 text-white text-[6.5px] font-bold font-paperlogy leading-none">
                           {timeLabel}
                         </div>
                       )}
-                      <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                      <div className="absolute bottom-0 inset-x-0 bg-black/65 text-white text-center text-[8px] font-paperlogy pb-2 pt-1 overflow-hidden text-ellipsis whitespace-nowrap">
                         {cell.lesson!.title}
                       </div>
                     </div>
@@ -521,8 +521,8 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                     if (!isLesson) return;
                     openLesson(item.lesson!.id);
                   }}
-                  className={`overflow-hidden transition-all duration-150
-                    ${isLesson ? 'rounded-[8px] border shadow-sm hover:shadow-md aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
+                  className={`overflow-hidden transition-transform duration-150
+                    ${isLesson ? 'rounded-[8px] border shadow-sm aspect-[1/1.76] active:scale-[0.97] cursor-pointer' : ''}
                     ${isTime ? 'bg-[#181818] text-white flex items-center justify-center font-paperlogy' : ''}
                     ${isFirstTime && isLastTime ? 'rounded-[10px]' : ''}
                     ${isFirstTime && !isLastTime ? 'rounded-t-[10px]' : ''}
@@ -553,7 +553,7 @@ export const TimeTable = ({timeTable, studioId, locale, useSheet = false, clickE
                         <div className="flex-1 w-full bg-gray-200" />
                       )}
                       <div
-                        className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm text-white text-center text-[8px] font-paperlogy pb-2 pt-1
+                        className="absolute bottom-0 inset-x-0 bg-black/65 text-white text-center text-[8px] font-paperlogy pb-2 pt-1
                  overflow-hidden text-ellipsis whitespace-nowrap"
                       >
                         {item.lesson!.title}
