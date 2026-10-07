@@ -50,8 +50,10 @@ export function NavigateClickWrapper({ method, route, action, locale, children, 
             router.push(route);
           } else if (method == 'back') {
             router.back();
-          } else {
-
+          } else if (method === 'navigateMain') {
+            // 웹에는 '메인 재부팅'이 없다 — kloudNav 의 웹 폴백(목적지 없으면 홈으로 replace)을 탄다.
+            // 이 분기가 없으면 결제완료 '확인' 처럼 navigateMain 을 쓰는 버튼이 웹에서 아무 동작도 하지 않았다.
+            await kloudNav.navigateMain({route});
           }
         }
       }}
