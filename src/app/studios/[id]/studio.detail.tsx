@@ -22,7 +22,7 @@ import { StudioRegularClassList } from "@/app/studios/[id]/StudioRegularClassLis
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
-import { formatRuleDescription } from "@/utils/pass.description";
+import { toCommunityPasses } from "@/app/studios/[id]/pass.plan.mapper";
 
 export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
 
@@ -44,25 +44,7 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
     createdAt: a.createdAt ?? undefined,
   }));
   // 이용권 — studio.passPlans를 community/[id]와 동일한 StudioPassList 형태로 매핑
-  const passes: CommunityPass[] = (studio.passPlans ?? []).map((p) => {
-    // 제목 밑 혜택 요약 — 기존 유틸(formatRuleDescription)로 첫 rule을 문구화. (PassPlanItem과 동일)
-    const firstRule = p.rules?.[0];
-    const description = firstRule?.target && firstRule?.benefit
-      ? formatRuleDescription(
-          { target: firstRule.target, benefit: firstRule.benefit, duration: firstRule.duration, excludes: firstRule.excludes },
-          locale,
-          p.name,
-        )
-      : undefined;
-    return {
-      id: p.id,
-      name: p.name,
-      price: p.price ?? 0,
-      period: p.expireDateStamp,
-      tag: p.tag ?? (p.isRecommended ? popularLabel : undefined),
-      description,
-    };
-  });
+  const passes: CommunityPass[] = toCommunityPasses(studio.passPlans, locale, popularLabel);
   const hasPasses = passes.length > 0;
   // 정규반 — 판매중 상위 4건. 강사(artist)가 null이어도 카드는 노출
   const regularClasses = studio.regularClasses ?? [];

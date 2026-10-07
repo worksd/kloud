@@ -75,7 +75,7 @@ export function StudioRegularClassList({ classes, studioId, studioImageUrl, loca
 
       {hasMore && (
         <button
-          onClick={() => kloudNav.push(KloudScreen.StudioRegularClasses(studioId))}
+          onClick={() => kloudNav.push(KloudScreen.StudioPrograms(studioId, 'regularClass'))}
           className="w-full flex items-center justify-center gap-1 py-3 text-[13px] font-bold text-[#4E5968] active:bg-[#FAFBFC] hover:bg-[#FAFBFC] rounded-2xl border border-[#EEF0F2] transition-colors"
         >
           {getLocaleString({ locale, key: 'regular_class_view_all' })}

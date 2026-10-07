@@ -23,7 +23,7 @@ import { StudioRegularClassList } from "@/app/studios/[id]/StudioRegularClassLis
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
 import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
-import { formatRuleDescription } from "@/utils/pass.description";
+import { toCommunityPasses } from "@/app/studios/[id]/pass.plan.mapper";
 import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
 
 export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVersion: string }) => {
@@ -44,24 +44,7 @@ export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVers
     imageUrl: a.imageUrl ?? undefined,
     createdAt: a.createdAt ?? undefined,
   }));
-  const passes: CommunityPass[] = (studio.passPlans ?? []).map((p) => {
-    const firstRule = p.rules?.[0];
-    const description = firstRule?.target && firstRule?.benefit
-      ? formatRuleDescription(
-          { target: firstRule.target, benefit: firstRule.benefit, duration: firstRule.duration, excludes: firstRule.excludes },
-          locale,
-          p.name,
-        )
-      : undefined;
-    return {
-      id: p.id,
-      name: p.name,
-      price: p.price ?? 0,
-      period: p.expireDateStamp,
-      tag: p.tag ?? (p.isRecommended ? popularLabel : undefined),
-      description,
-    };
-  });
+  const passes: CommunityPass[] = toCommunityPasses(studio.passPlans, locale, popularLabel);
   const amenities = (studio.amenities ?? []).filter((a) => a.enabled);
   const regularClasses = studio.regularClasses ?? [];
 

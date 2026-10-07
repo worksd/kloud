@@ -118,7 +118,7 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.startsWith(KloudScreen.LoginEmail('')) ||
     route.startsWith(KloudScreen.SignUp('')) ||
     (route.startsWith('/lessons/') && !route.includes('/payment')) ||
-    (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons') && !route.includes('/regularClasses')) ||
+    (route.startsWith('/studios') && !route.includes('passPlans') && !route.includes('/lessons') && !route.includes('/regularClasses') && !route.includes('/programs')) ||
     route.startsWith('/tickets/') ||
     route.startsWith(KloudScreen.Onboard) ||
     route.startsWith(KloudScreen.Certification) ||
@@ -194,6 +194,9 @@ const applyTitle = async (route: string) => {
     return await translate('ongoing_lessons')
   } else if (route.includes('/regularClasses') && route.includes('/studios/')) {
     return await translate('studio_regular_classes')
+  } else if (route.includes('/programs') && route.includes('/studios/')) {
+    // 정규반·패스권 탭 페이지 — 상단 탭이 헤더 역할이라 네이티브 제목은 비운다
+    return ''
   } else if (route.includes('resetPassword')) {
     return await translate('change_password')
   } else if (route.includes('refund')) {

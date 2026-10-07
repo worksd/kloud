@@ -12,13 +12,15 @@ import { LessonTags } from "@/app/components/LessonTags";
 const MAX_VISIBLE = 3;
 
 // 스튜디오에서 구매 가능한 이용권 목록. 선택한 순간 하단 액션 바에 "구매하기" 노출.
-// 최대 3개만 노출, "더보기"는 스튜디오 패스권 전체 페이지로 이동(일반 스튜디오와 동일 route).
-export function StudioPassList({ passes, studioId, locale, directPayment = false }: {
+// 최대 3개만 노출, "전체보기"는 정규반·패스권 탭 페이지(/studios/:id/programs?tab=pass)로 이동.
+export function StudioPassList({ passes, studioId, locale, directPayment = false, showAll = false }: {
   passes: CommunityPass[];
   studioId: number;
   locale: Locale;
   /** PC 웹 폼에서 true — 탭 시 선택→하단 액션바 단계 없이 바로 결제 페이지로 이동 */
   directPayment?: boolean;
+  /** true면 개수 제한·전체보기 없이 전부 (전체 목록 페이지) */
+  showAll?: boolean;
 }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const { setAction, clearAction, activeSource } = usePracticeAction();
@@ -44,8 +46,8 @@ export function StudioPassList({ passes, studioId, locale, directPayment = false
 
   if (!passes.length) return null;
 
-  const visible = passes.slice(0, MAX_VISIBLE);
-  const hasMore = passes.length > MAX_VISIBLE;
+  const visible = showAll ? passes : passes.slice(0, MAX_VISIBLE);
+  const hasMore = !showAll && passes.length > MAX_VISIBLE;
 
   return (
     <div className="flex flex-col gap-3">
@@ -86,7 +88,7 @@ export function StudioPassList({ passes, studioId, locale, directPayment = false
 
       {hasMore && (
         <button
-          onClick={() => kloudNav.push(KloudScreen.PurchasePass(studioId))}
+          onClick={() => kloudNav.push(KloudScreen.StudioPrograms(studioId, 'pass'))}
           className="w-full flex items-center justify-center gap-1 py-3 text-[13px] font-bold text-[#4E5968] active:bg-[#FAFBFC] rounded-2xl border border-[#EEF0F2] transition-colors"
         >
           {t('community_pass_view_all')}

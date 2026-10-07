@@ -4943,6 +4943,7 @@ export const StringResource = {
   regular_class_notice: { ko: '{name} 안내사항', en: '{name} notice', jp: '{name} ご案内', zh: '{name} 须知' },
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
   regular_class_empty: { ko: '판매중인 정규반이 없어요', en: 'No regular classes on sale', jp: '販売中のクラスがありません', zh: '暂无在售常规班' },
+  pass_plan_empty: { ko: '판매중인 패스권이 없어요', en: 'No passes on sale', jp: '販売中の利用券がありません', zh: '暂无在售通票' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
 
   // 키오스크 QR 로그인(SSE) — 키오스크 패널
