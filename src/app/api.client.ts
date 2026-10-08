@@ -12,7 +12,7 @@ export class ApiClient extends EndpointClient {
     signUp: this.endpointBuilder(API.Auth.PostSignUpEmail),
     socialLogin: this.endpointBuilder(API.Auth.PostSocialLogin),
     socialLink: this.endpointBuilder(API.Auth.PostSocialLink),
-    // 키오스크 운영자 QR 로그인 승인(파트너 앱) — 키오스크 쪽 SSE는 KioskOperatorQrLogin이 EventSource로 직접 연다
+    // 키오스크 운영자 QR 로그인 승인(파트너 앱 쪽). 키오스크 웹에서는 QR 로그인을 쓰지 않는다
     kioskOperatorLogin: this.endpointBuilder(API.Auth.KioskOperatorLogin),
     sendEmailVerification: this.endpointBuilder(API.Auth.SendVerificationEmail),
     sendPhoneVerification: this.endpointBuilder(API.Auth.SendPhoneVerification),
@@ -143,7 +143,7 @@ export class ApiClient extends EndpointClient {
     listPayments: this.endpointBuilder(API.Kiosk.ListKioskPayments),
     cancelPayment: this.endpointBuilder(API.Kiosk.CancelKioskPayment),
     getPaymentRecordDetail: this.endpointBuilder(API.Kiosk.GetKioskPaymentRecordDetail),
-    // QR 로그인 승인(모바일 앱 쪽) — 키오스크 쪽 SSE는 브라우저 EventSource로 직접 연다(KioskOperatorQrLogin)
+    // QR 로그인 승인(모바일 앱 쪽). 키오스크 웹에서는 QR 로그인을 쓰지 않는다
     login: this.endpointBuilder(API.Kiosk.KioskLogin),
   }
 
