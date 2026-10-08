@@ -10,7 +10,7 @@ import { buildCancellationReceipt, buildReprintReceipt, ReceiptStudio } from "@/
 import { sendReceiptToPrinter } from "@/app/kiosk/kiosk.native";
 import { kioskImageSrc } from "@/app/kiosk/kiosk.image";
 import { KioskEndpointModal } from "@/app/kiosk/KioskEndpointModal";
-import { listKioskPaymentsAction, cancelKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction } from "@/app/kiosk/kiosk.actions";
+import { listKioskPaymentsAction, cancelKioskPaymentAction, completeKioskPaymentAction, getKioskPaymentRecordDetailAction, clearSelectedKioskIdAction, clearKioskOperatorTokenAction } from "@/app/kiosk/kiosk.actions";
 import { initKisDebug, isKisDebugVisible, recordKisResponse } from "@/app/kiosk/kiosk.kis.debug";
 
 // yyyy-MM-dd 문자열 ↔ Date 변환 헬퍼
@@ -116,6 +116,13 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
   const handleChangeKiosk = useCallback(async () => {
     await clearSelectedKioskIdAction();
     window.location.reload();
+  }, []);
+  // 로그아웃 — 운영자 토큰 + 선택 키오스크 쿠키를 지우고 /kiosk 로 보내면 KioskBootstrap이 로그인 화면을 띄운다.
+  // (토큰 만료 처리 handleKioskTokenExpired와 같은 경로)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const handleLogout = useCallback(async () => {
+    await clearKioskOperatorTokenAction();
+    window.location.href = '/kiosk';
   }, []);
   // 취소 확인 다이얼로그 — 사용자가 '취소' 버튼을 눌렀을 때 즉시 KIS로 가지 않고 한 번 확인받음
   const [confirmTarget, setConfirmTarget] = useState<KioskPaymentRecord | null>(null);
@@ -544,6 +551,18 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
                   </svg>
                   <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>서버 변경</span>
                 </button>
+                {/* 로그아웃 — 확인 다이얼로그 거친 뒤 운영자 토큰 삭제 */}
+                <button
+                  onClick={() => setLogoutConfirmOpen(true)}
+                  className="rounded-[12px] bg-[#F2F4F6] active:scale-[0.97] transition-transform flex items-center"
+                  style={{ padding: 'min(0.9vw,10px) min(1.4vw,16px)', gap: 'min(0.6vw,8px)' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: 'min(1.8vw,20px)', height: 'min(1.8vw,20px)' }}>
+                    <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" stroke="#1E2124" strokeWidth="1.6" strokeLinecap="round"/>
+                    <path d="M14 8l4 4-4 4M18 12H9" stroke="#1E2124" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span className="text-[#1E2124] font-medium" style={{ fontSize: 'min(1.6vw, 18px)' }}>로그아웃</span>
+                </button>
               </div>
               <div className="flex items-center" style={{ gap: 'min(0.8vw,10px)' }}>
                 {/* 날짜 필터 — react-calendar popover */}
@@ -800,6 +819,40 @@ export const KioskAdminModal = ({ kioskId, kioskName, password, studio, onClose 
       </div>
 
       {/* 취소 확인 다이얼로그 — '취소' 버튼 누르자마자 KIS 단말로 보내지 않고 한 번 확인 */}
+      {/* 로그아웃 확인 */}
+      {logoutConfirmOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setLogoutConfirmOpen(false)} />
+          <div
+            className="relative bg-white rounded-[24px] w-full max-w-[560px] flex flex-col animate-[scaleIn_180ms_ease-out]"
+            style={{ padding: 'min(3.4vw,36px) min(3.4vw,36px) min(2.6vw,28px)' }}
+          >
+            <p className="text-black font-bold text-center" style={{ fontSize: 'min(2.4vw, 26px)' }}>
+              로그아웃할까요?
+            </p>
+            <p className="text-[#6D7882] text-center mt-[min(1vw,12px)]" style={{ fontSize: 'min(1.7vw, 18px)' }}>
+              키오스크를 다시 쓰려면 파트너 계정으로 다시 로그인해야 해요.
+            </p>
+            <div className="mt-[min(2vw,22px)] flex" style={{ gap: 'min(1vw,12px)' }}>
+              <button
+                onClick={() => setLogoutConfirmOpen(false)}
+                className="flex-1 rounded-[14px] bg-[#F2F4F6] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{ height: 'min(6.4vw,68px)' }}
+              >
+                <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>아니요</span>
+              </button>
+              <button
+                onClick={() => { setLogoutConfirmOpen(false); handleLogout(); }}
+                className="flex-1 rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+                style={{ height: 'min(6.4vw,68px)' }}
+              >
+                <span className="text-white font-bold" style={{ fontSize: 'min(1.9vw, 20px)' }}>로그아웃</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmTarget && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-[5%] animate-[fadeIn_180ms_ease-out]">
           <div className="absolute inset-0 bg-black/60" onClick={() => setConfirmTarget(null)} />
