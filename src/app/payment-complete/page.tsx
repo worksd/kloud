@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { headers } from 'next/headers';
 import { api } from '@/app/api.client';
 import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { getLocale, translate } from '@/utils/translate';
@@ -14,6 +15,10 @@ import { LessonType } from '@/entities/lesson/lesson';
 // 서버가 null/[]로 준 섹션은 숨긴다 — 목업으로 채우지 않는다. 날짜 문구는 서버 로케일 포맷을 그대로 찍는다.
 //
 // 디자인 방향: 썸네일을 상태바까지 풀블리드로 깔고(ignoreSafeArea) 그 위에 타이틀을 얹는다. 체크·이모지 아이콘은 쓰지 않는다.
+//
+// PC 웹(≥lg, 앱 웹뷰 아님): 결제 화면(PaymentPcForm)과 같은 2-column — 좌측에 타이틀·인사와 섹션들, 우측에 sticky 카드(히어로 미디어 +
+// 수업/상품 요약 + 확인 버튼). 서버는 viewport를 모르므로 모바일·PC 트리를 둘 다 SSR 렌더하고 CSS(hidden lg:block / lg:hidden)로 토글한다.
+// 섹션 내용은 한 번만 만들어 두 레이아웃에서 같이 쓴다(API·문구 동일).
 
 // 카드번호 4자리 하이픈 포맷 — 결제내역 상세(PaymentRecordDetailForm)와 동일
 const formatCardNumber = (cardNumber?: string | null) => {
@@ -29,8 +34,9 @@ const InfoRow = ({ label, value, valueClassName }: { label: string; value: React
   </div>
 );
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className={'px-6 mt-12'}>
+// 섹션 — 모바일은 px-6 mt-12, PC 좌측 컬럼은 컬럼 자체에 여백이 있어 className 으로 바꿔 쓴다
+const Section = ({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) => (
+  <section className={className ?? 'px-6 mt-12'}>
     <h2 className={'text-[19px] font-bold text-[#191F28] tracking-[-0.4px]'}>{title}</h2>
     <div className={'mt-4'}>{children}</div>
   </section>
@@ -84,6 +90,8 @@ export default async function PaymentCompletePage({ searchParams }: {
 }) {
   const { paymentId, lessonId } = await searchParams;
   const locale = await getLocale();
+  // 웹 직접 접근(앱 웹뷰 아님)이면 ≥lg 에서 PC 레이아웃 — layout.tsx 와 같은 헤더로 판별
+  const isWeb = ((await headers()).get('x-guinness-version') ?? '') === '';
 
   // 집계 조회 1회 — lessonId는 정기수업 계약·정규반 패스권의 보조 힌트일 뿐이라 있으면 넘기고 서버가 알아서 무시한다.
   const res = paymentId
@@ -127,231 +135,300 @@ export default async function PaymentCompletePage({ searchParams }: {
   const classmateCountTpl = await translate('payment_complete_classmate_count');
   const videoWatchText = await translate('payment_complete_video_watch');
 
-  return (
-    <div className={'w-full min-h-screen bg-white text-[#191F28] flex flex-col pb-40'}>
-      {/* 히어로 — 풀블리드 위에 '신청 완료!' + 인사. 체크 아이콘 없음. heroVideoUrl(학원 유튜브 클립 mp4)이 오면 무음 자동재생, 없으면 썸네일 */}
-      <FullBleedHero
-        videoUrl={data?.product.heroVideoUrl}
-        posterUrl={lesson?.thumbnailUrl ?? data?.product.imageUrl}
-        aspect={lesson ? 'aspect-[3/4]' : 'aspect-[1/1]'}
-      >
-        <p className={'text-[28px] font-bold text-white tracking-[-0.7px] leading-tight'}>{heroTitle}</p>
-        <p className={'text-[15px] leading-relaxed text-white/90 whitespace-pre-line tracking-[-0.2px]'}>{greeting}</p>
-      </FullBleedHero>
+  // 문구 — 두 레이아웃에서 같이 쓰므로 먼저 받아 둔다
+  const t = {
+    pendingNotice: await translate('payment_complete_pending_notice'),
+    bankAccount: await translate('payment_complete_bank_account'),
+    bankHolder: await translate('payment_complete_bank_holder'),
+    bankAmount: await translate('payment_complete_bank_amount'),
+    bankAskStudio: await translate('payment_complete_bank_ask_studio'),
+    together: (await translate('payment_complete_together')).replace('{count}', String(classmates.totalCount)),
+    nextLessonsTitle: (await translate('payment_complete_next_lessons_title')).replace('{artist}', artistName),
+    videosTitle: (await translate('payment_complete_videos_title')).replace('{artist}', artistName),
+    videosDesc: await translate('payment_complete_videos_desc'),
+    paymentInfoTitle: await translate('payment_information_title'),
+    paymentId: await translate('payment_id'),
+    paymentDatetime: await translate('payment_datetime'),
+    paymentMethod: await translate('payment_method'),
+    cardInformation: await translate('card_information'),
+    depositorName: await translate('depositor_name'),
+    originalPrice: await translate('original_price'),
+    totalAmount: await translate('total_amount'),
+    confirm: await translate('confirm'),
+  };
 
-      {/* 수업 정보 — 사진 아래 텍스트 블록. 라벨(레벨/타입/장르)·태그는 수업 상세와 동일 컴포넌트 */}
-      {lesson && (
-        <div className={'px-6 pt-6 flex flex-col gap-3'}>
-          <div className={'flex items-center justify-between gap-3'}>
-            {studio ? (
-              <div className={'flex items-center gap-2 min-w-0'}>
-                <div className={'relative w-[24px] h-[24px] rounded-full overflow-hidden bg-[#F2F4F6] shrink-0'}>
-                  {studio.profileImageUrl && (
-                    <Image src={studio.profileImageUrl} alt={''} quality={50} fill sizes={'24px'} className={'object-cover'}/>
-                  )}
-                </div>
-                <p className={'text-[14px] font-semibold text-[#4E5968] truncate tracking-[-0.2px]'}>{studio.name}</p>
-              </div>
-            ) : <div/>}
-            <div className={'flex items-center gap-[3px] shrink-0'}>
-              {lesson.level && <LessonLevelLabel label={lesson.level} locale={locale}/>}
-              {lesson.type && <LessonTypeLabel type={lesson.type as LessonType} locale={locale}/>}
-              {lesson.genre && lesson.genre !== 'Default' && <LessonLabel label={lesson.genre} locale={locale}/>}
-            </div>
-          </div>
-          {lesson.tags && lesson.tags.length > 0 && <LessonTags tags={lesson.tags.join(',')}/>}
-          <div className={'flex flex-col gap-1'}>
-            <p className={'text-[20px] font-bold text-[#191F28] leading-snug tracking-[-0.4px] line-clamp-2'}>{lesson.title}</p>
-            {when && <p className={'text-[15px] font-medium text-[#4E5968] tracking-[-0.2px]'}>{when}</p>}
-            {who && <p className={'text-[14px] text-[#8B95A1] tracking-[-0.2px] truncate'}>{who}</p>}
-          </div>
-        </div>
-      )}
+  const heroAspect = lesson ? 'aspect-[3/4]' : 'aspect-[1/1]';
+  const posterUrl = lesson?.thumbnailUrl ?? data?.product.imageUrl;
 
-      {/* 수업이 아닌 결제(패스권·연습실 등) — 상품 정보 */}
-      {!lesson && data && (
-        <div className={'px-6 pt-6 flex flex-col gap-1'}>
-          <p className={'text-[20px] font-bold text-[#191F28] leading-snug tracking-[-0.4px] line-clamp-2'}>{data.product.name}</p>
-          <p className={'text-[15px] font-medium text-[#4E5968] tracking-[-0.2px] truncate'}>
-            {[`${data.product.amount.toLocaleString()}${wonText}`, data.product.paymentMethodLabel].filter(Boolean).join(' · ')}
-          </p>
-        </div>
-      )}
+  // ───────── 공통 블록 — 레이아웃별로 바깥 여백만 다르게 감싼다 ─────────
 
-      {/* 입금 대기(계좌이체) — 입금 계좌 안내 + 확정 안내. 서버 bankAccount가 null이면 학원이 계좌를 안 적어둔 것 → 문의 안내 */}
-      {isPending && (
-        <div className={'mx-5 mt-6 rounded-[16px] bg-[#FFF8EC] px-5 py-4 flex flex-col gap-3'}>
-          <p className={'text-[13px] leading-relaxed font-medium text-[#A05A00] whitespace-pre-line'}>
-            {await translate('payment_complete_pending_notice')}
-          </p>
-          {data?.bankAccount ? (
-            <div className={'rounded-[12px] bg-white/80 px-4 py-3 flex flex-col gap-2'}>
-              <div className={'flex items-center justify-between gap-3'}>
-                <span className={'text-[12px] text-[#A05A00] shrink-0'}>{await translate('payment_complete_bank_account')}</span>
-                <span className={'text-[14px] font-bold text-[#3D2A0A] text-right'}>
-                  {[data.bankAccount.bank, data.bankAccount.accountNumber].filter(Boolean).join(' ')}
-                </span>
-              </div>
-              {data.bankAccount.depositor && (
-                <div className={'flex items-center justify-between gap-3'}>
-                  <span className={'text-[12px] text-[#A05A00] shrink-0'}>{await translate('payment_complete_bank_holder')}</span>
-                  <span className={'text-[13px] font-semibold text-[#3D2A0A]'}>{data.bankAccount.depositor}</span>
-                </div>
-              )}
-              <div className={'flex items-center justify-between gap-3'}>
-                <span className={'text-[12px] text-[#A05A00] shrink-0'}>{await translate('payment_complete_bank_amount')}</span>
-                <span className={'text-[14px] font-bold text-[#3D2A0A]'}>{data.bankAccount.amount.toLocaleString()}{wonText}</span>
-              </div>
-            </div>
-          ) : isAccountTransfer ? (
-            <p className={'text-[13px] font-semibold text-[#3D2A0A]'}>{await translate('payment_complete_bank_ask_studio')}</p>
-          ) : null}
-        </div>
-      )}
-
-      {/* 총 N명과 함께 + 같이 들었던 수강생 — 인원이 있을 때만. 샘플은 닉네임·프로필만 온다 */}
-      {classmates.totalCount > 0 && (
-        <div className={'mx-6 mt-8 flex flex-col gap-4'}>
-          <div className={'flex items-center gap-3'}>
-            {/* 아바타 스택 — 샘플 원 + 나머지 인원 +N */}
-            <div className={'flex -space-x-2 shrink-0'}>
-              {classmates.samples.map((c) => (
-                <span key={c.userId} className={'relative w-[30px] h-[30px] rounded-full ring-2 ring-white overflow-hidden bg-[#E5E8EB] flex items-center justify-center text-[11px] font-bold text-[#4E5968]'}>
-                  {c.profileImageUrl
-                    ? <Image src={c.profileImageUrl} alt={''} quality={50} fill sizes={'30px'} className={'object-cover'}/>
-                    : c.nickName.charAt(0)}
-                </span>
-              ))}
-              {classmates.totalCount - classmates.samples.length > 0 && (
-                <span className={'w-[30px] h-[30px] rounded-full ring-2 ring-white flex items-center justify-center text-[11px] font-bold bg-[#191F28] text-white'}>
-                  +{classmates.totalCount - classmates.samples.length}
-                </span>
-              )}
-            </div>
-            <p className={'text-[15px] font-bold text-[#191F28] tracking-[-0.3px]'}>
-              {(await translate('payment_complete_together')).replace('{count}', String(classmates.totalCount))}
-            </p>
-          </div>
-          {classmates.samples.length > 0 && (
-            <div className={'flex flex-col gap-2 pl-0.5'}>
-              {classmates.samples.map((c) => (
-                <p key={c.userId} className={'text-[13.5px] text-[#4E5968] truncate tracking-[-0.2px]'}>
-                  <span className={'font-semibold text-[#191F28]'}>{c.nickName}</span>님 · {
-                    c.lastSharedLessonTitle
-                      ? classmateDescTpl.replace('{lesson}', c.lastSharedLessonTitle)
-                      : classmateCountTpl.replace('{count}', String(c.sharedLessonCount))
-                  }
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 이 강사님의 다가오는 수업 — 서버가 지금 이후·이번 수업 제외·가까운 순 5개로 준다. 탭 이동 없음 */}
-      {upcomingLessons.length > 0 && (
-        <Section title={(await translate('payment_complete_next_lessons_title')).replace('{artist}', artistName)}>
-          <div className={'flex flex-col gap-3'}>
-            {upcomingLessons.map((l) => <UpcomingLessonRow key={l.id} thumbnailUrl={l.thumbnailUrl} title={l.title} date={l.date}/>)}
-          </div>
-        </Section>
-      )}
-
-      {/* 강사님의 영상 — 서버 수집 유튜브 영상. 탭하면 유튜브로 */}
-      {videos.length > 0 && (
-        <Section title={(await translate('payment_complete_videos_title')).replace('{artist}', artistName)}>
-          <div className={'flex flex-col gap-4'}>
-            {videos.map((v) => (
-              <a key={v.videoId} href={v.url} target={'_blank'} rel={'noreferrer'} className={'flex items-center gap-4 active:opacity-70 transition-opacity'}>
-                <div className={'relative w-[112px] h-[64px] rounded-[12px] bg-[#191F28] shrink-0 overflow-hidden flex items-center justify-center'}>
-                  {v.thumbnailUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={v.thumbnailUrl} alt={''} className={'absolute inset-0 w-full h-full object-cover'}/>
-                  )}
-                  <span className={'relative w-[28px] h-[28px] rounded-full bg-white/90 flex items-center justify-center'}>
-                    <svg width={'10'} height={'12'} viewBox={'0 0 10 12'} fill={'none'}><path d={'M1 0l9 6-9 6V0z'} fill={'#191F28'}/></svg>
-                  </span>
-                </div>
-                <div className={'flex-1 min-w-0'}>
-                  <p className={'text-[14.5px] font-semibold text-[#191F28] leading-snug line-clamp-2 tracking-[-0.2px]'}>{v.title}</p>
-                  <p className={'mt-1 text-[12px] text-[#8B95A1]'}>
-                    {[v.viewCountLabel, v.publishedAtLabel].filter(Boolean).join(' · ') || videoWatchText}
-                  </p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* 강사님의 유튜브 채널 — youtubeAddress 있을 때만 (지금은 서버가 항상 null) */}
-      {artist?.youtubeAddress && (
-        <Section title={(await translate('payment_complete_videos_title')).replace('{artist}', artistName)}>
-          <a
-            href={`https://www.youtube.com/${artist.youtubeAddress}`}
-            target={'_blank'}
-            rel={'noreferrer'}
-            className={'flex items-center gap-3.5 rounded-[16px] bg-[#F9FAFB] px-4 py-3.5 active:bg-[#F2F4F6] transition-colors'}
-          >
-            <div className={'relative w-[44px] h-[44px] rounded-full overflow-hidden bg-[#F2F4F6] shrink-0'}>
-              {artist.profileImageUrl && (
-                <Image src={artist.profileImageUrl} alt={''} quality={50} fill sizes={'44px'} className={'object-cover'}/>
-              )}
-            </div>
-            <div className={'flex-1 min-w-0'}>
-              <p className={'text-[14.5px] font-semibold text-[#191F28] truncate'}>{artistName}</p>
-              <p className={'text-[12px] text-[#8B95A1]'}>{await translate('payment_complete_videos_desc')}</p>
-            </div>
-            <svg width={'18'} height={'18'} viewBox={'0 0 24 24'} fill={'none'} className={'shrink-0'}>
-              <path d={'M9 6l6 6-6 6'} stroke={'#B1B8BE'} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'}/>
-            </svg>
-          </a>
-        </Section>
-      )}
-
-      {/* 결제 정보 — 결제내역 상세로 보내지 않고 이 화면에서 바로 보여준다 */}
-      {record && (
-        <Section title={await translate('payment_information_title')}>
-          <div className={'rounded-[16px] bg-[#F9FAFB] px-5 py-4 flex flex-col gap-3'}>
-            <InfoRow label={await translate('payment_id')} value={record.paymentId} valueClassName={'font-paperlogy'}/>
-            {record.createdAt && <InfoRow label={await translate('payment_datetime')} value={record.createdAt}/>}
-            {record.paymentMethodLabel && <InfoRow label={await translate('payment_method')} value={record.paymentMethodLabel}/>}
-            {record.cardNumber ? (
-              <InfoRow label={await translate('card_information')} value={formatCardNumber(record.cardNumber)} valueClassName={'font-paperlogy'}/>
-            ) : record.depositor ? (
-              <InfoRow label={await translate('depositor_name')} value={record.depositor}/>
-            ) : null}
-
-            <div className={'h-[1px] bg-[#E5E8EB] my-1'}/>
-
-            {/* 할인이 있으면 기본 금액(amount + 할인 합) → 할인 항목 → 총액. 없으면 총액만 */}
-            {totalDiscount > 0 && (
-              <>
-                <InfoRow label={await translate('original_price')} value={`${(record.amount + totalDiscount).toLocaleString()}${wonText}`}/>
-                {record.discounts.map((d, i) => (
-                  <InfoRow key={i} label={d.key} value={`-${d.amount.toLocaleString()}${wonText}`} valueClassName={'text-[#E55B5B]'}/>
-                ))}
-              </>
+  // 학원(로고+이름) + 라벨(레벨/타입/장르) 한 줄
+  const studioAndLabels = lesson && (
+    <div className={'flex items-center justify-between gap-3'}>
+      {studio ? (
+        <div className={'flex items-center gap-2 min-w-0'}>
+          <div className={'relative w-[24px] h-[24px] rounded-full overflow-hidden bg-[#F2F4F6] shrink-0'}>
+            {studio.profileImageUrl && (
+              <Image src={studio.profileImageUrl} alt={''} quality={50} fill sizes={'24px'} className={'object-cover'}/>
             )}
-            <div className={'flex items-center justify-between gap-4'}>
-              <span className={'text-[15px] font-bold text-[#191F28] tracking-[-0.3px]'}>{await translate('total_amount')}</span>
-              <span className={'text-[18px] font-bold text-[#191F28] tracking-[-0.4px]'}>{record.amount.toLocaleString()}{wonText}</span>
-            </div>
           </div>
-        </Section>
-      )}
-
-      {/* 하단 고정 CTA — 확인(홈). 결제 내역은 위 섹션에서 바로 보여주므로 별도 버튼 없음 */}
-      <div
-        className={'fixed bottom-0 left-0 right-0 bg-white px-5 pt-3 max-w-[640px] mx-auto'}
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)' }}
-      >
-        <NavigateClickWrapper method={'navigateMain'}>
-          <button type={'button'} className={'w-full h-[52px] rounded-[14px] bg-[#191F28] text-[16px] font-bold text-white active:scale-[0.98] transition-transform'}>
-            {await translate('confirm')}
-          </button>
-        </NavigateClickWrapper>
+          <p className={'text-[14px] font-semibold text-[#4E5968] truncate tracking-[-0.2px]'}>{studio.name}</p>
+        </div>
+      ) : <div/>}
+      <div className={'flex items-center gap-[3px] shrink-0'}>
+        {lesson.level && <LessonLevelLabel label={lesson.level} locale={locale}/>}
+        {lesson.type && <LessonTypeLabel type={lesson.type as LessonType} locale={locale}/>}
+        {lesson.genre && lesson.genre !== 'Default' && <LessonLabel label={lesson.genre} locale={locale}/>}
       </div>
     </div>
+  );
+
+  // 수업 정보 — 라벨(레벨/타입/장르)·태그는 수업 상세와 동일 컴포넌트
+  const lessonInfo = lesson && (
+    <div className={'flex flex-col gap-3'}>
+      {studioAndLabels}
+      {/* 카드 폭(PC 360px)보다 태그가 많으면 줄바꿈 — 칩 안 글자가 두 줄로 찌그러지지 않게 */}
+      {lesson.tags && lesson.tags.length > 0 && <LessonTags tags={lesson.tags.join(',')} className={'flex-wrap'}/>}
+      <div className={'flex flex-col gap-1'}>
+        <p className={'text-[20px] font-bold text-[#191F28] leading-snug tracking-[-0.4px] line-clamp-2'}>{lesson.title}</p>
+        {when && <p className={'text-[15px] font-medium text-[#4E5968] tracking-[-0.2px]'}>{when}</p>}
+        {who && <p className={'text-[14px] text-[#8B95A1] tracking-[-0.2px] truncate'}>{who}</p>}
+      </div>
+    </div>
+  );
+
+  // 수업이 아닌 결제(패스권·연습실 등) — 상품 정보
+  const productInfo = !lesson && data && (
+    <div className={'flex flex-col gap-1'}>
+      <p className={'text-[20px] font-bold text-[#191F28] leading-snug tracking-[-0.4px] line-clamp-2'}>{data.product.name}</p>
+      <p className={'text-[15px] font-medium text-[#4E5968] tracking-[-0.2px] truncate'}>
+        {[`${data.product.amount.toLocaleString()}${wonText}`, data.product.paymentMethodLabel].filter(Boolean).join(' · ')}
+      </p>
+    </div>
+  );
+
+  // 입금 대기(계좌이체) — 입금 계좌 안내 + 확정 안내. 서버 bankAccount가 null이면 학원이 계좌를 안 적어둔 것 → 문의 안내
+  const pendingBox = isPending && (
+    <div className={'rounded-[16px] bg-[#FFF8EC] px-5 py-4 flex flex-col gap-3'}>
+      <p className={'text-[13px] leading-relaxed font-medium text-[#A05A00] whitespace-pre-line'}>{t.pendingNotice}</p>
+      {data?.bankAccount ? (
+        <div className={'rounded-[12px] bg-white/80 px-4 py-3 flex flex-col gap-2'}>
+          <div className={'flex items-center justify-between gap-3'}>
+            <span className={'text-[12px] text-[#A05A00] shrink-0'}>{t.bankAccount}</span>
+            <span className={'text-[14px] font-bold text-[#3D2A0A] text-right'}>
+              {[data.bankAccount.bank, data.bankAccount.accountNumber].filter(Boolean).join(' ')}
+            </span>
+          </div>
+          {data.bankAccount.depositor && (
+            <div className={'flex items-center justify-between gap-3'}>
+              <span className={'text-[12px] text-[#A05A00] shrink-0'}>{t.bankHolder}</span>
+              <span className={'text-[13px] font-semibold text-[#3D2A0A]'}>{data.bankAccount.depositor}</span>
+            </div>
+          )}
+          <div className={'flex items-center justify-between gap-3'}>
+            <span className={'text-[12px] text-[#A05A00] shrink-0'}>{t.bankAmount}</span>
+            <span className={'text-[14px] font-bold text-[#3D2A0A]'}>{data.bankAccount.amount.toLocaleString()}{wonText}</span>
+          </div>
+        </div>
+      ) : isAccountTransfer ? (
+        <p className={'text-[13px] font-semibold text-[#3D2A0A]'}>{t.bankAskStudio}</p>
+      ) : null}
+    </div>
+  );
+
+  // 총 N명과 함께 + 같이 들었던 수강생 — 인원이 있을 때만. 샘플은 닉네임·프로필만 온다
+  const classmatesBlock = classmates.totalCount > 0 && (
+    <div className={'flex flex-col gap-4'}>
+      <div className={'flex items-center gap-3'}>
+        {/* 아바타 스택 — 샘플 원 + 나머지 인원 +N */}
+        <div className={'flex -space-x-2 shrink-0'}>
+          {classmates.samples.map((c) => (
+            <span key={c.userId} className={'relative w-[30px] h-[30px] rounded-full ring-2 ring-white overflow-hidden bg-[#E5E8EB] flex items-center justify-center text-[11px] font-bold text-[#4E5968]'}>
+              {c.profileImageUrl
+                ? <Image src={c.profileImageUrl} alt={''} quality={50} fill sizes={'30px'} className={'object-cover'}/>
+                : c.nickName.charAt(0)}
+            </span>
+          ))}
+          {classmates.totalCount - classmates.samples.length > 0 && (
+            <span className={'w-[30px] h-[30px] rounded-full ring-2 ring-white flex items-center justify-center text-[11px] font-bold bg-[#191F28] text-white'}>
+              +{classmates.totalCount - classmates.samples.length}
+            </span>
+          )}
+        </div>
+        <p className={'text-[15px] font-bold text-[#191F28] tracking-[-0.3px]'}>{t.together}</p>
+      </div>
+      {classmates.samples.length > 0 && (
+        <div className={'flex flex-col gap-2 pl-0.5'}>
+          {classmates.samples.map((c) => (
+            <p key={c.userId} className={'text-[13.5px] text-[#4E5968] truncate tracking-[-0.2px]'}>
+              <span className={'font-semibold text-[#191F28]'}>{c.nickName}</span>님 · {
+                c.lastSharedLessonTitle
+                  ? classmateDescTpl.replace('{lesson}', c.lastSharedLessonTitle)
+                  : classmateCountTpl.replace('{count}', String(c.sharedLessonCount))
+              }
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // 이 강사님의 다가오는 수업 — 서버가 지금 이후·이번 수업 제외·가까운 순 5개로 준다. 탭 이동 없음
+  const upcomingList = upcomingLessons.length > 0 && (
+    <div className={'flex flex-col gap-3'}>
+      {upcomingLessons.map((l) => <UpcomingLessonRow key={l.id} thumbnailUrl={l.thumbnailUrl} title={l.title} date={l.date}/>)}
+    </div>
+  );
+
+  // 강사님의 영상 — 서버 수집 유튜브 영상. 탭하면 유튜브로
+  const videosList = videos.length > 0 && (
+    <div className={'flex flex-col gap-4'}>
+      {videos.map((v) => (
+        <a key={v.videoId} href={v.url} target={'_blank'} rel={'noreferrer'} className={'flex items-center gap-4 active:opacity-70 lg:hover:opacity-80 transition-opacity'}>
+          <div className={'relative w-[112px] h-[64px] rounded-[12px] bg-[#191F28] shrink-0 overflow-hidden flex items-center justify-center'}>
+            {v.thumbnailUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={v.thumbnailUrl} alt={''} className={'absolute inset-0 w-full h-full object-cover'}/>
+            )}
+            <span className={'relative w-[28px] h-[28px] rounded-full bg-white/90 flex items-center justify-center'}>
+              <svg width={'10'} height={'12'} viewBox={'0 0 10 12'} fill={'none'}><path d={'M1 0l9 6-9 6V0z'} fill={'#191F28'}/></svg>
+            </span>
+          </div>
+          <div className={'flex-1 min-w-0'}>
+            <p className={'text-[14.5px] font-semibold text-[#191F28] leading-snug line-clamp-2 tracking-[-0.2px]'}>{v.title}</p>
+            <p className={'mt-1 text-[12px] text-[#8B95A1]'}>
+              {[v.viewCountLabel, v.publishedAtLabel].filter(Boolean).join(' · ') || videoWatchText}
+            </p>
+          </div>
+        </a>
+      ))}
+    </div>
+  );
+
+  // 강사님의 유튜브 채널 — youtubeAddress 있을 때만 (지금은 서버가 항상 null)
+  const youtubeLink = artist?.youtubeAddress && (
+    <a
+      href={`https://www.youtube.com/${artist.youtubeAddress}`}
+      target={'_blank'}
+      rel={'noreferrer'}
+      className={'flex items-center gap-3.5 rounded-[16px] bg-[#F9FAFB] px-4 py-3.5 active:bg-[#F2F4F6] lg:hover:bg-[#F2F4F6] transition-colors'}
+    >
+      <div className={'relative w-[44px] h-[44px] rounded-full overflow-hidden bg-[#F2F4F6] shrink-0'}>
+        {artist.profileImageUrl && (
+          <Image src={artist.profileImageUrl} alt={''} quality={50} fill sizes={'44px'} className={'object-cover'}/>
+        )}
+      </div>
+      <div className={'flex-1 min-w-0'}>
+        <p className={'text-[14.5px] font-semibold text-[#191F28] truncate'}>{artistName}</p>
+        <p className={'text-[12px] text-[#8B95A1]'}>{t.videosDesc}</p>
+      </div>
+      <svg width={'18'} height={'18'} viewBox={'0 0 24 24'} fill={'none'} className={'shrink-0'}>
+        <path d={'M9 6l6 6-6 6'} stroke={'#B1B8BE'} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'}/>
+      </svg>
+    </a>
+  );
+
+  // 결제 정보 — 결제내역 상세로 보내지 않고 이 화면에서 바로 보여준다
+  const paymentInfoCard = record && (
+    <div className={'rounded-[16px] bg-[#F9FAFB] px-5 py-4 flex flex-col gap-3'}>
+      <InfoRow label={t.paymentId} value={record.paymentId} valueClassName={'font-paperlogy'}/>
+      {record.createdAt && <InfoRow label={t.paymentDatetime} value={record.createdAt}/>}
+      {record.paymentMethodLabel && <InfoRow label={t.paymentMethod} value={record.paymentMethodLabel}/>}
+      {record.cardNumber ? (
+        <InfoRow label={t.cardInformation} value={formatCardNumber(record.cardNumber)} valueClassName={'font-paperlogy'}/>
+      ) : record.depositor ? (
+        <InfoRow label={t.depositorName} value={record.depositor}/>
+      ) : null}
+
+      <div className={'h-[1px] bg-[#E5E8EB] my-1'}/>
+
+      {/* 할인이 있으면 기본 금액(amount + 할인 합) → 할인 항목 → 총액. 없으면 총액만 */}
+      {totalDiscount > 0 && (
+        <>
+          <InfoRow label={t.originalPrice} value={`${(record.amount + totalDiscount).toLocaleString()}${wonText}`}/>
+          {record.discounts.map((d, i) => (
+            <InfoRow key={i} label={d.key} value={`-${d.amount.toLocaleString()}${wonText}`} valueClassName={'text-[#E55B5B]'}/>
+          ))}
+        </>
+      )}
+      <div className={'flex items-center justify-between gap-4'}>
+        <span className={'text-[15px] font-bold text-[#191F28] tracking-[-0.3px]'}>{t.totalAmount}</span>
+        <span className={'text-[18px] font-bold text-[#191F28] tracking-[-0.4px]'}>{record.amount.toLocaleString()}{wonText}</span>
+      </div>
+    </div>
+  );
+
+  // 확인(홈) — 웹은 NavigateClickWrapper 가 kloudNav.navigateMain 웹 폴백(홈으로 replace)을 탄다
+  const confirmButton = (
+    <NavigateClickWrapper method={'navigateMain'}>
+      <button type={'button'} className={'w-full h-[52px] rounded-[14px] bg-[#191F28] text-[16px] font-bold text-white active:scale-[0.98] lg:hover:bg-[#333D4B] transition-[transform,background-color]'}>
+        {t.confirm}
+      </button>
+    </NavigateClickWrapper>
+  );
+
+  return (
+    <>
+      {/* ───────── PC 웹(≥lg) — 2-column. 좌: 타이틀·인사 + 섹션 / 우: sticky 카드(히어로 미디어 + 요약 + 확인) ───────── */}
+      {isWeb && (
+        <div className={'hidden lg:block w-full min-h-screen bg-white text-[#191F28] pt-12 pb-24'}>
+          <div className={'mx-auto w-full max-w-5xl px-8 grid grid-cols-[minmax(0,1fr)_360px] gap-x-12'}>
+
+            {/* 좌측 */}
+            <div className={'col-start-1 row-start-1 min-w-0'}>
+              <div className={'flex flex-col gap-3'}>
+                <h1 className={'text-[32px] font-bold text-[#191F28] tracking-[-0.8px] leading-tight'}>{heroTitle}</h1>
+                <p className={'text-[16px] leading-relaxed text-[#4E5968] whitespace-pre-line tracking-[-0.2px]'}>{greeting}</p>
+              </div>
+
+              {pendingBox && <div className={'mt-8'}>{pendingBox}</div>}
+              {classmatesBlock && <div className={'mt-10'}>{classmatesBlock}</div>}
+              {upcomingList && <Section className={'mt-12'} title={t.nextLessonsTitle}>{upcomingList}</Section>}
+              {videosList && <Section className={'mt-12'} title={t.videosTitle}>{videosList}</Section>}
+              {youtubeLink && <Section className={'mt-12'} title={t.videosTitle}>{youtubeLink}</Section>}
+              {paymentInfoCard && <Section className={'mt-12'} title={t.paymentInfoTitle}>{paymentInfoCard}</Section>}
+            </div>
+
+            {/* 우측 sticky 카드 — 결제 화면(PaymentPcForm)의 요약 카드와 같은 톤 */}
+            <aside className={'col-start-2 row-start-1'}>
+              <div className={'sticky top-24 rounded-2xl border border-[#F0F0F0] bg-white p-5 flex flex-col gap-5'}>
+                <div className={`relative w-full ${heroAspect} rounded-xl overflow-hidden bg-[#191F28]`}>
+                  <HeroVideo src={data?.product.heroVideoUrl} posterUrl={posterUrl}/>
+                </div>
+                {lessonInfo}
+                {productInfo}
+                {confirmButton}
+              </div>
+            </aside>
+          </div>
+        </div>
+      )}
+
+      {/* ───────── 모바일 / 앱 웹뷰 — 풀블리드 히어로 + 세로 섹션 + 하단 고정 CTA ───────── */}
+      <div className={`${isWeb ? 'lg:hidden ' : ''}w-full min-h-screen bg-white text-[#191F28] flex flex-col pb-40`}>
+        {/* 히어로 — 풀블리드 위에 '신청 완료!' + 인사. 체크 아이콘 없음. heroVideoUrl(학원 유튜브 클립 mp4)이 오면 무음 자동재생, 없으면 썸네일 */}
+        <FullBleedHero videoUrl={data?.product.heroVideoUrl} posterUrl={posterUrl} aspect={heroAspect}>
+          <p className={'text-[28px] font-bold text-white tracking-[-0.7px] leading-tight'}>{heroTitle}</p>
+          <p className={'text-[15px] leading-relaxed text-white/90 whitespace-pre-line tracking-[-0.2px]'}>{greeting}</p>
+        </FullBleedHero>
+
+        {lessonInfo && <div className={'px-6 pt-6'}>{lessonInfo}</div>}
+        {productInfo && <div className={'px-6 pt-6'}>{productInfo}</div>}
+        {pendingBox && <div className={'mx-5 mt-6'}>{pendingBox}</div>}
+        {classmatesBlock && <div className={'mx-6 mt-8'}>{classmatesBlock}</div>}
+        {upcomingList && <Section title={t.nextLessonsTitle}>{upcomingList}</Section>}
+        {videosList && <Section title={t.videosTitle}>{videosList}</Section>}
+        {youtubeLink && <Section title={t.videosTitle}>{youtubeLink}</Section>}
+        {paymentInfoCard && <Section title={t.paymentInfoTitle}>{paymentInfoCard}</Section>}
+
+        {/* 하단 고정 CTA — 확인(홈). 결제 내역은 위 섹션에서 바로 보여주므로 별도 버튼 없음 */}
+        <div
+          className={'fixed bottom-0 left-0 right-0 bg-white px-5 pt-3 max-w-[640px] mx-auto'}
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)' }}
+        >
+          {confirmButton}
+        </div>
+      </div>
+    </>
   );
 }

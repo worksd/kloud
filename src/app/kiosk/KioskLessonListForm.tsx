@@ -5,11 +5,14 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { GetLessonResponse, LessonStatus, BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
+import { RegularClassDetailResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import { getPassPlanAction } from "@/app/passPlans/action/get.pass.plan.action";
 import { getAllPassPlanListForKioskAction, getPassPlanListAction } from "@/app/passPlans/action/get.pass.plan.list.action";
 import { getLessonsByDate } from "@/app/kiosk/get.lessons.by.date.action";
 import { getBundlesAction } from "@/app/kiosk/get.bundles.action";
+import { getKioskRegularClassDetailAction, getKioskRegularClassesAction } from "@/app/kiosk/get.regular.classes.action";
 import { KioskPassPlanDetailModal } from "@/app/kiosk/KioskPassPlanDetailModal";
+import { KioskRegularClassDetailModal } from "@/app/kiosk/KioskRegularClassDetailModal";
 import { KioskTopBar } from "@/app/kiosk/KioskTopBar";
 import { handleKioskTokenExpired } from "@/app/kiosk/kiosk.error";
 import { formatLessonDuration, formatLessonStart, formatLessonTimeRange, isLessonPayable, lessonBlockLabel } from "@/app/kiosk/kiosk.lesson";
@@ -49,6 +52,8 @@ const bundleSalesPeriod = (b: BundleSummaryResponse): string | null => {
 type KioskLessonListFormProps = {
   studioId: number;
   passPlans: GetPassPlanResponse[];
+  /** 정규반 썸네일 폴백(강사 사진 없을 때) — 학원 로고 */
+  studioImageUrl?: string;
   locale: Locale;
   onSelectLesson: (lesson: GetLessonResponse) => void;
   onSelectPassPlan: (plan: GetPassPlanResponse) => void;
@@ -58,9 +63,9 @@ type KioskLessonListFormProps = {
   variant?: 'kiosk' | 'admin';
 };
 
-type KioskTab = 'promotion' | 'lessons' | 'pass-plans';
+type KioskTab = 'promotion' | 'lessons' | 'pass-plans' | 'regular-classes';
 
-export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, locale, onSelectLesson, onSelectPassPlan, onSelectBundle, onBack, variant = 'kiosk' }: KioskLessonListFormProps) => {
+export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, studioImageUrl, locale, onSelectLesson, onSelectPassPlan, onSelectBundle, onBack, variant = 'kiosk' }: KioskLessonListFormProps) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const admin = variant === 'admin';
   const [tab, setTab] = useState<KioskTab>('lessons');
@@ -85,6 +90,21 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       .catch((e) => { console.warn('[kiosk bundles] failed', e); })
       .finally(() => setBundlesLoaded(true));
   }, [studioId, admin]);
+  // 정규반 — GET /regular-classes?studioId= (판매중 전체). 비어있으면 탭을 숨긴다.
+  // 번들과 마찬가지로 조회가 끝난 뒤에야 탭 줄을 그려서 탭이 뒤늦게 끼어들며 밀리지 않게 한다.
+  const [regularClasses, setRegularClasses] = useState<StudioRegularClassResponse[]>([]);
+  const [regularClassesLoaded, setRegularClassesLoaded] = useState(false);
+  useEffect(() => {
+    if (!studioId) return;
+    getKioskRegularClassesAction(studioId)
+      .then(async (res) => {
+        if (await handleKioskTokenExpired(res)) return;
+        if ('regularClasses' in res && Array.isArray(res.regularClasses)) setRegularClasses(res.regularClasses);
+      })
+      .catch((e) => { console.warn('[kiosk regular classes] failed', e); })
+      .finally(() => setRegularClassesLoaded(true));
+  }, [studioId]);
+  const tabsLoaded = bundlesLoaded && regularClassesLoaded;
   // 날짜 옵션 — 자정 기준 normalize.
   //  - kiosk(무인): 오늘부터 7일(오늘 ~ +6). 과거 결제 없음.
   //  - admin(상담실): 지난 한 달 조회 가능하도록 과거 30일 ~ +6일. 기본 선택은 항상 오늘.
@@ -113,6 +133,8 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
   const [loadingPassPlans, setLoadingPassPlans] = useState(false);
   const [passPlanDetail, setPassPlanDetail] = useState<GetPassPlanResponse | null>(null);
   const [loadingDetailId, setLoadingDetailId] = useState<number | null>(null);
+  const [regularClassDetail, setRegularClassDetail] = useState<RegularClassDetailResponse | null>(null);
+  const [loadingRegularClassId, setLoadingRegularClassId] = useState<number | null>(null);
 
   const formatPillLabel = (d: Date): string => {
     const weekday = d.toLocaleDateString(INTL_LOCALE[locale], { weekday: 'short' });
@@ -166,6 +188,19 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       .finally(() => setLoadingPassPlans(false));
   }, [tab, studioId, passPlans.length, admin]);
 
+  // 정규반 카드 탭 → 상세(passPlans 포함) 조회 후 모달. 목록 응답엔 수강 방식이 없어서 상세를 한 번 더 받는다.
+  const handleClickRegularClass = async (rc: StudioRegularClassResponse) => {
+    if (loadingRegularClassId) return;
+    setLoadingRegularClassId(rc.id);
+    try {
+      const res = await getKioskRegularClassDetailAction(rc.id);
+      if (await handleKioskTokenExpired(res)) return;
+      if ('id' in res) setRegularClassDetail(res);
+    } finally {
+      setLoadingRegularClassId(null);
+    }
+  };
+
   const handleClickPassPlan = async (plan: GetPassPlanResponse) => {
     if (loadingDetailId) return;
     setLoadingDetailId(plan.id);
@@ -183,16 +218,19 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
       {/* 타이틀은 두지 않는다 — 아래 상단 탭이 현재 위치를 대신 알려준다 */}
       <KioskTopBar onBack={onBack} onHome={onBack} />
 
-      {/* ① 상단 탭 — 수업 / 패스권 / 프로모션. 번들 조회가 끝난 뒤 한 번에 그려서
-          프로모션 탭이 뒤늦게 끼어들며 앞 탭을 밀지 않게 한다. */}
+      {/* ① 상단 탭 — 수업 / 패스권 / 정규반 / 프로모션. 정규반·번들 조회가 끝난 뒤 한 번에 그려서
+          뒤쪽 탭이 뒤늦게 끼어들며 앞 탭을 밀지 않게 한다. 정규반/프로모션은 비어있으면 탭 자체를 숨긴다. */}
       <div
         className="shrink-0 flex items-end border-b border-[#F2F4F6]"
         style={{ height: 'min(7.5vh, 68px)', gap: 'min(1.4vw, 18px)', padding: '0 min(2.4vw, 32px)' }}
       >
-        {bundlesLoaded && (
+        {tabsLoaded && (
           <>
             <KioskTopTab label={t('kiosk_tab_lessons')} iconSrc="/assets/ic_kiosk_lesson.svg" active={tab === 'lessons'} onClick={() => setTab('lessons')} />
             <KioskTopTab label={t('kiosk_pass')} iconSrc="/assets/ic_kiosk_pass_plan.svg" active={tab === 'pass-plans'} onClick={() => setTab('pass-plans')} />
+            {regularClasses.length > 0 && (
+              <KioskTopTab label={t('studio_regular_classes')} iconSrc="/assets/ic_kiosk_regular_class.svg" active={tab === 'regular-classes'} onClick={() => setTab('regular-classes')} />
+            )}
             {bundles.length > 0 && (
               <KioskTopTab label={t('kiosk_tab_promotion')} iconSrc="/assets/ic_kiosk_pass_plan.svg" active={tab === 'promotion'} onClick={() => setTab('promotion')} />
             )}
@@ -231,6 +269,22 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
           className="flex-1 overflow-y-auto animate-[fadeIn_220ms_ease-out]"
           style={{ padding: 'min(2.2vh, 24px) min(2.4vw, 32px)' }}
         >
+          {/* 정규반 — 한 줄에 하나씩. 썸네일(강사 사진 → 학원 로고) + 이름 + 강사 + 설명. 탭하면 상세 모달에서 수강 방식을 고른다 */}
+          {tab === 'regular-classes' && (
+            <div className="grid grid-cols-1" style={{ gap: 'min(1.4vh, 14px)' }}>
+              {regularClasses.map((rc) => (
+                <RegularClassCard
+                  key={rc.id}
+                  regularClass={rc}
+                  studioImageUrl={studioImageUrl}
+                  locale={locale}
+                  loading={loadingRegularClassId === rc.id}
+                  onClick={() => handleClickRegularClass(rc)}
+                />
+              ))}
+            </div>
+          )}
+
           {/* 프로모션(번들) — 한 줄에 하나씩 */}
           {tab === 'promotion' && (
             <div className="grid grid-cols-2" style={{ gap: 'min(1.8vh, 20px)' }}>
@@ -424,6 +478,27 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
         </div>
       </div>
 
+      {regularClassDetail && (
+        <KioskRegularClassDetailModal
+          regularClass={regularClassDetail}
+          studioImageUrl={studioImageUrl}
+          locale={locale}
+          onClose={() => setRegularClassDetail(null)}
+          onSelect={(plan) => {
+            const rc = regularClassDetail;
+            setRegularClassDetail(null);
+            // 결제 화면이 '어느 정규반의 어떤 방식'인지 보여줄 수 있게 소속 정규반·썸네일을 채워서 넘긴다
+            // (상세의 passPlans[] 에는 regularClass 가 안 올 수 있다)
+            onSelectPassPlan({
+              ...plan,
+              category: plan.category ?? 'Class',
+              regularClass: plan.regularClass ?? { id: rc.id, name: rc.name, unpaidEnabled: rc.unpaidEnabled },
+              imageUrl: plan.imageUrl ?? rc.artist?.profileImageUrl ?? studioImageUrl,
+            });
+          }}
+        />
+      )}
+
       {passPlanDetail && (
         <KioskPassPlanDetailModal
           passPlan={passPlanDetail}
@@ -437,6 +512,49 @@ export const KioskLessonListForm = ({ studioId, passPlans: initialPassPlans, loc
         />
       )}
     </div>
+  );
+};
+
+// 정규반 카드 — 썸네일(강사 사진, 없으면 학원 로고) 좌 + 이름/강사/설명 우. 상세 조회 중엔 흐리게.
+const RegularClassCard = ({ regularClass: rc, studioImageUrl, locale, loading, onClick }: {
+  regularClass: StudioRegularClassResponse;
+  studioImageUrl?: string;
+  locale: Locale;
+  loading: boolean;
+  onClick: () => void;
+}) => {
+  const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
+  const artistName = rc.artist ? (rc.artist.nickName || rc.artist.name) : '';
+  const thumbUrl = rc.artist?.profileImageUrl || studioImageUrl;
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className={`w-full text-left rounded-[16px] bg-white border border-[#F1F3F6] flex items-center cursor-pointer active:bg-[#F7F8F9] transition-colors ${loading ? 'opacity-60' : ''}`}
+      style={{ padding: 'min(1.6vh, 16px)', gap: 'min(1.6vh, 16px)' }}
+    >
+      <div className="shrink-0 rounded-[14px] overflow-hidden bg-[#F1F3F6]" style={{ width: 'min(9vh, 88px)', height: 'min(9vh, 88px)' }}>
+        {thumbUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={kioskImageSrc(thumbUrl, 300)} alt="" className="w-full h-full object-cover" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ gap: 'min(0.5vh, 5px)' }}>
+        {rc.tag && (
+          <span className="self-start px-[8px] py-[2px] rounded-full bg-[#F3F4F6] text-[#4E5968] font-bold" style={{ fontSize: 'min(1.2vh, 13px)' }}>{rc.tag}</span>
+        )}
+        <p className="text-black font-bold leading-snug line-clamp-1" style={{ fontSize: 'min(1.9vh, 20px)' }}>{rc.name}</p>
+        {artistName && (
+          <p className="text-[#6D7882] truncate" style={{ fontSize: 'min(1.4vh, 15px)' }}>{t('regular_class_artist')} · {artistName}</p>
+        )}
+        {rc.description && (
+          <p className="text-[#86898C] line-clamp-2 leading-snug" style={{ fontSize: 'min(1.35vh, 14px)' }}>{rc.description}</p>
+        )}
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" className="shrink-0" style={{ width: 'min(2.2vh, 22px)', height: 'min(2.2vh, 22px)' }}>
+        <path d="M9 6l6 6-6 6" stroke="#8A949E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </button>
   );
 };
 

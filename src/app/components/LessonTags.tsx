@@ -8,6 +8,7 @@ import React from "react";
  * - 일반 태그: padding 0 2, border-radius 2
  * - 마지막 태그: 오른쪽 변이 위로 기울어진 평행사변형(vector 윗변 ~41 / 아랫변 ~35.6) + border-radius 2
  *   → SVG path로 그려 rounded와 비대칭 형태를 동시에 살림.
+ * - 칩 안 텍스트는 줄바꿈하지 않는다(whitespace-nowrap). 좁은 컨테이너에서 여러 줄로 두려면 className 에 flex-wrap 을 넘긴다.
  */
 export const LessonTags = ({ tags, className }: { tags?: string; className?: string }) => {
   if (!tags) return null;
@@ -40,7 +41,7 @@ export const LessonTags = ({ tags, className }: { tags?: string; className?: str
                   fill="#1F1F1F"
                 />
               </svg>
-              <span className="relative font-paperlogy font-bold text-[11px] leading-none text-white">
+              <span className="relative font-paperlogy font-bold text-[11px] leading-none text-white whitespace-nowrap">
                 {tag}
               </span>
             </span>
@@ -49,7 +50,7 @@ export const LessonTags = ({ tags, className }: { tags?: string; className?: str
         return (
           <span
             key={`${tag}-${i}`}
-            className="inline-flex min-h-[17px] items-center justify-center px-[4px] py-[2px] rounded-[2px] bg-[#1F1F1F] font-paperlogy font-bold text-[11px] leading-none text-white"
+            className="inline-flex min-h-[17px] items-center justify-center px-[4px] py-[2px] rounded-[2px] bg-[#1F1F1F] font-paperlogy font-bold text-[11px] leading-none text-white whitespace-nowrap"
           >
             {tag}
           </span>

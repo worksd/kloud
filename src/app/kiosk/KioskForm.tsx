@@ -22,9 +22,7 @@ import {KioskAttendanceSelectForm} from "@/app/kiosk/KioskAttendanceSelectForm";
 import {KioskLessonAttendanceForm} from "@/app/kiosk/KioskLessonAttendanceForm";
 import {Locale} from "@/shared/StringResource";
 import {getLocaleString} from "@/app/components/locale";
-import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction, saveKioskCustomerTokenAction, clearKioskCustomerTokenAction} from "@/app/kiosk/kiosk.actions";
-import {KioskQrLogin} from "@/app/kiosk/KioskQrLogin";
-import type {KioskLoginEvent} from "@/app/endpoint/kiosk.endpoint";
+import {searchUserAction, registerKioskUserAction, getKioskPaymentAction, startKioskPaymentAction, completeKioskPaymentAction, discardKioskPaymentAction, useKioskPassAction, getKioskDetailAction, getKioskAdminPaymentAction, createAdminManualPaymentAction, getKioskLessonPoliciesAction, clearKioskCustomerTokenAction} from "@/app/kiosk/kiosk.actions";
 import {GetPaymentResponse, DiscountResponse, PaymentDiscount} from "@/app/endpoint/payment.endpoint";
 import {KioskPhonePadType, KioskTicketSummary} from "@/app/endpoint/kiosk.endpoint";
 import {LessonPricePolicyResponse} from "@/app/endpoint/payment.endpoint";
@@ -37,6 +35,7 @@ import {generateRandomNickname} from "@/app/kiosk/random.nickname";
 import {isGuinnessErrorCase} from "@/app/guinnessErrorCase";
 import {GetPassPlanResponse} from "@/app/endpoint/pass.endpoint";
 import {formatFeatureDescription, formatRuleDescription} from "@/utils/pass.description";
+import {weeklyDaysLabel} from "@/utils/weekly.days";
 import {buildKioskReceipt} from "@/app/kiosk/kiosk.receipt";
 import {sendReceiptToPrinter} from "@/app/kiosk/kiosk.native";
 import {initKisDebug, recordKisResponse, setKisDebugContext} from "@/app/kiosk/kiosk.kis.debug";
@@ -753,28 +752,6 @@ export const KioskForm = ({
     }
   };
 
-  // 앱 QR 로그인(SSE 'kiosk.login') — 손님 토큰을 쿠키(x-guinness-kiosk-authorization)에 저장하고
-  // 번호 검색과 같은 자리(member-confirm)로 보낸다. studentId가 null이어도 결제 흐름이 수강생 등록을 겸하므로 막지 않는다.
-  const handleQrLogin = async (ev: KioskLoginEvent) => {
-    try {
-      await saveKioskCustomerTokenAction(ev.accessToken);
-    } catch {
-      // 쿠키 저장 실패해도 targetUserId 기반 흐름은 그대로 동작한다
-    }
-    setSearchedUsers([]);
-    setSelectedUser({
-      id: ev.user.id,
-      name: ev.user.name || undefined,
-      nickName: ev.user.nickName,
-      phone: ev.user.phone,
-      profileImageUrl: ev.user.profileImageUrl ?? undefined,
-      accessToken: ev.accessToken,
-    });
-    if (ev.user.phone) setPhone(ev.user.phone);
-    setErrorMessage(null);
-    setCurrentScreen('member-confirm');
-  };
-
   // 유저 확인 → 결제 수단 선택으로 이동 (운영자 토큰 유지, 손님 정보는 selectedUser 상태로만 들고 감)
   const handleConfirmUser = async () => {
     if (!selectedUser) return;
@@ -793,9 +770,10 @@ export const KioskForm = ({
       }
     : selectedPassPlan
       ? {
-          title: selectedPassPlan.name,
+          // 정규반 수강 방식(가격정책)이면 '반 이름 · 방식 이름'으로, 부제엔 다니는 요일을 앞에 붙인다
+          title: selectedPassPlan.regularClass ? `${selectedPassPlan.regularClass.name} · ${selectedPassPlan.name}` : selectedPassPlan.name,
           price: selectedPassPlan.price ?? 0,
-          subtitle: selectedPassPlan.expireDateStamp,
+          subtitle: [weeklyDaysLabel(selectedPassPlan.days, locale), selectedPassPlan.expireDateStamp].filter(Boolean).join(' · ') || undefined,
           thumbnailUrl: selectedPassPlan.imageUrl ?? undefined,
           benefits: [
             ...(selectedPassPlan.rules ?? []).map((r) =>
@@ -1346,6 +1324,7 @@ export const KioskForm = ({
         <KioskLessonListForm
           studioId={studioId}
           passPlans={passPlans}
+          studioImageUrl={studioProfileImageUrl}
           locale={locale}
           variant={variant}
           onSelectLesson={(lesson) => { setSelectedLesson(lesson); setSelectedPassPlan(null); setSelectedBundle(null); setCurrentScreen('lesson-detail'); }}
@@ -1379,9 +1358,6 @@ export const KioskForm = ({
           loading={currentScreen === 'searching'}
           errorMessage={errorMessage}
           onDismissError={() => setErrorMessage(null)}
-          qrLogin={currentScreen === 'phone' && kioskId > 0 ? (
-            <KioskQrLogin kioskId={kioskId} locale={locale} variant={variant} onLogin={handleQrLogin}/>
-          ) : undefined}
         />
       )}
 
@@ -1590,7 +1566,8 @@ export const KioskForm = ({
               {t('kiosk_close_in_5s')}
             </p>
             <div className="flex gap-[min(1.4vw,16px)]">
-              {selectedPassPlan && (
+              {/* 정규반 등록(category=Class)은 수업이 자동 배정되므로 '수업 신청하러 가기'를 띄우지 않는다 */}
+              {selectedPassPlan && !selectedPassPlan.regularClass && selectedPassPlan.category !== 'Class' && (
                 <button
                   onClick={() => {
                     // 직전 구매한 패스권 ID 기억 → 다음 lesson 결제 시 자동 사용

@@ -4944,14 +4944,11 @@ export const StringResource = {
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
   regular_class_empty: { ko: '판매중인 정규반이 없어요', en: 'No regular classes on sale', jp: '販売中のクラスがありません', zh: '暂无在售常规班' },
   pass_plan_empty: { ko: '판매중인 패스권이 없어요', en: 'No passes on sale', jp: '販売中の利用券がありません', zh: '暂无在售通票' },
+  // 키오스크 정규반 탭
+  kiosk_enroll_regular_class: { ko: '정규반 등록', en: 'Enroll', jp: 'クラスに登録', zh: '报名常规班' },
+  regular_class_no_plans: { ko: '지금 등록할 수 있는 수강 방식이 없어요', en: 'No enrollment options available right now', jp: '現在登録できる受講プランがありません', zh: '目前没有可报名的上课方式' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
 
-  // 키오스크 QR 로그인(SSE) — 키오스크 패널
-  kiosk_qr_login_title: { ko: '앱으로 QR 로그인', en: 'Log in with the app', jp: 'アプリでQRログイン', zh: '用App扫码登录' },
-  kiosk_qr_login_desc: { ko: '휴대폰 카메라로 QR을 찍으면\n번호 입력 없이 바로 로그인돼요', en: 'Scan the QR with your phone camera\nto log in without typing your number', jp: 'スマホのカメラでQRを読み取ると\n番号入力なしでログインできます', zh: '用手机相机扫描二维码\n无需输入号码即可登录' },
-  kiosk_qr_login_ready: { ko: '스캔 대기 중', en: 'Ready to scan', jp: 'スキャン待機中', zh: '等待扫描' },
-  kiosk_qr_login_connecting: { ko: '준비 중…', en: 'Preparing…', jp: '準備中…', zh: '准备中…' },
-  kiosk_qr_login_reconnecting: { ko: 'QR을 새로 만드는 중…', en: 'Refreshing QR…', jp: 'QRを更新中…', zh: '正在刷新二维码…' },
   // 키오스크 QR 로그인 — 앱 승인 화면(/kiosk-login)
   kiosk_login_approve_loading: { ko: '키오스크에 로그인하는 중…', en: 'Logging in to the kiosk…', jp: 'キオスクにログイン中…', zh: '正在登录自助机…' },
   kiosk_login_approve_done: { ko: '{kiosk}에\n로그인했어요', en: 'Logged in to\n{kiosk}', jp: '{kiosk}に\nログインしました', zh: '已登录\n{kiosk}' },
