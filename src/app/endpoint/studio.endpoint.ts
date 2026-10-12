@@ -60,6 +60,8 @@ export type StudioRegularClassResponse = {
   tag?: string | null;
   /** 담당 강사. 안 정했거나 삭제됐으면 null — 카드는 그대로 두고 강사 줄만 숨김/미정 처리 */
   artist?: StudioRegularClassArtistResponse | null;
+  /** 다닐 수 있는 요일(0=일~6=토, 오름차순) — 판매중·Public 가격정책 요일의 합. 요일 정한 가격정책이 없으면 키 자체가 없다 */
+  days?: number[];
 }
 
 export type GetStudioResponse = {

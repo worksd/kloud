@@ -20,6 +20,9 @@ const DOW_ORDER: DayOfWeekCode[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'S
 const toDow = (d: DayOfWeekCode | number): DayOfWeekCode | undefined =>
   typeof d === 'number' ? DOW_ORDER[d] : d;
 
+/** 요일 숫자(0=일~6=토) 한 글자 표기 — '월', 'Mon' */
+export const dayShortLabel = (day: number, locale: Locale): string => DAY_LABEL[locale][DOW_ORDER[day]] ?? '';
+
 /** '매주 월·수' 표기 — 요일이 없으면 null. 숫자(0=일~6=토)/문자열 코드 모두 받는다. */
 export const weeklyDaysLabel = (
   days: (DayOfWeekCode | number)[] | undefined | null,
