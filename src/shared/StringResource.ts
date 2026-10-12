@@ -4753,6 +4753,7 @@ export const StringResource = {
   home_today_room_status: { ko: '연습실 예약', en: "Today's Practice Rooms", jp: '本日の練習室予約', zh: '今日练习室预约' },
   home_upcoming_bookings: { ko: '다가오는 예약', en: 'Upcoming Bookings', jp: '今後の予約', zh: '即将到来的预约' },
   community_pass: { ko: '패스권', en: 'Passes', jp: '利用券', zh: '通票' },
+  home_programs_button: { ko: '정규반·패스권', en: 'Classes & Passes', jp: 'クラス・利用券', zh: '常规班·通票' },
   community_pass_view_all: { ko: '패스권 전체보기', en: 'View all passes', jp: '利用券をすべて見る', zh: '查看全部通票' },
   community_price_from: { ko: '{price}원부터', en: 'From {price} KRW', jp: '{price}ウォン〜', zh: '{price}韩元起' },
   community_max_people: { ko: '최대 {count}명', en: 'Up to {count}', jp: '最大{count}名', zh: '最多{count}人' },

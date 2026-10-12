@@ -14,13 +14,11 @@ type Props = {
 
 // 스튜디오 정규반·패스권 전체 목록 — 상세의 '정규반 전체보기'/'패스권 전체보기'가 각자 탭으로 들어온다.
 // 제목 없이 상단 탭이 헤더 역할을 한다 (앱 네이티브 헤더도 빈 제목).
-// ?tab=regularClass | pass (기본 regularClass). 정규반 카드에서 들어오는 그 반 전용 패스권 구매(/passPlans?regularClassId=)는 별개 플로우.
+// ?tab=regularClass | pass. 생략(홈 '정규반·패스권' 버튼)하면 정규반이 있으면 정규반, 없으면 패스권 탭. 정규반 카드에서 들어오는 그 반 전용 패스권 구매(/passPlans?regularClassId=)는 별개 플로우.
 export default async function StudioProgramsPage({ params, searchParams }: Props) {
   const id = Number((await params).id);
   const { tab, appVersion = '' } = await searchParams;
   if (isNaN(id) || !id) notFound();
-
-  const initialTab: StudioProgramTab = tab === 'pass' ? 'pass' : 'regularClass';
 
   const [regularRes, passRes, studio, locale, popularLabel] = await Promise.all([
     getStudioRegularClasses({ studioId: id }),
@@ -34,6 +32,8 @@ export default async function StudioProgramsPage({ params, searchParams }: Props
   }
 
   const regularClasses = regularRes.regularClasses ?? [];
+  const initialTab: StudioProgramTab =
+    tab === 'pass' || tab === 'regularClass' ? tab : (regularClasses.length > 0 ? 'regularClass' : 'pass');
   // 패스권 조회만 실패하면 정규반 탭은 살리고 패스권 탭은 빈 상태로
   const passes = toCommunityPasses('passPlans' in passRes ? passRes.passPlans : [], locale, popularLabel);
   const studioImageUrl = 'id' in studio ? studio.profileImageUrl : undefined;

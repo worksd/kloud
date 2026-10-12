@@ -102,7 +102,8 @@ export const KloudScreen = {
   StudioDetail: (id: number) => `/studios/${id}`,
   StudioLessons: (id: number) => `/studios/${id}/lessons`,
   /** 스튜디오 정규반·패스권 전체 목록(상단 탭) — 상세의 '정규반 전체보기'/'패스권 전체보기' */
-  StudioPrograms: (id: number, tab: 'regularClass' | 'pass' = 'regularClass') => `/studios/${id}/programs?tab=${tab}`,
+  /** tab 생략 시 페이지가 고른다 — 정규반이 있으면 정규반, 없으면 패스권 (홈 '정규반·패스권' 버튼) */
+  StudioPrograms: (id: number, tab?: 'regularClass' | 'pass') => `/studios/${id}/programs${tab ? `?tab=${tab}` : ''}`,
   /** @deprecated /studios/:id/programs 로 합쳐짐 — 옛 링크용 리다이렉트만 남아 있다 */
   StudioRegularClasses: (id: number) => `/studios/${id}/regularClasses`,
   StudioSettingSheet: '/studios/setting/sheet',
