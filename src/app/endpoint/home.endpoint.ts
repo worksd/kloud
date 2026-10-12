@@ -1,6 +1,6 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { BundleSummaryResponse, GetBandResponse, GetBandLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
-import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetMyStudioResponse, GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
 
@@ -56,6 +56,8 @@ export type HomeBandResponse =
   | { type: 'RecommendedStudios'; items: GetStudioResponse[] }
   | { type: 'Events'; items: GetEventResponse[] }
   | { type: 'Bundles'; items: BundleSummaryResponse[] }
+  /** 선택된 스튜디오의 판매중 정규반 전부(페이지 없음, 서버 정렬). 없으면 밴드 자체가 빠진다. 가격은 상세 passPlans 에서. */
+  | { type: 'RegularClasses'; items: StudioRegularClassResponse[] }
   | { type: 'RoomSlots'; roomSlots?: RoomSlotsSummaryResponse; myBookings?: MyRoomBookingResponse[] }
   | { type: HomeLessonBandType; items: HomeLessonResponse[] }
   | { type: 'PopularStudios'; items: WebStudioResponse[] };
