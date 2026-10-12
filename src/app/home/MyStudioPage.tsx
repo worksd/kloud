@@ -60,7 +60,7 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
       {/* 이 스튜디오의 판매중 정규반 — 밴드는 전부 내려주므로 4개까지 + 전체보기(정규반 탭). 탭하면 정규반 결제로 */}
       {regularClasses && regularClasses.length > 0 && (
         <section className="flex flex-col px-5 pb-2">
-          <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-1">{await translate('studio_regular_classes')}</h2>
+          <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-1">{(await translate('home_regular_classes_title')).replace('{studioName}', res.studio.name)}</h2>
           <StudioRegularClassList classes={regularClasses} studioId={res.studio.id} studioImageUrl={res.studio.profileImageUrl} locale={locale} complete />
         </section>
       )}
