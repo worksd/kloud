@@ -195,8 +195,9 @@ const applyTitle = async (route: string) => {
   } else if (route.includes('/regularClasses') && route.includes('/studios/')) {
     return await translate('studio_regular_classes')
   } else if (route.includes('/programs') && route.includes('/studios/')) {
-    // 정규반·패스권 탭 페이지 — 상단 탭이 헤더 역할이라 네이티브 제목은 비운다
-    return ''
+    // 정규반·패스권 탭 페이지 — 홈 버튼이 문구(ctaText)를 ?title= 로 실어 보내면 그걸 제목으로, 없으면 기본 제목
+    const title = new URLSearchParams(route.split('?')[1] ?? '').get('title')?.trim();
+    return title || await translate('studio_programs_title')
   } else if (route.includes('resetPassword')) {
     return await translate('change_password')
   } else if (route.includes('refund')) {
