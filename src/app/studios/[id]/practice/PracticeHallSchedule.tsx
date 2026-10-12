@@ -449,6 +449,28 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
   const nextDayStartIdx = sheetTodaySlots.length;
   const dayOffsetOf = (idx: number) => (idx >= nextDayStartIdx ? 1 : 0);
 
+  // 시트를 열거나 날짜를 바꾸면 첫 예약 가능 시각이 보이게 목록을 내려 둔다 — 00시부터 '지남'만 줄줄이 보여 다시 끌어야 하던 불편.
+  // 그 홀+날짜 슬롯 조회가 끝난 뒤(loadedRef) 한 번만. 예약 가능 시각이 없으면 맨 위 그대로.
+  const autoScrolledRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (sheetRoomId == null) { autoScrolledRef.current = null; return; }
+    const key = `${sheetRoomId}-${toDateStr(date)}`;
+    if (autoScrolledRef.current === key || !loadedRef.current.has(key)) return;
+    const idx = sheetSlots.findIndex((s, i) => isOpen(s) && !isPastSlot(s.time, dayOffsetOf(i)));
+    autoScrolledRef.current = key;
+    if (idx < 0) return;
+    const id = requestAnimationFrame(() => {
+      const container = scrollRef.current;
+      const el = container?.querySelector<HTMLElement>(`[data-slot-idx="${idx}"]`);
+      if (!container || !el) return;
+      // 바로 위 한 칸(지남/마감)은 살짝 보이게 남겨 맥락을 준다
+      const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 56;
+      container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetRoomId, date, sheetRoom?.slots, nextDaySlots]);
+
   // 연속 슬롯 선택(인접만 확장)
   // 최대 예약 시간(시간 단위) → 연속 선택 칸수 상한 (1칸=1시간). 미설정이면 무제한
   const maxSlots = sheetRoom?.maxBookingDuration ? sheetRoom.maxBookingDuration : Infinity;
@@ -772,6 +794,7 @@ export function PracticeHallSchedule({ rooms: initialRooms, locale, navigateStud
                           </div>
                         )}
                       <button
+                        data-slot-idx={idx}
                         disabled={!bookable || mine}
                         onClick={() => onSlot(idx, arr)}
                         className={`w-full flex items-center justify-between py-3 px-3 rounded-lg transition-colors disabled:cursor-not-allowed ${selected ? 'bg-[#EAF7F4]' : mine ? 'bg-[#F3FBF9]' : bookable ? 'active:bg-[#FAFBFC]' : ''}`}
