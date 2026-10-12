@@ -212,11 +212,30 @@ const applyTitle = async (route: string) => {
     (route.includes('/lessons/') && route.includes('/payment')) ||
     (route.includes('/bundle/') && route.includes('/payment'))
   ) {
-    return route.includes('item=practice-room') ? await translate('reserve') : await translate('payment')
+    return await translate(paymentTitleKey(route))
   } else if (route.includes('/profile/myPass/') || route.includes('/profile/myRegularClass/')) {
     return '';
   }
   else return undefined
+}
+
+/**
+ * 결제 화면 헤더 제목 — 상품 종류별로.
+ * /payment?item=(구버전 type=) 값으로 가르고, 없으면 수업. /lessons/:id/payment 는 수업, /bundle/:id/payment 는 묶음.
+ * 수업(LT) 수업 신청하기 · 패스권(LP) 패스권 구매하기 · 정규반 정규반 등록하기 · 연습실(PR) 연습실 예약하기 · 묶음(BD) 결제하기
+ */
+const paymentTitleKey = (route: string) => {
+  if (route.includes('/bundle/')) return 'payment' as const;
+  if (route.includes('/lessons/')) return 'payment_title_lesson' as const;
+  const qs = new URLSearchParams(route.split('?')[1] ?? '');
+  switch (qs.get('item') ?? qs.get('type') ?? 'lesson') {
+    case 'lesson': return 'payment_title_lesson' as const;
+    case 'pass-plan':
+    case 'lesson-group': return 'payment_title_pass_plan' as const;
+    case 'regular-class': return 'payment_title_regular_class' as const;
+    case 'practice-room': return 'payment_title_practice_room' as const;
+    default: return 'payment' as const;
+  }
 }
 
 // 타입 보강 (선택)
