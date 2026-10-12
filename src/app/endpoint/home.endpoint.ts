@@ -65,6 +65,8 @@ export type HomeBandResponse =
 /** 앱·웹 공통 통합 응답 — 이전의 평면 구조(studios/myStudio/... , 웹 전용 jumbotrons/...)는 없어졌다. */
 export type GetHomeResponse = {
   bands: HomeBandResponse[];
+  /** 홈 플로팅 버튼 문구(예: '수강 등록하기') — 학원 판매 상품에 맞춰 BE가 정한다. 없거나 빈 값이면 버튼을 숨긴다 */
+  ctaText?: string | null;
 }
 
 export type GetStagResponse = {

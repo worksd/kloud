@@ -128,8 +128,6 @@ export type GetMyStudioResponse = {
   bands: GetBandResponse[];
   jumbotrons?: GetBandLessonResponse[];
   banners?: HomeBannerResponse[];
-  /** 홈 플로팅 버튼 문구 — 학원이 파는 상품(패스권/정규반)에 맞춰 BE가 정해 내려준다. 구응답엔 없음 → FE 기본 문구 */
-  ctaText?: string | null;
 }
 
 export type GetTimeTableResponse = {

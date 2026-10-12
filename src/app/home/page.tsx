@@ -93,7 +93,7 @@ export default async function Home({
 
           </div>
           <div className={`fixed right-4 z-20 ${os === 'Android' ? 'bottom-1' : 'bottom-24'}`}>
-            <PassPurchaseButton studioId={home.myStudio?.studio?.id} ctaText={home.myStudio?.ctaText}/>
+            <PassPurchaseButton studioId={home.myStudio?.studio?.id} ctaText={res.ctaText}/>
           </div>
         </div>
     );
