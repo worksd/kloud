@@ -90,6 +90,9 @@ export const OnboardingForm = ({
   const [isGenderInputVisible, setIsGenderInputVisible] = useState(false);
   const [isNickNameInputVisible, setIsNickNameInputVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // 휴대폰 단계 요청 진행 중 — state는 연타 사이에 아직 반영 전일 수 있어 ref로 막는다
+  const phoneBusyRef = useRef(false);
+  const smsSendingRef = useRef(false);
 
   // 다이얼로그는 네이티브 앱 브릿지(window.KloudEvent) 전용이라 웹에선 안 뜬다 → 웹에선 토스트로 폴백.
   const isApp = () => typeof window !== 'undefined' && typeof window.KloudEvent?.showDialog === 'function';
@@ -151,18 +154,25 @@ export const OnboardingForm = ({
   };
 
   const sendSmsCode = async () => {
-    const res = await sendVerificationSMS({phone, countryCode})
-    if ('ttl' in res) {
-      flushSync(() => {
-        setSmsSent(true);
-        setCode('');
-        if (res.resendAvailableAt) {
-          setResendAvailableAt(res.resendAvailableAt);
-        }
-      });
-      focusField('code')
-    } else if ('message' in res && res.message) {
-      await notify(res.message, {id: 'Simple', message: res.message});
+    // 발송 중 중복 호출 차단 — 다시 보내기 버튼·ChangePhoneNumber 확인도 여기로 들어온다
+    if (smsSendingRef.current) return;
+    smsSendingRef.current = true;
+    try {
+      const res = await sendVerificationSMS({phone, countryCode})
+      if ('ttl' in res) {
+        flushSync(() => {
+          setSmsSent(true);
+          setCode('');
+          if (res.resendAvailableAt) {
+            setResendAvailableAt(res.resendAvailableAt);
+          }
+        });
+        focusField('code')
+      } else if ('message' in res && res.message) {
+        await notify(res.message, {id: 'Simple', message: res.message});
+      }
+    } finally {
+      smsSendingRef.current = false;
     }
   }
 
@@ -192,25 +202,37 @@ export const OnboardingForm = ({
       setStep('agreement');
     } else if (step == 'agreement') {
       setStep('complete')
-    } else if (step == 'phone' && smsSent) {
-      const res = await updateUserAction({ phone, countryCode, code })
-      if ('success' in res && res.success) {
-        setStep('studio')
-      } else if ('errorMessage' in res && res.errorMessage) {
-        await notify(res.errorMessage, {id: 'Simple', message: res.errorMessage});
-      }
-    } else if (step == 'phone' && !smsSent) {
-      const errorTitle = await translate('send_code_fail_title')
-      const duplicateCheck = await checkDuplicateUser({phone})
-      if ('success' in duplicateCheck && duplicateCheck.success) {
-        await sendSmsCode()
-      } else if ('message' in duplicateCheck) {
-        if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
-          await notify(duplicateCheck.message, {id: 'Simple', message: duplicateCheck.message, title: errorTitle});
-        } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
-          // ChangePhoneNumber는 네이티브 전용 다이얼로그 — 웹에선 메시지 토스트/인라인으로 폴백
-          await notify(duplicateCheck.message, {id: 'ChangePhoneNumber'});
+    } else if (step == 'phone') {
+      // 요청 중 재탭 차단 — 인증번호 받기를 연타하면 번호가 여러 개 발급돼(새로 받으면 이전 번호 무효)
+      // 유저가 무효 번호만 넣다 막히고, 인증 확인 연타는 같은 실패를 반복해서 쏜다.
+      if (phoneBusyRef.current) return;
+      phoneBusyRef.current = true;
+      setIsLoading(true);
+      try {
+        if (smsSent) {
+          const res = await updateUserAction({ phone, countryCode, code })
+          if ('success' in res && res.success) {
+            setStep('studio')
+          } else if ('errorMessage' in res && res.errorMessage) {
+            await notify(res.errorMessage, {id: 'Simple', message: res.errorMessage});
+          }
+        } else {
+          const errorTitle = await translate('send_code_fail_title')
+          const duplicateCheck = await checkDuplicateUser({phone})
+          if ('success' in duplicateCheck && duplicateCheck.success) {
+            await sendSmsCode()
+          } else if ('message' in duplicateCheck) {
+            if (duplicateCheck.code == ExceptionResponseCode.PHONE_TYPE_USER_EXISTS) {
+              await notify(duplicateCheck.message, {id: 'Simple', message: duplicateCheck.message, title: errorTitle});
+            } else if (duplicateCheck.code == ExceptionResponseCode.PHONE_ALREADY_EXISTS) {
+              // ChangePhoneNumber는 네이티브 전용 다이얼로그 — 웹에선 메시지 토스트/인라인으로 폴백
+              await notify(duplicateCheck.message, {id: 'ChangePhoneNumber'});
+            }
+          }
         }
+      } finally {
+        phoneBusyRef.current = false;
+        setIsLoading(false);
       }
     } else if (isNickNameInputVisible) {
       const res = await updateUserAction({
