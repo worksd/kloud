@@ -6,6 +6,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
+import { weeklyDaysLabel } from "@/utils/weekly.days";
 
 /** 상세에서 보여줄 최대 개수. BE도 상위 4건만 내리지만 전체 목록 페이지가 같은 컴포넌트를 쓰므로 여기서도 자른다 */
 const MAX_VISIBLE = 4;
@@ -19,7 +20,7 @@ const MAX_VISIBLE = 4;
  *  - 설명이 없으면 제목만 세로 중앙 정렬.
  *  - 상세(showAll=false)는 4개까지 + '정규반 전체보기'. 전체 목록 페이지는 showAll 로 전부.
  */
-export function StudioRegularClassList({ classes, studioId, studioImageUrl, locale, layout = 'list', showAll = false }: {
+export function StudioRegularClassList({ classes, studioId, studioImageUrl, locale, layout = 'list', showAll = false, complete = false }: {
   classes: StudioRegularClassResponse[];
   studioId: number;
   /** 강사가 없는 반의 썸네일 폴백 — 학원 로고 */
@@ -29,12 +30,14 @@ export function StudioRegularClassList({ classes, studioId, studioImageUrl, loca
   layout?: 'list' | 'grid';
   /** true면 개수 제한·더보기 없이 전부 (전체 목록 페이지) */
   showAll?: boolean;
+  /** true면 classes 가 잘리지 않은 전체 목록(홈 RegularClasses 밴드) — 4건 초과일 때만 전체보기 */
+  complete?: boolean;
 }) {
   if (!classes.length) return null;
 
   const visible = showAll ? classes : classes.slice(0, MAX_VISIBLE);
   // BE가 상위 4건으로 잘라 내리므로 4건이 꽉 찼으면 더 있을 수 있다고 보고 전체보기를 연다
-  const hasMore = !showAll && classes.length >= MAX_VISIBLE;
+  const hasMore = !showAll && (complete ? classes.length > MAX_VISIBLE : classes.length >= MAX_VISIBLE);
   const wrap = layout === 'grid' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3';
 
   return (
@@ -43,6 +46,7 @@ export function StudioRegularClassList({ classes, studioId, studioImageUrl, loca
       {visible.map((c) => {
         const thumbUrl = c.artist?.profileImageUrl || studioImageUrl;
         const thumbAlt = c.artist ? (c.artist.nickName || c.artist.name || c.name) : c.name;
+        const daysLabel = weeklyDaysLabel(c.days, locale);
         return (
           <button
             key={c.id}
@@ -60,6 +64,9 @@ export function StudioRegularClassList({ classes, studioId, studioImageUrl, loca
             {/* 제목 + 설명. 설명이 없으면 제목만 세로 중앙 */}
             <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
               <span className="text-[15px] font-bold text-[#171717] truncate">{c.name}</span>
+              {daysLabel && (
+                <span className="text-[12px] font-semibold text-[#4E5968]">{daysLabel}</span>
+              )}
               {c.description && (
                 <p className="text-[12px] text-[#86898C] leading-snug line-clamp-2">{c.description}</p>
               )}

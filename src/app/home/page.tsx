@@ -86,14 +86,14 @@ export default async function Home({
           <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
               home.myStudio ? (
-                  <MyStudioPage res={home.myStudio} bundles={home.bundles} roomSlots={home.roomSlots} myBookings={home.myBookings}/>
+                  <MyStudioPage res={home.myStudio} bundles={home.bundles} regularClasses={home.regularClasses} roomSlots={home.roomSlots} myBookings={home.myBookings}/>
               ) : (
                   <NoMyStudioPage studios={home.recommendedStudios}/>
               )}
 
           </div>
           <div className={`fixed right-4 z-20 ${os === 'Android' ? 'bottom-1' : 'bottom-24'}`}>
-            <PassPurchaseButton studioId={home.myStudio?.studio?.id}/>
+            <PassPurchaseButton studioId={home.myStudio?.studio?.id} ctaText={res.ctaText}/>
           </div>
         </div>
     );

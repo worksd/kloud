@@ -2,7 +2,7 @@
 
 import { LessonBand } from "@/app/LessonBand";
 import React from "react";
-import { GetMyStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetMyStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import { Jumbotron } from "@/app/home/Jumbotron";
 import { HomeBanner } from "@/app/home/HomeBanner";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
@@ -10,11 +10,12 @@ import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { AnnouncementCard } from "@/app/home/AnnouncementCard";
 import { HomeBundlesSection } from "@/app/home/HomeBundlesSection";
 import { HomeRoomSlotsSection } from "@/app/home/HomeRoomSlotsSection";
+import { StudioRegularClassList } from "@/app/studios/[id]/StudioRegularClassList";
 import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function MyStudioPage({res, bundles, roomSlots, myBookings}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], roomSlots?: RoomSlotsSummaryResponse, myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[]}) {
+export default async function MyStudioPage({res, bundles, regularClasses, roomSlots, myBookings}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], regularClasses?: StudioRegularClassResponse[], roomSlots?: RoomSlotsSummaryResponse, myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[]}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
@@ -55,6 +56,14 @@ export default async function MyStudioPage({res, bundles, roomSlots, myBookings}
 
       {/* 이 스튜디오에서 진행중인 프로모션(번들) — bundles 있을 때만 노출 */}
       <HomeBundlesSection bundles={bundles} studioName={res.studio.name}/>
+
+      {/* 이 스튜디오의 판매중 정규반 — 밴드는 전부 내려주므로 4개까지 + 전체보기(정규반 탭). 탭하면 정규반 결제로 */}
+      {regularClasses && regularClasses.length > 0 && (
+        <section className="flex flex-col px-5 pb-2">
+          <h2 className="text-[18px] text-black font-bold pt-5 pb-3 px-1">{(await translate('home_regular_classes_title')).replace('{studioName}', res.studio.name)}</h2>
+          <StudioRegularClassList classes={regularClasses} studioId={res.studio.id} studioImageUrl={res.studio.profileImageUrl} locale={locale} complete />
+        </section>
+      )}
 
       {res.bands.map((value) => {
         if (value.type === 'Today') {

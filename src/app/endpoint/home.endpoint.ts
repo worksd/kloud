@@ -1,6 +1,6 @@
 import { Endpoint } from "@/app/endpoint/index";
 import { BundleSummaryResponse, GetBandResponse, GetBandLessonResponse, JumbotronResponse } from "@/app/endpoint/lesson.endpoint";
-import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetMyStudioResponse, GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import {GetEventResponse} from "@/app/endpoint/event.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
 
@@ -56,6 +56,8 @@ export type HomeBandResponse =
   | { type: 'RecommendedStudios'; items: GetStudioResponse[] }
   | { type: 'Events'; items: GetEventResponse[] }
   | { type: 'Bundles'; items: BundleSummaryResponse[] }
+  /** 선택된 스튜디오의 판매중 정규반 전부(페이지 없음, 서버 정렬). 없으면 밴드 자체가 빠진다. 가격은 상세 passPlans 에서. */
+  | { type: 'RegularClasses'; items: StudioRegularClassResponse[] }
   | { type: 'RoomSlots'; roomSlots?: RoomSlotsSummaryResponse; myBookings?: MyRoomBookingResponse[] }
   | { type: HomeLessonBandType; items: HomeLessonResponse[] }
   | { type: 'PopularStudios'; items: WebStudioResponse[] };
@@ -63,6 +65,8 @@ export type HomeBandResponse =
 /** 앱·웹 공통 통합 응답 — 이전의 평면 구조(studios/myStudio/... , 웹 전용 jumbotrons/...)는 없어졌다. */
 export type GetHomeResponse = {
   bands: HomeBandResponse[];
+  /** 홈 플로팅 버튼 문구(예: '수강 등록하기') — 학원 판매 상품에 맞춰 BE가 정한다. 없거나 빈 값이면 버튼을 숨긴다 */
+  ctaText?: string | null;
 }
 
 export type GetStagResponse = {

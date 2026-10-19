@@ -204,7 +204,13 @@ export type CreateParentConnectionParameter = {
   parentName?: string,
 }
 
-export const UpdateUser: Endpoint<PatchUserParameter, GetUserResponse> = {
+// PATCH /users/:id 응답 — 빈 SNS 계정이 번호 가입 계정의 번호를 인증해 합쳐지면
+// accessToken(번호 계정 토큰)이 오고 유저도 번호 계정(id가 요청 :id와 다름)으로 바뀐다. SNS 계정은 탈퇴 처리.
+export type UpdateUserResponse = GetUserResponse & {
+  accessToken?: string
+}
+
+export const UpdateUser: Endpoint<PatchUserParameter, UpdateUserResponse> = {
   method: 'patch',
   path: (e) => `/users/${e.id}`,
   bodyParams: ['name', 'nickName', 'type', 'phone', 'birth', 'gender', 'refundAccountNumber', 'refundAccountBank', 'refundDepositor', 'emailVerified', 'country', 'password', 'countryCode', 'code'],

@@ -8,7 +8,7 @@ import {
   MyRoomBookingResponse,
   WebStudioResponse,
 } from "@/app/endpoint/home.endpoint";
-import { GetMyStudioResponse, GetStudioResponse } from "@/app/endpoint/studio.endpoint";
+import { GetMyStudioResponse, GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
@@ -21,6 +21,7 @@ export type ParsedHome = {
   recommendedStudios: GetStudioResponse[];
   events: GetEventResponse[];
   bundles: BundleSummaryResponse[];
+  regularClasses: StudioRegularClassResponse[];
   roomSlots?: RoomSlotsSummaryResponse;
   myBookings?: MyRoomBookingResponse[];
   // 수업 탐색 밴드 (누구나)
@@ -38,6 +39,7 @@ export const parseHomeBands = (res: GetHomeResponse): ParsedHome => {
     recommendedStudios: [],
     events: [],
     bundles: [],
+    regularClasses: [],
     jumbotrons: [],
     todayLessons: [],
     weeklyLessons: [],
@@ -53,6 +55,7 @@ export const parseHomeBands = (res: GetHomeResponse): ParsedHome => {
       case 'RecommendedStudios': parsed.recommendedStudios = band.items ?? []; break;
       case 'Events': parsed.events = band.items ?? []; break;
       case 'Bundles': parsed.bundles = band.items ?? []; break;
+      case 'RegularClasses': parsed.regularClasses = band.items ?? []; break;
       case 'RoomSlots':
         parsed.roomSlots = band.roomSlots;
         parsed.myBookings = band.myBookings;

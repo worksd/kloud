@@ -68,6 +68,16 @@ export const PaymentMethodSheetForm = ({
 
   const birthFromProfile = !!initialBirth6;
 
+  // 모든 칸이 채워져야 확인 활성화 — 결제 화면 InlineCardForm과 같은 기준
+  const cardDigits = form.cardNumber.replace(/\D/g, '');
+  const birthLength = form.birthOrBusinessRegistrationNumber.length;
+  const isFormComplete =
+    cardDigits.length >= 15 &&
+    form.expiryMonth.length === 2 &&
+    form.expiryYear.length === 2 &&
+    (birthLength === 6 || birthLength === 10) &&
+    form.passwordTwoDigits.length === 2;
+
   useEffect(() => {
     cardRef.current?.focus();
   }, []);
@@ -212,7 +222,7 @@ export const PaymentMethodSheetForm = ({
       </div>
 
       <div className="mt-10 flex justify-between gap-4">
-        <AsyncCommonSubmitButton disabled={form.passwordTwoDigits.length < 2} onClick={() => handleSubmit()}>
+        <AsyncCommonSubmitButton disabled={!isFormComplete} onClick={() => handleSubmit()}>
           <div className={'text-white'}>
             {getLocaleString({locale, key: 'confirm'})}
           </div>
