@@ -211,7 +211,15 @@ export const OnboardingForm = ({
       try {
         if (smsSent) {
           const res = await updateUserAction({ phone, countryCode, code })
-          if ('success' in res && res.success) {
+          if ('success' in res && res.merged) {
+            // SNS 계정이 이미 가입된 번호 계정에 합쳐짐 — 가입을 마친 계정이라 남은 온보딩 없이 홈으로.
+            // 웹은 풀 리로드로 교체된 토큰 쿠키가 상단바 등 서버 컴포넌트에도 반영되게 (번호 로그인과 동일)
+            if (isApp()) {
+              await kloudNav.navigateMain({})
+            } else {
+              window.location.replace('/');
+            }
+          } else if ('success' in res && res.success) {
             setStep('studio')
           } else if ('errorMessage' in res && res.errorMessage) {
             await notify(res.errorMessage, {id: 'Simple', message: res.errorMessage});
