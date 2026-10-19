@@ -7,6 +7,7 @@ import { UserType } from "@/entities/user/user.type";
 import { GetUserResponse } from "@/app/endpoint/user.endpoint";
 import { COUNTRIES } from "@/app/certification/COUNTRIES";
 import { translate } from "@/utils/translate";
+import { loginSuccessAction } from "@/app/login/action/login.success.action";
 
 export const updateUserAction = async ({
                                          name,
@@ -36,7 +37,7 @@ export const updateUserAction = async ({
   refundDepositor?: string;
   emailVerified?: boolean,
   password?: string,
-}): Promise<{ success: boolean, errorCode?: string, errorMessage?: string, user?: GetUserResponse }> => {
+}): Promise<{ success: boolean, errorCode?: string, errorMessage?: string, user?: GetUserResponse, merged?: boolean }> => {
 
   try {
     const userId = Number((await cookies()).get(userIdKey)?.value)
@@ -59,6 +60,15 @@ export const updateUserAction = async ({
       code: code,
     });
     if ('id' in res) {
+      // SNS 계정 → 번호 계정 합치기: 토큰·userId 쿠키를 번호 계정 것으로 교체 (기존 SNS 토큰은 탈퇴 계정 토큰이 된다)
+      if (res.accessToken) {
+        await loginSuccessAction({ accessToken: res.accessToken, userId: res.id })
+        return {
+          success: true,
+          user: res,
+          merged: true,
+        }
+      }
       return {
         success: true,
         user: res,
