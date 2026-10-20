@@ -62,6 +62,8 @@ export type StudioRegularClassResponse = {
   artist?: StudioRegularClassArtistResponse | null;
   /** 다닐 수 있는 요일(0=일~6=토, 오름차순) — 판매중·Public 가격정책 요일의 합. 요일 정한 가격정책이 없으면 키 자체가 없다 */
   days?: number[];
+  /** 공개 여부 — 'Private'(비공개)면 키오스크에서 보여주기만 하고 등록(결제)은 막는다. GET /regular-classes 목록·상세에 내려온다 */
+  visibility?: 'Public' | 'Private' | string;
 }
 
 export type GetStudioResponse = {
