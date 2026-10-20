@@ -22,6 +22,7 @@ type Props = {
  * 키오스크 정규반 상세 모달 — 반 정보(썸네일·이름·강사·설명) + 수강 방식(passPlans) 선택 + 등록 버튼.
  * 앱 결제 화면(item=regular-class)과 같은 규칙: status 'Pending'(판매중단)인 방식은 선택지에서 뺀다.
  * 등록 버튼을 누르면 고른 가격정책을 그대로 pass-plan 결제 흐름(phone → payment-method)에 태운다.
+ * 비공개(visibility 'Private') 정규반은 보여주기만 하고 등록(결제)은 막는다.
  */
 export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, locale, onClose, onSelect }: Props) => {
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
@@ -34,6 +35,8 @@ export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, loc
   // 방식이 하나뿐이면 미리 골라둬서 탭 한 번을 아낀다
   const [selectedId, setSelectedId] = useState<number | null>(plans.length === 1 ? plans[0].id : null);
   const selected = plans.find((p) => p.id === selectedId) ?? null;
+  const isPrivate = regularClass.visibility === 'Private';
+  const canEnroll = !!selected && !isPrivate;
 
   const artist = regularClass.artist;
   const artistName = artist ? (artist.nickName || artist.name) : '';
@@ -132,8 +135,11 @@ export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, loc
           </div>
         </div>
 
-        {/* 가격 — 고른 방식의 금액 */}
-        <div className="shrink-0 px-[24px] pt-[12px] pb-[16px]">
+        {/* 가격 — 고른 방식의 금액. 비공개 정규반이면 등록 불가 안내를 함께 띄운다 */}
+        <div className="shrink-0 px-[24px] pt-[12px] pb-[16px] flex flex-col" style={{ gap: 6 }}>
+          {isPrivate && (
+            <p className="text-[#E5484D] font-medium" style={{ fontSize: 'min(1.5vh, 15px)' }}>{t('regular_class_private_not_purchasable')}</p>
+          )}
           <span className="text-black font-extrabold" style={{ fontSize: 'min(2.4vh, 28px)' }}>
             {fmt(selected?.price ?? 0)}{t('won')}
           </span>
@@ -148,10 +154,10 @@ export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, loc
             <span className="text-[#1E2124] font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_back')}</span>
           </button>
           <button
-            onClick={() => selected && close(() => onSelect(selected))}
-            disabled={!selected}
+            onClick={() => canEnroll && selected && close(() => onSelect(selected))}
+            disabled={!canEnroll}
             className={`flex-[2] h-[min(6vh,56px)] rounded-[14px] flex items-center justify-center active:scale-[0.97] transition-all ${
-              selected ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'
+              canEnroll ? 'bg-[#1E2124]' : 'bg-[#CDD1D5]'
             }`}
           >
             <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_enroll_regular_class')}</span>

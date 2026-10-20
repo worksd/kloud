@@ -4957,6 +4957,7 @@ export const StringResource = {
   programs_empty: { ko: '지금 판매중인 정규반·패스권이 없어요', en: 'No classes or passes on sale right now', jp: '現在販売中のクラス・利用券はありません', zh: '目前没有在售的常规班或通票' },
   // 키오스크 정규반 탭
   kiosk_enroll_regular_class: { ko: '정규반 등록', en: 'Enroll', jp: 'クラスに登録', zh: '报名常规班' },
+  regular_class_private_not_purchasable: { ko: '비공개 정규반이라 키오스크에서 등록할 수 없어요', en: 'This class is private and can’t be enrolled at the kiosk', jp: '非公開のクラスのため、キオスクでは登録できません', zh: '该常规班未公开，无法在自助机报名' },
   regular_class_no_plans: { ko: '지금 등록할 수 있는 수강 방식이 없어요', en: 'No enrollment options available right now', jp: '現在登録できる受講プランがありません', zh: '目前没有可报名的上课方式' },
   pr_studio_notfound_msg: { ko: '링크가 잘못됐거나 더 이상 단체 문의를 받지 않는 스튜디오예요.', en: 'The link may be wrong, or this studio is no longer accepting group inquiries.', jp: 'リンクが誤っているか、団体のお問い合わせを受け付けていないスタジオです。', zh: '链接有误，或该工作室不再接受团体咨询。' },
 
