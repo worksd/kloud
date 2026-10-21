@@ -92,10 +92,30 @@ export type LessonPricePolicyResponse = {
   usable?: boolean;
   /** usable=false일 때만 — 로케일 적용된 사유 문구가 그대로 온다 (코드값 아님). */
   reason?: string;
+  /**
+   * 이 방식으로 결제하면 처음 듣게 되는 수업 (정규반 결제 응답에만). 남은 회차가 없으면 null.
+   * 키 자체가 없으면 구서버 — FE 추정(startDate+days)으로 폴백한다.
+   */
+  nextLesson?: NextLessonResponse | null;
 }
 
 /** 판매 방식 요일 코드 (pricePolicies[].days) */
 export type DayOfWeek = 'SUN' | 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT';
+
+/**
+ * 가격정책별 다음 수업 (2026-10-21, GET /payment?item=regular-class 의 pricePolicies[].nextLesson).
+ * 휴강·취소 회차가 반영된 서버 값이라 FE 가 startDate+days 로 추정하던 첫 수업일을 대체한다.
+ * artist 는 그 수업의 메인 강사라 반 담당 강사와 다를 수 있고, name 은 빈 문자열일 수 있다.
+ */
+export type NextLessonResponse = {
+  id: number;
+  title: string;
+  thumbnailUrl?: string | null;
+  /** 'yyyy.MM.dd HH:mm' */
+  startDate: string;
+  duration?: number | null;
+  artist?: { id?: number; name?: string | null; nickName?: string | null; profileImageUrl?: string | null } | null;
+}
 
 export type GetPaymentResponse = {
   /**
@@ -110,6 +130,10 @@ export type GetPaymentResponse = {
   passes?: GetPassResponse[];
   /** 결제 페이지 진입 직후 강제 이동시킬 라우트. BE가 지정하면 결제 폼 대신 navigateMain. */
   redirectUrl?: string;
+  /**
+   * 상품가. lesson 이면 1회(단건, paymentId 'LT…') 수강료 — 2026-10-21 부터 가격정책이 함께 와도 이 값은 1회 결제분이다.
+   * 가격정책을 고르면 그 항목의 price·paymentId 를 쓰고, 1회를 고르면 이 값과 최상위 paymentId 를 쓴다.
+   */
   price?: number;
   /** pass-plan: 지금 사면 새 패스가 시작하는 날 'yyyy.MM.dd' — 같은 정규반에 남은 패스가 있으면 그 만료 다음 날. 앱은 시작일을 보내지 않고 서버가 이 값으로 발급한다 */
   startDate?: string;
