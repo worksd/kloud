@@ -4721,6 +4721,30 @@ export const StringResource = {
     jp: '戻る',
     zh: '返回',
   },
+  error_page_go_home: {
+    ko: '홈으로 가기',
+    en: 'Go to home',
+    jp: 'ホームへ',
+    zh: '回到首页',
+  },
+  error_page_title: {
+    ko: '문제가 생겼어요',
+    en: 'Something went wrong',
+    jp: '問題が発生しました',
+    zh: '出现了问题',
+  },
+  error_page_not_found_title: {
+    ko: '페이지가 존재하지 않아요',
+    en: 'This page doesn’t exist',
+    jp: 'ページが存在しません',
+    zh: '页面不存在',
+  },
+  error_page_not_found_message: {
+    ko: '주소가 잘못됐거나 더 이상 없는 페이지예요',
+    en: 'The link may be wrong, or the page is no longer here',
+    jp: 'URLが間違っているか、ページが削除されました',
+    zh: '链接有误，或该页面已不存在',
+  },
   payment_error_title: {
     ko: '결제를 진행할 수 없어요',
     en: 'Payment is unavailable',

@@ -6,6 +6,7 @@ import { toCommunityPasses } from "@/app/studios/[id]/pass.plan.mapper";
 import { StudioProgramsTabs, StudioProgramTab } from "@/app/studios/[id]/programs/StudioProgramsTabs";
 import { getLocale, translate } from "@/utils/translate";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
+import { ErrorPage } from "@/app/components/ErrorPage";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -31,7 +32,7 @@ export default async function StudioProgramsPage({ params, searchParams }: Props
   ]);
   const pageTitle = titleParam?.trim() || title;
   if (isGuinnessErrorCase(regularRes)) {
-    return <div className="p-6 text-black">{regularRes.message}</div>;
+    return <ErrorPage error={regularRes}/>;
   }
 
   const regularClasses = regularRes.regularClasses ?? [];
