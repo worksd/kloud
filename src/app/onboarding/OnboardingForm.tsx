@@ -25,6 +25,7 @@ import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { translate } from "@/utils/translate";
 import { checkDuplicateUser } from "@/app/onboarding/action/check.duplicate.nickname.action";
+import { useNickNameDuplicateCheck, withTopicParticle } from "@/app/onboarding/useNickNameDuplicateCheck";
 import { ExceptionResponseCode, isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { GetStudioResponse } from "@/app/endpoint/studio.endpoint";
 
@@ -112,6 +113,8 @@ export const OnboardingForm = ({
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   // 서버(GetUserResponse)에서 내려준 닉네임을 초기값으로 사용. 없으면 빈 문자열.
   const [nickName, setNickName] = useState(user.nickName ?? '');
+  // 닉네임 실시간 중복검사(0.5초 debounce) — 중복이면 빨간 안내 + 다음 버튼 비활성. 원래 닉네임 그대로면 검사 안 함
+  const nickCheck = useNickNameDuplicateCheck(nickName, user.nickName);
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('KR');
   const [code, setCode] = useState('');
@@ -390,7 +393,7 @@ export const OnboardingForm = ({
     if (step === 'onboard') {
       switch (currentOnboardField) {
         case 'nickname':
-          return nickName.trim().length === 0;
+          return nickName.trim().length === 0 || nickCheck.blocksSubmit;
         case 'gender'  :
           return gender === '';
         case 'birth'   :
@@ -412,7 +415,7 @@ export const OnboardingForm = ({
       return selectedStudioId === null;
     }
     return false;
-  }, [step, smsSent, currentOnboardField, nickName, gender, birth, name, phone, code, allChecked, selectedStudioId]);
+  }, [step, smsSent, currentOnboardField, nickName, nickCheck.blocksSubmit, gender, birth, name, phone, code, allChecked, selectedStudioId]);
 
   const [genderSheetOpen, setGenderSheetOpen] = useState(false);
 
@@ -463,6 +466,12 @@ export const OnboardingForm = ({
                       placeholder="닉네임"
                       clearable
                     />
+                    {nickCheck.status === 'duplicate' && (
+                      <p className="mt-2 px-1 text-[13px] font-medium text-[#E5484D]">
+                        {getLocaleString({ locale, key: 'nick_name_already_exists_inline' })
+                          .replace('{nickName}', locale === 'ko' ? withTopicParticle(nickName.trim()) : nickName.trim())}
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
