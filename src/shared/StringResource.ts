@@ -1873,13 +1873,6 @@ export const StringResource = {
     jp: '受講プラン(定期)決済にはパスを使用できません',
     zh: '课程方案（定期）付款不可使用通票'
   },
-  // '첫 수업 시작일은~'은 시리즈 개강일로 오해됨 — 구매자 본인의 수강 시작임을 결제 행동과 묶어 명시
-  first_lesson_start_notice: {
-    ko: '결제하면 {date} 수업부터 수강이 시작돼요',
-    en: 'After payment, your classes start from the {date} session',
-    jp: '決済すると{date}のレッスンから受講が始まります',
-    zh: '付款后将从 {date} 的课程开始上课'
-  },
   regular_payment: {
     ko: '일반결제',
     en: 'One-time payment',
@@ -4972,6 +4965,8 @@ export const StringResource = {
   regular_class_starts_on: { ko: '{day}({date})부터 시작합니다', en: 'Starts {day} ({date})', jp: '{day}({date})から始まります', zh: '{day}({date})开始' },
   regular_class_notice: { ko: '{name} 안내사항', en: '{name} notice', jp: '{name} ご案内', zh: '{name} 须知' },
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
+  // 수업 결제 — 가격정책(4회/8회…)이 함께 올 때만 그 옆에 놓는 1회(단건) 결제 카드 라벨. 금액은 최상위 price
+  one_time_option: { ko: '이번 수업만 체험하기', en: 'Try this class only', jp: '今回のレッスンだけ体験', zh: '仅体验本节课' },
   regular_class_empty: { ko: '등록할 수 있는 정규반이 없어요', en: 'No classes available to enroll in', jp: '登録できるクラスがありません', zh: '暂无可报名的常规班' },
   pass_plan_empty: { ko: '판매중인 패스권이 없어요', en: 'No passes on sale', jp: '販売中の利用券がありません', zh: '暂无在售通票' },
   studio_programs_title: { ko: '정규반·패스권', en: 'Classes & Passes', jp: 'クラス・利用券', zh: '常规班·通票' },
