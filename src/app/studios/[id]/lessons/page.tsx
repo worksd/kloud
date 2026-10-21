@@ -1,6 +1,7 @@
 import { getStudioOngoingLessons } from "@/app/studios/[id]/lessons/get.studio.lesson.list.action";
 import { LessonGridItems } from "@/app/studios/[id]/lessons/lesson.grid.items";
 import { notFound } from "next/navigation";
+import { ErrorPage } from "@/app/components/ErrorPage";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -21,6 +22,6 @@ export default async function StudioLessons({params}: Props) {
       </div>
     )
   } else {
-    return <div className={"text-black"}>{res.message}</div>
+    return <ErrorPage error={res}/>
   }
 }

@@ -95,7 +95,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
       <PaymentErrorView
         title={await translate('payment_error_title')}
         message={res.message || await translate('unknown_error_message')}
-        backLabel={await translate('back')}
+        homeLabel={await translate('error_page_go_home')}
         lessons={errorLessons}
       />
     );

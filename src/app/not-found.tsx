@@ -1,53 +1,18 @@
-'use client'
+import { ErrorView } from "@/app/components/ErrorView";
+import { NotFoundReporter } from "@/app/components/NotFoundReporter";
+import { translate } from "@/utils/translate";
 
-import { useEffect } from "react";
-import Logo from "../../public/assets/logo_black.svg"
-import { kloudNav } from "@/app/lib/kloudNav";
-
-export default function NotFound() {
-  useEffect(() => {
-    fetch('/api/error-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        error: { name: 'NotFound', message: `404: ${window.location.pathname}` },
-        context: {
-          pathname: window.location.pathname,
-          route: window.location.pathname + window.location.search,
-          userAgent: navigator.userAgent,
-          timestamp: new Date().toISOString(),
-          statusCode: 404,
-          env: process.env.NEXT_PUBLIC_ENV ?? 'unknown',
-        },
-      }),
-    }).catch(console.error);
-  }, []);
-
+// 라우트 자체가 없는 진짜 404 — 서버 도메인 에러(ErrorPage)와 같은 디자인, 제목만 '페이지가 존재하지 않아요'.
+export default async function NotFound() {
+  const [title, message, homeLabel] = await Promise.all([
+    translate('error_page_not_found_title'),
+    translate('error_page_not_found_message'),
+    translate('error_page_go_home'),
+  ]);
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-4">
-      {/* 404 아이콘 */}
-      <div className="mb-8">
-        <Logo/>
-      </div>
-
-      {/* 메시지 */}
-      <h1 className="text-[20px] font-bold text-black mb-4">
-        페이지를 찾을 수 없습니다
-      </h1>
-
-      <p className="text-[16px] text-[#86898C] text-center mb-8 max-w-md">
-        요청하신 페이지는 현재 개발/점검 중입니다
-      </p>
-
-      {/* 홈으로 돌아가기 버튼 */}
-      <div
-        className="px-6 py-3 bg-black text-white rounded-lg font-semibold
-          transition-transform duration-100 active:scale-[0.98]
-          hover:bg-gray-800"
-        onClick={() => kloudNav.back()}
-      >
-        뒤로가기
-      </div>
-    </div>
+    <>
+      <NotFoundReporter/>
+      <ErrorView title={title} message={message} homeLabel={homeLabel}/>
+    </>
   );
 }

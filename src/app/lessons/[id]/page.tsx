@@ -8,6 +8,7 @@ import { AppInstallDialog } from "@/app/components/AppInstallDialog";
 import { getLocale } from "@/utils/translate";
 import { LessonViewTracker } from "@/app/lessons/[id]/LessonViewTracker";
 import { TrackView } from "@/app/components/TrackView";
+import { ErrorPage } from "@/app/components/ErrorPage";
 
 type Props = {
   params: Promise<{ id: string }>
@@ -27,13 +28,7 @@ export default async function LessonDetailPage({params, searchParams}: {
   const res = await getLessonDetailAction({lessonId});
 
   if (isGuinnessErrorCase(res)) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <p className="text-red-500">
-          {res.message} (Error: {res.code})
-        </p>
-      </div>
-    );
+    return <ErrorPage error={res}/>;
   }
 
   // 웹 직접 접근(appVersion === '') + viewport ≥1024px(lg)일 때만 PC 폼.
