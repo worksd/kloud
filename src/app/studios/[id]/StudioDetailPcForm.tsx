@@ -13,6 +13,7 @@ import { StudioIcon } from "@/app/studios/[id]/StudioIcon";
 import { StudioAddressLink } from "@/app/studios/[id]/StudioAddressLink";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { BannerCarousel } from "@/app/components/BannerCarousel";
 import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
 import { getYoutubeContents } from "@/app/studios/[id]/get.youtube.contents.action";
 import { KloudScreen } from "@/shared/kloud.screen";
@@ -113,30 +114,10 @@ export const StudioDetailPcForm = async ({id, appVersion}: { id: number, appVers
             </section>
           )}
 
-          {/* 배너 — 컬럼 폭 꽉 채움 + snap 스와이프.
-              NavigateClickWrapper가 폭 클래스 없는 div라 [&>div]로 flex item에 직접 min-w-full을 건다
-              (안쪽에 걸면 부모 폭이 content 기반이라 붕괴). */}
+          {/* 배너 — 컬럼 폭 꽉 채움. 공용 캐러셀(자동 넘김·마우스 올리면 멈춤·카운터, 만료 필터 포함) */}
           {studio.banners && studio.banners.length > 0 && (
             <section>
-              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 [&>div]:w-full [&>div]:min-w-full [&>div]:snap-start">
-                {studio.banners.map((banner) => {
-                  const isExpired = new Date(banner.endDate) < new Date();
-                  if (isExpired) return null;
-                  return (
-                    <NavigateClickWrapper key={banner.id} method="push" route={banner.route}>
-                      <div className="w-full aspect-[32/9] relative rounded-2xl overflow-hidden cursor-pointer">
-                        <Image
-                          src={banner.imageUrl}
-                          alt={banner.description || '배너'}
-                          fill
-                          className="object-cover"
-                          sizes="(min-width: 1024px) 720px, 100vw"
-                        />
-                      </div>
-                    </NavigateClickWrapper>
-                  );
-                })}
-              </div>
+              <BannerCarousel banners={studio.banners} sizes="(min-width: 1024px) 720px, 100vw" />
             </section>
           )}
 

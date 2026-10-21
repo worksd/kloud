@@ -1,5 +1,4 @@
 import { HeaderInDetail } from "@/app/components/headers";
-import Image from "next/image";
 import React from "react";
 import { getStudioDetail } from "@/app/studios/[id]/studio.detail.action";
 import { notFound } from "next/navigation";
@@ -10,7 +9,7 @@ import { StudioInstaLink } from "@/app/studios/[id]/StudioInstaLink";
 import { StudioSlugCopy } from "@/app/studios/[id]/StudioSlugCopy";
 import { StudioAddressLink } from "@/app/studios/[id]/StudioAddressLink";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
-import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
+import { BannerCarousel } from "@/app/components/BannerCarousel";
 import { StudioCollapsingTopBar } from "@/app/studios/[id]/StudioCollapsingTopBar";
 import { ScrollContainer } from "@/app/studios/[id]/ScrollContainer";
 import { YoutubeContentSection } from "@/app/studios/[id]/YoutubeContentSection";
@@ -95,24 +94,10 @@ export const StudioDetailForm = async ({id, appVersion}: { id: number, appVersio
           </>
         )}
 
-        {/* 배너 — 시간표 위. 커버/공지와 간격을 넉넉히 */}
+        {/* 배너 — 시간표 위. 공용 캐러셀(자동 넘김·카운터·옆 배너 peek, 만료 필터 포함). 양옆 16px 은 이 화면 섹션(px-4)과 맞춘 값 */}
         {studio.banners && studio.banners.length > 0 && (
           <section className="pt-4 pb-1">
-            <div className="flex overflow-x-auto snap-x snap-mandatory last:pr-6 scrollbar-hide">
-              {studio.banners.map((banner) => {
-                const isExpired = new Date(banner.endDate) < new Date();
-                if (isExpired) return null;
-                return (
-                  <NavigateClickWrapper key={banner.id} method="push" route={banner.route}>
-                    <div className="min-w-[calc(100vw-32px)] snap-start pl-4">
-                      <div className="w-full aspect-[32/9] relative rounded-2xl overflow-hidden">
-                        <Image src={banner.imageUrl} alt={banner.description || '배너'} fill className="object-cover"/>
-                      </div>
-                    </div>
-                  </NavigateClickWrapper>
-                );
-              })}
-            </div>
+            <BannerCarousel banners={studio.banners} inset={16} />
           </section>
         )}
 

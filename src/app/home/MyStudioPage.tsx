@@ -4,7 +4,7 @@ import { LessonBand } from "@/app/LessonBand";
 import React from "react";
 import { GetMyStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import { Jumbotron } from "@/app/home/Jumbotron";
-import { HomeBanner } from "@/app/home/HomeBanner";
+import { BannerCarousel } from "@/app/components/BannerCarousel";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
 import { AnnouncementCard } from "@/app/home/AnnouncementCard";
@@ -49,9 +49,9 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
         <AnnouncementCard announcement={res.announcement} studioId={res.studio.id} showMore locale={locale} />
       )}
 
-      {/* 배너 */}
+      {/* 배너 — 공용 캐러셀(자동 넘김·카운터·옆 배너 peek). 양옆 20px 은 다른 홈 섹션(px-5)과 맞춘 값 */}
       {res.banners && res.banners.length > 0 && (
-        <HomeBanner banners={res.banners} />
+        <BannerCarousel banners={res.banners} inset={20} className="py-2" />
       )}
 
       {/* 이 스튜디오에서 진행중인 프로모션(번들) — bundles 있을 때만 노출 */}
