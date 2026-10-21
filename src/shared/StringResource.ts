@@ -4965,6 +4965,8 @@ export const StringResource = {
   regular_class_starts_on: { ko: '{day}({date})부터 시작합니다', en: 'Starts {day} ({date})', jp: '{day}({date})から始まります', zh: '{day}({date})开始' },
   regular_class_notice: { ko: '{name} 안내사항', en: '{name} notice', jp: '{name} ご案内', zh: '{name} 须知' },
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
+  // 닉네임 실시간 중복검사 — 입력칸 아래 빨간 안내. ko 는 {nickName} 자리에 '홍길동은/는' 처럼 조사까지 붙여 넘긴다(withTopicParticle)
+  nick_name_already_exists_inline: { ko: '{nickName} 이미 존재하는 닉네임입니다', en: '"{nickName}" is already taken', jp: '「{nickName}」はすでに使われています', zh: '“{nickName}”已被使用' },
   // 수업 결제 — 가격정책(4회/8회…)이 함께 올 때만 그 옆에 놓는 1회(단건) 결제 카드 라벨. 금액은 최상위 price
   one_time_option: { ko: '이번 수업만 체험하기', en: 'Try this class only', jp: '今回のレッスンだけ体験', zh: '仅体验本节课' },
   regular_class_empty: { ko: '등록할 수 있는 정규반이 없어요', en: 'No classes available to enroll in', jp: '登録できるクラスがありません', zh: '暂无可报名的常规班' },

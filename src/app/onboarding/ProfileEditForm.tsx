@@ -3,6 +3,8 @@
 import Image from "next/image";
 import React, { useEffect } from "react";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
+import { useNickNameDuplicateCheck, withTopicParticle } from "@/app/onboarding/useNickNameDuplicateCheck";
+import { getLocaleString } from "@/app/components/locale";
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { translate } from "@/utils/translate";
 import { kloudNav } from "@/app/lib/kloudNav";
@@ -62,6 +64,8 @@ export const ProfileEditForm = ({
   pcCard?: boolean;
 }) => {
   const [nickName, setNickName] = React.useState<string>(user.nickName ?? "");
+  // 닉네임 실시간 중복검사(0.5초 debounce) — 중복이면 빨간 안내 + 수정 버튼 비활성. 원래 닉네임 그대로면 검사 안 함
+  const nickCheck = useNickNameDuplicateCheck(nickName, user.nickName);
   const [name, setName] = React.useState<string>(user.name ?? "");
 
   const parseBirth = (v: string) => {
@@ -132,7 +136,7 @@ export const ProfileEditForm = ({
         });
         window.KloudEvent.showDialog(JSON.stringify(dialog));
       } else {
-        // 웹 폴백 — 토스트 (예: NICK_NAME_ALREADY_EXISTS)
+        // 웹 폴백 — 토스트 (예: NICKNAME_ALREADY_EXISTS)
         showToast(res.errorMessage);
       }
     }
@@ -185,8 +189,16 @@ export const ProfileEditForm = ({
                          text-[15px] text-black focus:outline-none focus:ring-2 focus:ring-black/80
                          placeholder:text-gray-400 transition"
             />
-            <div className="text-right text-[12px] text-[#AEAEAE] mt-1">
-              {nickName.length}/10
+            <div className="flex items-start justify-between gap-2 mt-1">
+              {nickCheck.status === 'duplicate' ? (
+                <p className="text-[12px] font-medium text-[#E5484D]">
+                  {getLocaleString({ locale, key: 'nick_name_already_exists_inline' })
+                    .replace('{nickName}', locale === 'ko' ? withTopicParticle(nickName.trim()) : nickName.trim())}
+                </p>
+              ) : <span />}
+              <div className="text-right text-[12px] text-[#AEAEAE] shrink-0">
+                {nickName.length}/10
+              </div>
             </div>
           </div>
           <div className="flex flex-col">
@@ -253,7 +265,7 @@ export const ProfileEditForm = ({
       <div className={`fixed bottom-0 left-0 right-0 px-6 py-6 ${pcCard ? 'lg:static lg:py-0 lg:pt-8' : ''}`}>
         <AsyncCommonSubmitButton
           onClick={onClick}
-          disabled={!hasChanges}
+          disabled={!hasChanges || nickCheck.blocksSubmit}
         >
           {confirmText}
         </AsyncCommonSubmitButton>
