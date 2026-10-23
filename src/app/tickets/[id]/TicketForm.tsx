@@ -75,12 +75,14 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   const router = useRouter();
 
   const handleCopyPaymentId = async () => {
+    const paymentId = ticket.paymentId;
+    if (!paymentId) return;
     try {
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(ticket.paymentId);
+        await navigator.clipboard.writeText(paymentId);
       } else {
         const textarea = document.createElement('textarea');
-        textarea.value = ticket.paymentId;
+        textarea.value = paymentId;
         textarea.style.position = 'fixed';
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
@@ -202,6 +204,8 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   };
 
   const handleCancelClick = async () => {
+    // 결제 기록 없는 수강권(paymentId null)은 환불 화면이 없다 — '/paymentRecords/null' 로 가지 않게 막는다
+    if (!ticket.paymentId) return;
     // LP로 시작하면 다이얼로그 띄우기
     if (ticket.paymentId.startsWith('LP')) {
       const dialog = await createDialog({id: 'CancelTicket'});
@@ -245,7 +249,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         }
         return;
       }
-      if (data.id == 'CancelTicket' && ticket.paymentId.startsWith('LP')) {
+      if (data.id == 'CancelTicket' && ticket.paymentId?.startsWith('LP')) {
         try {
           const res = await deleteTicketAction({ticketId: ticket.id});
           if (!res || 'id' in res) {
@@ -352,13 +356,16 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
     <div className="relative h-full flex flex-col gap-6 px-6 pt-8 pb-10">
       {renderTimer()}
       <div className="flex-1 flex flex-col justify-between pb-4 border-b border-[#2d2d2d]">
-        <button
-          onClick={handleCopyPaymentId}
-          className="flex items-center gap-2 text-[12px] text-white/70 font-medium leading-[1.4] mb-0 hover:text-white/90 transition-colors active:opacity-70"
-        >
-          <Copy className="w-3 h-3 flex-shrink-0" />
-          <span className={'font-paperlogy'}>{ticket.paymentId}</span>
-        </button>
+        {/* 결제번호 복사 — 결제 기록 없는 수강권(패스권 차감·현장 발급 등)은 paymentId 가 null 이라 그리지 않는다 */}
+        {ticket.paymentId ? (
+          <button
+            onClick={handleCopyPaymentId}
+            className="flex items-center gap-2 text-[12px] text-white/70 font-medium leading-[1.4] mb-0 hover:text-white/90 transition-colors active:opacity-70"
+          >
+            <Copy className="w-3 h-3 flex-shrink-0" />
+            <span className={'font-paperlogy'}>{ticket.paymentId}</span>
+          </button>
+        ) : <div />}
 
         {/* 수업 정보 */}
         <div className="flex flex-col gap-[10px]">
@@ -626,42 +633,53 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
             </div>
           </div>
 
-          {/* 취소하기 및 결제내역 버튼 */}
-          <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
-            <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2 flex items-center gap-6">
-              {canPostpone && (
-                <>
-                  <button
-                    onClick={handlePostponeClick}
-                    disabled={isPostponing}
-                    className="text-[14px] font-medium text-white active:opacity-70 transition-opacity disabled:opacity-50"
-                  >
-                    {getLocaleString({locale, key: 'postpone_ticket'})}
-                  </button>
-                  <div className="h-[14px] w-px bg-white/30"/>
-                </>
-              )}
-              {ticket.isRefundable == true && (
-                <>
-                  <button
-                    onClick={handleCancelClick}
-                    className="text-[14px] font-medium text-white active:opacity-70 transition-opacity"
-                  >
-                    {getLocaleString({locale, key: 'do_cancel'})}
-                  </button>
-                  <div className="h-[14px] w-px bg-white/30"/>
-                </>
-              )}
-              <NavigateClickWrapper
-                method="push"
-                route={KloudScreen.PaymentRecordDetail(ticket.paymentId)}
-              >
-                <button className="text-[14px] font-medium text-white active:opacity-70 transition-opacity">
-                  {getLocaleString({locale, key: 'payment_records'})}
-                </button>
-              </NavigateClickWrapper>
-            </div>
-          </div>
+          {/* 미루기 · 취소하기 · 결제내역 버튼 — 결제 내역은 paymentId 있을 때만(없으면 '/paymentRecords/null' 로 가서 PAYMENT_RECORD_NOT_FOUND).
+              구분선은 뒤에 버튼이 이어질 때만, 셋 다 없으면 바 자체를 그리지 않는다 */}
+          {(() => {
+            const showCancel = ticket.isRefundable == true;
+            const showPaymentRecord = !!ticket.paymentId;
+            if (!canPostpone && !showCancel && !showPaymentRecord) return null;
+            const divider = <div className="h-[14px] w-px bg-white/30"/>;
+            return (
+              <div className="flex items-center justify-center gap-6 px-[50px] py-5 relative z-10">
+                <div className="bg-black/70 backdrop-blur-sm rounded-[12px] px-4 py-2 flex items-center gap-6">
+                  {canPostpone && (
+                    <>
+                      <button
+                        onClick={handlePostponeClick}
+                        disabled={isPostponing}
+                        className="text-[14px] font-medium text-white active:opacity-70 transition-opacity disabled:opacity-50"
+                      >
+                        {getLocaleString({locale, key: 'postpone_ticket'})}
+                      </button>
+                      {(showCancel || showPaymentRecord) && divider}
+                    </>
+                  )}
+                  {showCancel && (
+                    <>
+                      <button
+                        onClick={handleCancelClick}
+                        className="text-[14px] font-medium text-white active:opacity-70 transition-opacity"
+                      >
+                        {getLocaleString({locale, key: 'do_cancel'})}
+                      </button>
+                      {showPaymentRecord && divider}
+                    </>
+                  )}
+                  {showPaymentRecord && (
+                    <NavigateClickWrapper
+                      method="push"
+                      route={KloudScreen.PaymentRecordDetail(ticket.paymentId!)}
+                    >
+                      <button className="text-[14px] font-medium text-white active:opacity-70 transition-opacity">
+                        {getLocaleString({locale, key: 'payment_records'})}
+                      </button>
+                    </NavigateClickWrapper>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* 멤버십 정보 표시 (ticketType이 membership일 때) */}
           {ticket.ticketType === 'membership' && ticket.studio && (

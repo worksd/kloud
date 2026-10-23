@@ -23,7 +23,8 @@ export type TicketPaymentRecordSummary = {
 export type TicketResponse = {
   id: number;
   status: string;
-  paymentId: string;
+  /** 결제 id ('LT…'/'LP…'). 패스권 차감·현장 발급·초대 등 결제 기록 없이 생긴 수강권은 null — 결제 내역 버튼·복사·환불 분기 전부 있을 때만 */
+  paymentId?: string | null;
   studio?: GetStudioResponse;
   lesson?: GetLessonResponse;
   user?: GetUserResponse;
