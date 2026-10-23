@@ -246,6 +246,8 @@ export const OnboardingForm = ({
         setIsLoading(false);
       }
     } else if (isNickNameInputVisible) {
+      // 검사 대기 중(0.5초 안)에 눌렀으면 지금 바로 검사 — 중복이면 빨간 안내만 띄우고 진행하지 않는다
+      if ((await nickCheck.ensureChecked()) === 'duplicate') return;
       const res = await updateUserAction({
         name,
         nickName,

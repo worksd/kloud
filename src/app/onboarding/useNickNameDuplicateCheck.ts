@@ -6,7 +6,7 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
 /**
  * - idle      : 비어 있거나 원래 닉네임 그대로 — 검사 대상 아님(제출 막지 않음)
- * - checking  : 입력 멈춘 뒤 0.5초 지나 API 대기 중(제출 막음)
+ * - checking  : 입력 멈춘 뒤 0.5초 지나 API 대기 중(버튼은 안 막고, 제출 시 ensureChecked 로 즉시 검사)
  * - available : 서버가 사용 가능 응답
  * - duplicate : success:false 또는 중복 코드(NICKNAME_ALREADY_EXISTS 등) — 빨간 안내 + 제출 막음
  * - error     : 토큰 만료·네트워크 등 인프라성 실패만 — 제출은 막지 않는다(서버가 PATCH 에서 한 번 더 검사하므로 fail-open)
@@ -42,37 +42,56 @@ const classify = (res: unknown): NickNameCheckStatus => {
 export const useNickNameDuplicateCheck = (nickName: string, originalNickName?: string | null) => {
   const [status, setStatus] = useState<NickNameCheckStatus>('idle');
   const seq = useRef(0);
+  // 지금 입력값 기준으로 '즉시 검사'를 할 수 있게 최신 값을 ref 로 보관 (ensureChecked 가 클로저에 갇히지 않게)
+  const latest = useRef({ trimmed: '', skip: true });
+
+  const runCheck = async (trimmed: string, my: number): Promise<NickNameCheckStatus> => {
+    let next: NickNameCheckStatus = 'error';
+    try {
+      const res = await checkDuplicateUser({ nickName: trimmed });
+      if (my !== seq.current) return 'checking'; // 그 사이 입력이 바뀜 — 호출자는 무시
+      next = classify(res);
+      if (next !== 'available' && process.env.NODE_ENV !== 'production') {
+        console.warn('[nickName duplicate-check] 비성공 응답', res);
+      }
+    } catch {
+      // 서버 액션 자체가 실패(네트워크 등) — fail-open
+    }
+    if (my === seq.current) setStatus(next);
+    return next;
+  };
 
   useEffect(() => {
     const trimmed = nickName.trim();
     const mine = (originalNickName ?? '').trim();
-    if (trimmed.length === 0 || trimmed === mine) {
+    const skip = trimmed.length === 0 || trimmed === mine;
+    latest.current = { trimmed, skip };
+    if (skip) {
       seq.current += 1; // 진행 중이던 요청 결과 무시
       setStatus('idle');
       return;
     }
     const my = ++seq.current;
     setStatus('checking');
-    const timer = window.setTimeout(async () => {
-      let next: NickNameCheckStatus = 'error';
-      try {
-        const res = await checkDuplicateUser({ nickName: trimmed });
-        if (my !== seq.current) return; // 그 사이 입력이 바뀜
-        next = classify(res);
-        if (next !== 'available' && process.env.NODE_ENV !== 'production') {
-          console.warn('[nickName duplicate-check] 비성공 응답', res);
-        }
-      } catch {
-        // 서버 액션 자체가 실패(네트워크 등) — fail-open
-      }
-      if (my === seq.current) setStatus(next);
-    }, DEBOUNCE_MS);
+    const timer = window.setTimeout(() => { void runCheck(trimmed, my); }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [nickName, originalNickName]);
 
-  /** 제출을 막아야 하는 상태 — 검사 대기 중이거나 중복 */
-  const blocksSubmit = status === 'checking' || status === 'duplicate';
-  return { status, blocksSubmit };
+  /**
+   * 제출 직전에 호출 — 아직 0.5초가 안 지나 검사 대기 중이면 기다리지 않고 지금 바로 검사해서 결과를 돌려준다.
+   * 버튼은 '중복 확정'일 때만 끄므로(검사 중엔 켜 둠) 입력 중 깜빡임이 없고, 대신 여기서 마지막 확인을 한다.
+   * 반환: 'available' | 'idle' | 'error' 면 진행해도 됨, 'duplicate' 면 막아야 함.
+   */
+  const ensureChecked = async (): Promise<NickNameCheckStatus> => {
+    if (latest.current.skip) return 'idle';
+    if (status !== 'checking') return status;
+    const my = ++seq.current; // 대기 중이던 debounce 결과는 버리고 이 호출이 최종
+    return runCheck(latest.current.trimmed, my);
+  };
+
+  /** 제출을 막아야 하는 상태 — 중복 확정일 때만. 검사 중에는 막지 않는다(깜빡임 방지, ensureChecked 로 보완) */
+  const blocksSubmit = status === 'duplicate';
+  return { status, blocksSubmit, ensureChecked };
 };
 
 /** '{nickName}은(는) …' — 받침 유무로 은/는 선택. 한글이 아니면 '은(는)' 대신 '는'으로 둔다 */
