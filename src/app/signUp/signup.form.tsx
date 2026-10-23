@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 import CheckIcon from "../../../public/assets/check.svg"
 import HidePasswordIcon from "../../../public/assets/hide-password.svg";
@@ -35,6 +35,9 @@ export const SignupForm = (props: SignUpFormProps) => {
   const [isEmailPatternValid, setIsEmailPatternValid] = useState(false);
   const [isPasswordLengthValid, setIsPasswordLengthValid] = useState(false);
   const [isPasswordPatternValid, setIsPasswordPatternValid] = useState(false);
+  // 중복 제출 방지 — ref는 리렌더 전 연타를, state는 버튼 disabled/스피너를 담당
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const onEmailChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmailErrorMessage('');
@@ -53,36 +56,48 @@ export const SignupForm = (props: SignUpFormProps) => {
   }
 
   const onClickSignUp = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
     setEmailErrorMessage('');
 
-    const res = await signUpAction({ email, password })
-    if (res.success) {
-      if (props.appVersion == '') {
-        // TODO 스마트하게 바꿔보자..
-        if (res.status == UserStatus.Ready) {
-          // 웹: returnUrl 없이 항상 기본 경로로 (풀 리로드로 세션 쿠키 반영)
-          window.location.replace('/');
+    try {
+      const res = await signUpAction({ email, password })
+      if (res.success) {
+        // 성공 시엔 화면 전환 중이므로 버튼을 다시 풀지 않는다 (전환 전 재탭 → EMAIL_ALREADY_EXISTS 방지)
+        if (props.appVersion == '') {
+          // TODO 스마트하게 바꿔보자..
+          if (res.status == UserStatus.Ready) {
+            // 웹: returnUrl 없이 항상 기본 경로로 (풀 리로드로 세션 쿠키 반영)
+            window.location.replace('/');
+          }
+          else if (res.status == UserStatus.Deactivate) {
+            router.replace(KloudScreen.LoginDeactivate)
+          }
+          else if (res.status == UserStatus.New) {
+            router.replace(KloudScreen.Onboard)
+          }
+        } else {
+          await LoginAuthNavigation({
+            status: res.status,
+            type: res.type,
+            window: window,
+          })
         }
-        else if (res.status == UserStatus.Deactivate) {
-          router.replace(KloudScreen.LoginDeactivate)
-        }
-        else if (res.status == UserStatus.New) {
-          router.replace(KloudScreen.Onboard)
-        }
-      } else {
-        await LoginAuthNavigation({
-          status: res.status,
-          type: res.type,
-          window: window,
-        })
+        return;
       }
-    } else {
+
       if (res.errorCode == ExceptionResponseCode.EMAIL_ALREADY_EXISTS) {
         setEmailErrorMessage(res.errorMessage ?? '')
       } else {
         const dialogInfo = await createDialog({id: 'SignUpFail', message: res.errorMessage})
         window.KloudEvent?.showDialog(JSON.stringify(dialogInfo));
       }
+      submittingRef.current = false;
+      setIsSubmitting(false);
+    } catch {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   }
 
@@ -158,14 +173,20 @@ export const SignupForm = (props: SignUpFormProps) => {
 
         <div className="fixed bottom-0 left-0 right-0 px-6 pb-5 bg-white">
           <button
+            type="button"
             onClick={onClickSignUp}
+            aria-busy={isSubmitting}
             className={`flex items-center justify-center font-bold rounded-lg h-14 w-full text-[16px] ${
               isEmailPatternValid && isPasswordPatternValid && isPasswordLengthValid
                 ? "bg-black text-white"
                 : "bg-[#BCBFC2] text-white"
             }`}
-            disabled={!isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
-            {props.buttonText}
+            disabled={isSubmitting || !isEmailPatternValid || !isPasswordPatternValid || !isPasswordLengthValid}>
+            {isSubmitting ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"/>
+            ) : (
+              props.buttonText
+            )}
           </button>
         </div>
       </div>
