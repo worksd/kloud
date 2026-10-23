@@ -64,7 +64,7 @@ export const ProfileEditForm = ({
   pcCard?: boolean;
 }) => {
   const [nickName, setNickName] = React.useState<string>(user.nickName ?? "");
-  // 닉네임 실시간 중복검사(0.5초 debounce) — 중복이면 빨간 안내 + 수정 버튼 비활성. 원래 닉네임 그대로면 검사 안 함
+  // 닉네임 실시간 중복검사(0.3초 debounce) — 중복이면 빨간 안내 + 수정 버튼 비활성. 원래 닉네임 그대로면 검사 안 함
   const nickCheck = useNickNameDuplicateCheck(nickName, user.nickName);
   const [name, setName] = React.useState<string>(user.name ?? "");
 
@@ -109,7 +109,7 @@ export const ProfileEditForm = ({
     (refundDepositor !== (user.refundAccountDepositor ?? ""));
 
   const onClick = async () => {
-    // 검사 대기 중(0.5초 안)에 눌렀으면 지금 바로 검사 — 중복이면 빨간 안내만 띄우고 PATCH 는 보내지 않는다
+    // 검사 대기 중(0.3초 안)에 눌렀으면 지금 바로 검사 — 중복이면 빨간 안내만 띄우고 PATCH 는 보내지 않는다
     if ((await nickCheck.ensureChecked()) === 'duplicate') return;
     const res = await updateUserAction({
       nickName: nickName !== (user.nickName ?? "") ? nickName : undefined,
