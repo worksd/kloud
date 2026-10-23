@@ -472,6 +472,11 @@ export const OnboardingForm = ({
                           .replace('{nickName}', locale === 'ko' ? withTopicParticle(nickName.trim()) : nickName.trim())}
                       </p>
                     )}
+                    {nickCheck.status === 'available' && (
+                      <p className="mt-2 px-1 text-[13px] font-medium text-[#1BA672]">
+                        {getLocaleString({ locale, key: 'nick_name_available_inline' })}
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
