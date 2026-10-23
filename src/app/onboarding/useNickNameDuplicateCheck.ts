@@ -6,14 +6,14 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
 
 /**
  * - idle      : 비어 있거나 원래 닉네임 그대로 — 검사 대상 아님(제출 막지 않음)
- * - checking  : 입력 멈춘 뒤 0.5초 지나 API 대기 중(버튼은 안 막고, 제출 시 ensureChecked 로 즉시 검사)
+ * - checking  : 입력 멈춘 뒤 0.3초 지나 API 대기 중(버튼은 안 막고, 제출 시 ensureChecked 로 즉시 검사)
  * - available : 서버가 사용 가능 응답
  * - duplicate : success:false 또는 중복 코드(NICKNAME_ALREADY_EXISTS 등) — 빨간 안내 + 제출 막음
  * - error     : 토큰 만료·네트워크 등 인프라성 실패만 — 제출은 막지 않는다(서버가 PATCH 에서 한 번 더 검사하므로 fail-open)
  */
 export type NickNameCheckStatus = 'idle' | 'checking' | 'available' | 'duplicate' | 'error';
 
-const DEBOUNCE_MS = 500;
+const DEBOUNCE_MS = 300;
 
 /** 중복과 무관한 인프라성 실패 — 이때만 fail-open(error). 그 외 비성공 응답은 전부 '중복'으로 본다 */
 const INFRA_ERROR_CODES = new Set<string>([
@@ -78,7 +78,7 @@ export const useNickNameDuplicateCheck = (nickName: string, originalNickName?: s
   }, [nickName, originalNickName]);
 
   /**
-   * 제출 직전에 호출 — 아직 0.5초가 안 지나 검사 대기 중이면 기다리지 않고 지금 바로 검사해서 결과를 돌려준다.
+   * 제출 직전에 호출 — 아직 0.3초가 안 지나 검사 대기 중이면 기다리지 않고 지금 바로 검사해서 결과를 돌려준다.
    * 버튼은 '중복 확정'일 때만 끄므로(검사 중엔 켜 둠) 입력 중 깜빡임이 없고, 대신 여기서 마지막 확인을 한다.
    * 반환: 'available' | 'idle' | 'error' 면 진행해도 됨, 'duplicate' 면 막아야 함.
    */

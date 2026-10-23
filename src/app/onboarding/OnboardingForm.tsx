@@ -113,7 +113,7 @@ export const OnboardingForm = ({
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   // 서버(GetUserResponse)에서 내려준 닉네임을 초기값으로 사용. 없으면 빈 문자열.
   const [nickName, setNickName] = useState(user.nickName ?? '');
-  // 닉네임 실시간 중복검사(0.5초 debounce) — 중복이면 빨간 안내 + 다음 버튼 비활성. 원래 닉네임 그대로면 검사 안 함
+  // 닉네임 실시간 중복검사(0.3초 debounce) — 중복이면 빨간 안내 + 다음 버튼 비활성. 원래 닉네임 그대로면 검사 안 함
   const nickCheck = useNickNameDuplicateCheck(nickName, user.nickName);
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('KR');
@@ -246,7 +246,7 @@ export const OnboardingForm = ({
         setIsLoading(false);
       }
     } else if (isNickNameInputVisible) {
-      // 검사 대기 중(0.5초 안)에 눌렀으면 지금 바로 검사 — 중복이면 빨간 안내만 띄우고 진행하지 않는다
+      // 검사 대기 중(0.3초 안)에 눌렀으면 지금 바로 검사 — 중복이면 빨간 안내만 띄우고 진행하지 않는다
       if ((await nickCheck.ensureChecked()) === 'duplicate') return;
       const res = await updateUserAction({
         name,
