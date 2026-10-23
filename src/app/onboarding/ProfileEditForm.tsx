@@ -195,6 +195,10 @@ export const ProfileEditForm = ({
                   {getLocaleString({ locale, key: 'nick_name_already_exists_inline' })
                     .replace('{nickName}', locale === 'ko' ? withTopicParticle(nickName.trim()) : nickName.trim())}
                 </p>
+              ) : nickCheck.status === 'available' ? (
+                <p className="text-[12px] font-medium text-[#1BA672]">
+                  {getLocaleString({ locale, key: 'nick_name_available_inline' })}
+                </p>
               ) : <span />}
               <div className="text-right text-[12px] text-[#AEAEAE] shrink-0">
                 {nickName.length}/10

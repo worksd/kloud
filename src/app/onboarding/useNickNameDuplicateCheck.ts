@@ -8,18 +8,37 @@ import { ExceptionResponseCode } from "@/app/guinnessErrorCase";
  * - idle      : 비어 있거나 원래 닉네임 그대로 — 검사 대상 아님(제출 막지 않음)
  * - checking  : 입력 멈춘 뒤 0.5초 지나 API 대기 중(제출 막음)
  * - available : 서버가 사용 가능 응답
- * - duplicate : 서버가 NICKNAME_ALREADY_EXISTS — 빨간 안내 + 제출 막음
- * - error     : 네트워크 등 그 외 실패 — 제출은 막지 않는다(서버가 PATCH 에서 한 번 더 검사하므로 fail-open)
+ * - duplicate : success:false 또는 중복 코드(NICKNAME_ALREADY_EXISTS 등) — 빨간 안내 + 제출 막음
+ * - error     : 토큰 만료·네트워크 등 인프라성 실패만 — 제출은 막지 않는다(서버가 PATCH 에서 한 번 더 검사하므로 fail-open)
  */
 export type NickNameCheckStatus = 'idle' | 'checking' | 'available' | 'duplicate' | 'error';
 
 const DEBOUNCE_MS = 500;
 
+/** 중복과 무관한 인프라성 실패 — 이때만 fail-open(error). 그 외 비성공 응답은 전부 '중복'으로 본다 */
+const INFRA_ERROR_CODES = new Set<string>([
+  ExceptionResponseCode.UNKNOWN_ERROR,
+  ExceptionResponseCode.APP_UPGRADE_REQUIRED,
+  'TOKEN_EXPIRED',
+  'HEADERS_NOT_FOUND',
+]);
+
 /**
- * 닉네임 실시간 중복검사 — 입력이 멈추고 0.5초 지나면 POST /users/duplicate-check 를 쏜다 (2026-10-21).
- * 온보딩·프로필 수정 둘 다 쓴다. originalNickName(지금 내 닉네임)과 같으면 서버가 '내 것'을 중복으로 볼 수 있어 검사하지 않는다.
- * 응답이 늦게 도착한 이전 요청은 요청 번호로 걸러 마지막 입력값의 결과만 반영한다.
+ * 중복검사 응답 판정 — 버튼을 열어 주는 건 서버가 명시적으로 { success: true } 를 준 경우뿐이다.
+ *  - { success: true }  → 사용 가능
+ *  - { success: false } → 중복
+ *  - { code, message }  → 토큰 만료·헤더 누락·UNKNOWN 같은 인프라성 코드만 error(fail-open), 나머지 코드는 전부 중복
+ *  - 그 외 모양        → 중복(모르는 응답으로 버튼이 열리느니 막는 쪽이 안전. PATCH 에서도 어차피 막힌다)
+ * 2026-10-23: 중복 닉네임인데 code 가 기대와 달라 'error' 로 빠져 버튼이 열리고, 확인을 누르면 PATCH 에서 중복 에러가 나던 문제.
  */
+const classify = (res: unknown): NickNameCheckStatus => {
+  if (!res || typeof res !== 'object') return 'duplicate';
+  const r = res as { success?: unknown; code?: unknown };
+  if (typeof r.success === 'boolean') return r.success ? 'available' : 'duplicate';
+  if (typeof r.code === 'string' && INFRA_ERROR_CODES.has(r.code)) return 'error';
+  return 'duplicate';
+};
+
 export const useNickNameDuplicateCheck = (nickName: string, originalNickName?: string | null) => {
   const [status, setStatus] = useState<NickNameCheckStatus>('idle');
   const seq = useRef(0);
@@ -35,11 +54,18 @@ export const useNickNameDuplicateCheck = (nickName: string, originalNickName?: s
     const my = ++seq.current;
     setStatus('checking');
     const timer = window.setTimeout(async () => {
-      const res = await checkDuplicateUser({ nickName: trimmed });
-      if (my !== seq.current) return; // 그 사이 입력이 바뀜
-      if ('success' in res && res.success) setStatus('available');
-      else if ('code' in res && res.code === ExceptionResponseCode.NICKNAME_ALREADY_EXISTS) setStatus('duplicate');
-      else setStatus('error');
+      let next: NickNameCheckStatus = 'error';
+      try {
+        const res = await checkDuplicateUser({ nickName: trimmed });
+        if (my !== seq.current) return; // 그 사이 입력이 바뀜
+        next = classify(res);
+        if (next !== 'available' && process.env.NODE_ENV !== 'production') {
+          console.warn('[nickName duplicate-check] 비성공 응답', res);
+        }
+      } catch {
+        // 서버 액션 자체가 실패(네트워크 등) — fail-open
+      }
+      if (my === seq.current) setStatus(next);
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [nickName, originalNickName]);
