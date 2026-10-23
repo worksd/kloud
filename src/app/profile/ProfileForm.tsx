@@ -18,6 +18,7 @@ import { UserType } from "@/entities/user/user.type";
 import { Locale } from "@/shared/StringResource";
 import { has, formatEndDate, formatPhone, formatRelativeStart, ddayLabel } from "@/app/profile/profile.format";
 import { recapMock } from "@/app/recap/recap.mock";
+import { RecapBannerSpace } from "@/app/recap/RecapBannerSpace";
 import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
 
@@ -278,27 +279,30 @@ const ActivityRow = ({ route, icon, label, count }: { route: string; icon: React
   </NavigateClickWrapper>
 );
 
-// 연말 리캡 다시보기 배너 — 리캡 스토리와 같은 다크 + 네온 톤
+// 연말 리캡 다시보기 배너 — 리캡 스토리의 우주 톤. 배경(흐르는 오로라·별가루·도는 은하·별똥별)은 RecapBannerSpace
 const RecapReplayBanner = ({ year, studioId }: { year: number; studioId: number }) => (
   <section className="px-4 mb-6">
     <NavigateClickWrapper method={'push'} route={KloudScreen.Recap(studioId)}>
       <div
         className="relative overflow-hidden rounded-2xl px-5 py-5 active:scale-[0.98] transition-transform duration-150"
         style={{
-          background: 'radial-gradient(120% 140% at 0% 0%, #7C3AED 0%, transparent 55%), radial-gradient(120% 140% at 100% 100%, #EC4899 0%, transparent 55%), #0B0418',
-          boxShadow: '0 10px 30px -12px rgba(139,92,246,0.7)',
+          background: '#06010F',
+          boxShadow: '0 12px 32px -14px rgba(139,92,246,0.8), 0 0 0 1px rgba(255,255,255,0.08) inset',
         }}
       >
-        <div
-          aria-hidden
-          className="absolute -right-2 -bottom-6 text-[88px] font-black leading-none text-transparent select-none"
-          style={{ WebkitTextStroke: '1px rgba(255,255,255,0.25)' }}
-        >
-          {year}
-        </div>
+        <RecapBannerSpace/>
         <div className="relative">
-          <div className="text-[11px] font-bold tracking-[0.14em] text-white/70">STUDIO RECAP {year}</div>
-          <div className="mt-1.5 text-[18px] font-extrabold text-white tracking-[-0.3px]">우리 스튜디오에서의 {year} 다시보기</div>
+          <span
+            className="inline-block px-2 py-0.5 text-[10.5px] font-black tracking-[0.08em] text-[#111] -rotate-2"
+            style={{ background: '#F4F1EA', clipPath: 'polygon(2% 8%, 98% 0%, 100% 40%, 97% 92%, 3% 100%, 0% 55%)' }}
+          >
+            STUDIO RECAP {year}
+          </span>
+          <div className="mt-2 text-[18px] font-extrabold text-white tracking-[-0.3px]">
+            우리 스튜디오에서의{' '}
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #FF3EA5, #8B5CF6, #22D3EE)' }}>{year}</span>
+            {' '}다시보기
+          </div>
           <div className="mt-3 inline-flex items-center gap-1 h-8 px-3.5 rounded-full text-[13px] font-bold text-white"
                style={{ backgroundImage: 'linear-gradient(90deg, #FF3EA5, #8B5CF6, #22D3EE)' }}>
             돌아보기
