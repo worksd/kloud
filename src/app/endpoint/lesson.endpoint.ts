@@ -166,6 +166,14 @@ export type GetBandLessonResponse = {
     duration?: number;
     artist?: GetArtistResponse;
     artists?: GetArtistResponse[];
+    /** 난이도 'Beginner' | 'Basic' | 'Advanced' — 수업 상세엔 있고 밴드/점보트론 응답엔 없어 서버에 추가 요청(2026-10-23). 오면 점보트론 칩으로 */
+    level?: string;
+    /** 공개 예정(status=Pending) 수업이 공개되는 시각 'yyyy-MM-dd HH:mm' — 서버 요청(2026-10-23). 점보트론 'N일 후 공개' 배지. 없으면 '공개 예정' */
+    openDate?: string | null;
+    /** 판매 예정(status=NotForSale) 수업의 판매 시작 시각 'yyyy-MM-dd HH:mm' — 서버 요청(2026-10-23). 'N일 후 판매 시작'. 없으면 '판매 예정' */
+    saleStartDate?: string | null;
+    /** 남은 자리 수 — 서버 요청(2026-10-23). 0 이상이면 'N자리 남음', null/없음이면 미표시 */
+    remainingSeats?: number | null;
 }
 
 export type GetLabelResponse = {

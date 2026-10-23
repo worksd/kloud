@@ -91,7 +91,7 @@ export const LessonLevelLabel = ({label, locale}: { label: string; locale?: Loca
   );
 }
 
-const getLessonType = ({
+export const getLessonType = ({
                          type,
                        }: {
   type: LessonType;

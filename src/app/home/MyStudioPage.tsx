@@ -3,7 +3,9 @@
 import { LessonBand } from "@/app/LessonBand";
 import React from "react";
 import { GetMyStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
-import { Jumbotron } from "@/app/home/Jumbotron";
+import { Jumbotron, JumbotronItem } from "@/app/home/Jumbotron";
+// TODO(2026-10-23): 목 데이터 import — main 배포 전 반드시 삭제할 것
+import { jumbotronMockEnabled, withJumbotronMock } from "@/app/home/jumbotron.mock";
 import { BannerCarousel } from "@/app/components/BannerCarousel";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";
@@ -28,20 +30,37 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
     ? res.jumbotrons
     : res.bands.flatMap(b => b.lessons).filter(l => l.thumbnailUrl).slice(0, 8);
 
-  const jumbotronItems = jumbotronSource.map(l => ({
+  // 카드에 타입·장르·레벨·상태(공개/판매 예정 카운트다운)·일시·스튜디오까지 — level/openDate/saleStartDate/remainingSeats 는 서버 추가 전이면 빠진다
+  const realJumbotronItems: JumbotronItem[] = jumbotronSource.map(l => ({
     id: l.id,
     imageUrl: l.thumbnailUrl,
     title: l.title,
     artistName: (l.artists?.[0]?.nickName ?? l.artists?.[0]?.name) ?? l.artist?.nickName,
     artistImageUrl: l.artists?.[0]?.profileImageUrl ?? l.artist?.profileImageUrl,
+    studioName: l.studioName,
+    description: l.description,
+    // 라벨 키 매핑(getLessonType)은 클라이언트 모듈이라 서버인 여기서 부르면 홈 전체가 에러 — 원값만 넘기고 Jumbotron 에서 매핑
+    lessonType: l.label?.type,
+    genre: l.label?.genre,
+    level: l.level,
+    status: l.status,
+    isEnded: l.label?.isEnded,
+    openDate: l.openDate,
+    saleStartDate: l.saleStartDate,
+    when: (l.startDate || l.date) ? { startDate: l.startDate, date: l.date, startTime: l.startTime } : undefined,
+    duration: l.duration,
+    remainingSeats: l.remainingSeats,
   }));
+  // TODO(2026-10-23): 목 데이터 적용 — main 배포 전 반드시 삭제할 것(jumbotron.mock.ts 와 함께). 아래 한 줄을 realJumbotronItems 로 되돌리면 된다
+  // 개발 환경에선 목 값을 덧씌워 카운트다운·태그·설명 UI 를 실제 홈에서 확인 (운영은 실제 값 그대로)
+  const jumbotronItems = jumbotronMockEnabled() ? withJumbotronMock(realJumbotronItems) : realJumbotronItems;
 
 
   return (
     <div className={'flex flex-col overflow-y-auto no-scrollbar pb-32'}>
       {/* 점보트론 */}
       {jumbotronItems.length > 0 && (
-        <Jumbotron items={jumbotronItems} />
+        <Jumbotron items={jumbotronItems} locale={locale} />
       )}
 
       {/* 공지사항 — 최근 7일 내 최신 1건 */}

@@ -4967,6 +4967,21 @@ export const StringResource = {
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
   // 닉네임 실시간 중복검사 — 입력칸 아래 빨간 안내. ko 는 {nickName} 자리에 '홍길동은/는' 처럼 조사까지 붙여 넘긴다(withTopicParticle)
   nick_name_already_exists_inline: { ko: '{nickName} 이미 존재하는 닉네임입니다', en: '"{nickName}" is already taken', jp: '「{nickName}」はすでに使われています', zh: '“{nickName}”已被使用' },
+  // 홈 점보트론 — 상태 배지·메타 (2026-10-23)
+  jumbotron_opens_in_days: { ko: '{n}일 후 공개', en: 'Opens in {n} days', jp: '{n}日後に公開', zh: '{n}天后公开' },
+  jumbotron_opens_today: { ko: '오늘 공개', en: 'Opens today', jp: '本日公開', zh: '今天公开' },
+  jumbotron_opens_tomorrow: { ko: '내일 공개', en: 'Opens tomorrow', jp: '明日公開', zh: '明天公开' },
+  jumbotron_sale_in_days: { ko: '{n}일 후 판매 시작', en: 'On sale in {n} days', jp: '{n}日後に販売開始', zh: '{n}天后开售' },
+  jumbotron_sale_today: { ko: '오늘 판매 시작', en: 'On sale today', jp: '本日販売開始', zh: '今天开售' },
+  jumbotron_sale_tomorrow: { ko: '내일 판매 시작', en: 'On sale tomorrow', jp: '明日販売開始', zh: '明天开售' },
+  jumbotron_status_presale: { ko: '선예약 중', en: 'Pre-booking', jp: '先行予約中', zh: '预售中' },
+  jumbotron_status_sale_closed: { ko: '결제 마감', en: 'Sales closed', jp: '受付終了', zh: '已截止' },
+  jumbotron_status_ended: { ko: '수업 종료', en: 'Ended', jp: '終了', zh: '已结束' },
+  jumbotron_status_cancelled: { ko: '수업 취소', en: 'Cancelled', jp: 'キャンセル', zh: '已取消' },
+  jumbotron_countdown_open: { ko: '공개까지', en: 'Opens in', jp: '公開まで', zh: '距公开' },
+  jumbotron_countdown_sale: { ko: '판매 시작까지', en: 'On sale in', jp: '販売開始まで', zh: '距开售' },
+  jumbotron_countdown_day: { ko: '일', en: 'd', jp: '日', zh: '天' },
+  jumbotron_seats_left: { ko: '{n}자리 남음', en: '{n} seats left', jp: '残り{n}席', zh: '剩余{n}个名额' },
   // 닉네임 실시간 중복검사 통과 — 입력칸 아래 초록 안내
   nick_name_available_inline: { ko: '사용할 수 있는 닉네임이에요', en: 'This nickname is available', jp: '使用できるニックネームです', zh: '该昵称可以使用' },
   // 수업 결제 — 가격정책(4회/8회…)이 함께 올 때만 그 옆에 놓는 1회(단건) 결제 카드 라벨. 금액은 최상위 price
