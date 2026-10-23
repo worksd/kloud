@@ -132,6 +132,8 @@ const applyIgnoreSafeArea = (route: string): boolean => {
     route.includes('/profile/myRegularClass/') ||
     // 결제 완료 환영 화면 — 썸네일이 상태바까지 풀블리드로 깔린다
     route.startsWith('/payment-complete') ||
+    // 연말 리캡 — 다크 풀스크린 스토리, 진행 바·닫기 버튼이 safe-area 를 직접 잡는다
+    route.startsWith('/recap') ||
     // 공지사항 목록(/announcements 또는 /announcements?...)만 ignoreSafeArea.
     // 상세(/announcements/:id)는 일반 헤더 사용하도록 매칭에서 제외.
     (route === '/announcements' || route.startsWith('/announcements?'))
@@ -217,6 +219,8 @@ const applyTitle = async (route: string) => {
   } else if (route.includes('/profile/myPass/') || route.includes('/profile/myRegularClass/')) {
     return '';
   }
+  // 리캡(/recap)은 일부러 분기 없음 — title 이 undefined 여야 네이티브 앱바(뒤로가기 화살표)가 안 뜬다.
+  // '' 를 주면 빈 제목 + back arrow 앱바가 생긴다. 닫기는 화면 안 X 버튼이 맡는다 (결제 완료 화면과 같은 방식)
   else return undefined
 }
 

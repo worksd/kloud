@@ -17,10 +17,14 @@ import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { UserType } from "@/entities/user/user.type";
 import { Locale } from "@/shared/StringResource";
 import { has, formatEndDate, formatPhone, formatRelativeStart, ddayLabel } from "@/app/profile/profile.format";
+import { recapMock } from "@/app/recap/recap.mock";
+import { cookies } from "next/headers";
+import { studioKey } from "@/shared/cookies.key";
 
 export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale: Locale }) => {
   const upcoming = user.upcomingLesson;
   const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
+  const recapStudioId = Number((await cookies()).get(studioKey)?.value ?? 0) || 0;
 
   return (
     <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
@@ -60,6 +64,9 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
 
       {/* 스크롤 영역 */}
       <div className="flex-1 overflow-y-auto pb-8">
+
+      {/* 연말 리캡 다시보기 — 스튜디오 단위라 홈에서 고른 스튜디오(쿠키)가 있을 때만. TODO(2026-10-23): 리캡 API 나오면 대상 유저에게만 */}
+      {recapStudioId > 0 && <RecapReplayBanner year={recapMock.year} studioId={recapStudioId}/>}
 
       {/* 강사 인사말 + 개인수업 만들기/내 수업 — Artist 계정(또는 artistStudios 보유)에만 */}
       {(user.type === UserType.Artist || (user.artistStudios?.length ?? 0) > 0) && (
@@ -269,4 +276,36 @@ const ActivityRow = ({ route, icon, label, count }: { route: string; icon: React
       <ChevronRightIcon className="text-[#D1D6DB] shrink-0"/>
     </div>
   </NavigateClickWrapper>
+);
+
+// 연말 리캡 다시보기 배너 — 리캡 스토리와 같은 다크 + 네온 톤
+const RecapReplayBanner = ({ year, studioId }: { year: number; studioId: number }) => (
+  <section className="px-4 mb-6">
+    <NavigateClickWrapper method={'push'} route={KloudScreen.Recap(studioId)}>
+      <div
+        className="relative overflow-hidden rounded-2xl px-5 py-5 active:scale-[0.98] transition-transform duration-150"
+        style={{
+          background: 'radial-gradient(120% 140% at 0% 0%, #7C3AED 0%, transparent 55%), radial-gradient(120% 140% at 100% 100%, #EC4899 0%, transparent 55%), #0B0418',
+          boxShadow: '0 10px 30px -12px rgba(139,92,246,0.7)',
+        }}
+      >
+        <div
+          aria-hidden
+          className="absolute -right-2 -bottom-6 text-[88px] font-black leading-none text-transparent select-none"
+          style={{ WebkitTextStroke: '1px rgba(255,255,255,0.25)' }}
+        >
+          {year}
+        </div>
+        <div className="relative">
+          <div className="text-[11px] font-bold tracking-[0.14em] text-white/70">STUDIO RECAP {year}</div>
+          <div className="mt-1.5 text-[18px] font-extrabold text-white tracking-[-0.3px]">우리 스튜디오에서의 {year} 다시보기</div>
+          <div className="mt-3 inline-flex items-center gap-1 h-8 px-3.5 rounded-full text-[13px] font-bold text-white"
+               style={{ backgroundImage: 'linear-gradient(90deg, #FF3EA5, #8B5CF6, #22D3EE)' }}>
+            돌아보기
+            <ChevronRightIcon className="text-white"/>
+          </div>
+        </div>
+      </div>
+    </NavigateClickWrapper>
+  </section>
 );

@@ -72,6 +72,9 @@ export const KloudScreen = {
   /** 강사가 진행한 수업 목록 */
   ArtistLessons: '/artistLessons',
 
+  /** 연말 리캡 스토리 — 스튜디오 단위. 지금은 마이페이지 배너에서만 진입 */
+  Recap: (studioId: number) => `/recap?studioId=${studioId}`,
+
   /** 내 스튜디오 (PC 웹) */
   MyStudio: '/myStudio',
   Search: (keyword: string) => `/search?q=${encodeURIComponent(keyword)}`,
