@@ -9,6 +9,7 @@ import {
   kioskSelectedIdKey,
   localeKey,
   studioKey,
+  themeKey,
   udidKey,
   userIdKey,
 } from "@/shared/cookies.key";
@@ -25,6 +26,7 @@ const COOKIES_TO_REFRESH: Array<{ key: string; httpOnly?: boolean }> = [
   { key: studioKey },
   { key: depositorKey },
   { key: kioskSelectedIdKey },
+  { key: themeKey },
 ];
 
 // This function can be marked `async` if using `await` inside

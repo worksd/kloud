@@ -21,13 +21,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #171717;
-  }
+/* 다크 모드 — <html data-theme="dark"> 일 때만 (OS 설정은 'system' 선택 시 스크립트가 이 속성으로 바꿔 준다, src/shared/theme.ts).
+   개별 색 치환은 빌드 때 src/theme/postcss.dark.tokens.js 가 Tailwind 출력에 변수를 심어 처리하고,
+   여기서는 그 플러그인이 보지 못하는 body 기본값과 네이티브 컨트롤(스크롤바·input·select) 색만 맞춘다. */
+:root[data-theme="dark"] {
+  --background: #121316;
+  --foreground: #f2f3f5;
+  color-scheme: dark;
 }
 
 body {

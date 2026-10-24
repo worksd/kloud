@@ -7,7 +7,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { QRScannerMenu } from "@/app/profile/setting/QRScannerMenu";
 import {
-  StudioSettingFlatIcon, AccountFlatIcon, LanguageFlatIcon, NotificationFlatIcon, CouponFlatIcon,
+  StudioSettingFlatIcon, AccountFlatIcon, LanguageFlatIcon, ThemeFlatIcon, NotificationFlatIcon, CouponFlatIcon,
   VersionFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, InquiryFlatIcon, LogoutFlatIcon,
 } from "@/app/profile/setting/SettingIcons";
 
@@ -29,6 +29,9 @@ export default async function AccountSetting({
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting" icon={<LanguageFlatIcon size={24}/>}/>
+      </NavigateClickWrapper>
+      <NavigateClickWrapper method={'push'} route={KloudScreen.ThemeSetting}>
+        <MenuItem label="theme_setting" icon={<ThemeFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
       <NavigateClickWrapper method={'push'} route={KloudScreen.NotificationSetting}>
         <MenuItem label="notification_setting" icon={<NotificationFlatIcon size={24}/>}/>

@@ -1645,6 +1645,36 @@ export const StringResource = {
     jp: "言語設定",
     zh: "语言设置"
   },
+  theme_setting: {
+    ko: "화면 테마",
+    en: "Appearance",
+    jp: "画面テーマ",
+    zh: "显示主题"
+  },
+  theme_system: {
+    ko: "시스템 설정 따르기",
+    en: "Use system setting",
+    jp: "システム設定に合わせる",
+    zh: "跟随系统设置"
+  },
+  theme_light: {
+    ko: "라이트 모드",
+    en: "Light mode",
+    jp: "ライトモード",
+    zh: "浅色模式"
+  },
+  theme_dark: {
+    ko: "다크 모드",
+    en: "Dark mode",
+    jp: "ダークモード",
+    zh: "深色模式"
+  },
+  theme_system_description: {
+    ko: "기기의 화면 모드가 바뀌면 앱도 함께 바뀝니다.",
+    en: "The app follows your device's light or dark setting.",
+    jp: "端末の画面モードが変わるとアプリも一緒に変わります。",
+    zh: "应用会跟随设备的浅色/深色设置自动切换。"
+  },
   pass: {
     ko: "패스권",
     en: "Pass",

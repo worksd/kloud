@@ -26,6 +26,7 @@ export const KloudScreen = {
   SnsConnect: '/profile/setting/account/sns',
   LanguageSetting: '/profile/setting/language',
   LanguageSettingSheet: '/profile/setting/language/sheet',
+  ThemeSetting: '/profile/setting/theme',
   NotificationSetting: '/profile/setting/notification',
   CouponRegister: '/profile/setting/coupon',
   SignOut: '/profile/setting/account/signOut',

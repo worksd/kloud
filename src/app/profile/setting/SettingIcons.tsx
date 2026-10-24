@@ -46,6 +46,15 @@ export const LanguageFlatIcon = ({ className, size = 24 }: IconProps) => (
   </Frame>
 );
 
+/** 화면 테마 — 반은 밝고 반은 어두운 원(라이트/다크) + 작은 달 포인트 */
+export const ThemeFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={0.9}>
+    <circle cx="12" cy="12" r="10" fill="#E4E2FF"/>
+    <path d="M12 2a10 10 0 0 1 0 20V2Z" fill="#6B5BFF"/>
+    <path d="M9.6 8.2a3.6 3.6 0 0 0 0 7.6 4.3 4.3 0 0 1 0-7.6Z" fill="#6B5BFF"/>
+  </Frame>
+);
+
 /** 알림 설정 — 노란 종 + 짙은 종추 */
 export const NotificationFlatIcon = ({ className, size = 24 }: IconProps) => (
   <Frame size={size} className={className} k={0.9} cx={12} cy={11}>

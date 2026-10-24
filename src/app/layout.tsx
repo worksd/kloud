@@ -11,6 +11,9 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { WebShell } from "@/app/components/WebShell";
 import { translate } from "@/utils/translate";
+import { getThemePreference } from "@/utils/theme";
+import { SYSTEM_THEME_BOOT_SCRIPT, THEME_ATTR, THEME_PREF_ATTR } from "@/shared/theme";
+import { ThemeSync } from "@/app/components/ThemeSync";
 
 const paperFont = localFont({
   src: '../../public/fonts/Paperlogy-7Bold.ttf',
@@ -46,12 +49,27 @@ export default async function RootLayout({
   const showWebChrome = appVersion === '' && !entryPath.startsWith('/kiosk') && !entryPath.startsWith('/forms');
   const cookieStore = await cookies();
   const isLogin = !!cookieStore.get(accessTokenKey)?.value;
+  // 화면 테마 — 쿠키 선택값을 <html data-theme> 로 심어 첫 페인트부터 다크가 적용되게 한다 (src/shared/theme.ts).
+  // 'system' 은 서버가 OS 설정을 모르니 head 인라인 스크립트가 hydration 전에 결정하고, ThemeSync 가 이후 변경을 듣는다.
+  // 스크립트/ThemeSync 가 <html> 속성을 바꾸므로 suppressHydrationWarning.
+  const themePref = await getThemePreference();
+  const htmlThemeAttrs = {
+    [THEME_PREF_ATTR]: themePref,
+    ...(themePref === 'dark' ? { [THEME_ATTR]: 'dark' } : {}),
+  };
 
   return (
 
-    <html lang="en" className={`${paperFont.variable}`}>
-    <body style={{backgroundColor: "white", color: "white"}}>
+    <html lang="en" className={`${paperFont.variable}`} suppressHydrationWarning {...htmlThemeAttrs}>
+    {themePref === 'system' && (
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SYSTEM_THEME_BOOT_SCRIPT }} />
+      </head>
+    )}
+    {/* 배경·글자색은 인라인이 아니라 클래스로 — 인라인 스타일은 PostCSS(다크 토큰) 를 거치지 않아 다크에서 흰 바닥이 남는다 */}
+    <body className="bg-white text-white">
     <GlobalErrorHandler />
+    <ThemeSync preference={themePref} />
     {/* 전역 토스트 — showToast() 호출부가 어디든 여기서 그린다 */}
     <ToastHost />
     {/* PC 웹(≥lg, 앱 웹뷰/키오스크 제외) 공통 크롬 — 상단바 + 유튜브식 LNB(레일/드로어).
