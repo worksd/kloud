@@ -4960,11 +4960,11 @@ export const StringResource = {
   regular_class_view_all: { ko: '정규반 전체보기', en: 'View all classes', jp: 'クラスをすべて見る', zh: '查看全部常规班' },
   select_enroll_option: { ko: '수강 방식 선택', en: 'Choose an option', jp: '受講プランを選択', zh: '选择上课方式' },
   regular_class_artist: { ko: '담당 강사', en: 'Instructor', jp: '担当講師', zh: '授课讲师' },
-  regular_class_starts_today: { ko: '오늘부터 바로 시작합니다', en: 'Starts today', jp: '今日からすぐ始まります', zh: '今天即可开始' },
-  regular_class_starts_tomorrow: { ko: '내일({date})부터 바로 시작합니다', en: 'Starts tomorrow ({date})', jp: '明日({date})から始まります', zh: '明天({date})开始' },
-  regular_class_starts_on: { ko: '{day}({date})부터 시작합니다', en: 'Starts {day} ({date})', jp: '{day}({date})から始まります', zh: '{day}({date})开始' },
+  regular_class_starts_today: { ko: '오늘 수업부터 바로 등록돼요', en: "You'll be enrolled from today's class", jp: '今日のレッスンからすぐ登録されます', zh: '将从今天的课程开始报名' },
+  regular_class_starts_tomorrow: { ko: '내일({date}) 수업부터 등록돼요', en: "You'll be enrolled from tomorrow ({date})", jp: '明日({date})のレッスンから登録されます', zh: '将从明天({date})的课程开始报名' },
+  regular_class_starts_on: { ko: '{day}({date}) 수업부터 등록돼요', en: "You'll be enrolled from the class on {day} ({date})", jp: '{day}({date})のレッスンから登録されます', zh: '将从{day}({date})的课程开始报名' },
   regular_class_notice: { ko: '{name} 안내사항', en: '{name} notice', jp: '{name} ご案内', zh: '{name} 须知' },
-  pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
+  pass_starts_on: { ko: '{date} 수업부터 등록돼요', en: "You'll be enrolled from the class on {date}", jp: '{date}のレッスンから登録されます', zh: '将从{date}的课程开始报名' },
   // 닉네임 실시간 중복검사 — 입력칸 아래 빨간 안내. ko 는 {nickName} 자리에 '홍길동은/는' 처럼 조사까지 붙여 넘긴다(withTopicParticle)
   nick_name_already_exists_inline: { ko: '{nickName} 이미 존재하는 닉네임입니다', en: '"{nickName}" is already taken', jp: '「{nickName}」はすでに使われています', zh: '“{nickName}”已被使用' },
   // 닉네임 실시간 중복검사 통과 — 입력칸 아래 초록 안내

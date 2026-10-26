@@ -8,7 +8,7 @@ import { formatRelativeLessonDate } from "@/utils/lesson.relative.date";
 
 /**
  * 정규반 결제 — 고른 방식으로 결제하면 처음 듣게 되는 회차(pricePolicies[].nextLesson) 카드.
- * 상단 줄은 시작 안내 문구(label, '다음주 목요일(10.30)부터 시작합니다')이고 그 아래가 회차 정보 — 안내 배너와 카드를 하나로 합친 형태.
+ * 상단 줄은 시작 안내 문구(label, '다음주 목요일(10.30) 수업부터 등록돼요')이고 그 아래가 회차 정보 — 안내 배너와 카드를 하나로 합친 형태.
  * 서버 값(휴강·취소 반영)이라 nextLesson 의 필드를 전부 그린다:
  *  - thumbnailUrl : 좌측 썸네일(없으면 회색 빈 박스)
  *  - title        : 회차 제목(빈 문자열이면 '첫 수업' 라벨만)

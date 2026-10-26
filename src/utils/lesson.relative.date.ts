@@ -105,6 +105,10 @@ export const formatRelativeDay = (d: Date, locale: Locale): string => {
 export const dayDiffFromToday = (d: Date): number =>
   Math.round((startOfDay(d).getTime() - startOfDay(new Date()).getTime()) / 86400000);
 
+/** 이번 주(월요일 시작)로부터 몇 주 뒤인지 — 0 이번주, 1 다음주 (기기 로컬 날짜 기준) */
+export const weekDiffFromToday = (d: Date): number =>
+  Math.round((mondayOf(d).getTime() - mondayOf(new Date()).getTime()) / (7 * 86400000));
+
 // 수업 시각 → 상대 날짜 + 시각. 오늘/내일/모레 · 이번 주/다음 주 요일 · 그 외 날짜.
 export const formatRelativeLessonDate = (lesson: LessonWhen, locale: Locale): string => {
   const d = parseLessonWallClock(lesson);

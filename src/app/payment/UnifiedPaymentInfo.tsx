@@ -18,7 +18,7 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { firstLessonDate } from "@/utils/weekly.days";
-import { dayDiffFromToday, formatRelativeDay } from "@/utils/lesson.relative.date";
+import { dayDiffFromToday, formatRelativeDay, weekDiffFromToday } from "@/utils/lesson.relative.date";
 
 type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
@@ -144,13 +144,23 @@ const emphasizeWhen = (template: string, day: string | undefined, date: string) 
 
 /**
  * 첫 수업 시작 안내 문구 — 정규반·수업 결제 공용.
- * 오늘 → '오늘부터 바로 시작합니다' / 내일 → '내일(9.23)부터 바로 시작합니다' / 그 뒤 → '이번주 목요일(9.24)부터 시작합니다'.
- * first 가 없으면(남은 회차 없음 등) fallbackDate 로 '{date}부터 시작'.
+ * 오늘 → '오늘 수업부터 바로 등록돼요' / 내일 → '내일(9.23) 수업부터 등록돼요' / 그 뒤 → '이번주 목요일(9.24) 수업부터 등록돼요'.
+ * first 가 없으면(남은 회차 없음 등) fallbackDate 의 일자로 '30일 수업부터 등록돼요'(en 은 'Oct 30'). 파싱 안 되면 원문 그대로.
  */
 const startNoticeLabel = (first: Date | null, fallbackDate: string, locale: Locale) => {
-  if (!first) return emphasizeWhen(getLocaleString({ locale, key: 'pass_starts_on' }), undefined, fallbackDate);
+  if (!first) {
+    const d = firstLessonDate(fallbackDate, undefined);
+    const day = d
+      ? { ko: `${d.getDate()}일`, jp: `${d.getDate()}日`, zh: `${d.getDate()}日`, en: new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(d) }[locale]
+      : fallbackDate;
+    return emphasizeWhen(getLocaleString({ locale, key: 'pass_starts_on' }), undefined, day);
+  }
   const diff = dayDiffFromToday(first);
   if (diff <= 0) return getLocaleString({ locale, key: 'regular_class_starts_today' });
+  // 다다음주 이후는 formatRelativeDay 가 이미 '11월 12일 (목)' 절대 날짜라 ({date}) 를 또 붙이면 날짜가 두 번 — 괄호 없는 템플릿으로
+  if (weekDiffFromToday(first) >= 2) {
+    return emphasizeWhen(getLocaleString({ locale, key: 'pass_starts_on' }), undefined, formatRelativeDay(first, locale));
+  }
   const md = `${first.getMonth() + 1}.${first.getDate()}`;
   return emphasizeWhen(
     getLocaleString({ locale, key: diff === 1 ? 'regular_class_starts_tomorrow' : 'regular_class_starts_on' }),
