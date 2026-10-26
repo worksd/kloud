@@ -295,16 +295,6 @@ export async function createDialog({id, message, title, customData}: {
       cancelTitle: await translate('cancel'),
       customData,
     }
-  } else if (id == 'PostponeTicket') {
-    return {
-      id: 'PostponeTicket',
-      type: 'YESORNO',
-      title: await translate('postpone_ticket_title'),
-      message: message ?? await translate('postpone_ticket_message'),
-      confirmTitle: await translate('confirm'),
-      cancelTitle: await translate('cancel'),
-      customData,
-    }
   } else if (id == 'ConfirmAttendance') {
     return {
       id: 'ConfirmAttendance',
@@ -361,7 +351,6 @@ export type DialogId =
   | 'ChangePhoneNumber'
   | 'CancelTicket'
   | 'AttendTicket'
-  | 'PostponeTicket'
   | 'ConfirmAttendance'
   | 'HomeAlert'
   | 'CancelRoomBooking'

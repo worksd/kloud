@@ -5,29 +5,43 @@ import React from "react";
 import { translate } from "@/utils/translate";
 import { Locale } from "@/shared/StringResource";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
+import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/RegularClassHeaderInfo";
 import { RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
+import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
+import { RegularClassTopBar, TOP_BAR_SPACE } from "@/app/profile/myRegularClass/[id]/RegularClassTopBar";
 
-export const MyRegularClassDetailForm = async ({ pass, locale }: { pass: GetPassResponse; locale: Locale }) => (
-  <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
-    {/* 노치 가리개 — 페이지가 ignoreSafeArea. 이미지가 없는 화면이라 패스 상세의 '이미지 없음' 여백과 동일 */}
-    <div className="w-full" style={{ paddingTop: 'calc(env(safe-area-inset-top, 44px) + 88px)' }}/>
+export const MyRegularClassDetailForm = async ({ pass, regularClass, locale }: { pass: GetPassResponse; regularClass: RegularClassDetailResponse | null; locale: Locale }) => (
+  <RescheduleScope pass={pass} regularClass={regularClass} locale={locale}>
+    <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
+      {/* ignoreSafeArea + 네이티브 앱바 없음 — 상태바(최소 44px 보장) + 뒤로가기·⋮ 줄은 화면이 직접 그린다 */}
+      <RegularClassTopBar overImage={!!regularClass?.imageUrl}/>
+      {/* 반 이미지(정규반 상세 imageUrl)가 있으면 상태바까지 풀블리드 히어로, 없으면 버튼 줄만큼 비운다 — 패스 상세와 같은 방식 */}
+      {regularClass?.imageUrl ? (
+        <div className="w-full aspect-[4/3] bg-[#F1F3F6]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={regularClass.imageUrl} alt="" className="w-full h-full object-cover"/>
+        </div>
+      ) : (
+        <div className="w-full" style={{ paddingTop: TOP_BAR_SPACE }}/>
+      )}
 
-    <div className="px-6 pt-5 pb-4">
-      <RegularClassHeaderInfo pass={pass} locale={locale} variant="mobile"/>
-    </div>
-
-    {/* Waiting — 시작 예정 안내 (패스 상세와 동일) */}
-    {pass.status === 'Waiting' && pass.startDate && (
-      <div className="mx-6 mb-2 p-4 bg-[#FFFDF5] rounded-xl border border-[#F59E0B]/20">
-        <span className="text-[#F59E0B] font-semibold text-sm">{pass.startDate} {await translate('waiting_pass_start_date')}</span>
+      <div className="px-6 pt-5 pb-4">
+        <RegularClassHeaderInfo pass={pass} regularClass={regularClass} locale={locale} variant="mobile"/>
       </div>
-    )}
 
-    <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-6 pb-20">
-      <h2 className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-4">{await translate('regular_class_lessons')}</h2>
-      <RegularClassLessonList tickets={collectRegularClassTickets(pass)} locale={locale}/>
+      {/* Waiting — 시작 예정 안내 (패스 상세와 동일) */}
+      {pass.status === 'Waiting' && pass.startDate && (
+        <div className="mx-6 mb-2 p-4 bg-[#FFFDF5] rounded-xl border border-[#F59E0B]/20">
+          <span className="text-[#F59E0B] font-semibold text-sm">{pass.startDate} {await translate('waiting_pass_start_date')}</span>
+        </div>
+      )}
+
+      <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-6 pb-20">
+        <h2 className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-4">{await translate('regular_class_lessons')}</h2>
+        <RegularClassLessonList tickets={collectRegularClassTickets(pass)} locale={locale}/>
+      </div>
     </div>
-  </div>
+  </RescheduleScope>
 );

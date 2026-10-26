@@ -107,7 +107,7 @@ export function LessonSettingsForm({ initial, studioName }: { initial: BusinessS
             onChange={setTicketAutoUse}
           />
         </Field>
-        <Field label={'수업 미루기 허용 횟수'} hint={'결제 1건당 수강생이 다음 회차로 미룰 수 있는 횟수. 0이면 허용 안 함'}>
+        <Field label={'수업 일정 변경 허용 횟수'} hint={'결제 1건당 수강생이 다음 회차로 수업 일정을 변경할 수 있는 횟수. 0이면 허용 안 함'}>
           <NumberInput value={postponeLimit} onChange={setPostponeLimit} placeholder={'0'} suffix={'회'}/>
         </Field>
         <Toggle label={'미납 수강 허용'} desc={'수강권을 다 쓴 뒤에도 결제 전에 수업을 들을 수 있어요'} checked={unpaidEnabled} onChange={setUnpaidEnabled}/>

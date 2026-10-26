@@ -67,7 +67,7 @@ export const MyRegularClassCard = ({ item, locale, variant = 'mobile' }: {
   const thumb = pc ? 'w-14 h-14' : 'w-[52px] h-[52px]';
 
   return (
-    <NavigateClickWrapper method="push" route={KloudScreen.MyRegularClassDetail(item.id)}>
+    <NavigateClickWrapper method="push" route={KloudScreen.MyRegularClassDetail(item.id, rc?.id)}>
       <div className={`${shell} ${isActive ? '' : 'opacity-60'}`}>
         {thumbUrl ? (
           <div className={`relative ${thumb} rounded-[14px] overflow-hidden shrink-0 ${isActive ? '' : 'grayscale'}`}>
@@ -92,7 +92,9 @@ export const MyRegularClassCard = ({ item, locale, variant = 'mobile' }: {
           </span>
         )}
         {isUnpaid && (
-          <span className="shrink-0 px-2 py-[3px] rounded-[6px] bg-[#FFF8EC] text-[#A05A00] text-[11px] font-bold tracking-[-0.1px] whitespace-nowrap">
+          // 미납 — 칩 대신 빨간 점 + 글자만 (상태 표시등처럼 조용하게)
+          <span className="shrink-0 inline-flex items-center gap-1 text-[12px] font-bold text-[#E55B5B] whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#E55B5B]"/>
             {getLocaleString({ locale, key: 'pass_status_unpaid' })}
           </span>
         )}

@@ -80,7 +80,6 @@ export class ApiClient extends EndpointClient {
     checkDuplicate: this.endpointBuilder(API.Ticket.CheckDuplicateTicket),
     delete: this.endpointBuilder(API.Ticket.DeleteTicket),
     toUsed: this.endpointBuilder(API.Ticket.ToUsed),
-    postpone: this.endpointBuilder(API.Ticket.PostponeTicket),
   }
 
   readonly question = {

@@ -10,7 +10,7 @@ import { getLocaleString } from "@/app/components/locale";
  *
  * 정렬은 서버가 lessonCount 오름차순으로 보장하므로 여기서 재정렬하지 않는다.
  * 할인율·정가·배지는 2026-08-08 계약 변경으로 삭제됐다 — 표시하지 않는다.
- * 회당가격('회당 ○○원')과 방식 요일('매주 월·수')도 2026-10-21 부터 카드에서 뺐다 — 이름·총액·사유·미루기 한도만 남긴다.
+ * 회당가격('회당 ○○원')과 방식 요일('매주 월·수')도 2026-10-21 부터 카드에서 뺐다 — 이름·총액·사유·수업 일정 변경 한도만 남긴다.
  */
 export const PricePolicySection = ({
   locale,
@@ -99,7 +99,7 @@ export const PricePolicySection = ({
                 </div>
               )}
 
-              {/* 미루기 한도는 선택된 옵션에서만 펼친다 — 접힌 카드가 조용해야 비교가 쉽다 */}
+              {/* 수업 일정 변경 한도는 선택된 옵션에서만 펼친다 — 접힌 카드가 조용해야 비교가 쉽다 */}
               {isSelected && policy.postponeLimit != null && (
                 <div className="mt-3 pt-3 border-t border-white/15 flex items-center justify-end">
                   <span className="text-[11px] font-medium text-white/60">

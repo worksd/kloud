@@ -3798,75 +3798,12 @@ export const StringResource = {
     jp: '割引額',
     zh: '优惠金额'
   },
-  // 회차 미루기 (POST /tickets/:id/postpone)
-  postpone_ticket: {
-    ko: '미루기',
-    en: 'Postpone',
-    jp: '延期',
-    zh: '延期'
-  },
-  postpone_ticket_title: {
-    ko: '다음 회차로 미룰까요?',
-    en: 'Postpone to the next session?',
-    jp: '次の回に延期しますか？',
-    zh: '要延期到下一节课吗？'
-  },
-  postpone_ticket_message: {
-    ko: '이번 회차 수강권이 다음 회차로 옮겨져요. 미룰 수 있는 횟수는 정해져 있어요.',
-    en: 'This session will be moved to the next one. The number of postponements is limited.',
-    jp: '今回の受講券が次の回に移ります。延期できる回数には制限があります。',
-    zh: '本次课程将移至下一节课。延期次数有限。'
-  },
-  postpone_ticket_success: {
-    ko: '다음 회차로 옮겼어요',
-    en: 'Moved to the next session',
-    jp: '次の回に移しました',
-    zh: '已移至下一节课'
-  },
-  /** {count} 자리에 남은 미루기 횟수를 치환한다. */
-  postpone_ticket_success_remaining: {
-    ko: '다음 회차로 옮겼어요. 앞으로 {count}번 더 미룰 수 있어요.',
-    en: 'Moved to the next session. You can postpone {count} more time(s).',
-    jp: '次の回に移しました。あと{count}回延期できます。',
-    zh: '已移至下一节课。还可延期{count}次。'
-  },
-  // 미루기 실패 — BE 에러 코드별 안내
-  postpone_error_not_allowed: {
-    ko: '이 수강권은 회차를 미룰 수 없어요',
-    en: 'This ticket cannot be postponed',
-    jp: 'この受講券は延期できません',
-    zh: '该课程券无法延期'
-  },
-  postpone_error_too_late: {
-    ko: '이미 시작한 회차는 미룰 수 없어요',
-    en: 'A session that has already started cannot be postponed',
-    jp: 'すでに始まった回は延期できません',
-    zh: '已开始的课程无法延期'
-  },
-  postpone_error_limit_exceeded: {
-    ko: '미룰 수 있는 횟수를 모두 썼어요',
-    en: "You've used all your postponements",
-    jp: '延期できる回数をすべて使いました',
-    zh: '延期次数已用完'
-  },
-  postpone_error_no_slot: {
-    ko: '옮길 수 있는 다음 회차가 없어요',
-    en: 'There is no next session to move to',
-    jp: '移せる次の回がありません',
-    zh: '没有可移动的下一节课'
-  },
-  postpone_error_unknown: {
-    ko: '회차를 미루지 못했어요. 잠시 후 다시 시도해주세요',
-    en: 'Could not postpone. Please try again shortly',
-    jp: '延期できませんでした。しばらくしてからもう一度お試しください',
-    zh: '延期失败，请稍后重试'
-  },
-  /** 가격 정책의 postponeLimit — {count} 자리에 미룰 수 있는 횟수를 치환한다. */
+  /** 가격 정책의 postponeLimit — {count} 자리에 수업 일정 변경 가능 횟수를 치환한다. */
   postpone_limit_notice: {
-    ko: '미루기 {count}회 가능',
-    en: 'Postpone up to {count}×',
-    jp: '{count}回まで延期可',
-    zh: '可延期{count}次'
+    ko: '수업 일정 변경 {count}회 가능',
+    en: 'Reschedule up to {count}×',
+    jp: '{count}回まで日程変更可',
+    zh: '可改期{count}次'
   },
   /** {days} 자리에 유효기간 일수를 치환해서 사용한다. */
   valid_for_days: {
@@ -4980,6 +4917,31 @@ export const StringResource = {
   attendance_upcoming: { ko: '예정', en: 'Upcoming', jp: '予定', zh: '待上课' },
   attendance_attended: { ko: '출석', en: 'Attended', jp: '出席', zh: '已出席' },
   regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
+  // 내 정규반 상세 — 수업 일정 변경 (지금은 목, reschedule.mock.ts)
+  regular_class_reschedule_menu: { ko: '더보기', en: 'More', jp: 'その他', zh: '更多' },
+  regular_class_reschedule_action: { ko: '수업 일정 변경하기', en: 'Reschedule a lesson', jp: 'レッスン日程を変更', zh: '课程改期' },
+  regular_class_reschedule_history: { ko: '수업 일정 변경 이력', en: 'Reschedule history', jp: '日程変更履歴', zh: '改期记录' },
+  regular_class_reschedule_history_empty: { ko: '아직 변경한 수업이 없어요', en: 'No rescheduled lessons yet', jp: 'まだ変更したレッスンはありません', zh: '暂无改期记录' },
+  /** {date} 자리에 'M.d' */
+  regular_class_reschedule_changed_at: { ko: '{date} 변경', en: 'Changed {date}', jp: '{date} 変更', zh: '{date} 改期' },
+  regular_class_reschedule_select_title: { ko: '일정을 변경할 수업을 골라주세요', en: 'Choose a lesson to reschedule', jp: '日程を変更するレッスンを選んでください', zh: '请选择要改期的课程' },
+  regular_class_reschedule_select_desc: { ko: '새 수업은 내 마지막 수업 다음, 가장 가까운 반 요일에 같은 시간으로 잡혀요', en: 'The new lesson is set on the nearest class day after your last lesson, at the same time', jp: '新しいレッスンは最後のレッスンの次、いちばん近いクラスの曜日に同じ時間で入ります', zh: '新课程将安排在您最后一节课之后最近的上课日，时间不变' },
+  regular_class_reschedule_no_target: { ko: '변경할 수 있는 수업이 없어요', en: 'No lessons can be rescheduled', jp: '変更できるレッスンがありません', zh: '没有可改期的课程' },
+  regular_class_reschedule_from: { ko: '기존 수업', en: 'Current', jp: '元のレッスン', zh: '原课程' },
+  regular_class_reschedule_to: { ko: '새 수업 일정', en: 'New schedule', jp: '新しい日程', zh: '新时间' },
+  regular_class_reschedule_after_end: { ko: '이용 기간 이후의 수업이에요', en: 'This lesson is after your class period ends', jp: '利用期間後のレッスンです', zh: '该课程在有效期之后' },
+  regular_class_reschedule_irreversible: { ko: '변경 후에는 되돌릴 수 없어요', en: "This can't be undone", jp: '変更後は元に戻せません', zh: '改期后无法撤销' },
+  regular_class_reschedule_changed: { ko: '변경됨', en: 'Rescheduled', jp: '変更済み', zh: '已改期' },
+  regular_class_reschedule_new: { ko: '새 일정', en: 'New', jp: '新しい日程', zh: '新时间' },
+  /** {count} 자리에 남은 일정 변경 횟수 */
+  regular_class_reschedule_remaining: { ko: '남은 수업 일정 변경 {count}회', en: '{count} reschedule(s) left', jp: '残りの日程変更 {count}回', zh: '剩余改期次数 {count}次' },
+  /** {count} 자리에 남은 일정 변경 횟수 */
+  regular_class_reschedule_success: { ko: '수업 일정을 변경했어요\n앞으로 {count}번 더 변경할 수 있어요', en: 'Lesson rescheduled\nYou can reschedule {count} more time(s)', jp: '日程を変更しました\nあと{count}回変更できます', zh: '已改期\n还可改期{count}次' },
+  regular_class_reschedule_error_not_allowed: { ko: '이 수강권은 수업 일정을 변경할 수 없어요', en: 'This ticket cannot be rescheduled', jp: 'この受講券は日程変更できません', zh: '该课程券无法改期' },
+  regular_class_reschedule_error_too_late: { ko: '이미 시작한 수업은 일정을 변경할 수 없어요', en: 'A lesson that has already started cannot be rescheduled', jp: 'すでに始まったレッスンは日程変更できません', zh: '已开始的课程无法改期' },
+  regular_class_reschedule_error_limit_exceeded: { ko: '수업 일정 변경 횟수를 모두 썼어요', en: "You've used all your reschedules", jp: '日程変更できる回数をすべて使いました', zh: '改期次数已用完' },
+  regular_class_reschedule_error_no_slot: { ko: '변경할 수 있는 다음 회차가 없어요', en: 'There is no next session to reschedule to', jp: '変更できる次の回がありません', zh: '没有可改期的下一节课' },
+  regular_class_reschedule_error_unknown: { ko: '수업 일정을 변경하지 못했어요. 잠시 후 다시 시도해주세요', en: 'Could not reschedule. Please try again shortly', jp: '日程を変更できませんでした。しばらくしてからもう一度お試しください', zh: '改期失败，请稍后重试' },
   my_regular_classes: { ko: '내 정규반', en: 'My regular classes', jp: 'マイレギュラークラス', zh: '我的常规班' },
   studio_regular_classes: { ko: '정규반', en: 'Regular classes', jp: 'レギュラークラス', zh: '常规班' },
   payment_title_lesson: { ko: '수업 신청하기', en: 'Book a Class', jp: 'レッスン申込', zh: '报名课程' },

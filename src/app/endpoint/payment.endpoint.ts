@@ -81,7 +81,7 @@ export type LessonPricePolicyResponse = {
   description?: string;
   /** 기본 선택 대상. 한 수업에서 하나만 true. 없으면 회차 수 오름차순 첫 번째가 기본 선택된다. */
   isRecommended?: boolean;
-  /** 결제 1건 기준으로 회차를 미룰 수 있는 횟수. 없으면 학원 기본값을 따른다. */
+  /** 결제 1건 기준으로 수업 일정을 다음 회차로 변경할 수 있는 횟수. 없으면 학원 기본값을 따른다. */
   postponeLimit?: number;
   /** 판매 상태. Cancelled면 결제 화면에서 제외. */
   status?: LessonPricePolicyStatus;
