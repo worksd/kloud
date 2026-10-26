@@ -10,9 +10,17 @@ import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/Regula
 import { RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
 import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
+import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
+import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
 import { RegularClassTopBar, TOP_BAR_SPACE } from "@/app/profile/myRegularClass/[id]/RegularClassTopBar";
 
-export const MyRegularClassDetailForm = async ({ pass, regularClass, locale }: { pass: GetPassResponse; regularClass: RegularClassDetailResponse | null; locale: Locale }) => (
+export const MyRegularClassDetailForm = async ({ pass, regularClass, unpaid, locale }: {
+  pass: GetPassResponse;
+  regularClass: RegularClassDetailResponse | null;
+  /** 미납이면 안내 카드 — 없으면 null */
+  unpaid: UnpaidInfo | null;
+  locale: Locale;
+}) => (
   <RescheduleScope pass={pass} regularClass={regularClass} locale={locale}>
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
       {/* ignoreSafeArea + 네이티브 앱바 없음 — 상태바(최소 44px 보장) + 뒤로가기·⋮ 줄은 화면이 직접 그린다 */}
@@ -30,6 +38,13 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, locale }: {
       <div className="px-6 pt-5 pb-4">
         <RegularClassHeaderInfo pass={pass} regularClass={regularClass} locale={locale} variant="mobile"/>
       </div>
+
+      {/* 미납 안내 — 헤더 바로 아래, 결제하기로 결제 페이지 */}
+      {unpaid && (
+        <div className="px-6 pb-4">
+          <RegularClassUnpaidCard info={unpaid} locale={locale}/>
+        </div>
+      )}
 
       {/* Waiting — 시작 예정 안내 (패스 상세와 동일) */}
       {pass.status === 'Waiting' && pass.startDate && (

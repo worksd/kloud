@@ -4917,6 +4917,11 @@ export const StringResource = {
   attendance_upcoming: { ko: '예정', en: 'Upcoming', jp: '予定', zh: '待上课' },
   attendance_attended: { ko: '출석', en: 'Attended', jp: '出席', zh: '已出席' },
   regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
+  // 내 정규반 상세 — 미납 안내 (지금은 목, unpaid.mock.ts)
+  regular_class_unpaid_title: { ko: '이번 수강료가 아직 결제되지 않았어요', en: "This period hasn't been paid yet", jp: '今回の受講料がまだ支払われていません', zh: '本期学费尚未支付' },
+  /** {date} 자리에 'M.d(요일)' */
+  regular_class_unpaid_due: { ko: '{date}까지 결제하지 않으면 수업 이용이 멈춰요', en: 'Pay by {date} to keep attending', jp: '{date}までにお支払いがないとレッスンが利用できなくなります', zh: '请在{date}前支付，否则将暂停上课' },
+  regular_class_unpaid_pay: { ko: '결제하기', en: 'Pay now', jp: '支払う', zh: '去支付' },
   // 내 정규반 상세 — 수업 일정 변경 (지금은 목, reschedule.mock.ts)
   regular_class_reschedule_menu: { ko: '더보기', en: 'More', jp: 'その他', zh: '更多' },
   regular_class_reschedule_action: { ko: '수업 일정 변경하기', en: 'Reschedule a lesson', jp: 'レッスン日程を変更', zh: '课程改期' },

@@ -8,15 +8,25 @@ import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/RegularClassHeaderInfo";
 import { RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
+import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
+import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
 
-export const MyRegularClassDetailPcForm = async ({ pass, regularClass, locale }: { pass: GetPassResponse; regularClass: RegularClassDetailResponse | null; locale: Locale }) => (
+export const MyRegularClassDetailPcForm = async ({ pass, regularClass, unpaid, locale }: {
+  pass: GetPassResponse;
+  regularClass: RegularClassDetailResponse | null;
+  /** 미납이면 안내 카드 — 없으면 null */
+  unpaid: UnpaidInfo | null;
+  locale: Locale;
+}) => (
   <RescheduleScope pass={pass} regularClass={regularClass} locale={locale}>
     <div className="w-full min-h-screen bg-[#f9f9fb] pt-12 pb-24">
       <div className="mx-auto w-full max-w-[680px] px-8 flex flex-col gap-4">
         <header className="rounded-2xl border border-[#f0f1f3] p-6" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
           <RegularClassHeaderInfo pass={pass} regularClass={regularClass} locale={locale} variant="pc"/>
         </header>
+
+        {unpaid && <RegularClassUnpaidCard info={unpaid} locale={locale}/>}
 
         {pass.status === 'Waiting' && pass.startDate && (
           <section className="p-5 bg-[#FFFDF5] rounded-2xl border border-[#F59E0B]/20">
