@@ -83,6 +83,26 @@ export const ListTickets: Endpoint<ListTicketsParameter, TicketListResponse> = {
   queryParams: ['page'],
 };
 
+export type MyTicketListResponse = {
+  tickets: TicketResponse[];
+  /** 전체 페이지 수(20개 단위) — page 를 보낼 때만 온다 */
+  totalPage?: number;
+};
+
+export type ListRegularClassTicketsParameter = {
+  id: number;
+  /** upcoming 시작 전 이른 순 · past 시작한 회차 최근 순 · 생략 시 최근 발급순 */
+  type?: 'upcoming' | 'past';
+  page?: number;
+};
+
+// GET /regular-classes/:id/tickets — 그 정규반에서 내가 받은 수강권(패스·단건 결제 모두, 취소 제외). lesson.artists[0] 이 메인 강사
+export const ListRegularClassTickets: Endpoint<ListRegularClassTicketsParameter, MyTicketListResponse> = {
+  method: 'get',
+  path: (e) => `/regular-classes/${e.id}/tickets`,
+  queryParams: ['type', 'page'],
+};
+
 export const GetTicket: Endpoint<GetTicketParameter, TicketResponse> = {
   method: 'get',
   path: (e) => `/tickets/${e.id}`,

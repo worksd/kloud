@@ -7,16 +7,18 @@ import { Locale } from "@/shared/StringResource";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/RegularClassHeaderInfo";
-import { RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
+import { RegularClassHistoryData, RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
 import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
 import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
 import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
 import { RegularClassTopBar, TOP_BAR_SPACE } from "@/app/profile/myRegularClass/[id]/RegularClassTopBar";
 
-export const MyRegularClassDetailForm = async ({ pass, regularClass, unpaid, locale }: {
+export const MyRegularClassDetailForm = async ({ pass, regularClass, history, unpaid, locale }: {
   pass: GetPassResponse;
   regularClass: RegularClassDetailResponse | null;
+  /** 이 반 수강 내역 첫 페이지 — 못 받으면 null(pass 의 지난 수업으로 폴백) */
+  history: RegularClassHistoryData | null;
   /** 미납이면 안내 카드 — 없으면 null */
   unpaid: UnpaidInfo | null;
   locale: Locale;
@@ -55,7 +57,7 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, unpaid, loc
 
       <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-6 pb-20">
         <h2 className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-4">{await translate('regular_class_lessons')}</h2>
-        <RegularClassLessonList tickets={collectRegularClassTickets(pass)} locale={locale}/>
+        <RegularClassLessonList tickets={collectRegularClassTickets(pass)} history={history} locale={locale}/>
       </div>
     </div>
   </RescheduleScope>

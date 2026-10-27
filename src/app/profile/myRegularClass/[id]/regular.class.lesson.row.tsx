@@ -40,11 +40,13 @@ export const chipClass: Record<Kind, string> = {
 };
 export const chipBase = 'shrink-0 px-2 py-[3px] rounded-[6px] text-[11px] font-bold tracking-[-0.1px] whitespace-nowrap';
 
-export const LessonRow = ({ title, startDate, endDate, roomName, locale, isPast, route, chip }: {
+export const LessonRow = ({ title, startDate, endDate, roomName, artistName, locale, isPast, route, chip }: {
   title: string;
   startDate?: string;
   endDate?: string;
   roomName?: string;
+  /** 메인 강사 이름 (수강 내역 행) */
+  artistName?: string;
   locale: Locale;
   isPast: boolean;
   /** 있으면 탭해서 이동 (수강권 상세) */
@@ -53,7 +55,7 @@ export const LessonRow = ({ title, startDate, endDate, roomName, locale, isPast,
 }) => {
   const p = parts(startDate);
   const end = parts(endDate)?.time;
-  const sub = [p?.time && (end ? `${p.time} ~ ${end}` : p.time), roomName].filter(Boolean).join(' · ');
+  const sub = [p?.time && (end ? `${p.time} ~ ${end}` : p.time), roomName, artistName].filter(Boolean).join(' · ');
   const wd = (WEEKDAYS[locale] ?? WEEKDAYS.en)[p?.weekday ?? 0];
 
   const row = (
@@ -72,3 +74,14 @@ export const LessonRow = ({ title, startDate, endDate, roomName, locale, isPast,
   );
   return route ? <NavigateClickWrapper method="push" route={route}>{row}</NavigateClickWrapper> : row;
 };
+
+/** 목록 섹션 — 제목 + (알면) 개수 */
+export const LessonSection = ({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) => (
+  <section>
+    <div className="flex items-baseline gap-2 mb-1">
+      <h3 className="text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{title}</h3>
+      {count != null && <span className="text-[12.5px] font-semibold text-[#B0B8C1] font-paperlogy">{count}</span>}
+    </div>
+    <div className="flex flex-col divide-y divide-[#F2F4F6]">{children}</div>
+  </section>
+);
