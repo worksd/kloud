@@ -15,6 +15,7 @@ import {KloudScreen} from "@/shared/kloud.screen";
 import ArrowDownIcon from "../../../public/assets/arrow-down.svg";
 import {FcmTokenRequester} from "@/app/home/FcmTokenRequester";
 import {HomeAlerts} from "@/app/home/HomeAlerts";
+import {HomeUnpaidDialog} from "@/app/home/HomeUnpaidDialog";
 import {cookies} from "next/headers";
 import {studioKey} from "@/shared/cookies.key";
 import {StudioCookieSetter} from "@/app/home/StudioCookieSetter";
@@ -55,6 +56,7 @@ export default async function Home({
     // 통합 응답({bands}) → 평면 구조로 — 기존 화면 로직은 그대로 쓴다
     const home = parseHomeBands(res);
     const studio = home.myStudio?.studio;
+    const hasUnpaid = home.unpaidPaymentRecords.length > 0;
     const firstThumb = home.myStudio?.jumbotrons?.[0]?.thumbnailUrl
       ?? home.myStudio?.bands?.flatMap(b => b.lessons)?.find(l => l.thumbnailUrl)?.thumbnailUrl
       ?? '';
@@ -66,8 +68,10 @@ export default async function Home({
           {!hasStudioCookie && home.myStudio?.studio?.id && (
             <StudioCookieSetter studioId={home.myStudio.studio.id} />
           )}
-          {home.alerts.length > 0 && <HomeAlerts alerts={home.alerts} locale={locale}/>}
-          <EventScreen os={os} events={home.events} hideDialogIds={hideDialogIds} hideForeverMessage={await translate('do_not_show_again')}/>
+          {/* 미납 결제건(정규반) 다이얼로그 — 있으면 이번 진입의 알림·이벤트 다이얼로그는 건너뛴다(네이티브 다이얼로그가 겹치지 않게) */}
+          {hasUnpaid && <HomeUnpaidDialog records={home.unpaidPaymentRecords} locale={locale}/>}
+          {!hasUnpaid && home.alerts.length > 0 && <HomeAlerts alerts={home.alerts} locale={locale}/>}
+          <EventScreen os={os} events={hasUnpaid ? [] : home.events} hideDialogIds={hideDialogIds} hideForeverMessage={await translate('do_not_show_again')}/>
           <HomeHeader hasStudio={!!studio} os={os}>
             {studio ? (
               <NavigateClickWrapper method={'push'} route={KloudScreen.StudioDetail(studio.id)}>

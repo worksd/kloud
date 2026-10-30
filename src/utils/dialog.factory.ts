@@ -353,6 +353,7 @@ export type DialogId =
   | 'AttendTicket'
   | 'ConfirmAttendance'
   | 'HomeAlert'
+  | 'HomeUnpaid'
   | 'CancelRoomBooking'
 
 type DialogType = 'YESORNO' | 'SIMPLE'

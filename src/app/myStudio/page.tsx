@@ -11,6 +11,8 @@ import { TrackView } from "@/app/components/TrackView";
 import { handleApiError } from "@/utils/handle.api.error";
 import { TokenExpiredRedirect } from "@/app/components/TokenExpiredRedirect";
 import { parseHomeBands } from "@/app/home/home.bands";
+import { HomeUnpaidDialog } from "@/app/home/HomeUnpaidDialog";
+import { getLocale } from "@/utils/translate";
 
 export default async function MyStudioHomePage({searchParams}: {
   searchParams: Promise<{ id?: string }>
@@ -21,8 +23,11 @@ export default async function MyStudioHomePage({searchParams}: {
   if ('bands' in res) {
     const home = parseHomeBands(res);
     const studioId = home.myStudio?.studio?.id;
+    const locale = await getLocale();
     return (
       <>
+        {/* 미납 결제건(정규반) 다이얼로그 — 모바일 홈과 같은 내용, 웹은 CommonDialog */}
+        {home.unpaidPaymentRecords.length > 0 && <HomeUnpaidDialog records={home.unpaidPaymentRecords} locale={locale}/>}
         <TrackView event="enter_home" props={{studioId: studioId ?? null}}/>
         {/* 스튜디오 쿠키 동기화 — 연습실 일정 등 쿠키 기반 화면들과 컨텍스트를 맞춘다 */}
         {studioId && <StudioCookieSetter studioId={studioId}/>}

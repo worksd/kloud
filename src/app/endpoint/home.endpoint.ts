@@ -62,9 +62,30 @@ export type HomeBandResponse =
   | { type: HomeLessonBandType; items: HomeLessonResponse[] }
   | { type: 'PopularStudios'; items: WebStudioResponse[] };
 
+/**
+ * 홈 미납 결제건 — 돈은 안 냈지만 스튜디오 설정(unpaidEnabled)으로 수강은 이어지는 정규반 결제건. 로그인 시에만, 정규반만 온다.
+ * route 는 눌렀을 때 갈 결제 페이지(서버가 정한다 — FE 가 item/id 를 조립하지 않는다).
+ * 필드명은 결제 내역(GetPaymentRecordResponse)에 맞춰 둔 것 — 실제 응답과 다르면 여기만 고친다.
+ */
+export type HomeUnpaidPaymentRecordResponse = {
+  id: number;
+  paymentId?: string | null;
+  /** 상품명(정규반 이름) */
+  productName: string;
+  productImageUrl?: string | null;
+  /** 상품 부가 설명(예: 플랜명 · 기간) */
+  productDescription?: string | null;
+  amount: number;
+  /** 결제 페이지 경로 */
+  route: string;
+  studio?: WebStudioResponse | null;
+}
+
 /** 앱·웹 공통 통합 응답 — 이전의 평면 구조(studios/myStudio/... , 웹 전용 jumbotrons/...)는 없어졌다. */
 export type GetHomeResponse = {
   bands: HomeBandResponse[];
+  /** 미납 결제건(정규반, 로그인 시). 없으면 빈 배열 또는 미포함 — 홈 맨 위 미납 카드 */
+  unpaidPaymentRecords?: HomeUnpaidPaymentRecordResponse[] | null;
   /** 홈 플로팅 버튼 문구(예: '수강 등록하기') — 학원 판매 상품에 맞춰 BE가 정한다. 없거나 빈 값이면 버튼을 숨긴다 */
   ctaText?: string | null;
 }

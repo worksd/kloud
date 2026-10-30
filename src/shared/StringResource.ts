@@ -4927,6 +4927,10 @@ export const StringResource = {
   /** {date} 자리에 'M.d(요일)' */
   regular_class_unpaid_notice: { ko: '미납된 수강료를 결제해 주세요', en: 'Please pay the outstanding tuition', jp: '未納の受講料をお支払いください', zh: '请支付未付的学费' },
   regular_class_unpaid_pay: { ko: '결제하기', en: 'Pay now', jp: '支払う', zh: '去支付' },
+  // 홈 — 미납 결제건 다이얼로그(GET /home unpaidPaymentRecords)
+  home_unpaid_title: { ko: '미납된 수강료가 있어요', en: 'You have unpaid tuition', jp: '未納の受講料があります', zh: '您有未缴的学费' },
+  /** 미납건이 여럿일 때 첫 건 아래 — {n} 나머지 건수 */
+  home_unpaid_more: { ko: '외 {n}건', en: 'and {n} more', jp: 'ほか{n}件', zh: '另有{n}笔' },
   // 내 정규반 상세 — 수업 일정 변경 (지금은 목, reschedule.mock.ts)
   regular_class_reschedule_action: { ko: '수업 일정 변경하기', en: 'Reschedule a lesson', jp: 'レッスン日程を変更', zh: '课程改期' },
   regular_class_reschedule_history: { ko: '수업 일정 변경 이력', en: 'Reschedule history', jp: '日程変更履歴', zh: '改期记录' },
