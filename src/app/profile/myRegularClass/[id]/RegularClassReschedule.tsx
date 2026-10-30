@@ -1,5 +1,5 @@
 'use client';
-// 내 정규반 상세 — 수업 일정 변경. 오른쪽 위 ⋮ → 바로 '수업 일정 변경' 시트 하나(남은 횟수 + 변경할 수업 고르기 + 변경 이력).
+// 내 정규반 상세 — 수업 일정 변경. 오른쪽 위 ⋮ → 바텀시트 메뉴('수업 일정 변경하기' 한 줄) → '수업 일정 변경' 시트(남은 횟수 + 변경할 수업 고르기 + 변경 이력).
 // 모바일은 ⋮ 를 RegularClassTopBar(뒤로가기와 같은 줄)에, PC 는 헤더 카드 안. 시트는 전부 공용 BottomSheet.
 // 변경하기: 다가오는 수업 중 하나를 고르면 새 일정을 바로 미리 보여주고, 확인하면 옮긴다.
 // 새 일정 규칙 — 내 마지막 수업(이미 바꾼 새 일정 포함) 다음에 오는 가장 가까운 반 요일, 시간은 원래 수업 그대로.
@@ -11,7 +11,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import { BottomSheet, BottomSheetHandle } from "@/app/components/BottomSheet";
 import { HeaderBlurButton } from "@/app/components/buttons";
 import { CircleImage } from "@/app/components/CircleImage";
-import { Check, MoreVertical } from "lucide-react";
+import { CalendarClock, Check, ChevronRight, MoreVertical } from "lucide-react";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
@@ -39,6 +39,7 @@ const nextClassDay = (from: { year: number; month: number; day: number }, allowe
 };
 
 type Sheet =
+  | { kind: 'menu' }
   | { kind: 'select' }
   | { kind: 'result'; ok: boolean; message: string };
 
@@ -90,6 +91,11 @@ export const RegularClassRescheduleProvider = ({ locale, tickets, days, endDate,
     <RescheduleContext.Provider value={{ locale, remaining, records, open: go }}>
       {children}
       {/* key 로 시트마다 새로 마운트 — 매번 slideUp 이 다시 탄다 */}
+      {sheet?.kind === 'menu' && (
+        <BottomSheet key="menu" ref={sheetRef} onClose={onClosed}>
+          <MenuSheet t={t} remaining={remaining} onSelect={() => go({ kind: 'select' })}/>
+        </BottomSheet>
+      )}
       {sheet?.kind === 'select' && (
         <SelectSheet
           key="select"
@@ -134,7 +140,7 @@ export const RescheduleMenuButton = ({ light = false }: { /** 이미지 위 — 
     <HeaderBlurButton isBlur originProps={{
       type: 'button',
       'aria-label': getLocaleString({ locale: ctx.locale, key: 'regular_class_reschedule_action' }),
-      onClick: () => ctx.open({ kind: 'select' }),
+      onClick: () => ctx.open({ kind: 'menu' }),
     }}>
       <MoreVertical size={22} className={`transition-colors ${light ? 'text-white drop-shadow' : 'text-[#191F28]'}`}/>
     </HeaderBlurButton>
@@ -193,6 +199,32 @@ const PrimaryButton = ({ onClick, disabled, loading, className = '', children }:
   >
     {loading ? <span className="w-5 h-5 rounded-full border-2 border-white/40 border-t-white animate-spin"/> : children}
   </button>
+);
+
+/** ⋮ 메뉴 시트 — 지금은 '수업 일정 변경하기' 한 줄. 남은 횟수를 부제로 */
+const MenuSheet = ({ t, remaining, onSelect }: {
+  t: (key: StringResourceKey) => string;
+  remaining: number;
+  onSelect: () => void;
+}) => (
+  <div className="flex flex-col px-4 pt-1">
+    <button
+      type="button"
+      onClick={onSelect}
+      className="flex items-center gap-3.5 px-2 py-3.5 rounded-xl text-left active:bg-[#F7F8FA]"
+    >
+      <span className="w-10 h-10 rounded-full bg-[#F2F4F6] flex items-center justify-center text-[#4E5968] shrink-0"><CalendarClock size={20}/></span>
+      <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span className="text-[16px] font-semibold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_action')}</span>
+        <span className="text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">
+          {remaining > 0
+            ? `${t('regular_class_reschedule_remaining_label')} ${remaining}${t('regular_class_reschedule_count_unit')}`
+            : t('regular_class_reschedule_error_limit_exceeded')}
+        </span>
+      </span>
+      <ChevronRight size={18} className="text-[#B0B8C1] shrink-0"/>
+    </button>
+  </div>
 );
 
 type SelectResult =
