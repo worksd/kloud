@@ -1,4 +1,5 @@
 import React from "react";
+import { withYear, withYearNumeric } from "@/utils/year.label";
 import { CommunityPracticeRoomResponse } from "@/app/endpoint/studio.endpoint";
 import { RoomSlotsSummaryResponse, StudioRoomResponse, TimeSlotResponse } from "@/app/endpoint/studio.room.endpoint";
 import { PracticeHallSchedule } from "@/app/studios/[id]/practice/PracticeHallSchedule";
@@ -37,7 +38,8 @@ export async function HomeRoomSlotsSection({
   const dateLabel = (d: string) => {
     const [y, m, day] = d.split('.');
     if (!y || !m || !day) return d;
-    return locale === 'ko' ? `${Number(m)}월 ${Number(day)}일` : `${m}.${day}`;
+    // 올해가 아니면 연도까지
+    return locale === 'ko' ? withYear(`${Number(m)}월 ${Number(day)}일`, Number(y), locale) : withYearNumeric(`${m}.${day}`, Number(y));
   };
   const fmtBooking = (startDate: string, endDate: string) => {
     const s = parseDT(startDate);

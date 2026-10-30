@@ -4,6 +4,7 @@
  */
 
 import { GetLessonResponse, LessonStatus } from "@/app/endpoint/lesson.endpoint";
+import { yearOption } from "@/utils/year.label";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { toAmPmTime, toAmPmTimeRange } from '@/utils/time.format';
@@ -115,9 +116,11 @@ export const formatLessonDate = (lesson: GetLessonResponse, locale: Locale): str
   const parts = datePart.split('-').map(Number);
   if (parts.length < 3 || parts.some(Number.isNaN)) return '';
   const [y, m, d] = parts;
-  return new Date(y, m - 1, d).toLocaleDateString(INTL_LOCALE[locale], {
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(INTL_LOCALE[locale], {
     month: 'long',
     day: 'numeric',
     weekday: 'short',
+    ...yearOption(date), // 올해가 아니면 연도까지
   });
 };

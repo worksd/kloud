@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { withYear } from "@/utils/year.label";
 import { KloudScreen } from "@/shared/kloud.screen";
 import React, { useState, useMemo, useEffect } from "react";
 import { GetTimeTableResponse, GetTimeTableCellResponse, GetTimeTableLessonResponse } from "@/app/endpoint/studio.endpoint";
@@ -99,10 +100,11 @@ const getMonthWeekTitle = (baseDate: Date, locale: Locale): string => {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const weekNames = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
 
-  if (locale === 'ko') return `${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`;
-  if (locale === 'jp') return `${month + 1}月 第${weekIndex + 1}週`;
-  if (locale === 'zh') return `${month + 1}月 第${weekIndex + 1}周`;
-  return `Week ${weekIndex + 1} of ${monthNames[month]}`;
+  // 올해가 아니면 연도를 앞에('2027년 1월 셋째 주')
+  if (locale === 'ko') return withYear(`${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`, year, locale);
+  if (locale === 'jp') return withYear(`${month + 1}月 第${weekIndex + 1}週`, year, locale);
+  if (locale === 'zh') return withYear(`${month + 1}月 第${weekIndex + 1}周`, year, locale);
+  return withYear(`Week ${weekIndex + 1} of ${monthNames[month]}`, year, locale);
 };
 
 // 기준 주(baseDate)가 오늘 주(refDate) 대비 ±1주면 상대 라벨(이번/지난/다음 주),

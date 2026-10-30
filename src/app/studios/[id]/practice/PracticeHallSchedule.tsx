@@ -22,8 +22,10 @@ const FLOOR_LABEL: Record<string, Record<Locale, string>> = {
 };
 
 const LOCALE_TAG: Record<Locale, string> = { ko: 'ko-KR', en: 'en-US', jp: 'ja-JP', zh: 'zh-CN' };
+import { yearOption } from "@/utils/year.label";
+// 올해가 아니면 연도까지
 const fmtMonthDayWeekday = (d: Date, locale: Locale) =>
-  new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'long', day: 'numeric', weekday: 'short' }).format(d);
+  new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'long', day: 'numeric', weekday: 'short', ...yearOption(d) }).format(d);
 const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n);
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

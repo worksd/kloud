@@ -4,6 +4,7 @@ import { NavigateClickWrapper } from '@/utils/NavigateClickWrapper';
 import { KloudScreen } from '@/shared/kloud.screen';
 import { getLocale, translate } from '@/utils/translate';
 import { Locale } from '@/shared/StringResource';
+import { withYear, withYearNumeric } from '@/utils/year.label';
 
 // "2026.06.30 20:00" → 로케일별 "6월 30일까지" 형태
 const formatCloseDate = (raw: string, locale: Locale): string => {
@@ -12,27 +13,28 @@ const formatCloseDate = (raw: string, locale: Locale): string => {
   const year = parseInt(m[1], 10);
   const month = parseInt(m[2], 10);
   const day = parseInt(m[3], 10);
+  // 올해가 아니면 연도까지 — '2027년 1월 24일까지'
   switch (locale) {
     case 'ko':
-      return `${month}월 ${day}일까지`;
+      return `${withYear(`${month}월 ${day}일`, year, locale)}까지`;
     case 'jp':
-      return `${month}月${day}日まで`;
+      return `${withYear(`${month}月${day}日`, year, locale)}まで`;
     case 'zh':
-      return `至${month}月${day}日`;
+      return `至${withYear(`${month}月${day}日`, year, locale)}`;
     default: {
       const monthShort = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(
         new Date(year, month - 1, day),
       );
-      return `Until ${monthShort} ${day}`;
+      return `Until ${withYear(`${monthShort} ${day}`, year, locale)}`;
     }
   }
 };
 
-// "2026.06.16 05:52" → "6.16"
+// "2026.06.16 05:52" → "6.16" (올해가 아니면 "2027.6.16")
 const toMonthDay = (raw?: string): string | null => {
   if (!raw) return null;
   const m = raw.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
-  return m ? `${parseInt(m[2], 10)}.${parseInt(m[3], 10)}` : null;
+  return m ? withYearNumeric(`${parseInt(m[2], 10)}.${parseInt(m[3], 10)}`, parseInt(m[1], 10)) : null;
 };
 
 // 판매기간 — startDate/endDate 우선, 없으면 closeDate("~6.30") 폴백

@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useCallback, useEffect, useState} from 'react';
+import { yearOption } from "@/utils/year.label";
 import {KioskTopBar} from '@/app/kiosk/KioskTopBar';
 import {KioskPhoneInputForm} from '@/app/kiosk/KioskPhoneInputForm';
 import {createStudioAttendanceAction, listStudioAttendancesAction, searchStudentsAction} from "@/app/kiosk/kiosk.actions";
@@ -47,7 +48,7 @@ const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.ge
 const toLocalDateTimeLabel = (raw: string | undefined, locale: Locale): string => {
   const parsed = raw ? new Date(raw.replace(/\./g, '-').replace(' ', 'T')) : null;
   const d = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date();
-  const date = new Intl.DateTimeFormat(LOCALE_TAG[locale], {month: 'long', day: 'numeric'}).format(d);
+  const date = new Intl.DateTimeFormat(LOCALE_TAG[locale], {month: 'long', day: 'numeric', ...yearOption(d)}).format(d); // 올해가 아니면 연도까지
   const weekday = WEEKDAYS[locale][d.getDay()];
   return `${date} (${weekday}) ${toAmPm(`${pad(d.getHours())}:${pad(d.getMinutes())}`, locale)}`;
 };

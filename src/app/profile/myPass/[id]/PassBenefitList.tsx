@@ -2,6 +2,7 @@
 // 판정·라벨 로직을 여기 한 곳에만 둔다. 제목(h2/h3)은 각 폼이 자기 스타일로 렌더.
 
 import { getLocale, translate } from "@/utils/translate";
+import { withYear, withYearNumeric } from "@/utils/year.label";
 import { Locale, StringResource } from "@/shared/StringResource";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { formatRuleDescription, formatFeatureDescription, formatMinutes } from "@/utils/pass.description";
@@ -143,9 +144,10 @@ export const PassBenefitList = async ({pass}: { pass: GetPassResponse }) => {
                     const img = b.studioRoom?.imageUrls?.[0];
                     const [sDate, sTime] = b.startDate.split(' ');
                     const [eDate, eTime] = b.endDate.split(' ');
-                    const [, sm, sd] = (sDate ?? '').split('.');
+                    const [sy, sm, sd] = (sDate ?? '').split('.');
+                    // 올해가 아니면 연도까지
                     const dateLabel = sm && sd
-                      ? (locale === 'ko' ? `${Number(sm)}월 ${Number(sd)}일` : `${sm}.${sd}`)
+                      ? (locale === 'ko' ? withYear(`${Number(sm)}월 ${Number(sd)}일`, Number(sy), locale) : withYearNumeric(`${sm}.${sd}`, Number(sy)))
                       : (sDate ?? '');
                     const range = sDate === eDate
                       ? `${dateLabel} ${sTime ?? ''} ~ ${eTime ?? ''}`

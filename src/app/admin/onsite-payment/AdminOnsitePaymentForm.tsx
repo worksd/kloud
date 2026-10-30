@@ -1,6 +1,7 @@
 'use client';
 
 import { showToast, TOAST_LINGER_MS } from '@/app/components/toast.host';
+import { withYear } from "@/utils/year.label";
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { CalendarDays, Search, UserPlus } from 'lucide-react';
@@ -82,7 +83,7 @@ const dateLabelOf = (key: string, today: string): string => {
   if (key === today) return '오늘';
   const [y, m, d] = key.split('-').map(Number);
   if (!y || !m || !d) return key;
-  return `${m}월 ${d}일 (${WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]})`;
+  return `${withYear(`${m}월 ${d}일`, y, 'ko')} (${WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]})`; // 올해가 아니면 연도까지
 };
 
 const targetName = (t: Target) => (t.kind === 'member' ? (val(t.student.name) ?? val(t.student.nickName) ?? '-') : t.name);

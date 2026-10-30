@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import { withYear } from "@/utils/year.label";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import calendarStyles from '@/app/kiosk/CalendarStyles.module.css';
@@ -487,7 +488,7 @@ export const KioskLessonAttendanceForm = ({studioId, onBack, onHome, locale, var
           {/* 수업 그리드 — 날짜가 바뀌면 remount(key)해서 fade로 교체 */}
           <div className={`flex-1 min-w-0 min-h-0 flex flex-col ${admin ? '' : 'mt-[20px]'}`}>
             <p className="shrink-0 text-gray-500 text-[18px] mb-[12px]">
-              {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 · {lessons.length}개 수업
+              {withYear(`${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일`, selectedDate.getFullYear(), 'ko')} · {lessons.length}개 수업
             </p>
             {lessonsLoading ? (
               <div className="flex-1 flex items-center justify-center">

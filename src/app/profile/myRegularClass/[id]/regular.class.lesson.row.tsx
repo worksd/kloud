@@ -4,6 +4,7 @@ import React from "react";
 import { Locale } from "@/shared/StringResource";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { CircleImage } from "@/app/components/CircleImage";
+import { withYearNumeric } from "@/utils/year.label";
 
 export const WEEKDAYS: Record<string, string[]> = {
   ko: ['일', '월', '화', '수', '목', '금', '토'],
@@ -39,7 +40,8 @@ export const formatLessonWhen = (locale: Locale, startDate?: string, endDate?: s
   const wd = (WEEKDAYS[locale] ?? WEEKDAYS.en)[p.weekday];
   const end = parts(endDate)?.time;
   const time = p.time && (end ? `${p.time} ~ ${end}` : p.time);
-  return [`${p.month}.${p.day} (${wd})`, time].filter(Boolean).join(' · ');
+  // 올해가 아니면 연도까지('2027.1.24 (토)')
+  return [`${withYearNumeric(`${p.month}.${p.day}`, p.year)} (${wd})`, time].filter(Boolean).join(' · ');
 };
 
 export type Kind = 'upcoming' | 'attended' | 'cancelled' | 'unpaid' | 'other';

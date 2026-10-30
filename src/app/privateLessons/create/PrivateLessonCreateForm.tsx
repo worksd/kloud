@@ -6,6 +6,7 @@
 // 성공 시 바로 수강생 초대 화면으로 이어진다.
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { withYear } from "@/utils/year.label";
 import Image from 'next/image';
 import { kloudNav } from '@/app/lib/kloudNav';
 import { KloudScreen } from '@/shared/kloud.screen';
@@ -70,8 +71,9 @@ export const PrivateLessonCreateForm = ({studios, artistName, locale}: {
   // 수업명 자동 생성 — 날짜를 고르면 '{M월 D일} {강사} 개인수업'
   const title = useMemo(() => {
     if (!date) return '';
-    const [, m, d] = date.split('-').map(Number);
-    return `${m}월 ${d}일 ${artistName} 개인수업`.trim();
+    const [y, m, d] = date.split('-').map(Number);
+    // 올해가 아니면 연도까지('2027년 1월 24일 …')
+    return `${withYear(`${m}월 ${d}일`, y, 'ko')} ${artistName} 개인수업`.trim();
   }, [date, artistName]);
 
   const loadRooms = useCallback(async (sid: number) => {
@@ -141,10 +143,12 @@ export const PrivateLessonCreateForm = ({studios, artistName, locale}: {
     const m = dt.getMonth() + 1;
     const d = dt.getDate();
     const w = WEEKDAY_LABEL[locale][dt.getDay()];
-    if (locale === 'ko') return `${m}월 ${d}일 (${w})`;
-    if (locale === 'jp') return `${m}月${d}日 (${w})`;
-    if (locale === 'zh') return `${m}月${d}日 (周${w})`;
-    return `${w}, ${m}/${d}`;
+    const y = dt.getFullYear();
+    // 올해가 아니면 연도까지
+    if (locale === 'ko') return withYear(`${m}월 ${d}일 (${w})`, y, locale);
+    if (locale === 'jp') return withYear(`${m}月${d}日 (${w})`, y, locale);
+    if (locale === 'zh') return withYear(`${m}月${d}日 (周${w})`, y, locale);
+    return withYear(`${w}, ${m}/${d}`, y, locale);
   }, [date, locale]);
 
   const canSubmit =

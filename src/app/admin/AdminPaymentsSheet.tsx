@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { withYear } from "@/utils/year.label";
 import Image from 'next/image';
 import { CalendarDays, ChevronRight, X } from 'lucide-react';
 import { GetPaymentRecordResponse } from '@/app/endpoint/payment.record.endpoint';
@@ -69,7 +70,7 @@ const dateLabelOf = (key: string): string => {
   if (key === kstKey(-1)) return '어제';
   const [y, m, d] = key.split('-').map(Number);
   const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-  return `${m}월 ${d}일 (${weekday})`;
+  return `${withYear(`${m}월 ${d}일`, y, 'ko')} (${weekday})`; // 올해가 아니면 연도까지
 };
 
 /**

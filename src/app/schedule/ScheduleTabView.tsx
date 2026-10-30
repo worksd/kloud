@@ -22,6 +22,7 @@ export type CalendarLesson = {
 }
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+import { withYear } from "@/utils/year.label";
 
 const getWeekLabel = (date: Date, locale: Locale): string => {
   const month = date.getMonth() + 1;
@@ -30,7 +31,8 @@ const getWeekLabel = (date: Date, locale: Locale): string => {
   const weekKeys = ['week_1', 'week_2', 'week_3', 'week_4', 'week_5', 'week_6'] as const;
   const weekLabel = getLocaleString({ locale, key: weekKeys[weekNum - 1] ?? 'week_1' });
   const monthSuffix = getLocaleString({ locale, key: 'month_format' });
-  return locale === 'en' ? `${weekLabel}, ${month}` : `${month}${monthSuffix} ${weekLabel}`;
+  // 올해가 아니면 연도까지
+  return withYear(locale === 'en' ? `${weekLabel}, ${month}` : `${month}${monthSuffix} ${weekLabel}`, date.getFullYear(), locale);
 };
 
 const getWeekdays = (locale: Locale) => {
@@ -45,8 +47,9 @@ const formatDateHeader = (date: Date, locale: Locale): string => {
   const wd = weekdays[date.getDay()];
   const monthSuffix = getLocaleString({ locale, key: 'month_format' });
   const daySuffix = getLocaleString({ locale, key: 'day_format' });
-  if (locale === 'en') return `${month}/${day} (${wd})`;
-  return `${month}${monthSuffix} ${day}${daySuffix} (${wd})`;
+  // 올해가 아니면 연도까지 — '2027년 1월 24일 (토)' / '1/24 (Sat), 2027'
+  if (locale === 'en') return withYear(`${month}/${day} (${wd})`, date.getFullYear(), locale);
+  return withYear(`${month}${monthSuffix} ${day}${daySuffix} (${wd})`, date.getFullYear(), locale);
 };
 
 const isSameDay = (a: Date, b: Date) =>

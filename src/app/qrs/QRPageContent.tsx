@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { withYear } from "@/utils/year.label";
 import Image from 'next/image';
 import QRScanner from '@/app/components/QRScanner';
 import { toUsedAction } from '@/app/qrs/use.action';
@@ -964,7 +965,7 @@ export default function QRPageContent({ lesson: initialLesson, studioId }: Props
             {/* 선택된 날짜 + 수업 수 */}
             <div style={{ padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid #F3F4F6' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>
-                {dialogDate.getMonth() + 1}월 {dialogDate.getDate()}일 ({WEEKDAY_LABELS[dialogDate.getDay()]})
+                {withYear(`${dialogDate.getMonth() + 1}월 ${dialogDate.getDate()}일`, dialogDate.getFullYear(), 'ko')} ({WEEKDAY_LABELS[dialogDate.getDay()]})
               </span>
               <span style={{ fontSize: 12, color: '#9CA3AF' }}>
                 {dialogLessonsLoading ? '' : `${filteredDialogLessons.length}개 수업`}

@@ -1,6 +1,7 @@
 'use client'
 
 import React from "react";
+import { withYearNumeric } from "@/utils/year.label";
 import { MyBookingResponse } from "@/app/endpoint/user.endpoint";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
@@ -33,15 +34,17 @@ function formatBookingRange(startRaw: string, endRaw: string): string {
 
   const sameDate = s.year === e.year && s.month === e.month && s.day === e.day;
 
+  // 올해가 아니면 연도까지 — '2027/1/24 (토)'
+  const sMd = withYearNumeric(`${s.month}/${s.day}`, s.year);
   if (sameDate) {
     // 4/12 (일) 오전 10:00 ~ 오전 11:00
-    return `${s.month}/${s.day} (${sDayName}) ${sTime} ~ ${eTime}`;
+    return `${sMd} (${sDayName}) ${sTime} ~ ${eTime}`;
   }
 
   // 4/12 (일) 오후 11:00 ~ 4/13 (월) 오전 3:00
   const eDate = new Date(e.year, e.month - 1, e.day);
   const eDayName = DAY_NAMES[eDate.getDay()];
-  return `${s.month}/${s.day} (${sDayName}) ${sTime} ~ ${e.month}/${e.day} (${eDayName}) ${eTime}`;
+  return `${sMd} (${sDayName}) ${sTime} ~ ${withYearNumeric(`${e.month}/${e.day}`, e.year)} (${eDayName}) ${eTime}`;
 }
 
 export const MyBookingCard = ({ booking }: {

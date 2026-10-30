@@ -9,10 +9,11 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
 import { parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
+import { withYearNumeric } from "@/utils/year.label";
 
 const shortDate = (s: string) => {
   const p = parts(s);
-  return p ? `${p.month}.${p.day}` : s;
+  return p ? withYearNumeric(`${p.month}.${p.day}`, p.year) : s; // 올해가 아니면 연도까지
 };
 
 export const RegularClassUnpaidCard = async ({ info }: { info: UnpaidInfo }) => {

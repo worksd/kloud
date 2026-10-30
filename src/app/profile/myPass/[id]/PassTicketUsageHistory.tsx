@@ -1,4 +1,5 @@
 import { TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { yearOption } from "@/utils/year.label";
 import { getLocale, translate } from "@/utils/translate";
 import Image from "next/image";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
@@ -32,7 +33,8 @@ export const PassTicketUsageHistory = async ({tickets}: { tickets?: TicketRespon
                 </p>
                 {item.createdAt && (
                   <p className="text-[9px] text-[#AEAEAE] mt-0.5 px-0.5">
-                    {new Date(item.createdAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}에 사용됨
+                    {/* 올해가 아니면 연도까지 */}
+                    {new Date(item.createdAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', ...yearOption(new Date(item.createdAt)) })}에 사용됨
                   </p>
                 )}
               </div>

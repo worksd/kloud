@@ -1,4 +1,5 @@
 import { Locale } from "@/shared/StringResource";
+import { withYear, yearOption } from "@/utils/year.label";
 
 // 수업 시각을 '벽시계' 기준 로컬 Date로 파싱한다.
 // startDate가 '...Z'(UTC)로 와도 타임존 변환을 하지 않고 리터럴 연-월-일-시-분을 그대로 쓴다.
@@ -64,10 +65,11 @@ export const getMonthWeekLabel = (baseDate: Date, locale: Locale): string => {
   const weekIndex = Math.floor((thursday.getTime() - firstThursday.getTime()) / (7 * 86400000));
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const weekNames = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째'];
-  if (locale === 'ko') return `${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`;
-  if (locale === 'jp') return `${month + 1}月 第${weekIndex + 1}週`;
-  if (locale === 'zh') return `${month + 1}月 第${weekIndex + 1}周`;
-  return `Week ${weekIndex + 1} of ${monthNames[month]}`;
+  // 올해가 아니면 연도를 앞에('2027년 1월 셋째 주')
+  if (locale === 'ko') return withYear(`${month + 1}월 ${weekNames[weekIndex] ?? `${weekIndex + 1}번째`} 주`, year, locale);
+  if (locale === 'jp') return withYear(`${month + 1}月 第${weekIndex + 1}週`, year, locale);
+  if (locale === 'zh') return withYear(`${month + 1}月 第${weekIndex + 1}周`, year, locale);
+  return withYear(`Week ${weekIndex + 1} of ${monthNames[month]}`, year, locale);
 };
 
 // 주 단위 상대 접두어 — 이번주/다음주/지난주, 그 밖은 '7월 셋째 주' 등 월-주차 라벨.
@@ -106,9 +108,10 @@ export const formatRelativeDay = (d: Date, locale: Locale): string => {
   if (dayDiff === 1) return { ko: '내일', en: 'Tomorrow', jp: '明日', zh: '明天' }[locale];
   if (dayDiff >= 2 && weekDiff === 0) return { ko: `이번주 ${wd}요일`, en: `This ${wd}`, jp: `今週${wd}曜`, zh: `本周${wd}` }[locale];
   if (weekDiff === 1) return { ko: `다음주 ${wd}요일`, en: `Next ${wd}`, jp: `来週${wd}曜`, zh: `下周${wd}` }[locale];
+  // 올해가 아니면 연도를 붙인다 — '2027년 1월 24일 (토)' / 'Sat, Jan 24, 2027'
   return locale === 'ko'
-    ? `${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`
-    : new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', day: 'numeric', weekday: 'short' }).format(d);
+    ? withYear(`${d.getMonth() + 1}월 ${d.getDate()}일 (${wd})`, d.getFullYear(), locale)
+    : new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', day: 'numeric', weekday: 'short', ...yearOption(d) }).format(d);
 };
 
 /** 오늘로부터 며칠 뒤인지 (기기 로컬 날짜 기준) */
