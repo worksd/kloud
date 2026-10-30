@@ -449,7 +449,8 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                 {(ticket.status === 'Used' || ticket.status === 'Expired') && (
                     <StampUsed className="scale-50"/>
                 )}
-                {ticket.status === 'Pending' && (
+                {/* 미납(Unpaid, 정규반 미납 유예)도 '미결제' 도장 — 수업 자체는 들을 수 있다 */}
+                {(ticket.status === 'Pending' || ticket.status === 'Unpaid') && (
                     <StampNotPaid className="scale-50"/>
                 )}
               </div>

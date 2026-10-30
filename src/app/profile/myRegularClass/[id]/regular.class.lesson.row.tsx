@@ -31,7 +31,7 @@ export const formatLessonWhen = (locale: Locale, startDate?: string, endDate?: s
   return [`${p.month}.${p.day} (${wd})`, time].filter(Boolean).join(' · ');
 };
 
-export type Kind = 'upcoming' | 'attended' | 'cancelled' | 'other';
+export type Kind = 'upcoming' | 'attended' | 'cancelled' | 'unpaid' | 'other';
 export const chipClass: Record<Kind, string> = {
   upcoming: 'bg-[#191F28] text-white',
   attended: 'bg-[#EAF7EE] text-[#1B7F3B]',
@@ -47,6 +47,8 @@ export const LessonRow = ({ title, startDate, endDate, roomName, artistName, loc
   roomName?: string;
   /** 메인 강사 이름 (수강 내역 행) */
   artistName?: string;
+  // 미납(Unpaid) — 미납 카드의 빨간 점과 같은 톤. 수업은 그대로 들을 수 있어 취소와 달리 행은 흐리게 하지 않는다
+  unpaid: 'bg-[#FFF1F1] text-[#FF6B6B]',
   locale: Locale;
   isPast: boolean;
   /** 있으면 탭해서 이동 (수강권 상세) */

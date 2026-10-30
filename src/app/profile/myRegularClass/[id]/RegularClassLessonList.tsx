@@ -18,22 +18,23 @@ import { RegularClassHistory } from "@/app/profile/myRegularClass/[id]/RegularCl
 /** 수강 내역 첫 페이지 — GET /regular-classes/:id/tickets?type=past&page=1 */
 export type RegularClassHistoryData = { regularClassId: number } & MyTicketListResponse;
 
-// 칩 종류 — 취소 > 출석(attendedAt 또는 Used) > 예정(아직 시작 전) > 그 외는 수강권 상태 문구 그대로
+// 칩 종류 — 취소 > 출석(attendedAt 또는 Used) > 미납(Unpaid, 시작 전후 무관) > 예정(아직 시작 전) > 그 외는 수강권 상태 문구 그대로
 const kindOf = (t: PassRuleTicket, isFuture: boolean): Kind => {
   if (t.status === 'Cancelled') return 'cancelled';
   if (t.attendedAt || t.status === 'Used') return 'attended';
   if (isFuture) return 'upcoming';
+  if (t.status === 'Unpaid') return 'unpaid';
   return 'other';
 };
 
-const Row = ({ ticket, locale, label, kind }: { ticket: PassRuleTicket; locale: Locale; label: string; kind: Kind }) => (
+const Row = ({ ticket, locale, label, kind, isPast }: { ticket: PassRuleTicket; locale: Locale; label: string; kind: Kind; isPast: boolean }) => (
   <LessonRow
     title={ticket.lesson?.title ?? ''}
     startDate={ticket.lesson?.startDate}
     endDate={ticket.lesson?.endDate}
     roomName={ticket.lesson?.room?.name}
     locale={locale}
-    isPast={kind !== 'upcoming'}
+    isPast={isPast}
     route={KloudScreen.TicketDetail(ticket.id, false)}
     chip={<RescheduleAwareChip ticketId={ticket.id}><span className={`${chipBase} ${chipClass[kind]}`}>{label}</span></RescheduleAwareChip>}
   />
@@ -44,13 +45,16 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
   const rows = tickets
     .map((t) => {
       const at = parts(t.lesson?.startDate)?.at ?? 0;
-      const kind = kindOf(t, at > now);
-      return { t, at, kind };
+      const future = at > now;
+      const kind = kindOf(t, future);
+      // 다가오는 수업 — 아직 시작 전이고 취소·출석이 아닌 것(미납 포함)
+      const upcoming = future && (kind === 'upcoming' || kind === 'unpaid');
+      return { t, at, kind, upcoming };
     })
     .sort((a, b) => a.at - b.at);
-  const upcoming = rows.filter((r) => r.kind === 'upcoming');
+  const upcoming = rows.filter((r) => r.upcoming);
   // 지난 수업은 최근 것부터
-  const past = rows.filter((r) => r.kind !== 'upcoming').reverse();
+  const past = rows.filter((r) => !r.upcoming).reverse();
 
   const labelOf = async (r: { t: PassRuleTicket; kind: Kind }) => {
     switch (r.kind) {
@@ -58,6 +62,7 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
       case 'attended': return translate('attendance_attended');
       case 'cancelled': return translate('purchase_cancel');
       default: return translate(convertStatusToMessage({ status: r.t.status }));
+      case 'unpaid': return translate('pass_status_unpaid');
     }
   };
   const upcomingLabels = await Promise.all(upcoming.map(labelOf));
@@ -71,7 +76,7 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
     <div className="flex flex-col gap-6">
       {upcoming.length > 0 && (
         <LessonSection title={await translate('upcoming_lessons')} count={upcoming.length}>
-          {upcoming.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={upcomingLabels[i]} kind={r.kind}/>)}
+          {upcoming.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={upcomingLabels[i]} kind={r.kind} isPast={false}/>)}
           {/* 일정 변경으로 새로 잡힌 수업 — 규칙상 항상 내 마지막 수업 뒤라 맨 끝에 붙이면 순서가 맞다 */}
           <RescheduledLessonRows/>
         </LessonSection>
@@ -80,7 +85,7 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
         <RegularClassHistory regularClassId={history.regularClassId} initialTickets={history.tickets} totalPage={history.totalPage ?? 1} locale={locale}/>
       ) : past.length > 0 && (
         <LessonSection title={await translate('past_lessons')} count={past.length}>
-          {past.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={pastLabels[i]} kind={r.kind}/>)}
+          {past.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={pastLabels[i]} kind={r.kind} isPast/>)}
         </LessonSection>
       )}
     </div>

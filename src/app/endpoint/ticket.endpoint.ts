@@ -158,6 +158,8 @@ export function convertStatusToMessage({status}: { status: string }): StringReso
   else if (status == 'Cancelled') return 'purchase_cancel'
   else if (status == 'Used') return 'used_complete'
   else if (status == 'Pending') return 'purchase_pending'
+  // 정규반 미납 유예 — 아직 결제 안 된 회차. 수업은 들을 수 있어 '미납'으로만 표시
+  else if (status == 'Unpaid') return 'pass_status_unpaid'
   else if (status == 'Expired') return 'used_complete'
   else return 'empty'
 }

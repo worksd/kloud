@@ -17,6 +17,9 @@ const statusChip = (status: string) => {
       return 'bg-[#FDECEC] text-[#E55B5B]';
     case 'Pending':
       return 'bg-[#FFF8EC] text-[#A05A00]';
+    case 'Unpaid':
+      // 정규반 미납 유예 — 수업은 들을 수 있어 활성처럼 두되 빨간 글자로
+      return 'bg-[#FFF1F1] text-[#FF6B6B]';
     case 'Used':
     case 'Expired':
     default:
