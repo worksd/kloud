@@ -14,16 +14,17 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { chipBase, chipClass, Kind, LessonRow, LessonSection, parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 import { RescheduleAwareChip, RescheduledLessonRows } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 import { RegularClassHistory } from "@/app/profile/myRegularClass/[id]/RegularClassHistory";
+import { PaymentPeriod } from "@/app/profile/myRegularClass/[id]/history.periods.mock";
 
 /** 수강 내역 첫 페이지 — GET /regular-classes/:id/tickets?type=past&page=1 */
-export type RegularClassHistoryData = { regularClassId: number } & MyTicketListResponse;
+export type RegularClassHistoryData = { regularClassId: number; periods: PaymentPeriod[]; days: number[] } & MyTicketListResponse;
 
 // 칩 종류 — 취소 > 출석(attendedAt 또는 Used) > 미납(Unpaid, 시작 전후 무관) > 예정(아직 시작 전) > 그 외는 수강권 상태 문구 그대로
 const kindOf = (t: PassRuleTicket, isFuture: boolean): Kind => {
   if (t.status === 'Cancelled') return 'cancelled';
   if (t.attendedAt || t.status === 'Used') return 'attended';
-  if (isFuture) return 'upcoming';
   if (t.status === 'Unpaid') return 'unpaid';
+  if (isFuture) return 'upcoming';
   return 'other';
 };
 
@@ -61,8 +62,8 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
       case 'upcoming': return translate('attendance_upcoming');
       case 'attended': return translate('attendance_attended');
       case 'cancelled': return translate('purchase_cancel');
-      default: return translate(convertStatusToMessage({ status: r.t.status }));
       case 'unpaid': return translate('pass_status_unpaid');
+      default: return translate(convertStatusToMessage({ status: r.t.status }));
     }
   };
   const upcomingLabels = await Promise.all(upcoming.map(labelOf));
@@ -82,7 +83,7 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
         </LessonSection>
       )}
       {history ? (
-        <RegularClassHistory regularClassId={history.regularClassId} initialTickets={history.tickets} totalPage={history.totalPage ?? 1} locale={locale}/>
+        <RegularClassHistory regularClassId={history.regularClassId} initialTickets={history.tickets} totalPage={history.totalPage ?? 1} periods={history.periods} days={history.days} locale={locale}/>
       ) : past.length > 0 && (
         <LessonSection title={await translate('past_lessons')} count={past.length}>
           {past.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={pastLabels[i]} kind={r.kind} isPast/>)}

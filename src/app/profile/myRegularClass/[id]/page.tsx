@@ -12,6 +12,7 @@ import { MyRegularClassDetailForm } from "@/app/profile/myRegularClass/[id]/MyRe
 import { MyRegularClassDetailPcForm } from "@/app/profile/myRegularClass/[id]/MyRegularClassDetailPcForm";
 import { getLocale } from "@/utils/translate";
 import { getUnpaidInfoMock } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
+import { buildPaymentPeriodsMock } from "@/app/profile/myRegularClass/[id]/history.periods.mock";
 import { getRegularClassTicketsAction } from "@/app/profile/myRegularClass/[id]/get.regular.class.tickets.action";
 import { RegularClassHistoryData } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 
@@ -35,7 +36,10 @@ export default async function MyRegularClassDetailPage({ params, searchParams }:
     ? await Promise.all([getRegularClassAction({ id: fallbackId }), getRegularClassTicketsAction({ id: fallbackId, page: 1 })])
     : [regularClassByParam, historyByParam];
   const historyClassId = paramRegularClassId ?? fallbackId;
-  const history: RegularClassHistoryData | null = historyRes && historyClassId ? { regularClassId: historyClassId, ...historyRes } : null;
+  // TODO(2026-10-30): API 연동 — 결제 회차 목록(periods)은 history.periods.mock.ts 가 pass 기간으로 만든 목. 서버가 주면 교체
+  const history: RegularClassHistoryData | null = historyRes && historyClassId
+    ? { regularClassId: historyClassId, periods: buildPaymentPeriodsMock(pass), days: pass.days ?? [], ...historyRes }
+    : null;
   // 반 상세를 못 받아도 화면은 그린다 — 이름은 pass 쪽으로 폴백
   const regularClass = regularClassRes && 'id' in regularClassRes ? regularClassRes : null;
 
