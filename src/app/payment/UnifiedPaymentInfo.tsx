@@ -18,7 +18,7 @@ import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { firstLessonDate } from "@/utils/weekly.days";
-import { dayDiffFromToday, formatRelativeDay } from "@/utils/lesson.relative.date";
+import { dayDiffFromToday, formatRelativeDay, isAbsoluteRelativeDay } from "@/utils/lesson.relative.date";
 
 type UnifiedPaymentType = 'lesson' | 'lesson-group' | 'pass-plan' | 'practice-room' | 'bundle' | 'regular-class';
 
@@ -124,11 +124,22 @@ const ONE_TIME_OPTION_ID = -1;
  * 시작 안내 문구에서 '화요일(9.24)' 부분만 굵게 — 템플릿에서 {day} 부터 ({date}) 닫는 괄호까지를 bold span 으로 감싼다.
  * {day} 가 없는 템플릿('내일({date})…')은 괄호 앞 단어부터, 괄호도 없으면 {date} 만.
  */
-const emphasizeWhen = (template: string, day: string | undefined, date: string) => {
-  const fill = (t: string) => t.replace('{day}', day ?? '').replace('{date}', date);
+const emphasizeWhen = (template: string, day: string | undefined, date: string | undefined) => {
+  const fill = (t: string) => t.replace('{day}', day ?? '').replace('{date}', date ?? '');
   const dateAt = template.indexOf('{date}');
-  if (dateAt < 0) return fill(template);
   const dayAt = template.indexOf('{day}');
+  // {date} 없이 {day} 만 있는 템플릿('11월 24일 (화)부터 시작합니다') — {day} 만 굵게
+  if (dateAt < 0) {
+    if (dayAt < 0) return fill(template);
+    const end = dayAt + '{day}'.length;
+    return (
+      <>
+        {fill(template.slice(0, dayAt))}
+        <span className="font-bold text-black">{fill(template.slice(dayAt, end))}</span>
+        {fill(template.slice(end))}
+      </>
+    );
+  }
   const wrapped = template[dateAt - 1] === '(' && template[dateAt + '{date}'.length] === ')';
   const start = dayAt >= 0
     ? dayAt
@@ -146,6 +157,7 @@ const emphasizeWhen = (template: string, day: string | undefined, date: string) 
 /**
  * 첫 수업 시작 안내 문구 — 정규반·수업 결제 공용.
  * 오늘 → '오늘부터 바로 시작합니다' / 내일 → '내일(9.23)부터 바로 시작합니다' / 그 뒤 → '이번주 목요일(9.24)부터 시작합니다'.
+ * 2주 넘게 남아 상대 표현이 절대 날짜('11월 24일 (화)')로 떨어지면 괄호 날짜는 생략 — '11월 24일 (화)부터 시작합니다'.
  * first 가 없으면(남은 회차 없음 등) fallbackDate 로 '{date}부터 시작'.
  */
 const startNoticeLabel = (first: Date | null, fallbackDate: string, locale: Locale) => {
@@ -153,6 +165,9 @@ const startNoticeLabel = (first: Date | null, fallbackDate: string, locale: Loca
   const diff = dayDiffFromToday(first);
   if (diff <= 0) return getLocaleString({ locale, key: 'regular_class_starts_today' });
   const md = `${first.getMonth() + 1}.${first.getDate()}`;
+  if (diff > 1 && isAbsoluteRelativeDay(first)) {
+    return emphasizeWhen(getLocaleString({ locale, key: 'regular_class_starts_on_date' }), formatRelativeDay(first, locale), undefined);
+  }
   return emphasizeWhen(
     getLocaleString({ locale, key: diff === 1 ? 'regular_class_starts_tomorrow' : 'regular_class_starts_on' }),
     formatRelativeDay(first, locale),
@@ -752,6 +767,8 @@ export const UnifiedPaymentInfo = ({
           selectedDiscounts={noPass ? undefined : activeDiscounts}
           // 정책 결제 — 수업은 lesson-group(LGT), 정규반은 가격정책 pass-plan(LP). id 는 둘 다 정책 id
           type={selectedPolicy ? getPaymentType(type === 'regular-class' ? 'regular-class' : 'lesson-group') : getPaymentType(type)}
+          // 정규반은 결제 API 로는 pass-plan 이지만 유저에겐 '정규반 등록' — 비회원 인증 시트 문구만 정규반으로
+          guestItemType={type === 'regular-class' ? 'regular-class' : undefined}
           id={selectedPolicy ? selectedPolicy.id : getItemId(payment, type)}
           lessonId={payment.lesson?.id}
           price={priceAvailable ? totalPrice : null}
@@ -767,8 +784,6 @@ export const UnifiedPaymentInfo = ({
             // 연습실은 서버가 총액을 나중에 계산해 totalPrice가 0일 수 있음 → 결제수단은 항상 필수
             (type === 'practice-room' && (
               !selectedMethod ||
-          // 정규반은 결제 API 로는 pass-plan 이지만 유저에겐 '정규반 등록' — 비회원 인증 시트 문구만 정규반으로
-          guestItemType={type === 'regular-class' ? 'regular-class' : undefined}
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
             )) ||

@@ -87,6 +87,16 @@ export const getRelativeWeekPrefix = (baseDate: Date, refDate: Date, locale: Loc
 
 // 날짜 → 상대 날짜 라벨(시각 없음). 오늘/내일 · 이번 주/다음 주 요일 · 그 외 날짜.
 // 수업 카드 시각(formatRelativeLessonDate)과 정규반 첫 수업 안내가 같은 규칙을 쓴다.
+/** formatRelativeDay 가 '오늘/내일/이번주·다음주 요일'이 아니라 절대 날짜('11월 24일 (화)')로 떨어지는지 — 그럴 땐 뒤에 (11.24) 를 또 붙이면 안 된다 */
+export const isAbsoluteRelativeDay = (d: Date): boolean => {
+  const now = new Date();
+  const dayDiff = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
+  const weekDiff = Math.round((mondayOf(d).getTime() - mondayOf(now).getTime()) / (7 * 86400000));
+  if (dayDiff === 0 || dayDiff === 1) return false;
+  if (dayDiff >= 2 && weekDiff === 0) return false;
+  return weekDiff !== 1;
+};
+
 export const formatRelativeDay = (d: Date, locale: Locale): string => {
   const now = new Date();
   const dayDiff = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);

@@ -4970,6 +4970,7 @@ export const StringResource = {
   pass_starts_on: { ko: '{date}부터 시작', en: 'Starts {date}', jp: '{date}から開始', zh: '{date}起生效' },
   // 닉네임 실시간 중복검사 — 입력칸 아래 빨간 안내. ko 는 {nickName} 자리에 '홍길동은/는' 처럼 조사까지 붙여 넘긴다(withTopicParticle)
   nick_name_already_exists_inline: { ko: '{nickName} 이미 존재하는 닉네임입니다', en: '"{nickName}" is already taken', jp: '「{nickName}」はすでに使われています', zh: '“{nickName}”已被使用' },
+  regular_class_starts_on_date: { ko: '{day}부터 시작합니다', en: 'Starts {day}', jp: '{day}から始まります', zh: '{day}开始' },
   // 홈 점보트론 — 상태 배지·메타 (2026-10-23)
   jumbotron_opens_in_days: { ko: '{n}일 후 공개', en: 'Opens in {n} days', jp: '{n}日後に公開', zh: '{n}天后公开' },
   jumbotron_opens_today: { ko: '오늘 공개', en: 'Opens today', jp: '本日公開', zh: '今天公开' },
