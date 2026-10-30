@@ -9,6 +9,8 @@ import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
 import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
+import { MyPaymentMethodsSection } from "@/app/profile/MyPaymentMethodsSection";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
@@ -21,10 +23,11 @@ import {
   ProfileTabKey,
 } from "@/app/profile/ProfilePcClient";
 
-export const ProfilePcForm = async ({user, locale, initialTab}: {
+export const ProfilePcForm = async ({user, locale, initialTab, billings}: {
   user: GetMeResponse,
   locale: Locale,
   initialTab?: ProfileTabKey,
+  billings: GetBillingResponse[],
 }) => {
   const upcoming = user.upcomingLesson;
   const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
@@ -193,6 +196,11 @@ export const ProfilePcForm = async ({user, locale, initialTab}: {
           </div>
         </ProfileContentCard>
       )}
+
+      {/* 결제 카드 — 모바일과 동일(머리글은 컴포넌트가 그린다). 내역이 없어도 보여준다 */}
+      <ProfileContentCard>
+        <MyPaymentMethodsSection cards={billings} locale={locale} variant="pc"/>
+      </ProfileContentCard>
     </>
   );
 

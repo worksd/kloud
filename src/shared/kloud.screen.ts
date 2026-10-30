@@ -22,6 +22,8 @@ export const KloudScreen = {
   PasswordSetting: '/profile/setting/account/resetPassword',
   RefundAccountSetting: '/profile/setting/account/refund',
   PaymentMethodSetting: '/profile/setting/account/paymentMethod',
+  /** 결제수단 관리로 들어가며 바로 '카드 추가' 바텀시트를 연다(마이페이지 결제 카드 섹션의 추가 버튼) */
+  PaymentMethodAdd: '/profile/setting/account/paymentMethod?add=1',
   InstagramConnect: '/profile/setting/account/instagram',
   SnsConnect: '/profile/setting/account/sns',
   LanguageSetting: '/profile/setting/language',

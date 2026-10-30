@@ -16,7 +16,9 @@ export default async function ProfilePage({searchParams}: {
   const { appVersion, tab } = await searchParams;
   // 상단바 드롭다운 등에서 ?tab=tickets 식으로 특정 탭을 바로 열 수 있게
   const initialTab = PC_TABS.includes(tab as ProfileTabKey) ? (tab as ProfileTabKey) : undefined;
-  const user = await api.user.me({})
+  // 결제수단은 user.me 에 안 실려 와서 따로 — 마이페이지 '내 결제수단' 섹션용(실패하면 빈 목록, 섹션은 비어 있음 상태로)
+  const [user, billingRes] = await Promise.all([api.user.me({}), api.billing.get({})])
+  const billings = 'billings' in billingRes ? billingRes.billings : [];
 
   if (!('id' in user)) {
     const result = await handleApiError(user, 'GET /users/me');
@@ -35,14 +37,14 @@ export default async function ProfilePage({searchParams}: {
       {isWeb ? (
         <>
           <div className="hidden lg:block">
-            <ProfilePcForm user={user} locale={locale} initialTab={initialTab}/>
+            <ProfilePcForm user={user} locale={locale} initialTab={initialTab} billings={billings}/>
           </div>
           <div className="lg:hidden">
-            <ProfileForm user={user} locale={locale}/>
+            <ProfileForm user={user} locale={locale} billings={billings}/>
           </div>
         </>
       ) : (
-        <ProfileForm user={user} locale={locale}/>
+        <ProfileForm user={user} locale={locale} billings={billings}/>
       )}
     </>
   );

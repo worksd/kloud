@@ -10,16 +10,18 @@ import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMetho
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-export const BillingCardForm = ({cards, locale, birth, pcCard = false}: {
+export const BillingCardForm = ({cards, locale, birth, pcCard = false, autoOpenAdd = false}: {
   cards: GetBillingResponse[],
   locale: Locale,
   birth?: string | null,
   /** PC(lg) 카드 안 렌더 — 우하단 고정 + 버튼을 컨텐츠 우상단으로 */
   pcCard?: boolean,
+  /** 진입하자마자 추가 바텀시트를 연다(?add=1 — 마이페이지 결제 카드 섹션에서 올 때) */
+  autoOpenAdd?: boolean,
 }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(autoOpenAdd);
 
   const loadCards = async () => {
 

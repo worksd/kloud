@@ -4927,6 +4927,14 @@ export const StringResource = {
   /** {date} 자리에 'M.d(요일)' */
   regular_class_unpaid_notice: { ko: '미납된 수강료를 결제해 주세요', en: 'Please pay the outstanding tuition', jp: '未納の受講料をお支払いください', zh: '请支付未付的学费' },
   regular_class_unpaid_pay: { ko: '결제하기', en: 'Pay now', jp: '支払う', zh: '去支付' },
+  // 마이페이지 — 결제 카드 섹션(설정 안에 숨어 있던 결제수단 관리를 본문으로)
+  my_payment_cards: { ko: '결제 카드', en: 'Payment cards', jp: '決済カード', zh: '付款卡' },
+  payment_method_manage: { ko: '관리', en: 'Manage', jp: '管理', zh: '管理' },
+  payment_card_add: { ko: '카드 추가하기', en: 'Add a card', jp: 'カードを追加', zh: '添加卡片' },
+  payment_cards_empty_title: { ko: '등록된 카드가 없어요', en: 'No card yet', jp: '登録されたカードがありません', zh: '还没有登记卡片' },
+  payment_cards_empty_desc: { ko: '카드를 등록해 두면 결제할 때 바로 쓸 수 있어요', en: 'Add one now to pay faster next time', jp: '登録しておくと決済がすぐにできます', zh: '提前登记，付款时可直接使用' },
+  /** 본문에 다 못 보여준 카드 수 */
+  payment_cards_more: { ko: '외 {n}장 더 보기', en: 'View {n} more', jp: 'ほか{n}枚を見る', zh: '查看另外{n}张' },
   // 홈 — 미납 결제건 다이얼로그(GET /home unpaidPaymentRecords)
   home_unpaid_title: { ko: '미납된 수강료가 있어요', en: 'You have unpaid tuition', jp: '未納の受講料があります', zh: '您有未缴的学费' },
   /** 미납건이 여럿일 때 첫 건 아래 — {n} 나머지 건수 */

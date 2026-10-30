@@ -150,7 +150,7 @@ const applyTitle = async (route: string) => {
     return await translate('setting')
   } else if (route == KloudScreen.MyAccount) {
     return await translate('my_account')
-  } else if (route == KloudScreen.PaymentMethodSetting) {
+  } else if (route == KloudScreen.PaymentMethodSetting || route == KloudScreen.PaymentMethodAdd) {
     return await translate('payment_method_management')
   } else if (route == KloudScreen.LanguageSetting) {
     return await translate('language_setting')

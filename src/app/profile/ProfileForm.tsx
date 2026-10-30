@@ -12,6 +12,8 @@ import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
 import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
+import { MyPaymentMethodsSection } from "@/app/profile/MyPaymentMethodsSection";
+import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { UserType } from "@/entities/user/user.type";
@@ -22,7 +24,7 @@ import { RecapBannerSpace } from "@/app/recap/RecapBannerSpace";
 import { cookies } from "next/headers";
 import { studioKey } from "@/shared/cookies.key";
 
-export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale: Locale }) => {
+export const ProfileForm = async ({user, locale, billings}: { user: GetMeResponse, locale: Locale, billings: GetBillingResponse[] }) => {
   const upcoming = user.upcomingLesson;
   const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
   const recapStudioId = Number((await cookies()).get(studioKey)?.value ?? 0) || 0;
@@ -243,6 +245,11 @@ export const ProfileForm = async ({user, locale}: { user: GetMeResponse, locale:
           </div>
         </section>
       )}
+
+      {/* 결제 카드 — 설정 안에 숨어 있던 결제수단 관리를 본문으로. 카드 행 + 추가 행(관리 페이지로 이동 후 바텀시트) */}
+      <section className="px-4 mt-6">
+        <MyPaymentMethodsSection cards={billings} locale={locale}/>
+      </section>
 
       {/* 내 활동 — 세로 목록. 옅은 라운드 스퀘어 안 플랫 컬러 아이콘 + 라벨, 오른쪽 개수 + 화살표. 카드/구분선 없이 여백으로 */}
       <section className="px-4 mt-8">
