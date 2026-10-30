@@ -4921,10 +4921,9 @@ export const StringResource = {
   // 내 정규반 상세 — 미납 안내 (지금은 목, unpaid.mock.ts)
   regular_class_unpaid_title: { ko: '이번 수강료가 아직 결제되지 않았어요', en: "This period hasn't been paid yet", jp: '今回の受講料がまだ支払われていません', zh: '本期学费尚未支付' },
   /** {date} 자리에 'M.d(요일)' */
-  regular_class_unpaid_due: { ko: '{date}까지 결제하지 않으면 수업 이용이 멈춰요', en: 'Pay by {date} to keep attending', jp: '{date}までにお支払いがないとレッスンが利用できなくなります', zh: '请在{date}前支付，否则将暂停上课' },
+  regular_class_unpaid_notice: { ko: '미납된 수강료를 결제해 주세요', en: 'Please pay the outstanding tuition', jp: '未納の受講料をお支払いください', zh: '请支付未付的学费' },
   regular_class_unpaid_pay: { ko: '결제하기', en: 'Pay now', jp: '支払う', zh: '去支付' },
   // 내 정규반 상세 — 수업 일정 변경 (지금은 목, reschedule.mock.ts)
-  regular_class_reschedule_menu: { ko: '더보기', en: 'More', jp: 'その他', zh: '更多' },
   regular_class_reschedule_action: { ko: '수업 일정 변경하기', en: 'Reschedule a lesson', jp: 'レッスン日程を変更', zh: '课程改期' },
   regular_class_reschedule_history: { ko: '수업 일정 변경 이력', en: 'Reschedule history', jp: '日程変更履歴', zh: '改期记录' },
   regular_class_reschedule_history_empty: { ko: '아직 변경한 수업이 없어요', en: 'No rescheduled lessons yet', jp: 'まだ変更したレッスンはありません', zh: '暂无改期记录' },
@@ -4940,7 +4939,8 @@ export const StringResource = {
   regular_class_reschedule_changed: { ko: '변경됨', en: 'Rescheduled', jp: '変更済み', zh: '已改期' },
   regular_class_reschedule_new: { ko: '새 일정', en: 'New', jp: '新しい日程', zh: '新时间' },
   /** {count} 자리에 남은 일정 변경 횟수 */
-  regular_class_reschedule_remaining: { ko: '남은 수업 일정 변경 {count}회', en: '{count} reschedule(s) left', jp: '残りの日程変更 {count}回', zh: '剩余改期次数 {count}次' },
+  regular_class_reschedule_remaining_label: { ko: '남은 변경 횟수', en: 'Reschedules left', jp: '残りの変更回数', zh: '剩余改期次数' },
+  regular_class_reschedule_count_unit: { ko: '회', en: '', jp: '回', zh: '次' },
   /** {count} 자리에 남은 일정 변경 횟수 */
   regular_class_reschedule_success: { ko: '수업 일정을 변경했어요\n앞으로 {count}번 더 변경할 수 있어요', en: 'Lesson rescheduled\nYou can reschedule {count} more time(s)', jp: '日程を変更しました\nあと{count}回変更できます', zh: '已改期\n还可改期{count}次' },
   regular_class_reschedule_error_not_allowed: { ko: '이 수강권은 수업 일정을 변경할 수 없어요', en: 'This ticket cannot be rescheduled', jp: 'この受講券は日程変更できません', zh: '该课程券无法改期' },

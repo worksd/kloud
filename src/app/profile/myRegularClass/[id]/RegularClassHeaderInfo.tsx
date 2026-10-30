@@ -1,6 +1,7 @@
-// 내 정규반 상세 헤더 안쪽 — 학원 로고 + 반 이름/가격정책/학원명 + QR(+PC 는 ⋮ 수업 일정 변경 메뉴), 반 설명·담당 강사, 기간·요일 표.
+// 내 정규반 상세 헤더 안쪽 — 학원 로고 + 반 이름/가격정책/학원명(+PC 는 ⋮ 수업 일정 변경 메뉴), 반 설명·담당 강사, 기간·요일 표.
+// 출석 QR 은 패스 상세와 달리 안 보여준다.
 // 모바일/PC 공용(배경·여백은 바깥에서). 반 이미지는 모바일은 폼의 히어로, PC 는 여기서 헤더 위 배너.
-// 반 이름은 정규반 상세(GET /regular-classes/:id), 기간·요일·QR 은 GET /passes/:id. 가격정책(passPlan) 이름은 반 이름 아래 작게.
+// 반 이름은 정규반 상세(GET /regular-classes/:id), 기간·요일은 GET /passes/:id. 가격정책(passPlan) 이름은 반 이름 아래 작게.
 
 import React from "react";
 import { translate } from "@/utils/translate";
@@ -8,11 +9,10 @@ import { Locale } from "@/shared/StringResource";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { CircleImage } from "@/app/components/CircleImage";
-import { PassQRCode } from "@/app/profile/myPass/[id]/PassQRCode";
-import { resolvePassQrValue } from "@/app/profile/myPass/[id]/pass.qr";
 import { PassDaysChip } from "@/app/components/PassDaysChip";
 import { formatPassDays } from "@/utils/pass.days";
 import { RescheduleMenuButton } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
+import { resolveRegularClassImage } from "@/utils/regular.class.image";
 
 const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="flex items-center justify-between gap-4">
@@ -33,21 +33,22 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
   const className = regularClass?.name || plan?.regularClass?.name || plan?.name || '';
   // 가격정책 이름은 반 이름과 다를 때만 아래 작게 (같으면 중복)
   const planName = plan?.name && plan.name !== className ? plan.name : null;
-  const qrValue = resolvePassQrValue(pass);
   const pc = variant === 'pc';
 
   const artist = regularClass?.artist;
   const artistName = artist ? (artist.nickName || artist.name) : '';
   // 반 설명 — 비어 있으면 생략
   const description = regularClass?.description?.trim();
+  // PC 배너 이미지 — 반 이미지 > 담당 강사 프로필 > 학원 로고 (모바일 히어로와 같은 규칙)
+  const bannerUrl = pc ? resolveRegularClassImage(regularClass, studio) : null;
 
   return (
     <>
       {/* PC — 반 이미지 배너 (모바일은 폼에서 풀블리드 히어로) */}
-      {pc && regularClass?.imageUrl && (
+      {bannerUrl && (
         <div className="-mx-6 -mt-6 mb-5 aspect-[3/1] overflow-hidden rounded-t-2xl bg-[#F1F3F6]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={regularClass.imageUrl} alt="" className="w-full h-full object-cover"/>
+          <img src={bannerUrl} alt="" className="w-full h-full object-cover"/>
         </div>
       )}
       <div className="flex items-start justify-between gap-4">
@@ -63,14 +64,8 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
             <span className="text-[13px] text-[#86898C] truncate">{studio?.name}</span>
           </div>
         </div>
-        <div className="flex items-start gap-2 shrink-0">
-          {/* QR — 기한이 남은(Active) 상품만. 출석 체크용, 패스 상세와 같은 규칙 */}
-          {qrValue && (
-            <PassQRCode url={qrValue} hint={await translate('pass_qr_scan_hint')} closeLabel={await translate('confirm')}/>
-          )}
-          {/* ⋮ — 수업 일정 변경 메뉴. PC 만 여기, 모바일은 RegularClassTopBar */}
-          {pc && <RescheduleMenuButton/>}
-        </div>
+        {/* ⋮ — 수업 일정 변경 메뉴. PC 만 여기, 모바일은 RegularClassTopBar */}
+        {pc && <div className="shrink-0"><RescheduleMenuButton/></div>}
       </div>
 
       {description && (
@@ -89,6 +84,7 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
       )}
 
       <div className={`mt-4 px-4 py-3.5 rounded-xl bg-white/70 ${pc ? '' : 'backdrop-blur-sm'} flex flex-col gap-2.5`}>
+        {/* TODO(2026-10-30): 이용기한 — 정규반 상세에선 이 표시(라벨·기간 값)를 고쳐야 한다. 지금은 pass 의 startDate~endDate 를 패스 상세 그대로 */}
         <InfoRow label={await translate('pass_period')}>{pass.startDate} ~ {pass.endDate}</InfoRow>
         {formatPassDays(pass.days) && (
           <div className="flex items-center justify-between gap-4">

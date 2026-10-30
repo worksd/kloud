@@ -1,7 +1,8 @@
 'use client';
 // 내 정규반 상세(모바일) 상단 줄 — 뒤로가기 + ⋮(수업 일정 변경 메뉴).
 // 네이티브 앱바를 띄우지 않는 ignoreSafeArea 화면이라(kloudNav applyTitle) 상태바 아래 줄을 직접 그린다.
-// 맨 위에선 투명(그래디언트·반 이미지가 비침), 스크롤하면 흰 배경 — 내용이 상태바·버튼 밑으로 비치지 않게.
+// 맨 위에선 투명(그래디언트·반 이미지가 비침), 일정 높이 넘게 스크롤하면 흰 배경 — 내용이 상태바·버튼 밑으로 비치지 않게.
+// 흰 배경이 생기는 지점: 이미지가 있으면 히어로(가로 4:3) 아래 끝이 버튼 줄 밑으로 들어갈 때, 없으면 헤더를 어느 정도 지난 뒤.
 // overImage 면 맨 위에서 아이콘을 흰색으로 + 위쪽 어두운 그라데이션(상태바 글자·아이콘 가독성).
 
 import React, { useEffect, useState } from "react";
@@ -14,15 +15,37 @@ const SAFE_TOP = 'max(env(safe-area-inset-top, 0px), 44px)';
 /** 상태바 아래 버튼 줄 높이 — 본문 spacer 도 이 값을 쓴다 */
 export const TOP_BAR_HEIGHT = 52;
 export const TOP_BAR_SPACE = `calc(${SAFE_TOP} + ${TOP_BAR_HEIGHT}px)`;
+/** 이미지 없는 화면에서 흰 배경이 생기는 스크롤 높이(px) */
+const NO_IMAGE_THRESHOLD = 120;
+/** 히어로 이미지 비율(폼의 aspect-[4/3]과 같아야 한다) */
+const HERO_RATIO = 3 / 4;
 
 export const RegularClassTopBar = ({ overImage = false }: { overImage?: boolean }) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4);
+    // 상태바 실제 높이 — 히어로 아래 끝이 버튼 줄(상태바 + TOP_BAR_HEIGHT) 밑으로 들어가는 시점을 잡기 위해
+    const safeTop = () => {
+      const probe = document.createElement('div');
+      probe.style.cssText = `position:fixed;top:0;height:${SAFE_TOP};visibility:hidden;pointer-events:none`;
+      document.body.appendChild(probe);
+      const h = probe.getBoundingClientRect().height;
+      probe.remove();
+      return h;
+    };
+    const threshold = () => overImage
+      ? Math.max(window.innerWidth * HERO_RATIO - safeTop() - TOP_BAR_HEIGHT, NO_IMAGE_THRESHOLD)
+      : NO_IMAGE_THRESHOLD;
+    let limit = threshold();
+    const onScroll = () => setScrolled(window.scrollY > limit);
+    const onResize = () => { limit = threshold(); onScroll(); };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [overImage]);
 
   const light = overImage && !scrolled;
 

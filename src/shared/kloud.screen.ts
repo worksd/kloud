@@ -39,6 +39,9 @@ export const KloudScreen = {
   Payment: (type: 'lesson' | 'pass-plan' | 'bundle', id: number) => `/payment?type=${type}&id=${id}`,
   /** 이용권(패스) 결제 — item 방식 */
   PassPlanPayment: (id: number) => `/payment?item=pass-plan&id=${id}`,
+  /** 정규반 가격정책(category=Class) 결제 — 결제 자체는 item=pass-plan 과 같고, category=Class 는 앱바 제목을
+   *  '패스권 구매하기' 대신 '정규반 등록하기'로 고르기 위한 표시(kloudNav paymentTitleKey). 미납 결제 등 반 상품을 pass-plan 으로 살 때 */
+  RegularClassPlanPayment: (passPlanId: number) => `/payment?item=pass-plan&category=Class&id=${passPlanId}`,
   /** 정규반 결제 — item=regular-class, id=정규반 id 로 결제 페이지에 들어간다. 결제 API 에도 item=regular-class 그대로 전달 */
   RegularClassPayment: (regularClassId: number) => `/payment?item=regular-class&id=${regularClassId}`,
   /** 연습실 결제 — item 방식 + 예약 시간대(startTime/endTime, 'YYYY-MM-DDTHH:mm') */

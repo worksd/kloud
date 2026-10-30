@@ -13,6 +13,7 @@ import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.sc
 import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
 import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
 import { RegularClassTopBar, TOP_BAR_SPACE } from "@/app/profile/myRegularClass/[id]/RegularClassTopBar";
+import { resolveRegularClassImage } from "@/utils/regular.class.image";
 
 export const MyRegularClassDetailForm = async ({ pass, regularClass, history, unpaid, locale }: {
   pass: GetPassResponse;
@@ -22,16 +23,19 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, history, un
   /** 미납이면 안내 카드 — 없으면 null */
   unpaid: UnpaidInfo | null;
   locale: Locale;
-}) => (
+}) => {
+  // 히어로 이미지 — 반 이미지 > 담당 강사 프로필 > 학원 로고. 셋 다 없을 때만 히어로 없이 버튼 줄만 비운다
+  const heroUrl = resolveRegularClassImage(regularClass, pass.passPlan?.studio);
+  return (
   <RescheduleScope pass={pass} regularClass={regularClass} locale={locale}>
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
       {/* ignoreSafeArea + 네이티브 앱바 없음 — 상태바(최소 44px 보장) + 뒤로가기·⋮ 줄은 화면이 직접 그린다 */}
-      <RegularClassTopBar overImage={!!regularClass?.imageUrl}/>
-      {/* 반 이미지(정규반 상세 imageUrl)가 있으면 상태바까지 풀블리드 히어로, 없으면 버튼 줄만큼 비운다 — 패스 상세와 같은 방식 */}
-      {regularClass?.imageUrl ? (
+      <RegularClassTopBar overImage={!!heroUrl}/>
+      {/* 히어로 이미지가 있으면 상태바까지 풀블리드, 없으면 버튼 줄만큼 비운다 — 패스 상세와 같은 방식 */}
+      {heroUrl ? (
         <div className="w-full aspect-[4/3] bg-[#F1F3F6]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={regularClass.imageUrl} alt="" className="w-full h-full object-cover"/>
+          <img src={heroUrl} alt="" className="w-full h-full object-cover"/>
         </div>
       ) : (
         <div className="w-full" style={{ paddingTop: TOP_BAR_SPACE }}/>
@@ -44,7 +48,7 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, history, un
       {/* 미납 안내 — 헤더 바로 아래, 결제하기로 결제 페이지 */}
       {unpaid && (
         <div className="px-6 pb-4">
-          <RegularClassUnpaidCard info={unpaid} locale={locale}/>
+          <RegularClassUnpaidCard info={unpaid}/>
         </div>
       )}
 
@@ -55,10 +59,11 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, history, un
         </div>
       )}
 
-      <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-6 pb-20">
-        <h2 className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px] mb-4">{await translate('regular_class_lessons')}</h2>
+      {/* '수업 목록' 큰 제목 없이 섹션 제목(다가오는 수업 / 수강 내역)만 — 제목이 겹쳐 보여서 */}
+      <div className="bg-white rounded-t-[24px] flex-1 px-6 pt-7 pb-20">
         <RegularClassLessonList tickets={collectRegularClassTickets(pass)} history={history} locale={locale}/>
       </div>
     </div>
   </RescheduleScope>
-);
+  );
+};

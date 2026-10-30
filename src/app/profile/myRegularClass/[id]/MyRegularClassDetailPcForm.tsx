@@ -28,7 +28,7 @@ export const MyRegularClassDetailPcForm = async ({ pass, regularClass, history, 
           <RegularClassHeaderInfo pass={pass} regularClass={regularClass} locale={locale} variant="pc"/>
         </header>
 
-        {unpaid && <RegularClassUnpaidCard info={unpaid} locale={locale}/>}
+        {unpaid && <RegularClassUnpaidCard info={unpaid}/>}
 
         {pass.status === 'Waiting' && pass.startDate && (
           <section className="p-5 bg-[#FFFDF5] rounded-2xl border border-[#F59E0B]/20">
@@ -36,8 +36,8 @@ export const MyRegularClassDetailPcForm = async ({ pass, regularClass, history, 
           </section>
         )}
 
+        {/* '수업 목록' 큰 제목 없이 섹션 제목(다가오는 수업 / 수강 내역)만 */}
         <section className="rounded-2xl border border-[#f0f1f3] bg-white p-6">
-          <h2 className="text-[16px] font-bold text-black mb-5">{await translate('regular_class_lessons')}</h2>
           <RegularClassLessonList tickets={collectRegularClassTickets(pass)} history={history} locale={locale}/>
         </section>
       </div>

@@ -17,6 +17,7 @@ import { getLocaleString } from "@/app/components/locale";
 import { formatPassDays } from "@/utils/pass.days";
 import { ChevronRightIcon } from "@/app/profile/ActivityIcons";
 import { ddayLabel } from "@/app/profile/profile.format";
+import { resolveRegularClassImage } from "@/utils/regular.class.image";
 
 // 'yyyy-MM-dd' → 'yyyy.M.d' — 작은 보조 문구라 0 패딩 없이 짧게
 const shortDate = (d: string) => {
@@ -36,7 +37,8 @@ export const MyRegularClassCard = ({ item, locale, variant = 'mobile' }: {
   const isUnpaid = item.status === 'Unpaid';
   const isActive = item.status === 'Active' || isUnpaid;
   const title = rc?.name || item.passPlan?.name || '';
-  const thumbUrl = rc?.artist?.profileImageUrl || item.studio?.profileImageUrl;
+  // 썸네일 — 반 이미지 > 담당 강사 프로필 > 학원 로고 (정규반 상세 히어로와 같은 규칙)
+  const thumbUrl = resolveRegularClassImage(rc, item.studio);
 
   // 보조 한 줄: '매주 화·목 · 2026.9.15부터 수강 중'. 요일 없는 반은 날짜만, 시작일 없으면 요일만
   const daysLabel = formatPassDays(item.days, locale);
@@ -75,7 +77,7 @@ export const MyRegularClassCard = ({ item, locale, variant = 'mobile' }: {
             <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
-          // 강사도 학원 로고도 없으면 반 이름 첫 글자 — 아이콘보다 어느 반인지 바로 보인다
+          // 반 이미지·강사·학원 로고 다 없으면 반 이름 첫 글자 — 아이콘보다 어느 반인지 바로 보인다
           <span className={`${thumb} rounded-[14px] bg-[#EEF1F5] text-[#4E5968] text-[18px] font-bold flex items-center justify-center shrink-0 select-none`}>
             {title.trim().charAt(0)}
           </span>

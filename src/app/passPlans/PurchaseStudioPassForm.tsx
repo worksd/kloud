@@ -96,7 +96,10 @@ export const PurchaseStudioPassForm = ({
       <div className="sticky bottom-3 px-6 mt-4">
         <CommonSubmitButton originProps={{
           onClick: () => {
-            kloudNav.push(KloudScreen.Payment('pass-plan', passPlan?.id ?? 0))
+            // 정규반 가격정책(category=Class)이면 앱바 제목이 '정규반 등록하기'가 되도록 category 를 실어 보낸다
+            kloudNav.push(passPlan?.category === 'Class'
+              ? KloudScreen.RegularClassPlanPayment(passPlan.id)
+              : KloudScreen.Payment('pass-plan', passPlan?.id ?? 0))
           }
         }} disabled={passPlan == null}>
           <div>{passPlan ? `${passPlan.name} 구매하기` : purchasePassText}</div>

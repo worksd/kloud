@@ -1,5 +1,5 @@
 'use client';
-// 내 정규반 상세 — 수업 일정 변경. 오른쪽 위 ⋮ → 바텀시트 메뉴(수업 일정 변경하기 / 수업 일정 변경 이력).
+// 내 정규반 상세 — 수업 일정 변경. 오른쪽 위 ⋮ → 바로 '수업 일정 변경' 시트 하나(남은 횟수 + 변경할 수업 고르기 + 변경 이력).
 // 모바일은 ⋮ 를 RegularClassTopBar(뒤로가기와 같은 줄)에, PC 는 헤더 카드 안. 시트는 전부 공용 BottomSheet.
 // 변경하기: 다가오는 수업 중 하나를 고르면 새 일정을 바로 미리 보여주고, 확인하면 옮긴다.
 // 새 일정 규칙 — 내 마지막 수업(이미 바꾼 새 일정 포함) 다음에 오는 가장 가까운 반 요일, 시간은 원래 수업 그대로.
@@ -11,7 +11,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import { BottomSheet, BottomSheetHandle } from "@/app/components/BottomSheet";
 import { HeaderBlurButton } from "@/app/components/buttons";
 import { CircleImage } from "@/app/components/CircleImage";
-import { CalendarClock, Check, ChevronRight, History, MoreVertical } from "lucide-react";
+import { Check, MoreVertical } from "lucide-react";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
@@ -39,9 +39,7 @@ const nextClassDay = (from: { year: number; month: number; day: number }, allowe
 };
 
 type Sheet =
-  | { kind: 'menu' }
   | { kind: 'select' }
-  | { kind: 'history' }
   | { kind: 'result'; ok: boolean; message: string };
 
 type Ctx = {
@@ -92,11 +90,6 @@ export const RegularClassRescheduleProvider = ({ locale, tickets, days, endDate,
     <RescheduleContext.Provider value={{ locale, remaining, records, open: go }}>
       {children}
       {/* key 로 시트마다 새로 마운트 — 매번 slideUp 이 다시 탄다 */}
-      {sheet?.kind === 'menu' && (
-        <BottomSheet key="menu" ref={sheetRef} onClose={onClosed}>
-          <MenuSheet t={t} remaining={remaining} onSelect={(next) => go({ kind: next })}/>
-        </BottomSheet>
-      )}
       {sheet?.kind === 'select' && (
         <SelectSheet
           key="select"
@@ -121,11 +114,6 @@ export const RegularClassRescheduleProvider = ({ locale, tickets, days, endDate,
           }}
         />
       )}
-      {sheet?.kind === 'history' && (
-        <BottomSheet key="history" ref={sheetRef} onClose={onClosed} title={t('regular_class_reschedule_history')} maxHeightVh={80}>
-          <HistorySheet t={t} locale={locale} records={records}/>
-        </BottomSheet>
-      )}
       {sheet?.kind === 'result' && (
         <BottomSheet key="result" ref={sheetRef} onClose={onClosed}>
           <div className="px-6 pt-3">
@@ -145,8 +133,8 @@ export const RescheduleMenuButton = ({ light = false }: { /** 이미지 위 — 
   return (
     <HeaderBlurButton isBlur originProps={{
       type: 'button',
-      'aria-label': getLocaleString({ locale: ctx.locale, key: 'regular_class_reschedule_menu' }),
-      onClick: () => ctx.open({ kind: 'menu' }),
+      'aria-label': getLocaleString({ locale: ctx.locale, key: 'regular_class_reschedule_action' }),
+      onClick: () => ctx.open({ kind: 'select' }),
     }}>
       <MoreVertical size={22} className={`transition-colors ${light ? 'text-white drop-shadow' : 'text-[#191F28]'}`}/>
     </HeaderBlurButton>
@@ -206,46 +194,6 @@ const PrimaryButton = ({ onClick, disabled, loading, className = '', children }:
     {loading ? <span className="w-5 h-5 rounded-full border-2 border-white/40 border-t-white animate-spin"/> : children}
   </button>
 );
-
-const MenuSheet = ({ t, remaining, onSelect }: {
-  t: (key: StringResourceKey) => string;
-  remaining: number;
-  onSelect: (next: 'select' | 'history') => void;
-}) => {
-  const canChange = remaining > 0;
-  const items = [
-    {
-      key: 'select' as const,
-      icon: <CalendarClock size={20}/>,
-      label: t('regular_class_reschedule_action'),
-      sub: canChange
-        ? t('regular_class_reschedule_remaining').replace('{count}', String(remaining))
-        : t('regular_class_reschedule_error_limit_exceeded'),
-      disabled: !canChange,
-    },
-    { key: 'history' as const, icon: <History size={20}/>, label: t('regular_class_reschedule_history'), sub: null, disabled: false },
-  ];
-  return (
-    <div className="flex flex-col px-4 pt-1">
-      {items.map((it) => (
-        <button
-          key={it.key}
-          type="button"
-          disabled={it.disabled}
-          onClick={() => onSelect(it.key)}
-          className="flex items-center gap-3.5 px-2 py-3.5 rounded-xl text-left active:bg-[#F7F8FA] disabled:active:bg-transparent group"
-        >
-          <span className="w-10 h-10 rounded-full bg-[#F2F4F6] flex items-center justify-center text-[#4E5968] group-disabled:text-[#B0B8C1] shrink-0">{it.icon}</span>
-          <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-            <span className="text-[16px] font-semibold text-[#191F28] group-disabled:text-[#B0B8C1] tracking-[-0.3px]">{it.label}</span>
-            {it.sub && <span className="text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">{it.sub}</span>}
-          </span>
-          <ChevronRight size={18} className="text-[#B0B8C1] shrink-0"/>
-        </button>
-      ))}
-    </div>
-  );
-};
 
 type SelectResult =
   | { ok: true; record: RescheduleRecord; remaining: number }
@@ -339,15 +287,28 @@ const SelectSheet = ({ sheetRef, onClosed, t, locale, tickets, days, endDate, re
     }
   };
 
-  return (
-    <BottomSheet ref={sheetRef} onClose={onClosed} locked={loading} title={t('regular_class_reschedule_select_title')} maxHeightVh={88}>
-      <div className="px-6 overflow-y-auto">
-        <p className="text-[13.5px] text-[#4E5968] tracking-[-0.2px] leading-[1.5]">{t('regular_class_reschedule_select_desc')}</p>
+  const canChange = remaining > 0;
 
-        {candidates.length === 0 ? (
-          <p className="py-10 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_no_target')}</p>
+  return (
+    <BottomSheet ref={sheetRef} onClose={onClosed} locked={loading} title={t('regular_class_reschedule_action')} maxHeightVh={88}>
+      <div className="px-6 overflow-y-auto">
+        {/* 남은 횟수 — 맨 위에 크게. 다 썼으면 안내만 하고 고르기는 막는다 */}
+        <div className="rounded-2xl bg-[#F7F8FA] px-4 py-3.5 flex items-center justify-between gap-3">
+          <span className="text-[13.5px] font-semibold text-[#4E5968] tracking-[-0.2px]">{t('regular_class_reschedule_remaining_label')}</span>
+          <span className={`text-[20px] font-bold font-paperlogy ${canChange ? 'text-[#191F28]' : 'text-[#FF6B6B]'}`}>
+            {remaining}<span className="text-[13px] ml-0.5">{t('regular_class_reschedule_count_unit')}</span>
+          </span>
+        </div>
+
+        <h3 className="mt-6 text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_select_title')}</h3>
+        <p className="mt-1 text-[13px] text-[#4E5968] tracking-[-0.2px] leading-[1.5]">{t('regular_class_reschedule_select_desc')}</p>
+
+        {!canChange ? (
+          <p className="py-8 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_error_limit_exceeded')}</p>
+        ) : candidates.length === 0 ? (
+          <p className="py-8 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_no_target')}</p>
         ) : (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="mt-3 flex flex-col gap-2">
             {candidates.map((c) => {
               const on = c.id === selectedId;
               return (
@@ -394,41 +355,49 @@ const SelectSheet = ({ sheetRef, onClosed, t, locale, tickets, days, endDate, re
           </div>
         )}
 
-        <p className="mt-4 text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">
-          {t('regular_class_reschedule_remaining').replace('{count}', String(remaining))} · {t('regular_class_reschedule_irreversible')}
-        </p>
+        {canChange && (
+          <p className="mt-3 text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">{t('regular_class_reschedule_irreversible')}</p>
+        )}
 
-        <div className="mt-4 flex gap-2">
+        {/* 변경 이력 — 같은 시트 아래쪽에 */}
+        <div className="mt-6 pt-5 border-t border-[#F2F4F6]">
+          <h3 className="text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_history')}</h3>
+          <HistoryList t={t} locale={locale} records={records}/>
+        </div>
+
+        <div className="mt-5 flex gap-2">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
             className="flex-1 h-[52px] rounded-[14px] bg-[#F2F4F6] text-[#4E5968] text-[15px] font-bold active:opacity-80 disabled:opacity-50"
           >
-            {t('cancel')}
+            {canChange ? t('cancel') : t('confirm')}
           </button>
-          <PrimaryButton onClick={submit} disabled={!preview} loading={loading} className="flex-[2]">
-            {t('regular_class_reschedule_action')}
-          </PrimaryButton>
+          {canChange && (
+            <PrimaryButton onClick={submit} disabled={!preview} loading={loading} className="flex-[2]">
+              {t('regular_class_reschedule_action')}
+            </PrimaryButton>
+          )}
         </div>
       </div>
     </BottomSheet>
   );
 };
 
-const HistorySheet = ({ t, locale, records }: { t: (key: StringResourceKey) => string; locale: Locale; records: RescheduleRecord[] }) => {
+const HistoryList = ({ t, locale, records }: { t: (key: StringResourceKey) => string; locale: Locale; records: RescheduleRecord[] }) => {
   // 최근 변경부터
   const list = [...records].sort((a, b) => (parts(b.changedAt)?.at ?? 0) - (parts(a.changedAt)?.at ?? 0));
   return (
-    <div className="px-6 overflow-y-auto">
+    <div>
       {list.length === 0 ? (
-        <p className="py-12 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_history_empty')}</p>
+        <p className="py-6 text-center text-[13.5px] text-[#8B95A1]">{t('regular_class_reschedule_history_empty')}</p>
       ) : (
         <div className="flex flex-col divide-y divide-[#F2F4F6]">
           {list.map((r) => {
             const c = parts(r.changedAt);
             return (
-              <div key={r.id} className="py-4 flex flex-col gap-1.5">
+              <div key={r.id} className="py-3.5 flex flex-col gap-1.5">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[15px] font-semibold text-[#191F28] truncate tracking-[-0.3px]">{r.title}</span>
                   {c && (
