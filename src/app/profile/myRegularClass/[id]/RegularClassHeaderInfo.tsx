@@ -1,7 +1,7 @@
 // 내 정규반 상세 헤더 안쪽 — 학원 로고 + 반 이름/가격정책/학원명(+PC 는 ⋮ 수업 일정 변경 메뉴), 반 설명·담당 강사, 기간·요일 표.
 // 출석 QR 은 패스 상세와 달리 안 보여준다.
 // 모바일/PC 공용(배경·여백은 바깥에서). 반 이미지는 모바일은 폼의 히어로, PC 는 여기서 헤더 위 배너.
-// 반 이름은 정규반 상세(GET /regular-classes/:id), 기간·요일은 GET /passes/:id. 가격정책(passPlan) 이름은 반 이름 아래 작게.
+// 반 이름은 정규반 상세(GET /regular-classes/:id), 다음 결제일(종료일+1)·요일은 GET /passes/:id. 가격정책(passPlan) 이름은 반 이름 아래 작게.
 
 import React from "react";
 import { translate } from "@/utils/translate";
@@ -9,9 +9,18 @@ import { Locale } from "@/shared/StringResource";
 import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { CircleImage } from "@/app/components/CircleImage";
-import { PassDaysChip } from "@/app/components/PassDaysChip";
-import { formatPassDays } from "@/utils/pass.days";
+import { RegularClassWeekStrip } from "@/app/profile/myRegularClass/[id]/RegularClassWeekStrip";
 import { RescheduleMenuButton } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
+import { parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
+
+/** 다음 결제일 — 'yyyy.MM.dd' 종료일의 다음 날. 못 읽으면 종료일 그대로 */
+const nextPaymentDate = (endDate: string) => {
+  const p = parts(endDate);
+  if (!p) return endDate;
+  const d = new Date(Date.UTC(p.year, p.month - 1, p.day + 1));
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}.${pad(d.getUTCMonth() + 1)}.${pad(d.getUTCDate())}`;
+};
 import { resolveRegularClassImage } from "@/utils/regular.class.image";
 
 const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -84,14 +93,11 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
       )}
 
       <div className={`mt-4 px-4 py-3.5 rounded-xl bg-white/70 ${pc ? '' : 'backdrop-blur-sm'} flex flex-col gap-2.5`}>
-        {/* TODO(2026-10-30): 이용기한 — 정규반 상세에선 이 표시(라벨·기간 값)를 고쳐야 한다. 지금은 pass 의 startDate~endDate 를 패스 상세 그대로 */}
-        <InfoRow label={await translate('pass_period')}>{pass.startDate} ~ {pass.endDate}</InfoRow>
-        {formatPassDays(pass.days) && (
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-[13px] text-[#86898C]">{await translate('pass_days_label')}</span>
-            <PassDaysChip days={pass.days} locale={locale}/>
-          </div>
-        )}
+        {/* 정규반은 '이용기한' 대신 다음 결제일 — 지금 기간 종료일 다음 날로 계산
+            TODO(2026-10-30): API 연동 — 서버가 다음 결제일(nextPaymentDate)을 내려주면 그 값으로 교체 */}
+        <InfoRow label={await translate('payment_record_scheduled')}>{nextPaymentDate(pass.endDate)}</InfoRow>
+        {/* 다니는 요일 — 월~일 한 주 띠에 다니는 요일만 채움 + '매주 화·목' 한 줄 */}
+        <RegularClassWeekStrip days={pass.days} locale={locale}/>
       </div>
     </>
   );

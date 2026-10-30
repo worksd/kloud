@@ -4912,6 +4912,7 @@ export const StringResource = {
   pass_status_unpaid: { ko: '미납', en: 'Unpaid', jp: '未納', zh: '未缴' },
   regular_class_since: { ko: '{date}부터 수강 중', en: 'Since {date}', jp: '{date}から受講中', zh: '{date}起上课' },
   every_week_days: { ko: '매주 {days}', en: 'Every {days}', jp: '毎週{days}', zh: '每{days}' },
+  regular_class_schedule_label: { ko: '수업 요일', en: 'Class days', jp: 'レッスン曜日', zh: '上课日' },
   regular_class_lessons: { ko: '수업 목록', en: 'Lessons', jp: 'レッスン一覧', zh: '课程列表' },
   regular_class_history: { ko: '수강 내역', en: 'Lesson history', jp: '受講履歴', zh: '上课记录' },
   regular_class_no_lessons: { ko: '아직 등록된 수업이 없어요', en: 'No lessons scheduled yet', jp: 'まだ登録されたレッスンがありません', zh: '暂无已安排的课程' },
