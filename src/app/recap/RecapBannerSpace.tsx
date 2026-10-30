@@ -9,13 +9,19 @@ import { motion } from "framer-motion";
  * 배너 안을 꽉 채우는 장식 레이어라 터치를 막지 않는다.
  */
 export const RecapBannerSpace = () => {
-  // 별 위치는 렌더마다 바뀌지 않게 고정 (SSR·하이드레이션 어긋남 방지를 위해 결정적 난수)
+  // 별 위치는 렌더마다 바뀌지 않게 고정 — 서버 HTML 과 클라이언트가 같은 값을 내야 한다(style 속성 hydration).
+  // Math.sin 해시는 엔진(서버 Node/V8 vs iOS 웹뷰 JavaScriptCore)마다 마지막 비트가 달라 ×43758 로 증폭되면 left/top 이 어긋나
+  // 마이페이지에서 'some attributes of the server rendered HTML didn't match' 가 났다. 정수 연산만 쓰는 난수(mulberry32)로 — 어디서든 같은 값.
+  // 소수도 2자리로 잘라 문자열 직렬화까지 동일하게.
   const stars = useMemo(() => Array.from({ length: 34 }, (_, i) => {
     const r = (k: number) => {
-      const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
-      return x - Math.floor(x);
+      let t = (i * 1013904223 + k * 1664525 + 0x9E3779B9) >>> 0;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
-    return { x: r(1) * 100, y: r(2) * 100, s: r(3) < 0.2 ? 2 : 1, d: 1.5 + r(4) * 2.5, delay: r(5) * 3 };
+    const f2 = (n: number) => Math.round(n * 100) / 100;
+    return { x: f2(r(1) * 100), y: f2(r(2) * 100), s: r(3) < 0.2 ? 2 : 1, d: f2(1.5 + r(4) * 2.5), delay: f2(r(5) * 3) };
   }), []);
 
   return (
