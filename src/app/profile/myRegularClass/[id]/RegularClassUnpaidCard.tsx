@@ -1,5 +1,5 @@
 // 내 정규반 상세 — 미납 안내 카드. 미납(Unpaid) 상품이면 헤더 바로 아래에 띄운다. 모바일/PC 공용 서버 컴포넌트.
-// 검정 카드 + 큰 금액(Paperlogy) — 수업 목록 날짜 타일과 같은 톤. 결제하기 → 가격정책 결제 페이지.
+// 검정 카드 + 큰 금액(Paperlogy) — 수업 목록 날짜 타일과 같은 톤. 결제하기 → 정규반 등록 결제(item=regular-class, 반 id).
 // 미납이어도 수업 이용은 멈추지 않는다 — 기한·D-day 없이 '미납됐으니 결제해 달라'고만 안내.
 // 지금은 unpaid.mock.ts 데이터.
 
@@ -33,12 +33,14 @@ export const RegularClassUnpaidCard = async ({ info }: { info: UnpaidInfo }) => 
         <span>{await translate('regular_class_unpaid_notice')}</span>
       </div>
 
-      {/* TODO(2026-10-26): API 연동 — 미납분 결제 경로 확정되면 교체 (지금은 같은 가격정책 결제 페이지) */}
-      <NavigateClickWrapper method="push" route={KloudScreen.RegularClassPlanPayment(info.passPlanId)}>
-        <button type="button" className="mt-4 w-full h-12 rounded-[14px] bg-white text-[#191F28] text-[15px] font-bold active:opacity-80">
-          {await translate('regular_class_unpaid_pay')}
-        </button>
-      </NavigateClickWrapper>
+      {/* TODO(2026-10-26): API 연동 — 미납분 결제 경로 확정되면 교체 (지금은 이 반의 정규반 등록 결제 페이지) */}
+      {info.regularClassId > 0 && (
+        <NavigateClickWrapper method="push" route={KloudScreen.RegularClassPayment(info.regularClassId)}>
+          <button type="button" className="mt-4 w-full h-12 rounded-[14px] bg-white text-[#191F28] text-[15px] font-bold active:opacity-80">
+            {await translate('regular_class_unpaid_pay')}
+          </button>
+        </NavigateClickWrapper>
+      )}
     </div>
   );
 };

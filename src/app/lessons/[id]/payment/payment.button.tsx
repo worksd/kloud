@@ -111,6 +111,7 @@ export default function PaymentButton({
                                         practiceRoomInfo,
                                         canSubscribe,
                                         subscriptionCycleLabel,
+  guestItemType,
                                       }: {
   appVersion: string;
   id: number,
@@ -141,6 +142,8 @@ export default function PaymentButton({
   canSubscribe?: boolean,
   /** 정기결제 주기 문장 라벨 (예: '4주마다', '매달') — 선택한 가격 정책으로 연산된 값 */
   subscriptionCycleLabel?: string,
+  /** 비회원 인증 시트 문구용 아이템 종류 — 지정하면 type.apiValue 대신 쓴다 (정규반: 'regular-class') */
+  guestItemType?: string,
 }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -648,7 +651,7 @@ export default function PaymentButton({
         <GuestInfoBottomSheet
           locale={locale}
           // 가격정책(lessonGroup) 은 apiValue 가 pass-plan 이지만 사용자 입장에선 수업 신청 — 문구는 lesson 으로
-          itemType={type.value === 'lessonGroup' ? 'lesson' : type.apiValue}
+          itemType={guestItemType ?? (type.value === 'lessonGroup' ? 'lesson' : type.apiValue)}
           onClose={() => setGuestSheetOpen(false)}
           onAuthenticated={(info) => {
             // 폰 인증 로그인 성공(토큰 쿠키 저장 완료) → 그 payer로 바로 결제 재개

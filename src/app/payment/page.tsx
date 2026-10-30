@@ -117,7 +117,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('not_reserved_lesson')}</div>
   }
   if (paymentItem === 'regular-class' && !res.regularClass) {
-    return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>
+    return <div className="flex items-center justify-center p-4 text-black">{await translate('regular_class_not_found')}</div>
   }
   if (paymentItem === 'pass-plan' && !res.passPlan) {
     return <div className="flex items-center justify-center p-4 text-black">{await translate('pass_plan_not_found')}</div>

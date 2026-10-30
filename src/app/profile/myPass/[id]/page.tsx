@@ -2,6 +2,8 @@ import { getPassAction } from "@/app/profile/myPass/action/getPassAction";
 import React from "react";
 import { MyPassDetailForm } from "@/app/profile/myPass/[id]/MyPassDetailForm";
 import { MyPassDetailPcForm } from "@/app/profile/myPass/[id]/MyPassDetailPcForm";
+import { redirect } from "next/navigation";
+import { KloudScreen } from "@/shared/kloud.screen";
 
 export default async function MyPassDetailPage({params, searchParams}: {
   params: Promise<{ id: number }>,
@@ -12,6 +14,10 @@ export default async function MyPassDetailPage({params, searchParams}: {
 
   if (!('id' in pass)) {
     return null;
+  }
+  // 정규반 상품(passPlan.category=Class)은 패스권 상세가 아니라 내 정규반 상세로 — 혜택 대신 수업 목록을 보여준다
+  if (pass.passPlan?.category === 'Class') {
+    redirect(KloudScreen.MyRegularClassDetail(pass.id, pass.passPlan.regularClass?.id));
   }
 
   // 웹 직접 접근 + viewport ≥1024px(lg)이면 PC 카드 레이아웃, 그 외(앱 웹뷰/좁은 웹)는 기존 렌더.

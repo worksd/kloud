@@ -41,7 +41,8 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
 }
 
 const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  if (type === 'pass-plan' || type === 'regular-class') return 'pass_plan_price';
+  if (type === 'regular-class') return 'regular_class_price';
+  if (type === 'pass-plan') return 'pass_plan_price';
   if (type === 'bundle') return 'promotion_price';
   if (type === 'practice-room') return 'practice_room_price';
   return 'lesson_price';
@@ -766,6 +767,8 @@ export const UnifiedPaymentInfo = ({
             // 연습실은 서버가 총액을 나중에 계산해 totalPrice가 0일 수 있음 → 결제수단은 항상 필수
             (type === 'practice-room' && (
               !selectedMethod ||
+          // 정규반은 결제 API 로는 pass-plan 이지만 유저에겐 '정규반 등록' — 비회원 인증 시트 문구만 정규반으로
+          guestItemType={type === 'regular-class' ? 'regular-class' : undefined}
               (selectedMethod === 'pass' && !selectedPass) ||
               (selectedMethod === 'billing' && !selectedBillingCard?.billingKey)
             )) ||

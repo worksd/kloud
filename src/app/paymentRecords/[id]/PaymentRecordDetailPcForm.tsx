@@ -47,6 +47,8 @@ export const PaymentRecordDetailPcForm = async ({paymentRecord, locale}: {
   const parts = paymentRecord.paymentId.split('-');
   const displayPaymentId = parts[parts.length - 1];
   const isPassPlan = paymentRecord.paymentId.startsWith('LP');
+  // LP 중 정규반(가격정책 category=Class, 옛 type=Dedicated) — 패스권이 아니라 정규반으로 표기
+  const isRegularClass = isPassPlan && (paymentRecord.passPlan?.category === 'Class' || paymentRecord.passPlan?.type === 'Dedicated');
   const isLessonTicket = paymentRecord.paymentId.startsWith('LT');
   const isMembership = paymentRecord.paymentId.startsWith('SM');
   const isBundle = paymentRecord.paymentId.startsWith('BD');
@@ -57,6 +59,8 @@ export const PaymentRecordDetailPcForm = async ({paymentRecord, locale}: {
       ? await translate('promotion_information')
       : isPracticeRoom
           ? await translate('practice_room_information')
+          : isRegularClass
+              ? await translate('regular_class_information')
           : isPassPlan
               ? await translate('pass_plan_information')
               : isLessonTicket
@@ -64,6 +68,8 @@ export const PaymentRecordDetailPcForm = async ({paymentRecord, locale}: {
                   : null;
   const amountLabel = isBundle
       ? await translate('promotion_price')
+      : isRegularClass
+          ? await translate('regular_class_price')
       : isPassPlan
           ? await translate('pass_plan_price')
           : isLessonTicket

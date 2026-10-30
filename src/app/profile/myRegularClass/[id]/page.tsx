@@ -40,7 +40,7 @@ export default async function MyRegularClassDetailPage({ params, searchParams }:
   const regularClass = regularClassRes && 'id' in regularClassRes ? regularClassRes : null;
 
   // TODO(2026-10-26): API 연동 — 미납 정보(금액·기한)가 서버에서 오면 교체, ?unpaidMock 강제 표시도 제거
-  const unpaid = getUnpaidInfoMock(pass, unpaidMock === '1');
+  const unpaid = getUnpaidInfoMock(pass, historyClassId, unpaidMock === '1');
 
   const locale = await getLocale();
 

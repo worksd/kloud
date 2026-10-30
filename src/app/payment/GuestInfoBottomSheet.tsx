@@ -32,11 +32,13 @@ const formatPhoneDisplay = (digits: string, countryCode: string) => {
 const TITLE_KEY: Record<string, Parameters<typeof getLocaleString>[0]['key']> = {
   'lesson': 'guest_title_lesson',
   'pass-plan': 'guest_title_pass',
+  'regular-class': 'guest_title_regular_class',
   'practice-room': 'guest_title_room',
 };
 const DESC_KEY: Record<string, Parameters<typeof getLocaleString>[0]['key']> = {
   'lesson': 'guest_desc_lesson',
   'pass-plan': 'guest_desc_pass',
+  'regular-class': 'guest_desc_regular_class',
   'practice-room': 'guest_desc_room',
 };
 
