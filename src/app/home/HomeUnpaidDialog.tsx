@@ -3,6 +3,7 @@
 // 어떤 수업인지 사진(정규반 이미지)과 어느 스튜디오인지 로고·이름까지 보여줘야 해서 네이티브 YESORNO 가 아니라
 // 웹뷰 안에서 CommonDialog 로 직접 그린다(앱·웹 동일). 결제하기 → 서버가 준 route 로 kloudNav.push(FE 가 item/id 를 조립하지 않는다).
 // 미납이어도 수업은 그대로 들을 수 있어 기한·경고 없이 '미납됐으니 결제해 달라'고만. 여러 건이면 첫 건으로 띄우고 나머지 건수를 덧붙인다.
+// 결제하기는 다이얼로그를 닫으면서 이동 — 결제 페이지에서 돌아왔을 때 홈에 다이얼로그가 남아 있지 않게.
 
 import React, { useEffect, useState } from "react";
 import { HomeUnpaidPaymentRecordResponse } from "@/app/endpoint/home.endpoint";
@@ -88,7 +89,7 @@ export const HomeUnpaidDialog = ({ records, locale }: { records: HomeUnpaidPayme
             </button>
             <button
               type="button"
-              onClick={() => kloudNav.push(first.route)}
+              onClick={() => { setOpen(false); kloudNav.push(first.route); }}
               className="flex-[1.4] h-12 rounded-[14px] bg-[#191F28] text-white text-[15px] font-bold hover:opacity-90 active:opacity-80 transition-opacity"
             >
               {t('regular_class_unpaid_pay')}
