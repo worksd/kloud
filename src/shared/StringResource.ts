@@ -4951,7 +4951,7 @@ export const StringResource = {
   my_payment_cards: { ko: '결제 카드', en: 'Payment cards', jp: '決済カード', zh: '付款卡' },
   payment_card_register: { ko: '등록하기', en: 'Add card', jp: '登録する', zh: '登记' },
   payment_card_register_title: { ko: '결제 카드를 등록해 주세요', en: 'Add a payment card', jp: '決済カードを登録してください', zh: '请登记付款卡' },
-  payment_card_register_desc: { ko: '등록해 두면 정규반 수강료가 자동으로 결제돼요', en: 'Tuition for your classes is paid automatically', jp: '登録しておくとレギュラークラスの受講料が自動で決済されます', zh: '登记后常规班学费将自动支付' },
+  payment_card_register_desc: { ko: '한 번 등록해 두면 결제할 때 바로 쓸 수 있어요', en: 'Add it once and pay in a tap next time', jp: '一度登録すれば次回から決済がすぐにできます', zh: '登记一次，之后付款即可直接使用' },
   /** 첫 카드 뒤에 — {n} 나머지 개수 */
   payment_cards_more_short: { ko: '외 {n}개', en: '+{n} more', jp: 'ほか{n}件', zh: '另{n}个' },
   // 홈 — 미납 결제건 다이얼로그(GET /home unpaidPaymentRecords)
