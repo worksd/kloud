@@ -2,33 +2,60 @@
 // 내 정규반 상세 — 수강 내역. GET /regular-classes/:id/tickets?type=past 로 이 반에서 들은 회차를 최근 순으로.
 // 지금 패스뿐 아니라 지난 기간 패스·단건 결제 회차까지 담긴다(취소 제외). 첫 페이지는 서버가 실어 주고, 바닥에 닿으면 다음 페이지.
 // 행 = 공용 LessonRow + 메인 강사(artists[0]) 닉네임(없으면 이름). 탭하면 수강권 상세.
-// 결제 회차별 조회 — 제목 아래 '< 3회차 · 10.15 ~ 11.14 >' 로 회차를 넘기며 본다. 회차 목록·지난 회차 행은 history.periods.mock.ts(TODO, API 붙이면 교체).
-// 다음 페이지 로드는 현재 회차에서만(서버 목록이 회차 구분 없이 최근 순이라).
+// 결제 단위(paymentId)로 묶어서 본다 — 제목 아래 '< 3회차 · 2026.10.04 ~ 11.03 [현재] >' 로 결제 회차를 넘긴다. 한 결제(LP…)에 딸린 수강권들이 한 회차.
+// 회차 번호는 가장 오래된 결제가 1회차 — 번호가 밀리지 않게 마운트 직후 남은 페이지를 끝까지 다 불러온다(서버 목록이 최근 순 20개 단위라).
+// 출석완료 행은 칩 아래 출석 날짜·시각.
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { ticketStatusLabelKey, TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { chipBase, chipClass, Kind, LessonRow, LessonSection } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
+import { chipBase, chipClass, formatAttendedAt, Kind, LessonRow, LessonSection, parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 import { getRegularClassTicketsAction } from "@/app/profile/myRegularClass/[id]/get.regular.class.tickets.action";
-import { inPeriod, mockTicketsForPeriod, PaymentPeriod } from "@/app/profile/myRegularClass/[id]/history.periods.mock";
+import { withYearNumeric } from "@/utils/year.label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage: initialTotalPage, periods, days, locale }: {
+/** 결제 한 건에 딸린 수강권 묶음 — 수강 내역의 '회차' */
+type PaymentGroup = { key: string; paymentId: string | null; tickets: TicketResponse[]; from: number; to: number };
+
+const NO_PAYMENT = '__none__';
+
+// paymentId 로 묶고 수업 날짜가 늦은 결제부터. 결제번호 없는 옛 수강권은 하나로 묶는다
+const groupByPayment = (tickets: TicketResponse[]): PaymentGroup[] => {
+  const map = new Map<string, PaymentGroup>();
+  for (const tk of tickets) {
+    const key = tk.paymentId ?? NO_PAYMENT;
+    const at = parts(tk.lesson?.startDate)?.at ?? 0;
+    const g = map.get(key);
+    if (g) { g.tickets.push(tk); g.from = Math.min(g.from, at || g.from); g.to = Math.max(g.to, at); }
+    else map.set(key, { key, paymentId: tk.paymentId ?? null, tickets: [tk], from: at, to: at });
+  }
+  return [...map.values()].sort((a, b) => b.to - a.to);
+};
+
+// '2026.10.04 ~ 11.03' — 해가 바뀌면 끝에도 해('2025.12.15 ~ 2026.01.14'), 하루면 한 날짜만
+const rangeLabel = (g: PaymentGroup): string => {
+  const d = (ms: number) => new Date(ms + 9 * 3600000); // KST 벽시계
+  const f = d(g.from), t = d(g.to);
+  const fy = f.getUTCFullYear(), ty = t.getUTCFullYear();
+  const md = (x: Date) => `${x.getUTCMonth() + 1}.${x.getUTCDate()}`;
+  const start = `${fy}.${md(f)}`;
+  if (g.from === g.to || !g.from) return withYearNumeric(md(t), ty);
+  return `${start} ~ ${fy === ty ? md(t) : `${ty}.${md(t)}`}`;
+};
+
+export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage: initialTotalPage, currentPaymentId, locale }: {
   regularClassId: number;
   initialTickets: TicketResponse[];
   totalPage: number;
-  /** 결제 회차(최신이 앞). 비어 있으면 회차 내비게이션 없이 전체를 그린다 */
-  periods: PaymentPeriod[];
-  /** 반 요일 — 지난 회차 가짜 행 생성용(목) */
-  days: number[];
+  /** 지금 보고 있는 패스의 결제번호 — 그 회차에 '현재' 칩 */
+  currentPaymentId?: string | null;
   locale: Locale;
 }) => {
   const [tickets, setTickets] = useState(initialTickets);
-  // 보고 있는 회차 — periods 인덱스(0 = 최신/현재)
-  const [periodAt, setPeriodAt] = useState(0);
-  const period = periods[periodAt] ?? null;
+  // 보고 있는 회차 — groups 인덱스(0 = 최신)
+  const [groupAt, setGroupAt] = useState(0);
   const t = (key: Parameters<typeof getLocaleString>[0]['key']) => getLocaleString({ locale, key });
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(initialTotalPage);
@@ -67,55 +94,51 @@ export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage:
     return () => observer.disconnect();
   }, [loadMore, hasMore, isLoading]);
 
-  if (tickets.length === 0 && periods.length === 0) return null;
+  const groups = groupByPayment(tickets);
+  const group = groups[Math.min(groupAt, Math.max(groups.length - 1, 0))] ?? null;
+  const atOldest = groupAt >= groups.length - 1;
 
-  // 이 회차의 행 — 실제 수강 내역 중 기간 안 수업. 지난 회차에 하나도 없으면 가짜 행(목)
-  const shown = !period
-    ? tickets
-    : (() => {
-      const real = tickets.filter((tk) => inPeriod(tk, period));
-      if (real.length > 0 || period.current) return real;
-      return mockTicketsForPeriod(period, tickets[0] ?? null, days);
-    })();
-  const canLoadMore = hasMore && (!period || period.current);
-  // '2026.10.04 ~ 11.03' — 해가 바뀌는 회차면 끝에도 해를 붙인다('2025.12.15 ~ 2026.01.14')
-  const periodLabel = period
-    ? `${period.startDate} ~ ${period.endDate.slice(0, 4) === period.startDate.slice(0, 4) ? period.endDate.slice(5) : period.endDate}`
-    : '';
+  // 남은 페이지를 끝까지 — 회차 번호(가장 오래된 결제 = 1회차)가 페이지를 넘길 때마다 바뀌지 않게
+  useEffect(() => {
+    if (hasMore && !isLoading) loadMore();
+  }, [hasMore, isLoading, loadMore]);
+  const ordinal = (i: number) => groups.length - i; // 0 = 최신 = N회차
+
+  if (tickets.length === 0) return null;
+  const shown = group?.tickets ?? [];
 
   return (
     <LessonSection title={t('regular_class_history')}>
-      {/* 결제 회차 내비게이션 — < 3회차 · 10.15 ~ 11.14 (현재) > */}
-      {period && (
+      {/* 결제 회차 내비게이션 — < 2026.10.04 ~ 11.03 (현재) > */}
+      {group && (
         <div className="mt-2 mb-1 flex items-center justify-between rounded-xl bg-[#F7F8FA] px-1.5 py-1.5 !border-0">
           <button
             type="button"
-            aria-label="previous period"
-            disabled={periodAt >= periods.length - 1}
-            onClick={() => setPeriodAt((i) => Math.min(periods.length - 1, i + 1))}
+            aria-label="previous payment"
+            disabled={atOldest && !hasMore}
+            onClick={() => setGroupAt((i) => Math.min(groups.length - 1, i + 1))}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[#4E5968] active:bg-black/5 disabled:text-[#D1D6DB]"
           >
             <ChevronLeft size={18}/>
           </button>
           <span className="flex items-center gap-1.5 min-w-0 text-[13px] tracking-[-0.2px]">
-            <span className="font-bold text-[#191F28] font-paperlogy">{t('regular_class_period_nth').replace('{n}', String(period.index))}</span>
+            <span className="font-bold text-[#191F28] font-paperlogy shrink-0">{t('regular_class_period_nth').replace('{n}', String(ordinal(groupAt)))}</span>
             <span className="text-[#8B95A1]">·</span>
-            <span className="font-semibold text-[#4E5968] truncate">{periodLabel}</span>
-            {period.current && <span className={`${chipBase} bg-[#191F28] text-white`}>{t('regular_class_period_current')}</span>}
+            <span className="font-semibold text-[#4E5968] truncate">{rangeLabel(group)}</span>
+            {currentPaymentId && group.paymentId === currentPaymentId && (
+              <span className={`${chipBase} bg-[#191F28] text-white`}>{t('regular_class_period_current')}</span>
+            )}
           </span>
           <button
             type="button"
-            aria-label="next period"
-            disabled={periodAt <= 0}
-            onClick={() => setPeriodAt((i) => Math.max(0, i - 1))}
+            aria-label="next payment"
+            disabled={groupAt <= 0}
+            onClick={() => setGroupAt((i) => Math.max(0, i - 1))}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[#4E5968] active:bg-black/5 disabled:text-[#D1D6DB]"
           >
             <ChevronRight size={18}/>
           </button>
         </div>
-      )}
-      {shown.length === 0 && (
-        <p className="py-8 text-center text-[13.5px] text-[#8B95A1]">{t('regular_class_period_empty')}</p>
       )}
       {shown.map((tk) => {
         // 지난 수업 — 출석완료 / 미납 / 불참(지났는데 사용 기록 없음) / 취소
@@ -126,6 +149,8 @@ export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage:
           : labelKey === 'purchase_cancel' ? 'cancelled'
           : 'other';
         const artist = tk.lesson?.artists?.[0];
+        // 출석완료면 칩 아래에 출석 날짜·시각을 작게
+        const attendedTime = chipKind === 'attended' ? formatAttendedAt(tk.attendedAt) : null;
         return (
           <LessonRow
             key={tk.id}
@@ -133,10 +158,10 @@ export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage:
             startDate={tk.lesson?.startDate}
             artistName={artist?.nickName || artist?.name}
             artistImageUrl={artist?.profileImageUrl}
+            chipSub={attendedTime}
             locale={locale}
             isPast
-            // 가짜 행(목, id 음수)은 수강권 상세가 없다
-            route={tk.id > 0 ? KloudScreen.TicketDetail(tk.id, false) : undefined}
+            route={KloudScreen.TicketDetail(tk.id, false)}
             chip={
               <span className={`${chipBase} ${chipClass[chipKind]}`}>
                 {getLocaleString({ locale, key: labelKey })}
@@ -145,7 +170,7 @@ export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage:
           />
         );
       })}
-      {canLoadMore && (
+      {hasMore && (
         <div ref={loadMoreRef} className="flex items-center justify-center py-6">
           {isLoading && <div className="w-6 h-6 border-2 border-gray-300 border-t-black rounded-full animate-spin"/>}
         </div>

@@ -44,6 +44,13 @@ export const formatLessonWhen = (locale: Locale, startDate?: string, endDate?: s
   return [`${withYearNumeric(`${p.month}.${p.day}`, p.year)} (${wd})`, time].filter(Boolean).join(' · ');
 };
 
+/** 출석 시각 — '10.24 19:03'(올해 아니면 연도까지). 출석완료 칩 아래 작게 붙는다. 시각을 모르면 null */
+export const formatAttendedAt = (attendedAt?: string | null): string | null => {
+  const a = parts(attendedAt ?? undefined);
+  if (!a || !a.time) return null;
+  return `${withYearNumeric(`${a.month}.${a.day}`, a.year)} ${a.time}`;
+};
+
 export type Kind = 'upcoming' | 'attended' | 'absent' | 'cancelled' | 'unpaid' | 'other';
 export const chipClass: Record<Kind, string> = {
   upcoming: 'bg-[#191F28] text-white',
@@ -57,7 +64,7 @@ export const chipClass: Record<Kind, string> = {
 };
 export const chipBase = 'shrink-0 px-2 py-[3px] rounded-[6px] text-[11px] font-bold tracking-[-0.1px] whitespace-nowrap';
 
-export const LessonRow = ({ title, startDate, endDate, roomName, artistName, artistImageUrl, locale, isPast, route, chip }: {
+export const LessonRow = ({ title, startDate, endDate, roomName, artistName, artistImageUrl, chipSub, locale, isPast, route, chip }: {
   title: string;
   startDate?: string;
   endDate?: string;
@@ -66,6 +73,8 @@ export const LessonRow = ({ title, startDate, endDate, roomName, artistName, art
   artistName?: string;
   /** 메인 강사 프로필 — 있으면 이름 앞에 작은 원형으로 */
   artistImageUrl?: string | null;
+  /** 상태 칩 바로 아래 작은 글씨 — 출석완료 행의 출석 날짜·시각('10.24 19:03') */
+  chipSub?: string | null;
   locale: Locale;
   isPast: boolean;
   /** 있으면 탭해서 이동 (수강권 상세) */
@@ -82,7 +91,8 @@ export const LessonRow = ({ title, startDate, endDate, roomName, artistName, art
   const subColor = isPast ? 'text-[#B0B8C1]' : 'text-[#4E5968]';
 
   const row = (
-    <div className={`flex items-center gap-4 py-3.5 ${route ? 'active:bg-[#F9FAFB] cursor-pointer transition-colors' : ''}`}>
+    // 탭하면 눌림 배경이 화면 끝까지 — 부모(px-6 / p-6)의 24px 여백만큼 밖으로 넓히고 안쪽 패딩으로 내용 자리는 그대로
+    <div className={`flex items-center gap-4 py-3.5 ${route ? '-mx-6 px-6 active:bg-[#F9FAFB] cursor-pointer transition-colors' : ''}`}>
       {/* 날짜 타일 — 위 '10월'(올해 아니면 '2025.10'), 아래 '24' */}
       <div className={`w-[52px] h-[52px] rounded-[12px] flex flex-col items-center justify-center shrink-0 ${isPast ? 'bg-[#F7F8FA]' : 'bg-[#191F28]'}`}>
         <span className={`text-[10.5px] font-semibold leading-none ${isPast ? 'text-[#B0B8C1]' : 'text-white/70'}`}>{p ? monthLabel(p, locale) : ''}</span>
@@ -99,7 +109,12 @@ export const LessonRow = ({ title, startDate, endDate, roomName, artistName, art
           </div>
         )}
       </div>
-      {chip}
+      {chipSub ? (
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {chip}
+          <span className="text-[10.5px] text-[#8B95A1] font-paperlogy tracking-[-0.1px] whitespace-nowrap">{chipSub}</span>
+        </div>
+      ) : chip}
     </div>
   );
   return route ? <NavigateClickWrapper method="push" route={route}>{row}</NavigateClickWrapper> : row;

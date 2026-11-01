@@ -25,6 +25,8 @@ export type TicketResponse = {
   status: string;
   /** 결제 id ('LT…'/'LP…'). 패스권 차감·현장 발급·초대 등 결제 기록 없이 생긴 수강권은 null — 결제 내역 버튼·복사·환불 분기 전부 있을 때만 */
   paymentId?: string | null;
+  /** 출석 처리 시각 'yyyy.MM.dd HH:mm'(KST). 출석 안 했으면 null — 정규반 수강 내역(GET /regular-classes/:id/tickets)에 온다 */
+  attendedAt?: string | null;
   studio?: GetStudioResponse;
   lesson?: GetLessonResponse;
   user?: GetUserResponse;

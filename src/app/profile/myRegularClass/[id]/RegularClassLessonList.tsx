@@ -11,13 +11,12 @@ import { Locale } from "@/shared/StringResource";
 import { PassRuleTicket } from "@/app/endpoint/pass.endpoint";
 import { convertStatusToMessage, MyTicketListResponse } from "@/app/endpoint/ticket.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { chipBase, chipClass, Kind, LessonRow, LessonSection, parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
+import { chipBase, chipClass, Kind, LessonRow, LessonSection, parts, formatAttendedAt } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 import { RescheduleAwareChip, RescheduledLessonRows } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 import { RegularClassHistory } from "@/app/profile/myRegularClass/[id]/RegularClassHistory";
-import { PaymentPeriod } from "@/app/profile/myRegularClass/[id]/history.periods.mock";
 
 /** 수강 내역 첫 페이지 — GET /regular-classes/:id/tickets?type=past&page=1 */
-export type RegularClassHistoryData = { regularClassId: number; periods: PaymentPeriod[]; days: number[] } & MyTicketListResponse;
+export type RegularClassHistoryData = { regularClassId: number; /** 보고 있는 패스의 결제번호 — 수강 내역 '현재' 회차 */ currentPaymentId?: string | null } & MyTicketListResponse;
 
 // 칩 종류 — 취소 > 출석완료(attendedAt 또는 Used) > 미납(Unpaid, 시작 전후 무관) > 예정(아직 시작 전) > 불참(지났는데 사용 기록 없음) > 그 외는 상태 문구
 const kindOf = (t: PassRuleTicket, isFuture: boolean): Kind => {
@@ -29,8 +28,9 @@ const kindOf = (t: PassRuleTicket, isFuture: boolean): Kind => {
   return 'other';
 };
 
-const Row = ({ ticket, locale, label, kind, isPast }: { ticket: PassRuleTicket; locale: Locale; label: string; kind: Kind; isPast: boolean }) => (
+const Row = ({ ticket, locale, label, kind, isPast, chipSub }: { ticket: PassRuleTicket; locale: Locale; label: string; kind: Kind; isPast: boolean; chipSub?: string | null }) => (
   <LessonRow
+    chipSub={chipSub}
     title={ticket.lesson?.title ?? ''}
     startDate={ticket.lesson?.startDate}
     endDate={ticket.lesson?.endDate}
@@ -70,6 +70,8 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
   };
   const upcomingLabels = await Promise.all(upcoming.map(labelOf));
   const pastLabels = await Promise.all(past.map(labelOf));
+  // 출석완료 행 — 칩 아래에 출석 날짜·시각('10.24 19:03')을 작게
+  const attendedAtOf = (r: { t: PassRuleTicket; kind: Kind }) => r.kind === 'attended' ? formatAttendedAt(r.t.attendedAt) : null;
 
   if (upcoming.length === 0 && (history ? history.tickets.length === 0 : past.length === 0)) {
     return <p className="py-12 text-center text-[14px] text-[#8B95A1]">{await translate('regular_class_no_lessons')}</p>;
@@ -85,10 +87,10 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
         </LessonSection>
       )}
       {history ? (
-        <RegularClassHistory regularClassId={history.regularClassId} initialTickets={history.tickets} totalPage={history.totalPage ?? 1} periods={history.periods} days={history.days} locale={locale}/>
+        <RegularClassHistory regularClassId={history.regularClassId} initialTickets={history.tickets} totalPage={history.totalPage ?? 1} currentPaymentId={history.currentPaymentId} locale={locale}/>
       ) : past.length > 0 && (
         <LessonSection title={await translate('past_lessons')} count={past.length}>
-          {past.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={pastLabels[i]} kind={r.kind} isPast/>)}
+          {past.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={pastLabels[i]} kind={r.kind} isPast chipSub={attendedAtOf(r)}/>)}
         </LessonSection>
       )}
     </div>

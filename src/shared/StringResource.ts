@@ -4915,12 +4915,13 @@ export const StringResource = {
   regular_class_schedule_label: { ko: '수업 요일', en: 'Class days', jp: 'レッスン曜日', zh: '上课日' },
   regular_class_lessons: { ko: '수업 목록', en: 'Lessons', jp: 'レッスン一覧', zh: '课程列表' },
   regular_class_history: { ko: '수강 내역', en: 'Lesson history', jp: '受講履歴', zh: '上课记录' },
-  regular_class_period_nth: { ko: '{n}회차', en: 'Period {n}', jp: '{n}回目', zh: '第{n}期' },
-  regular_class_period_current: { ko: '현재', en: 'Current', jp: '現在', zh: '当前' },
-  regular_class_period_empty: { ko: '이 회차엔 수강 내역이 없어요', en: 'No lessons in this period', jp: 'この回の受講履歴はありません', zh: '本期暂无上课记录' },
   regular_class_no_lessons: { ko: '아직 등록된 수업이 없어요', en: 'No lessons scheduled yet', jp: 'まだ登録されたレッスンがありません', zh: '暂无已安排的课程' },
   attendance_upcoming: { ko: '예정', en: 'Upcoming', jp: '予定', zh: '待上课' },
   attendance_attended: { ko: '출석', en: 'Attended', jp: '出席', zh: '已出席' },
+  /** 정규반 수강 내역 — 결제 회차 번호(가장 오래된 결제 = 1회차), {n} */
+  regular_class_period_nth: { ko: '{n}회차', en: 'Term {n}', jp: '{n}回目', zh: '第{n}期' },
+  /** 정규반 수강 내역 — 지금 패스의 결제 회차 칩 */
+  regular_class_period_current: { ko: '현재', en: 'Current', jp: '現在', zh: '当前' },
   /** 수업이 끝났는데 사용 기록이 없는 수강권 */
   attendance_absent: { ko: '불참', en: 'Absent', jp: '欠席', zh: '缺席' },
   regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
