@@ -9,8 +9,8 @@ import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
 import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
-import { MyPaymentMethodsSection } from "@/app/profile/MyPaymentMethodsSection";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
+import { ProfilePaymentCardChip } from "@/app/profile/ProfilePaymentCardChip";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
 import { Locale } from "@/shared/StringResource";
@@ -196,11 +196,6 @@ export const ProfilePcForm = async ({user, locale, initialTab, billings}: {
           </div>
         </ProfileContentCard>
       )}
-
-      {/* 결제 카드 — 모바일과 동일(머리글은 컴포넌트가 그린다). 내역이 없어도 보여준다 */}
-      <ProfileContentCard>
-        <MyPaymentMethodsSection cards={billings} locale={locale} variant="pc"/>
-      </ProfileContentCard>
     </>
   );
 
@@ -211,6 +206,18 @@ export const ProfilePcForm = async ({user, locale, initialTab, billings}: {
       t={t}
       initialTab={initialTab}
       homeContent={homeContent}
+      headerExtra={
+        <ProfilePaymentCardChip
+          cards={billings}
+          variant="pc"
+          labels={{
+              more: await translate('payment_cards_more_short'),
+              registerTitle: await translate('payment_card_register_title'),
+              registerDesc: await translate('payment_card_register_desc'),
+              register: await translate('payment_card_register'),
+            }}
+        />
+      }
     />
   );
 };

@@ -4936,14 +4936,24 @@ export const StringResource = {
   // 가격정책 노출 범위 PriceHidden(BE 16cc18c4) — 보이지만 금액 숨김, 앱·키오스크 무인 자리에선 결제 불가
   price_hidden: { ko: '가격 비공개', en: 'Price hidden', jp: '価格非公開', zh: '价格未公开' },
   price_hidden_notice: { ko: '앱에서는 결제할 수 없어요. 학원에 문의해 주세요', en: "Can't be purchased in the app — please contact the studio", jp: 'アプリでは決済できません。スタジオにお問い合わせください', zh: '无法在应用内支付，请联系工作室' },
-  // 마이페이지 — 결제 카드 섹션(설정 안에 숨어 있던 결제수단 관리를 본문으로)
+  // 신용/체크카드 등록 페이지(/profile/setting/account/paymentMethod/add)
+  card_register_title: { ko: '신용/체크카드 등록', en: 'Add credit/debit card', jp: 'クレジット/デビットカード登録', zh: '登记信用卡/借记卡' },
+  /** {name} 회원 이름 */
+  card_register_owner_notice: { ko: '{name}님 명의의 카드만 등록 가능합니다.', en: 'Only cards in {name}\'s name can be added.', jp: '{name}様名義のカードのみ登録できます。', zh: '仅可登记{name}本人名下的卡。' },
+  card_register_card_number: { ko: '카드번호', en: 'Card number', jp: 'カード番号', zh: '卡号' },
+  card_register_corporate: { ko: '법인카드', en: 'Corporate card', jp: '法人カード', zh: '企业卡' },
+  card_register_password: { ko: '비밀번호 앞 2자리', en: 'PIN (first 2)', jp: '暗証番号の前2桁', zh: '密码前两位' },
+  card_register_password_placeholder: { ko: '2자리', en: '2 digits', jp: '2桁', zh: '2位' },
+  card_register_birth_placeholder: { ko: '생년월일 6자리', en: 'YYMMDD', jp: '生年月日6桁', zh: '出生日期6位' },
+  card_register_business_placeholder: { ko: '사업자등록번호 10자리', en: '10-digit business number', jp: '事業者登録番号10桁', zh: '营业执照号10位' },
+  card_register_submit: { ko: '등록', en: 'Add', jp: '登録', zh: '登记' },
+  // 마이페이지 프로필 아래 결제 카드 칩(설정 안에 숨어 있던 결제수단 관리로)
   my_payment_cards: { ko: '결제 카드', en: 'Payment cards', jp: '決済カード', zh: '付款卡' },
-  payment_method_manage: { ko: '관리', en: 'Manage', jp: '管理', zh: '管理' },
-  payment_card_add: { ko: '카드 추가하기', en: 'Add a card', jp: 'カードを追加', zh: '添加卡片' },
-  payment_cards_empty_title: { ko: '등록된 카드가 없어요', en: 'No card yet', jp: '登録されたカードがありません', zh: '还没有登记卡片' },
-  payment_cards_empty_desc: { ko: '카드를 등록해 두면 결제할 때 바로 쓸 수 있어요', en: 'Add one now to pay faster next time', jp: '登録しておくと決済がすぐにできます', zh: '提前登记，付款时可直接使用' },
-  /** 본문에 다 못 보여준 카드 수 */
-  payment_cards_more: { ko: '외 {n}장 더 보기', en: 'View {n} more', jp: 'ほか{n}枚を見る', zh: '查看另外{n}张' },
+  payment_card_register: { ko: '등록하기', en: 'Add card', jp: '登録する', zh: '登记' },
+  payment_card_register_title: { ko: '결제 카드를 등록해 주세요', en: 'Add a payment card', jp: '決済カードを登録してください', zh: '请登记付款卡' },
+  payment_card_register_desc: { ko: '등록해 두면 정규반 수강료가 자동으로 결제돼요', en: 'Tuition for your classes is paid automatically', jp: '登録しておくとレギュラークラスの受講料が自動で決済されます', zh: '登记后常规班学费将自动支付' },
+  /** 첫 카드 뒤에 — {n} 나머지 개수 */
+  payment_cards_more_short: { ko: '외 {n}개', en: '+{n} more', jp: 'ほか{n}件', zh: '另{n}个' },
   // 홈 — 미납 결제건 다이얼로그(GET /home unpaidPaymentRecords)
   /** {unpaid} 자리에 home_unpaid_title_highlight 가 빨간색으로 들어간다 */
   home_unpaid_title: { ko: '{unpaid}된 수강료가 있어요', en: 'You have {unpaid} tuition', jp: '{unpaid}の受講料があります', zh: '您有{unpaid}的学费' },

@@ -7,12 +7,12 @@ import React from "react";
 import EditIcon from "../../../public/assets/ic_edit.svg";
 import SettingIcon from "../../../public/assets/ic_setting.svg";
 import { TicketFlatIcon, PassFlatIcon, ReceiptFlatIcon, ScheduledPaymentFlatIcon, RoomBookingFlatIcon, ChevronRightIcon } from "@/app/profile/ActivityIcons";
+import { ProfilePaymentCardChip } from "@/app/profile/ProfilePaymentCardChip";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
 import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
-import { MyPaymentMethodsSection } from "@/app/profile/MyPaymentMethodsSection";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { LessonLabel } from "@/app/components/LessonLabel";
 import { GetMeResponse } from "@/app/endpoint/user.endpoint";
@@ -57,6 +57,19 @@ export const ProfileForm = async ({user, locale, billings}: { user: GetMeRespons
               {has(user.email) ? user.email : has(user.phone) ? formatPhone(user.phone!) : ''}
             </div>
           </div>
+        </div>
+
+        {/* 결제 카드 — 프로필 바로 아래 한 줄(설정 안에 숨어 있던 결제수단 관리로). 내 상품 섹션들과 섞이지 않게 헤더에 둔다 */}
+        <div className="px-5 pb-4 -mt-1">
+          <ProfilePaymentCardChip
+            cards={billings}
+            labels={{
+              more: await translate('payment_cards_more_short'),
+              registerTitle: await translate('payment_card_register_title'),
+              registerDesc: await translate('payment_card_register_desc'),
+              register: await translate('payment_card_register'),
+            }}
+          />
         </div>
       </div>
 
@@ -237,11 +250,6 @@ export const ProfileForm = async ({user, locale, billings}: { user: GetMeRespons
           </div>
         </section>
       )}
-
-      {/* 결제 카드 — 설정 안에 숨어 있던 결제수단 관리를 본문으로. 카드 행 + 추가 행(관리 페이지로 이동 후 바텀시트) */}
-      <section className="px-4 mt-6">
-        <MyPaymentMethodsSection cards={billings} locale={locale}/>
-      </section>
 
       {/* 내 활동 — 세로 목록. 옅은 라운드 스퀘어 안 플랫 컬러 아이콘 + 라벨, 오른쪽 개수 + 화살표. 카드/구분선 없이 여백으로 */}
       <section className="px-4 mt-8">

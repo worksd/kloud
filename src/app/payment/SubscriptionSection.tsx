@@ -4,15 +4,14 @@
 // 탭하면 정기결제 모드로 선택되고, 안에서 등록 카드 선택/신규 등록까지 처리한다.
 // 결제 자체는 PaymentButton이 POST /subscription 으로 보낸다.
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Locale } from '@/shared/StringResource';
 import { getLocaleString } from '@/app/components/locale';
-import { GetBillingResponse, CreateBillingRequest } from '@/app/endpoint/billing.endpoint';
+import { GetBillingResponse } from '@/app/endpoint/billing.endpoint';
 import { SelectableBillingList } from '@/app/profile/setting/account/paymentMethod/BillingCardForm';
-import { InlineCardForm } from '@/app/lessons/[id]/payment/InlineCardForm';
-import { addBillingAction } from '@/app/profile/setting/account/paymentMethod/add.billing.action';
-import { getBillingListAction } from '@/app/profile/setting/account/paymentMethod/get.billing.list.action';
-import { createDialog } from '@/utils/dialog.factory';
+import { useCardAddedRefresh } from '@/app/profile/setting/account/paymentMethod/use.card.added.refresh';
+import { kloudNav } from '@/app/lib/kloudNav';
+import { KloudScreen } from '@/shared/kloud.screen';
 
 export const SubscriptionSection = ({
   locale,
@@ -41,43 +40,8 @@ export const SubscriptionSection = ({
   selected: boolean,
   onSelectAction: () => void,
 }) => {
-  const [showCardForm, setShowCardForm] = useState(false);
-  const [newCardForm, setNewCardForm] = useState<CreateBillingRequest | null>(null);
-  const [addingCard, setAddingCard] = useState(false);
-
-  const handleAddCard = async () => {
-    if (!newCardForm || addingCard) return;
-    setAddingCard(true);
-    // 등록 실패 다이얼로그 — 서버/PG 메시지 없으면 일반 실패 문구로 폴백
-    const showFail = async (message?: string) => {
-      const dialog = await createDialog({
-        id: 'Simple',
-        title: getLocaleString({ locale, key: 'billing_register_fail_title' }),
-        message: message || getLocaleString({ locale, key: 'billing_register_fail' }),
-      });
-      window.KloudEvent?.showDialog(JSON.stringify(dialog));
-    };
-    try {
-      const res = await addBillingAction(newCardForm);
-      if ('billingKey' in res && res.billingKey) {
-        setShowCardForm(false);
-        setNewCardForm(null);
-        // 풀 리로드 대신 목록 재조회 — 새 카드를 바로 선택 상태로
-        const list = await getBillingListAction();
-        if ('billings' in list) {
-          onCardsChangeAction(list.billings);
-          const added = list.billings.find((c) => c.billingKey === res.billingKey);
-          if (added) selectBillingCard(added);
-        }
-      } else {
-        await showFail('pgMessage' in res ? res.pgMessage : (res as { message?: string }).message);
-      }
-    } catch {
-      await showFail();
-    } finally {
-      setAddingCard(false);
-    }
-  };
+  // 새 카드 추가 — 인라인 폼 대신 카드 등록 페이지로. 돌아오면 목록을 다시 불러와 새 카드를 선택
+  useCardAddedRefresh({ cards, onCardsChangeAction, selectBillingCard });
 
   const benefits: Parameters<typeof getLocaleString>[0]['key'][] = [
     'subscription_benefit_1',
@@ -148,16 +112,12 @@ export const SubscriptionSection = ({
             <SelectableBillingList
               billingCards={cards}
               selectedBillingKey={selectedBillingCard}
-              onSelectAction={(card) => {
-                selectBillingCard(card);
-                setShowCardForm(false);
-                setNewCardForm(null);
-              }}
+              onSelectAction={(card) => selectBillingCard(card)}
               locale={locale}
             />
             <button
               type="button"
-              onClick={() => setShowCardForm((prev) => !prev)}
+              onClick={() => kloudNav.push(KloudScreen.PaymentMethodAddReturn)}
               className="mt-2 w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-dashed border-[#D0D0D0] bg-white
                          text-[#888] text-[13px] font-medium active:bg-[#F5F5F5] transition-colors"
             >
@@ -166,26 +126,6 @@ export const SubscriptionSection = ({
               </svg>
               {getLocaleString({ locale, key: 'add_new_card' })}
             </button>
-            {showCardForm && (
-              <>
-                <InlineCardForm
-                  locale={locale}
-                  onCardInfoChange={(form) => setNewCardForm(form)}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCard}
-                  disabled={!newCardForm || addingCard}
-                  className={`mt-2 w-full h-11 rounded-xl text-[13px] font-bold transition-colors ${
-                    !newCardForm || addingCard ? 'bg-[#EEEFF0] text-[#B0B8BF]' : 'bg-black text-white active:scale-[0.98]'
-                  }`}
-                >
-                  {addingCard
-                    ? <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin align-middle"/>
-                    : getLocaleString({ locale, key: 'confirm' })}
-                </button>
-              </>
-            )}
           </div>
         )}
       </div>

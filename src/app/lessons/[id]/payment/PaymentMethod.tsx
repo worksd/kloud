@@ -11,9 +11,9 @@ import { BankCode, BankOrCardIcon, pickBankKey } from "@/app/components/Bank";
 import { BankSelectBottomSheet } from "@/app/components/BankSheet";
 import { updateUserAction } from "@/app/onboarding/update.user.action";
 import { Locale } from "@/shared/StringResource";
-import { InlineCardForm } from "@/app/lessons/[id]/payment/InlineCardForm";
-import { CreateBillingRequest } from "@/app/endpoint/billing.endpoint";
-import { addBillingAction } from "@/app/profile/setting/account/paymentMethod/add.billing.action";
+import { useCardAddedRefresh } from "@/app/profile/setting/account/paymentMethod/use.card.added.refresh";
+import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 import { getLocaleString } from "@/app/components/locale";
 import { formatAccountNumber } from "@/utils/format.account";
 import NaverPayIcon from "@/../public/assets/ic_naver_pay.svg";
@@ -148,9 +148,8 @@ export const PaymentMethodComponent = ({
   titleOverride?: string,
 }) => {
 
-  const [showInlineCardForm, setShowInlineCardForm] = useState(false);
-  const [newCardForm, setNewCardForm] = useState<CreateBillingRequest | null>(null);
-  const [addingCard, setAddingCard] = useState(false);
+  // 새 카드 추가 — 인라인 폼 대신 카드 등록 페이지로. 돌아오면 목록을 다시 불러와 새 카드를 선택
+  useCardAddedRefresh({ cards, onCardsChangeAction, selectBillingCard });
 
   // 환불계좌 inline 편집
   const [editingRefund, setEditingRefund] = useState(!refundAccount?.accountNumber);
@@ -162,40 +161,6 @@ export const PaymentMethodComponent = ({
     () => pickBankKey(refundAccount?.bankName ?? '')
   );
   const [savingRefund, setSavingRefund] = useState(false);
-
-  const handleAddCard = async () => {
-    if (!newCardForm) return;
-    setAddingCard(true);
-    // 등록 실패 다이얼로그 — 서버/PG 메시지 없으면 일반 실패 문구로 폴백
-    const showFail = async (message?: string) => {
-      const { createDialog } = await import("@/utils/dialog.factory");
-      const dialog = await createDialog({
-        id: 'Simple',
-        title: getLocaleString({locale, key: 'billing_register_fail_title'}),
-        message: message || getLocaleString({locale, key: 'billing_register_fail'}),
-      });
-      window.KloudEvent?.showDialog(JSON.stringify(dialog));
-    };
-    try {
-      const billingRes = await addBillingAction(newCardForm);
-      if ('billingKey' in billingRes && billingRes.billingKey) {
-        setShowInlineCardForm(false);
-        setNewCardForm(null);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        window.location.reload();
-      } else if ('pgMessage' in billingRes) {
-        await showFail(billingRes.pgMessage);
-      } else if ('message' in billingRes) {
-        await showFail((billingRes as { message: string }).message);
-      } else {
-        await showFail();
-      }
-    } catch {
-      await showFail();
-    } finally {
-      setAddingCard(false);
-    }
-  };
 
   // 환불계좌 저장 실패 안내 — 서버 메시지 우선, 없으면 공용 문구
   const showRefundErrorDialog = async (message?: string) => {
@@ -463,15 +428,11 @@ export const PaymentMethodComponent = ({
                     <SelectableBillingList
                       billingCards={cards ?? []}
                       selectedBillingKey={selectedBillingCard}
-                      onSelectAction={(card) => {
-                        selectBillingCard(card);
-                        setShowInlineCardForm(false);
-                        setNewCardForm(null);
-                      }}
+                      onSelectAction={(card) => selectBillingCard(card)}
                       locale={locale}
                     />
                     <button
-                      onClick={() => setShowInlineCardForm(prev => !prev)}
+                      onClick={() => kloudNav.push(KloudScreen.PaymentMethodAddReturn)}
                       className="mt-2 w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-dashed border-[#D0D0D0] bg-white
                                  text-[#888] text-[13px] font-medium active:bg-[#F5F5F5] transition-colors"
                     >
@@ -480,24 +441,6 @@ export const PaymentMethodComponent = ({
                       </svg>
                       {getLocaleString({locale, key: 'add_new_card'})}
                     </button>
-                    {showInlineCardForm && (
-                      <>
-                        <InlineCardForm
-                          locale={locale}
-                          onCardInfoChange={(form) => setNewCardForm(form)}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddCard}
-                          disabled={!newCardForm || addingCard}
-                          className="mt-2 w-full py-2.5 rounded-lg text-[13px] font-semibold transition-colors
-                                     disabled:bg-[#F0F0F0] disabled:text-[#BDBDBD]
-                                     bg-black text-white active:scale-[0.98]"
-                        >
-                          {addingCard ? '...' : getLocaleString({locale, key: 'add_new_card'})}
-                        </button>
-                      </>
-                    )}
                   </div>
                 </div>
               )}

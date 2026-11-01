@@ -23,6 +23,16 @@ export const PassFlatIcon = ({ className, size = 24 }: IconProps) => (
   </svg>
 );
 
+/** 결제 카드 — 보라 카드. 위 마그네틱 띠 + 아래 번호 라인 */
+export const CardFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <svg {...base(size)} className={className}>
+    <rect x="1" y="4.5" width="22" height="15" rx="3" fill="#7C6CF5"/>
+    <rect x="1" y="8" width="22" height="3.2" fill="#4F41C8"/>
+    <rect x="4" y="14" width="7" height="2.2" rx="1.1" fill="#FFFFFF" fillOpacity="0.85"/>
+    <rect x="13" y="14" width="4" height="2.2" rx="1.1" fill="#FFFFFF" fillOpacity="0.5"/>
+  </svg>
+);
+
 /** 결제내역 — 민트 영수증. 상단 헤더 바 + 라인 3개 */
 export const ReceiptFlatIcon = ({ className, size = 24 }: IconProps) => (
   <svg {...base(size)} className={className}>

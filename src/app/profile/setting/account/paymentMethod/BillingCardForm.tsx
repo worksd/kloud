@@ -6,22 +6,19 @@ import { deleteBillingAction } from "@/app/profile/setting/account/paymentMethod
 import { createDialog, DialogInfo } from "@/utils/dialog.factory";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
 import { BankOrCardIcon } from "@/app/components/Bank";
-import { PaymentMethodAddBottomSheet } from "@/app/components/popup/PaymentMethodBottomSheet";
+import { kloudNav } from "@/app/lib/kloudNav";
+import { KloudScreen } from "@/shared/kloud.screen";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
-export const BillingCardForm = ({cards, locale, birth, pcCard = false, autoOpenAdd = false}: {
+export const BillingCardForm = ({cards, locale, pcCard = false}: {
   cards: GetBillingResponse[],
   locale: Locale,
-  birth?: string | null,
   /** PC(lg) 카드 안 렌더 — 우하단 고정 + 버튼을 컨텐츠 우상단으로 */
   pcCard?: boolean,
-  /** 진입하자마자 추가 바텀시트를 연다(?add=1 — 마이페이지 결제 카드 섹션에서 올 때) */
-  autoOpenAdd?: boolean,
 }) => {
   const [newCards, setCards] = useState<GetBillingResponse[]>(cards)
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showForm, setShowForm] = useState(autoOpenAdd);
 
   const loadCards = async () => {
 
@@ -78,9 +75,9 @@ export const BillingCardForm = ({cards, locale, birth, pcCard = false, autoOpenA
   return (
     <main className={`p-6 ${pcCard ? 'lg:p-0' : ''}`}>
       <div className={`w-full max-w-md mx-auto relative ${pcCard ? 'lg:max-w-none' : ''}`}>
-        {/* + 버튼 */}
+        {/* + 버튼 — 신용/체크카드 등록 페이지로(바텀시트 아님). 돌아오면 onReload 로 목록 갱신 */}
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => kloudNav.push(KloudScreen.PaymentMethodAdd)}
           className={`fixed bottom-6 right-6 w-14 h-14 rounded-full bg-white text-black text-3xl drop-shadow-lg hover:bg-gray-200 transition ${pcCard ? 'lg:absolute lg:bottom-auto lg:-top-14 lg:right-0 lg:w-10 lg:h-10 lg:text-2xl lg:border lg:border-[#dcdee0] lg:drop-shadow-none' : ''}`}
           aria-label="카드 추가"
         >
@@ -130,15 +127,6 @@ export const BillingCardForm = ({cards, locale, birth, pcCard = false, autoOpenA
             <div>{getLocaleString({locale, key: 'delete_payment_method_message'})}</div>
           </div>
         </div>
-      )}
-      {showForm && (
-        <PaymentMethodAddBottomSheet
-          open={true}
-          locale={locale}
-          onCloseAction={() => setShowForm(false)}
-          onSuccessAction={() => loadCards()}
-          initialBirth={birth}
-        />
       )}
     </main>
   )

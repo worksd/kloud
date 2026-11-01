@@ -232,11 +232,13 @@ const BookingsPanel = ({t}: { t: ProfilePcTranslations }) => {
 
 // ── 셸 ─────────────────────────────────────────────────────────────
 
-export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeContent}: {
+export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeContent, headerExtra}: {
   user: GetMeResponse;
   locale: Locale;
   t: ProfilePcTranslations;
   initialTab?: ProfileTabKey;
+  /** 채널 헤더 액션 줄(프로필 수정 옆)에 덧붙일 것 — 결제 카드 칩(서버에서 번역해 만든다) */
+  headerExtra?: React.ReactNode;
   /** 홈 탭 컨텐츠 — 서버에서 렌더한 노드 (다음 예정 수업/보유 패스권/홀 예약 내역) */
   homeContent: React.ReactNode;
 }) => {
@@ -329,6 +331,8 @@ export const ProfilePcClient = ({user, locale, t, initialTab = 'home', homeConte
                   {t.editProfile}
                 </button>
               </NavigateClickWrapper>
+              {/* 결제 카드 칩 — 프로필 수정 옆 */}
+              {headerExtra}
             </div>
           </div>
         </div>
