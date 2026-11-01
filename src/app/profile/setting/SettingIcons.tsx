@@ -139,3 +139,68 @@ export const QrScannerFlatIcon = ({ className, size = 24 }: IconProps) => (
     <rect x="18" y="13" width="4" height="4" rx="1.1" fill="#8A97AB"/>
   </Frame>
 );
+
+// ── 내 계정(설정 > 계정관리) 메뉴 ─────────────────────────────────────────────
+
+/** 휴대폰 인증 — 초록 폰. 짙은 화면 상단 + 체크 */
+export const PhoneCertFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={1}>
+    <rect x="6" y="2" width="12" height="20" rx="3" fill="#D5F2E3"/>
+    <rect x="6" y="2" width="12" height="4.5" rx="3" fill="#1FA86A"/>
+    <rect x="9.5" y="2" width="5" height="4.5" fill="#1FA86A"/>
+    <path d="M9 12.5l2.2 2.2L15.3 10.4" stroke="#1FA86A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="10.5" y="18" width="3" height="1.6" rx="0.8" fill="#1FA86A"/>
+  </Frame>
+);
+
+/** SNS 계정 연결 — 노란 고리 두 개 */
+export const SnsLinkFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={1}>
+    <rect x="2" y="8.5" width="12" height="7" rx="3.5" fill="#FFE7A8"/>
+    <rect x="10" y="8.5" width="12" height="7" rx="3.5" fill="#F2B705"/>
+    <rect x="10" y="10.6" width="4" height="2.8" rx="1.4" fill="#FFF4D1"/>
+  </Frame>
+);
+
+/** 비밀번호 변경 — 보라 자물쇠. 밝은 몸통 + 짙은 고리·열쇠구멍 */
+export const PasswordFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={1} cy={12.5}>
+    <path d="M7.5 10V8a4.5 4.5 0 0 1 9 0v2" stroke="#6D5BD0" strokeWidth="2.2" strokeLinecap="round" fill="none"/>
+    <rect x="4" y="10" width="16" height="12" rx="3" fill="#E4DFFA"/>
+    <circle cx="12" cy="15" r="1.8" fill="#6D5BD0"/>
+    <rect x="11.2" y="15.5" width="1.6" height="3.5" rx="0.8" fill="#6D5BD0"/>
+  </Frame>
+);
+
+/** 결제수단 관리 — 보라 카드(프로필 결제 카드 칩과 같은 톤). 짙은 마그네틱 띠 */
+export const PaymentCardFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={1}>
+    <rect x="1" y="4.5" width="22" height="15" rx="3" fill="#7C6CF5"/>
+    <rect x="1" y="8" width="22" height="3.2" fill="#4F41C8"/>
+    <rect x="4" y="14" width="7" height="2.2" rx="1.1" fill="#FFFFFF" fillOpacity="0.85"/>
+    <rect x="13" y="14" width="4" height="2.2" rx="1.1" fill="#FFFFFF" fillOpacity="0.5"/>
+  </Frame>
+);
+
+/** 환불 계좌 — 하늘색 은행. 지붕 삼각 + 기둥 */
+export const RefundAccountFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={1}>
+    <path d="M12 2.5 22 8H2l10-5.5Z" fill="#2E9BDE"/>
+    <rect x="3" y="9" width="18" height="9" rx="1" fill="#D6ECFA"/>
+    <rect x="5.5" y="9" width="2.2" height="9" fill="#2E9BDE"/>
+    <rect x="10.9" y="9" width="2.2" height="9" fill="#2E9BDE"/>
+    <rect x="16.3" y="9" width="2.2" height="9" fill="#2E9BDE"/>
+    <rect x="2" y="18.5" width="20" height="3" rx="1" fill="#2E9BDE"/>
+  </Frame>
+);
+
+/** 회원 탈퇴 — 빨간 원 안의 사람, 오른쪽 아래 작은 X */
+export const SignOutFlatIcon = ({ className, size = 24 }: IconProps) => (
+  <Frame size={size} className={className} k={0.9}>
+    <circle cx="12" cy="12" r="10" fill="#FBE0E0"/>
+    <circle cx="12" cy="9.6" r="3.4" fill="#E55B5B"/>
+    <path d="M4.9 19.2A8.1 8.1 0 0 1 12 15a8.1 8.1 0 0 1 7.1 4.2A9.97 9.97 0 0 1 12 22a9.97 9.97 0 0 1-7.1-2.8Z" fill="#E55B5B"/>
+    <circle cx="18.5" cy="17.5" r="4.2" fill="#FFFFFF"/>
+    <path d="M16.8 15.8l3.4 3.4M20.2 15.8l-3.4 3.4" stroke="#E55B5B" strokeWidth="1.5" strokeLinecap="round"/>
+  </Frame>
+);
