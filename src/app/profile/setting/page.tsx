@@ -7,7 +7,7 @@ import { KloudScreen } from "@/shared/kloud.screen";
 import { translate } from "@/utils/translate";
 import { QRScannerMenu } from "@/app/profile/setting/QRScannerMenu";
 import {
-  StudioSettingFlatIcon, AccountFlatIcon, LanguageFlatIcon, ThemeFlatIcon, NotificationFlatIcon, CouponFlatIcon,
+  StudioSettingFlatIcon, AccountFlatIcon, LanguageFlatIcon, NotificationFlatIcon, CouponFlatIcon,
   VersionFlatIcon, BusinessInfoFlatIcon, PolicyFlatIcon, InquiryFlatIcon, LogoutFlatIcon,
 } from "@/app/profile/setting/SettingIcons";
 
@@ -30,9 +30,7 @@ export default async function AccountSetting({
       <NavigateClickWrapper method={'push'} route={KloudScreen.LanguageSetting}>
         <MenuItem label="language_setting" icon={<LanguageFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
-      <NavigateClickWrapper method={'push'} route={KloudScreen.ThemeSetting}>
-        <MenuItem label="theme_setting" icon={<ThemeFlatIcon size={24}/>}/>
-      </NavigateClickWrapper>
+      {/* 화면 테마 — 메뉴에서 뺌(2026-11-01). 페이지(/profile/setting/theme)·테마 적용 코드는 남아 있어 다시 넣으려면 이 줄만 되살리면 된다 */}
       <NavigateClickWrapper method={'push'} route={KloudScreen.NotificationSetting}>
         <MenuItem label="notification_setting" icon={<NotificationFlatIcon size={24}/>}/>
       </NavigateClickWrapper>
