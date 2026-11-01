@@ -10,7 +10,7 @@ import Logo from "../../../../public/assets/logo_white.svg";
 import {TicketResponse} from "@/app/endpoint/ticket.endpoint";
 import {GuidelineResponse} from "@/app/endpoint/guideline.endpoint";
 import {QRCodeCanvas} from 'qrcode.react';
-import {Copy, RefreshCw} from 'lucide-react';
+import {Copy, Clock, RefreshCw} from 'lucide-react';
 import {useState, useEffect, useRef} from "react";
 import {NavigateClickWrapper} from "@/utils/NavigateClickWrapper";
 import {KloudScreen} from "@/shared/kloud.screen";
@@ -23,6 +23,16 @@ import {useRouter} from "next/navigation";
 import {kloudNav} from "@/app/lib/kloudNav";
 import TicketUsageSSEPage from "@/app/tickets/[id]/TicketUsageSSEPage";
 import {refreshTicketAction} from "@/app/tickets/[id]/refresh.ticket.action";
+
+// 수업이 끝났는지 — 시작('yyyy-MM-dd HH:mm' | 'yyyy.MM.dd HH:mm', KST) + 길이(분). 끝난 수업은 출석 QR 을 띄울 필요가 없다. 시각을 모르면 false
+function isLessonEnded(lesson?: { startDate?: string; duration?: number }, now: number = Date.now()): boolean {
+  const m = lesson?.startDate?.match(/(\d{4})[.-](\d{1,2})[.-](\d{1,2})(?:\D+(\d{1,2}):(\d{2}))?/);
+  if (!m) return false;
+  const [, y, mo, d, hh = '0', mm = '0'] = m;
+  const start = new Date(`${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}T${hh.padStart(2, '0')}:${mm.padStart(2, '0')}:00+09:00`).getTime();
+  if (Number.isNaN(start)) return false;
+  return start + (lesson?.duration ?? 0) * 60000 < now;
+}
 
 // qrCodeUrl에서 expiredAt을 파싱하여 남은 시간(초) 계산 (KST 기준)
 function calculateTimeLeft(qrCodeUrl?: string): number {
@@ -56,6 +66,16 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState(ticket.qrCodeUrl);
+  // 수업 종료 여부 — 클라이언트에서만 계산(hydration). 끝났으면 QR·새로고침·타이머 전부 안 그린다
+  const [lessonEnded, setLessonEnded] = useState(false);
+  useEffect(() => {
+    const check = () => setLessonEnded(isLessonEnded(ticket.lesson));
+    check();
+    const id = setInterval(check, 30000);
+    return () => clearInterval(id);
+  }, [ticket.lesson]);
+  // QR 을 보여줄 수 있는 수강권 — 결제 완료 + 수업이 아직 안 끝남
+  const qrEligible = ticket.status === 'Paid' && !lessonEnded;
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showQrDialog, setShowQrDialog] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -251,9 +271,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
   const borderRadius = getBorderRadius();
   const rollingBandColor = getRollingBandColor();
 
-  // 타이머 렌더링 (Paid 상태이고 시간이 남아있을 때만)
+  // 타이머 렌더링 (Paid 상태·수업 안 끝남·시간이 남아있을 때만)
   const renderTimer = () => {
-    if (ticket.status !== 'Paid' || !timeLeft) return null;
+    if (!qrEligible || !timeLeft) return null;
 
     const radius = 16;
     const circumference = 2 * Math.PI * radius;
@@ -423,9 +443,9 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
         {/* QR코드 또는 스탬프 */}
         <div
             className={`w-[100px] h-[100px] rounded-[12px] flex items-center justify-center flex-shrink-0 p-2 relative ${
-                ticket.status === 'Paid' && qrCodeUrl && timeLeft && timeLeft > 0 ? 'bg-white' : ''
+                qrEligible && qrCodeUrl && timeLeft && timeLeft > 0 ? 'bg-white' : ''
             }`}>
-          {ticket.status === 'Paid' && qrCodeUrl && timeLeft && timeLeft > 0 ? (
+          {qrEligible && qrCodeUrl && timeLeft && timeLeft > 0 ? (
               <button onClick={() => setShowQrDialog(true)} className="cursor-pointer">
                 <QRCodeCanvas
                     value={qrCodeUrl}
@@ -433,7 +453,13 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
                     className="w-full h-full"
                 />
               </button>
-          ) : ticket.status === 'Paid' && (timeLeft === 0 || timeLeft === null) ? (
+          ) : ticket.status === 'Paid' && lessonEnded ? (
+              // 수업이 끝난 결제 완료 수강권 — 출석 QR 은 더 필요 없다
+              <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-white/60">
+                <Clock className="w-3.5 h-3.5" strokeWidth={2}/>
+                {getLocaleString({ locale, key: 'ticket_qr_lesson_ended' })}
+              </span>
+          ) : qrEligible && (timeLeft === 0 || timeLeft === null) ? (
               <button
                   onClick={handleRefreshQrCode}
                   disabled={isRefreshing}
@@ -493,7 +519,7 @@ export function TicketForm({ticket, isJustPaid, inviteCode, locale, guidelines =
 
   // 롤링 밴드 JSX (중복 제거를 위해 함수로 추출)
   const renderRollingBand = () => {
-    if (ticket.status !== 'Paid' || !timeLeft) {
+    if (!qrEligible || !timeLeft) {
       return null;
     }
 

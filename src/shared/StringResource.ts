@@ -4922,6 +4922,8 @@ export const StringResource = {
   regular_class_period_nth: { ko: '{n}회차', en: 'Term {n}', jp: '{n}回目', zh: '第{n}期' },
   /** 정규반 수강 내역 — 지금 패스의 결제 회차 칩 */
   regular_class_period_current: { ko: '현재', en: 'Current', jp: '現在', zh: '当前' },
+  /** 수강권 상세 — 수업이 끝난 결제 완료 수강권의 QR 자리 */
+  ticket_qr_lesson_ended: { ko: '수업 종료', en: 'Lesson ended', jp: 'レッスン終了', zh: '课程已结束' },
   /** 수업이 끝났는데 사용 기록이 없는 수강권 */
   attendance_absent: { ko: '불참', en: 'Absent', jp: '欠席', zh: '缺席' },
   regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
