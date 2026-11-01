@@ -8,9 +8,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
-import { convertStatusToMessage, TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { ticketStatusLabelKey, TicketResponse } from "@/app/endpoint/ticket.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { chipBase, chipClass, LessonRow, LessonSection } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
+import { chipBase, chipClass, Kind, LessonRow, LessonSection } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 import { getRegularClassTicketsAction } from "@/app/profile/myRegularClass/[id]/get.regular.class.tickets.action";
 import { inPeriod, mockTicketsForPeriod, PaymentPeriod } from "@/app/profile/myRegularClass/[id]/history.periods.mock";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -118,8 +118,13 @@ export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage:
         <p className="py-8 text-center text-[13.5px] text-[#8B95A1]">{t('regular_class_period_empty')}</p>
       )}
       {shown.map((tk) => {
-        const attended = tk.status === 'Used';
-        const chipKind = attended ? 'attended' : tk.status === 'Unpaid' ? 'unpaid' : 'other';
+        // 지난 수업 — 출석완료 / 미납 / 불참(지났는데 사용 기록 없음) / 취소
+        const labelKey = ticketStatusLabelKey(tk);
+        const chipKind: Kind = labelKey === 'ticket_status_used' ? 'attended'
+          : labelKey === 'pass_status_unpaid' ? 'unpaid'
+          : labelKey === 'attendance_absent' ? 'absent'
+          : labelKey === 'purchase_cancel' ? 'cancelled'
+          : 'other';
         const artist = tk.lesson?.artists?.[0];
         return (
           <LessonRow
@@ -134,7 +139,7 @@ export const RegularClassHistory = ({ regularClassId, initialTickets, totalPage:
             route={tk.id > 0 ? KloudScreen.TicketDetail(tk.id, false) : undefined}
             chip={
               <span className={`${chipBase} ${chipClass[chipKind]}`}>
-                {getLocaleString({ locale, key: attended ? 'attendance_attended' : convertStatusToMessage({ status: tk.status }) })}
+                {getLocaleString({ locale, key: labelKey })}
               </span>
             }
           />

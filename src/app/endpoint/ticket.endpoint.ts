@@ -153,13 +153,36 @@ export const ToUsed: Endpoint<ToUsedParameter, TicketResponse> = {
   bodyParams: ['expiredAt', 'lessonId']
 }
 
+// 수업 시작('yyyy.MM.dd HH:mm' | 'yyyy-MM-dd HH:mm', KST) + 길이(분) → 끝난 시각 epoch. 서버(UTC)에서도 KST 로 고정 해석. 모르면 null
+const lessonEndMs = (lesson?: { startDate?: string; duration?: number }): number | null => {
+  const m = lesson?.startDate?.match(/(\d{4})[.-](\d{1,2})[.-](\d{1,2})(?:\D+(\d{1,2}):(\d{2}))?/);
+  if (!m) return null;
+  const [, y, mo, d, hh = '0', mm = '0'] = m;
+  const start = new Date(`${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}T${hh.padStart(2, '0')}:${mm.padStart(2, '0')}:00+09:00`).getTime();
+  return Number.isNaN(start) ? null : start + (lesson?.duration ?? 0) * 60000;
+};
+
+/**
+ * 수강권 상태 문구(2026-11-01) — '구매완료'·'사용완료'는 없다.
+ * 출석(Used) → '출석완료', 수업이 끝났는데 사용 기록이 없으면(Paid·Expired) → '불참', 아직 안 끝났으면 '예정'.
+ * 취소 → '취소', 결제 대기 → '결제 대기', 미납 유예(Unpaid) → '미납'(수업은 들을 수 있다).
+ * 수업 시각을 모르면 Expired 만 불참, Paid 는 예정으로 둔다.
+ */
+export function ticketStatusLabelKey(
+  ticket: { status: string; lesson?: { startDate?: string; duration?: number } },
+  now: number = Date.now(),
+): StringResourceKey {
+  const { status, lesson } = ticket;
+  if (status === 'Cancelled') return 'purchase_cancel';
+  if (status === 'Used') return 'ticket_status_used';
+  if (status === 'Pending') return 'purchase_pending';
+  if (status === 'Unpaid') return 'pass_status_unpaid';
+  const end = lessonEndMs(lesson);
+  if (status === 'Expired' || (end != null && end < now)) return 'attendance_absent';
+  return 'attendance_upcoming';
+}
+
+/** @deprecated 수업 시각 없이 상태만으로 — ticketStatusLabelKey 를 쓸 것. Paid 는 '예정', Expired 는 '불참' */
 export function convertStatusToMessage({status}: { status: string }): StringResourceKey {
-  if (status === 'Paid') return 'purchase_complete'
-  else if (status == 'Cancelled') return 'purchase_cancel'
-  else if (status == 'Used') return 'used_complete'
-  else if (status == 'Pending') return 'purchase_pending'
-  // 정규반 미납 유예 — 아직 결제 안 된 회차. 수업은 들을 수 있어 '미납'으로만 표시
-  else if (status == 'Unpaid') return 'pass_status_unpaid'
-  else if (status == 'Expired') return 'used_complete'
-  else return 'empty'
+  return ticketStatusLabelKey({ status });
 }

@@ -2,26 +2,28 @@
 
 import Image from "next/image"
 import { KloudScreen } from "@/shared/kloud.screen";
-import { convertStatusToMessage, TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { ticketStatusLabelKey, TicketResponse } from "@/app/endpoint/ticket.endpoint";
+import { StringResourceKey } from "@/shared/StringResource";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { LessonTags } from "@/app/components/LessonTags";
 
-// 상태 칩 — 토스톤. 결제 완료(활성)만 검정, 나머지는 연회색/연빨강으로 낮춘다.
-const statusChip = (status: string) => {
-  switch (status) {
-    case 'Paid':
+// 상태 칩 — 토스톤. 문구 키(ticketStatusLabelKey) 기준: 예정만 검정, 출석완료 연초록, 불참·취소 연빨강, 나머지는 연회색
+const statusChip = (key: StringResourceKey) => {
+  switch (key) {
+    case 'attendance_upcoming':
       return 'bg-[#191F28] text-white';
-    case 'Cancelled':
+    case 'ticket_status_used':
+      return 'bg-[#EAF7EE] text-[#1B7F3B]';
+    case 'attendance_absent':
+    case 'purchase_cancel':
       return 'bg-[#FDECEC] text-[#E55B5B]';
-    case 'Pending':
+    case 'purchase_pending':
       return 'bg-[#FFF8EC] text-[#A05A00]';
-    case 'Unpaid':
+    case 'pass_status_unpaid':
       // 정규반 미납 유예 — 수업은 들을 수 있어 활성처럼 두되 빨간 글자로
       return 'bg-[#FFF1F1] text-[#FF6B6B]';
-    case 'Used':
-    case 'Expired':
     default:
       return 'bg-[#F2F4F6] text-[#8B95A1]';
   }
@@ -30,8 +32,10 @@ const statusChip = (status: string) => {
 // 수강 내역 행 — 흰 배경 리스트. 세로 썸네일(3:4) + 수업명/일시/스튜디오 + 상태 칩.
 // 지난 수업(사용·만료·취소)은 썸네일 흑백 + 글자 톤 다운으로 한눈에 구분.
 export const TicketItem = ({item, locale}: { item: TicketResponse, locale: Locale }) => {
-  const isInactive = item.status === 'Used' || item.status === 'Expired' || item.status === 'Cancelled';
   const lesson = item.lesson;
+  const statusKey = ticketStatusLabelKey({ status: item.status, lesson });
+  // 지난 수업(출석완료·불참·취소)은 썸네일 흑백 + 글자 톤 다운
+  const isInactive = statusKey === 'ticket_status_used' || statusKey === 'attendance_absent' || statusKey === 'purchase_cancel';
   const studioName = lesson?.studio?.name;
   const dday = item.status === 'Paid' ? lesson?.dday : undefined;
 
@@ -65,8 +69,8 @@ export const TicketItem = ({item, locale}: { item: TicketResponse, locale: Local
         </div>
 
         {/* 상태 칩 */}
-        <span className={`shrink-0 self-start mt-0.5 px-2 py-[3px] rounded-[6px] text-[11px] font-bold tracking-[-0.1px] ${statusChip(item.status)}`}>
-          {getLocaleString({locale, key: convertStatusToMessage({status: item.status})})}
+        <span className={`shrink-0 self-start mt-0.5 px-2 py-[3px] rounded-[6px] text-[11px] font-bold tracking-[-0.1px] ${statusChip(statusKey)}`}>
+          {getLocaleString({locale, key: statusKey})}
         </span>
       </div>
     </NavigateClickWrapper>

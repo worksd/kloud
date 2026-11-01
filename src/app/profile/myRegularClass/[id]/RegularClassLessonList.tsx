@@ -19,12 +19,13 @@ import { PaymentPeriod } from "@/app/profile/myRegularClass/[id]/history.periods
 /** 수강 내역 첫 페이지 — GET /regular-classes/:id/tickets?type=past&page=1 */
 export type RegularClassHistoryData = { regularClassId: number; periods: PaymentPeriod[]; days: number[] } & MyTicketListResponse;
 
-// 칩 종류 — 취소 > 출석(attendedAt 또는 Used) > 미납(Unpaid, 시작 전후 무관) > 예정(아직 시작 전) > 그 외는 수강권 상태 문구 그대로
+// 칩 종류 — 취소 > 출석완료(attendedAt 또는 Used) > 미납(Unpaid, 시작 전후 무관) > 예정(아직 시작 전) > 불참(지났는데 사용 기록 없음) > 그 외는 상태 문구
 const kindOf = (t: PassRuleTicket, isFuture: boolean): Kind => {
   if (t.status === 'Cancelled') return 'cancelled';
   if (t.attendedAt || t.status === 'Used') return 'attended';
   if (t.status === 'Unpaid') return 'unpaid';
   if (isFuture) return 'upcoming';
+  if (t.status === 'Paid' || t.status === 'Expired') return 'absent';
   return 'other';
 };
 
@@ -60,7 +61,8 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
   const labelOf = async (r: { t: PassRuleTicket; kind: Kind }) => {
     switch (r.kind) {
       case 'upcoming': return translate('attendance_upcoming');
-      case 'attended': return translate('attendance_attended');
+      case 'attended': return translate('ticket_status_used');
+      case 'absent': return translate('attendance_absent');
       case 'cancelled': return translate('purchase_cancel');
       case 'unpaid': return translate('pass_status_unpaid');
       default: return translate(convertStatusToMessage({ status: r.t.status }));

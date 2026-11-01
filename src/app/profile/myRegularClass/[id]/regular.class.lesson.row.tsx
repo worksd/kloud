@@ -44,10 +44,12 @@ export const formatLessonWhen = (locale: Locale, startDate?: string, endDate?: s
   return [`${withYearNumeric(`${p.month}.${p.day}`, p.year)} (${wd})`, time].filter(Boolean).join(' · ');
 };
 
-export type Kind = 'upcoming' | 'attended' | 'cancelled' | 'unpaid' | 'other';
+export type Kind = 'upcoming' | 'attended' | 'absent' | 'cancelled' | 'unpaid' | 'other';
 export const chipClass: Record<Kind, string> = {
   upcoming: 'bg-[#191F28] text-white',
   attended: 'bg-[#EAF7EE] text-[#1B7F3B]',
+  // 불참 — 수업이 끝났는데 사용 기록이 없음
+  absent: 'bg-[#FDECEC] text-[#E55B5B]',
   cancelled: 'bg-[#FDECEC] text-[#E55B5B]',
   // 미납(Unpaid) — 미납 카드의 빨간 점과 같은 톤. 수업은 그대로 들을 수 있어 취소와 달리 행은 흐리게 하지 않는다
   unpaid: 'bg-[#FFF1F1] text-[#FF6B6B]',

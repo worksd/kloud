@@ -4921,6 +4921,8 @@ export const StringResource = {
   regular_class_no_lessons: { ko: '아직 등록된 수업이 없어요', en: 'No lessons scheduled yet', jp: 'まだ登録されたレッスンがありません', zh: '暂无已安排的课程' },
   attendance_upcoming: { ko: '예정', en: 'Upcoming', jp: '予定', zh: '待上课' },
   attendance_attended: { ko: '출석', en: 'Attended', jp: '出席', zh: '已出席' },
+  /** 수업이 끝났는데 사용 기록이 없는 수강권 */
+  attendance_absent: { ko: '불참', en: 'Absent', jp: '欠席', zh: '缺席' },
   regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
   // 내 정규반 상세 — 미납 안내 (GET /passes/:id route·subscription, unpaid.info.ts)
   regular_class_unpaid_title: { ko: '이번 수강료가 아직 결제되지 않았어요', en: "This period hasn't been paid yet", jp: '今回の受講料がまだ支払われていません', zh: '本期学费尚未支付' },
