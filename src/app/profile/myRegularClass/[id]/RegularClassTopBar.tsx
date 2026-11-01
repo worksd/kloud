@@ -10,7 +10,7 @@ import ArrowLeftIcon from "../../../../../public/assets/ic_simple_left_arrow.svg
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import { RescheduleMenuButton } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 
-// env(safe-area-inset-top)이 0으로 오는 웹뷰가 있어 최소 44px 보장 (ADMIN_SAFE_TOP·RECAP_SAFE_TOP 과 같은 규칙)
+// env(safe-area-inset-top)이 0으로 오는 웹뷰가 있어 최소 44px 보장 (ADMIN_SAFE_TOP 과 같은 규칙)
 const SAFE_TOP = 'max(env(safe-area-inset-top, 0px), 44px)';
 /** 상태바 아래 버튼 줄 높이 — 본문 spacer 도 이 값을 쓴다 */
 export const TOP_BAR_HEIGHT = 52;
