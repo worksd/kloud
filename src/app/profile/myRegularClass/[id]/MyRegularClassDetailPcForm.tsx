@@ -9,7 +9,7 @@ import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/Regula
 import { RegularClassHistoryData, RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
 import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
-import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
+import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.info";
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
 
 export const MyRegularClassDetailPcForm = async ({ pass, regularClass, history, unpaid, locale }: {

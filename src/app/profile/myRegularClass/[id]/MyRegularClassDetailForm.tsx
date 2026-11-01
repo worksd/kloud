@@ -11,7 +11,7 @@ import { RegularClassHistoryData, RegularClassLessonList } from "@/app/profile/m
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
 import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
 import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
-import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
+import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.info";
 import { RegularClassTopBar, TOP_BAR_SPACE } from "@/app/profile/myRegularClass/[id]/RegularClassTopBar";
 import { resolveRegularClassImage } from "@/utils/regular.class.image";
 

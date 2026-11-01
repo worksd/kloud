@@ -63,15 +63,16 @@ export type HomeBandResponse =
   | { type: 'PopularStudios'; items: WebStudioResponse[] };
 
 /**
- * 홈 미납 결제건 — 돈은 안 냈지만 스튜디오 설정(unpaidEnabled)으로 수강은 이어지는 정규반 결제건. 로그인 시에만, 정규반만 온다.
- * route 는 눌렀을 때 갈 결제 페이지(서버가 정한다 — FE 가 item/id 를 조립하지 않는다).
- * 필드명은 결제 내역(GetPaymentRecordResponse)에 맞춰 둔 것 — 실제 응답과 다르면 여기만 고친다.
+ * 홈 미납 결제건(BE 1990cda0) — 돈은 안 냈지만 스튜디오 설정(unpaidEnabled)으로 수강은 이어지는 정규반 결제건.
+ * 로그인 시에만 키가 오고, 미납 유예 패스 한 장당 한 건, 종료일 이른 순. 홈 미납 다이얼로그는 첫 건을 쓴다.
+ * amount 는 가격정책 가격, route 는 눌렀을 때 갈 결제 페이지('/payment?item=pass-plan&id=&paymentId=', 서버가 정한다 — FE 가 조립하지 않는다).
+ * 그 외 필드명은 결제 내역(GetPaymentRecordResponse)에 맞춰 둔 것 — 없으면 다이얼로그가 스튜디오 이름 등으로 폴백한다.
  */
 export type HomeUnpaidPaymentRecordResponse = {
   id: number;
   paymentId?: string | null;
   /** 상품명(정규반 이름) */
-  productName: string;
+  productName?: string | null;
   productImageUrl?: string | null;
   /** 상품 부가 설명(예: 플랜명 · 기간) */
   productDescription?: string | null;

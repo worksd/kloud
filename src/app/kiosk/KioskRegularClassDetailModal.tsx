@@ -36,7 +36,9 @@ export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, loc
   const [selectedId, setSelectedId] = useState<number | null>(plans.length === 1 ? plans[0].id : null);
   const selected = plans.find((p) => p.id === selectedId) ?? null;
   const isPrivate = regularClass.visibility === 'Private';
-  const canEnroll = !!selected && !isPrivate;
+  // 가격이 숨겨진(PriceHidden, price null) 방식은 보여주기만 하고 결제는 막는다
+  const priceHidden = !!selected && selected.price == null;
+  const canEnroll = !!selected && !isPrivate && !priceHidden;
 
   const artist = regularClass.artist;
   const artistName = artist ? (artist.nickName || artist.name) : '';
@@ -118,7 +120,7 @@ export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, loc
                     )}
                   </div>
                   <span className={`shrink-0 font-bold ${isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(1.8vh, 19px)' }}>
-                    {fmt(plan.price ?? 0)}{t('won')}
+                    {plan.price == null ? t('price_hidden') : `${fmt(plan.price)}${t('won')}`}
                   </span>
                   <div className={`shrink-0 rounded-full border-2 flex items-center justify-center ${
                     isSelected ? 'border-white bg-white' : 'border-[#CDD1D5]'
@@ -140,8 +142,11 @@ export const KioskRegularClassDetailModal = ({ regularClass, studioImageUrl, loc
           {isPrivate && (
             <p className="text-[#E5484D] font-medium" style={{ fontSize: 'min(1.5vh, 15px)' }}>{t('regular_class_private_not_purchasable')}</p>
           )}
+          {!isPrivate && priceHidden && (
+            <p className="text-[#E5484D] font-medium" style={{ fontSize: 'min(1.5vh, 15px)' }}>{t('price_hidden_notice')}</p>
+          )}
           <span className="text-black font-extrabold" style={{ fontSize: 'min(2.4vh, 28px)' }}>
-            {fmt(selected?.price ?? 0)}{t('won')}
+            {selected && selected.price == null ? t('price_hidden') : `${fmt(selected?.price ?? 0)}${t('won')}`}
           </span>
         </div>
 

@@ -147,8 +147,8 @@ export const CheckPhoneVerification: Endpoint<VerifyCodeParameter, PostAuthLogin
   bodyParams: ['code', 'phone', 'countryCode', 'isAdmin', 'name']
 }
 
+/** 인증번호는 SMS 로만 간다 — 응답에서 code 가 빠졌다(BE af38264f). 같은 번호 60초 안 재요청은 CERTIFICATION_CODE_COOLDOWN(429) */
 export type SendPhoneVerificationResponse = {
-  code: string;
   ttl: number;
   resendAvailableAt?: string;
 }

@@ -61,7 +61,9 @@ export const RecommendedPassPlanItem = ({item, isSelected, onClickAction, locale
 
         <div className={`text-[20px] font-extrabold tracking-tight whitespace-nowrap ml-4
           ${isSelected ? 'text-white' : 'text-[#1E2124]'}`}>
-          {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)}{getLocaleString({locale, key: 'won'})}
+          {item.price == null
+            ? getLocaleString({locale, key: 'price_hidden'})
+            : `${new Intl.NumberFormat("ko-KR").format(item.price)}${getLocaleString({locale, key: 'won'})}`}
         </div>
       </div>
     </div>

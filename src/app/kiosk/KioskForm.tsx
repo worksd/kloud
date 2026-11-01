@@ -884,7 +884,7 @@ export const KioskForm = ({
       items: [{
         // BE 상품명 규칙(B-2)과 맞춤: '{수업 제목} · {방식 이름}' — 이름 없는 옛 정책은 회차 수 폴백
         name: selectedKioskPolicy ? `${paymentItem.title} · ${selectedKioskPolicy.name || `${selectedKioskPolicy.lessonCount}회`}` : paymentItem.title,
-        price: selectedKioskPolicy ? selectedKioskPolicy.price : paymentItem.price,
+        price: selectedKioskPolicy ? (selectedKioskPolicy.price ?? 0) : paymentItem.price,
       }],
       discount: selectedDiscount ? {
         amount: selectedDiscount.amount,

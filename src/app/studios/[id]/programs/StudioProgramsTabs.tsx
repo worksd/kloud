@@ -216,9 +216,11 @@ function RegularClassCard({ rc, studioImageUrl, artistLabel, locale }: {
 
 /** 패스권 카드 — 태그 + 이름 / 혜택 요약 / 유효기간, 오른쪽에 가격. 탭하면 바로 결제로 */
 function PassCard({ pass: p, won }: { pass: CommunityPass; won: string }) {
+  // 가격 숨김(PriceHidden, price null) 패스권 — 보여주기만, 앱에서는 결제 페이지로 안 보낸다
+  const hidden = p.price == null;
   return (
     <button
-      onClick={() => kloudNav.push(KloudScreen.PassPlanPayment(p.id))}
+      onClick={() => { if (!hidden) kloudNav.push(KloudScreen.PassPlanPayment(p.id)); }}
       className="w-full text-left rounded-2xl border border-[#EEF0F2] bg-white px-4 py-4 flex items-center gap-4 cursor-pointer transition-colors active:bg-[#FAFBFC] hover:bg-[#FAFBFC]"
     >
       <div className="flex-1 min-w-0 flex flex-col gap-1">
@@ -232,7 +234,7 @@ function PassCard({ pass: p, won }: { pass: CommunityPass; won: string }) {
         )}
       </div>
       <span className="shrink-0 text-[17px] font-bold text-[#171717] tabular-nums">
-        {new Intl.NumberFormat('ko-KR').format(p.price)}{won}
+        {p.price == null ? '가격 비공개' : `${new Intl.NumberFormat('ko-KR').format(p.price)}${won}`}
       </span>
     </button>
   );

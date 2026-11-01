@@ -57,8 +57,11 @@ export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: P
 
         {/* 가격 */}
         <div className="shrink-0 px-[24px] pt-[12px] pb-[16px]">
+          {passPlan.price == null && (
+            <p className="text-[#E5484D] font-medium mb-1" style={{ fontSize: 'min(1.5vh, 15px)' }}>{t('price_hidden_notice')}</p>
+          )}
           <span className="text-black font-extrabold" style={{ fontSize: 'min(2.4vh, 28px)' }}>
-            {fmt(passPlan.price ?? 0)}{t('won')}
+            {passPlan.price == null ? t('price_hidden') : `${fmt(passPlan.price)}${t('won')}`}
           </span>
         </div>
 
@@ -72,7 +75,8 @@ export const KioskPassPlanDetailModal = ({ passPlan, locale, onClose, onPay }: P
           </button>
           <button
             onClick={pay}
-            className="flex-[2] h-[min(6vh,56px)] rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform"
+            disabled={passPlan.price == null}
+            className="flex-[2] h-[min(6vh,56px)] rounded-[14px] bg-[#1E2124] flex items-center justify-center active:scale-[0.97] transition-transform disabled:opacity-40 disabled:active:scale-100"
           >
             <span className="text-white font-bold" style={{ fontSize: 'min(1.8vh, 20px)' }}>{t('kiosk_buy_passplan')}</span>
           </button>

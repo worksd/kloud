@@ -8,8 +8,13 @@ import { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
 import type { GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetPaymentRequest = {
-  itemId: number
-  item: string
+  /** paymentId 로 열 때(미납 결제)는 둘 다 생략 — LP 번호에 item=regular-class 를 같이 보내면 PAYMENT_ID_ITEM_NOT_MATCH */
+  itemId?: number
+  item?: string
+  /** 선생성된 결제번호('LP…')로 미납 결제 페이지를 연다(BE 74c9c90b). 서버가 준 route 의 값을 그대로 */
+  paymentId?: string
+  /** 결제 요청 알림톡 링크로 열 때만 true — Private·PriceHidden 가격정책을 금액과 함께 싣는다(BE 16cc18c4). 링크 쿼리를 그대로 넘긴다 */
+  includePrivatePricePolicies?: boolean
   targetUserId?: number
   date?: string
   /** 연습실 필수 — 예약 시작 'YYYY-MM-DDTHH:mm' (KST). 서버가 이 구간으로 최종금액 계산 */
@@ -75,8 +80,10 @@ export type LessonPricePolicyResponse = {
   name?: string;
   /** 한 번에 판매하는 회차 수 (예: 1, 4, 8) */
   lessonCount: number;
-  /** 실제 결제 금액. 이 옵션을 고르면 결제 상품가가 이 값이 된다. */
-  price: number;
+  /** 실제 결제 금액. 이 옵션을 고르면 결제 상품가가 이 값이 된다. 노출 범위 PriceHidden 이면 앱엔 null — 그 옵션은 앱에서 결제할 수 없다 */
+  price: number | null;
+  /** 노출 범위 — Public / PriceHidden(금액 숨김·앱 결제 불가) / Private. 없던 응답은 Public 취급 */
+  visibility?: 'Public' | 'PriceHidden' | 'Private';
   /** 방식 설명 (예: '주 2회 4주 과정'). */
   description?: string;
   /** 기본 선택 대상. 한 수업에서 하나만 true. 없으면 회차 수 오름차순 첫 번째가 기본 선택된다. */
@@ -221,7 +228,7 @@ export type GetPaymentResponse = {
 export const GetPayment: Endpoint<GetPaymentRequest, GetPaymentResponse> = {
   method: "get",
   path: `/payment`,
-  queryParams: ['itemId', 'item', 'targetUserId', 'date', 'startTime', 'endTime', 'studioId']
+  queryParams: ['itemId', 'item', 'paymentId', 'includePrivatePricePolicies', 'targetUserId', 'date', 'startTime', 'endTime', 'studioId']
 };
 
 

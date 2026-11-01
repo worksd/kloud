@@ -1,13 +1,12 @@
-// 내 정규반 상세 — 미납 안내 카드. 미납(Unpaid) 상품이면 헤더 바로 아래에 띄운다. 모바일/PC 공용 서버 컴포넌트.
-// 검정 카드 + 큰 금액(Paperlogy) — 수업 목록 날짜 타일과 같은 톤. 결제하기 → 정규반 등록 결제(item=regular-class, 반 id).
+// 내 정규반 상세 — 미납 안내 카드. 서버가 route 를 준(저장 상태 Unpaid) 패스면 헤더 바로 아래에 띄운다. 모바일/PC 공용 서버 컴포넌트.
+// 검정 카드 + 큰 금액(Paperlogy) — 수업 목록 날짜 타일과 같은 톤. 결제하기 → 서버가 준 route(/payment?…&paymentId=LP…) 그대로.
 // 미납이어도 수업 이용은 멈추지 않는다 — 기한·D-day 없이 '미납됐으니 결제해 달라'고만 안내.
-// 지금은 unpaid.mock.ts 데이터.
+// 자동결제가 걸린 패스가 실패해 재시도 대기(Failed)면 다음 시도 시각을, 재시도 끝 해지됐으면 직접 결제하라는 한 줄을 덧붙인다.
 
 import React from "react";
 import { translate } from "@/utils/translate";
-import { KloudScreen } from "@/shared/kloud.screen";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.mock";
+import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.info";
 import { parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 import { withYearNumeric } from "@/utils/year.label";
 
@@ -17,6 +16,14 @@ const shortDate = (s: string) => {
 };
 
 export const RegularClassUnpaidCard = async ({ info }: { info: UnpaidInfo }) => {
+  const sub = info.subscription;
+  // 자동결제 안내 — Failed(재시도 대기)면 다음 시도 시각, 그 외(자동 해지)면 직접 결제 안내
+  const subscriptionNote = sub
+    ? sub.status === 'Failed' && sub.paymentScheduledAt
+      ? (await translate('regular_class_unpaid_retry')).replace('{date}', shortDate(sub.paymentScheduledAt))
+      : await translate('regular_class_unpaid_subscription_ended')
+    : null;
+
   return (
     <div className="rounded-2xl bg-[#191F28] px-5 pt-5 pb-4 text-white">
       <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#FF6B6B]">
@@ -32,16 +39,14 @@ export const RegularClassUnpaidCard = async ({ info }: { info: UnpaidInfo }) => 
       <div className="mt-3 flex flex-col gap-1 text-[12.5px] text-white/60 tracking-[-0.2px]">
         <span>{info.planName} · {shortDate(info.startDate)} ~ {shortDate(info.endDate)}</span>
         <span>{await translate('regular_class_unpaid_notice')}</span>
+        {subscriptionNote && <span className="text-[#FFB4B4]">{subscriptionNote}</span>}
       </div>
 
-      {/* TODO(2026-10-26): API 연동 — 미납분 결제 경로 확정되면 교체 (지금은 이 반의 정규반 등록 결제 페이지) */}
-      {info.regularClassId > 0 && (
-        <NavigateClickWrapper method="push" route={KloudScreen.RegularClassPayment(info.regularClassId)}>
-          <button type="button" className="mt-4 w-full h-12 rounded-[14px] bg-white text-[#191F28] text-[15px] font-bold active:opacity-80">
-            {await translate('regular_class_unpaid_pay')}
-          </button>
-        </NavigateClickWrapper>
-      )}
+      <NavigateClickWrapper method="push" route={info.route}>
+        <button type="button" className="mt-4 w-full h-12 rounded-[14px] bg-white text-[#191F28] text-[15px] font-bold active:opacity-80">
+          {await translate('regular_class_unpaid_pay')}
+        </button>
+      </NavigateClickWrapper>
     </div>
   );
 };

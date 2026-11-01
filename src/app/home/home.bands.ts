@@ -13,8 +13,6 @@ import { GetMyStudioResponse, GetStudioResponse, StudioRegularClassResponse } fr
 import { GetEventResponse } from "@/app/endpoint/event.endpoint";
 import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
-// TODO(2026-10-30) ★★★ main 배포 전 반드시 삭제 ★★★ 미납 목 import — 서버가 unpaidPaymentRecords 내려주면 아래 적용 줄과 함께 지울 것 (unpaid.records.mock.ts 참고)
-import { unpaidRecordsMockEnabled, withUnpaidRecordsMock } from "@/app/home/unpaid.records.mock";
 
 export type ParsedHome = {
   // 사람에 매인 밴드 (로그인 시에만 채워진다)
@@ -74,10 +72,6 @@ export const parseHomeBands = (res: GetHomeResponse): ParsedHome => {
       default: break; // 모르는 밴드는 무시
     }
   }
-
-  // TODO(2026-10-30) ★★★ main 배포 전 반드시 삭제 ★★★ 미납 목 적용 — 무조건 켜져 있어 운영에 나가면 모든 유저에게 가짜 미납 다이얼로그가 뜬다.
-  // 서버가 unpaidPaymentRecords 를 주면 이 줄 + 위 import + unpaid.records.mock.ts 삭제 (모바일 /home·PC /myStudio 공통 경로)
-  if (unpaidRecordsMockEnabled()) parsed.unpaidPaymentRecords = withUnpaidRecordsMock(parsed.unpaidPaymentRecords, parsed.regularClasses, parsed.myStudio?.studio);
 
   return parsed;
 }

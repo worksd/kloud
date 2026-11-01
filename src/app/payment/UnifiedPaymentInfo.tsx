@@ -40,8 +40,9 @@ const getPaymentType = (type: UnifiedPaymentType): PaymentType => {
   }
 }
 
-const getTitleResource = (type: UnifiedPaymentType): StringResourceKey => {
-  if (type === 'regular-class') return 'regular_class_price';
+// 결제 정보 제목 — 정규반은 '정규반 금액'. item=pass-plan 으로 열린 정규반 가격정책(미납 결제 route, passPlan.category=Class)도 유저에겐 정규반
+const getTitleResource = (type: UnifiedPaymentType, isRegularClassPlan = false): StringResourceKey => {
+  if (type === 'regular-class' || (type === 'pass-plan' && isRegularClassPlan)) return 'regular_class_price';
   if (type === 'pass-plan') return 'pass_plan_price';
   if (type === 'bundle') return 'promotion_price';
   if (type === 'practice-room') return 'practice_room_price';
@@ -302,10 +303,12 @@ export const UnifiedPaymentInfo = ({
   const oneTimeFreePrice = oneTimeAvailable && payment.price === 0;
   // 기본 선택 — 구매 가능한(usable !== false) 방식 중 isRecommended 우선, 없으면 1회(있을 때), 없으면 첫 번째.
   // 전부 불가면 첫 번째를 선택해 사유를 보여주고 결제 버튼은 disabled로 막는다.
+  // 가격이 null(PriceHidden — 앱 결제 불가)인 방식은 기본 선택에서 뺀다
+  const purchasable = (p: LessonPricePolicyResponse) => p.usable !== false && p.price != null;
   const defaultPolicyId = hasPolicies
-    ? (pricePolicies.find(p => p.isRecommended && p.usable !== false)?.id
+    ? (pricePolicies.find(p => p.isRecommended && purchasable(p))?.id
         ?? (oneTimeAvailable ? ONE_TIME_OPTION_ID : undefined)
-        ?? (pricePolicies.find(p => p.usable !== false) ?? pricePolicies[0]).id)
+        ?? (pricePolicies.find(purchasable) ?? pricePolicies[0]).id)
     : undefined;
   const [selectedPolicyId, setSelectedPolicyId] = useState<number | undefined>(defaultPolicyId);
   const oneTimeSelected = oneTimeAvailable && selectedPolicyId === ONE_TIME_OPTION_ID;
@@ -412,7 +415,7 @@ export const UnifiedPaymentInfo = ({
   // 정규반도 패스권(가격정책)을 사는 결제라 보유 패스로는 못 산다
   const noPass = type === 'pass-plan' || type === 'regular-class' || type === 'practice-room';
   // 가격정책을 골랐으면 그 옵션의 가격, 1회·정책 없는 상품은 최상위 price(없으면 아이템별 price)가 상품가.
-  const itemPrice = selectedPolicy ? selectedPolicy.price : getItemPrice(payment, type);
+  const itemPrice = selectedPolicy ? (selectedPolicy.price ?? 0) : getItemPrice(payment, type);
   const canSubscribe = canSubscribeBase && !oneTimeSelected;
 
   // 정기결제 주기 — 선택한 가격 정책으로 연산: 회차 수 ÷ 주당 요일 수 ≈ N주마다.
@@ -692,7 +695,7 @@ export const UnifiedPaymentInfo = ({
             originalPrice={displayOriginalPrice}
             totalPrice={totalPrice}
             method={selectedMethod}
-            titleResource={bundlePromotion ? 'original_price' : getTitleResource(type)}
+            titleResource={bundlePromotion ? 'original_price' : getTitleResource(type, payment.passPlan?.category === 'Class')}
             locale={locale}
             discounts={displayDiscounts}
             strikeOriginalPrice={!!bundlePromotion}
@@ -768,7 +771,7 @@ export const UnifiedPaymentInfo = ({
           // 정책 결제 — 수업은 lesson-group(LGT), 정규반은 가격정책 pass-plan(LP). id 는 둘 다 정책 id
           type={selectedPolicy ? getPaymentType(type === 'regular-class' ? 'regular-class' : 'lesson-group') : getPaymentType(type)}
           // 정규반은 결제 API 로는 pass-plan 이지만 유저에겐 '정규반 등록' — 비회원 인증 시트 문구만 정규반으로
-          guestItemType={type === 'regular-class' ? 'regular-class' : undefined}
+          guestItemType={type === 'regular-class' || (type === 'pass-plan' && payment.passPlan?.category === 'Class') ? 'regular-class' : undefined}
           id={selectedPolicy ? selectedPolicy.id : getItemId(payment, type)}
           lessonId={payment.lesson?.id}
           price={priceAvailable ? totalPrice : null}
@@ -776,7 +779,8 @@ export const UnifiedPaymentInfo = ({
           user={payment.user}
           depositor={depositor}
           disabled={
-            selectedPolicy?.usable === false ||
+            // 구매 불가 사유가 있거나 가격이 숨겨진(PriceHidden, price null) 방식
+            (selectedPolicy != null && (selectedPolicy.usable === false || selectedPolicy.price == null)) ||
             // 패스 전용 — 패스권을 고르기 전엔 결제 불가 (PortOne에 totalAmount 0 이 넘어가던 경로 차단)
             (passOnly && (selectedMethod !== 'pass' || !selectedPass)) ||
             priceNotAvailable ||

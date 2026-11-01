@@ -56,27 +56,40 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     date?: string
     startTime?: string
     endTime?: string
+    /** 미납 결제 — 서버가 준 route 에 실린 선생성 결제번호('LP…'). 있으면 item/id 대신 이것만으로 GET /payment (BE 74c9c90b) */
+    paymentId?: string
+    /** 결제 요청 알림톡 링크 — 'true' 면 Private·PriceHidden 가격정책을 금액과 함께 받는다. 링크 쿼리를 서버에 그대로 넘긴다(BE 16cc18c4) */
+    includePrivatePricePolicies?: string
   }>
 }) {
   const params = await searchParams;
-  const { type, item, id, os, appVersion = '', targetUserId, date, startTime, endTime } = params;
-  const paymentItem = item ?? type ?? 'lesson';
+  const { type, item, id, os, appVersion = '', targetUserId, date, startTime, endTime, paymentId, includePrivatePricePolicies } = params;
+  const requestedItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
+  // paymentId 로 여는 미납 결제 — item/itemId 는 생략(LP 번호에 item=regular-class 를 같이 보내면 거부된다)
+  const byPaymentId = !!paymentId;
 
   // 연습실 결제는 장소·시간대(startTime/endTime)가 이미 선택된 상태로만 진입 가능.
-  if (paymentItem === 'practice-room' && (!startTime || !endTime)) {
+  if (requestedItem === 'practice-room' && (!startTime || !endTime)) {
     notFound();
   }
 
   const res = await getPaymentAction({
-    item: paymentItem,
-    id: itemId,
+    item: byPaymentId ? undefined : requestedItem,
+    id: byPaymentId ? undefined : itemId,
+    paymentId: paymentId || undefined,
+    includePrivatePricePolicies: includePrivatePricePolicies === 'true' ? true : undefined,
     targetUserId: parsedTargetUserId,
     // 연습실: startTime/endTime 구간으로 서버가 최종금액 계산 (date 대신)
-    startTime: paymentItem === 'practice-room' ? startTime : undefined,
-    endTime: paymentItem === 'practice-room' ? endTime : undefined,
+    startTime: requestedItem === 'practice-room' ? startTime : undefined,
+    endTime: requestedItem === 'practice-room' ? endTime : undefined,
   });
+
+  // 화면이 그릴 상품 종류 — paymentId 로 열었으면 응답에 실린 상품으로 가른다(쿼리 item 은 참고값)
+  const paymentItem: PaymentPageType = byPaymentId && !isGuinnessErrorCase(res)
+    ? (res.regularClass ? 'regular-class' : res.passPlan ? 'pass-plan' : res.bundle ? 'bundle' : res.studioRoom ? 'practice-room' : res.lesson ? 'lesson' : requestedItem)
+    : requestedItem;
 
   // BE가 redirectUrl을 내려주면 결제 폼 진입 없이 그 route로 push 후 결제 페이지를 back.
   if ('redirectUrl' in res && res.redirectUrl) {
@@ -192,7 +205,7 @@ export default async function UnifiedPaymentPage({ searchParams }: {
     // 모바일/앱: 자체 스크롤 컨테이너(h-screen + overscroll-none). PC 웹은 문서 흐름으로 풀어야
     // 레이아웃 푸터에 스크롤이 닿는다 — overscroll-none이 body로의 스크롤 체이닝을 막아 푸터가 안 보였다.
     <div className={`relative w-full h-screen bg-white flex flex-col pb-20 box-border overflow-y-auto overscroll-none scrollbar-hide ${isWeb ? 'lg:h-auto lg:overflow-visible lg:overscroll-auto lg:pb-0' : ''}`}>
-      <TrackView event="enter_payment" props={{item: paymentItem, itemId}}/>
+      <TrackView event="enter_payment" props={{item: paymentItem, itemId: Number.isFinite(itemId) ? itemId : null, paymentId: paymentId ?? null}}/>
       {isWeb && (
         <div className="hidden lg:block">
           <PaymentPcForm

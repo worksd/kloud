@@ -145,6 +145,8 @@ export default function PhoneVerificationForm({steps, locale, isFromLogin, isWeb
           // 서버 메시지 우선, 없으면 기본 불일치 문구
           const serverMessage = 'message' in res ? res.message : undefined
           await showCodeError(serverMessage || await translate('certification_code_mismatch'))
+          // 5회 틀렸거나 ttl 이 지나면(CERTIFICATION_CODE_EXPIRED) 같은 번호로는 더 못 맞춘다 — 입력을 비워 '다시 받기'를 유도
+          if ('code' in res && res.code === ExceptionResponseCode.CERTIFICATION_CODE_EXPIRED) setCode('')
         }
       } else {
         const res = await updateUserAction({phone, countryCode, code})

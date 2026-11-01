@@ -173,7 +173,7 @@ export const KioskLessonDetailModal = ({ lesson, locale, onClose, onPayment, var
                       )}
                     </span>
                     <span className="text-black font-bold" style={{ fontSize: 'min(2.2vw, 24px)' }}>
-                      {fmt(p.price)}{t('won')}
+                      {p.price == null ? t('price_hidden') : `${fmt(p.price)}${t('won')}`}
                     </span>
                   </span>
                 );

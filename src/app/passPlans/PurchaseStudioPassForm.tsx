@@ -8,6 +8,7 @@ import { CommonSubmitButton } from "@/app/components/buttons";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { Locale } from "@/shared/StringResource";
+import { getLocaleString } from "@/app/components/locale";
 
 export const PurchaseStudioPassForm = ({
                                          passPlans,
@@ -38,6 +39,8 @@ export const PurchaseStudioPassForm = ({
   const otherPlans = passPlans.filter(p => !p.isRecommended);
 
   const [passPlan, setPassPlan] = useState<GetPassPlanResponse | null>(popularPassPlan);
+  // 노출 범위 PriceHidden(가격 숨김) — 보여주기만 하고 앱에서는 결제할 수 없다(BE 16cc18c4). 구매 버튼 대신 안내
+  const priceHidden = !!passPlan && (passPlan.visibility === 'PriceHidden' || passPlan.price == null);
 
   // PC 웹에선 모바일 풀폭 리스트가 훵해서 중앙 560px 컬럼으로 좁힌다. 클라이언트 상태(선택)를 가진 폼이라
   // PC 전용 컴포넌트를 따로 만들지 않고 단일 인스턴스에 반응형 클래스만 얹는다 (티켓 상세와 동일 접근).
@@ -92,8 +95,13 @@ export const PurchaseStudioPassForm = ({
         <div className="text-[13px] text-[#999] whitespace-pre-line leading-relaxed">{passRefundPolicyText}</div>
       </div>
 
-      {/* 구매 버튼 */}
+      {/* 구매 버튼 — 가격 숨김 상품은 버튼 대신 안내 */}
       <div className="sticky bottom-3 px-6 mt-4">
+        {priceHidden ? (
+          <div className="w-full rounded-2xl bg-[#F2F4F6] px-5 py-4 text-center text-[14px] font-semibold text-[#6D7882]">
+            {getLocaleString({ locale, key: 'price_hidden_notice' })}
+          </div>
+        ) : (
         <CommonSubmitButton originProps={{
           onClick: () => {
             // 정규반 가격정책(category=Class)은 패스권이 아니라 정규반 등록(item=regular-class, id=반 id)으로 — 결제 화면에서 방식을 다시 고른다
@@ -105,6 +113,7 @@ export const PurchaseStudioPassForm = ({
         }} disabled={passPlan == null}>
           <div>{passPlan ? `${passPlan.name} 구매하기` : purchasePassText}</div>
         </CommonSubmitButton>
+        )}
       </div>
       </div>
     </div>

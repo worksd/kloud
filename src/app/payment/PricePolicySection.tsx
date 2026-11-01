@@ -31,6 +31,8 @@ export const PricePolicySection = ({
 }) => {
   const fmt = (n: number) => new Intl.NumberFormat("ko-KR").format(n);
   const won = getLocaleString({ locale, key: 'won' });
+  const priceHidden = getLocaleString({ locale, key: 'price_hidden' });
+  const priceHiddenNotice = getLocaleString({ locale, key: 'price_hidden_notice' });
   const timesUnit = getLocaleString({ locale, key: 'times_unit' });
 
   // name이 비어서 오면 회차 수로 폴백해 빈 라벨이 찍히지 않게 한다 (서버 기본값과 같은 '{N}회' 형식).
@@ -45,8 +47,10 @@ export const PricePolicySection = ({
       <div className="flex flex-col gap-2.5">
         {policies.map((policy) => {
           const isSelected = policy.id === selectedPolicyId;
-          // usable === false만 구매 불가 — 구응답(필드 없음)은 구매 가능으로 취급
-          const unusable = policy.usable === false;
+          // usable === false 또는 가격이 숨겨진(PriceHidden, price null) 방식은 구매 불가 — 구응답(필드 없음)은 구매 가능으로 취급
+          const hidden = policy.price == null;
+          const unusable = policy.usable === false || hidden;
+          const reason = policy.reason ?? (hidden ? priceHiddenNotice : null);
 
           return (
             <button
@@ -87,15 +91,15 @@ export const PricePolicySection = ({
 
                 <span className="flex flex-col items-end flex-shrink-0">
                   <span className={`text-[16px] font-bold ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-black'}`}>
-                    {fmt(policy.price)}{won}
+                    {policy.price == null ? priceHidden : `${fmt(policy.price)}${won}`}
                   </span>
                 </span>
               </div>
 
               {/* 구매 불가 사유 — 서버가 로케일 문구를 그대로 내려준다 */}
-              {unusable && policy.reason && (
+              {unusable && reason && (
                 <div className="mt-2.5 pt-2.5 border-t border-[#EEEFF0]">
-                  <span className="text-[12px] font-medium text-[#E5484D]">{policy.reason}</span>
+                  <span className="text-[12px] font-medium text-[#E5484D]">{reason}</span>
                 </div>
               )}
 

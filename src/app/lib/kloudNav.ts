@@ -234,6 +234,8 @@ const applyTitle = async (route: string) => {
 const paymentTitleKey = (route: string) => {
   if (route.includes('/bundle/')) return 'payment' as const;
   if (route.includes('/lessons/')) return 'payment_title_lesson' as const;
+  // 선생성 결제번호로 여는 미납 결제(서버 route '/payment?item=pass-plan&id=&paymentId=LP…') — 이미 등록된 반의 수강료라 '등록/구매하기'가 아니라 '결제하기'
+  if (qs.get('paymentId')) return 'payment' as const;
   const qs = new URLSearchParams(route.split('?')[1] ?? '');
   switch (qs.get('item') ?? qs.get('type') ?? 'lesson') {
     case 'lesson': return 'payment_title_lesson' as const;

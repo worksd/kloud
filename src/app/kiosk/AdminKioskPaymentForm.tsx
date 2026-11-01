@@ -108,7 +108,7 @@ export const AdminKioskPaymentForm = ({item, locale, loading, pricePolicies = []
                         <span className={`mt-[2px] text-[14px] truncate max-w-full ${isSelected ? 'text-white/60' : 'text-[#86898C]'}`}>{daysLabel}</span>
                       )}
                       <span className={`font-bold text-[20px] mt-[4px] ${isSelected ? 'text-white' : 'text-[#1E2124]'}`}>
-                        {policy.price.toLocaleString('ko-KR')}{t('won')}
+                        {(policy.price ?? 0).toLocaleString('ko-KR')}{t('won')}
                       </span>
                     </button>
                   );

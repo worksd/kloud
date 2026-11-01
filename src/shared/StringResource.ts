@@ -4922,11 +4922,18 @@ export const StringResource = {
   attendance_upcoming: { ko: '예정', en: 'Upcoming', jp: '予定', zh: '待上课' },
   attendance_attended: { ko: '출석', en: 'Attended', jp: '出席', zh: '已出席' },
   regular_class_pass_plan: { ko: '수강 방식', en: 'Plan', jp: '受講プラン', zh: '上课方式' },
-  // 내 정규반 상세 — 미납 안내 (지금은 목, unpaid.mock.ts)
+  // 내 정규반 상세 — 미납 안내 (GET /passes/:id route·subscription, unpaid.info.ts)
   regular_class_unpaid_title: { ko: '이번 수강료가 아직 결제되지 않았어요', en: "This period hasn't been paid yet", jp: '今回の受講料がまだ支払われていません', zh: '本期学费尚未支付' },
   /** {date} 자리에 'M.d(요일)' */
   regular_class_unpaid_notice: { ko: '미납된 수강료를 결제해 주세요', en: 'Please pay the outstanding tuition', jp: '未納の受講料をお支払いください', zh: '请支付未付的学费' },
   regular_class_unpaid_pay: { ko: '결제하기', en: 'Pay now', jp: '支払う', zh: '去支付' },
+  /** 미납 패스의 자동결제가 실패해 재시도 대기 — {date} 다음 시도 'M.d' */
+  regular_class_unpaid_retry: { ko: '자동결제가 실패해 {date}에 다시 시도해요', en: 'Auto-payment failed · retrying on {date}', jp: '自動決済に失敗し、{date}に再試行します', zh: '自动扣款失败，将于{date}重试' },
+  /** 재시도 끝 자동결제 해지 */
+  regular_class_unpaid_subscription_ended: { ko: '자동결제가 해지돼 직접 결제해야 해요', en: 'Auto-payment was cancelled — please pay manually', jp: '自動決済が解除されたため直接お支払いください', zh: '自动扣款已取消，请手动支付' },
+  // 가격정책 노출 범위 PriceHidden(BE 16cc18c4) — 보이지만 금액 숨김, 앱·키오스크 무인 자리에선 결제 불가
+  price_hidden: { ko: '가격 비공개', en: 'Price hidden', jp: '価格非公開', zh: '价格未公开' },
+  price_hidden_notice: { ko: '앱에서는 결제할 수 없어요. 학원에 문의해 주세요', en: "Can't be purchased in the app — please contact the studio", jp: 'アプリでは決済できません。スタジオにお問い合わせください', zh: '无法在应用内支付，请联系工作室' },
   // 마이페이지 — 결제 카드 섹션(설정 안에 숨어 있던 결제수단 관리를 본문으로)
   my_payment_cards: { ko: '결제 카드', en: 'Payment cards', jp: '決済カード', zh: '付款卡' },
   payment_method_manage: { ko: '관리', en: 'Manage', jp: '管理', zh: '管理' },
@@ -4936,7 +4943,9 @@ export const StringResource = {
   /** 본문에 다 못 보여준 카드 수 */
   payment_cards_more: { ko: '외 {n}장 더 보기', en: 'View {n} more', jp: 'ほか{n}枚を見る', zh: '查看另外{n}张' },
   // 홈 — 미납 결제건 다이얼로그(GET /home unpaidPaymentRecords)
-  home_unpaid_title: { ko: '미납된 수강료가 있어요', en: 'You have unpaid tuition', jp: '未納の受講料があります', zh: '您有未缴的学费' },
+  /** {unpaid} 자리에 home_unpaid_title_highlight 가 빨간색으로 들어간다 */
+  home_unpaid_title: { ko: '{unpaid}된 수강료가 있어요', en: 'You have {unpaid} tuition', jp: '{unpaid}の受講料があります', zh: '您有{unpaid}的学费' },
+  home_unpaid_title_highlight: { ko: '미납', en: 'unpaid', jp: '未納', zh: '未缴' },
   /** 미납건이 여럿일 때 첫 건 아래 — {n} 나머지 건수 */
   home_unpaid_more: { ko: '외 {n}건', en: 'and {n} more', jp: 'ほか{n}件', zh: '另有{n}笔' },
   // 내 정규반 상세 — 수업 일정 변경 (지금은 목, reschedule.mock.ts)

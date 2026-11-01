@@ -6,7 +6,8 @@ export type CommunityPass = {
   id: number;
   name: string;
   description?: string;
-  price: number;
+  /** PriceHidden 패스권은 null — 금액 숨김·앱 결제 불가 */
+  price: number | null;
   /** 유효기간 라벨 (예: '30일') */
   period?: string;
   tag?: string; // '인기' 등 배지

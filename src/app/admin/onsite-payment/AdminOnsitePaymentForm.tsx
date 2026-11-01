@@ -467,7 +467,7 @@ export function AdminOnsitePaymentForm({ studioId, lessons, today }: {
                     {passBenefitLabel(p) && <span className={'block text-[12.5px] text-[#4E5968] truncate'}>{passBenefitLabel(p)}</span>}
                     {p.expireDateStamp && <span className={'block text-[12px] text-[#8B95A1] truncate'}>{p.expireDateStamp}</span>}
                   </span>
-                  <span className={priceCls}>{lessonPriceLabel(p.price)}</span>
+                  <span className={priceCls}>{lessonPriceLabel(p.price ?? undefined)}</span>
                 </button>
               </li>
             ))}
@@ -490,7 +490,7 @@ export function AdminOnsitePaymentForm({ studioId, lessons, today }: {
                   <span className={'block text-[15px] font-bold text-black truncate'}>{p.name ?? `${p.lessonCount}회`}</span>
                   {p.description && <span className={'block text-[12px] text-[#8B95A1] truncate'}>{p.description}</span>}
                 </span>
-                <span className={priceCls}>{fmt(p.price)}원</span>
+                <span className={priceCls}>{fmt(p.price ?? 0)}원</span>
               </button>
             </li>
           ))}

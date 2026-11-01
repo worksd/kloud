@@ -71,7 +71,9 @@ export const PassPlanItem = ({item, isSelected, onClickAction, locale}: {
       <div className="flex items-center justify-center px-5 py-4 min-w-[130px]">
         <span className={`text-[18px] font-extrabold tracking-tight transition-colors duration-200 whitespace-nowrap
           ${isSelected ? 'text-white' : 'text-black'}`}>
-          {new Intl.NumberFormat("ko-KR").format(item.price ?? 0)}{getLocaleString({locale, key: 'won'})}
+          {item.price == null
+            ? getLocaleString({locale, key: 'price_hidden'})
+            : `${new Intl.NumberFormat("ko-KR").format(item.price)}${getLocaleString({locale, key: 'won'})}`}
         </span>
       </div>
     </div>

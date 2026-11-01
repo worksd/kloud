@@ -62,7 +62,7 @@ export type RuleTicket = {
 export type PassRuleTicket = {
   id: number;
   status: string;
-  /** 미납 유예(Unpaid) 수강권은 결제건이 없어 null */
+  /** 결제번호. 미납 유예(Unpaid) 수강권도 결제기록(status=Unpaid)을 먼저 만들어 'LP…' 가 있다(BE 74c9c90b) — 미납 여부는 paymentId 가 아니라 status 로 본다 */
   paymentId: string | null;
   createdAt: string;
   /** 출석 처리 시각. 출석 안 했으면 null */
@@ -168,7 +168,10 @@ export type PassBenefit = {
 export type GetPassPlanResponse = {
   id: number
   name: string
-  price?: number
+  /** 노출 범위가 PriceHidden 이면 앱·키오스크 무인 자리에선 null 로 온다(BE 16cc18c4) — 숫자로 가정하지 말 것 */
+  price?: number | null
+  /** 가격정책 노출 범위 — Public(보임·금액) / PriceHidden(보임·금액 숨김·앱 결제 불가) / Private(안 보임). 없던 응답은 Public 취급 */
+  visibility?: PassPlanVisibility
   studio?: GetStudioResponse
   /** 공개 상태 — 'Private'면 비공개(admin withAll 조회에 포함). 'Public'/'Ready' 등. */
   status?: string
@@ -220,10 +223,31 @@ export type KioskAdminPassPlanResponse = GetPassPlanResponse & {
   unitPrice?: number
 }
 
+/** 가격정책 노출 범위(BE 16cc18c4) */
+export type PassPlanVisibility = 'Public' | 'PriceHidden' | 'Private';
+
+/** 미납 패스에 걸린 자동결제 상태(GET /passes/:id subscription, BE 1990cda0) — 실패(재시도 대기) 또는 재시도 끝 자동 해지일 때만 온다 */
+export type PassSubscriptionResponse = {
+  status: string;
+  retryCount?: number;
+  failedAt?: string | null;
+  /** 다음 재시도 예정 시각 — 재시도 대기(Failed)일 때 */
+  paymentScheduledAt?: string | null;
+  failReason?: string | null;
+}
+
 export type GetPassResponse = {
   id: number
   price: number
+  /** 결제번호. 미납 유예 패스도 선생성된 'LP…' 가 있다 — 미납 판정은 status */
   paymentId: string
+  /**
+   * 미납분 결제 페이지 경로('/payment?item=pass-plan&id=&paymentId=') — 저장 상태 Unpaid 인 패스만, 유효기간이 지나 표시 status 가 Expired 여도 온다.
+   * FE 가 조립하지 않고 그대로 push 한다(홈 unpaidPaymentRecords[].route 와 같은 문자열)
+   */
+  route?: string | null
+  /** 미납 패스의 자동결제 실패/해지 정보 — 자동결제가 안 걸렸거나 정상이면 없다 */
+  subscription?: PassSubscriptionResponse | null
   startDate: string
   endDate: string
   status: PassStatus

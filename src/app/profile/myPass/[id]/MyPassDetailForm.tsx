@@ -100,7 +100,7 @@ export const MyPassDetailForm = async ({pass}: { pass: GetPassResponse }) => {
             depositor={passPlan?.studio?.depositor}
             bank={passPlan?.studio?.bank}
             accountNumber={passPlan?.studio?.accountNumber}
-            price={passPlan?.price}
+            price={passPlan?.price ?? undefined}
           />
         </div>
       )}

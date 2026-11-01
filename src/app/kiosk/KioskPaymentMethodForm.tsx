@@ -140,7 +140,8 @@ export const KioskPaymentMethodForm = ({
           <div className="flex" style={{ gap: 'min(1.4vw, 16px)' }}>
             {pricePolicies.map((policy) => {
               const isSelected = policy.id === selectedPolicyId;
-              const unusable = policy.usable === false;
+              // 가격이 숨겨진(PriceHidden, price null) 방식은 무인 자리에서 결제 불가
+              const unusable = policy.usable === false || policy.price == null;
               const label = policy.name || `${policy.lessonCount}${t('times_unit')}`;
               // 요일이 있는 방식만 '매주 월·수'로 노출 — 없는 방식은 그 수업의 모든 회차 수강이라 미표기
               const daysLabel = weeklyDaysLabel(policy.days, locale);
@@ -165,9 +166,9 @@ export const KioskPaymentMethodForm = ({
                     </span>
                   )}
                   <span className={`font-bold mt-[min(0.6vw,6px)] ${unusable ? 'text-[#B0B8BF]' : isSelected ? 'text-white' : 'text-[#1E2124]'}`} style={{ fontSize: 'min(2.2vw, 24px)' }}>
-                    {fmt(policy.price)}{t('won')}
+                    {policy.price == null ? t('price_hidden') : `${fmt(policy.price)}${t('won')}`}
                   </span>
-                  {policy.lessonCount > 1 && (
+                  {policy.lessonCount > 1 && policy.price != null && (
                     <span className={`mt-[2px] ${unusable ? 'text-[#C4C9CF]' : isSelected ? 'text-white/60' : 'text-[#86898C]'}`} style={{ fontSize: 'min(1.5vw, 17px)' }}>
                       {t('price_per_session')} {fmt(Math.round(policy.price / Math.max(policy.lessonCount, 1)))}{t('won')}
                     </span>
