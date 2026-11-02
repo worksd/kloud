@@ -1,4 +1,4 @@
-// 모바일(앱 웹뷰 + 좁은 웹) 프로필 — 기존 page.tsx 렌더를 그대로 옮긴 것.
+// 모바일(앱 웹뷰 + 좁은 웹) 프로필. 화면 전체가 한 번에 스크롤되고, 프로필은 접혀서 상단 줄에 고정된다(ProfileCollapsingLayout).
 // PC 분기는 page.tsx에서 appVersion + viewport(lg)로, PC 렌더는 ProfilePcForm.
 
 import { KloudScreen } from "@/shared/kloud.screen";
@@ -12,6 +12,7 @@ import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
 import Image from "next/image";
 import { translate } from "@/utils/translate";
 import { MyBookingCard } from "@/app/profile/MyBookingCard";
+import { ProfileCollapsingLayout } from "@/app/profile/ProfileCollapsingLayout";
 import { MyRegularClassCard } from "@/app/profile/MyRegularClassCard";
 import { GetBillingResponse } from "@/app/endpoint/billing.endpoint";
 import { LessonLabel } from "@/app/components/LessonLabel";
@@ -25,19 +26,20 @@ export const ProfileForm = async ({user, locale, billings}: { user: GetMeRespons
   const relativeStart = formatRelativeStart(upcoming?.startDate, locale);
 
   return (
-    <div className="flex flex-col h-screen bg-white w-full max-w-screen overflow-hidden">
-      {/* 고정 헤더: 아이콘 + 프로필 */}
-      <div className="flex-shrink-0 bg-white">
-        <div className="flex justify-end items-center gap-3 px-5 py-3">
-          <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
-            <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
-          </NavigateClickWrapper>
-          <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
-            {/* 설정 — 리디자인 전 아이콘(ic_setting.svg) */}
-            <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
-          </NavigateClickWrapper>
-        </div>
-
+    <ProfileCollapsingLayout
+      nickName={has(user.nickName) ? user.nickName! : '-'}
+      name={has(user.name) ? user.name : null}
+      imageUrl={user.profileImageUrl}
+      actions={<>
+        <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileEdit}>
+          <EditIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+        </NavigateClickWrapper>
+        <NavigateClickWrapper method={'push'} route={KloudScreen.ProfileSetting}>
+          {/* 설정 — 리디자인 전 아이콘(ic_setting.svg) */}
+          <SettingIcon className="w-[22px] h-[22px] active:opacity-50 transition-opacity duration-150"/>
+        </NavigateClickWrapper>
+      </>}
+      profile={
         <div className="flex items-center gap-3 px-5 pb-4">
           <div className="w-[52px] h-[52px] rounded-full overflow-hidden flex-shrink-0">
             <Image
@@ -58,7 +60,8 @@ export const ProfileForm = async ({user, locale, billings}: { user: GetMeRespons
             </div>
           </div>
         </div>
-
+      }
+    >
         {/* 결제 카드 — 프로필 바로 아래 한 줄(설정 안에 숨어 있던 결제수단 관리로). 내 상품 섹션들과 섞이지 않게 헤더에 둔다 */}
         <div className="px-5 pb-4 -mt-1">
           <ProfilePaymentCardChip
@@ -71,10 +74,9 @@ export const ProfileForm = async ({user, locale, billings}: { user: GetMeRespons
             }}
           />
         </div>
-      </div>
 
-      {/* 스크롤 영역 */}
-      <div className="flex-1 overflow-y-auto pb-8">
+      {/* 본문 — 헤더와 함께 한 번에 스크롤 */}
+      <div className="pb-8">
 
       {/* 강사 인사말 + 개인수업 만들기/내 수업 — Artist 계정(또는 artistStudios 보유)에만 */}
       {(user.type === UserType.Artist || (user.artistStudios?.length ?? 0) > 0) && (
@@ -266,7 +268,7 @@ export const ProfileForm = async ({user, locale, billings}: { user: GetMeRespons
         </div>
       </section>
       </div>
-    </div>
+    </ProfileCollapsingLayout>
   );
 };
 
