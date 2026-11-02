@@ -12,6 +12,7 @@ import { CircleImage } from "@/app/components/CircleImage";
 import { RegularClassWeekStrip } from "@/app/profile/myRegularClass/[id]/RegularClassWeekStrip";
 import { RescheduleMenuButton } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 import { parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
+import { COLLAPSE_TITLE_ID } from "@/app/profile/myRegularClass/[id]/collapse.title.id";
 
 /** 다음 결제일 — 'yyyy.MM.dd' 종료일의 다음 날. 못 읽으면 종료일 그대로 */
 const nextPaymentDate = (endDate: string) => {
@@ -61,7 +62,8 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
         </div>
       )}
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
+        {/* 모바일은 이 줄이 상단 바 밑으로 들어가면 상단 바 가운데에 접혀 고정된다(RegularClassTopBar) */}
+        <div id={pc ? undefined : COLLAPSE_TITLE_ID} className="flex items-center gap-3 min-w-0">
           {studio?.profileImageUrl ? (
             <CircleImage size={44} imageUrl={studio.profileImageUrl}/>
           ) : (

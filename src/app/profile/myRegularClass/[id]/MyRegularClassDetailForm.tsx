@@ -30,7 +30,11 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, history, un
   <RescheduleScope pass={pass} regularClass={regularClass} locale={locale}>
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
       {/* ignoreSafeArea + 네이티브 앱바 없음 — 상태바(최소 44px 보장) + 뒤로가기·⋮ 줄은 화면이 직접 그린다 */}
-      <RegularClassTopBar overImage={!!heroUrl}/>
+      <RegularClassTopBar
+        overImage={!!heroUrl}
+        title={regularClass?.name || pass.passPlan?.regularClass?.name || pass.passPlan?.name || ''}
+        logoUrl={pass.passPlan?.studio?.profileImageUrl}
+      />
       {/* 히어로 이미지가 있으면 상태바까지 풀블리드, 없으면 버튼 줄만큼 비운다 — 패스 상세와 같은 방식 */}
       {heroUrl ? (
         <div className="w-full aspect-[4/3] bg-[#F1F3F6]">
