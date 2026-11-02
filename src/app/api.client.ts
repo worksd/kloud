@@ -76,6 +76,8 @@ export class ApiClient extends EndpointClient {
     getByToken: this.endpointBuilder(API.Ticket.GetTicketByToken),
     list: this.endpointBuilder(API.Ticket.ListTickets),
     listByRegularClass: this.endpointBuilder(API.Ticket.ListRegularClassTickets),
+    postponeByRegularClass: this.endpointBuilder(API.Ticket.PostponeRegularClassTicket),
+    listPostponesByRegularClass: this.endpointBuilder(API.Ticket.ListRegularClassPostpones),
     create: this.endpointBuilder(API.Ticket.CreateTicket),
     getInviteTicket: this.endpointBuilder(API.Ticket.GetInviteTicket),
     checkDuplicate: this.endpointBuilder(API.Ticket.CheckDuplicateTicket),

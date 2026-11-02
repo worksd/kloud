@@ -20,6 +20,15 @@ export type TicketPaymentRecordSummary = {
   createdAt?: string;
 };
 
+/** 수강권이 나간 패스의 미루기 한도·쓴 횟수 — GET /regular-classes/:id/tickets·/postpones 에 온다. 패스 없이 받은 수강권은 키가 없다 */
+export type TicketPostponePass = {
+  id: number;
+  /** 반의 미루기 한도(패스 1장 기준). null 이면 미루기를 받지 않는 반 */
+  postponeLimit: number | null;
+  /** 이 패스로 미룬 횟수 — 학원이 대신 미룬 것도 세서 한도보다 클 수 있다 */
+  postponeCount: number;
+};
+
 export type TicketResponse = {
   id: number;
   status: string;
@@ -39,6 +48,8 @@ export type TicketResponse = {
   ticketTypeLabel?: string;
   paymentRecord?: TicketPaymentRecordSummary;
   studentId?: number;
+  /** 정규반 수강권 목록에서만 — 미루기 한도·쓴 횟수 */
+  pass?: TicketPostponePass;
 }
 
 export type GetInviteTicketParameter = {
@@ -103,6 +114,61 @@ export const ListRegularClassTickets: Endpoint<ListRegularClassTicketsParameter,
   method: 'get',
   path: (e) => `/regular-classes/${e.id}/tickets`,
   queryParams: ['type', 'page'],
+};
+
+export type PostponeRegularClassTicketParameter = {
+  id: number;
+  ticketId: number;
+};
+
+// POST /regular-classes/:id/postpone — 수강권 1장을 다음 회차로 미룬다. 결과는 안 오니 성공 후 목록·내역을 다시 부른다
+export const PostponeRegularClassTicket: Endpoint<PostponeRegularClassTicketParameter, SimpleResponse> = {
+  method: 'post',
+  path: (e) => `/regular-classes/${e.id}/postpone`,
+  bodyParams: ['ticketId'],
+};
+
+export type RegularClassPostponeLesson = {
+  id: number;
+  title: string;
+  /** 'yyyy.MM.dd HH:mm' */
+  startDate: string;
+};
+
+export type RegularClassPostponeResponse = {
+  id: number;
+  /** 'yyyy.MM.dd HH:mm' */
+  postponedAt: string;
+  /** STUDENT 본인 · STUDIO 학원이 대신 */
+  requestedBy: 'STUDENT' | 'STUDIO';
+  userId: number;
+  studentName?: string;
+  /** 미뤄서 취소된 수강권 */
+  ticketId: number;
+  fromLesson: RegularClassPostponeLesson | null;
+  /** 옮겨간 날짜 'yyyy.MM.dd' — 2026-11-02 배포 전 미루기는 null */
+  toDate: string | null;
+  /** 옮겨간 회차 — 그 날 수업이 아직 없으면 null(개설되면 채워진다) */
+  toLesson: RegularClassPostponeLesson | null;
+  pass: TicketPostponePass;
+};
+
+export type ListRegularClassPostponesParameter = {
+  id: number;
+  passId?: number;
+  page?: number;
+};
+
+export type ListRegularClassPostponesResponse = {
+  postpones: RegularClassPostponeResponse[];
+  totalPage?: number;
+};
+
+// GET /regular-classes/:id/postpones — 내가 미룬 내역(학원이 대신 미룬 것 포함), 최근 순
+export const ListRegularClassPostpones: Endpoint<ListRegularClassPostponesParameter, ListRegularClassPostponesResponse> = {
+  method: 'get',
+  path: (e) => `/regular-classes/${e.id}/postpones`,
+  queryParams: ['passId', 'page'],
 };
 
 export const GetTicket: Endpoint<GetTicketParameter, TicketResponse> = {

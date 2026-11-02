@@ -9,6 +9,7 @@ import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { RegularClassHeaderInfo } from "@/app/profile/myRegularClass/[id]/RegularClassHeaderInfo";
 import { RegularClassHistoryData, RegularClassLessonList } from "@/app/profile/myRegularClass/[id]/RegularClassLessonList";
 import { collectRegularClassTickets } from "@/app/profile/myRegularClass/[id]/regular.class.tickets";
+import { RescheduleScope } from "@/app/profile/myRegularClass/[id]/reschedule.scope";
 import { RegularClassUnpaidCard } from "@/app/profile/myRegularClass/[id]/RegularClassUnpaidCard";
 import { UnpaidInfo } from "@/app/profile/myRegularClass/[id]/unpaid.info";
 import { RegularClassTopBar, TOP_BAR_SPACE } from "@/app/profile/myRegularClass/[id]/RegularClassTopBar";
@@ -26,8 +27,9 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, history, un
   // 히어로 이미지 — 반 이미지 > 담당 강사 프로필 > 학원 로고. 셋 다 없을 때만 히어로 없이 버튼 줄만 비운다
   const heroUrl = resolveRegularClassImage(regularClass, pass.passPlan?.studio);
   return (
+  <RescheduleScope pass={pass} regularClass={regularClass} locale={locale}>
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(135deg, #E9F1FF 0%, #FCF3FF 100%)' }}>
-      {/* ignoreSafeArea + 네이티브 앱바 없음 — 상태바(최소 44px 보장) + 뒤로가기 줄은 화면이 직접 그린다 */}
+      {/* ignoreSafeArea + 네이티브 앱바 없음 — 상태바(최소 44px 보장) + 뒤로가기·⋮ 줄은 화면이 직접 그린다 */}
       <RegularClassTopBar overImage={!!heroUrl}/>
       {/* 히어로 이미지가 있으면 상태바까지 풀블리드, 없으면 버튼 줄만큼 비운다 — 패스 상세와 같은 방식 */}
       {heroUrl ? (
@@ -62,5 +64,6 @@ export const MyRegularClassDetailForm = async ({ pass, regularClass, history, un
         <RegularClassLessonList tickets={collectRegularClassTickets(pass)} history={history} locale={locale}/>
       </div>
     </div>
+  </RescheduleScope>
   );
 };
