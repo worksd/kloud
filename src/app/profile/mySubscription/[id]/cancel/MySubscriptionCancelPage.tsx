@@ -89,7 +89,7 @@ export default function MySubscriptionCancelForm({subscription, locale}: { subsc
 
   useEffect(() => {
     window.onDialogConfirm = async (data: DialogInfo) => {
-      // TODO: 다이얼로그 추가하면 if문으로 분기쳐야함
+      // 이 화면의 다이얼로그는 해지 완료 하나뿐 — 확인 누르면 구독 상세로
       const pushRoute = KloudScreen.MySubscriptionDetail(subscription.subscriptionId);
       kloudNav?.navigateMain({route: pushRoute});
     };

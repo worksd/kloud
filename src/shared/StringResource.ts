@@ -4963,31 +4963,6 @@ export const StringResource = {
   home_unpaid_title_highlight: { ko: '미납', en: 'unpaid', jp: '未納', zh: '未缴' },
   /** 미납건이 여럿일 때 첫 건 아래 — {n} 나머지 건수 */
   home_unpaid_more: { ko: '외 {n}건', en: 'and {n} more', jp: 'ほか{n}件', zh: '另有{n}笔' },
-  // 내 정규반 상세 — 수업 일정 변경 (지금은 목, reschedule.mock.ts)
-  regular_class_reschedule_action: { ko: '수업 일정 변경하기', en: 'Reschedule a lesson', jp: 'レッスン日程を変更', zh: '课程改期' },
-  regular_class_reschedule_history: { ko: '수업 일정 변경 이력', en: 'Reschedule history', jp: '日程変更履歴', zh: '改期记录' },
-  regular_class_reschedule_history_empty: { ko: '아직 변경한 수업이 없어요', en: 'No rescheduled lessons yet', jp: 'まだ変更したレッスンはありません', zh: '暂无改期记录' },
-  /** {date} 자리에 'M.d' */
-  regular_class_reschedule_changed_at: { ko: '{date} 변경', en: 'Changed {date}', jp: '{date} 変更', zh: '{date} 改期' },
-  regular_class_reschedule_select_title: { ko: '일정을 변경할 수업을 골라주세요', en: 'Choose a lesson to reschedule', jp: '日程を変更するレッスンを選んでください', zh: '请选择要改期的课程' },
-  regular_class_reschedule_select_desc: { ko: '새 수업은 내 마지막 수업 다음, 가장 가까운 반 요일에 같은 시간으로 잡혀요', en: 'The new lesson is set on the nearest class day after your last lesson, at the same time', jp: '新しいレッスンは最後のレッスンの次、いちばん近いクラスの曜日に同じ時間で入ります', zh: '新课程将安排在您最后一节课之后最近的上课日，时间不变' },
-  regular_class_reschedule_no_target: { ko: '변경할 수 있는 수업이 없어요', en: 'No lessons can be rescheduled', jp: '変更できるレッスンがありません', zh: '没有可改期的课程' },
-  regular_class_reschedule_from: { ko: '기존 수업', en: 'Current', jp: '元のレッスン', zh: '原课程' },
-  regular_class_reschedule_to: { ko: '새 수업 일정', en: 'New schedule', jp: '新しい日程', zh: '新时间' },
-  regular_class_reschedule_after_end: { ko: '이용 기간 이후의 수업이에요', en: 'This lesson is after your class period ends', jp: '利用期間後のレッスンです', zh: '该课程在有效期之后' },
-  regular_class_reschedule_irreversible: { ko: '변경 후에는 되돌릴 수 없어요', en: "This can't be undone", jp: '変更後は元に戻せません', zh: '改期后无法撤销' },
-  regular_class_reschedule_changed: { ko: '변경됨', en: 'Rescheduled', jp: '変更済み', zh: '已改期' },
-  regular_class_reschedule_new: { ko: '새 일정', en: 'New', jp: '新しい日程', zh: '新时间' },
-  /** {count} 자리에 남은 일정 변경 횟수 */
-  regular_class_reschedule_remaining_label: { ko: '남은 변경 횟수', en: 'Reschedules left', jp: '残りの変更回数', zh: '剩余改期次数' },
-  regular_class_reschedule_count_unit: { ko: '회', en: '', jp: '回', zh: '次' },
-  /** {count} 자리에 남은 일정 변경 횟수 */
-  regular_class_reschedule_success: { ko: '수업 일정을 변경했어요\n앞으로 {count}번 더 변경할 수 있어요', en: 'Lesson rescheduled\nYou can reschedule {count} more time(s)', jp: '日程を変更しました\nあと{count}回変更できます', zh: '已改期\n还可改期{count}次' },
-  regular_class_reschedule_error_not_allowed: { ko: '이 수강권은 수업 일정을 변경할 수 없어요', en: 'This ticket cannot be rescheduled', jp: 'この受講券は日程変更できません', zh: '该课程券无法改期' },
-  regular_class_reschedule_error_too_late: { ko: '이미 시작한 수업은 일정을 변경할 수 없어요', en: 'A lesson that has already started cannot be rescheduled', jp: 'すでに始まったレッスンは日程変更できません', zh: '已开始的课程无法改期' },
-  regular_class_reschedule_error_limit_exceeded: { ko: '수업 일정 변경 횟수를 모두 썼어요', en: "You've used all your reschedules", jp: '日程変更できる回数をすべて使いました', zh: '改期次数已用完' },
-  regular_class_reschedule_error_no_slot: { ko: '변경할 수 있는 다음 회차가 없어요', en: 'There is no next session to reschedule to', jp: '変更できる次の回がありません', zh: '没有可改期的下一节课' },
-  regular_class_reschedule_error_unknown: { ko: '수업 일정을 변경하지 못했어요. 잠시 후 다시 시도해주세요', en: 'Could not reschedule. Please try again shortly', jp: '日程を変更できませんでした。しばらくしてからもう一度お試しください', zh: '改期失败，请稍后重试' },
   my_regular_classes: { ko: '내 정규반', en: 'My regular classes', jp: 'マイレギュラークラス', zh: '我的常规班' },
   studio_regular_classes: { ko: '정규반', en: 'Regular classes', jp: 'レギュラークラス', zh: '常规班' },
   payment_title_lesson: { ko: '수업 신청하기', en: 'Book a Class', jp: 'レッスン申込', zh: '报名课程' },

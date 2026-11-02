@@ -23,7 +23,7 @@ import { StudioPassList } from "@/app/studios/[id]/practice/StudioPassList";
 import { StudioRegularClassList } from "@/app/studios/[id]/StudioRegularClassList";
 import { PracticeActionProvider } from "@/app/studios/[id]/practice/PracticeActionBar";
 import { PracticeAmenityIcon } from "@/app/studios/[id]/practice/PracticeAmenityIcon";
-import { CommunityNotice, CommunityPass } from "@/app/community/community.mock";
+import { CommunityNotice, CommunityPass } from "@/app/community/community.types";
 import { toCommunityPasses } from "@/app/studios/[id]/pass.plan.mapper";
 import { LessonRelativeDate } from "@/app/components/LessonRelativeDate";
 

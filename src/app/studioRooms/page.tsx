@@ -18,7 +18,7 @@ export default async function StudioRoomsSchedulePage({ searchParams }: {
   const { appVersion = '' } = await searchParams;
   const locale = await getLocale();
 
-  // 웹 진입: PC(lg+)는 연습실 목록 mock 그리드(LNB '연습실 대관' 목적지),
+  // 웹 진입: PC(lg+)는 연습실 대관 오픈 전 안내(LNB '연습실 대관' 목적지),
   // 좁은 웹은 기존대로 앱 열기(딥링크). 앱은 아래 파트너 일정표 그대로.
   if (appVersion === '') {
     return (

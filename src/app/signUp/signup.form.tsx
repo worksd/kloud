@@ -66,7 +66,6 @@ export const SignupForm = (props: SignUpFormProps) => {
       if (res.success) {
         // 성공 시엔 화면 전환 중이므로 버튼을 다시 풀지 않는다 (전환 전 재탭 → EMAIL_ALREADY_EXISTS 방지)
         if (props.appVersion == '') {
-          // TODO 스마트하게 바꿔보자..
           if (res.status == UserStatus.Ready) {
             // 웹: returnUrl 없이 항상 기본 경로로 (풀 리로드로 세션 쿠키 반영)
             window.location.replace('/');

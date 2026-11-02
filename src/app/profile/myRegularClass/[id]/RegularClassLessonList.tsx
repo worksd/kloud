@@ -3,7 +3,6 @@
 // 다가오는 수업 / 지난 수업 두 섹션. 수강 내역 API(history)를 받았으면 지난 수업 대신 수강 내역(RegularClassHistory) —
 // 이 반에서 들은 회차 전부(지난 기간·단건 결제 포함, 강사 표시). 못 받았으면 pass 의 지난 수업으로 폴백.
 // 행 = 날짜 타일(일 + 월.요일) + 제목 / 시간·홀 + 상태 칩. 탭하면 수강권 상세.
-// 수업 일정 변경(RegularClassReschedule, 지금은 목)으로 옮긴 수업은 칩이 '변경됨'으로 바뀌고, 새 일정은 다가오는 수업 맨 뒤에 붙는다.
 
 import React from "react";
 import { translate } from "@/utils/translate";
@@ -12,7 +11,6 @@ import { PassRuleTicket } from "@/app/endpoint/pass.endpoint";
 import { convertStatusToMessage, MyTicketListResponse } from "@/app/endpoint/ticket.endpoint";
 import { KloudScreen } from "@/shared/kloud.screen";
 import { chipBase, chipClass, Kind, LessonRow, LessonSection, parts, formatAttendedAt } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
-import { RescheduleAwareChip, RescheduledLessonRows } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 import { RegularClassHistory } from "@/app/profile/myRegularClass/[id]/RegularClassHistory";
 
 /** 수강 내역 첫 페이지 — GET /regular-classes/:id/tickets?type=past&page=1 */
@@ -38,7 +36,7 @@ const Row = ({ ticket, locale, label, kind, isPast, chipSub }: { ticket: PassRul
     locale={locale}
     isPast={isPast}
     route={KloudScreen.TicketDetail(ticket.id, false)}
-    chip={<RescheduleAwareChip ticketId={ticket.id}><span className={`${chipBase} ${chipClass[kind]}`}>{label}</span></RescheduleAwareChip>}
+    chip={<span className={`${chipBase} ${chipClass[kind]}`}>{label}</span>}
   />
 );
 
@@ -82,8 +80,6 @@ export const RegularClassLessonList = async ({ tickets, history, locale }: { tic
       {upcoming.length > 0 && (
         <LessonSection title={await translate('upcoming_lessons')} count={upcoming.length}>
           {upcoming.map((r, i) => <Row key={r.t.id} ticket={r.t} locale={locale} label={upcomingLabels[i]} kind={r.kind} isPast={false}/>)}
-          {/* 일정 변경으로 새로 잡힌 수업 — 규칙상 항상 내 마지막 수업 뒤라 맨 끝에 붙이면 순서가 맞다 */}
-          <RescheduledLessonRows/>
         </LessonSection>
       )}
       {history ? (

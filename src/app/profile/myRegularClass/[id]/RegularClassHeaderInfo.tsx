@@ -1,4 +1,4 @@
-// 내 정규반 상세 헤더 안쪽 — 학원 로고 + 반 이름/가격정책/학원명(+PC 는 ⋮ 수업 일정 변경 메뉴), 반 설명·담당 강사, 기간·요일 표.
+// 내 정규반 상세 헤더 안쪽 — 학원 로고 + 반 이름/가격정책/학원명, 반 설명·담당 강사, 기간·요일 표.
 // 출석 QR 은 패스 상세와 달리 안 보여준다.
 // 모바일/PC 공용(배경·여백은 바깥에서). 반 이미지는 모바일은 폼의 히어로, PC 는 여기서 헤더 위 배너.
 // 반 이름은 정규반 상세(GET /regular-classes/:id), 다음 결제일(종료일+1)·요일은 GET /passes/:id. 가격정책(passPlan) 이름은 반 이름 아래 작게.
@@ -10,7 +10,6 @@ import { GetPassResponse } from "@/app/endpoint/pass.endpoint";
 import { RegularClassDetailResponse } from "@/app/endpoint/studio.endpoint";
 import { CircleImage } from "@/app/components/CircleImage";
 import { RegularClassWeekStrip } from "@/app/profile/myRegularClass/[id]/RegularClassWeekStrip";
-import { RescheduleMenuButton } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 import { parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 
 /** 다음 결제일 — 'yyyy.MM.dd' 종료일의 다음 날. 못 읽으면 종료일 그대로 */
@@ -73,8 +72,6 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
             <span className="text-[13px] text-[#86898C] truncate">{studio?.name}</span>
           </div>
         </div>
-        {/* ⋮ — 수업 일정 변경 메뉴. PC 만 여기, 모바일은 RegularClassTopBar */}
-        {pc && <div className="shrink-0"><RescheduleMenuButton/></div>}
       </div>
 
       {description && (

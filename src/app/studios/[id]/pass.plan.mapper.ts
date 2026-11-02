@@ -1,5 +1,5 @@
 import { GetPassPlanResponse } from "@/app/endpoint/pass.endpoint";
-import { CommunityPass } from "@/app/community/community.mock";
+import { CommunityPass } from "@/app/community/community.types";
 import { formatRuleDescription } from "@/utils/pass.description";
 import { Locale } from "@/shared/StringResource";
 

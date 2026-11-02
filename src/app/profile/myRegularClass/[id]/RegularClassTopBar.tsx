@@ -1,5 +1,5 @@
 'use client';
-// 내 정규반 상세(모바일) 상단 줄 — 뒤로가기 + ⋮(수업 일정 변경 메뉴).
+// 내 정규반 상세(모바일) 상단 줄 — 뒤로가기.
 // 네이티브 앱바를 띄우지 않는 ignoreSafeArea 화면이라(kloudNav applyTitle) 상태바 아래 줄을 직접 그린다.
 // 맨 위에선 투명(그래디언트·반 이미지가 비침), 일정 높이 넘게 스크롤하면 흰 배경 — 내용이 상태바·버튼 밑으로 비치지 않게.
 // 흰 배경이 생기는 지점: 이미지가 있으면 히어로(가로 4:3) 아래 끝이 버튼 줄 밑으로 들어갈 때, 없으면 헤더를 어느 정도 지난 뒤.
@@ -8,7 +8,6 @@
 import React, { useEffect, useState } from "react";
 import ArrowLeftIcon from "../../../../../public/assets/ic_simple_left_arrow.svg";
 import { NavigateClickWrapper } from "@/utils/NavigateClickWrapper";
-import { RescheduleMenuButton } from "@/app/profile/myRegularClass/[id]/RegularClassReschedule";
 
 // env(safe-area-inset-top)이 0으로 오는 웹뷰가 있어 최소 44px 보장 (ADMIN_SAFE_TOP 과 같은 규칙)
 const SAFE_TOP = 'max(env(safe-area-inset-top, 0px), 44px)';
@@ -62,9 +61,6 @@ export const RegularClassTopBar = ({ overImage = false }: { overImage?: boolean 
             <ArrowLeftIcon className={`w-5 h-5 transition-colors ${light ? 'fill-white drop-shadow' : 'fill-black'}`}/>
           </button>
         </NavigateClickWrapper>
-        <div className="w-10 h-10 flex items-center justify-center">
-          <RescheduleMenuButton light={light}/>
-        </div>
       </div>
     </div>
   );

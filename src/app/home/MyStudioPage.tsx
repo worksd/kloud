@@ -4,7 +4,6 @@ import { LessonBand } from "@/app/LessonBand";
 import React from "react";
 import { GetMyStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 import { Jumbotron, JumbotronItem } from "@/app/home/Jumbotron";
-// TODO(2026-10-23): 목 데이터 import — main 배포 전 반드시 삭제할 것
 import { BannerCarousel } from "@/app/components/BannerCarousel";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
 import { TimeTableServerComponent } from "@/app/home/TimeTableServerComponent";

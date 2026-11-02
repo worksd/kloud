@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { kloudNav } from "@/app/lib/kloudNav";
 import { KloudScreen } from "@/shared/kloud.screen";
-import { CommunityNotice } from "@/app/community/community.mock";
+import { CommunityNotice } from "@/app/community/community.types";
 import { Locale } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 
