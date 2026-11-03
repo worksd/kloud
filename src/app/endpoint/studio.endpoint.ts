@@ -201,6 +201,10 @@ export type RegularClassDetailResponse = StudioRegularClassResponse & {
   passPlans?: GetPassPlanResponse[];
   /** 미납 유예 허용 여부 — 앱에선 표시만 */
   unpaidEnabled?: boolean;
+  /** 앱 토큰으로 부를 때만 — 이 반을 처음 등록한 날 'yyyy-MM-dd', 산 적 없으면 null. 비로그인이면 키 없음 (BE 99f1575b) */
+  enrolledAt?: string | null;
+  /** 앱 토큰으로 부를 때만 — 총 수강 일수, 산 적 없으면 null (BE 99f1575b) */
+  enrolledDays?: number | null;
 }
 
 export const GetRegularClass: Endpoint<IdParameter, RegularClassDetailResponse> = {

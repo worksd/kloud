@@ -20,11 +20,19 @@ import { RegularClassPostponeResponse, TicketPostponePass, TicketResponse } from
 import { formatLessonWhen, parts } from "@/app/profile/myRegularClass/[id]/regular.class.lesson.row";
 import { postponeRegularClassTicketAction } from "@/app/profile/myRegularClass/[id]/postpone.actions";
 
-// 서버 message 를 그대로 써도 되는 코드(가이드 2절). 비어 있으면 아래 자체 문구로
-const SERVER_MESSAGE_CODES = new Set(['LESSON_POSTPONE_NOT_ALLOWED', 'LESSON_POSTPONE_LIMIT_EXCEEDED', 'PASS_CARRY_OVER_CHAIN_TOO_LONG']);
+// 서버 message 를 그대로 써도 되는 코드(가이드 2절). 서버 문구는 한국어 하나뿐이라 ko 에서만 쓰고, 다른 언어·빈 문구는 아래 자체 문구로
+const SERVER_MESSAGE_CODES = new Set([
+  'LESSON_POSTPONE_NOT_ALLOWED', 'LESSON_POSTPONE_LIMIT_EXCEEDED', 'PASS_CARRY_OVER_CHAIN_TOO_LONG',
+  // 거절 사유별 코드(BE c49613f2)
+  'LESSON_POSTPONE_NOT_CLASS_TICKET', 'LESSON_POSTPONE_DISABLED', 'LESSON_POSTPONE_ALREADY_ATTENDED', 'LESSON_POSTPONE_TOO_LATE',
+]);
 const FALLBACK_MESSAGES: Record<string, StringResourceKey> = {
   LESSON_POSTPONE_NOT_ALLOWED: 'regular_class_reschedule_error_not_allowed',
   LESSON_POSTPONE_LIMIT_EXCEEDED: 'regular_class_reschedule_error_limit_exceeded',
+  LESSON_POSTPONE_NOT_CLASS_TICKET: 'regular_class_reschedule_error_not_class_ticket',
+  LESSON_POSTPONE_DISABLED: 'regular_class_reschedule_error_disabled',
+  LESSON_POSTPONE_ALREADY_ATTENDED: 'regular_class_reschedule_error_already_attended',
+  LESSON_POSTPONE_TOO_LATE: 'regular_class_reschedule_error_too_late',
   // 서버 문구가 파트너 기준('정원을 늘린 뒤…')이라 앱 문구로
   PASS_CARRY_OVER_LESSON_FULL: 'regular_class_reschedule_error_full',
   VERSION_CONFLICT: 'regular_class_reschedule_error_conflict',
@@ -273,7 +281,7 @@ const SelectSheet = ({ sheetRef, onClosed, t, locale, regularClassId, upcoming, 
       const res = await postponeRegularClassTicketAction({ id: regularClassId, ticketId: selected.id });
       if (isGuinnessErrorCase(res)) {
         const key = FALLBACK_MESSAGES[res.code];
-        const message = SERVER_MESSAGE_CODES.has(res.code) && res.message
+        const message = locale === 'ko' && SERVER_MESSAGE_CODES.has(res.code) && res.message
           ? res.message
           : key ? t(key) : (res.message || t('regular_class_reschedule_error_unknown'));
         // 동시 요청 충돌은 이미 처리됐을 수 있어 목록을 다시 받는다

@@ -98,6 +98,15 @@ export const RegularClassHeaderInfo = async ({ pass, regularClass, locale, varia
         {/* 정규반은 '이용기한' 대신 다음 결제일 — 지금 기간 종료일 다음 날로 계산
             TODO(2026-10-30): API 연동 — 서버가 다음 결제일(nextPaymentDate)을 내려주면 그 값으로 교체 */}
         <InfoRow label={await translate('payment_record_scheduled')}>{nextPaymentDate(pass.endDate)}</InfoRow>
+        {/* 처음 등록한 날·총 수강 일수 — 앱 토큰 조회에만 오는 값(BE 99f1575b). 없으면 줄째 생략 */}
+        {regularClass?.enrolledAt && (
+          <InfoRow label={await translate('regular_class_enrolled_at')}>{regularClass.enrolledAt.replace(/-/g, '.')}</InfoRow>
+        )}
+        {typeof regularClass?.enrolledDays === 'number' && regularClass.enrolledDays > 0 && (
+          <InfoRow label={await translate('regular_class_enrolled_days')}>
+            {(await translate('regular_class_enrolled_days_value')).replace('{n}', regularClass.enrolledDays.toLocaleString('ko-KR'))}
+          </InfoRow>
+        )}
         {/* 다니는 요일 — 월~일 한 주 띠에 다니는 요일만 채움 + '매주 화·목' 한 줄 */}
         <RegularClassWeekStrip days={pass.days} locale={locale}/>
       </div>

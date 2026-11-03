@@ -67,8 +67,10 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   const requestedItem = item ?? type ?? 'lesson';
   const itemId = parseInt(id);
   const parsedTargetUserId = targetUserId ? parseInt(targetUserId) : undefined;
-  // paymentId 로 여는 미납 결제 — item/itemId 는 생략(LP 번호에 item=regular-class 를 같이 보내면 거부된다)
+  // paymentId 로 여는 미납 결제 — 서버 route 가 정규반이면 item=regular-class&id={반 id}&paymentId 를 같이 준다(BE f928fcc3).
+  // 그 조합은 그대로 보내야 정규반 결제 화면(가격정책 1개 + pass)이 온다. 그 밖(item=pass-plan 등)은 종전대로 번호만.
   const byPaymentId = !!paymentId;
+  const sendItemWithPaymentId = byPaymentId && requestedItem === 'regular-class' && Number.isFinite(itemId);
 
   // 연습실 결제는 장소·시간대(startTime/endTime)가 이미 선택된 상태로만 진입 가능.
   if (requestedItem === 'practice-room' && (!startTime || !endTime)) {
@@ -76,8 +78,8 @@ export default async function UnifiedPaymentPage({ searchParams }: {
   }
 
   const res = await getPaymentAction({
-    item: byPaymentId ? undefined : requestedItem,
-    id: byPaymentId ? undefined : itemId,
+    item: byPaymentId && !sendItemWithPaymentId ? undefined : requestedItem,
+    id: byPaymentId && !sendItemWithPaymentId ? undefined : itemId,
     paymentId: paymentId || undefined,
     includePrivatePricePolicies: includePrivatePricePolicies === 'true' ? true : undefined,
     targetUserId: parsedTargetUserId,

@@ -73,7 +73,8 @@ const getItemTitle = (payment: GetPaymentResponse, type: UnifiedPaymentType): st
     case 'lesson-group':
       return payment.lesson?.title ?? '';
     case 'pass-plan':
-      return payment.passPlan?.name ?? '';
+      // 정규반 가격정책이면 가격정책 이름 대신 반 이름(미납 결제를 번호로 연 구 route 대비)
+      return payment.passPlan?.regularClass?.name || payment.passPlan?.name || '';
     case 'regular-class':
       return payment.regularClass?.name ?? '';
     case 'practice-room':
@@ -498,6 +499,16 @@ export const UnifiedPaymentInfo = ({
         </div>
       )}
 
+      {/* 미납 결제 — 이미 발급된 패스의 이용 기간(paymentId 로 연 결제 페이지만 pass 가 온다) */}
+      {payment.pass?.startDate && payment.pass?.endDate && (
+        <div className="mx-6 mb-4 flex items-center justify-between gap-3 rounded-[12px] bg-[#F7F8FA] px-4 py-3">
+          <span className="text-[13px] text-[#86898C] shrink-0">{getLocaleString({ locale, key: 'payment_unpaid_pass_period' })}</span>
+          <span className="text-[14px] font-semibold text-[#191F28] text-right">
+            {payment.pass.startDate.replace(/-/g, '.')} ~ {payment.pass.endDate.replace(/-/g, '.')}
+          </span>
+        </div>
+      )}
+
       {/* 수강 횟수 가격정책 선택 — 1회/4회/8회 등 옵션이 있을 때만 노출.
           "무엇을 사는지"가 정해져야 결제 금액이 확정되므로 결제수단보다 위에 온다. */}
       {hasPolicies && (
@@ -518,7 +529,8 @@ export const UnifiedPaymentInfo = ({
               서버가 고른 방식의 nextLesson(휴강·취소 회차 반영, 2026-10-21)을 주면 그 날짜. null 이면 남은 회차가 없어 패스 시작일만.
               키 자체가 없는 구서버면 종전대로 startDate(패스 시작일, 남은 패스가 있으면 그 만료 다음 날)부터 방식 요일 중 가장 가까운 날을 FE 가 추정.
               상대 날짜는 수업 카드와 같은 formatRelativeDay(기기 로컬). 결제 폼은 마운트 후에만 그리므로(needsMountCheck) 하이드레이션 불일치 없음 */}
-          {type === 'regular-class' && payment.startDate && (() => {
+          {/* 미납 결제(pass 있음)는 이미 다니는 중이라 시작 안내 대신 위의 이용 기간만 */}
+          {type === 'regular-class' && payment.startDate && !payment.pass && (() => {
             const nextLesson = selectedPolicy?.nextLesson;
             const first = nextLesson === null
               ? null

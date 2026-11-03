@@ -8,7 +8,7 @@ import { PaymentType } from "@/app/lessons/[id]/payment/payment.button";
 import type { GetStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
 
 export type GetPaymentRequest = {
-  /** paymentId 로 열 때(미납 결제)는 둘 다 생략 — LP 번호에 item=regular-class 를 같이 보내면 PAYMENT_ID_ITEM_NOT_MATCH */
+  /** paymentId 로 열 때(미납 결제) — item=regular-class + 반 id 는 같이 보낸다(BE f928fcc3, 번호의 가격정책이 그 반 것이 아니면 PAYMENT_ID_ITEM_NOT_MATCH). 그 밖은 생략 */
   itemId?: number
   item?: string
   /** 선생성된 결제번호('LP…')로 미납 결제 페이지를 연다(BE 74c9c90b). 서버가 준 route 의 값을 그대로 */
@@ -162,6 +162,10 @@ export type GetPaymentResponse = {
    */
   canSubscribe?: boolean;
   cards?: GetBillingResponse[];
+  /**
+   * 미납 결제(paymentId 로 연 결제 페이지)만 — 이미 발급된 미납 패스의 이용 기간(BE 74c9c90b·f928fcc3). 'yyyy-MM-dd'
+   */
+  pass?: { id: number; startDate: string; endDate: string } | null;
   lesson?: GetLessonResponse;
   passPlan?: GetPassPlanResponse;
   /**
