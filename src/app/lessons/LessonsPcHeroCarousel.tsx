@@ -85,6 +85,7 @@ export const LessonsPcHeroCarousel = ({items}: {items: HeroItem[]}) => {
           <Link
             key={item.id}
             href={KloudScreen.LessonDetail(item.id)}
+            prefetch={false}
             className="snap-start flex-none group"
             style={{ width: CARD_W }}
           >

@@ -56,6 +56,7 @@ export const LessonCard = React.memo(function LessonCard({l, locale, eager}: { l
     // contain-intrinsic-size로 스킵 중에도 대략적 높이를 유지해 스크롤바 튐 방지.
     <Link
       href={KloudScreen.LessonDetail(l.id)}
+      prefetch={false}
       className="flex flex-col gap-3 group [content-visibility:auto] [contain-intrinsic-size:auto_400px]"
     >
       <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#F1F3F6] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)]">
@@ -109,6 +110,7 @@ const WorkshopCard = React.memo(function WorkshopCard({l, locale, eager}: { l: V
   return (
     <Link
       href={KloudScreen.LessonDetail(l.id)}
+      prefetch={false}
       className="flex flex-col gap-3 group w-[232px] shrink-0 snap-start [content-visibility:auto] [contain-intrinsic-size:232px_400px]"
     >
       <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#1F1F1F] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.7)]">
