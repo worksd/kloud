@@ -43,7 +43,7 @@ const PosterCard = ({l, locale, endedLabel, popupLabel, workshopLabel}: {
   const studioImage = l.studioImageUrl || l.studio?.profileImageUrl;
   const studioName = l.studioName || l.studio?.name;
   return (
-    <Link href={KloudScreen.LessonDetail(l.id)} className="w-[240px] flex-none snap-start group">
+    <Link href={KloudScreen.LessonDetail(l.id)} prefetch={false} className="w-[240px] flex-none snap-start group">
       <div className="relative overflow-hidden rounded-[16px] bg-[#F1F3F6] aspect-[3/4] transition-all duration-300 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)]">
         {l.thumbnailUrl && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -114,10 +114,11 @@ export const HomePcForm = async ({home}: { home: ParsedHome }) => {
   const popupLabel = await translate('popup');
   const workshopLabel = await translate('workshop');
 
-  // 밴드 구성 — 내 스튜디오(myStudio.bands)가 있으면 그걸, 없으면 탐색 밴드(TodayLessons)로 조립.
+  // 밴드 구성 — 선택된 스튜디오 수업 밴드(최상위 MyUpcomingLessons…RecommendedLessons, 로그인)가 있으면 그걸,
+  // 없으면(비로그인) 탐색 밴드(TodayLessons)로 조립.
   // weeklyLessons는 주간 시간표가 요일별로 이미 보여주므로 밴드로는 노출하지 않는다.
-  const bands: { title: string; type: string; lessons: RichLesson[] }[] = (my?.bands?.length ?? 0) > 0
-    ? my!.bands.map((b) => ({ title: b.title, type: b.type, lessons: b.lessons as RichLesson[] }))
+  const bands: { title: string; type: string; lessons: RichLesson[] }[] = home.studioLessonBands.length > 0
+    ? home.studioLessonBands.map((b) => ({ title: b.title, type: b.type, lessons: b.lessons as RichLesson[] }))
     : [
         ...(home.todayLessons.length > 0 ? [{ title: await translate('today_lessons'), type: 'Today', lessons: home.todayLessons }] : []),
       ];

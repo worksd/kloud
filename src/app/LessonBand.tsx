@@ -5,18 +5,21 @@ import { RecommendPoster } from "@/app/components/RecommendPoster";
 import ComingLabel from "../../public/assets/ic_label_comming.svg";
 import NewLabel from "../../public/assets/new.svg";
 import { resolveBandEvent } from "@/app/lib/analytics";
+import { StudioLessonBandType } from "@/app/endpoint/home.endpoint";
 
-export async function LessonBand({title, lessons, type, label}: {
+export async function LessonBand({title, lessons, type, label, homeType}: {
   title: string,
   lessons: GetBandLessonResponse[],
   type: BandType,
   label?: BandLabel,
+  /** 홈 GET /home 밴드의 원래 type — 있으면 클릭 이벤트를 제목 문구 대신 이걸로 가른다 */
+  homeType?: StudioLessonBandType,
 }) {
 
   if (lessons.length == 0) return;
 
   // 밴드 종류에 따라 클릭 이벤트 이름이 갈린다. 어떤 수업을 몇 번째에서 눌렀는지는 custom data로.
-  const bandEvent = resolveBandEvent({ type, label, title });
+  const bandEvent = resolveBandEvent({ type, label, title, homeType });
 
   return (
     <div className="flex flex-col mb-2">

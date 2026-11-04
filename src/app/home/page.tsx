@@ -58,7 +58,7 @@ export default async function Home({
     const studio = home.myStudio?.studio;
     const hasUnpaid = home.unpaidPaymentRecords.length > 0;
     const firstThumb = home.myStudio?.jumbotrons?.[0]?.thumbnailUrl
-      ?? home.myStudio?.bands?.flatMap(b => b.lessons)?.find(l => l.thumbnailUrl)?.thumbnailUrl
+      ?? home.studioLessonBands.flatMap(b => b.lessons).find(l => l.thumbnailUrl)?.thumbnailUrl
       ?? '';
 
     const content = (
@@ -90,7 +90,7 @@ export default async function Home({
           <div className={os === 'Android' ? 'mt-16' : 'mt-28'}>
             {
               home.myStudio ? (
-                  <MyStudioPage res={home.myStudio} bundles={home.bundles} regularClasses={home.regularClasses} roomSlots={home.roomSlots} myBookings={home.myBookings}/>
+                  <MyStudioPage res={home.myStudio} bands={home.studioLessonBands} bundles={home.bundles} regularClasses={home.regularClasses} roomSlots={home.roomSlots} myBookings={home.myBookings}/>
               ) : (
                   <NoMyStudioPage studios={home.recommendedStudios}/>
               )}

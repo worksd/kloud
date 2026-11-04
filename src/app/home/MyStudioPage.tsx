@@ -2,7 +2,9 @@
 
 import { LessonBand } from "@/app/LessonBand";
 import React from "react";
-import { GetMyStudioResponse, StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
+import { StudioRegularClassResponse } from "@/app/endpoint/studio.endpoint";
+import { HomeMyStudioResponse } from "@/app/endpoint/home.endpoint";
+import { HomeStudioLessonBand } from "@/app/home/home.bands";
 import { Jumbotron, JumbotronItem } from "@/app/home/Jumbotron";
 import { BannerCarousel } from "@/app/components/BannerCarousel";
 import { TodayTimetable } from "@/app/home/TodayTimetable";
@@ -15,7 +17,7 @@ import { BundleSummaryResponse } from "@/app/endpoint/lesson.endpoint";
 import { RoomSlotsSummaryResponse } from "@/app/endpoint/studio.room.endpoint";
 import { getLocale, translate } from "@/utils/translate";
 
-export default async function MyStudioPage({res, bundles, regularClasses, roomSlots, myBookings}: { res: GetMyStudioResponse, bundles?: BundleSummaryResponse[], regularClasses?: StudioRegularClassResponse[], roomSlots?: RoomSlotsSummaryResponse, myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[]}) {
+export default async function MyStudioPage({res, bands = [], bundles, regularClasses, roomSlots, myBookings}: { res: HomeMyStudioResponse, bands?: HomeStudioLessonBand[], bundles?: BundleSummaryResponse[], regularClasses?: StudioRegularClassResponse[], roomSlots?: RoomSlotsSummaryResponse, myBookings?: { id: number; studioRoomId: number; roomName: string; startDate: string; endDate: string }[]}) {
   if (!res) {
     return <div className={'text-black'}>등록된 스튜디오가 없습니다</div>
   }
@@ -26,7 +28,7 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
   // 점보트론
   const jumbotronSource = res.jumbotrons && res.jumbotrons.length > 0
     ? res.jumbotrons
-    : res.bands.flatMap(b => b.lessons).filter(l => l.thumbnailUrl).slice(0, 8);
+    : bands.flatMap(b => b.lessons).filter(l => l.thumbnailUrl).slice(0, 8);
 
   // 카드에 타입·장르·레벨·상태(공개/판매 예정 카운트다운)·일시·스튜디오까지 — level/openDate/saleStartDate/remainingSeats 는 서버 추가 전이면 빠진다
   const jumbotronItems: JumbotronItem[] = jumbotronSource.map(l => ({
@@ -71,6 +73,10 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
       {/* 이 스튜디오에서 진행중인 프로모션(번들) — bundles 있을 때만 노출 */}
       <HomeBundlesSection bundles={bundles} studioName={res.studio.name}/>
 
+      {/* 주간 시간표 — 묶음 상품 아래·정규반 위에 고정. 밴드가 아니라 항상 그린다
+          (오늘 수업 밴드 StudioTodayLessons 는 오늘 수업이 없으면 아예 안 오므로 거기에 묶으면 시간표도 사라진다) */}
+      <TimeTableServerComponent studioId={res.studio.id} clickEvent="click_band_timetable" />
+
       {/* 이 스튜디오의 판매중 정규반 — 밴드는 전부 내려주므로 4개까지 + 전체보기(정규반 탭). 탭하면 정규반 결제로 */}
       {regularClasses && regularClasses.length > 0 && (
         <section className="flex flex-col px-5 pb-2">
@@ -79,12 +85,11 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
         </section>
       )}
 
-      {res.bands.map((value) => {
+      {/* 선택된 스튜디오 수업 밴드 — 2026-11-04 부터 최상위 bands[] 로 오는 걸 parseHomeBands 가 모아 둔 것(응답 순서대로) */}
+      {bands.map((value) => {
         if (value.type === 'Today') {
           return (
             <React.Fragment key={value.title}>
-              {/* 오늘 밴드 위에 주간 시간표 그리드 노출 */}
-              <TimeTableServerComponent studioId={res.studio.id} clickEvent="click_band_timetable" />
               <TodayTimetable
                 title={value.title}
                 lessons={value.lessons.map((l) => ({
@@ -110,6 +115,7 @@ export default async function MyStudioPage({res, bundles, regularClasses, roomSl
             lessons={value.lessons}
             type={value.type}
             label={value.label}
+            homeType={value.homeType}
           />
         );
       })}

@@ -40,18 +40,19 @@ export type AnalyticsEvent =
 /**
  * 홈 밴드 → 클릭 이벤트 이름.
  *
- * 밴드는 BE가 내려주는 것이라 클라가 아는 식별자는 type/label/title뿐이다.
- * type·label은 구조값이라 안전하지만 '내 수강권' 밴드는 제목으로밖에 못 가른다 —
- * BE가 밴드에 안정적인 key를 추가하면 그걸로 갈아타는 게 맞다.
+ * 홈(GET /home, 2026-11-04~)은 밴드 type(homeType)이 안정적인 key 라 그걸 먼저 본다 —
+ * 내가 신청한 수업은 'MyUpcomingLessons' 로 가르고 제목 문구 비교는 그 type 이 없는 곳(스튜디오 상세 등)의 폴백.
  *
  * 어디에도 안 걸리는 일반 밴드는 click_band로 떨어뜨리고 bandTitle을 함께 보낸다.
  * (조용히 버리면 대시보드에서 "그 밴드는 아무도 안 누른다"로 잘못 읽힌다)
  */
-export const resolveBandEvent = ({ type, label, title }: {
+export const resolveBandEvent = ({ type, label, title, homeType }: {
   type?: 'Default' | 'Recommendation' | 'Today';
   label?: { coming?: boolean; new?: boolean };
   title?: string;
+  homeType?: string;
 }): AnalyticsEvent => {
+  if (homeType === 'MyUpcomingLessons') return 'click_band_my_ticket';
   if (type === 'Today') return 'click_band_today';
   if (type === 'Recommendation') return 'click_band_recommendation';
   if (label?.new) return 'click_band_new';
