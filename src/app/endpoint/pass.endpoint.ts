@@ -177,6 +177,7 @@ export type GetPassPlanResponse = {
   status?: string
   isPopular: boolean,
   usageLimit?: number,
+  /** 이용기간 문구(BE 가 만든 표시용). 회차형 정규반 가격정책(최신 세대 전용 수업 회차 규칙이 전부 횟수)은 키 자체가 없다(BE eb2a2fc26, 2026-11-04) */
   expireDateStamp?: string,
   /** Count=횟수제, Unlimited=무제한, Dedicated=전용반(특정 수업 등록형). ⚠️ Dedicated 값 문자열은 BE 확정 대기. */
   type: 'Count' | 'Unlimited' | 'Dedicated',
@@ -188,9 +189,13 @@ export type GetPassPlanResponse = {
   rules?: PassPlanRule[],
   features?: PassPlanFeature[],
   benefits?: PassBenefit[],
-  /** 이용기간 — Days/Months + 값. 표시는 BE가 만든 expireDateStamp를 쓰고, 이 값은 참고용 */
-  durationUnit?: 'Days' | 'Months',
-  durationValue?: number,
+  /**
+   * 이용기간 — Days/Months + 값. 표시는 BE가 만든 expireDateStamp를 쓰고, 이 값은 참고용.
+   * 회차형 정규반 가격정책은 둘 다 null 로 온다(기간이 연결 회차로 정해짐, BE eb2a2fc26) — 숫자로 가정하지 말 것.
+   * 그때 다시 등록하면 받을 기간은 GET /regular-classes/:id/next-period 로 받는다(아직 앱엔 쓰는 화면 없음).
+   */
+  durationUnit?: 'Days' | 'Months' | null,
+  durationValue?: number | null,
   /** 정기결제로 살 수 있는지 — 정규반이거나 무제한이면 true. 결제 화면은 GET /payment의 canSubscribe를 본다 */
   canSubscribe?: boolean,
   /** 다니는 요일(0=일 ~ 6=토). 비어 있으면 요일을 가리지 않는다. 일반 패스권은 항상 빈 배열 */
