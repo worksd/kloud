@@ -4980,6 +4980,8 @@ export const StringResource = {
   regular_class_reschedule_to: { ko: '새 수업 일정 (예상)', en: 'New schedule (expected)', jp: '新しい日程（予定）', zh: '新时间（预计）' },
   regular_class_reschedule_after_end: { ko: '이용 기간이 이 날까지 늘어나요', en: 'Your class period will be extended to this date', jp: '利用期間がこの日まで延長されます', zh: '有效期将延长至该日' },
   regular_class_reschedule_irreversible: { ko: '변경 후에는 되돌릴 수 없어요', en: "This can't be undone", jp: '変更後は元に戻せません', zh: '改期后无法撤销' },
+  regular_class_reschedule_confirm_title: { ko: '이 일정으로 변경할까요?', en: 'Reschedule to this time?', jp: 'この日程に変更しますか？', zh: '改为这个时间吗？' },
+  regular_class_reschedule_reselect: { ko: '다시 고르기', en: 'Choose another', jp: '選び直す', zh: '重新选择' },
   regular_class_reschedule_remaining_label: { ko: '남은 변경 횟수', en: 'Reschedules left', jp: '残りの変更回数', zh: '剩余改期次数' },
   regular_class_reschedule_count_unit: { ko: '회', en: '', jp: '回', zh: '次' },
   /** {count} 자리에 남은 일정 변경 횟수 */

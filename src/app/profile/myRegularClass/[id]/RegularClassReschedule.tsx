@@ -1,5 +1,7 @@
 'use client';
-// 내 정규반 상세 — 수업 일정 변경(서버 용어: 회차 미루기). 오른쪽 위 ⋮ → 바텀시트 메뉴('수업 일정 변경하기' 한 줄) → '수업 일정 변경' 시트(남은 횟수 + 변경할 수업 고르기 + 변경 이력).
+// 내 정규반 상세 — 수업 일정 변경(서버 용어: 회차 미루기). 오른쪽 위 ⋮ → 바텀시트 메뉴('수업 일정 변경하기' 한 줄)
+//   → '수업 일정 변경' 시트(남은 횟수 + 변경할 수업 고르기 + 변경 이력) → 수업을 누르면 바로 확인 시트(기존 → 새 일정 미리보기 + 변경하기).
+//   미리보기를 고르기 시트 아래에 붙이면 스크롤해야 보여서 시트를 나눴다.
 // 모바일은 ⋮ 를 RegularClassTopBar(뒤로가기와 같은 줄)에, PC 는 헤더 카드 안. 시트는 전부 공용 BottomSheet.
 // 데이터는 reschedule.scope.tsx(서버)가 넘긴다. 변경하기 = POST /regular-classes/:id/postpone { ticketId }.
 // 응답엔 결과가 없어 성공하면 router.refresh() — 수강권 목록·남은 횟수·변경 이력이 서버 값으로 다시 그려진다.
@@ -11,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { BottomSheet, BottomSheetHandle } from "@/app/components/BottomSheet";
 import { HeaderBlurButton } from "@/app/components/buttons";
 import { CircleImage } from "@/app/components/CircleImage";
-import { CalendarClock, Check, ChevronRight, MoreVertical } from "lucide-react";
+import { CalendarClock, ChevronRight, MoreVertical } from "lucide-react";
 import { Locale, StringResourceKey } from "@/shared/StringResource";
 import { getLocaleString } from "@/app/components/locale";
 import { isGuinnessErrorCase } from "@/app/guinnessErrorCase";
@@ -56,6 +58,8 @@ const remainingOf = (quota: TicketPostponePass | null) =>
 type Sheet =
   | { kind: 'menu' }
   | { kind: 'select' }
+  /** 고른 수강권의 새 일정 확인 + 변경하기 */
+  | { kind: 'confirm'; ticketId: number }
   | { kind: 'result'; ok: boolean; message: string };
 
 type Ctx = {
@@ -121,14 +125,29 @@ export const RegularClassRescheduleProvider = ({ locale, regularClassId, upcomin
           onClosed={onClosed}
           t={t}
           locale={locale}
+          upcoming={upcoming}
+          passTickets={passTickets}
+          quota={quota}
+          history={history}
+          onCancel={() => go(null)}
+          onPick={(ticketId) => go({ kind: 'confirm', ticketId })}
+        />
+      )}
+      {sheet?.kind === 'confirm' && (
+        <ConfirmSheet
+          key="confirm"
+          sheetRef={sheetRef}
+          onClosed={onClosed}
+          t={t}
+          locale={locale}
           regularClassId={regularClassId}
+          ticketId={sheet.ticketId}
           upcoming={upcoming}
           passTickets={passTickets}
           days={days}
           endDate={endDate}
           quota={quota}
-          history={history}
-          onCancel={() => go(null)}
+          onBack={() => go({ kind: 'select' })}
           onDone={(res) => {
             // 성공이든 충돌이든 서버 값으로 다시 그린다(목록·남은 횟수·이력)
             if (res.refresh) router.refresh();
@@ -210,23 +229,140 @@ const MenuSheet = ({ t, remaining, onSelect }: {
 
 type SelectResult = { ok: boolean; message: string; refresh: boolean };
 
-const SelectSheet = ({ sheetRef, onClosed, t, locale, regularClassId, upcoming, passTickets, days, endDate, quota, history, onCancel, onDone }: {
+/** 고를 수 있는 수업 — 이 패스로 나간 시작 전 수강권(취소 제외), 이른 순. 서버가 최종 판정한다 */
+const candidatesOf = (upcoming: TicketResponse[]) => {
+  const now = Date.now();
+  return upcoming
+    .filter((tk) => tk.status !== 'Cancelled' && (parts(tk.lesson?.startDate)?.at ?? 0) > now)
+    .sort((a, b) => (parts(a.lesson?.startDate)?.at ?? 0) - (parts(b.lesson?.startDate)?.at ?? 0));
+};
+
+/** 수강권 → 새 일정(예상) — 이 패스로 가진 살아 있는 회차 중 가장 늦은 날의 다음 반 요일, 시간은 고른 수업 그대로 */
+const previewOf = ({ selected, upcoming, passTickets, days, endDate, byId }: {
+  selected: TicketResponse;
+  upcoming: TicketResponse[];
+  passTickets: PassRuleTicket[];
+  days: number[];
+  endDate?: string;
+  byId: Map<number, PassRuleTicket>;
+}) => {
+  const from = parts(selected.lesson?.startDate);
+  if (!from) return null;
+  const starts = [
+    ...passTickets.filter((tk) => tk.status !== 'Cancelled').map((tk) => tk.lesson?.startDate),
+    ...upcoming.map((tk) => tk.lesson?.startDate),
+  ].map((s) => parts(s)).filter((p): p is NonNullable<typeof p> => !!p);
+  const last = starts.reduce((a, b) => (b.at > a.at ? b : a), from);
+  const allowed = days.length > 0 ? days : [from.weekday];
+  const date = nextClassDay(last, allowed);
+  if (!date) return null;
+  const endTime = parts(byId.get(selected.id)?.lesson?.endDate)?.time;
+  const toStartDate = `${date} ${from.time ?? '00:00'}`;
+  const toEndDate = endTime ? `${date} ${endTime}` : undefined;
+  const passEnd = parts(endDate);
+  const to = parts(toStartDate)!;
+  // 종료일 당일까지는 기간 안 — 날짜만 비교
+  const afterEnd = !!passEnd && Date.UTC(to.year, to.month - 1, to.day) > Date.UTC(passEnd.year, passEnd.month - 1, passEnd.day);
+  return { toStartDate, toEndDate, afterEnd };
+};
+
+/** 수업 고르기 시트 — 남은 횟수 + 목록 + 변경 이력. 수업을 누르면 바로 확인 시트로 넘긴다(onPick) */
+const SelectSheet = ({ sheetRef, onClosed, t, locale, upcoming, passTickets, quota, history, onCancel, onPick }: {
   sheetRef: React.Ref<BottomSheetHandle>;
   /** BottomSheet 닫힘 애니메이션 끝 */
   onClosed: () => void;
   t: (key: StringResourceKey) => string;
   locale: Locale;
+  upcoming: TicketResponse[];
+  passTickets: PassRuleTicket[];
+  quota: TicketPostponePass | null;
+  history: RegularClassPostponeResponse[];
+  onCancel: () => void;
+  onPick: (ticketId: number) => void;
+}) => {
+  const remaining = remainingOf(quota);
+  const limit = quota?.postponeLimit ?? 0;
+  const canChange = remaining > 0;
+  const byId = useMemo(() => new Map(passTickets.map((tk) => [tk.id, tk])), [passTickets]);
+  const candidates = candidatesOf(upcoming);
+  const endOf = (tk: TicketResponse) => byId.get(tk.id)?.lesson?.endDate;
+
+  return (
+    <BottomSheet ref={sheetRef} onClose={onClosed} title={t('regular_class_reschedule_action')} maxHeightVh={88}>
+      <div className="px-6 overflow-y-auto">
+        {/* 남은 횟수 — 맨 위에 크게(남은/한도). 다 썼으면 안내만 하고 고르기는 막는다 */}
+        <div className="rounded-2xl bg-[#F7F8FA] px-4 py-3.5 flex items-center justify-between gap-3">
+          <span className="text-[13.5px] font-semibold text-[#4E5968] tracking-[-0.2px]">{t('regular_class_reschedule_remaining_label')}</span>
+          <span className={`text-[20px] font-bold font-paperlogy ${canChange ? 'text-[#191F28]' : 'text-[#FF6B6B]'}`}>
+            {remaining}<span className="text-[13px] text-[#B0B8C1] font-semibold"> / {limit}</span><span className="text-[13px] ml-0.5">{t('regular_class_reschedule_count_unit')}</span>
+          </span>
+        </div>
+
+        <h3 className="mt-6 text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_select_title')}</h3>
+        <p className="mt-1 text-[13px] text-[#4E5968] tracking-[-0.2px] leading-[1.5]">{t('regular_class_reschedule_select_desc')}</p>
+
+        {!canChange ? (
+          <p className="py-8 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_error_limit_exceeded')}</p>
+        ) : candidates.length === 0 ? (
+          <p className="py-8 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_no_target')}</p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-2">
+            {candidates.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => onPick(c.id)}
+                className="flex items-center gap-3 pl-3 pr-3 py-3 rounded-xl border border-[#E5E8EB] text-left transition-colors active:bg-[#F7F8FA]"
+              >
+                {/* 수업 썸네일 — 공용 CircleImage. 없으면 같은 크기 회색 원 */}
+                {c.lesson?.thumbnailUrl
+                  ? <CircleImage size={44} imageUrl={c.lesson.thumbnailUrl}/>
+                  : <span className="w-11 h-11 rounded-full bg-[#F1F3F6] shrink-0"/>}
+                <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <span className="text-[15px] font-semibold text-[#191F28] truncate tracking-[-0.3px]">{c.lesson?.title}</span>
+                  <span className="text-[12.5px] text-[#4E5968] tracking-[-0.2px]">{formatLessonWhen(locale, c.lesson?.startDate, endOf(c))}</span>
+                </span>
+                <ChevronRight size={18} className="text-[#B0B8C1] shrink-0"/>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* 변경 이력 — 같은 시트 아래쪽에 (GET …/postpones, 최근 순) */}
+        <div className="mt-6 pt-5 border-t border-[#F2F4F6]">
+          <h3 className="text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_history')}</h3>
+          <HistoryList t={t} locale={locale} records={history}/>
+        </div>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mt-5 w-full h-[52px] rounded-[14px] bg-[#F2F4F6] text-[#4E5968] text-[15px] font-bold active:opacity-80"
+        >
+          {canChange ? t('cancel') : t('confirm')}
+        </button>
+      </div>
+    </BottomSheet>
+  );
+};
+
+/** 확인 시트 — 고른 수업의 기존 일정 → 새 일정(예상) + 변경하기. 변경하기 = POST …/postpone */
+const ConfirmSheet = ({ sheetRef, onClosed, t, locale, regularClassId, ticketId, upcoming, passTickets, days, endDate, quota, onBack, onDone }: {
+  sheetRef: React.Ref<BottomSheetHandle>;
+  onClosed: () => void;
+  t: (key: StringResourceKey) => string;
+  locale: Locale;
   regularClassId: number;
+  ticketId: number;
   upcoming: TicketResponse[];
   passTickets: PassRuleTicket[];
   days: number[];
   endDate?: string;
   quota: TicketPostponePass | null;
-  history: RegularClassPostponeResponse[];
-  onCancel: () => void;
+  /** 다시 고르기 — 고르기 시트로 */
+  onBack: () => void;
   onDone: (res: SelectResult) => void;
 }) => {
-  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   // state 는 리렌더 전 연타를 못 막는다 — 중복 요청 방지는 ref 로
   const loadingRef = useRef(false);
@@ -239,39 +375,13 @@ const SelectSheet = ({ sheetRef, onClosed, t, locale, regularClassId, upcoming, 
 
   const remaining = remainingOf(quota);
   const byId = useMemo(() => new Map(passTickets.map((tk) => [tk.id, tk])), [passTickets]);
-
-  const now = Date.now();
-  // 고를 수 있는 수업 — 이 패스로 나간 시작 전 수강권(취소 제외). 서버가 최종 판정한다
-  const candidates = upcoming
-    .filter((tk) => tk.status !== 'Cancelled' && (parts(tk.lesson?.startDate)?.at ?? 0) > now)
-    .sort((a, b) => (parts(a.lesson?.startDate)?.at ?? 0) - (parts(b.lesson?.startDate)?.at ?? 0));
-
-  const selected = candidates.find((c) => c.id === selectedId) ?? null;
+  const selected = upcoming.find((tk) => tk.id === ticketId) ?? null;
   const endOf = (tk: TicketResponse) => byId.get(tk.id)?.lesson?.endDate;
   const roomOf = (tk: TicketResponse) => tk.lesson?.room?.name ?? byId.get(tk.id)?.lesson?.room?.name;
-
-  // 새 일정(예상) — 이 패스로 가진 살아 있는 회차 중 가장 늦은 날의 다음 반 요일, 시간은 고른 수업 그대로
-  const preview = useMemo(() => {
-    if (!selected) return null;
-    const from = parts(selected.lesson?.startDate);
-    if (!from) return null;
-    const starts = [
-      ...passTickets.filter((tk) => tk.status !== 'Cancelled').map((tk) => tk.lesson?.startDate),
-      ...upcoming.map((tk) => tk.lesson?.startDate),
-    ].map((s) => parts(s)).filter((p): p is NonNullable<typeof p> => !!p);
-    const last = starts.reduce((a, b) => (b.at > a.at ? b : a), from);
-    const allowed = days.length > 0 ? days : [from.weekday];
-    const date = nextClassDay(last, allowed);
-    if (!date) return null;
-    const endTime = parts(byId.get(selected.id)?.lesson?.endDate)?.time;
-    const toStartDate = `${date} ${from.time ?? '00:00'}`;
-    const toEndDate = endTime ? `${date} ${endTime}` : undefined;
-    const passEnd = parts(endDate);
-    const to = parts(toStartDate)!;
-    // 종료일 당일까지는 기간 안 — 날짜만 비교
-    const afterEnd = !!passEnd && Date.UTC(to.year, to.month - 1, to.day) > Date.UTC(passEnd.year, passEnd.month - 1, passEnd.day);
-    return { toStartDate, toEndDate, afterEnd };
-  }, [selected, passTickets, upcoming, days, endDate, byId]);
+  const preview = useMemo(
+    () => (selected ? previewOf({ selected, upcoming, passTickets, days, endDate, byId }) : null),
+    [selected, upcoming, passTickets, days, endDate, byId],
+  );
 
   const submit = async () => {
     if (!selected || loadingRef.current) return;
@@ -297,100 +407,60 @@ const SelectSheet = ({ sheetRef, onClosed, t, locale, regularClassId, upcoming, 
     }
   };
 
-  const canChange = remaining > 0;
-  const limit = quota?.postponeLimit ?? 0;
-
   return (
-    <BottomSheet ref={sheetRef} onClose={onClosed} locked={loading} title={t('regular_class_reschedule_action')} maxHeightVh={88}>
-      <div className="px-6 overflow-y-auto">
-        {/* 남은 횟수 — 맨 위에 크게(남은/한도). 다 썼으면 안내만 하고 고르기는 막는다 */}
-        <div className="rounded-2xl bg-[#F7F8FA] px-4 py-3.5 flex items-center justify-between gap-3">
-          <span className="text-[13.5px] font-semibold text-[#4E5968] tracking-[-0.2px]">{t('regular_class_reschedule_remaining_label')}</span>
-          <span className={`text-[20px] font-bold font-paperlogy ${canChange ? 'text-[#191F28]' : 'text-[#FF6B6B]'}`}>
-            {remaining}<span className="text-[13px] text-[#B0B8C1] font-semibold"> / {limit}</span><span className="text-[13px] ml-0.5">{t('regular_class_reschedule_count_unit')}</span>
-          </span>
-        </div>
-
-        <h3 className="mt-6 text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_select_title')}</h3>
-        <p className="mt-1 text-[13px] text-[#4E5968] tracking-[-0.2px] leading-[1.5]">{t('regular_class_reschedule_select_desc')}</p>
-
-        {!canChange ? (
-          <p className="py-8 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_error_limit_exceeded')}</p>
-        ) : candidates.length === 0 ? (
+    <BottomSheet ref={sheetRef} onClose={onClosed} locked={loading} title={t('regular_class_reschedule_confirm_title')}>
+      <div className="px-6">
+        {!selected ? (
           <p className="py-8 text-center text-[14px] text-[#8B95A1]">{t('regular_class_reschedule_no_target')}</p>
         ) : (
-          <div className="mt-3 flex flex-col gap-2">
-            {candidates.map((c) => {
-              const on = c.id === selectedId;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  disabled={loading}
-                  onClick={() => setSelectedId(c.id)}
-                  className={`flex items-center gap-3 pl-3 pr-4 py-3 rounded-xl border text-left transition-colors ${on ? 'border-[#191F28] bg-[#F7F8FA]' : 'border-[#E5E8EB]'}`}
-                >
-                  {/* 수업 썸네일 — 공용 CircleImage. 없으면 같은 크기 회색 원 */}
-                  {c.lesson?.thumbnailUrl
-                    ? <CircleImage size={44} imageUrl={c.lesson.thumbnailUrl}/>
-                    : <span className="w-11 h-11 rounded-full bg-[#F1F3F6] shrink-0"/>}
-                  <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-                    <span className="text-[15px] font-semibold text-[#191F28] truncate tracking-[-0.3px]">{c.lesson?.title}</span>
-                    <span className="text-[12.5px] text-[#4E5968] tracking-[-0.2px]">{formatLessonWhen(locale, c.lesson?.startDate, endOf(c))}</span>
-                  </span>
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${on ? 'bg-[#191F28]' : 'border-2 border-[#D1D6DB]'}`}>
-                    {on && <Check size={13} strokeWidth={3} className="text-white"/>}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* 새 수업 일정(예상) 미리보기 — 고르면 바로 보인다. 확정은 서버 */}
-        {selected && (
-          <div className="mt-5 rounded-2xl bg-[#F7F8FA] p-4 flex flex-col gap-3">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] font-semibold text-[#8B95A1]">{t('regular_class_reschedule_from')}</span>
-              <span className="text-[14px] text-[#8B95A1] line-through tracking-[-0.2px]">{formatLessonWhen(locale, selected.lesson?.startDate, endOf(selected))}</span>
+          <>
+            {/* 고른 수업 */}
+            <div className="flex items-center gap-3">
+              {selected.lesson?.thumbnailUrl
+                ? <CircleImage size={44} imageUrl={selected.lesson.thumbnailUrl}/>
+                : <span className="w-11 h-11 rounded-full bg-[#F1F3F6] shrink-0"/>}
+              <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                <span className="text-[15px] font-semibold text-[#191F28] truncate tracking-[-0.3px]">{selected.lesson?.title}</span>
+                {roomOf(selected) && <span className="text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">{roomOf(selected)}</span>}
+              </span>
             </div>
-            {preview && (
-              <>
-                <div className="h-px bg-[#E5E8EB]"/>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[12px] font-semibold text-[#3B5BDB]">{t('regular_class_reschedule_to')}</span>
-                  <span className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px]">{formatLessonWhen(locale, preview.toStartDate, preview.toEndDate)}</span>
-                  {roomOf(selected) && <span className="text-[12.5px] text-[#4E5968]">{roomOf(selected)}</span>}
-                </div>
-                {preview.afterEnd && (
-                  <p className="text-[12.5px] font-semibold text-[#F59E0B] tracking-[-0.2px]">{t('regular_class_reschedule_after_end')}</p>
-                )}
-              </>
-            )}
-          </div>
+
+            {/* 기존 → 새 일정(예상). 확정은 서버 */}
+            <div className="mt-4 rounded-2xl bg-[#F7F8FA] p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[12px] font-semibold text-[#8B95A1]">{t('regular_class_reschedule_from')}</span>
+                <span className="text-[14px] text-[#8B95A1] line-through tracking-[-0.2px]">{formatLessonWhen(locale, selected.lesson?.startDate, endOf(selected))}</span>
+              </div>
+              {preview && (
+                <>
+                  <div className="h-px bg-[#E5E8EB]"/>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[12px] font-semibold text-[#3B5BDB]">{t('regular_class_reschedule_to')}</span>
+                    <span className="text-[17px] font-bold text-[#191F28] tracking-[-0.3px]">{formatLessonWhen(locale, preview.toStartDate, preview.toEndDate)}</span>
+                  </div>
+                  {preview.afterEnd && (
+                    <p className="text-[12.5px] font-semibold text-[#F59E0B] tracking-[-0.2px]">{t('regular_class_reschedule_after_end')}</p>
+                  )}
+                </>
+              )}
+            </div>
+
+            <p className="mt-3 text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">{t('regular_class_reschedule_select_desc')}</p>
+            <p className="mt-1 text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">{t('regular_class_reschedule_irreversible')}</p>
+          </>
         )}
 
-        {canChange && (
-          <p className="mt-3 text-[12.5px] text-[#8B95A1] tracking-[-0.2px]">{t('regular_class_reschedule_irreversible')}</p>
-        )}
-
-        {/* 변경 이력 — 같은 시트 아래쪽에 (GET …/postpones, 최근 순) */}
-        <div className="mt-6 pt-5 border-t border-[#F2F4F6]">
-          <h3 className="text-[15px] font-bold text-[#191F28] tracking-[-0.3px]">{t('regular_class_reschedule_history')}</h3>
-          <HistoryList t={t} locale={locale} records={history}/>
-        </div>
-
-        <div className="mt-5 flex gap-2">
+        <div className="mt-6 flex gap-2">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={onBack}
             disabled={loading}
             className="flex-1 h-[52px] rounded-[14px] bg-[#F2F4F6] text-[#4E5968] text-[15px] font-bold active:opacity-80 disabled:opacity-50"
           >
-            {canChange ? t('cancel') : t('confirm')}
+            {t('regular_class_reschedule_reselect')}
           </button>
-          {canChange && (
-            <PrimaryButton onClick={submit} disabled={!selected} loading={loading} className="flex-[2]">
+          {selected && (
+            <PrimaryButton onClick={submit} loading={loading} className="flex-[2]">
               {t('regular_class_reschedule_action')}
             </PrimaryButton>
           )}
